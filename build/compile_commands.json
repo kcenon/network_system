@@ -1,0 +1,98 @@
+[
+{
+  "directory": "/Users/dongcheolshin/Sources/network_system/build",
+  "command": "/usr/bin/c++ -DASIO_HAS_CO_AWAIT -DASIO_HAS_STD_COROUTINE -DASIO_NO_DEPRECATED -DASIO_STANDALONE -DCONTAINER_HAS_THREAD_UTILITIES -DFMT_SHARED -DHAS_THREAD_UTILITIES -DNETWORK_HAS_THREAD_UTILITIES -DNETWORK_INTERNAL_FEATURES -I/Users/dongcheolshin/Sources/network_system -I/Users/dongcheolshin/Sources/thread_system/sources -I/Users/dongcheolshin/Sources/container_system -isystem /opt/homebrew/include -O3 -DNDEBUG -std=c++20 -arch arm64 -fPIC -Wall -Wextra -Wpedantic -Wno-unused-parameter -Wno-unused-variable -Wno-missing-field-initializers -o CMakeFiles/network.dir/core/messaging_client.cpp.o -c /Users/dongcheolshin/Sources/network_system/core/messaging_client.cpp",
+  "file": "/Users/dongcheolshin/Sources/network_system/core/messaging_client.cpp",
+  "output": "CMakeFiles/network.dir/core/messaging_client.cpp.o"
+},
+{
+  "directory": "/Users/dongcheolshin/Sources/network_system/build",
+  "command": "/usr/bin/c++ -DASIO_HAS_CO_AWAIT -DASIO_HAS_STD_COROUTINE -DASIO_NO_DEPRECATED -DASIO_STANDALONE -DCONTAINER_HAS_THREAD_UTILITIES -DFMT_SHARED -DHAS_THREAD_UTILITIES -DNETWORK_HAS_THREAD_UTILITIES -DNETWORK_INTERNAL_FEATURES -I/Users/dongcheolshin/Sources/network_system -I/Users/dongcheolshin/Sources/thread_system/sources -I/Users/dongcheolshin/Sources/container_system -isystem /opt/homebrew/include -O3 -DNDEBUG -std=c++20 -arch arm64 -fPIC -Wall -Wextra -Wpedantic -Wno-unused-parameter -Wno-unused-variable -Wno-missing-field-initializers -o CMakeFiles/network.dir/core/messaging_server.cpp.o -c /Users/dongcheolshin/Sources/network_system/core/messaging_server.cpp",
+  "file": "/Users/dongcheolshin/Sources/network_system/core/messaging_server.cpp",
+  "output": "CMakeFiles/network.dir/core/messaging_server.cpp.o"
+},
+{
+  "directory": "/Users/dongcheolshin/Sources/network_system/build",
+  "command": "/usr/bin/c++ -DASIO_HAS_CO_AWAIT -DASIO_HAS_STD_COROUTINE -DASIO_NO_DEPRECATED -DASIO_STANDALONE -DCONTAINER_HAS_THREAD_UTILITIES -DFMT_SHARED -DHAS_THREAD_UTILITIES -DNETWORK_HAS_THREAD_UTILITIES -DNETWORK_INTERNAL_FEATURES -I/Users/dongcheolshin/Sources/network_system -I/Users/dongcheolshin/Sources/thread_system/sources -I/Users/dongcheolshin/Sources/container_system -isystem /opt/homebrew/include -O3 -DNDEBUG -std=c++20 -arch arm64 -fPIC -Wall -Wextra -Wpedantic -Wno-unused-parameter -Wno-unused-variable -Wno-missing-field-initializers -o CMakeFiles/network.dir/session/messaging_session.cpp.o -c /Users/dongcheolshin/Sources/network_system/session/messaging_session.cpp",
+  "file": "/Users/dongcheolshin/Sources/network_system/session/messaging_session.cpp",
+  "output": "CMakeFiles/network.dir/session/messaging_session.cpp.o"
+},
+{
+  "directory": "/Users/dongcheolshin/Sources/network_system/build",
+  "command": "/usr/bin/c++ -DASIO_HAS_CO_AWAIT -DASIO_HAS_STD_COROUTINE -DASIO_NO_DEPRECATED -DASIO_STANDALONE -DCONTAINER_HAS_THREAD_UTILITIES -DFMT_SHARED -DHAS_THREAD_UTILITIES -DNETWORK_HAS_THREAD_UTILITIES -DNETWORK_INTERNAL_FEATURES -I/Users/dongcheolshin/Sources/network_system -I/Users/dongcheolshin/Sources/thread_system/sources -I/Users/dongcheolshin/Sources/container_system -isystem /opt/homebrew/include -O3 -DNDEBUG -std=c++20 -arch arm64 -fPIC -Wall -Wextra -Wpedantic -Wno-unused-parameter -Wno-unused-variable -Wno-missing-field-initializers -o CMakeFiles/network.dir/internal/tcp_socket.cpp.o -c /Users/dongcheolshin/Sources/network_system/internal/tcp_socket.cpp",
+  "file": "/Users/dongcheolshin/Sources/network_system/internal/tcp_socket.cpp",
+  "output": "CMakeFiles/network.dir/internal/tcp_socket.cpp.o"
+},
+{
+  "directory": "/Users/dongcheolshin/Sources/network_system/build",
+  "command": "/usr/bin/c++ -DASIO_HAS_CO_AWAIT -DASIO_HAS_STD_COROUTINE -DASIO_NO_DEPRECATED -DASIO_STANDALONE -DCONTAINER_HAS_THREAD_UTILITIES -DFMT_SHARED -DHAS_THREAD_UTILITIES -DNETWORK_HAS_THREAD_UTILITIES -DNETWORK_INTERNAL_FEATURES -I/Users/dongcheolshin/Sources/network_system -I/Users/dongcheolshin/Sources/thread_system/sources -I/Users/dongcheolshin/Sources/container_system -isystem /opt/homebrew/include -O3 -DNDEBUG -std=c++20 -arch arm64 -fPIC -Wall -Wextra -Wpedantic -Wno-unused-parameter -Wno-unused-variable -Wno-missing-field-initializers -o CMakeFiles/network.dir/internal/send_coroutine.cpp.o -c /Users/dongcheolshin/Sources/network_system/internal/send_coroutine.cpp",
+  "file": "/Users/dongcheolshin/Sources/network_system/internal/send_coroutine.cpp",
+  "output": "CMakeFiles/network.dir/internal/send_coroutine.cpp.o"
+},
+{
+  "directory": "/Users/dongcheolshin/Sources/network_system/build",
+  "command": "/usr/bin/c++ -DASIO_HAS_CO_AWAIT -DASIO_HAS_STD_COROUTINE -DASIO_NO_DEPRECATED -DASIO_STANDALONE -DCONTAINER_HAS_THREAD_UTILITIES -DFMT_SHARED -DHAS_THREAD_UTILITIES -DNETWORK_HAS_THREAD_UTILITIES -DNETWORK_INTERNAL_FEATURES -I/Users/dongcheolshin/Sources/network_system -I/Users/dongcheolshin/Sources/thread_system/sources -I/Users/dongcheolshin/Sources/container_system -isystem /opt/homebrew/include -O3 -DNDEBUG -std=c++20 -arch arm64 -fPIC -Wall -Wextra -Wpedantic -Wno-unused-parameter -Wno-unused-variable -Wno-missing-field-initializers -o CMakeFiles/network.dir/internal/pipeline.cpp.o -c /Users/dongcheolshin/Sources/network_system/internal/pipeline.cpp",
+  "file": "/Users/dongcheolshin/Sources/network_system/internal/pipeline.cpp",
+  "output": "CMakeFiles/network.dir/internal/pipeline.cpp.o"
+},
+{
+  "directory": "/Users/dongcheolshin/Sources/network_system/build/container_system",
+  "command": "/usr/bin/c++ -DCONTAINER_HAS_THREAD_UTILITIES -DCONTAINER_INTERNAL_FEATURES -DFMT_SHARED -DHAS_ARM_NEON -DHAS_THREAD_UTILITIES -I/Users/dongcheolshin/Sources/container_system -I/Users/dongcheolshin/Sources/thread_system/sources -isystem /opt/homebrew/include -O3 -DNDEBUG -std=c++20 -arch arm64 -fPIC -Wall -Wextra -Wpedantic -Wno-unused-parameter -Wno-unused-variable -Wno-unused-lambda-capture -o CMakeFiles/container.dir/core/container.cpp.o -c /Users/dongcheolshin/Sources/container_system/core/container.cpp",
+  "file": "/Users/dongcheolshin/Sources/container_system/core/container.cpp",
+  "output": "container_system/CMakeFiles/container.dir/core/container.cpp.o"
+},
+{
+  "directory": "/Users/dongcheolshin/Sources/network_system/build/container_system",
+  "command": "/usr/bin/c++ -DCONTAINER_HAS_THREAD_UTILITIES -DCONTAINER_INTERNAL_FEATURES -DFMT_SHARED -DHAS_ARM_NEON -DHAS_THREAD_UTILITIES -I/Users/dongcheolshin/Sources/container_system -I/Users/dongcheolshin/Sources/thread_system/sources -isystem /opt/homebrew/include -O3 -DNDEBUG -std=c++20 -arch arm64 -fPIC -Wall -Wextra -Wpedantic -Wno-unused-parameter -Wno-unused-variable -Wno-unused-lambda-capture -o CMakeFiles/container.dir/core/value.cpp.o -c /Users/dongcheolshin/Sources/container_system/core/value.cpp",
+  "file": "/Users/dongcheolshin/Sources/container_system/core/value.cpp",
+  "output": "container_system/CMakeFiles/container.dir/core/value.cpp.o"
+},
+{
+  "directory": "/Users/dongcheolshin/Sources/network_system/build/container_system",
+  "command": "/usr/bin/c++ -DCONTAINER_HAS_THREAD_UTILITIES -DCONTAINER_INTERNAL_FEATURES -DFMT_SHARED -DHAS_ARM_NEON -DHAS_THREAD_UTILITIES -I/Users/dongcheolshin/Sources/container_system -I/Users/dongcheolshin/Sources/thread_system/sources -isystem /opt/homebrew/include -O3 -DNDEBUG -std=c++20 -arch arm64 -fPIC -Wall -Wextra -Wpedantic -Wno-unused-parameter -Wno-unused-variable -Wno-unused-lambda-capture -o CMakeFiles/container.dir/core/value_types.cpp.o -c /Users/dongcheolshin/Sources/container_system/core/value_types.cpp",
+  "file": "/Users/dongcheolshin/Sources/container_system/core/value_types.cpp",
+  "output": "container_system/CMakeFiles/container.dir/core/value_types.cpp.o"
+},
+{
+  "directory": "/Users/dongcheolshin/Sources/network_system/build/container_system",
+  "command": "/usr/bin/c++ -DCONTAINER_HAS_THREAD_UTILITIES -DCONTAINER_INTERNAL_FEATURES -DFMT_SHARED -DHAS_ARM_NEON -DHAS_THREAD_UTILITIES -I/Users/dongcheolshin/Sources/container_system -I/Users/dongcheolshin/Sources/thread_system/sources -isystem /opt/homebrew/include -O3 -DNDEBUG -std=c++20 -arch arm64 -fPIC -Wall -Wextra -Wpedantic -Wno-unused-parameter -Wno-unused-variable -Wno-unused-lambda-capture -o CMakeFiles/container.dir/values/bool_value.cpp.o -c /Users/dongcheolshin/Sources/container_system/values/bool_value.cpp",
+  "file": "/Users/dongcheolshin/Sources/container_system/values/bool_value.cpp",
+  "output": "container_system/CMakeFiles/container.dir/values/bool_value.cpp.o"
+},
+{
+  "directory": "/Users/dongcheolshin/Sources/network_system/build/container_system",
+  "command": "/usr/bin/c++ -DCONTAINER_HAS_THREAD_UTILITIES -DCONTAINER_INTERNAL_FEATURES -DFMT_SHARED -DHAS_ARM_NEON -DHAS_THREAD_UTILITIES -I/Users/dongcheolshin/Sources/container_system -I/Users/dongcheolshin/Sources/thread_system/sources -isystem /opt/homebrew/include -O3 -DNDEBUG -std=c++20 -arch arm64 -fPIC -Wall -Wextra -Wpedantic -Wno-unused-parameter -Wno-unused-variable -Wno-unused-lambda-capture -o CMakeFiles/container.dir/values/bytes_value.cpp.o -c /Users/dongcheolshin/Sources/container_system/values/bytes_value.cpp",
+  "file": "/Users/dongcheolshin/Sources/container_system/values/bytes_value.cpp",
+  "output": "container_system/CMakeFiles/container.dir/values/bytes_value.cpp.o"
+},
+{
+  "directory": "/Users/dongcheolshin/Sources/network_system/build/container_system",
+  "command": "/usr/bin/c++ -DCONTAINER_HAS_THREAD_UTILITIES -DCONTAINER_INTERNAL_FEATURES -DFMT_SHARED -DHAS_ARM_NEON -DHAS_THREAD_UTILITIES -I/Users/dongcheolshin/Sources/container_system -I/Users/dongcheolshin/Sources/thread_system/sources -isystem /opt/homebrew/include -O3 -DNDEBUG -std=c++20 -arch arm64 -fPIC -Wall -Wextra -Wpedantic -Wno-unused-parameter -Wno-unused-variable -Wno-unused-lambda-capture -o CMakeFiles/container.dir/values/container_value.cpp.o -c /Users/dongcheolshin/Sources/container_system/values/container_value.cpp",
+  "file": "/Users/dongcheolshin/Sources/container_system/values/container_value.cpp",
+  "output": "container_system/CMakeFiles/container.dir/values/container_value.cpp.o"
+},
+{
+  "directory": "/Users/dongcheolshin/Sources/network_system/build/container_system",
+  "command": "/usr/bin/c++ -DCONTAINER_HAS_THREAD_UTILITIES -DCONTAINER_INTERNAL_FEATURES -DFMT_SHARED -DHAS_ARM_NEON -DHAS_THREAD_UTILITIES -I/Users/dongcheolshin/Sources/container_system -I/Users/dongcheolshin/Sources/thread_system/sources -isystem /opt/homebrew/include -O3 -DNDEBUG -std=c++20 -arch arm64 -fPIC -Wall -Wextra -Wpedantic -Wno-unused-parameter -Wno-unused-variable -Wno-unused-lambda-capture -o CMakeFiles/container.dir/values/string_value.cpp.o -c /Users/dongcheolshin/Sources/container_system/values/string_value.cpp",
+  "file": "/Users/dongcheolshin/Sources/container_system/values/string_value.cpp",
+  "output": "container_system/CMakeFiles/container.dir/values/string_value.cpp.o"
+},
+{
+  "directory": "/Users/dongcheolshin/Sources/network_system/build/container_system",
+  "command": "/usr/bin/c++ -DCONTAINER_HAS_THREAD_UTILITIES -DCONTAINER_INTERNAL_FEATURES -DFMT_SHARED -DHAS_ARM_NEON -DHAS_THREAD_UTILITIES -I/Users/dongcheolshin/Sources/container_system -I/Users/dongcheolshin/Sources/thread_system/sources -isystem /opt/homebrew/include -O3 -DNDEBUG -std=c++20 -arch arm64 -fPIC -Wall -Wextra -Wpedantic -Wno-unused-parameter -Wno-unused-variable -Wno-unused-lambda-capture -o CMakeFiles/container.dir/internal/variant_value.cpp.o -c /Users/dongcheolshin/Sources/container_system/internal/variant_value.cpp",
+  "file": "/Users/dongcheolshin/Sources/container_system/internal/variant_value.cpp",
+  "output": "container_system/CMakeFiles/container.dir/internal/variant_value.cpp.o"
+},
+{
+  "directory": "/Users/dongcheolshin/Sources/network_system/build/container_system",
+  "command": "/usr/bin/c++ -DCONTAINER_HAS_THREAD_UTILITIES -DCONTAINER_INTERNAL_FEATURES -DFMT_SHARED -DHAS_ARM_NEON -DHAS_THREAD_UTILITIES -I/Users/dongcheolshin/Sources/container_system -I/Users/dongcheolshin/Sources/thread_system/sources -isystem /opt/homebrew/include -O3 -DNDEBUG -std=c++20 -arch arm64 -fPIC -Wall -Wextra -Wpedantic -Wno-unused-parameter -Wno-unused-variable -Wno-unused-lambda-capture -o CMakeFiles/container.dir/internal/thread_safe_container.cpp.o -c /Users/dongcheolshin/Sources/container_system/internal/thread_safe_container.cpp",
+  "file": "/Users/dongcheolshin/Sources/container_system/internal/thread_safe_container.cpp",
+  "output": "container_system/CMakeFiles/container.dir/internal/thread_safe_container.cpp.o"
+},
+{
+  "directory": "/Users/dongcheolshin/Sources/network_system/build/container_system",
+  "command": "/usr/bin/c++ -DCONTAINER_HAS_THREAD_UTILITIES -DCONTAINER_INTERNAL_FEATURES -DFMT_SHARED -DHAS_ARM_NEON -DHAS_THREAD_UTILITIES -I/Users/dongcheolshin/Sources/container_system -I/Users/dongcheolshin/Sources/thread_system/sources -isystem /opt/homebrew/include -O3 -DNDEBUG -std=c++20 -arch arm64 -fPIC -Wall -Wextra -Wpedantic -Wno-unused-parameter -Wno-unused-variable -Wno-unused-lambda-capture -o CMakeFiles/container.dir/internal/simd_processor.cpp.o -c /Users/dongcheolshin/Sources/container_system/internal/simd_processor.cpp",
+  "file": "/Users/dongcheolshin/Sources/container_system/internal/simd_processor.cpp",
+  "output": "container_system/CMakeFiles/container.dir/internal/simd_processor.cpp.o"
+}
+]
