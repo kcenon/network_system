@@ -30,7 +30,7 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *****************************************************************************/
 
-#include "internal/send_coroutine.h"
+#include "network/internal/send_coroutine.h"
 
 #include <future>
 #include <thread>

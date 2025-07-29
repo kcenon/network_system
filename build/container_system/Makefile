@@ -175,6 +175,34 @@ container/fast:
 	cd /Users/dongcheolshin/Sources/network_system/build && $(MAKE) $(MAKESILENT) -f container_system/CMakeFiles/container.dir/build.make container_system/CMakeFiles/container.dir/build
 .PHONY : container/fast
 
+# Convenience name for target.
+container_system/CMakeFiles/container_unit_tests.dir/rule:
+	cd /Users/dongcheolshin/Sources/network_system/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 container_system/CMakeFiles/container_unit_tests.dir/rule
+.PHONY : container_system/CMakeFiles/container_unit_tests.dir/rule
+
+# Convenience name for target.
+container_unit_tests: container_system/CMakeFiles/container_unit_tests.dir/rule
+.PHONY : container_unit_tests
+
+# fast build rule for target.
+container_unit_tests/fast:
+	cd /Users/dongcheolshin/Sources/network_system/build && $(MAKE) $(MAKESILENT) -f container_system/CMakeFiles/container_unit_tests.dir/build.make container_system/CMakeFiles/container_unit_tests.dir/build
+.PHONY : container_unit_tests/fast
+
+# Convenience name for target.
+container_system/CMakeFiles/container_benchmark_tests.dir/rule:
+	cd /Users/dongcheolshin/Sources/network_system/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 container_system/CMakeFiles/container_benchmark_tests.dir/rule
+.PHONY : container_system/CMakeFiles/container_benchmark_tests.dir/rule
+
+# Convenience name for target.
+container_benchmark_tests: container_system/CMakeFiles/container_benchmark_tests.dir/rule
+.PHONY : container_benchmark_tests
+
+# fast build rule for target.
+container_benchmark_tests/fast:
+	cd /Users/dongcheolshin/Sources/network_system/build && $(MAKE) $(MAKESILENT) -f container_system/CMakeFiles/container_benchmark_tests.dir/build.make container_system/CMakeFiles/container_benchmark_tests.dir/build
+.PHONY : container_benchmark_tests/fast
+
 core/container.o: core/container.cpp.o
 .PHONY : core/container.o
 
@@ -319,6 +347,78 @@ internal/variant_value.cpp.s:
 	cd /Users/dongcheolshin/Sources/network_system/build && $(MAKE) $(MAKESILENT) -f container_system/CMakeFiles/container.dir/build.make container_system/CMakeFiles/container.dir/internal/variant_value.cpp.s
 .PHONY : internal/variant_value.cpp.s
 
+tests/benchmark_tests.o: tests/benchmark_tests.cpp.o
+.PHONY : tests/benchmark_tests.o
+
+# target to build an object file
+tests/benchmark_tests.cpp.o:
+	cd /Users/dongcheolshin/Sources/network_system/build && $(MAKE) $(MAKESILENT) -f container_system/CMakeFiles/container_benchmark_tests.dir/build.make container_system/CMakeFiles/container_benchmark_tests.dir/tests/benchmark_tests.cpp.o
+.PHONY : tests/benchmark_tests.cpp.o
+
+tests/benchmark_tests.i: tests/benchmark_tests.cpp.i
+.PHONY : tests/benchmark_tests.i
+
+# target to preprocess a source file
+tests/benchmark_tests.cpp.i:
+	cd /Users/dongcheolshin/Sources/network_system/build && $(MAKE) $(MAKESILENT) -f container_system/CMakeFiles/container_benchmark_tests.dir/build.make container_system/CMakeFiles/container_benchmark_tests.dir/tests/benchmark_tests.cpp.i
+.PHONY : tests/benchmark_tests.cpp.i
+
+tests/benchmark_tests.s: tests/benchmark_tests.cpp.s
+.PHONY : tests/benchmark_tests.s
+
+# target to generate assembly for a file
+tests/benchmark_tests.cpp.s:
+	cd /Users/dongcheolshin/Sources/network_system/build && $(MAKE) $(MAKESILENT) -f container_system/CMakeFiles/container_benchmark_tests.dir/build.make container_system/CMakeFiles/container_benchmark_tests.dir/tests/benchmark_tests.cpp.s
+.PHONY : tests/benchmark_tests.cpp.s
+
+tests/unit_tests.o: tests/unit_tests.cpp.o
+.PHONY : tests/unit_tests.o
+
+# target to build an object file
+tests/unit_tests.cpp.o:
+	cd /Users/dongcheolshin/Sources/network_system/build && $(MAKE) $(MAKESILENT) -f container_system/CMakeFiles/container_unit_tests.dir/build.make container_system/CMakeFiles/container_unit_tests.dir/tests/unit_tests.cpp.o
+.PHONY : tests/unit_tests.cpp.o
+
+tests/unit_tests.i: tests/unit_tests.cpp.i
+.PHONY : tests/unit_tests.i
+
+# target to preprocess a source file
+tests/unit_tests.cpp.i:
+	cd /Users/dongcheolshin/Sources/network_system/build && $(MAKE) $(MAKESILENT) -f container_system/CMakeFiles/container_unit_tests.dir/build.make container_system/CMakeFiles/container_unit_tests.dir/tests/unit_tests.cpp.i
+.PHONY : tests/unit_tests.cpp.i
+
+tests/unit_tests.s: tests/unit_tests.cpp.s
+.PHONY : tests/unit_tests.s
+
+# target to generate assembly for a file
+tests/unit_tests.cpp.s:
+	cd /Users/dongcheolshin/Sources/network_system/build && $(MAKE) $(MAKESILENT) -f container_system/CMakeFiles/container_unit_tests.dir/build.make container_system/CMakeFiles/container_unit_tests.dir/tests/unit_tests.cpp.s
+.PHONY : tests/unit_tests.cpp.s
+
+utilities/convert_string_stub.o: utilities/convert_string_stub.cpp.o
+.PHONY : utilities/convert_string_stub.o
+
+# target to build an object file
+utilities/convert_string_stub.cpp.o:
+	cd /Users/dongcheolshin/Sources/network_system/build && $(MAKE) $(MAKESILENT) -f container_system/CMakeFiles/container.dir/build.make container_system/CMakeFiles/container.dir/utilities/convert_string_stub.cpp.o
+.PHONY : utilities/convert_string_stub.cpp.o
+
+utilities/convert_string_stub.i: utilities/convert_string_stub.cpp.i
+.PHONY : utilities/convert_string_stub.i
+
+# target to preprocess a source file
+utilities/convert_string_stub.cpp.i:
+	cd /Users/dongcheolshin/Sources/network_system/build && $(MAKE) $(MAKESILENT) -f container_system/CMakeFiles/container.dir/build.make container_system/CMakeFiles/container.dir/utilities/convert_string_stub.cpp.i
+.PHONY : utilities/convert_string_stub.cpp.i
+
+utilities/convert_string_stub.s: utilities/convert_string_stub.cpp.s
+.PHONY : utilities/convert_string_stub.s
+
+# target to generate assembly for a file
+utilities/convert_string_stub.cpp.s:
+	cd /Users/dongcheolshin/Sources/network_system/build && $(MAKE) $(MAKESILENT) -f container_system/CMakeFiles/container.dir/build.make container_system/CMakeFiles/container.dir/utilities/convert_string_stub.cpp.s
+.PHONY : utilities/convert_string_stub.cpp.s
+
 values/bool_value.o: values/bool_value.cpp.o
 .PHONY : values/bool_value.o
 
@@ -428,6 +528,8 @@ help:
 	@echo "... list_install_components"
 	@echo "... rebuild_cache"
 	@echo "... container"
+	@echo "... container_benchmark_tests"
+	@echo "... container_unit_tests"
 	@echo "... core/container.o"
 	@echo "... core/container.i"
 	@echo "... core/container.s"
@@ -446,6 +548,15 @@ help:
 	@echo "... internal/variant_value.o"
 	@echo "... internal/variant_value.i"
 	@echo "... internal/variant_value.s"
+	@echo "... tests/benchmark_tests.o"
+	@echo "... tests/benchmark_tests.i"
+	@echo "... tests/benchmark_tests.s"
+	@echo "... tests/unit_tests.o"
+	@echo "... tests/unit_tests.i"
+	@echo "... tests/unit_tests.s"
+	@echo "... utilities/convert_string_stub.o"
+	@echo "... utilities/convert_string_stub.i"
+	@echo "... utilities/convert_string_stub.s"
 	@echo "... values/bool_value.o"
 	@echo "... values/bool_value.i"
 	@echo "... values/bool_value.s"

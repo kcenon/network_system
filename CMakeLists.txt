@@ -1,13 +1,16 @@
 cmake_minimum_required(VERSION 3.16)
 
 ##################################################
-# Network System Project
-# Independent, reusable network component
+# Network System CMakeLists.txt
+# 
+# Independent network system with high-performance messaging
+# Provides TCP/UDP communication and client/server implementation.
 ##################################################
 
-project(NetworkSystem 
+# Project definition
+project(network_system 
     VERSION 1.0.0
-    DESCRIPTION "High-performance asynchronous network messaging library"
+    DESCRIPTION "Advanced C++20 Network System with High-Performance Messaging"
     LANGUAGES CXX
 )
 
@@ -19,76 +22,31 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Options
 option(BUILD_SHARED_LIBS "Build using shared libraries" OFF)
-option(BUILD_NETWORK_TESTS "Build network tests" ON)
-option(BUILD_NETWORK_SAMPLES "Build network samples" ON)
-option(BUILD_NETWORK_DOCS "Build network documentation" OFF)
+option(USE_UNIT_TEST "Use unit test" ON)
+option(BUILD_NETWORK_SAMPLES "Build network system samples" ON)
+option(USE_SSL "Enable SSL/TLS support" OFF)
+option(USE_EPOLL "Enable epoll support (Linux)" ON)
+option(USE_KQUEUE "Enable kqueue support (macOS/BSD)" ON)
 
 # Output directories
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
+# Debug flags
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -D_DEBUG")
+
+# Platform-specific settings
+if(WIN32)
+    add_definitions(-D_WIN32_WINNT=0x0A00) # Windows 10
+elseif(APPLE)
+    add_definitions(-DAPPLE_PLATFORM)
+elseif(UNIX)
+    add_definitions(-DLINUX_PLATFORM)
+endif()
+
 # Find required packages
 find_package(Threads REQUIRED)
-
-##################################################
-# External Dependencies Management
-##################################################
-
-# Option to use external container_system
-option(USE_EXTERNAL_CONTAINER_SYSTEM "Use external container system" ON)
-
-if(USE_EXTERNAL_CONTAINER_SYSTEM)
-    # Try to find external ContainerSystem
-    find_package(ContainerSystem QUIET)
-    if(ContainerSystem_FOUND)
-        message(STATUS "Found external ContainerSystem: ${ContainerSystem_VERSION}")
-        set(CONTAINER_TARGET ContainerSystem::container)
-    else()
-        # Try to find local container_system
-        find_path(CONTAINER_SYSTEM_DIR
-            NAMES container.h
-            PATHS
-                ${CMAKE_CURRENT_SOURCE_DIR}/../container_system
-                ${CMAKE_PREFIX_PATH}/include/container_system
-            NO_DEFAULT_PATH
-        )
-        
-        if(CONTAINER_SYSTEM_DIR)
-            message(STATUS "Found local container_system at: ${CONTAINER_SYSTEM_DIR}")
-            add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../container_system container_system)
-            set(CONTAINER_TARGET container)
-        else()
-            message(FATAL_ERROR "ContainerSystem is required but not found")
-        endif()
-    endif()
-else()
-    message(FATAL_ERROR "External container system is required")
-endif()
-
-# Option to use external thread_system utilities
-option(USE_EXTERNAL_THREAD_UTILITIES "Use external thread utilities" ON)
-
-if(USE_EXTERNAL_THREAD_UTILITIES)
-    find_path(THREAD_UTILITIES_INCLUDE_DIR
-        NAMES utilities/conversion/convert_string.h
-        PATHS
-            ${CMAKE_PREFIX_PATH}/include/thread_system
-            ${CMAKE_CURRENT_SOURCE_DIR}/../thread_system/sources
-            ${CMAKE_CURRENT_SOURCE_DIR}/../messaging_system/thread_system/sources
-        NO_DEFAULT_PATH
-    )
-    
-    if(THREAD_UTILITIES_INCLUDE_DIR)
-        message(STATUS "Found thread utilities at: ${THREAD_UTILITIES_INCLUDE_DIR}")
-        set(THREAD_UTILITIES_FOUND TRUE)
-    else()
-        message(WARNING "Thread utilities not found - some features may be limited")
-        set(THREAD_UTILITIES_FOUND FALSE)
-    endif()
-else()
-    set(THREAD_UTILITIES_FOUND FALSE)
-endif()
 
 ##################################################
 # Source Files Configuration
@@ -136,20 +94,17 @@ set(ALL_FILES
 # Library Target Configuration
 ##################################################
 
-# Create library
-if(BUILD_SHARED_LIBS)
-    add_library(network SHARED ${ALL_FILES})
-else()
-    add_library(network STATIC ${ALL_FILES})
-endif()
+# Create static library
+add_library(network_system STATIC 
+    ${ALL_FILES}
+)
 
-# Create namespace alias
-add_library(NetworkSystem::network ALIAS network)
+# Create alias for consistent naming
+add_library(NetworkSystem::network ALIAS network_system)
 
 # Set target properties
-set_target_properties(network PROPERTIES
+set_target_properties(network_system PROPERTIES
     VERSION ${PROJECT_VERSION}
-    SOVERSION ${PROJECT_VERSION_MAJOR}
     POSITION_INDEPENDENT_CODE ON
     CXX_STANDARD 20
     CXX_STANDARD_REQUIRED ON
@@ -160,104 +115,68 @@ set_target_properties(network PROPERTIES
 # Include Directories
 ##################################################
 
-# Public include directories
-target_include_directories(network PUBLIC
+# Public include directories (for consumers of this library)
+target_include_directories(network_system PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-    $<INSTALL_INTERFACE:include/network_system>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../>
+    $<INSTALL_INTERFACE:include>
 )
-
-# Thread utilities include (if available)
-if(THREAD_UTILITIES_FOUND)
-    target_include_directories(network PRIVATE
-        ${THREAD_UTILITIES_INCLUDE_DIR}
-    )
-    target_compile_definitions(network PRIVATE
-        HAS_THREAD_UTILITIES
-    )
-endif()
 
 ##################################################
 # Dependencies
 ##################################################
 
-# ASIO dependency
-find_package(asio CONFIG QUIET)
-if(asio_FOUND)
-    target_link_libraries(network PUBLIC asio::asio)
-    message(STATUS "Found asio via CMake config")
-else()
-    # Try to find asio headers via find_path
-    find_path(ASIO_INCLUDE_DIR
-        NAMES asio.hpp
-        PATHS
-            /opt/homebrew/include
-            /usr/local/include
-            /usr/include
-    )
-    
-    if(ASIO_INCLUDE_DIR)
-        message(STATUS "Found asio headers at: ${ASIO_INCLUDE_DIR}")
-        target_include_directories(network PUBLIC ${ASIO_INCLUDE_DIR})
-    else()
-        message(FATAL_ERROR "asio library is required but not found")
-    endif()
+# vcpkg integration
+find_package(asio CONFIG REQUIRED)
+find_package(fmt CONFIG REQUIRED)
+
+target_link_libraries(network_system
+    PUBLIC
+        Threads::Threads
+        asio::asio
+        fmt::fmt
+)
+
+# Platform-specific libraries
+if(WIN32)
+    target_link_libraries(network_system PUBLIC ws2_32 wsock32)
+elseif(UNIX)
+    # Unix systems typically don't need additional socket libraries
 endif()
 
-# fmt dependency (use vcpkg)  
-find_package(fmt CONFIG REQUIRED)
-target_link_libraries(network PUBLIC fmt::fmt)
-
-# Container system dependency
-target_link_libraries(network PUBLIC 
-    ${CONTAINER_TARGET}
-    Threads::Threads
-)
-
-##################################################
-# Compile Definitions
-##################################################
-
-target_compile_definitions(network PRIVATE
-    NETWORK_INTERNAL_FEATURES
-)
-
-# Thread utilities feature flag
-if(THREAD_UTILITIES_FOUND)
-    target_compile_definitions(network PUBLIC
-        NETWORK_HAS_THREAD_UTILITIES
+if(USE_SSL)
+    find_package(OpenSSL REQUIRED)
+    target_link_libraries(network_system
+        PUBLIC
+            OpenSSL::SSL
+            OpenSSL::Crypto
     )
+    target_compile_definitions(network_system PUBLIC USE_SSL)
+endif()
+
+##################################################
+# Platform-Specific Configuration
+##################################################
+
+# Linux epoll support
+if(UNIX AND NOT APPLE AND USE_EPOLL)
+    target_compile_definitions(network_system PRIVATE USE_EPOLL)
+endif()
+
+# macOS/BSD kqueue support
+if((APPLE OR CMAKE_SYSTEM_NAME MATCHES "BSD") AND USE_KQUEUE)
+    target_compile_definitions(network_system PRIVATE USE_KQUEUE)
 endif()
 
 # ASIO configuration
-target_compile_definitions(network PUBLIC
+target_compile_definitions(network_system PUBLIC
     ASIO_STANDALONE
     ASIO_NO_DEPRECATED
 )
 
-# Platform-specific definitions
-if(WIN32)
-    target_compile_definitions(network PUBLIC
-        _WIN32_WINNT=0x0601  # Windows 7 or later
-        WIN32_LEAN_AND_MEAN
-        NOMINMAX
-        _SILENCE_CXX17_ALLOCATOR_VOID_DEPRECATION_WARNING
-    )
-    
-    # Windows sockets
-    target_link_libraries(network PUBLIC ws2_32 mswsock)
-endif()
-
 # Enable coroutines support if available
-include(CheckCXXSourceCompiles)
-check_cxx_source_compiles("
-    #include <coroutine>
-    int main() {
-        return 0;
-    }
-" HAS_STD_COROUTINES)
-
-if(HAS_STD_COROUTINES)
-    target_compile_definitions(network PUBLIC
+if(CMAKE_CXX_STANDARD GREATER_EQUAL 20)
+    target_compile_definitions(network_system PUBLIC
         ASIO_HAS_CO_AWAIT
         ASIO_HAS_STD_COROUTINE
     )
@@ -267,8 +186,9 @@ endif()
 # Compiler Options
 ##################################################
 
+# Add compiler warnings
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-    target_compile_options(network PRIVATE
+    target_compile_options(network_system PRIVATE
         -Wall
         -Wextra
         -Wpedantic
@@ -277,7 +197,7 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
         -Wno-missing-field-initializers
     )
 elseif(MSVC)
-    target_compile_options(network PRIVATE
+    target_compile_options(network_system PRIVATE
         /W4
         /WX-
         /wd4100  # unreferenced formal parameter
@@ -286,78 +206,66 @@ elseif(MSVC)
     )
 endif()
 
-##################################################
-# Installation Rules
-##################################################
-
-include(GNUInstallDirs)
-
-# Install library
-install(TARGETS network
-    EXPORT NetworkSystemTargets
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-)
-
-# Install headers
-install(FILES ${MAIN_HEADER}
-    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/network_system
-)
-
-install(DIRECTORY core/ session/
-    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/network_system
-    FILES_MATCHING PATTERN "*.h"
-)
-
-# Install internal headers separately
-install(DIRECTORY internal/
-    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/network_system/internal
-    FILES_MATCHING PATTERN "*.h"
-)
+# Platform-specific definitions
+if(WIN32)
+    target_compile_definitions(network_system PRIVATE
+        _WIN32_WINNT=0x0601  # Windows 7 or later
+        WIN32_LEAN_AND_MEAN
+        NOMINMAX
+        _SILENCE_CXX17_ALLOCATOR_VOID_DEPRECATION_WARNING
+    )
+endif()
 
 ##################################################
-# Package Configuration (for find_package)
+# Performance Optimizations
 ##################################################
 
-include(CMakePackageConfigHelpers)
+# Release mode optimizations
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    target_compile_options(network_system PRIVATE
+        $<$<CONFIG:Release>:-O3>
+        $<$<CONFIG:Release>:-DNDEBUG>
+        $<$<CONFIG:Release>:-march=native>
+    )
+elseif(MSVC)
+    target_compile_options(network_system PRIVATE
+        $<$<CONFIG:Release>:/O2>
+        $<$<CONFIG:Release>:/DNDEBUG>
+    )
+endif()
 
-# Create config file
-configure_package_config_file(
-    ${CMAKE_CURRENT_SOURCE_DIR}/cmake/NetworkSystemConfig.cmake.in
-    ${CMAKE_CURRENT_BINARY_DIR}/NetworkSystemConfig.cmake
-    INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/NetworkSystem
-)
+##################################################
+# Installation Rules (when not building as submodule)
+##################################################
 
-write_basic_package_version_file(
-    NetworkSystemConfigVersion.cmake
-    VERSION ${PROJECT_VERSION}
-    COMPATIBILITY SameMajorVersion
-)
+# Installation is handled by parent CMakeLists.txt
 
-install(FILES
-    ${CMAKE_CURRENT_BINARY_DIR}/NetworkSystemConfig.cmake
-    ${CMAKE_CURRENT_BINARY_DIR}/NetworkSystemConfigVersion.cmake
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/NetworkSystem
-)
+# Export configuration is handled by parent CMakeLists.txt
 
-install(EXPORT NetworkSystemTargets
-    FILE NetworkSystemTargets.cmake
-    NAMESPACE NetworkSystem::
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/NetworkSystem
-)
+##################################################
+# Testing Support
+##################################################
+
+# Enable testing features if building tests
+if(BUILD_UNIT_TESTS AND NOT BUILD_MESSAGING_SYSTEM_AS_SUBMODULE)
+    # Add any network-specific test configurations here
+    set_property(TARGET network_system PROPERTY ENABLE_EXPORTS ON)
+endif()
 
 ##################################################
 # Summary
 ##################################################
 
-message(STATUS "NetworkSystem configured:")
+message(STATUS "Network library configured:")
 message(STATUS "  Version: ${PROJECT_VERSION}")
-message(STATUS "  Build type: ${CMAKE_BUILD_TYPE}")
-message(STATUS "  Shared libs: ${BUILD_SHARED_LIBS}")
-message(STATUS "  Container system: ${CONTAINER_TARGET}")
-message(STATUS "  Thread utilities: ${THREAD_UTILITIES_FOUND}")
-message(STATUS "  Coroutines support: ${HAS_STD_COROUTINES}")
-message(STATUS "  Tests: ${BUILD_NETWORK_TESTS}")
-message(STATUS "  Samples: ${BUILD_NETWORK_SAMPLES}")
-message(STATUS "  Documentation: ${BUILD_NETWORK_DOCS}")
+message(STATUS "  Headers: ${CMAKE_CURRENT_SOURCE_DIR}")
+message(STATUS "  Dependencies: asio, fmt, Threads")
+message(STATUS "  Features:")
+message(STATUS "    - SSL/TLS support: ${USE_SSL}")
+if(UNIX AND NOT APPLE)
+    message(STATUS "    - epoll support: ${USE_EPOLL}")
+elseif(APPLE)
+    message(STATUS "    - kqueue support: ${USE_KQUEUE}")
+endif()
+message(STATUS "    - High-performance networking: ON")
+message(STATUS "    - Cross-platform compatibility: ON")

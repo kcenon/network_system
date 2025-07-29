@@ -13,6 +13,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/container.dir/internal/thread_safe_container.cpp.o.d"
   "CMakeFiles/container.dir/internal/variant_value.cpp.o"
   "CMakeFiles/container.dir/internal/variant_value.cpp.o.d"
+  "CMakeFiles/container.dir/utilities/convert_string_stub.cpp.o"
+  "CMakeFiles/container.dir/utilities/convert_string_stub.cpp.o.d"
   "CMakeFiles/container.dir/values/bool_value.cpp.o"
   "CMakeFiles/container.dir/values/bool_value.cpp.o.d"
   "CMakeFiles/container.dir/values/bytes_value.cpp.o"

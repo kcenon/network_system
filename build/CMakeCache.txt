@@ -17,6 +17,63 @@
 //Path to a file.
 ASIO_INCLUDE_DIR:PATH=/opt/homebrew/include
 
+//Build a 32 bit version of the library.
+BENCHMARK_BUILD_32_BITS:BOOL=OFF
+
+//Flags used by the C++ compiler during coverage builds.
+BENCHMARK_CXX_FLAGS_COVERAGE:STRING=-g
+
+//Allow the downloading and in-tree building of unmet dependencies
+BENCHMARK_DOWNLOAD_DEPENDENCIES:BOOL=OFF
+
+//Enable building and running the assembly tests
+BENCHMARK_ENABLE_ASSEMBLY_TESTS:BOOL=OFF
+
+//Build documentation with Doxygen.
+BENCHMARK_ENABLE_DOXYGEN:BOOL=OFF
+
+//Enable the use of exceptions in the benchmark library.
+BENCHMARK_ENABLE_EXCEPTIONS:BOOL=ON
+
+//Enable building the unit tests which depend on gtest
+BENCHMARK_ENABLE_GTEST_TESTS:BOOL=ON
+
+//Enable installation of benchmark. (Projects embedding benchmark
+// may want to turn this OFF.)
+BENCHMARK_ENABLE_INSTALL:BOOL=ON
+
+//Enable performance counters provided by libpfm
+BENCHMARK_ENABLE_LIBPFM:BOOL=OFF
+
+//Enable link time optimisation of the benchmark library.
+BENCHMARK_ENABLE_LTO:BOOL=OFF
+
+//Enable testing of the benchmark library.
+BENCHMARK_ENABLE_TESTING:BOOL=OFF
+
+//Build Release candidates with -Werror.
+BENCHMARK_ENABLE_WERROR:BOOL=ON
+
+//Flags used for linking binaries during coverage builds.
+BENCHMARK_EXE_LINKER_FLAGS_COVERAGE:STRING=
+
+//Build Release candidates with -Werror regardless of compiler
+// issues.
+BENCHMARK_FORCE_WERROR:BOOL=OFF
+
+//Enable installation of documentation.
+BENCHMARK_INSTALL_DOCS:BOOL=ON
+
+//Flags used by the shared libraries linker during coverage builds.
+BENCHMARK_SHARED_LINKER_FLAGS_COVERAGE:STRING=
+
+//Use bundled GoogleTest. If disabled, the find_package(GTest)
+// will be used.
+BENCHMARK_USE_BUNDLED_GTEST:BOOL=ON
+
+//Build and test using libc++ as the standard library.
+BENCHMARK_USE_LIBCXX:BOOL=OFF
+
 //Build container documentation
 BUILD_CONTAINER_DOCS:BOOL=OFF
 
@@ -30,7 +87,7 @@ BUILD_CONTAINER_TESTS:BOOL=ON
 BUILD_NETWORK_DOCS:BOOL=OFF
 
 //Build network samples
-BUILD_NETWORK_SAMPLES:BOOL=ON
+BUILD_NETWORK_SAMPLES:BOOL=OFF
 
 //Build network tests
 BUILD_NETWORK_TESTS:BOOL=ON
@@ -193,9 +250,6 @@ CMAKE_OSX_DEPLOYMENT_TARGET:STRING=
 // inside the indicated SDK.
 CMAKE_OSX_SYSROOT:STRING=
 
-//No help, variable specified on the command line.
-CMAKE_PREFIX_PATH:UNINITIALIZED=/opt/homebrew
-
 //Value Computed by CMake
 CMAKE_PROJECT_DESCRIPTION:STATIC=High-performance asynchronous network messaging library
 
@@ -288,6 +342,9 @@ CMAKE_VERBOSE_MAKEFILE:BOOL=FALSE
 //Path to a file.
 CONTAINER_SYSTEM_DIR:PATH=/Users/dongcheolshin/Sources/container_system
 
+//OFF
+CXXFEATURECHECK_DEBUG:BOOL=OFF
+
 //Value Computed by CMake
 ContainerSystem_BINARY_DIR:STATIC=/Users/dongcheolshin/Sources/network_system/build/container_system
 
@@ -299,6 +356,32 @@ ContainerSystem_IS_TOP_LEVEL:STATIC=OFF
 
 //Value Computed by CMake
 ContainerSystem_SOURCE_DIR:STATIC=/Users/dongcheolshin/Sources/container_system
+
+//Directory under which to collect all populated content
+FETCHCONTENT_BASE_DIR:PATH=/Users/dongcheolshin/Sources/network_system/build/_deps
+
+//Disables all attempts to download or update content and assumes
+// source dirs already exist
+FETCHCONTENT_FULLY_DISCONNECTED:BOOL=OFF
+
+//Enables QUIET option for all content population
+FETCHCONTENT_QUIET:BOOL=ON
+
+//When not empty, overrides where to find pre-populated content
+// for benchmark
+FETCHCONTENT_SOURCE_DIR_BENCHMARK:PATH=
+
+//Enables UPDATE_DISCONNECTED behavior for all content population
+FETCHCONTENT_UPDATES_DISCONNECTED:BOOL=OFF
+
+//Enables UPDATE_DISCONNECTED behavior just for population of benchmark
+FETCHCONTENT_UPDATES_DISCONNECTED_BENCHMARK:BOOL=OFF
+
+//Git command line client
+GIT_EXECUTABLE:FILEPATH=/opt/homebrew/bin/git
+
+//The directory containing a CMake configuration file for GTest.
+GTest_DIR:PATH=/opt/homebrew/lib/cmake/GTest
 
 //Value Computed by CMake
 NetworkSystem_BINARY_DIR:STATIC=/Users/dongcheolshin/Sources/network_system/build
@@ -321,6 +404,18 @@ USE_EXTERNAL_THREAD_UTILITIES:BOOL=ON
 //The directory containing a CMake configuration file for asio.
 asio_DIR:PATH=asio_DIR-NOTFOUND
 
+//Value Computed by CMake
+benchmark_BINARY_DIR:STATIC=/Users/dongcheolshin/Sources/network_system/build/_deps/benchmark-build
+
+//The directory containing a CMake configuration file for benchmark.
+benchmark_DIR:PATH=benchmark_DIR-NOTFOUND
+
+//Value Computed by CMake
+benchmark_IS_TOP_LEVEL:STATIC=OFF
+
+//Value Computed by CMake
+benchmark_SOURCE_DIR:STATIC=/Users/dongcheolshin/Sources/network_system/build/_deps/benchmark-src
+
 //The directory containing a CMake configuration file for fmt.
 fmt_DIR:PATH=/opt/homebrew/lib/cmake/fmt
 
@@ -329,6 +424,12 @@ fmt_DIR:PATH=/opt/homebrew/lib/cmake/fmt
 # INTERNAL cache entries
 ########################
 
+//ADVANCED property for variable: BENCHMARK_CXX_FLAGS_COVERAGE
+BENCHMARK_CXX_FLAGS_COVERAGE-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: BENCHMARK_EXE_LINKER_FLAGS_COVERAGE
+BENCHMARK_EXE_LINKER_FLAGS_COVERAGE-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: BENCHMARK_SHARED_LINKER_FLAGS_COVERAGE
+BENCHMARK_SHARED_LINKER_FLAGS_COVERAGE-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_ADDR2LINE
 CMAKE_ADDR2LINE-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_AR
@@ -447,7 +548,7 @@ CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_NM
 CMAKE_NM-ADVANCED:INTERNAL=1
 //number of local generators
-CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=2
+CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=5
 //ADVANCED property for variable: CMAKE_OBJCOPY
 CMAKE_OBJCOPY-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_OBJDUMP
@@ -492,10 +593,70 @@ CMAKE_TAPI-ADVANCED:INTERNAL=1
 CMAKE_UNAME:INTERNAL=/usr/bin/uname
 //ADVANCED property for variable: CMAKE_VERBOSE_MAKEFILE
 CMAKE_VERBOSE_MAKEFILE-ADVANCED:INTERNAL=1
+//Result of TRY_COMPILE
+COMPILE_HAVE_GNU_POSIX_REGEX:INTERNAL=FALSE
+//Result of TRY_COMPILE
+COMPILE_HAVE_POSIX_REGEX:INTERNAL=TRUE
+//Result of TRY_COMPILE
+COMPILE_HAVE_PTHREAD_AFFINITY:INTERNAL=FALSE
+//Result of TRY_COMPILE
+COMPILE_HAVE_STD_REGEX:INTERNAL=TRUE
+//Result of TRY_COMPILE
+COMPILE_HAVE_STEADY_CLOCK:INTERNAL=TRUE
+//Result of TRY_COMPILE
+COMPILE_HAVE_THREAD_SAFETY_ATTRIBUTES:INTERNAL=TRUE
+//Details about finding Git
+FIND_PACKAGE_MESSAGE_DETAILS_Git:INTERNAL=[/opt/homebrew/bin/git][v2.50.1()]
 //Details about finding Threads
 FIND_PACKAGE_MESSAGE_DETAILS_Threads:INTERNAL=[TRUE][v()]
+//ADVANCED property for variable: GIT_EXECUTABLE
+GIT_EXECUTABLE-ADVANCED:INTERNAL=1
 //Test HAS_STD_COROUTINES
 HAS_STD_COROUTINES:INTERNAL=1
+//Test HAVE_CXX_FLAG_COVERAGE
+HAVE_CXX_FLAG_COVERAGE:INTERNAL=1
+//Test HAVE_CXX_FLAG_FSTRICT_ALIASING
+HAVE_CXX_FLAG_FSTRICT_ALIASING:INTERNAL=1
+//Test HAVE_CXX_FLAG_PEDANTIC
+HAVE_CXX_FLAG_PEDANTIC:INTERNAL=1
+//Test HAVE_CXX_FLAG_PEDANTIC_ERRORS
+HAVE_CXX_FLAG_PEDANTIC_ERRORS:INTERNAL=1
+//Test HAVE_CXX_FLAG_WALL
+HAVE_CXX_FLAG_WALL:INTERNAL=1
+//Test HAVE_CXX_FLAG_WD654
+HAVE_CXX_FLAG_WD654:INTERNAL=
+//Test HAVE_CXX_FLAG_WERROR
+HAVE_CXX_FLAG_WERROR:INTERNAL=1
+//Test HAVE_CXX_FLAG_WEXTRA
+HAVE_CXX_FLAG_WEXTRA:INTERNAL=1
+//Test HAVE_CXX_FLAG_WFLOAT_EQUAL
+HAVE_CXX_FLAG_WFLOAT_EQUAL:INTERNAL=1
+//Test HAVE_CXX_FLAG_WNO_DEPRECATED
+HAVE_CXX_FLAG_WNO_DEPRECATED:INTERNAL=1
+//Test HAVE_CXX_FLAG_WNO_DEPRECATED_DECLARATIONS
+HAVE_CXX_FLAG_WNO_DEPRECATED_DECLARATIONS:INTERNAL=1
+//Test HAVE_CXX_FLAG_WOLD_STYLE_CAST
+HAVE_CXX_FLAG_WOLD_STYLE_CAST:INTERNAL=1
+//Test HAVE_CXX_FLAG_WSHADOW
+HAVE_CXX_FLAG_WSHADOW:INTERNAL=1
+//Test HAVE_CXX_FLAG_WSHORTEN_64_TO_32
+HAVE_CXX_FLAG_WSHORTEN_64_TO_32:INTERNAL=1
+//Test HAVE_CXX_FLAG_WSTRICT_ALIASING
+HAVE_CXX_FLAG_WSTRICT_ALIASING:INTERNAL=1
+//Test HAVE_CXX_FLAG_WSUGGEST_OVERRIDE
+HAVE_CXX_FLAG_WSUGGEST_OVERRIDE:INTERNAL=1
+//Test HAVE_CXX_FLAG_WTHREAD_SAFETY
+HAVE_CXX_FLAG_WTHREAD_SAFETY:INTERNAL=1
+//Have library rt
+HAVE_LIB_RT:INTERNAL=
+//Result of try_run()
+RUN_HAVE_POSIX_REGEX:INTERNAL=0
+//Result of try_run()
+RUN_HAVE_STD_REGEX:INTERNAL=0
+//Result of try_run()
+RUN_HAVE_STEADY_CLOCK:INTERNAL=0
+//Result of try_run()
+RUN_HAVE_THREAD_SAFETY_ATTRIBUTES:INTERNAL=0
 //CMAKE_INSTALL_PREFIX during last run
 _GNUInstallDirs_LAST_CMAKE_INSTALL_PREFIX:INTERNAL=/usr/local
 

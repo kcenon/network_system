@@ -30,8 +30,8 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *****************************************************************************/
 
-#include "core/messaging_server.h"
-#include "session/messaging_session.h"
+#include "network/core/messaging_server.h"
+#include "network/session/messaging_session.h"
 
 #include <iostream>
 

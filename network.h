@@ -9,11 +9,11 @@
 #pragma once
 
 // Core components
-#include "core/messaging_client.h"
-#include "core/messaging_server.h"
+#include "network/core/messaging_client.h"
+#include "network/core/messaging_server.h"
 
 // Public session interfaces
-#include "session/messaging_session.h"
+#include "network/session/messaging_session.h"
 
 // Note: Internal components like tcp_socket, send_coroutine, pipeline, and common_defs
 // are not exposed in the public API
