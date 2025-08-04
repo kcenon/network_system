@@ -1,2 +1,0 @@
-/usr/bin/ar qc lib/libnetwork.a CMakeFiles/network.dir/core/messaging_client.cpp.o CMakeFiles/network.dir/core/messaging_server.cpp.o CMakeFiles/network.dir/session/messaging_session.cpp.o CMakeFiles/network.dir/internal/tcp_socket.cpp.o CMakeFiles/network.dir/internal/send_coroutine.cpp.o CMakeFiles/network.dir/internal/pipeline.cpp.o
-/usr/bin/ranlib lib/libnetwork.a
