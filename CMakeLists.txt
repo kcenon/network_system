@@ -253,6 +253,15 @@ if(BUILD_UNIT_TESTS AND NOT BUILD_MESSAGING_SYSTEM_AS_SUBMODULE)
 endif()
 
 ##################################################
+# Samples
+##################################################
+
+if(BUILD_NETWORK_SAMPLES)
+    add_subdirectory(samples)
+    message(STATUS "Network samples will be built")
+endif()
+
+##################################################
 # Summary
 ##################################################
 
@@ -269,3 +278,4 @@ elseif(APPLE)
 endif()
 message(STATUS "    - High-performance networking: ON")
 message(STATUS "    - Cross-platform compatibility: ON")
+message(STATUS "    - Build samples: ${BUILD_NETWORK_SAMPLES}")
