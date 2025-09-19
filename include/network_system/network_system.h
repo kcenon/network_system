@@ -19,18 +19,13 @@
 // Session management
 #include "network_system/session/messaging_session.h"
 
-// Integration interfaces (conditionally compiled)
-#ifdef BUILD_WITH_MESSAGING_BRIDGE
+// Integration interfaces
 #include "network_system/integration/messaging_bridge.h"
-#endif
-
-#ifdef BUILD_WITH_CONTAINER_SYSTEM
-#include "network_system/integration/container_integration.h"
-#endif
-
-#ifdef BUILD_WITH_THREAD_SYSTEM
 #include "network_system/integration/thread_integration.h"
-#endif
+#include "network_system/integration/container_integration.h"
+
+// Compatibility layer
+#include "network_system/compatibility.h"
 
 /**
  * @namespace network_system
