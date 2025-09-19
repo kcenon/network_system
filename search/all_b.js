@@ -3,7 +3,7 @@ var searchData=
   ['backup_20and_20current_20state_20analysis_0',['Day 1: Backup and Current State Analysis',['../md_MIGRATION__CHECKLIST.html#autotoc_md6',1,'']]],
   ['backup_20tasks_1',['Backup Tasks',['../md_MIGRATION__CHECKLIST.html#autotoc_md7',1,'']]],
   ['baseline_20before_20separation_2',['Baseline (Before Separation)',['../md_NETWORK__SYSTEM__SEPARATION__PLAN.html#autotoc_md126',1,'']]],
-  ['baseline_20pre_20separation_3',['Baseline (Pre-Separation)',['../md_README.html#autotoc_md188',1,'']]],
+  ['baseline_20pre_20separation_3',['Baseline (Pre-Separation)',['../md_README.html#autotoc_md207',1,'']]],
   ['basic_20build_20system_20configuration_4',['Day 8: Basic Build System Configuration',['../md_MIGRATION__CHECKLIST.html#autotoc_md24',1,'']]],
   ['basic_20client_20usage_5',['Basic Client Usage',['../index.html#usage_client',1,'']]],
   ['basic_20principles_6',['1. Basic Principles',['../md_NETWORK__SYSTEM__SEPARATION__PLAN.html#autotoc_md85',1,'']]],
@@ -11,7 +11,7 @@ var searchData=
   ['basic_20structure_20creation_8',['Day 4-5: Basic Structure Creation',['../md_MIGRATION__CHECKLIST.html#autotoc_md18',1,'']]],
   ['before_20separation_9',['Baseline (Before Separation)',['../md_NETWORK__SYSTEM__SEPARATION__PLAN.html#autotoc_md126',1,'']]],
   ['benchmark_20results_10',['Benchmark Results',['../index.html#perf_benchmarks',1,'']]],
-  ['benchmark_20tools_11',['2. Benchmark Tools',['../md_TECHNICAL__IMPLEMENTATION__DETAILS.html#autotoc_md230',1,'']]],
+  ['benchmark_20tools_11',['2. Benchmark Tools',['../md_TECHNICAL__IMPLEMENTATION__DETAILS.html#autotoc_md249',1,'']]],
   ['benchmarks_12',['Performance Benchmarks',['../md_MIGRATION__CHECKLIST.html#autotoc_md44',1,'']]],
   ['bridge_13',['Migration with Bridge',['../index.html#usage_bridge',1,'']]],
   ['bridge_20class_20implementation_14',['Day 9-10: Bridge Class Implementation',['../md_MIGRATION__CHECKLIST.html#autotoc_md30',1,'']]],
@@ -22,5 +22,6 @@ var searchData=
   ['build_20system_20configuration_19',['Day 8: Basic Build System Configuration',['../md_MIGRATION__CHECKLIST.html#autotoc_md24',1,'']]],
   ['build_20system_20design_20',['Build System Design',['../md_MIGRATION__CHECKLIST.html#autotoc_md13',1,'']]],
   ['build_20test_21',['Initial Build Test',['../md_MIGRATION__CHECKLIST.html#autotoc_md27',1,'']]],
-  ['build_20tools_22',['Build Tools',['../md_README.html#autotoc_md185',1,'']]]
+  ['build_20tools_22',['Build Tools',['../md_README.html#autotoc_md204',1,'']]],
+  ['built_23',['Core Components Built',['../md_PHASE2__IMPLEMENTATION__PLAN.html#autotoc_md150',1,'']]]
 ];

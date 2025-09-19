@@ -73,15 +73,15 @@ $(function() {
   <div class="headertitle"><div class="title">Network System Migration Project</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md147"></a></p>
-<h1><a class="anchor" id="autotoc_md148"></a>
+<div class="textblock"><p><a class="anchor" id="autotoc_md166"></a></p>
+<h1><a class="anchor" id="autotoc_md167"></a>
 Independent High-Performance Network System Separated from messaging_system</h1>
 <p><b>Version</b>: 2.0.0 <b>Date</b>: 2025-09-19 <b>Owner</b>: kcenon (<a href="#" onclick="location.href='mai'+'lto:'+'kce'+'no'+'n@n'+'av'+'er.'+'co'+'m'; return false;">kceno<span class="obfuscator">.nosp@m.</span>n@na<span class="obfuscator">.nosp@m.</span>ver.c<span class="obfuscator">.nosp@m.</span>om</a>) <b>Status</b>: Migration plan completed, awaiting implementation</p>
 <hr  />
-<h2><a class="anchor" id="autotoc_md150"></a>
+<h2><a class="anchor" id="autotoc_md169"></a>
 🎯 Project Overview</h2>
 <p>This project involves a large-scale refactoring effort to separate the <code>Sources/messaging_system/network</code> module into an independent <code>network_system</code>. The goal is to improve modularity, reusability, and maintainability while maintaining compatibility with existing systems.</p>
-<h3><a class="anchor" id="autotoc_md151"></a>
+<h3><a class="anchor" id="autotoc_md170"></a>
 Core Objectives</h3>
 <ul>
 <li><b>Module Independence</b>: Complete separation of network module from messaging_system</li>
@@ -90,9 +90,9 @@ Core Objectives</h3>
 <li><b>Performance Optimization</b>: Prevent performance degradation from separation</li>
 </ul>
 <hr  />
-<h2><a class="anchor" id="autotoc_md153"></a>
+<h2><a class="anchor" id="autotoc_md172"></a>
 📚 Key Documentation</h2>
-<h3><a class="anchor" id="autotoc_md154"></a>
+<h3><a class="anchor" id="autotoc_md173"></a>
 📋 Planning and Design Documents</h3>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -104,7 +104,7 @@ Core Objectives</h3>
 <tr class="markdownTableRowOdd">
 <td class="markdownTableBodyNone"><b>Migration Checklist</b>   </td><td class="markdownTableBodyNone">Step-by-step execution checklist   </td><td class="markdownTableBodyNone"><code>MIGRATION_CHECKLIST.md</code>   </td></tr>
 </table>
-<h3><a class="anchor" id="autotoc_md155"></a>
+<h3><a class="anchor" id="autotoc_md174"></a>
 🛠️ Execution Scripts</h3>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -115,9 +115,9 @@ Core Objectives</h3>
 <td class="markdownTableBodyNone"><b>Quick Start</b>   </td><td class="markdownTableBodyNone">Interactive migration tool   </td><td class="markdownTableBodyNone"><code>scripts/migration/quick_start.sh</code>   </td></tr>
 </table>
 <hr  />
-<h2><a class="anchor" id="autotoc_md157"></a>
+<h2><a class="anchor" id="autotoc_md176"></a>
 🚀 Quick Start</h2>
-<h3><a class="anchor" id="autotoc_md158"></a>
+<h3><a class="anchor" id="autotoc_md177"></a>
 1. Prerequisites</h3>
 <div class="fragment"><div class="line"># Navigate to project root</div>
 <div class="line">cd /Users/dongcheolshin/Sources/network_system</div>
@@ -125,7 +125,7 @@ Core Objectives</h3>
 <div class="line"># Check prerequisites</div>
 <div class="line">./scripts/migration/quick_start.sh</div>
 <div class="line"># Select &quot;2) Check prerequisites&quot; from menu</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md159"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md178"></a>
 2. Run Migration</h3>
 <div class="fragment"><div class="line"># Automated migration (recommended)</div>
 <div class="line">./scripts/migration/migrate_network_system.sh</div>
@@ -133,7 +133,7 @@ Core Objectives</h3>
 <div class="line"># Or interactive migration</div>
 <div class="line">./scripts/migration/quick_start.sh</div>
 <div class="line"># Select &quot;3) Run full migration&quot; from menu</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md160"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md179"></a>
 3. Verification and Testing</h3>
 <div class="fragment"><div class="line"># Test separated network_system build</div>
 <div class="line">cd /Users/dongcheolshin/Sources/network_system</div>
@@ -143,9 +143,9 @@ Core Objectives</h3>
 <div class="line"># Run sample</div>
 <div class="line">./build/bin/basic_echo_sample</div>
 </div><!-- fragment --><hr  />
-<h2><a class="anchor" id="autotoc_md162"></a>
+<h2><a class="anchor" id="autotoc_md181"></a>
 🏗️ Architecture Overview</h2>
-<h3><a class="anchor" id="autotoc_md163"></a>
+<h3><a class="anchor" id="autotoc_md182"></a>
 Pre-Separation Structure</h3>
 <div class="fragment"><div class="line">messaging_system/</div>
 <div class="line">├── container/          # → container_system (already separated)</div>
@@ -154,7 +154,7 @@ Pre-Separation Structure</h3>
 <div class="line">├── logger_system/      # (future separation planned)</div>
 <div class="line">├── monitoring_system/  # (already separated)</div>
 <div class="line">└── thread_system/      # (already separated)</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md164"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md183"></a>
 Post-Separation Structure</h3>
 <div class="fragment"><div class="line">network_system/</div>
 <div class="line">├── include/network_system/     # Public API</div>
@@ -166,23 +166,23 @@ Post-Separation Structure</h3>
 <div class="line">├── tests/                      # Test code</div>
 <div class="line">├── docs/                       # Documentation</div>
 <div class="line">└── scripts/                    # Utility scripts</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md165"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md184"></a>
 Core Components</h3>
-<h4><a class="anchor" id="autotoc_md166"></a>
+<h4><a class="anchor" id="autotoc_md185"></a>
 1. Core API</h4>
 <ul>
 <li><b>messaging_server</b>: High-performance asynchronous TCP server</li>
 <li><b>messaging_client</b>: TCP client implementation</li>
 <li><b>messaging_session</b>: Connection session management</li>
 </ul>
-<h4><a class="anchor" id="autotoc_md167"></a>
+<h4><a class="anchor" id="autotoc_md186"></a>
 2. Integration Layer</h4>
 <ul>
 <li><b>messaging_bridge</b>: messaging_system compatibility bridge</li>
 <li><b>container_integration</b>: container_system integration</li>
 <li><b>thread_integration</b>: thread_system integration</li>
 </ul>
-<h4><a class="anchor" id="autotoc_md168"></a>
+<h4><a class="anchor" id="autotoc_md187"></a>
 3. Performance Characteristics</h4>
 <ul>
 <li><b>Throughput</b>: 100K+ messages/sec (1KB messages)</li>
@@ -191,37 +191,37 @@ Core Components</h3>
 <li><b>Memory usage</b>: ~8KB per connection</li>
 </ul>
 <hr  />
-<h2><a class="anchor" id="autotoc_md170"></a>
+<h2><a class="anchor" id="autotoc_md189"></a>
 📊 Migration Roadmap</h2>
-<h3><a class="anchor" id="autotoc_md171"></a>
+<h3><a class="anchor" id="autotoc_md190"></a>
 Phase 1: Preparation and Analysis (2-3 days)</h3>
 <ul>
 <li>[x] Current state analysis and backup</li>
 <li>[x] Architecture design</li>
 <li>[x] Testing strategy establishment</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md172"></a>
+<h3><a class="anchor" id="autotoc_md191"></a>
 Phase 2: Core System Separation (4-5 days)</h3>
 <ul>
 <li>[ ] Directory structure reorganization</li>
 <li>[ ] Namespace and include path updates</li>
 <li>[ ] Basic build system configuration</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md173"></a>
+<h3><a class="anchor" id="autotoc_md192"></a>
 Phase 3: Integration Interface Implementation (3-4 days)</h3>
 <ul>
 <li>[ ] messaging_bridge implementation</li>
 <li>[ ] External system integration (container_system, thread_system)</li>
 <li>[ ] Compatibility API implementation</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md174"></a>
+<h3><a class="anchor" id="autotoc_md193"></a>
 Phase 4: messaging_system Update (2-3 days)</h3>
 <ul>
 <li>[ ] messaging_system CMakeLists.txt update</li>
 <li>[ ] External network_system usage configuration</li>
 <li>[ ] Compatibility verification</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md175"></a>
+<h3><a class="anchor" id="autotoc_md194"></a>
 Phase 5: Verification and Deployment (2-3 days)</h3>
 <ul>
 <li>[ ] Full system integration testing</li>
@@ -230,16 +230,16 @@ Phase 5: Verification and Deployment (2-3 days)</h3>
 </ul>
 <p><b>Total Estimated Duration</b>: 13-18 days</p>
 <hr  />
-<h2><a class="anchor" id="autotoc_md177"></a>
+<h2><a class="anchor" id="autotoc_md196"></a>
 🧪 Testing Strategy</h2>
-<h3><a class="anchor" id="autotoc_md178"></a>
+<h3><a class="anchor" id="autotoc_md197"></a>
 Unit Tests</h3>
 <ul>
 <li>Individual functionality testing of Core modules</li>
 <li>Session management and connection state testing</li>
 <li>Integration module interface testing</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md179"></a>
+<h3><a class="anchor" id="autotoc_md198"></a>
 Integration Tests</h3>
 <ul>
 <li>Independent network_system operation verification</li>
@@ -247,7 +247,7 @@ Integration Tests</h3>
 <li>thread_system integration testing</li>
 <li>messaging_system compatibility testing</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md180"></a>
+<h3><a class="anchor" id="autotoc_md199"></a>
 Performance Tests</h3>
 <ul>
 <li>Throughput and latency benchmarking</li>
@@ -256,16 +256,16 @@ Performance Tests</h3>
 <li>Long-term stability testing</li>
 </ul>
 <hr  />
-<h2><a class="anchor" id="autotoc_md182"></a>
+<h2><a class="anchor" id="autotoc_md201"></a>
 🔧 Technology Stack</h2>
-<h3><a class="anchor" id="autotoc_md183"></a>
+<h3><a class="anchor" id="autotoc_md202"></a>
 Core Dependencies</h3>
 <ul>
 <li><b>ASIO</b>: Asynchronous I/O and networking</li>
 <li><b>fmt</b>: String formatting</li>
 <li><b>C++20</b>: Modern C++ features</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md184"></a>
+<h3><a class="anchor" id="autotoc_md203"></a>
 Integration Dependencies (Conditional)</h3>
 <ul>
 <li><b>container_system</b>: Message serialization/deserialization</li>
@@ -273,7 +273,7 @@ Integration Dependencies (Conditional)</h3>
 <li><b>GTest</b>: Unit testing framework</li>
 <li><b>Benchmark</b>: Performance benchmarking</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md185"></a>
+<h3><a class="anchor" id="autotoc_md204"></a>
 Build Tools</h3>
 <ul>
 <li><b>CMake 3.16+</b>: Build system</li>
@@ -281,9 +281,9 @@ Build Tools</h3>
 <li><b>Git</b>: Version control</li>
 </ul>
 <hr  />
-<h2><a class="anchor" id="autotoc_md187"></a>
+<h2><a class="anchor" id="autotoc_md206"></a>
 📈 Performance Requirements</h2>
-<h3><a class="anchor" id="autotoc_md188"></a>
+<h3><a class="anchor" id="autotoc_md207"></a>
 Baseline (Pre-Separation)</h3>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -297,7 +297,7 @@ Baseline (Pre-Separation)</h3>
 <tr class="markdownTableRowEven">
 <td class="markdownTableBodyNone">Memory usage   </td><td class="markdownTableBodyNone">~8KB/connection   </td><td class="markdownTableBodyNone">Including buffers and session data   </td></tr>
 </table>
-<h3><a class="anchor" id="autotoc_md189"></a>
+<h3><a class="anchor" id="autotoc_md208"></a>
 Target (Post-Separation)</h3>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -312,9 +312,9 @@ Target (Post-Separation)</h3>
 <td class="markdownTableBodyNone">Memory usage   </td><td class="markdownTableBodyNone">~10KB/connection   </td><td class="markdownTableBodyNone">Increase &lt; 25%   </td></tr>
 </table>
 <hr  />
-<h2><a class="anchor" id="autotoc_md191"></a>
+<h2><a class="anchor" id="autotoc_md210"></a>
 🚨 Risk Factors and Mitigation</h2>
-<h3><a class="anchor" id="autotoc_md192"></a>
+<h3><a class="anchor" id="autotoc_md211"></a>
 Major Risks</h3>
 <ol type="1">
 <li><b>Conflict with existing network_system</b><ul>
@@ -334,7 +334,7 @@ Major Risks</h3>
 </ul>
 </li>
 </ol>
-<h3><a class="anchor" id="autotoc_md193"></a>
+<h3><a class="anchor" id="autotoc_md212"></a>
 Rollback Plan</h3>
 <ul>
 <li>Phase-wise checkpoints</li>
@@ -343,23 +343,23 @@ Rollback Plan</h3>
 <li>Real-time performance monitoring</li>
 </ul>
 <hr  />
-<h2><a class="anchor" id="autotoc_md195"></a>
+<h2><a class="anchor" id="autotoc_md214"></a>
 📞 Contact and Support</h2>
-<h3><a class="anchor" id="autotoc_md196"></a>
+<h3><a class="anchor" id="autotoc_md215"></a>
 Project Owner</h3>
 <ul>
 <li><b>Name</b>: kcenon</li>
 <li><b>Email</b>: <a href="#" onclick="location.href='mai'+'lto:'+'kce'+'no'+'n@n'+'av'+'er.'+'co'+'m'; return false;">kceno<span class="obfuscator">.nosp@m.</span>n@na<span class="obfuscator">.nosp@m.</span>ver.c<span class="obfuscator">.nosp@m.</span>om</a></li>
 <li><b>Role</b>: Project Lead, Architect</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md197"></a>
+<h3><a class="anchor" id="autotoc_md216"></a>
 Inquiries</h3>
 <ul>
 <li><b>Technical questions</b>: GitHub Issues or email</li>
 <li><b>Bug reports</b>: Submit with detailed reproduction steps</li>
 <li><b>Feature requests</b>: Propose with use cases</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md198"></a>
+<h3><a class="anchor" id="autotoc_md217"></a>
 Document Locations</h3>
 <ul>
 <li><b>Project documentation</b>: <code>/Users/dongcheolshin/Sources/network_system/</code></li>
@@ -367,9 +367,9 @@ Document Locations</h3>
 <li><b>Backups</b>: <code>network_migration_backup_YYYYMMDD_HHMMSS/</code></li>
 </ul>
 <hr  />
-<h2><a class="anchor" id="autotoc_md200"></a>
+<h2><a class="anchor" id="autotoc_md219"></a>
 📝 Change History</h2>
-<h3><a class="anchor" id="autotoc_md201"></a>
+<h3><a class="anchor" id="autotoc_md220"></a>
 v2.0.0 (2025-09-19) - Planning Phase</h3>
 <ul>
 <li>[x] Migration master plan creation</li>
@@ -377,21 +377,21 @@ v2.0.0 (2025-09-19) - Planning Phase</h3>
 <li>[x] Automation script development</li>
 <li>[x] Checklist and verification plan establishment</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md202"></a>
+<h3><a class="anchor" id="autotoc_md221"></a>
 v2.0.1 (Planned) - Core Separation</h3>
 <ul>
 <li>[ ] messaging_system/network code separation</li>
 <li>[ ] Namespace and structure reorganization</li>
 <li>[ ] Basic build system configuration</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md203"></a>
+<h3><a class="anchor" id="autotoc_md222"></a>
 v2.0.2 (Planned) - Integration Completion</h3>
 <ul>
 <li>[ ] All system integration interface implementation</li>
 <li>[ ] messaging_system compatibility assurance</li>
 <li>[ ] Performance optimization completion</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md204"></a>
+<h3><a class="anchor" id="autotoc_md223"></a>
 v2.1.0 (Planned) - Stabilization</h3>
 <ul>
 <li>[ ] All tests passing</li>
@@ -399,7 +399,7 @@ v2.1.0 (Planned) - Stabilization</h3>
 <li>[ ] Production deployment readiness</li>
 </ul>
 <hr  />
-<h2><a class="anchor" id="autotoc_md206"></a>
+<h2><a class="anchor" id="autotoc_md225"></a>
 🎉 Getting Started</h2>
 <p>If you're ready, start the migration with the following command:</p>
 <div class="fragment"><div class="line">cd /Users/dongcheolshin/Sources/network_system</div>
