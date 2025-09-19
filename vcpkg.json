@@ -1,8 +1,8 @@
 {
     "name": "network-system",
-    "version": "1.0.0",
     "description": "High-performance asynchronous network messaging library",
     "license": "BSD-3-Clause",
+    "builtin-baseline": "3426db05b996481ca31e95fff3734cf23e0f51bc",
     "dependencies": [
         "asio",
         "fmt"
@@ -11,7 +11,8 @@
         "tests": {
             "description": "Build unit tests",
             "dependencies": [
-                "gtest"
+                "gtest",
+                "benchmark"
             ]
         },
         "samples": {

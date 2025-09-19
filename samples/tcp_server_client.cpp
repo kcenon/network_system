@@ -11,11 +11,9 @@
 #include <vector>
 #include <atomic>
 #include <future>
-#include "../network_manager.h"
-#include "../tcp_server.h"
-#include "../tcp_client.h"
+#include "../network.h"
 
-using namespace network_module;
+using namespace network_system;
 
 class tcp_demo_server {
 public:
