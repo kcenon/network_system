@@ -8,6 +8,7 @@
  */
 
 #include "network_system/integration/messaging_bridge.h"
+#include "network_system/integration/thread_integration.h"
 #include <atomic>
 #include <mutex>
 
@@ -35,6 +36,7 @@ public:
 #ifdef BUILD_WITH_THREAD_SYSTEM
     std::shared_ptr<thread_system::thread_pool> thread_pool_;
 #endif
+    std::shared_ptr<thread_pool_interface> thread_pool_interface_;
 };
 
 messaging_bridge::messaging_bridge() : pimpl_(std::make_unique<impl>()) {
@@ -90,6 +92,20 @@ void messaging_bridge::reset_metrics() {
 
 bool messaging_bridge::is_initialized() const {
     return pimpl_->initialized_.load();
+}
+
+void messaging_bridge::set_thread_pool_interface(
+    std::shared_ptr<thread_pool_interface> pool
+) {
+    pimpl_->thread_pool_interface_ = pool;
+}
+
+std::shared_ptr<thread_pool_interface> messaging_bridge::get_thread_pool_interface() const {
+    if (!pimpl_->thread_pool_interface_) {
+        // Return the global thread integration manager's pool
+        return thread_integration_manager::instance().get_thread_pool();
+    }
+    return pimpl_->thread_pool_interface_;
 }
 
 } // namespace network_system::integration

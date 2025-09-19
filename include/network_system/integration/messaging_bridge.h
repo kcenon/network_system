@@ -23,6 +23,8 @@
 #include "thread_system/thread_pool.h"
 #endif
 
+#include "network_system/integration/thread_integration.h"
+
 #include <memory>
 #include <string>
 #include <functional>
@@ -94,6 +96,20 @@ public:
         std::shared_ptr<thread_system::thread_pool> pool
     );
 #endif
+
+    /**
+     * @brief Set thread pool using the integration interface
+     * @param pool Thread pool interface implementation
+     */
+    void set_thread_pool_interface(
+        std::shared_ptr<thread_pool_interface> pool
+    );
+
+    /**
+     * @brief Get the thread pool interface
+     * @return Current thread pool interface
+     */
+    std::shared_ptr<thread_pool_interface> get_thread_pool_interface() const;
 
     /**
      * @brief Performance metrics structure
