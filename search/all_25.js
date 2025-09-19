@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['🏆_20planned_0',['Phase 5: Production Ready 🏆 (Planned)',['../md_README.html#autotoc_md292',1,'']]]
+  ['📄_20license_0',['📄 License',['../md_README.html#autotoc_md293',1,'']]]
 ];

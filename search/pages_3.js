@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['implementation_20details_0',['Technical Implementation Details',['../md_TECHNICAL__IMPLEMENTATION__DETAILS.html',1,'']]],
-  ['instructions_1',['Build Instructions',['../md_BUILD.html',1,'']]]
+  ['guide_3a_20messaging_5fsystem_20to_20network_5fsystem_0',['Migration Guide: messaging_system to network_system',['../md_MIGRATION__GUIDE.html',1,'']]]
 ];

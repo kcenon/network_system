@@ -73,417 +73,36 @@ $(function() {
   <div class="headertitle"><div class="title">Network System</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md214"></a> <a href="https://github.com/kcenon/network_system/actions"><img src="https://github.com/kcenon/network_system/actions/workflows/build-ubuntu-gcc.yaml/badge.svg" alt="Build Status" style="pointer-events: none;" class="inline"/></a> [<img src="https://img.shields.io/badge/license-BSD--3--Clause-blue.svg" alt="License" style="pointer-events: none;" class="inline"/>](LICENSE) <a href="https://en.cppreference.com/w/cpp/20"><img src="https://img.shields.io/badge/C%2B%2B-20-blue.svg" alt="C++ Version" style="pointer-events: none;" class="inline"/></a></p>
-<p><b>Status</b>: Phase 2 Complete ✅ (Core System Separation) <b>Current</b>: Phase 3 In Planning (Integration Interface Enhancement) <b>Owner</b>: kcenon (<a href="#" onclick="location.href='mai'+'lto:'+'kce'+'no'+'n@n'+'av'+'er.'+'co'+'m'; return false;">kceno<span class="obfuscator">.nosp@m.</span>n@na<span class="obfuscator">.nosp@m.</span>ver.c<span class="obfuscator">.nosp@m.</span>om</a>)</p>
+<div class="textblock"><p><a class="anchor" id="autotoc_md263"></a> <a href="https://github.com/kcenon/network_system/actions"><img src="https://github.com/kcenon/network_system/actions/workflows/build-ubuntu-gcc.yaml/badge.svg" alt="Build Status" style="pointer-events: none;" class="inline"/></a> [<img src="https://img.shields.io/badge/license-BSD--3--Clause-blue.svg" alt="License" style="pointer-events: none;" class="inline"/>](LICENSE) <a href="https://en.cppreference.com/w/cpp/20"><img src="https://img.shields.io/badge/C%2B%2B-20-blue.svg" alt="C++ Version" style="pointer-events: none;" class="inline"/></a></p>
+<p><b>Status</b>: Phase 4 In Progress 🚧 (messaging_system Update) <b>Version</b>: 2.0.0 <b>Owner</b>: kcenon (<a href="#" onclick="location.href='mai'+'lto:'+'kce'+'no'+'n@n'+'av'+'er.'+'co'+'m'; return false;">kceno<span class="obfuscator">.nosp@m.</span>n@na<span class="obfuscator">.nosp@m.</span>ver.c<span class="obfuscator">.nosp@m.</span>om</a>)</p>
 <p>High-performance asynchronous network library separated from messaging_system for modularity and reusability.</p>
-<h1><a class="anchor" id="autotoc_md215"></a>
-📝 API Example</h1>
-<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_server.h&gt;</span></div>
-<div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_client.h&gt;</span></div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Server example</span></div>
-<div class="line"><span class="keyword">auto</span> server = std::make_shared&lt;network_system::core::messaging_server&gt;();</div>
-<div class="line">server-&gt;set_message_handler([](<span class="keyword">const</span> std::string&amp; message) {</div>
-<div class="line">    std::cout &lt;&lt; <span class="stringliteral">&quot;Received: &quot;</span> &lt;&lt; message &lt;&lt; std::endl;</div>
-<div class="line">    <span class="keywordflow">return</span> <span class="stringliteral">&quot;Echo: &quot;</span> + message;</div>
-<div class="line">});</div>
-<div class="line">server-&gt;start(<span class="stringliteral">&quot;0.0.0.0&quot;</span>, 8080);</div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Client example</span></div>
-<div class="line"><span class="keyword">auto</span> client = std::make_shared&lt;network_system::core::messaging_client&gt;();</div>
-<div class="line">client-&gt;connect(<span class="stringliteral">&quot;localhost&quot;</span>, 8080);</div>
-<div class="line">client-&gt;send(<span class="stringliteral">&quot;Hello, Network System!&quot;</span>);</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md216"></a>
-🤝 Contributing</h1>
-<p>Contributions are welcome! Please follow these guidelines:</p>
-<ol type="1">
-<li>Fork the repository</li>
-<li>Create a feature branch (<code>git checkout -b feature/amazing-feature</code>)</li>
-<li>Commit your changes following conventional commits</li>
-<li>Push to the branch (<code>git push origin feature/amazing-feature</code>)</li>
-<li>Open a Pull Request</li>
-</ol>
-<h1><a class="anchor" id="autotoc_md217"></a>
-📄 License</h1>
-<p>This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.</p>
-<h1><a class="anchor" id="autotoc_md218"></a>
-🙏 Acknowledgments</h1>
-<ul>
-<li>ASIO library for asynchronous I/O</li>
-<li>fmt library for modern formatting</li>
-<li>Original messaging_system contributors</li>
-</ul>
-<h1><a class="anchor" id="autotoc_md219"></a>
-📧 Contact</h1>
-<p><b>Owner</b>: kcenon (<a href="#" onclick="location.href='mai'+'lto:'+'kce'+'no'+'n@n'+'av'+'er.'+'co'+'m'; return false;">kceno<span class="obfuscator">.nosp@m.</span>n@na<span class="obfuscator">.nosp@m.</span>ver.c<span class="obfuscator">.nosp@m.</span>om</a>) <b>Repository</b>: <a href="https://github.com/kcenon/network_system">https://github.com/kcenon/network_system</a></p>
-<hr  />
-<h1><a class="anchor" id="autotoc_md221"></a>
+<h1><a class="anchor" id="autotoc_md264"></a>
 🎯 Project Overview</h1>
-<p>This project involves a large-scale refactoring effort to separate the <code>Sources/messaging_system/network</code> module into an independent <code>network_system</code>. The goal is to improve modularity, reusability, and maintainability while maintaining compatibility with existing systems.</p>
-<h2><a class="anchor" id="autotoc_md222"></a>
+<p>This project is a comprehensive refactoring effort to separate the network module from messaging_system into an independent, reusable library while maintaining full backward compatibility.</p>
+<h2><a class="anchor" id="autotoc_md265"></a>
 Core Objectives</h2>
 <ul>
 <li><b>Module Independence</b>: Complete separation of network module from messaging_system ✅</li>
 <li><b>Enhanced Reusability</b>: Independent library usable in other projects ✅</li>
-<li><b>Compatibility Maintenance</b>: Minimize modifications to existing messaging_system code ✅</li>
-<li><b>Performance Optimization</b>: Prevent performance degradation from separation ✅</li>
+<li><b>Compatibility Maintenance</b>: Full backward compatibility with legacy code ✅</li>
+<li><b>Performance Optimization</b>: 305K+ msg/s throughput achieved ✅</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md223"></a>
-Project Phases</h2>
-<ul>
-<li><b>Phase 1</b>: Preparation and Analysis ✅ (Completed: 2025-09-19)</li>
-<li><b>Phase 2</b>: Core System Separation ✅ (Completed: 2025-09-19)</li>
-<li><b>Phase 3</b>: Integration Interface Implementation 🚧 (In Planning)</li>
-<li><b>Phase 4</b>: messaging_system Update ⏳ (Pending)</li>
-<li><b>Phase 5</b>: Verification and Deployment ⏳ (Pending)</li>
-</ul>
-<h1><a class="anchor" id="autotoc_md224"></a>
-📧 Contact</h1>
-<p><b>Owner</b>: kcenon (<a href="#" onclick="location.href='mai'+'lto:'+'kce'+'no'+'n@n'+'av'+'er.'+'co'+'m'; return false;">kceno<span class="obfuscator">.nosp@m.</span>n@na<span class="obfuscator">.nosp@m.</span>ver.c<span class="obfuscator">.nosp@m.</span>om</a>) <b>Repository</b>: <a href="https://github.com/kcenon/network_system">https://github.com/kcenon/network_system</a></p>
-<hr  />
-<h1><a class="anchor" id="autotoc_md226"></a>
-📚 Documentation</h1>
-<p>| Document | Description | |## 📝 API Example</p>
-<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_server.h&gt;</span></div>
-<div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_client.h&gt;</span></div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Server example</span></div>
-<div class="line"><span class="keyword">auto</span> server = std::make_shared&lt;network_system::core::messaging_server&gt;();</div>
-<div class="line">server-&gt;set_message_handler([](<span class="keyword">const</span> std::string&amp; message) {</div>
-<div class="line">    std::cout &lt;&lt; <span class="stringliteral">&quot;Received: &quot;</span> &lt;&lt; message &lt;&lt; std::endl;</div>
-<div class="line">    <span class="keywordflow">return</span> <span class="stringliteral">&quot;Echo: &quot;</span> + message;</div>
-<div class="line">});</div>
-<div class="line">server-&gt;start(<span class="stringliteral">&quot;0.0.0.0&quot;</span>, 8080);</div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Client example</span></div>
-<div class="line"><span class="keyword">auto</span> client = std::make_shared&lt;network_system::core::messaging_client&gt;();</div>
-<div class="line">client-&gt;connect(<span class="stringliteral">&quot;localhost&quot;</span>, 8080);</div>
-<div class="line">client-&gt;send(<span class="stringliteral">&quot;Hello, Network System!&quot;</span>);</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md227"></a>
-🤝 Contributing</h1>
-<p>Contributions are welcome! Please follow these guidelines:</p>
-<ol type="1">
-<li>Fork the repository</li>
-<li>Create a feature branch (<code>git checkout -b feature/amazing-feature</code>)</li>
-<li>Commit your changes following conventional commits</li>
-<li>Push to the branch (<code>git push origin feature/amazing-feature</code>)</li>
-<li>Open a Pull Request</li>
-</ol>
-<h1><a class="anchor" id="autotoc_md228"></a>
-📄 License</h1>
-<p>This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.</p>
-<h1><a class="anchor" id="autotoc_md229"></a>
-🙏 Acknowledgments</h1>
-<ul>
-<li>ASIO library for asynchronous I/O</li>
-<li>fmt library for modern formatting</li>
-<li>Original messaging_system contributors</li>
-</ul>
-<h1><a class="anchor" id="autotoc_md230"></a>
-📧 Contact</h1>
-<p><b>Owner</b>: kcenon (<a href="#" onclick="location.href='mai'+'lto:'+'kce'+'no'+'n@n'+'av'+'er.'+'co'+'m'; return false;">kceno<span class="obfuscator">.nosp@m.</span>n@na<span class="obfuscator">.nosp@m.</span>ver.c<span class="obfuscator">.nosp@m.</span>om</a>) <b>Repository</b>: <a href="https://github.com/kcenon/network_system">https://github.com/kcenon/network_system</a></p>
-<p>&mdash;## 📝 API Example</p>
-<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_server.h&gt;</span></div>
-<div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_client.h&gt;</span></div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Server example</span></div>
-<div class="line"><span class="keyword">auto</span> server = std::make_shared&lt;network_system::core::messaging_server&gt;();</div>
-<div class="line">server-&gt;set_message_handler([](<span class="keyword">const</span> std::string&amp; message) {</div>
-<div class="line">    std::cout &lt;&lt; <span class="stringliteral">&quot;Received: &quot;</span> &lt;&lt; message &lt;&lt; std::endl;</div>
-<div class="line">    <span class="keywordflow">return</span> <span class="stringliteral">&quot;Echo: &quot;</span> + message;</div>
-<div class="line">});</div>
-<div class="line">server-&gt;start(<span class="stringliteral">&quot;0.0.0.0&quot;</span>, 8080);</div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Client example</span></div>
-<div class="line"><span class="keyword">auto</span> client = std::make_shared&lt;network_system::core::messaging_client&gt;();</div>
-<div class="line">client-&gt;connect(<span class="stringliteral">&quot;localhost&quot;</span>, 8080);</div>
-<div class="line">client-&gt;send(<span class="stringliteral">&quot;Hello, Network System!&quot;</span>);</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md231"></a>
-🤝 Contributing</h1>
-<p>Contributions are welcome! Please follow these guidelines:</p>
-<ol type="1">
-<li>Fork the repository</li>
-<li>Create a feature branch (<code>git checkout -b feature/amazing-feature</code>)</li>
-<li>Commit your changes following conventional commits</li>
-<li>Push to the branch (<code>git push origin feature/amazing-feature</code>)</li>
-<li>Open a Pull Request</li>
-</ol>
-<h1><a class="anchor" id="autotoc_md232"></a>
-📄 License</h1>
-<p>This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.</p>
-<h1><a class="anchor" id="autotoc_md233"></a>
-🙏 Acknowledgments</h1>
-<ul>
-<li>ASIO library for asynchronous I/O</li>
-<li>fmt library for modern formatting</li>
-<li>Original messaging_system contributors</li>
-</ul>
-<h1><a class="anchor" id="autotoc_md234"></a>
-📧 Contact</h1>
-<p><b>Owner</b>: kcenon (<a href="#" onclick="location.href='mai'+'lto:'+'kce'+'no'+'n@n'+'av'+'er.'+'co'+'m'; return false;">kceno<span class="obfuscator">.nosp@m.</span>n@na<span class="obfuscator">.nosp@m.</span>ver.c<span class="obfuscator">.nosp@m.</span>om</a>) <b>Repository</b>: <a href="https://github.com/kcenon/network_system">https://github.com/kcenon/network_system</a></p>
-<p>&mdash;## 📝 API Example</p>
-<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_server.h&gt;</span></div>
-<div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_client.h&gt;</span></div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Server example</span></div>
-<div class="line"><span class="keyword">auto</span> server = std::make_shared&lt;network_system::core::messaging_server&gt;();</div>
-<div class="line">server-&gt;set_message_handler([](<span class="keyword">const</span> std::string&amp; message) {</div>
-<div class="line">    std::cout &lt;&lt; <span class="stringliteral">&quot;Received: &quot;</span> &lt;&lt; message &lt;&lt; std::endl;</div>
-<div class="line">    <span class="keywordflow">return</span> <span class="stringliteral">&quot;Echo: &quot;</span> + message;</div>
-<div class="line">});</div>
-<div class="line">server-&gt;start(<span class="stringliteral">&quot;0.0.0.0&quot;</span>, 8080);</div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Client example</span></div>
-<div class="line"><span class="keyword">auto</span> client = std::make_shared&lt;network_system::core::messaging_client&gt;();</div>
-<div class="line">client-&gt;connect(<span class="stringliteral">&quot;localhost&quot;</span>, 8080);</div>
-<div class="line">client-&gt;send(<span class="stringliteral">&quot;Hello, Network System!&quot;</span>);</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md235"></a>
-🤝 Contributing</h1>
-<p>Contributions are welcome! Please follow these guidelines:</p>
-<ol type="1">
-<li>Fork the repository</li>
-<li>Create a feature branch (<code>git checkout -b feature/amazing-feature</code>)</li>
-<li>Commit your changes following conventional commits</li>
-<li>Push to the branch (<code>git push origin feature/amazing-feature</code>)</li>
-<li>Open a Pull Request</li>
-</ol>
-<h1><a class="anchor" id="autotoc_md236"></a>
-📄 License</h1>
-<p>This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.</p>
-<h1><a class="anchor" id="autotoc_md237"></a>
-🙏 Acknowledgments</h1>
-<ul>
-<li>ASIO library for asynchronous I/O</li>
-<li>fmt library for modern formatting</li>
-<li>Original messaging_system contributors</li>
-</ul>
-<h1><a class="anchor" id="autotoc_md238"></a>
-📧 Contact</h1>
-<p><b>Owner</b>: kcenon (<a href="#" onclick="location.href='mai'+'lto:'+'kce'+'no'+'n@n'+'av'+'er.'+'co'+'m'; return false;">kceno<span class="obfuscator">.nosp@m.</span>n@na<span class="obfuscator">.nosp@m.</span>ver.c<span class="obfuscator">.nosp@m.</span>om</a>) <b>Repository</b>: <a href="https://github.com/kcenon/network_system">https://github.com/kcenon/network_system</a></p>
-<p>-&mdash;|## 📝 API Example</p>
-<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_server.h&gt;</span></div>
-<div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_client.h&gt;</span></div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Server example</span></div>
-<div class="line"><span class="keyword">auto</span> server = std::make_shared&lt;network_system::core::messaging_server&gt;();</div>
-<div class="line">server-&gt;set_message_handler([](<span class="keyword">const</span> std::string&amp; message) {</div>
-<div class="line">    std::cout &lt;&lt; <span class="stringliteral">&quot;Received: &quot;</span> &lt;&lt; message &lt;&lt; std::endl;</div>
-<div class="line">    <span class="keywordflow">return</span> <span class="stringliteral">&quot;Echo: &quot;</span> + message;</div>
-<div class="line">});</div>
-<div class="line">server-&gt;start(<span class="stringliteral">&quot;0.0.0.0&quot;</span>, 8080);</div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Client example</span></div>
-<div class="line"><span class="keyword">auto</span> client = std::make_shared&lt;network_system::core::messaging_client&gt;();</div>
-<div class="line">client-&gt;connect(<span class="stringliteral">&quot;localhost&quot;</span>, 8080);</div>
-<div class="line">client-&gt;send(<span class="stringliteral">&quot;Hello, Network System!&quot;</span>);</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md239"></a>
-🤝 Contributing</h1>
-<p>Contributions are welcome! Please follow these guidelines:</p>
-<ol type="1">
-<li>Fork the repository</li>
-<li>Create a feature branch (<code>git checkout -b feature/amazing-feature</code>)</li>
-<li>Commit your changes following conventional commits</li>
-<li>Push to the branch (<code>git push origin feature/amazing-feature</code>)</li>
-<li>Open a Pull Request</li>
-</ol>
-<h1><a class="anchor" id="autotoc_md240"></a>
-📄 License</h1>
-<p>This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.</p>
-<h1><a class="anchor" id="autotoc_md241"></a>
-🙏 Acknowledgments</h1>
-<ul>
-<li>ASIO library for asynchronous I/O</li>
-<li>fmt library for modern formatting</li>
-<li>Original messaging_system contributors</li>
-</ul>
-<h1><a class="anchor" id="autotoc_md242"></a>
-📧 Contact</h1>
-<p><b>Owner</b>: kcenon (<a href="#" onclick="location.href='mai'+'lto:'+'kce'+'no'+'n@n'+'av'+'er.'+'co'+'m'; return false;">kceno<span class="obfuscator">.nosp@m.</span>n@na<span class="obfuscator">.nosp@m.</span>ver.c<span class="obfuscator">.nosp@m.</span>om</a>) <b>Repository</b>: <a href="https://github.com/kcenon/network_system">https://github.com/kcenon/network_system</a></p>
-<p>&mdash;## 📝 API Example</p>
-<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_server.h&gt;</span></div>
-<div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_client.h&gt;</span></div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Server example</span></div>
-<div class="line"><span class="keyword">auto</span> server = std::make_shared&lt;network_system::core::messaging_server&gt;();</div>
-<div class="line">server-&gt;set_message_handler([](<span class="keyword">const</span> std::string&amp; message) {</div>
-<div class="line">    std::cout &lt;&lt; <span class="stringliteral">&quot;Received: &quot;</span> &lt;&lt; message &lt;&lt; std::endl;</div>
-<div class="line">    <span class="keywordflow">return</span> <span class="stringliteral">&quot;Echo: &quot;</span> + message;</div>
-<div class="line">});</div>
-<div class="line">server-&gt;start(<span class="stringliteral">&quot;0.0.0.0&quot;</span>, 8080);</div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Client example</span></div>
-<div class="line"><span class="keyword">auto</span> client = std::make_shared&lt;network_system::core::messaging_client&gt;();</div>
-<div class="line">client-&gt;connect(<span class="stringliteral">&quot;localhost&quot;</span>, 8080);</div>
-<div class="line">client-&gt;send(<span class="stringliteral">&quot;Hello, Network System!&quot;</span>);</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md243"></a>
-🤝 Contributing</h1>
-<p>Contributions are welcome! Please follow these guidelines:</p>
-<ol type="1">
-<li>Fork the repository</li>
-<li>Create a feature branch (<code>git checkout -b feature/amazing-feature</code>)</li>
-<li>Commit your changes following conventional commits</li>
-<li>Push to the branch (<code>git push origin feature/amazing-feature</code>)</li>
-<li>Open a Pull Request</li>
-</ol>
-<h1><a class="anchor" id="autotoc_md244"></a>
-📄 License</h1>
-<p>This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.</p>
-<h1><a class="anchor" id="autotoc_md245"></a>
-🙏 Acknowledgments</h1>
-<ul>
-<li>ASIO library for asynchronous I/O</li>
-<li>fmt library for modern formatting</li>
-<li>Original messaging_system contributors</li>
-</ul>
-<h1><a class="anchor" id="autotoc_md246"></a>
-📧 Contact</h1>
-<p><b>Owner</b>: kcenon (<a href="#" onclick="location.href='mai'+'lto:'+'kce'+'no'+'n@n'+'av'+'er.'+'co'+'m'; return false;">kceno<span class="obfuscator">.nosp@m.</span>n@na<span class="obfuscator">.nosp@m.</span>ver.c<span class="obfuscator">.nosp@m.</span>om</a>) <b>Repository</b>: <a href="https://github.com/kcenon/network_system">https://github.com/kcenon/network_system</a></p>
-<p>&mdash;## 📝 API Example</p>
-<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_server.h&gt;</span></div>
-<div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_client.h&gt;</span></div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Server example</span></div>
-<div class="line"><span class="keyword">auto</span> server = std::make_shared&lt;network_system::core::messaging_server&gt;();</div>
-<div class="line">server-&gt;set_message_handler([](<span class="keyword">const</span> std::string&amp; message) {</div>
-<div class="line">    std::cout &lt;&lt; <span class="stringliteral">&quot;Received: &quot;</span> &lt;&lt; message &lt;&lt; std::endl;</div>
-<div class="line">    <span class="keywordflow">return</span> <span class="stringliteral">&quot;Echo: &quot;</span> + message;</div>
-<div class="line">});</div>
-<div class="line">server-&gt;start(<span class="stringliteral">&quot;0.0.0.0&quot;</span>, 8080);</div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Client example</span></div>
-<div class="line"><span class="keyword">auto</span> client = std::make_shared&lt;network_system::core::messaging_client&gt;();</div>
-<div class="line">client-&gt;connect(<span class="stringliteral">&quot;localhost&quot;</span>, 8080);</div>
-<div class="line">client-&gt;send(<span class="stringliteral">&quot;Hello, Network System!&quot;</span>);</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md247"></a>
-🤝 Contributing</h1>
-<p>Contributions are welcome! Please follow these guidelines:</p>
-<ol type="1">
-<li>Fork the repository</li>
-<li>Create a feature branch (<code>git checkout -b feature/amazing-feature</code>)</li>
-<li>Commit your changes following conventional commits</li>
-<li>Push to the branch (<code>git push origin feature/amazing-feature</code>)</li>
-<li>Open a Pull Request</li>
-</ol>
-<h1><a class="anchor" id="autotoc_md248"></a>
-📄 License</h1>
-<p>This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.</p>
-<h1><a class="anchor" id="autotoc_md249"></a>
-🙏 Acknowledgments</h1>
-<ul>
-<li>ASIO library for asynchronous I/O</li>
-<li>fmt library for modern formatting</li>
-<li>Original messaging_system contributors</li>
-</ul>
-<h1><a class="anchor" id="autotoc_md250"></a>
-📧 Contact</h1>
-<p><b>Owner</b>: kcenon (<a href="#" onclick="location.href='mai'+'lto:'+'kce'+'no'+'n@n'+'av'+'er.'+'co'+'m'; return false;">kceno<span class="obfuscator">.nosp@m.</span>n@na<span class="obfuscator">.nosp@m.</span>ver.c<span class="obfuscator">.nosp@m.</span>om</a>) <b>Repository</b>: <a href="https://github.com/kcenon/network_system">https://github.com/kcenon/network_system</a></p>
-<p>&mdash;## 📝 API Example</p>
-<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_server.h&gt;</span></div>
-<div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_client.h&gt;</span></div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Server example</span></div>
-<div class="line"><span class="keyword">auto</span> server = std::make_shared&lt;network_system::core::messaging_server&gt;();</div>
-<div class="line">server-&gt;set_message_handler([](<span class="keyword">const</span> std::string&amp; message) {</div>
-<div class="line">    std::cout &lt;&lt; <span class="stringliteral">&quot;Received: &quot;</span> &lt;&lt; message &lt;&lt; std::endl;</div>
-<div class="line">    <span class="keywordflow">return</span> <span class="stringliteral">&quot;Echo: &quot;</span> + message;</div>
-<div class="line">});</div>
-<div class="line">server-&gt;start(<span class="stringliteral">&quot;0.0.0.0&quot;</span>, 8080);</div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Client example</span></div>
-<div class="line"><span class="keyword">auto</span> client = std::make_shared&lt;network_system::core::messaging_client&gt;();</div>
-<div class="line">client-&gt;connect(<span class="stringliteral">&quot;localhost&quot;</span>, 8080);</div>
-<div class="line">client-&gt;send(<span class="stringliteral">&quot;Hello, Network System!&quot;</span>);</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md251"></a>
-🤝 Contributing</h1>
-<p>Contributions are welcome! Please follow these guidelines:</p>
-<ol type="1">
-<li>Fork the repository</li>
-<li>Create a feature branch (<code>git checkout -b feature/amazing-feature</code>)</li>
-<li>Commit your changes following conventional commits</li>
-<li>Push to the branch (<code>git push origin feature/amazing-feature</code>)</li>
-<li>Open a Pull Request</li>
-</ol>
-<h1><a class="anchor" id="autotoc_md252"></a>
-📄 License</h1>
-<p>This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.</p>
-<h1><a class="anchor" id="autotoc_md253"></a>
-🙏 Acknowledgments</h1>
-<ul>
-<li>ASIO library for asynchronous I/O</li>
-<li>fmt library for modern formatting</li>
-<li>Original messaging_system contributors</li>
-</ul>
-<h1><a class="anchor" id="autotoc_md254"></a>
-📧 Contact</h1>
-<p><b>Owner</b>: kcenon (<a href="#" onclick="location.href='mai'+'lto:'+'kce'+'no'+'n@n'+'av'+'er.'+'co'+'m'; return false;">kceno<span class="obfuscator">.nosp@m.</span>n@na<span class="obfuscator">.nosp@m.</span>ver.c<span class="obfuscator">.nosp@m.</span>om</a>) <b>Repository</b>: <a href="https://github.com/kcenon/network_system">https://github.com/kcenon/network_system</a></p>
-<p>-&mdash;| | <a href="https://kcenon.github.io/network_system">API Documentation</a> | Doxygen-generated API reference | | <a class="el" href="md_NETWORK__SYSTEM__SEPARATION__PLAN.html">Separation Plan</a> | Complete migration roadmap | | <a class="el" href="md_TECHNICAL__IMPLEMENTATION__DETAILS.html">Technical Details</a> | Implementation specifications | | Phase 2 Plan | Next phase implementation tasks | | <a class="el" href="md_MIGRATION__CHECKLIST.html">Migration Checklist</a> | Step-by-step checklist |</p>
-<h1><a class="anchor" id="autotoc_md255"></a>
-✅ Phase 1 Achievements</h1>
-<ul>
-<li><b>Core Architecture</b>: Complete namespace separation (<code>network_system::{core,session,internal,integration}</code>)</li>
-<li><b>Build System</b>: CMake with vcpkg/system package support</li>
-<li><b>CI/CD Pipeline</b>: GitHub Actions for Ubuntu (GCC/Clang) and Windows (VS/MSYS2)</li>
-<li><b>Container Integration</b>: Full integration with container_system</li>
-<li><b>Documentation</b>: Doxygen configuration with architectural overview</li>
-<li><b>Dependency Management</b>: Flexible ASIO/Boost.ASIO detection with fallbacks</li>
-</ul>
-<h1><a class="anchor" id="autotoc_md256"></a>
-📝 API Example</h1>
-<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_server.h&gt;</span></div>
-<div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_client.h&gt;</span></div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Server example</span></div>
-<div class="line"><span class="keyword">auto</span> server = std::make_shared&lt;network_system::core::messaging_server&gt;();</div>
-<div class="line">server-&gt;set_message_handler([](<span class="keyword">const</span> std::string&amp; message) {</div>
-<div class="line">    std::cout &lt;&lt; <span class="stringliteral">&quot;Received: &quot;</span> &lt;&lt; message &lt;&lt; std::endl;</div>
-<div class="line">    <span class="keywordflow">return</span> <span class="stringliteral">&quot;Echo: &quot;</span> + message;</div>
-<div class="line">});</div>
-<div class="line">server-&gt;start(<span class="stringliteral">&quot;0.0.0.0&quot;</span>, 8080);</div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Client example</span></div>
-<div class="line"><span class="keyword">auto</span> client = std::make_shared&lt;network_system::core::messaging_client&gt;();</div>
-<div class="line">client-&gt;connect(<span class="stringliteral">&quot;localhost&quot;</span>, 8080);</div>
-<div class="line">client-&gt;send(<span class="stringliteral">&quot;Hello, Network System!&quot;</span>);</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md257"></a>
-🤝 Contributing</h1>
-<p>Contributions are welcome! Please follow these guidelines:</p>
-<ol type="1">
-<li>Fork the repository</li>
-<li>Create a feature branch (<code>git checkout -b feature/amazing-feature</code>)</li>
-<li>Commit your changes following conventional commits</li>
-<li>Push to the branch (<code>git push origin feature/amazing-feature</code>)</li>
-<li>Open a Pull Request</li>
-</ol>
-<h1><a class="anchor" id="autotoc_md258"></a>
-📄 License</h1>
-<p>This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.</p>
-<h1><a class="anchor" id="autotoc_md259"></a>
-🙏 Acknowledgments</h1>
-<ul>
-<li>ASIO library for asynchronous I/O</li>
-<li>fmt library for modern formatting</li>
-<li>Original messaging_system contributors</li>
-</ul>
-<h1><a class="anchor" id="autotoc_md260"></a>
-📧 Contact</h1>
-<p><b>Owner</b>: kcenon (<a href="#" onclick="location.href='mai'+'lto:'+'kce'+'no'+'n@n'+'av'+'er.'+'co'+'m'; return false;">kceno<span class="obfuscator">.nosp@m.</span>n@na<span class="obfuscator">.nosp@m.</span>ver.c<span class="obfuscator">.nosp@m.</span>om</a>) <b>Repository</b>: <a href="https://github.com/kcenon/network_system">https://github.com/kcenon/network_system</a></p>
-<hr  />
-<h1><a class="anchor" id="autotoc_md262"></a>
+<h1><a class="anchor" id="autotoc_md266"></a>
 🚀 Quick Start</h1>
-<h2><a class="anchor" id="autotoc_md263"></a>
+<h2><a class="anchor" id="autotoc_md267"></a>
 Prerequisites</h2>
-<h3><a class="anchor" id="autotoc_md264"></a>
+<h3><a class="anchor" id="autotoc_md268"></a>
 Ubuntu/Debian</h3>
 <div class="fragment"><div class="line">sudo apt update</div>
-<div class="line">sudo apt install -y cmake ninja-build libasio-dev libfmt-dev libboost-all-dev</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md265"></a>
+<div class="line">sudo apt install -y cmake ninja-build libasio-dev libfmt-dev</div>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md269"></a>
 macOS</h3>
-<div class="fragment"><div class="line">brew install cmake ninja asio fmt boost</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md266"></a>
+<div class="fragment"><div class="line">brew install cmake ninja asio fmt</div>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md270"></a>
 Windows (MSYS2)</h3>
 <div class="fragment"><div class="line">pacman -S mingw-w64-x86_64-cmake mingw-w64-x86_64-ninja \</div>
-<div class="line">          mingw-w64-x86_64-asio mingw-w64-x86_64-fmt mingw-w64-x86_64-boost</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md267"></a>
+<div class="line">          mingw-w64-x86_64-asio mingw-w64-x86_64-fmt</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md271"></a>
 Build Instructions</h2>
 <div class="fragment"><div class="line"># Clone repository</div>
 <div class="line">git clone https://github.com/kcenon/network_system.git</div>
@@ -493,588 +112,214 @@ Build Instructions</h2>
 <div class="line">mkdir build &amp;&amp; cd build</div>
 <div class="line"> </div>
 <div class="line"># Configure with CMake</div>
-<div class="line">cmake .. -G Ninja \</div>
-<div class="line">  -DBUILD_TESTS=ON \</div>
-<div class="line">  -DBUILD_SAMPLES=ON \</div>
-<div class="line">  -DCMAKE_BUILD_TYPE=Release</div>
+<div class="line">cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release</div>
 <div class="line"> </div>
 <div class="line"># Build</div>
 <div class="line">cmake --build .</div>
 <div class="line"> </div>
-<div class="line"># Run verification</div>
+<div class="line"># Run tests</div>
 <div class="line">./verify_build</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md268"></a>
-📝 API Example</h1>
+<div class="line">./benchmark</div>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md272"></a>
+📝 API Examples</h1>
+<h2><a class="anchor" id="autotoc_md273"></a>
+Modern API Usage</h2>
 <div class="fragment"><div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_server.h&gt;</span></div>
 <div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_client.h&gt;</span></div>
 <div class="line"> </div>
 <div class="line"><span class="comment">// Server example</span></div>
-<div class="line"><span class="keyword">auto</span> server = std::make_shared&lt;network_system::core::messaging_server&gt;();</div>
-<div class="line">server-&gt;set_message_handler([](<span class="keyword">const</span> std::string&amp; message) {</div>
-<div class="line">    std::cout &lt;&lt; <span class="stringliteral">&quot;Received: &quot;</span> &lt;&lt; message &lt;&lt; std::endl;</div>
-<div class="line">    <span class="keywordflow">return</span> <span class="stringliteral">&quot;Echo: &quot;</span> + message;</div>
-<div class="line">});</div>
-<div class="line">server-&gt;start(<span class="stringliteral">&quot;0.0.0.0&quot;</span>, 8080);</div>
+<div class="line"><span class="keyword">auto</span> server = std::make_shared&lt;network_system::core::messaging_server&gt;(<span class="stringliteral">&quot;server_id&quot;</span>);</div>
+<div class="line">server-&gt;start_server(8080);</div>
 <div class="line"> </div>
 <div class="line"><span class="comment">// Client example</span></div>
-<div class="line"><span class="keyword">auto</span> client = std::make_shared&lt;network_system::core::messaging_client&gt;();</div>
-<div class="line">client-&gt;connect(<span class="stringliteral">&quot;localhost&quot;</span>, 8080);</div>
-<div class="line">client-&gt;send(<span class="stringliteral">&quot;Hello, Network System!&quot;</span>);</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md269"></a>
-🤝 Contributing</h1>
-<p>Contributions are welcome! Please follow these guidelines:</p>
-<ol type="1">
-<li>Fork the repository</li>
-<li>Create a feature branch (<code>git checkout -b feature/amazing-feature</code>)</li>
-<li>Commit your changes following conventional commits</li>
-<li>Push to the branch (<code>git push origin feature/amazing-feature</code>)</li>
-<li>Open a Pull Request</li>
-</ol>
-<h1><a class="anchor" id="autotoc_md270"></a>
-📄 License</h1>
-<p>This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.</p>
-<h1><a class="anchor" id="autotoc_md271"></a>
-🙏 Acknowledgments</h1>
-<ul>
-<li>ASIO library for asynchronous I/O</li>
-<li>fmt library for modern formatting</li>
-<li>Original messaging_system contributors</li>
-</ul>
-<h1><a class="anchor" id="autotoc_md272"></a>
-📧 Contact</h1>
-<p><b>Owner</b>: kcenon (<a href="#" onclick="location.href='mai'+'lto:'+'kce'+'no'+'n@n'+'av'+'er.'+'co'+'m'; return false;">kceno<span class="obfuscator">.nosp@m.</span>n@na<span class="obfuscator">.nosp@m.</span>ver.c<span class="obfuscator">.nosp@m.</span>om</a>) <b>Repository</b>: <a href="https://github.com/kcenon/network_system">https://github.com/kcenon/network_system</a></p>
-<hr  />
-<h1><a class="anchor" id="autotoc_md274"></a>
-🏗️ Architecture Overview</h1>
-<h2><a class="anchor" id="autotoc_md275"></a>
-Pre-Separation Structure</h2>
-<div class="fragment"><div class="line">messaging_system/</div>
-<div class="line">├── container/          # → container_system (already separated)</div>
-<div class="line">├── database/           # → database_system (already separated)</div>
-<div class="line">├── network/            # → network_system (separation target)</div>
-<div class="line">├── logger_system/      # (future separation planned)</div>
-<div class="line">├── monitoring_system/  # (already separated)</div>
-<div class="line">└── thread_system/      # (already separated)</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md276"></a>
-Current Structure</h2>
+<div class="line"><span class="keyword">auto</span> client = std::make_shared&lt;network_system::core::messaging_client&gt;(<span class="stringliteral">&quot;client_id&quot;</span>);</div>
+<div class="line">client-&gt;start_client(<span class="stringliteral">&quot;localhost&quot;</span>, 8080);</div>
+<div class="line"> </div>
+<div class="line"><span class="comment">// Send message</span></div>
+<div class="line">std::vector&lt;uint8_t&gt; data = {<span class="charliteral">&#39;H&#39;</span>, <span class="charliteral">&#39;e&#39;</span>, <span class="charliteral">&#39;l&#39;</span>, <span class="charliteral">&#39;l&#39;</span>, <span class="charliteral">&#39;o&#39;</span>};</div>
+<div class="line">client-&gt;send_packet(data);</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md274"></a>
+Legacy API Compatibility</h2>
+<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;network_system/compatibility.h&gt;</span></div>
+<div class="line"> </div>
+<div class="line"><span class="comment">// Use legacy namespace - fully compatible</span></div>
+<div class="line"><span class="keyword">auto</span> server = network_module::create_server(<span class="stringliteral">&quot;legacy_server&quot;</span>);</div>
+<div class="line">server-&gt;start_server(8080);</div>
+<div class="line"> </div>
+<div class="line"><span class="keyword">auto</span> client = network_module::create_client(<span class="stringliteral">&quot;legacy_client&quot;</span>);</div>
+<div class="line">client-&gt;start_client(<span class="stringliteral">&quot;127.0.0.1&quot;</span>, 8080);</div>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md275"></a>
+🏗️ Architecture</h1>
 <div class="fragment"><div class="line">network_system/</div>
 <div class="line">├── include/network_system/</div>
-<div class="line">│   ├── core/</div>
-<div class="line">│   │   ├── messaging_client.h    # Async client implementation</div>
-<div class="line">│   │   └── messaging_server.h    # Multi-threaded server</div>
-<div class="line">│   ├── session/</div>
-<div class="line">│   │   └── messaging_session.h   # Session lifecycle management</div>
-<div class="line">│   ├── internal/</div>
-<div class="line">│   │   ├── tcp_socket.h         # ASIO TCP wrapper</div>
-<div class="line">│   │   ├── pipeline.h           # Message pipeline</div>
-<div class="line">│   │   └── send_coroutine.h    # C++20 coroutine support</div>
-<div class="line">│   └── integration/</div>
-<div class="line">│       └── messaging_bridge.h   # Legacy system bridge</div>
-<div class="line">├── src/                         # Implementation files</div>
-<div class="line">├── samples/                     # Usage examples (Phase 2)</div>
-<div class="line">├── tests/                       # Test suites (Phase 2)</div>
-<div class="line">└── .github/workflows/           # CI/CD pipelines</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md277"></a>
-Core Components</h2>
-<h3><a class="anchor" id="autotoc_md278"></a>
-1. Core API</h3>
+<div class="line">│   ├── core/                    # Core networking components</div>
+<div class="line">│   │   ├── messaging_client.h</div>
+<div class="line">│   │   └── messaging_server.h</div>
+<div class="line">│   ├── session/                 # Session management</div>
+<div class="line">│   │   └── messaging_session.h</div>
+<div class="line">│   ├── internal/                # Internal implementation</div>
+<div class="line">│   │   ├── tcp_socket.h</div>
+<div class="line">│   │   ├── pipeline.h</div>
+<div class="line">│   │   └── send_coroutine.h</div>
+<div class="line">│   ├── integration/             # External system integration</div>
+<div class="line">│   │   ├── messaging_bridge.h</div>
+<div class="line">│   │   ├── thread_integration.h</div>
+<div class="line">│   │   └── container_integration.h</div>
+<div class="line">│   └── compatibility.h         # Legacy API support</div>
+<div class="line">├── src/                        # Implementation files</div>
+<div class="line">├── samples/                    # Usage examples</div>
+<div class="line">├── tests/                      # Test suites</div>
+<div class="line">└── docs/                       # Documentation</div>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md276"></a>
+📊 Performance Benchmarks</h1>
+<h2><a class="anchor" id="autotoc_md277"></a>
+Latest Results (v2.0.0)</h2>
+<table class="markdownTable">
+<tr class="markdownTableHead">
+<th class="markdownTableHeadNone">Metric   </th><th class="markdownTableHeadNone">Result   </th><th class="markdownTableHeadNone">Test Conditions    </th></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><b>Average Throughput</b>   </td><td class="markdownTableBodyNone">305,255 msg/s   </td><td class="markdownTableBodyNone">Mixed message sizes    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><b>Small Messages (64B)</b>   </td><td class="markdownTableBodyNone">769,230 msg/s   </td><td class="markdownTableBodyNone">10,000 messages    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><b>Medium Messages (1KB)</b>   </td><td class="markdownTableBodyNone">128,205 msg/s   </td><td class="markdownTableBodyNone">5,000 messages    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><b>Large Messages (8KB)</b>   </td><td class="markdownTableBodyNone">20,833 msg/s   </td><td class="markdownTableBodyNone">1,000 messages    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><b>Concurrent Connections</b>   </td><td class="markdownTableBodyNone">50 clients   </td><td class="markdownTableBodyNone">12,195 msg/s    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><b>Average Latency</b>   </td><td class="markdownTableBodyNone">584.22 μs   </td><td class="markdownTableBodyNone">P50: &lt; 50 μs    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><b>Performance Rating</b>   </td><td class="markdownTableBodyNone">🏆 EXCELLENT   </td><td class="markdownTableBodyNone">Production ready!   </td></tr>
+</table>
+<h2><a class="anchor" id="autotoc_md278"></a>
+Key Performance Features</h2>
 <ul>
-<li><b>messaging_server</b>: High-performance asynchronous TCP server</li>
-<li><b>messaging_client</b>: TCP client implementation</li>
-<li><b>messaging_session</b>: Connection session management</li>
+<li>Zero-copy message pipeline</li>
+<li>Lock-free data structures where possible</li>
+<li>Connection pooling</li>
+<li>Async I/O with ASIO</li>
+<li>C++20 coroutine support</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md279"></a>
-2. Integration Layer</h3>
+<h1><a class="anchor" id="autotoc_md279"></a>
+🔧 Features</h1>
+<h2><a class="anchor" id="autotoc_md280"></a>
+Core Features</h2>
 <ul>
-<li><b>messaging_bridge</b>: messaging_system compatibility bridge</li>
-<li><b>container_integration</b>: container_system integration</li>
-<li><b>thread_integration</b>: thread_system integration</li>
+<li>✅ Asynchronous TCP server/client</li>
+<li>✅ Multi-threaded message processing</li>
+<li>✅ Session lifecycle management</li>
+<li>✅ Message pipeline with buffering</li>
+<li>✅ C++20 coroutine support</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md280"></a>
-3. Performance Characteristics</h3>
+<h2><a class="anchor" id="autotoc_md281"></a>
+Integration Features</h2>
 <ul>
-<li><b>Throughput</b>: 100K+ messages/sec (1KB messages)</li>
-<li><b>Concurrent connections</b>: 10K+ connections support</li>
-<li><b>Latency</b>: &lt; 1ms (message processing)</li>
-<li><b>Memory usage</b>: ~8KB per connection</li>
+<li>✅ Thread pool integration</li>
+<li>✅ Container serialization support</li>
+<li>✅ Legacy API compatibility layer</li>
+<li>✅ Comprehensive test coverage</li>
+<li>✅ Performance benchmarking suite</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md281"></a>
-📝 API Example</h1>
-<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_server.h&gt;</span></div>
-<div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_client.h&gt;</span></div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Server example</span></div>
-<div class="line"><span class="keyword">auto</span> server = std::make_shared&lt;network_system::core::messaging_server&gt;();</div>
-<div class="line">server-&gt;set_message_handler([](<span class="keyword">const</span> std::string&amp; message) {</div>
-<div class="line">    std::cout &lt;&lt; <span class="stringliteral">&quot;Received: &quot;</span> &lt;&lt; message &lt;&lt; std::endl;</div>
-<div class="line">    <span class="keywordflow">return</span> <span class="stringliteral">&quot;Echo: &quot;</span> + message;</div>
-<div class="line">});</div>
-<div class="line">server-&gt;start(<span class="stringliteral">&quot;0.0.0.0&quot;</span>, 8080);</div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Client example</span></div>
-<div class="line"><span class="keyword">auto</span> client = std::make_shared&lt;network_system::core::messaging_client&gt;();</div>
-<div class="line">client-&gt;connect(<span class="stringliteral">&quot;localhost&quot;</span>, 8080);</div>
-<div class="line">client-&gt;send(<span class="stringliteral">&quot;Hello, Network System!&quot;</span>);</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md282"></a>
-🤝 Contributing</h1>
-<p>Contributions are welcome! Please follow these guidelines:</p>
-<ol type="1">
-<li>Fork the repository</li>
-<li>Create a feature branch (<code>git checkout -b feature/amazing-feature</code>)</li>
-<li>Commit your changes following conventional commits</li>
-<li>Push to the branch (<code>git push origin feature/amazing-feature</code>)</li>
-<li>Open a Pull Request</li>
-</ol>
+<h2><a class="anchor" id="autotoc_md282"></a>
+Planned Features</h2>
+<ul>
+<li>🚧 WebSocket support</li>
+<li>🚧 TLS/SSL encryption</li>
+<li>🚧 HTTP/2 client</li>
+<li>🚧 gRPC integration</li>
+</ul>
 <h1><a class="anchor" id="autotoc_md283"></a>
-📄 License</h1>
-<p>This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.</p>
-<h1><a class="anchor" id="autotoc_md284"></a>
-🙏 Acknowledgments</h1>
+📈 Project Phases</h1>
+<h2><a class="anchor" id="autotoc_md284"></a>
+Completed Phases</h2>
 <ul>
-<li>ASIO library for asynchronous I/O</li>
-<li>fmt library for modern formatting</li>
-<li>Original messaging_system contributors</li>
+<li><b>Phase 1</b>: Preparation and Analysis ✅ (2025-09-19)<ul>
+<li>Project structure setup</li>
+<li>Build system configuration</li>
+<li>CI/CD pipeline</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md285"></a>
-📧 Contact</h1>
-<p><b>Owner</b>: kcenon (<a href="#" onclick="location.href='mai'+'lto:'+'kce'+'no'+'n@n'+'av'+'er.'+'co'+'m'; return false;">kceno<span class="obfuscator">.nosp@m.</span>n@na<span class="obfuscator">.nosp@m.</span>ver.c<span class="obfuscator">.nosp@m.</span>om</a>) <b>Repository</b>: <a href="https://github.com/kcenon/network_system">https://github.com/kcenon/network_system</a></p>
-<hr  />
+</li>
+<li><b>Phase 2</b>: Core System Separation ✅ (2025-09-19)<ul>
+<li>Complete namespace separation</li>
+<li>Directory restructuring</li>
+<li>CMake integration</li>
+</ul>
+</li>
+<li><b>Phase 3</b>: Integration Interface ✅ (2025-09-20)<ul>
+<li>Thread system integration</li>
+<li>Container system integration</li>
+<li>Compatibility layer</li>
+</ul>
+</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md285"></a>
+Current Phase</h2>
+<ul>
+<li><b>Phase 4</b>: messaging_system Update 🚧 (2025-09-20)<ul>
+<li>[x] Usage examples</li>
+<li>[x] Compatibility tests</li>
+<li>[x] Performance benchmarks</li>
+<li>[x] Documentation update</li>
+<li>[ ] Migration guide</li>
+</ul>
+</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md286"></a>
+Upcoming Phase</h2>
+<ul>
+<li><b>Phase 5</b>: Verification and Deployment ⏳<ul>
+<li>Production testing</li>
+<li>Performance optimization</li>
+<li>Official release</li>
+</ul>
+</li>
+</ul>
 <h1><a class="anchor" id="autotoc_md287"></a>
-📊 Development Roadmap</h1>
-<h2><a class="anchor" id="autotoc_md288"></a>
-Phase 1: Core Infrastructure ✅ (Completed)</h2>
-<ul>
-<li>[x] Directory structure and namespace separation</li>
-<li>[x] CMake build system with vcpkg support</li>
-<li>[x] CI/CD pipeline setup (GitHub Actions)</li>
-<li>[x] Container system integration</li>
-<li>[x] Doxygen documentation configuration</li>
-<li>[x] Core library builds successfully on all platforms</li>
-</ul>
-<h2><a class="anchor" id="autotoc_md289"></a>
-Phase 2: Feature Implementation 🔨 (In Progress)</h2>
-<ul>
-<li>[ ] Implement <code>network_manager</code> class</li>
-<li>[ ] Build <code>tcp_server</code> and <code>tcp_client</code> classes</li>
-<li>[ ] Create <code>http_client</code> with response handling</li>
-<li>[ ] Update sample applications</li>
-<li>[ ] Complete test suite implementation</li>
-</ul>
-<h2><a class="anchor" id="autotoc_md290"></a>
-Phase 3: Advanced Features 📝 (Planned)</h2>
-<ul>
-<li>[ ] WebSocket support</li>
-<li>[ ] TLS/SSL encryption</li>
-<li>[ ] Connection pooling</li>
-<li>[ ] Message serialization (JSON, Protocol Buffers)</li>
-</ul>
-<h2><a class="anchor" id="autotoc_md291"></a>
-Phase 4: Performance &amp; Optimization 🚀 (Planned)</h2>
-<ul>
-<li>[ ] Performance benchmarking</li>
-<li>[ ] Memory optimization</li>
-<li>[ ] Load balancing implementation</li>
-<li>[ ] Async/await patterns with C++20 coroutines</li>
-</ul>
-<h2><a class="anchor" id="autotoc_md292"></a>
-Phase 5: Production Ready 🏆 (Planned)</h2>
-<ul>
-<li>[ ] Full API documentation</li>
-<li>[ ] User guides and tutorials</li>
-<li>[ ] Integration examples</li>
-<li>[ ] Official release planning</li>
-</ul>
-<h1><a class="anchor" id="autotoc_md293"></a>
-📝 API Example</h1>
-<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_server.h&gt;</span></div>
-<div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_client.h&gt;</span></div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Server example</span></div>
-<div class="line"><span class="keyword">auto</span> server = std::make_shared&lt;network_system::core::messaging_server&gt;();</div>
-<div class="line">server-&gt;set_message_handler([](<span class="keyword">const</span> std::string&amp; message) {</div>
-<div class="line">    std::cout &lt;&lt; <span class="stringliteral">&quot;Received: &quot;</span> &lt;&lt; message &lt;&lt; std::endl;</div>
-<div class="line">    <span class="keywordflow">return</span> <span class="stringliteral">&quot;Echo: &quot;</span> + message;</div>
-<div class="line">});</div>
-<div class="line">server-&gt;start(<span class="stringliteral">&quot;0.0.0.0&quot;</span>, 8080);</div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Client example</span></div>
-<div class="line"><span class="keyword">auto</span> client = std::make_shared&lt;network_system::core::messaging_client&gt;();</div>
-<div class="line">client-&gt;connect(<span class="stringliteral">&quot;localhost&quot;</span>, 8080);</div>
-<div class="line">client-&gt;send(<span class="stringliteral">&quot;Hello, Network System!&quot;</span>);</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md294"></a>
-🤝 Contributing</h1>
-<p>Contributions are welcome! Please follow these guidelines:</p>
-<ol type="1">
-<li>Fork the repository</li>
-<li>Create a feature branch (<code>git checkout -b feature/amazing-feature</code>)</li>
-<li>Commit your changes following conventional commits</li>
-<li>Push to the branch (<code>git push origin feature/amazing-feature</code>)</li>
-<li>Open a Pull Request</li>
-</ol>
-<h1><a class="anchor" id="autotoc_md295"></a>
-📄 License</h1>
-<p>This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.</p>
-<h1><a class="anchor" id="autotoc_md296"></a>
-🙏 Acknowledgments</h1>
-<ul>
-<li>ASIO library for asynchronous I/O</li>
-<li>fmt library for modern formatting</li>
-<li>Original messaging_system contributors</li>
-</ul>
-<h1><a class="anchor" id="autotoc_md297"></a>
-📧 Contact</h1>
-<p><b>Owner</b>: kcenon (<a href="#" onclick="location.href='mai'+'lto:'+'kce'+'no'+'n@n'+'av'+'er.'+'co'+'m'; return false;">kceno<span class="obfuscator">.nosp@m.</span>n@na<span class="obfuscator">.nosp@m.</span>ver.c<span class="obfuscator">.nosp@m.</span>om</a>) <b>Repository</b>: <a href="https://github.com/kcenon/network_system">https://github.com/kcenon/network_system</a></p>
-<hr  />
-<h1><a class="anchor" id="autotoc_md299"></a>
-🎯 CI/CD Status</h1>
-<p>| Platform | Compiler | Status | |## 📝 API Example</p>
-<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_server.h&gt;</span></div>
-<div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_client.h&gt;</span></div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Server example</span></div>
-<div class="line"><span class="keyword">auto</span> server = std::make_shared&lt;network_system::core::messaging_server&gt;();</div>
-<div class="line">server-&gt;set_message_handler([](<span class="keyword">const</span> std::string&amp; message) {</div>
-<div class="line">    std::cout &lt;&lt; <span class="stringliteral">&quot;Received: &quot;</span> &lt;&lt; message &lt;&lt; std::endl;</div>
-<div class="line">    <span class="keywordflow">return</span> <span class="stringliteral">&quot;Echo: &quot;</span> + message;</div>
-<div class="line">});</div>
-<div class="line">server-&gt;start(<span class="stringliteral">&quot;0.0.0.0&quot;</span>, 8080);</div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Client example</span></div>
-<div class="line"><span class="keyword">auto</span> client = std::make_shared&lt;network_system::core::messaging_client&gt;();</div>
-<div class="line">client-&gt;connect(<span class="stringliteral">&quot;localhost&quot;</span>, 8080);</div>
-<div class="line">client-&gt;send(<span class="stringliteral">&quot;Hello, Network System!&quot;</span>);</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md300"></a>
-🤝 Contributing</h1>
-<p>Contributions are welcome! Please follow these guidelines:</p>
-<ol type="1">
-<li>Fork the repository</li>
-<li>Create a feature branch (<code>git checkout -b feature/amazing-feature</code>)</li>
-<li>Commit your changes following conventional commits</li>
-<li>Push to the branch (<code>git push origin feature/amazing-feature</code>)</li>
-<li>Open a Pull Request</li>
-</ol>
-<h1><a class="anchor" id="autotoc_md301"></a>
-📄 License</h1>
-<p>This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.</p>
-<h1><a class="anchor" id="autotoc_md302"></a>
-🙏 Acknowledgments</h1>
-<ul>
-<li>ASIO library for asynchronous I/O</li>
-<li>fmt library for modern formatting</li>
-<li>Original messaging_system contributors</li>
-</ul>
-<h1><a class="anchor" id="autotoc_md303"></a>
-📧 Contact</h1>
-<p><b>Owner</b>: kcenon (<a href="#" onclick="location.href='mai'+'lto:'+'kce'+'no'+'n@n'+'av'+'er.'+'co'+'m'; return false;">kceno<span class="obfuscator">.nosp@m.</span>n@na<span class="obfuscator">.nosp@m.</span>ver.c<span class="obfuscator">.nosp@m.</span>om</a>) <b>Repository</b>: <a href="https://github.com/kcenon/network_system">https://github.com/kcenon/network_system</a></p>
-<p>&mdash;## 📝 API Example</p>
-<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_server.h&gt;</span></div>
-<div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_client.h&gt;</span></div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Server example</span></div>
-<div class="line"><span class="keyword">auto</span> server = std::make_shared&lt;network_system::core::messaging_server&gt;();</div>
-<div class="line">server-&gt;set_message_handler([](<span class="keyword">const</span> std::string&amp; message) {</div>
-<div class="line">    std::cout &lt;&lt; <span class="stringliteral">&quot;Received: &quot;</span> &lt;&lt; message &lt;&lt; std::endl;</div>
-<div class="line">    <span class="keywordflow">return</span> <span class="stringliteral">&quot;Echo: &quot;</span> + message;</div>
-<div class="line">});</div>
-<div class="line">server-&gt;start(<span class="stringliteral">&quot;0.0.0.0&quot;</span>, 8080);</div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Client example</span></div>
-<div class="line"><span class="keyword">auto</span> client = std::make_shared&lt;network_system::core::messaging_client&gt;();</div>
-<div class="line">client-&gt;connect(<span class="stringliteral">&quot;localhost&quot;</span>, 8080);</div>
-<div class="line">client-&gt;send(<span class="stringliteral">&quot;Hello, Network System!&quot;</span>);</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md304"></a>
-🤝 Contributing</h1>
-<p>Contributions are welcome! Please follow these guidelines:</p>
-<ol type="1">
-<li>Fork the repository</li>
-<li>Create a feature branch (<code>git checkout -b feature/amazing-feature</code>)</li>
-<li>Commit your changes following conventional commits</li>
-<li>Push to the branch (<code>git push origin feature/amazing-feature</code>)</li>
-<li>Open a Pull Request</li>
-</ol>
-<h1><a class="anchor" id="autotoc_md305"></a>
-📄 License</h1>
-<p>This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.</p>
-<h1><a class="anchor" id="autotoc_md306"></a>
-🙏 Acknowledgments</h1>
-<ul>
-<li>ASIO library for asynchronous I/O</li>
-<li>fmt library for modern formatting</li>
-<li>Original messaging_system contributors</li>
-</ul>
-<h1><a class="anchor" id="autotoc_md307"></a>
-📧 Contact</h1>
-<p><b>Owner</b>: kcenon (<a href="#" onclick="location.href='mai'+'lto:'+'kce'+'no'+'n@n'+'av'+'er.'+'co'+'m'; return false;">kceno<span class="obfuscator">.nosp@m.</span>n@na<span class="obfuscator">.nosp@m.</span>ver.c<span class="obfuscator">.nosp@m.</span>om</a>) <b>Repository</b>: <a href="https://github.com/kcenon/network_system">https://github.com/kcenon/network_system</a></p>
-<p>&mdash;## 📝 API Example</p>
-<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_server.h&gt;</span></div>
-<div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_client.h&gt;</span></div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Server example</span></div>
-<div class="line"><span class="keyword">auto</span> server = std::make_shared&lt;network_system::core::messaging_server&gt;();</div>
-<div class="line">server-&gt;set_message_handler([](<span class="keyword">const</span> std::string&amp; message) {</div>
-<div class="line">    std::cout &lt;&lt; <span class="stringliteral">&quot;Received: &quot;</span> &lt;&lt; message &lt;&lt; std::endl;</div>
-<div class="line">    <span class="keywordflow">return</span> <span class="stringliteral">&quot;Echo: &quot;</span> + message;</div>
-<div class="line">});</div>
-<div class="line">server-&gt;start(<span class="stringliteral">&quot;0.0.0.0&quot;</span>, 8080);</div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Client example</span></div>
-<div class="line"><span class="keyword">auto</span> client = std::make_shared&lt;network_system::core::messaging_client&gt;();</div>
-<div class="line">client-&gt;connect(<span class="stringliteral">&quot;localhost&quot;</span>, 8080);</div>
-<div class="line">client-&gt;send(<span class="stringliteral">&quot;Hello, Network System!&quot;</span>);</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md308"></a>
-🤝 Contributing</h1>
-<p>Contributions are welcome! Please follow these guidelines:</p>
-<ol type="1">
-<li>Fork the repository</li>
-<li>Create a feature branch (<code>git checkout -b feature/amazing-feature</code>)</li>
-<li>Commit your changes following conventional commits</li>
-<li>Push to the branch (<code>git push origin feature/amazing-feature</code>)</li>
-<li>Open a Pull Request</li>
-</ol>
-<h1><a class="anchor" id="autotoc_md309"></a>
-📄 License</h1>
-<p>This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.</p>
-<h1><a class="anchor" id="autotoc_md310"></a>
-🙏 Acknowledgments</h1>
-<ul>
-<li>ASIO library for asynchronous I/O</li>
-<li>fmt library for modern formatting</li>
-<li>Original messaging_system contributors</li>
-</ul>
-<h1><a class="anchor" id="autotoc_md311"></a>
-📧 Contact</h1>
-<p><b>Owner</b>: kcenon (<a href="#" onclick="location.href='mai'+'lto:'+'kce'+'no'+'n@n'+'av'+'er.'+'co'+'m'; return false;">kceno<span class="obfuscator">.nosp@m.</span>n@na<span class="obfuscator">.nosp@m.</span>ver.c<span class="obfuscator">.nosp@m.</span>om</a>) <b>Repository</b>: <a href="https://github.com/kcenon/network_system">https://github.com/kcenon/network_system</a></p>
-<p>-&mdash;|## 📝 API Example</p>
-<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_server.h&gt;</span></div>
-<div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_client.h&gt;</span></div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Server example</span></div>
-<div class="line"><span class="keyword">auto</span> server = std::make_shared&lt;network_system::core::messaging_server&gt;();</div>
-<div class="line">server-&gt;set_message_handler([](<span class="keyword">const</span> std::string&amp; message) {</div>
-<div class="line">    std::cout &lt;&lt; <span class="stringliteral">&quot;Received: &quot;</span> &lt;&lt; message &lt;&lt; std::endl;</div>
-<div class="line">    <span class="keywordflow">return</span> <span class="stringliteral">&quot;Echo: &quot;</span> + message;</div>
-<div class="line">});</div>
-<div class="line">server-&gt;start(<span class="stringliteral">&quot;0.0.0.0&quot;</span>, 8080);</div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Client example</span></div>
-<div class="line"><span class="keyword">auto</span> client = std::make_shared&lt;network_system::core::messaging_client&gt;();</div>
-<div class="line">client-&gt;connect(<span class="stringliteral">&quot;localhost&quot;</span>, 8080);</div>
-<div class="line">client-&gt;send(<span class="stringliteral">&quot;Hello, Network System!&quot;</span>);</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md312"></a>
-🤝 Contributing</h1>
-<p>Contributions are welcome! Please follow these guidelines:</p>
-<ol type="1">
-<li>Fork the repository</li>
-<li>Create a feature branch (<code>git checkout -b feature/amazing-feature</code>)</li>
-<li>Commit your changes following conventional commits</li>
-<li>Push to the branch (<code>git push origin feature/amazing-feature</code>)</li>
-<li>Open a Pull Request</li>
-</ol>
-<h1><a class="anchor" id="autotoc_md313"></a>
-📄 License</h1>
-<p>This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.</p>
-<h1><a class="anchor" id="autotoc_md314"></a>
-🙏 Acknowledgments</h1>
-<ul>
-<li>ASIO library for asynchronous I/O</li>
-<li>fmt library for modern formatting</li>
-<li>Original messaging_system contributors</li>
-</ul>
-<h1><a class="anchor" id="autotoc_md315"></a>
-📧 Contact</h1>
-<p><b>Owner</b>: kcenon (<a href="#" onclick="location.href='mai'+'lto:'+'kce'+'no'+'n@n'+'av'+'er.'+'co'+'m'; return false;">kceno<span class="obfuscator">.nosp@m.</span>n@na<span class="obfuscator">.nosp@m.</span>ver.c<span class="obfuscator">.nosp@m.</span>om</a>) <b>Repository</b>: <a href="https://github.com/kcenon/network_system">https://github.com/kcenon/network_system</a></p>
-<p>&mdash;## 📝 API Example</p>
-<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_server.h&gt;</span></div>
-<div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_client.h&gt;</span></div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Server example</span></div>
-<div class="line"><span class="keyword">auto</span> server = std::make_shared&lt;network_system::core::messaging_server&gt;();</div>
-<div class="line">server-&gt;set_message_handler([](<span class="keyword">const</span> std::string&amp; message) {</div>
-<div class="line">    std::cout &lt;&lt; <span class="stringliteral">&quot;Received: &quot;</span> &lt;&lt; message &lt;&lt; std::endl;</div>
-<div class="line">    <span class="keywordflow">return</span> <span class="stringliteral">&quot;Echo: &quot;</span> + message;</div>
-<div class="line">});</div>
-<div class="line">server-&gt;start(<span class="stringliteral">&quot;0.0.0.0&quot;</span>, 8080);</div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Client example</span></div>
-<div class="line"><span class="keyword">auto</span> client = std::make_shared&lt;network_system::core::messaging_client&gt;();</div>
-<div class="line">client-&gt;connect(<span class="stringliteral">&quot;localhost&quot;</span>, 8080);</div>
-<div class="line">client-&gt;send(<span class="stringliteral">&quot;Hello, Network System!&quot;</span>);</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md316"></a>
-🤝 Contributing</h1>
-<p>Contributions are welcome! Please follow these guidelines:</p>
-<ol type="1">
-<li>Fork the repository</li>
-<li>Create a feature branch (<code>git checkout -b feature/amazing-feature</code>)</li>
-<li>Commit your changes following conventional commits</li>
-<li>Push to the branch (<code>git push origin feature/amazing-feature</code>)</li>
-<li>Open a Pull Request</li>
-</ol>
-<h1><a class="anchor" id="autotoc_md317"></a>
-📄 License</h1>
-<p>This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.</p>
-<h1><a class="anchor" id="autotoc_md318"></a>
-🙏 Acknowledgments</h1>
-<ul>
-<li>ASIO library for asynchronous I/O</li>
-<li>fmt library for modern formatting</li>
-<li>Original messaging_system contributors</li>
-</ul>
-<h1><a class="anchor" id="autotoc_md319"></a>
-📧 Contact</h1>
-<p><b>Owner</b>: kcenon (<a href="#" onclick="location.href='mai'+'lto:'+'kce'+'no'+'n@n'+'av'+'er.'+'co'+'m'; return false;">kceno<span class="obfuscator">.nosp@m.</span>n@na<span class="obfuscator">.nosp@m.</span>ver.c<span class="obfuscator">.nosp@m.</span>om</a>) <b>Repository</b>: <a href="https://github.com/kcenon/network_system">https://github.com/kcenon/network_system</a></p>
-<p>&mdash;## 📝 API Example</p>
-<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_server.h&gt;</span></div>
-<div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_client.h&gt;</span></div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Server example</span></div>
-<div class="line"><span class="keyword">auto</span> server = std::make_shared&lt;network_system::core::messaging_server&gt;();</div>
-<div class="line">server-&gt;set_message_handler([](<span class="keyword">const</span> std::string&amp; message) {</div>
-<div class="line">    std::cout &lt;&lt; <span class="stringliteral">&quot;Received: &quot;</span> &lt;&lt; message &lt;&lt; std::endl;</div>
-<div class="line">    <span class="keywordflow">return</span> <span class="stringliteral">&quot;Echo: &quot;</span> + message;</div>
-<div class="line">});</div>
-<div class="line">server-&gt;start(<span class="stringliteral">&quot;0.0.0.0&quot;</span>, 8080);</div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Client example</span></div>
-<div class="line"><span class="keyword">auto</span> client = std::make_shared&lt;network_system::core::messaging_client&gt;();</div>
-<div class="line">client-&gt;connect(<span class="stringliteral">&quot;localhost&quot;</span>, 8080);</div>
-<div class="line">client-&gt;send(<span class="stringliteral">&quot;Hello, Network System!&quot;</span>);</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md320"></a>
-🤝 Contributing</h1>
-<p>Contributions are welcome! Please follow these guidelines:</p>
-<ol type="1">
-<li>Fork the repository</li>
-<li>Create a feature branch (<code>git checkout -b feature/amazing-feature</code>)</li>
-<li>Commit your changes following conventional commits</li>
-<li>Push to the branch (<code>git push origin feature/amazing-feature</code>)</li>
-<li>Open a Pull Request</li>
-</ol>
-<h1><a class="anchor" id="autotoc_md321"></a>
-📄 License</h1>
-<p>This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.</p>
-<h1><a class="anchor" id="autotoc_md322"></a>
-🙏 Acknowledgments</h1>
-<ul>
-<li>ASIO library for asynchronous I/O</li>
-<li>fmt library for modern formatting</li>
-<li>Original messaging_system contributors</li>
-</ul>
-<h1><a class="anchor" id="autotoc_md323"></a>
-📧 Contact</h1>
-<p><b>Owner</b>: kcenon (<a href="#" onclick="location.href='mai'+'lto:'+'kce'+'no'+'n@n'+'av'+'er.'+'co'+'m'; return false;">kceno<span class="obfuscator">.nosp@m.</span>n@na<span class="obfuscator">.nosp@m.</span>ver.c<span class="obfuscator">.nosp@m.</span>om</a>) <b>Repository</b>: <a href="https://github.com/kcenon/network_system">https://github.com/kcenon/network_system</a></p>
-<p>-&mdash;|## 📝 API Example</p>
-<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_server.h&gt;</span></div>
-<div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_client.h&gt;</span></div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Server example</span></div>
-<div class="line"><span class="keyword">auto</span> server = std::make_shared&lt;network_system::core::messaging_server&gt;();</div>
-<div class="line">server-&gt;set_message_handler([](<span class="keyword">const</span> std::string&amp; message) {</div>
-<div class="line">    std::cout &lt;&lt; <span class="stringliteral">&quot;Received: &quot;</span> &lt;&lt; message &lt;&lt; std::endl;</div>
-<div class="line">    <span class="keywordflow">return</span> <span class="stringliteral">&quot;Echo: &quot;</span> + message;</div>
-<div class="line">});</div>
-<div class="line">server-&gt;start(<span class="stringliteral">&quot;0.0.0.0&quot;</span>, 8080);</div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Client example</span></div>
-<div class="line"><span class="keyword">auto</span> client = std::make_shared&lt;network_system::core::messaging_client&gt;();</div>
-<div class="line">client-&gt;connect(<span class="stringliteral">&quot;localhost&quot;</span>, 8080);</div>
-<div class="line">client-&gt;send(<span class="stringliteral">&quot;Hello, Network System!&quot;</span>);</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md324"></a>
-🤝 Contributing</h1>
-<p>Contributions are welcome! Please follow these guidelines:</p>
-<ol type="1">
-<li>Fork the repository</li>
-<li>Create a feature branch (<code>git checkout -b feature/amazing-feature</code>)</li>
-<li>Commit your changes following conventional commits</li>
-<li>Push to the branch (<code>git push origin feature/amazing-feature</code>)</li>
-<li>Open a Pull Request</li>
-</ol>
-<h1><a class="anchor" id="autotoc_md325"></a>
-📄 License</h1>
-<p>This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.</p>
-<h1><a class="anchor" id="autotoc_md326"></a>
-🙏 Acknowledgments</h1>
-<ul>
-<li>ASIO library for asynchronous I/O</li>
-<li>fmt library for modern formatting</li>
-<li>Original messaging_system contributors</li>
-</ul>
-<h1><a class="anchor" id="autotoc_md327"></a>
-📧 Contact</h1>
-<p><b>Owner</b>: kcenon (<a href="#" onclick="location.href='mai'+'lto:'+'kce'+'no'+'n@n'+'av'+'er.'+'co'+'m'; return false;">kceno<span class="obfuscator">.nosp@m.</span>n@na<span class="obfuscator">.nosp@m.</span>ver.c<span class="obfuscator">.nosp@m.</span>om</a>) <b>Repository</b>: <a href="https://github.com/kcenon/network_system">https://github.com/kcenon/network_system</a></p>
-<p>&mdash;## 📝 API Example</p>
-<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_server.h&gt;</span></div>
-<div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_client.h&gt;</span></div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Server example</span></div>
-<div class="line"><span class="keyword">auto</span> server = std::make_shared&lt;network_system::core::messaging_server&gt;();</div>
-<div class="line">server-&gt;set_message_handler([](<span class="keyword">const</span> std::string&amp; message) {</div>
-<div class="line">    std::cout &lt;&lt; <span class="stringliteral">&quot;Received: &quot;</span> &lt;&lt; message &lt;&lt; std::endl;</div>
-<div class="line">    <span class="keywordflow">return</span> <span class="stringliteral">&quot;Echo: &quot;</span> + message;</div>
-<div class="line">});</div>
-<div class="line">server-&gt;start(<span class="stringliteral">&quot;0.0.0.0&quot;</span>, 8080);</div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Client example</span></div>
-<div class="line"><span class="keyword">auto</span> client = std::make_shared&lt;network_system::core::messaging_client&gt;();</div>
-<div class="line">client-&gt;connect(<span class="stringliteral">&quot;localhost&quot;</span>, 8080);</div>
-<div class="line">client-&gt;send(<span class="stringliteral">&quot;Hello, Network System!&quot;</span>);</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md328"></a>
-🤝 Contributing</h1>
-<p>Contributions are welcome! Please follow these guidelines:</p>
-<ol type="1">
-<li>Fork the repository</li>
-<li>Create a feature branch (<code>git checkout -b feature/amazing-feature</code>)</li>
-<li>Commit your changes following conventional commits</li>
-<li>Push to the branch (<code>git push origin feature/amazing-feature</code>)</li>
-<li>Open a Pull Request</li>
-</ol>
-<h1><a class="anchor" id="autotoc_md329"></a>
-📄 License</h1>
-<p>This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.</p>
-<h1><a class="anchor" id="autotoc_md330"></a>
-🙏 Acknowledgments</h1>
-<ul>
-<li>ASIO library for asynchronous I/O</li>
-<li>fmt library for modern formatting</li>
-<li>Original messaging_system contributors</li>
-</ul>
-<h1><a class="anchor" id="autotoc_md331"></a>
-📧 Contact</h1>
-<p><b>Owner</b>: kcenon (<a href="#" onclick="location.href='mai'+'lto:'+'kce'+'no'+'n@n'+'av'+'er.'+'co'+'m'; return false;">kceno<span class="obfuscator">.nosp@m.</span>n@na<span class="obfuscator">.nosp@m.</span>ver.c<span class="obfuscator">.nosp@m.</span>om</a>) <b>Repository</b>: <a href="https://github.com/kcenon/network_system">https://github.com/kcenon/network_system</a></p>
-<p>--&mdash;| | Ubuntu 22.04 | GCC 11 | <img src="https://github.com/kcenon/network_system/actions/workflows/build-ubuntu-gcc.yaml/badge.svg" alt="Build" style="pointer-events: none;" class="inline"/> | | Ubuntu 22.04 | Clang 14 | <img src="https://github.com/kcenon/network_system/actions/workflows/build-ubuntu-clang.yaml/badge.svg" alt="Build" style="pointer-events: none;" class="inline"/> | | Windows 2022 | MSVC 2022 | <img src="https://github.com/kcenon/network_system/actions/workflows/build-windows-vs.yaml/badge.svg" alt="Build" style="pointer-events: none;" class="inline"/> | | Windows 2022 | MinGW64 | <img src="https://github.com/kcenon/network_system/actions/workflows/build-windows-msys2.yaml/badge.svg" alt="Build" style="pointer-events: none;" class="inline"/> | | Security | Trivy | <img src="https://github.com/kcenon/network_system/actions/workflows/dependency-security-scan.yml/badge.svg" alt="Scan" style="pointer-events: none;" class="inline"/> |</p>
-<h1><a class="anchor" id="autotoc_md332"></a>
 🔧 Dependencies</h1>
-<h2><a class="anchor" id="autotoc_md333"></a>
+<h2><a class="anchor" id="autotoc_md288"></a>
 Required</h2>
 <ul>
 <li><b>C++20</b> compatible compiler</li>
 <li><b>CMake</b> 3.16+</li>
 <li><b>ASIO</b> or <b>Boost.ASIO</b> 1.28+</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md334"></a>
+<h2><a class="anchor" id="autotoc_md289"></a>
 Optional</h2>
 <ul>
 <li><b>fmt</b> 10.0+ (falls back to std::format)</li>
-<li><b>container_system</b> (for advanced container support)</li>
+<li><b>container_system</b> (for advanced serialization)</li>
 <li><b>thread_system</b> (for thread pool integration)</li>
-<li><b>vcpkg</b> (for dependency management)</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md335"></a>
-📝 API Example</h1>
-<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_server.h&gt;</span></div>
-<div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_client.h&gt;</span></div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Server example</span></div>
-<div class="line"><span class="keyword">auto</span> server = std::make_shared&lt;network_system::core::messaging_server&gt;();</div>
-<div class="line">server-&gt;set_message_handler([](<span class="keyword">const</span> std::string&amp; message) {</div>
-<div class="line">    std::cout &lt;&lt; <span class="stringliteral">&quot;Received: &quot;</span> &lt;&lt; message &lt;&lt; std::endl;</div>
-<div class="line">    <span class="keywordflow">return</span> <span class="stringliteral">&quot;Echo: &quot;</span> + message;</div>
-<div class="line">});</div>
-<div class="line">server-&gt;start(<span class="stringliteral">&quot;0.0.0.0&quot;</span>, 8080);</div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Client example</span></div>
-<div class="line"><span class="keyword">auto</span> client = std::make_shared&lt;network_system::core::messaging_client&gt;();</div>
-<div class="line">client-&gt;connect(<span class="stringliteral">&quot;localhost&quot;</span>, 8080);</div>
-<div class="line">client-&gt;send(<span class="stringliteral">&quot;Hello, Network System!&quot;</span>);</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md336"></a>
+<h1><a class="anchor" id="autotoc_md290"></a>
+🎯 CI/CD Status</h1>
+<table class="markdownTable">
+<tr class="markdownTableHead">
+<th class="markdownTableHeadNone">Platform   </th><th class="markdownTableHeadNone">Compiler   </th><th class="markdownTableHeadNone">Status    </th></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">Ubuntu 22.04   </td><td class="markdownTableBodyNone">GCC 11   </td><td class="markdownTableBodyNone"><img src="https://github.com/kcenon/network_system/actions/workflows/build-ubuntu-gcc.yaml/badge.svg" alt="Build" style="pointer-events: none;" class="inline"/>    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">Ubuntu 22.04   </td><td class="markdownTableBodyNone">Clang 14   </td><td class="markdownTableBodyNone"><img src="https://github.com/kcenon/network_system/actions/workflows/build-ubuntu-clang.yaml/badge.svg" alt="Build" style="pointer-events: none;" class="inline"/>    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">Windows 2022   </td><td class="markdownTableBodyNone">MSVC 2022   </td><td class="markdownTableBodyNone"><img src="https://github.com/kcenon/network_system/actions/workflows/build-windows-vs.yaml/badge.svg" alt="Build" style="pointer-events: none;" class="inline"/>    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">Windows 2022   </td><td class="markdownTableBodyNone">MinGW64   </td><td class="markdownTableBodyNone"><img src="https://github.com/kcenon/network_system/actions/workflows/build-windows-msys2.yaml/badge.svg" alt="Build" style="pointer-events: none;" class="inline"/>   </td></tr>
+</table>
+<h1><a class="anchor" id="autotoc_md291"></a>
+📚 Documentation</h1>
+<table class="markdownTable">
+<tr class="markdownTableHead">
+<th class="markdownTableHeadNone">Document   </th><th class="markdownTableHeadNone">Description    </th></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><a href="https://kcenon.github.io/network_system">API Reference</a>   </td><td class="markdownTableBodyNone">Doxygen-generated API documentation    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><a class="el" href="md_MIGRATION__GUIDE.html">Migration Guide</a>   </td><td class="markdownTableBodyNone">Step-by-step migration from messaging_system    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">Integration Guide   </td><td class="markdownTableBodyNone">How to integrate with existing systems    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">Performance Tuning   </td><td class="markdownTableBodyNone">Optimization guidelines   </td></tr>
+</table>
+<h1><a class="anchor" id="autotoc_md292"></a>
 🤝 Contributing</h1>
 <p>Contributions are welcome! Please follow these guidelines:</p>
 <ol type="1">
@@ -1084,1092 +329,22 @@ Optional</h2>
 <li>Push to the branch (<code>git push origin feature/amazing-feature</code>)</li>
 <li>Open a Pull Request</li>
 </ol>
-<h1><a class="anchor" id="autotoc_md337"></a>
+<h1><a class="anchor" id="autotoc_md293"></a>
 📄 License</h1>
 <p>This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.</p>
-<h1><a class="anchor" id="autotoc_md338"></a>
+<h1><a class="anchor" id="autotoc_md294"></a>
 🙏 Acknowledgments</h1>
 <ul>
 <li>ASIO library for asynchronous I/O</li>
 <li>fmt library for modern formatting</li>
 <li>Original messaging_system contributors</li>
+<li>All contributors to this separation effort</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md339"></a>
+<h1><a class="anchor" id="autotoc_md295"></a>
 📧 Contact</h1>
-<p><b>Owner</b>: kcenon (<a href="#" onclick="location.href='mai'+'lto:'+'kce'+'no'+'n@n'+'av'+'er.'+'co'+'m'; return false;">kceno<span class="obfuscator">.nosp@m.</span>n@na<span class="obfuscator">.nosp@m.</span>ver.c<span class="obfuscator">.nosp@m.</span>om</a>) <b>Repository</b>: <a href="https://github.com/kcenon/network_system">https://github.com/kcenon/network_system</a></p>
+<p><b>Owner</b>: kcenon (<a href="#" onclick="location.href='mai'+'lto:'+'kce'+'no'+'n@n'+'av'+'er.'+'co'+'m'; return false;">kceno<span class="obfuscator">.nosp@m.</span>n@na<span class="obfuscator">.nosp@m.</span>ver.c<span class="obfuscator">.nosp@m.</span>om</a>) <b>Repository</b>: <a href="https://github.com/kcenon/network_system">https://github.com/kcenon/network_system</a> <b>Issues</b>: <a href="https://github.com/kcenon/network_system/issues">https://github.com/kcenon/network_system/issues</a></p>
 <hr  />
-<h1><a class="anchor" id="autotoc_md341"></a>
-🔧 Technology Stack</h1>
-<h2><a class="anchor" id="autotoc_md342"></a>
-Core Dependencies</h2>
-<ul>
-<li><b>ASIO</b>: Asynchronous I/O and networking</li>
-<li><b>fmt</b>: String formatting</li>
-<li><b>C++20</b>: Modern C++ features</li>
-</ul>
-<h2><a class="anchor" id="autotoc_md343"></a>
-Integration Dependencies (Conditional)</h2>
-<ul>
-<li><b>container_system</b>: Message serialization/deserialization</li>
-<li><b>thread_system</b>: Asynchronous task scheduling</li>
-<li><b>GTest</b>: Unit testing framework</li>
-<li><b>Benchmark</b>: Performance benchmarking</li>
-</ul>
-<h2><a class="anchor" id="autotoc_md344"></a>
-Build Tools</h2>
-<ul>
-<li><b>CMake 3.16+</b>: Build system</li>
-<li><b>vcpkg</b>: Package management</li>
-<li><b>Git</b>: Version control</li>
-</ul>
-<h1><a class="anchor" id="autotoc_md345"></a>
-📝 API Example</h1>
-<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_server.h&gt;</span></div>
-<div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_client.h&gt;</span></div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Server example</span></div>
-<div class="line"><span class="keyword">auto</span> server = std::make_shared&lt;network_system::core::messaging_server&gt;();</div>
-<div class="line">server-&gt;set_message_handler([](<span class="keyword">const</span> std::string&amp; message) {</div>
-<div class="line">    std::cout &lt;&lt; <span class="stringliteral">&quot;Received: &quot;</span> &lt;&lt; message &lt;&lt; std::endl;</div>
-<div class="line">    <span class="keywordflow">return</span> <span class="stringliteral">&quot;Echo: &quot;</span> + message;</div>
-<div class="line">});</div>
-<div class="line">server-&gt;start(<span class="stringliteral">&quot;0.0.0.0&quot;</span>, 8080);</div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Client example</span></div>
-<div class="line"><span class="keyword">auto</span> client = std::make_shared&lt;network_system::core::messaging_client&gt;();</div>
-<div class="line">client-&gt;connect(<span class="stringliteral">&quot;localhost&quot;</span>, 8080);</div>
-<div class="line">client-&gt;send(<span class="stringliteral">&quot;Hello, Network System!&quot;</span>);</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md346"></a>
-🤝 Contributing</h1>
-<p>Contributions are welcome! Please follow these guidelines:</p>
-<ol type="1">
-<li>Fork the repository</li>
-<li>Create a feature branch (<code>git checkout -b feature/amazing-feature</code>)</li>
-<li>Commit your changes following conventional commits</li>
-<li>Push to the branch (<code>git push origin feature/amazing-feature</code>)</li>
-<li>Open a Pull Request</li>
-</ol>
-<h1><a class="anchor" id="autotoc_md347"></a>
-📄 License</h1>
-<p>This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.</p>
-<h1><a class="anchor" id="autotoc_md348"></a>
-🙏 Acknowledgments</h1>
-<ul>
-<li>ASIO library for asynchronous I/O</li>
-<li>fmt library for modern formatting</li>
-<li>Original messaging_system contributors</li>
-</ul>
-<h1><a class="anchor" id="autotoc_md349"></a>
-📧 Contact</h1>
-<p><b>Owner</b>: kcenon (<a href="#" onclick="location.href='mai'+'lto:'+'kce'+'no'+'n@n'+'av'+'er.'+'co'+'m'; return false;">kceno<span class="obfuscator">.nosp@m.</span>n@na<span class="obfuscator">.nosp@m.</span>ver.c<span class="obfuscator">.nosp@m.</span>om</a>) <b>Repository</b>: <a href="https://github.com/kcenon/network_system">https://github.com/kcenon/network_system</a></p>
-<hr  />
-<h1><a class="anchor" id="autotoc_md351"></a>
-📈 Performance Requirements</h1>
-<h2><a class="anchor" id="autotoc_md352"></a>
-Baseline (Pre-Separation)</h2>
-<p>| Metric | Value | Conditions | |## 📝 API Example</p>
-<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_server.h&gt;</span></div>
-<div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_client.h&gt;</span></div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Server example</span></div>
-<div class="line"><span class="keyword">auto</span> server = std::make_shared&lt;network_system::core::messaging_server&gt;();</div>
-<div class="line">server-&gt;set_message_handler([](<span class="keyword">const</span> std::string&amp; message) {</div>
-<div class="line">    std::cout &lt;&lt; <span class="stringliteral">&quot;Received: &quot;</span> &lt;&lt; message &lt;&lt; std::endl;</div>
-<div class="line">    <span class="keywordflow">return</span> <span class="stringliteral">&quot;Echo: &quot;</span> + message;</div>
-<div class="line">});</div>
-<div class="line">server-&gt;start(<span class="stringliteral">&quot;0.0.0.0&quot;</span>, 8080);</div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Client example</span></div>
-<div class="line"><span class="keyword">auto</span> client = std::make_shared&lt;network_system::core::messaging_client&gt;();</div>
-<div class="line">client-&gt;connect(<span class="stringliteral">&quot;localhost&quot;</span>, 8080);</div>
-<div class="line">client-&gt;send(<span class="stringliteral">&quot;Hello, Network System!&quot;</span>);</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md353"></a>
-🤝 Contributing</h1>
-<p>Contributions are welcome! Please follow these guidelines:</p>
-<ol type="1">
-<li>Fork the repository</li>
-<li>Create a feature branch (<code>git checkout -b feature/amazing-feature</code>)</li>
-<li>Commit your changes following conventional commits</li>
-<li>Push to the branch (<code>git push origin feature/amazing-feature</code>)</li>
-<li>Open a Pull Request</li>
-</ol>
-<h1><a class="anchor" id="autotoc_md354"></a>
-📄 License</h1>
-<p>This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.</p>
-<h1><a class="anchor" id="autotoc_md355"></a>
-🙏 Acknowledgments</h1>
-<ul>
-<li>ASIO library for asynchronous I/O</li>
-<li>fmt library for modern formatting</li>
-<li>Original messaging_system contributors</li>
-</ul>
-<h1><a class="anchor" id="autotoc_md356"></a>
-📧 Contact</h1>
-<p><b>Owner</b>: kcenon (<a href="#" onclick="location.href='mai'+'lto:'+'kce'+'no'+'n@n'+'av'+'er.'+'co'+'m'; return false;">kceno<span class="obfuscator">.nosp@m.</span>n@na<span class="obfuscator">.nosp@m.</span>ver.c<span class="obfuscator">.nosp@m.</span>om</a>) <b>Repository</b>: <a href="https://github.com/kcenon/network_system">https://github.com/kcenon/network_system</a></p>
-<p>&mdash;## 📝 API Example</p>
-<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_server.h&gt;</span></div>
-<div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_client.h&gt;</span></div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Server example</span></div>
-<div class="line"><span class="keyword">auto</span> server = std::make_shared&lt;network_system::core::messaging_server&gt;();</div>
-<div class="line">server-&gt;set_message_handler([](<span class="keyword">const</span> std::string&amp; message) {</div>
-<div class="line">    std::cout &lt;&lt; <span class="stringliteral">&quot;Received: &quot;</span> &lt;&lt; message &lt;&lt; std::endl;</div>
-<div class="line">    <span class="keywordflow">return</span> <span class="stringliteral">&quot;Echo: &quot;</span> + message;</div>
-<div class="line">});</div>
-<div class="line">server-&gt;start(<span class="stringliteral">&quot;0.0.0.0&quot;</span>, 8080);</div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Client example</span></div>
-<div class="line"><span class="keyword">auto</span> client = std::make_shared&lt;network_system::core::messaging_client&gt;();</div>
-<div class="line">client-&gt;connect(<span class="stringliteral">&quot;localhost&quot;</span>, 8080);</div>
-<div class="line">client-&gt;send(<span class="stringliteral">&quot;Hello, Network System!&quot;</span>);</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md357"></a>
-🤝 Contributing</h1>
-<p>Contributions are welcome! Please follow these guidelines:</p>
-<ol type="1">
-<li>Fork the repository</li>
-<li>Create a feature branch (<code>git checkout -b feature/amazing-feature</code>)</li>
-<li>Commit your changes following conventional commits</li>
-<li>Push to the branch (<code>git push origin feature/amazing-feature</code>)</li>
-<li>Open a Pull Request</li>
-</ol>
-<h1><a class="anchor" id="autotoc_md358"></a>
-📄 License</h1>
-<p>This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.</p>
-<h1><a class="anchor" id="autotoc_md359"></a>
-🙏 Acknowledgments</h1>
-<ul>
-<li>ASIO library for asynchronous I/O</li>
-<li>fmt library for modern formatting</li>
-<li>Original messaging_system contributors</li>
-</ul>
-<h1><a class="anchor" id="autotoc_md360"></a>
-📧 Contact</h1>
-<p><b>Owner</b>: kcenon (<a href="#" onclick="location.href='mai'+'lto:'+'kce'+'no'+'n@n'+'av'+'er.'+'co'+'m'; return false;">kceno<span class="obfuscator">.nosp@m.</span>n@na<span class="obfuscator">.nosp@m.</span>ver.c<span class="obfuscator">.nosp@m.</span>om</a>) <b>Repository</b>: <a href="https://github.com/kcenon/network_system">https://github.com/kcenon/network_system</a></p>
-<p>--&mdash;|## 📝 API Example</p>
-<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_server.h&gt;</span></div>
-<div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_client.h&gt;</span></div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Server example</span></div>
-<div class="line"><span class="keyword">auto</span> server = std::make_shared&lt;network_system::core::messaging_server&gt;();</div>
-<div class="line">server-&gt;set_message_handler([](<span class="keyword">const</span> std::string&amp; message) {</div>
-<div class="line">    std::cout &lt;&lt; <span class="stringliteral">&quot;Received: &quot;</span> &lt;&lt; message &lt;&lt; std::endl;</div>
-<div class="line">    <span class="keywordflow">return</span> <span class="stringliteral">&quot;Echo: &quot;</span> + message;</div>
-<div class="line">});</div>
-<div class="line">server-&gt;start(<span class="stringliteral">&quot;0.0.0.0&quot;</span>, 8080);</div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Client example</span></div>
-<div class="line"><span class="keyword">auto</span> client = std::make_shared&lt;network_system::core::messaging_client&gt;();</div>
-<div class="line">client-&gt;connect(<span class="stringliteral">&quot;localhost&quot;</span>, 8080);</div>
-<div class="line">client-&gt;send(<span class="stringliteral">&quot;Hello, Network System!&quot;</span>);</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md361"></a>
-🤝 Contributing</h1>
-<p>Contributions are welcome! Please follow these guidelines:</p>
-<ol type="1">
-<li>Fork the repository</li>
-<li>Create a feature branch (<code>git checkout -b feature/amazing-feature</code>)</li>
-<li>Commit your changes following conventional commits</li>
-<li>Push to the branch (<code>git push origin feature/amazing-feature</code>)</li>
-<li>Open a Pull Request</li>
-</ol>
-<h1><a class="anchor" id="autotoc_md362"></a>
-📄 License</h1>
-<p>This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.</p>
-<h1><a class="anchor" id="autotoc_md363"></a>
-🙏 Acknowledgments</h1>
-<ul>
-<li>ASIO library for asynchronous I/O</li>
-<li>fmt library for modern formatting</li>
-<li>Original messaging_system contributors</li>
-</ul>
-<h1><a class="anchor" id="autotoc_md364"></a>
-📧 Contact</h1>
-<p><b>Owner</b>: kcenon (<a href="#" onclick="location.href='mai'+'lto:'+'kce'+'no'+'n@n'+'av'+'er.'+'co'+'m'; return false;">kceno<span class="obfuscator">.nosp@m.</span>n@na<span class="obfuscator">.nosp@m.</span>ver.c<span class="obfuscator">.nosp@m.</span>om</a>) <b>Repository</b>: <a href="https://github.com/kcenon/network_system">https://github.com/kcenon/network_system</a></p>
-<p>&mdash;## 📝 API Example</p>
-<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_server.h&gt;</span></div>
-<div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_client.h&gt;</span></div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Server example</span></div>
-<div class="line"><span class="keyword">auto</span> server = std::make_shared&lt;network_system::core::messaging_server&gt;();</div>
-<div class="line">server-&gt;set_message_handler([](<span class="keyword">const</span> std::string&amp; message) {</div>
-<div class="line">    std::cout &lt;&lt; <span class="stringliteral">&quot;Received: &quot;</span> &lt;&lt; message &lt;&lt; std::endl;</div>
-<div class="line">    <span class="keywordflow">return</span> <span class="stringliteral">&quot;Echo: &quot;</span> + message;</div>
-<div class="line">});</div>
-<div class="line">server-&gt;start(<span class="stringliteral">&quot;0.0.0.0&quot;</span>, 8080);</div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Client example</span></div>
-<div class="line"><span class="keyword">auto</span> client = std::make_shared&lt;network_system::core::messaging_client&gt;();</div>
-<div class="line">client-&gt;connect(<span class="stringliteral">&quot;localhost&quot;</span>, 8080);</div>
-<div class="line">client-&gt;send(<span class="stringliteral">&quot;Hello, Network System!&quot;</span>);</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md365"></a>
-🤝 Contributing</h1>
-<p>Contributions are welcome! Please follow these guidelines:</p>
-<ol type="1">
-<li>Fork the repository</li>
-<li>Create a feature branch (<code>git checkout -b feature/amazing-feature</code>)</li>
-<li>Commit your changes following conventional commits</li>
-<li>Push to the branch (<code>git push origin feature/amazing-feature</code>)</li>
-<li>Open a Pull Request</li>
-</ol>
-<h1><a class="anchor" id="autotoc_md366"></a>
-📄 License</h1>
-<p>This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.</p>
-<h1><a class="anchor" id="autotoc_md367"></a>
-🙏 Acknowledgments</h1>
-<ul>
-<li>ASIO library for asynchronous I/O</li>
-<li>fmt library for modern formatting</li>
-<li>Original messaging_system contributors</li>
-</ul>
-<h1><a class="anchor" id="autotoc_md368"></a>
-📧 Contact</h1>
-<p><b>Owner</b>: kcenon (<a href="#" onclick="location.href='mai'+'lto:'+'kce'+'no'+'n@n'+'av'+'er.'+'co'+'m'; return false;">kceno<span class="obfuscator">.nosp@m.</span>n@na<span class="obfuscator">.nosp@m.</span>ver.c<span class="obfuscator">.nosp@m.</span>om</a>) <b>Repository</b>: <a href="https://github.com/kcenon/network_system">https://github.com/kcenon/network_system</a></p>
-<p>-&mdash;|## 📝 API Example</p>
-<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_server.h&gt;</span></div>
-<div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_client.h&gt;</span></div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Server example</span></div>
-<div class="line"><span class="keyword">auto</span> server = std::make_shared&lt;network_system::core::messaging_server&gt;();</div>
-<div class="line">server-&gt;set_message_handler([](<span class="keyword">const</span> std::string&amp; message) {</div>
-<div class="line">    std::cout &lt;&lt; <span class="stringliteral">&quot;Received: &quot;</span> &lt;&lt; message &lt;&lt; std::endl;</div>
-<div class="line">    <span class="keywordflow">return</span> <span class="stringliteral">&quot;Echo: &quot;</span> + message;</div>
-<div class="line">});</div>
-<div class="line">server-&gt;start(<span class="stringliteral">&quot;0.0.0.0&quot;</span>, 8080);</div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Client example</span></div>
-<div class="line"><span class="keyword">auto</span> client = std::make_shared&lt;network_system::core::messaging_client&gt;();</div>
-<div class="line">client-&gt;connect(<span class="stringliteral">&quot;localhost&quot;</span>, 8080);</div>
-<div class="line">client-&gt;send(<span class="stringliteral">&quot;Hello, Network System!&quot;</span>);</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md369"></a>
-🤝 Contributing</h1>
-<p>Contributions are welcome! Please follow these guidelines:</p>
-<ol type="1">
-<li>Fork the repository</li>
-<li>Create a feature branch (<code>git checkout -b feature/amazing-feature</code>)</li>
-<li>Commit your changes following conventional commits</li>
-<li>Push to the branch (<code>git push origin feature/amazing-feature</code>)</li>
-<li>Open a Pull Request</li>
-</ol>
-<h1><a class="anchor" id="autotoc_md370"></a>
-📄 License</h1>
-<p>This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.</p>
-<h1><a class="anchor" id="autotoc_md371"></a>
-🙏 Acknowledgments</h1>
-<ul>
-<li>ASIO library for asynchronous I/O</li>
-<li>fmt library for modern formatting</li>
-<li>Original messaging_system contributors</li>
-</ul>
-<h1><a class="anchor" id="autotoc_md372"></a>
-📧 Contact</h1>
-<p><b>Owner</b>: kcenon (<a href="#" onclick="location.href='mai'+'lto:'+'kce'+'no'+'n@n'+'av'+'er.'+'co'+'m'; return false;">kceno<span class="obfuscator">.nosp@m.</span>n@na<span class="obfuscator">.nosp@m.</span>ver.c<span class="obfuscator">.nosp@m.</span>om</a>) <b>Repository</b>: <a href="https://github.com/kcenon/network_system">https://github.com/kcenon/network_system</a></p>
-<p>&mdash;## 📝 API Example</p>
-<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_server.h&gt;</span></div>
-<div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_client.h&gt;</span></div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Server example</span></div>
-<div class="line"><span class="keyword">auto</span> server = std::make_shared&lt;network_system::core::messaging_server&gt;();</div>
-<div class="line">server-&gt;set_message_handler([](<span class="keyword">const</span> std::string&amp; message) {</div>
-<div class="line">    std::cout &lt;&lt; <span class="stringliteral">&quot;Received: &quot;</span> &lt;&lt; message &lt;&lt; std::endl;</div>
-<div class="line">    <span class="keywordflow">return</span> <span class="stringliteral">&quot;Echo: &quot;</span> + message;</div>
-<div class="line">});</div>
-<div class="line">server-&gt;start(<span class="stringliteral">&quot;0.0.0.0&quot;</span>, 8080);</div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Client example</span></div>
-<div class="line"><span class="keyword">auto</span> client = std::make_shared&lt;network_system::core::messaging_client&gt;();</div>
-<div class="line">client-&gt;connect(<span class="stringliteral">&quot;localhost&quot;</span>, 8080);</div>
-<div class="line">client-&gt;send(<span class="stringliteral">&quot;Hello, Network System!&quot;</span>);</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md373"></a>
-🤝 Contributing</h1>
-<p>Contributions are welcome! Please follow these guidelines:</p>
-<ol type="1">
-<li>Fork the repository</li>
-<li>Create a feature branch (<code>git checkout -b feature/amazing-feature</code>)</li>
-<li>Commit your changes following conventional commits</li>
-<li>Push to the branch (<code>git push origin feature/amazing-feature</code>)</li>
-<li>Open a Pull Request</li>
-</ol>
-<h1><a class="anchor" id="autotoc_md374"></a>
-📄 License</h1>
-<p>This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.</p>
-<h1><a class="anchor" id="autotoc_md375"></a>
-🙏 Acknowledgments</h1>
-<ul>
-<li>ASIO library for asynchronous I/O</li>
-<li>fmt library for modern formatting</li>
-<li>Original messaging_system contributors</li>
-</ul>
-<h1><a class="anchor" id="autotoc_md376"></a>
-📧 Contact</h1>
-<p><b>Owner</b>: kcenon (<a href="#" onclick="location.href='mai'+'lto:'+'kce'+'no'+'n@n'+'av'+'er.'+'co'+'m'; return false;">kceno<span class="obfuscator">.nosp@m.</span>n@na<span class="obfuscator">.nosp@m.</span>ver.c<span class="obfuscator">.nosp@m.</span>om</a>) <b>Repository</b>: <a href="https://github.com/kcenon/network_system">https://github.com/kcenon/network_system</a></p>
-<p>&mdash;## 📝 API Example</p>
-<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_server.h&gt;</span></div>
-<div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_client.h&gt;</span></div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Server example</span></div>
-<div class="line"><span class="keyword">auto</span> server = std::make_shared&lt;network_system::core::messaging_server&gt;();</div>
-<div class="line">server-&gt;set_message_handler([](<span class="keyword">const</span> std::string&amp; message) {</div>
-<div class="line">    std::cout &lt;&lt; <span class="stringliteral">&quot;Received: &quot;</span> &lt;&lt; message &lt;&lt; std::endl;</div>
-<div class="line">    <span class="keywordflow">return</span> <span class="stringliteral">&quot;Echo: &quot;</span> + message;</div>
-<div class="line">});</div>
-<div class="line">server-&gt;start(<span class="stringliteral">&quot;0.0.0.0&quot;</span>, 8080);</div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Client example</span></div>
-<div class="line"><span class="keyword">auto</span> client = std::make_shared&lt;network_system::core::messaging_client&gt;();</div>
-<div class="line">client-&gt;connect(<span class="stringliteral">&quot;localhost&quot;</span>, 8080);</div>
-<div class="line">client-&gt;send(<span class="stringliteral">&quot;Hello, Network System!&quot;</span>);</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md377"></a>
-🤝 Contributing</h1>
-<p>Contributions are welcome! Please follow these guidelines:</p>
-<ol type="1">
-<li>Fork the repository</li>
-<li>Create a feature branch (<code>git checkout -b feature/amazing-feature</code>)</li>
-<li>Commit your changes following conventional commits</li>
-<li>Push to the branch (<code>git push origin feature/amazing-feature</code>)</li>
-<li>Open a Pull Request</li>
-</ol>
-<h1><a class="anchor" id="autotoc_md378"></a>
-📄 License</h1>
-<p>This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.</p>
-<h1><a class="anchor" id="autotoc_md379"></a>
-🙏 Acknowledgments</h1>
-<ul>
-<li>ASIO library for asynchronous I/O</li>
-<li>fmt library for modern formatting</li>
-<li>Original messaging_system contributors</li>
-</ul>
-<h1><a class="anchor" id="autotoc_md380"></a>
-📧 Contact</h1>
-<p><b>Owner</b>: kcenon (<a href="#" onclick="location.href='mai'+'lto:'+'kce'+'no'+'n@n'+'av'+'er.'+'co'+'m'; return false;">kceno<span class="obfuscator">.nosp@m.</span>n@na<span class="obfuscator">.nosp@m.</span>ver.c<span class="obfuscator">.nosp@m.</span>om</a>) <b>Repository</b>: <a href="https://github.com/kcenon/network_system">https://github.com/kcenon/network_system</a></p>
-<p>&mdash;## 📝 API Example</p>
-<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_server.h&gt;</span></div>
-<div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_client.h&gt;</span></div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Server example</span></div>
-<div class="line"><span class="keyword">auto</span> server = std::make_shared&lt;network_system::core::messaging_server&gt;();</div>
-<div class="line">server-&gt;set_message_handler([](<span class="keyword">const</span> std::string&amp; message) {</div>
-<div class="line">    std::cout &lt;&lt; <span class="stringliteral">&quot;Received: &quot;</span> &lt;&lt; message &lt;&lt; std::endl;</div>
-<div class="line">    <span class="keywordflow">return</span> <span class="stringliteral">&quot;Echo: &quot;</span> + message;</div>
-<div class="line">});</div>
-<div class="line">server-&gt;start(<span class="stringliteral">&quot;0.0.0.0&quot;</span>, 8080);</div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Client example</span></div>
-<div class="line"><span class="keyword">auto</span> client = std::make_shared&lt;network_system::core::messaging_client&gt;();</div>
-<div class="line">client-&gt;connect(<span class="stringliteral">&quot;localhost&quot;</span>, 8080);</div>
-<div class="line">client-&gt;send(<span class="stringliteral">&quot;Hello, Network System!&quot;</span>);</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md381"></a>
-🤝 Contributing</h1>
-<p>Contributions are welcome! Please follow these guidelines:</p>
-<ol type="1">
-<li>Fork the repository</li>
-<li>Create a feature branch (<code>git checkout -b feature/amazing-feature</code>)</li>
-<li>Commit your changes following conventional commits</li>
-<li>Push to the branch (<code>git push origin feature/amazing-feature</code>)</li>
-<li>Open a Pull Request</li>
-</ol>
-<h1><a class="anchor" id="autotoc_md382"></a>
-📄 License</h1>
-<p>This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.</p>
-<h1><a class="anchor" id="autotoc_md383"></a>
-🙏 Acknowledgments</h1>
-<ul>
-<li>ASIO library for asynchronous I/O</li>
-<li>fmt library for modern formatting</li>
-<li>Original messaging_system contributors</li>
-</ul>
-<h1><a class="anchor" id="autotoc_md384"></a>
-📧 Contact</h1>
-<p><b>Owner</b>: kcenon (<a href="#" onclick="location.href='mai'+'lto:'+'kce'+'no'+'n@n'+'av'+'er.'+'co'+'m'; return false;">kceno<span class="obfuscator">.nosp@m.</span>n@na<span class="obfuscator">.nosp@m.</span>ver.c<span class="obfuscator">.nosp@m.</span>om</a>) <b>Repository</b>: <a href="https://github.com/kcenon/network_system">https://github.com/kcenon/network_system</a></p>
-<p>&mdash;| | Throughput | 100K messages/sec | 1KB messages, localhost | | Latency | &lt; 1ms | Message processing latency | | Concurrent connections | 10K+ | Within system resource limits | | Memory usage | ~8KB/connection | Including buffers and session data |</p>
-<h2><a class="anchor" id="autotoc_md385"></a>
-Target (Post-Separation)</h2>
-<p>| Metric | Target | Acceptable Range | |## 📝 API Example</p>
-<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_server.h&gt;</span></div>
-<div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_client.h&gt;</span></div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Server example</span></div>
-<div class="line"><span class="keyword">auto</span> server = std::make_shared&lt;network_system::core::messaging_server&gt;();</div>
-<div class="line">server-&gt;set_message_handler([](<span class="keyword">const</span> std::string&amp; message) {</div>
-<div class="line">    std::cout &lt;&lt; <span class="stringliteral">&quot;Received: &quot;</span> &lt;&lt; message &lt;&lt; std::endl;</div>
-<div class="line">    <span class="keywordflow">return</span> <span class="stringliteral">&quot;Echo: &quot;</span> + message;</div>
-<div class="line">});</div>
-<div class="line">server-&gt;start(<span class="stringliteral">&quot;0.0.0.0&quot;</span>, 8080);</div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Client example</span></div>
-<div class="line"><span class="keyword">auto</span> client = std::make_shared&lt;network_system::core::messaging_client&gt;();</div>
-<div class="line">client-&gt;connect(<span class="stringliteral">&quot;localhost&quot;</span>, 8080);</div>
-<div class="line">client-&gt;send(<span class="stringliteral">&quot;Hello, Network System!&quot;</span>);</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md386"></a>
-🤝 Contributing</h1>
-<p>Contributions are welcome! Please follow these guidelines:</p>
-<ol type="1">
-<li>Fork the repository</li>
-<li>Create a feature branch (<code>git checkout -b feature/amazing-feature</code>)</li>
-<li>Commit your changes following conventional commits</li>
-<li>Push to the branch (<code>git push origin feature/amazing-feature</code>)</li>
-<li>Open a Pull Request</li>
-</ol>
-<h1><a class="anchor" id="autotoc_md387"></a>
-📄 License</h1>
-<p>This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.</p>
-<h1><a class="anchor" id="autotoc_md388"></a>
-🙏 Acknowledgments</h1>
-<ul>
-<li>ASIO library for asynchronous I/O</li>
-<li>fmt library for modern formatting</li>
-<li>Original messaging_system contributors</li>
-</ul>
-<h1><a class="anchor" id="autotoc_md389"></a>
-📧 Contact</h1>
-<p><b>Owner</b>: kcenon (<a href="#" onclick="location.href='mai'+'lto:'+'kce'+'no'+'n@n'+'av'+'er.'+'co'+'m'; return false;">kceno<span class="obfuscator">.nosp@m.</span>n@na<span class="obfuscator">.nosp@m.</span>ver.c<span class="obfuscator">.nosp@m.</span>om</a>) <b>Repository</b>: <a href="https://github.com/kcenon/network_system">https://github.com/kcenon/network_system</a></p>
-<p>&mdash;## 📝 API Example</p>
-<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_server.h&gt;</span></div>
-<div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_client.h&gt;</span></div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Server example</span></div>
-<div class="line"><span class="keyword">auto</span> server = std::make_shared&lt;network_system::core::messaging_server&gt;();</div>
-<div class="line">server-&gt;set_message_handler([](<span class="keyword">const</span> std::string&amp; message) {</div>
-<div class="line">    std::cout &lt;&lt; <span class="stringliteral">&quot;Received: &quot;</span> &lt;&lt; message &lt;&lt; std::endl;</div>
-<div class="line">    <span class="keywordflow">return</span> <span class="stringliteral">&quot;Echo: &quot;</span> + message;</div>
-<div class="line">});</div>
-<div class="line">server-&gt;start(<span class="stringliteral">&quot;0.0.0.0&quot;</span>, 8080);</div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Client example</span></div>
-<div class="line"><span class="keyword">auto</span> client = std::make_shared&lt;network_system::core::messaging_client&gt;();</div>
-<div class="line">client-&gt;connect(<span class="stringliteral">&quot;localhost&quot;</span>, 8080);</div>
-<div class="line">client-&gt;send(<span class="stringliteral">&quot;Hello, Network System!&quot;</span>);</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md390"></a>
-🤝 Contributing</h1>
-<p>Contributions are welcome! Please follow these guidelines:</p>
-<ol type="1">
-<li>Fork the repository</li>
-<li>Create a feature branch (<code>git checkout -b feature/amazing-feature</code>)</li>
-<li>Commit your changes following conventional commits</li>
-<li>Push to the branch (<code>git push origin feature/amazing-feature</code>)</li>
-<li>Open a Pull Request</li>
-</ol>
-<h1><a class="anchor" id="autotoc_md391"></a>
-📄 License</h1>
-<p>This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.</p>
-<h1><a class="anchor" id="autotoc_md392"></a>
-🙏 Acknowledgments</h1>
-<ul>
-<li>ASIO library for asynchronous I/O</li>
-<li>fmt library for modern formatting</li>
-<li>Original messaging_system contributors</li>
-</ul>
-<h1><a class="anchor" id="autotoc_md393"></a>
-📧 Contact</h1>
-<p><b>Owner</b>: kcenon (<a href="#" onclick="location.href='mai'+'lto:'+'kce'+'no'+'n@n'+'av'+'er.'+'co'+'m'; return false;">kceno<span class="obfuscator">.nosp@m.</span>n@na<span class="obfuscator">.nosp@m.</span>ver.c<span class="obfuscator">.nosp@m.</span>om</a>) <b>Repository</b>: <a href="https://github.com/kcenon/network_system">https://github.com/kcenon/network_system</a></p>
-<p>--&mdash;|## 📝 API Example</p>
-<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_server.h&gt;</span></div>
-<div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_client.h&gt;</span></div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Server example</span></div>
-<div class="line"><span class="keyword">auto</span> server = std::make_shared&lt;network_system::core::messaging_server&gt;();</div>
-<div class="line">server-&gt;set_message_handler([](<span class="keyword">const</span> std::string&amp; message) {</div>
-<div class="line">    std::cout &lt;&lt; <span class="stringliteral">&quot;Received: &quot;</span> &lt;&lt; message &lt;&lt; std::endl;</div>
-<div class="line">    <span class="keywordflow">return</span> <span class="stringliteral">&quot;Echo: &quot;</span> + message;</div>
-<div class="line">});</div>
-<div class="line">server-&gt;start(<span class="stringliteral">&quot;0.0.0.0&quot;</span>, 8080);</div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Client example</span></div>
-<div class="line"><span class="keyword">auto</span> client = std::make_shared&lt;network_system::core::messaging_client&gt;();</div>
-<div class="line">client-&gt;connect(<span class="stringliteral">&quot;localhost&quot;</span>, 8080);</div>
-<div class="line">client-&gt;send(<span class="stringliteral">&quot;Hello, Network System!&quot;</span>);</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md394"></a>
-🤝 Contributing</h1>
-<p>Contributions are welcome! Please follow these guidelines:</p>
-<ol type="1">
-<li>Fork the repository</li>
-<li>Create a feature branch (<code>git checkout -b feature/amazing-feature</code>)</li>
-<li>Commit your changes following conventional commits</li>
-<li>Push to the branch (<code>git push origin feature/amazing-feature</code>)</li>
-<li>Open a Pull Request</li>
-</ol>
-<h1><a class="anchor" id="autotoc_md395"></a>
-📄 License</h1>
-<p>This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.</p>
-<h1><a class="anchor" id="autotoc_md396"></a>
-🙏 Acknowledgments</h1>
-<ul>
-<li>ASIO library for asynchronous I/O</li>
-<li>fmt library for modern formatting</li>
-<li>Original messaging_system contributors</li>
-</ul>
-<h1><a class="anchor" id="autotoc_md397"></a>
-📧 Contact</h1>
-<p><b>Owner</b>: kcenon (<a href="#" onclick="location.href='mai'+'lto:'+'kce'+'no'+'n@n'+'av'+'er.'+'co'+'m'; return false;">kceno<span class="obfuscator">.nosp@m.</span>n@na<span class="obfuscator">.nosp@m.</span>ver.c<span class="obfuscator">.nosp@m.</span>om</a>) <b>Repository</b>: <a href="https://github.com/kcenon/network_system">https://github.com/kcenon/network_system</a></p>
-<p>&mdash;## 📝 API Example</p>
-<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_server.h&gt;</span></div>
-<div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_client.h&gt;</span></div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Server example</span></div>
-<div class="line"><span class="keyword">auto</span> server = std::make_shared&lt;network_system::core::messaging_server&gt;();</div>
-<div class="line">server-&gt;set_message_handler([](<span class="keyword">const</span> std::string&amp; message) {</div>
-<div class="line">    std::cout &lt;&lt; <span class="stringliteral">&quot;Received: &quot;</span> &lt;&lt; message &lt;&lt; std::endl;</div>
-<div class="line">    <span class="keywordflow">return</span> <span class="stringliteral">&quot;Echo: &quot;</span> + message;</div>
-<div class="line">});</div>
-<div class="line">server-&gt;start(<span class="stringliteral">&quot;0.0.0.0&quot;</span>, 8080);</div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Client example</span></div>
-<div class="line"><span class="keyword">auto</span> client = std::make_shared&lt;network_system::core::messaging_client&gt;();</div>
-<div class="line">client-&gt;connect(<span class="stringliteral">&quot;localhost&quot;</span>, 8080);</div>
-<div class="line">client-&gt;send(<span class="stringliteral">&quot;Hello, Network System!&quot;</span>);</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md398"></a>
-🤝 Contributing</h1>
-<p>Contributions are welcome! Please follow these guidelines:</p>
-<ol type="1">
-<li>Fork the repository</li>
-<li>Create a feature branch (<code>git checkout -b feature/amazing-feature</code>)</li>
-<li>Commit your changes following conventional commits</li>
-<li>Push to the branch (<code>git push origin feature/amazing-feature</code>)</li>
-<li>Open a Pull Request</li>
-</ol>
-<h1><a class="anchor" id="autotoc_md399"></a>
-📄 License</h1>
-<p>This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.</p>
-<h1><a class="anchor" id="autotoc_md400"></a>
-🙏 Acknowledgments</h1>
-<ul>
-<li>ASIO library for asynchronous I/O</li>
-<li>fmt library for modern formatting</li>
-<li>Original messaging_system contributors</li>
-</ul>
-<h1><a class="anchor" id="autotoc_md401"></a>
-📧 Contact</h1>
-<p><b>Owner</b>: kcenon (<a href="#" onclick="location.href='mai'+'lto:'+'kce'+'no'+'n@n'+'av'+'er.'+'co'+'m'; return false;">kceno<span class="obfuscator">.nosp@m.</span>n@na<span class="obfuscator">.nosp@m.</span>ver.c<span class="obfuscator">.nosp@m.</span>om</a>) <b>Repository</b>: <a href="https://github.com/kcenon/network_system">https://github.com/kcenon/network_system</a></p>
-<p>--&mdash;|## 📝 API Example</p>
-<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_server.h&gt;</span></div>
-<div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_client.h&gt;</span></div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Server example</span></div>
-<div class="line"><span class="keyword">auto</span> server = std::make_shared&lt;network_system::core::messaging_server&gt;();</div>
-<div class="line">server-&gt;set_message_handler([](<span class="keyword">const</span> std::string&amp; message) {</div>
-<div class="line">    std::cout &lt;&lt; <span class="stringliteral">&quot;Received: &quot;</span> &lt;&lt; message &lt;&lt; std::endl;</div>
-<div class="line">    <span class="keywordflow">return</span> <span class="stringliteral">&quot;Echo: &quot;</span> + message;</div>
-<div class="line">});</div>
-<div class="line">server-&gt;start(<span class="stringliteral">&quot;0.0.0.0&quot;</span>, 8080);</div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Client example</span></div>
-<div class="line"><span class="keyword">auto</span> client = std::make_shared&lt;network_system::core::messaging_client&gt;();</div>
-<div class="line">client-&gt;connect(<span class="stringliteral">&quot;localhost&quot;</span>, 8080);</div>
-<div class="line">client-&gt;send(<span class="stringliteral">&quot;Hello, Network System!&quot;</span>);</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md402"></a>
-🤝 Contributing</h1>
-<p>Contributions are welcome! Please follow these guidelines:</p>
-<ol type="1">
-<li>Fork the repository</li>
-<li>Create a feature branch (<code>git checkout -b feature/amazing-feature</code>)</li>
-<li>Commit your changes following conventional commits</li>
-<li>Push to the branch (<code>git push origin feature/amazing-feature</code>)</li>
-<li>Open a Pull Request</li>
-</ol>
-<h1><a class="anchor" id="autotoc_md403"></a>
-📄 License</h1>
-<p>This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.</p>
-<h1><a class="anchor" id="autotoc_md404"></a>
-🙏 Acknowledgments</h1>
-<ul>
-<li>ASIO library for asynchronous I/O</li>
-<li>fmt library for modern formatting</li>
-<li>Original messaging_system contributors</li>
-</ul>
-<h1><a class="anchor" id="autotoc_md405"></a>
-📧 Contact</h1>
-<p><b>Owner</b>: kcenon (<a href="#" onclick="location.href='mai'+'lto:'+'kce'+'no'+'n@n'+'av'+'er.'+'co'+'m'; return false;">kceno<span class="obfuscator">.nosp@m.</span>n@na<span class="obfuscator">.nosp@m.</span>ver.c<span class="obfuscator">.nosp@m.</span>om</a>) <b>Repository</b>: <a href="https://github.com/kcenon/network_system">https://github.com/kcenon/network_system</a></p>
-<p>&mdash;## 📝 API Example</p>
-<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_server.h&gt;</span></div>
-<div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_client.h&gt;</span></div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Server example</span></div>
-<div class="line"><span class="keyword">auto</span> server = std::make_shared&lt;network_system::core::messaging_server&gt;();</div>
-<div class="line">server-&gt;set_message_handler([](<span class="keyword">const</span> std::string&amp; message) {</div>
-<div class="line">    std::cout &lt;&lt; <span class="stringliteral">&quot;Received: &quot;</span> &lt;&lt; message &lt;&lt; std::endl;</div>
-<div class="line">    <span class="keywordflow">return</span> <span class="stringliteral">&quot;Echo: &quot;</span> + message;</div>
-<div class="line">});</div>
-<div class="line">server-&gt;start(<span class="stringliteral">&quot;0.0.0.0&quot;</span>, 8080);</div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Client example</span></div>
-<div class="line"><span class="keyword">auto</span> client = std::make_shared&lt;network_system::core::messaging_client&gt;();</div>
-<div class="line">client-&gt;connect(<span class="stringliteral">&quot;localhost&quot;</span>, 8080);</div>
-<div class="line">client-&gt;send(<span class="stringliteral">&quot;Hello, Network System!&quot;</span>);</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md406"></a>
-🤝 Contributing</h1>
-<p>Contributions are welcome! Please follow these guidelines:</p>
-<ol type="1">
-<li>Fork the repository</li>
-<li>Create a feature branch (<code>git checkout -b feature/amazing-feature</code>)</li>
-<li>Commit your changes following conventional commits</li>
-<li>Push to the branch (<code>git push origin feature/amazing-feature</code>)</li>
-<li>Open a Pull Request</li>
-</ol>
-<h1><a class="anchor" id="autotoc_md407"></a>
-📄 License</h1>
-<p>This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.</p>
-<h1><a class="anchor" id="autotoc_md408"></a>
-🙏 Acknowledgments</h1>
-<ul>
-<li>ASIO library for asynchronous I/O</li>
-<li>fmt library for modern formatting</li>
-<li>Original messaging_system contributors</li>
-</ul>
-<h1><a class="anchor" id="autotoc_md409"></a>
-📧 Contact</h1>
-<p><b>Owner</b>: kcenon (<a href="#" onclick="location.href='mai'+'lto:'+'kce'+'no'+'n@n'+'av'+'er.'+'co'+'m'; return false;">kceno<span class="obfuscator">.nosp@m.</span>n@na<span class="obfuscator">.nosp@m.</span>ver.c<span class="obfuscator">.nosp@m.</span>om</a>) <b>Repository</b>: <a href="https://github.com/kcenon/network_system">https://github.com/kcenon/network_system</a></p>
-<p>&mdash;## 📝 API Example</p>
-<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_server.h&gt;</span></div>
-<div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_client.h&gt;</span></div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Server example</span></div>
-<div class="line"><span class="keyword">auto</span> server = std::make_shared&lt;network_system::core::messaging_server&gt;();</div>
-<div class="line">server-&gt;set_message_handler([](<span class="keyword">const</span> std::string&amp; message) {</div>
-<div class="line">    std::cout &lt;&lt; <span class="stringliteral">&quot;Received: &quot;</span> &lt;&lt; message &lt;&lt; std::endl;</div>
-<div class="line">    <span class="keywordflow">return</span> <span class="stringliteral">&quot;Echo: &quot;</span> + message;</div>
-<div class="line">});</div>
-<div class="line">server-&gt;start(<span class="stringliteral">&quot;0.0.0.0&quot;</span>, 8080);</div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Client example</span></div>
-<div class="line"><span class="keyword">auto</span> client = std::make_shared&lt;network_system::core::messaging_client&gt;();</div>
-<div class="line">client-&gt;connect(<span class="stringliteral">&quot;localhost&quot;</span>, 8080);</div>
-<div class="line">client-&gt;send(<span class="stringliteral">&quot;Hello, Network System!&quot;</span>);</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md410"></a>
-🤝 Contributing</h1>
-<p>Contributions are welcome! Please follow these guidelines:</p>
-<ol type="1">
-<li>Fork the repository</li>
-<li>Create a feature branch (<code>git checkout -b feature/amazing-feature</code>)</li>
-<li>Commit your changes following conventional commits</li>
-<li>Push to the branch (<code>git push origin feature/amazing-feature</code>)</li>
-<li>Open a Pull Request</li>
-</ol>
-<h1><a class="anchor" id="autotoc_md411"></a>
-📄 License</h1>
-<p>This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.</p>
-<h1><a class="anchor" id="autotoc_md412"></a>
-🙏 Acknowledgments</h1>
-<ul>
-<li>ASIO library for asynchronous I/O</li>
-<li>fmt library for modern formatting</li>
-<li>Original messaging_system contributors</li>
-</ul>
-<h1><a class="anchor" id="autotoc_md413"></a>
-📧 Contact</h1>
-<p><b>Owner</b>: kcenon (<a href="#" onclick="location.href='mai'+'lto:'+'kce'+'no'+'n@n'+'av'+'er.'+'co'+'m'; return false;">kceno<span class="obfuscator">.nosp@m.</span>n@na<span class="obfuscator">.nosp@m.</span>ver.c<span class="obfuscator">.nosp@m.</span>om</a>) <b>Repository</b>: <a href="https://github.com/kcenon/network_system">https://github.com/kcenon/network_system</a></p>
-<p>&mdash;## 📝 API Example</p>
-<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_server.h&gt;</span></div>
-<div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_client.h&gt;</span></div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Server example</span></div>
-<div class="line"><span class="keyword">auto</span> server = std::make_shared&lt;network_system::core::messaging_server&gt;();</div>
-<div class="line">server-&gt;set_message_handler([](<span class="keyword">const</span> std::string&amp; message) {</div>
-<div class="line">    std::cout &lt;&lt; <span class="stringliteral">&quot;Received: &quot;</span> &lt;&lt; message &lt;&lt; std::endl;</div>
-<div class="line">    <span class="keywordflow">return</span> <span class="stringliteral">&quot;Echo: &quot;</span> + message;</div>
-<div class="line">});</div>
-<div class="line">server-&gt;start(<span class="stringliteral">&quot;0.0.0.0&quot;</span>, 8080);</div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Client example</span></div>
-<div class="line"><span class="keyword">auto</span> client = std::make_shared&lt;network_system::core::messaging_client&gt;();</div>
-<div class="line">client-&gt;connect(<span class="stringliteral">&quot;localhost&quot;</span>, 8080);</div>
-<div class="line">client-&gt;send(<span class="stringliteral">&quot;Hello, Network System!&quot;</span>);</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md414"></a>
-🤝 Contributing</h1>
-<p>Contributions are welcome! Please follow these guidelines:</p>
-<ol type="1">
-<li>Fork the repository</li>
-<li>Create a feature branch (<code>git checkout -b feature/amazing-feature</code>)</li>
-<li>Commit your changes following conventional commits</li>
-<li>Push to the branch (<code>git push origin feature/amazing-feature</code>)</li>
-<li>Open a Pull Request</li>
-</ol>
-<h1><a class="anchor" id="autotoc_md415"></a>
-📄 License</h1>
-<p>This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.</p>
-<h1><a class="anchor" id="autotoc_md416"></a>
-🙏 Acknowledgments</h1>
-<ul>
-<li>ASIO library for asynchronous I/O</li>
-<li>fmt library for modern formatting</li>
-<li>Original messaging_system contributors</li>
-</ul>
-<h1><a class="anchor" id="autotoc_md417"></a>
-📧 Contact</h1>
-<p><b>Owner</b>: kcenon (<a href="#" onclick="location.href='mai'+'lto:'+'kce'+'no'+'n@n'+'av'+'er.'+'co'+'m'; return false;">kceno<span class="obfuscator">.nosp@m.</span>n@na<span class="obfuscator">.nosp@m.</span>ver.c<span class="obfuscator">.nosp@m.</span>om</a>) <b>Repository</b>: <a href="https://github.com/kcenon/network_system">https://github.com/kcenon/network_system</a></p>
-<p>&mdash;## 📝 API Example</p>
-<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_server.h&gt;</span></div>
-<div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_client.h&gt;</span></div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Server example</span></div>
-<div class="line"><span class="keyword">auto</span> server = std::make_shared&lt;network_system::core::messaging_server&gt;();</div>
-<div class="line">server-&gt;set_message_handler([](<span class="keyword">const</span> std::string&amp; message) {</div>
-<div class="line">    std::cout &lt;&lt; <span class="stringliteral">&quot;Received: &quot;</span> &lt;&lt; message &lt;&lt; std::endl;</div>
-<div class="line">    <span class="keywordflow">return</span> <span class="stringliteral">&quot;Echo: &quot;</span> + message;</div>
-<div class="line">});</div>
-<div class="line">server-&gt;start(<span class="stringliteral">&quot;0.0.0.0&quot;</span>, 8080);</div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Client example</span></div>
-<div class="line"><span class="keyword">auto</span> client = std::make_shared&lt;network_system::core::messaging_client&gt;();</div>
-<div class="line">client-&gt;connect(<span class="stringliteral">&quot;localhost&quot;</span>, 8080);</div>
-<div class="line">client-&gt;send(<span class="stringliteral">&quot;Hello, Network System!&quot;</span>);</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md418"></a>
-🤝 Contributing</h1>
-<p>Contributions are welcome! Please follow these guidelines:</p>
-<ol type="1">
-<li>Fork the repository</li>
-<li>Create a feature branch (<code>git checkout -b feature/amazing-feature</code>)</li>
-<li>Commit your changes following conventional commits</li>
-<li>Push to the branch (<code>git push origin feature/amazing-feature</code>)</li>
-<li>Open a Pull Request</li>
-</ol>
-<h1><a class="anchor" id="autotoc_md419"></a>
-📄 License</h1>
-<p>This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.</p>
-<h1><a class="anchor" id="autotoc_md420"></a>
-🙏 Acknowledgments</h1>
-<ul>
-<li>ASIO library for asynchronous I/O</li>
-<li>fmt library for modern formatting</li>
-<li>Original messaging_system contributors</li>
-</ul>
-<h1><a class="anchor" id="autotoc_md421"></a>
-📧 Contact</h1>
-<p><b>Owner</b>: kcenon (<a href="#" onclick="location.href='mai'+'lto:'+'kce'+'no'+'n@n'+'av'+'er.'+'co'+'m'; return false;">kceno<span class="obfuscator">.nosp@m.</span>n@na<span class="obfuscator">.nosp@m.</span>ver.c<span class="obfuscator">.nosp@m.</span>om</a>) <b>Repository</b>: <a href="https://github.com/kcenon/network_system">https://github.com/kcenon/network_system</a></p>
-<p>&mdash;## 📝 API Example</p>
-<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_server.h&gt;</span></div>
-<div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_client.h&gt;</span></div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Server example</span></div>
-<div class="line"><span class="keyword">auto</span> server = std::make_shared&lt;network_system::core::messaging_server&gt;();</div>
-<div class="line">server-&gt;set_message_handler([](<span class="keyword">const</span> std::string&amp; message) {</div>
-<div class="line">    std::cout &lt;&lt; <span class="stringliteral">&quot;Received: &quot;</span> &lt;&lt; message &lt;&lt; std::endl;</div>
-<div class="line">    <span class="keywordflow">return</span> <span class="stringliteral">&quot;Echo: &quot;</span> + message;</div>
-<div class="line">});</div>
-<div class="line">server-&gt;start(<span class="stringliteral">&quot;0.0.0.0&quot;</span>, 8080);</div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Client example</span></div>
-<div class="line"><span class="keyword">auto</span> client = std::make_shared&lt;network_system::core::messaging_client&gt;();</div>
-<div class="line">client-&gt;connect(<span class="stringliteral">&quot;localhost&quot;</span>, 8080);</div>
-<div class="line">client-&gt;send(<span class="stringliteral">&quot;Hello, Network System!&quot;</span>);</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md422"></a>
-🤝 Contributing</h1>
-<p>Contributions are welcome! Please follow these guidelines:</p>
-<ol type="1">
-<li>Fork the repository</li>
-<li>Create a feature branch (<code>git checkout -b feature/amazing-feature</code>)</li>
-<li>Commit your changes following conventional commits</li>
-<li>Push to the branch (<code>git push origin feature/amazing-feature</code>)</li>
-<li>Open a Pull Request</li>
-</ol>
-<h1><a class="anchor" id="autotoc_md423"></a>
-📄 License</h1>
-<p>This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.</p>
-<h1><a class="anchor" id="autotoc_md424"></a>
-🙏 Acknowledgments</h1>
-<ul>
-<li>ASIO library for asynchronous I/O</li>
-<li>fmt library for modern formatting</li>
-<li>Original messaging_system contributors</li>
-</ul>
-<h1><a class="anchor" id="autotoc_md425"></a>
-📧 Contact</h1>
-<p><b>Owner</b>: kcenon (<a href="#" onclick="location.href='mai'+'lto:'+'kce'+'no'+'n@n'+'av'+'er.'+'co'+'m'; return false;">kceno<span class="obfuscator">.nosp@m.</span>n@na<span class="obfuscator">.nosp@m.</span>ver.c<span class="obfuscator">.nosp@m.</span>om</a>) <b>Repository</b>: <a href="https://github.com/kcenon/network_system">https://github.com/kcenon/network_system</a></p>
-<p>&mdash;| | Throughput | &gt;= 100K messages/sec | Performance degradation &lt; 5% | | Latency | &lt; 1.2ms | Bridge overhead &lt; 20% | | Concurrent connections | 10K+ | No change | | Memory usage | ~10KB/connection | Increase &lt; 25% |</p>
-<h1><a class="anchor" id="autotoc_md426"></a>
-📝 API Example</h1>
-<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_server.h&gt;</span></div>
-<div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_client.h&gt;</span></div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Server example</span></div>
-<div class="line"><span class="keyword">auto</span> server = std::make_shared&lt;network_system::core::messaging_server&gt;();</div>
-<div class="line">server-&gt;set_message_handler([](<span class="keyword">const</span> std::string&amp; message) {</div>
-<div class="line">    std::cout &lt;&lt; <span class="stringliteral">&quot;Received: &quot;</span> &lt;&lt; message &lt;&lt; std::endl;</div>
-<div class="line">    <span class="keywordflow">return</span> <span class="stringliteral">&quot;Echo: &quot;</span> + message;</div>
-<div class="line">});</div>
-<div class="line">server-&gt;start(<span class="stringliteral">&quot;0.0.0.0&quot;</span>, 8080);</div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Client example</span></div>
-<div class="line"><span class="keyword">auto</span> client = std::make_shared&lt;network_system::core::messaging_client&gt;();</div>
-<div class="line">client-&gt;connect(<span class="stringliteral">&quot;localhost&quot;</span>, 8080);</div>
-<div class="line">client-&gt;send(<span class="stringliteral">&quot;Hello, Network System!&quot;</span>);</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md427"></a>
-🤝 Contributing</h1>
-<p>Contributions are welcome! Please follow these guidelines:</p>
-<ol type="1">
-<li>Fork the repository</li>
-<li>Create a feature branch (<code>git checkout -b feature/amazing-feature</code>)</li>
-<li>Commit your changes following conventional commits</li>
-<li>Push to the branch (<code>git push origin feature/amazing-feature</code>)</li>
-<li>Open a Pull Request</li>
-</ol>
-<h1><a class="anchor" id="autotoc_md428"></a>
-📄 License</h1>
-<p>This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.</p>
-<h1><a class="anchor" id="autotoc_md429"></a>
-🙏 Acknowledgments</h1>
-<ul>
-<li>ASIO library for asynchronous I/O</li>
-<li>fmt library for modern formatting</li>
-<li>Original messaging_system contributors</li>
-</ul>
-<h1><a class="anchor" id="autotoc_md430"></a>
-📧 Contact</h1>
-<p><b>Owner</b>: kcenon (<a href="#" onclick="location.href='mai'+'lto:'+'kce'+'no'+'n@n'+'av'+'er.'+'co'+'m'; return false;">kceno<span class="obfuscator">.nosp@m.</span>n@na<span class="obfuscator">.nosp@m.</span>ver.c<span class="obfuscator">.nosp@m.</span>om</a>) <b>Repository</b>: <a href="https://github.com/kcenon/network_system">https://github.com/kcenon/network_system</a></p>
-<hr  />
-<h1><a class="anchor" id="autotoc_md432"></a>
-🚨 Risk Factors and Mitigation</h1>
-<h2><a class="anchor" id="autotoc_md433"></a>
-Major Risks</h2>
-<ol type="1">
-<li><b>Conflict with existing network_system</b><ul>
-<li><b>Mitigation</b>: Namespace separation, rename existing system</li>
-</ul>
-</li>
-<li><b>Performance degradation</b><ul>
-<li><b>Mitigation</b>: Zero-copy bridge, optimized integration layer</li>
-</ul>
-</li>
-<li><b>Compatibility issues</b><ul>
-<li><b>Mitigation</b>: Thorough compatibility testing, gradual migration</li>
-</ul>
-</li>
-<li><b>Increased complexity</b><ul>
-<li><b>Mitigation</b>: Automated build scripts, clear documentation</li>
-</ul>
-</li>
-</ol>
-<h2><a class="anchor" id="autotoc_md434"></a>
-Rollback Plan</h2>
-<ul>
-<li>Phase-wise checkpoints</li>
-<li>Original code backup retention (30 days)</li>
-<li>Runtime system switching capability</li>
-<li>Real-time performance monitoring</li>
-</ul>
-<h1><a class="anchor" id="autotoc_md435"></a>
-📝 API Example</h1>
-<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_server.h&gt;</span></div>
-<div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_client.h&gt;</span></div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Server example</span></div>
-<div class="line"><span class="keyword">auto</span> server = std::make_shared&lt;network_system::core::messaging_server&gt;();</div>
-<div class="line">server-&gt;set_message_handler([](<span class="keyword">const</span> std::string&amp; message) {</div>
-<div class="line">    std::cout &lt;&lt; <span class="stringliteral">&quot;Received: &quot;</span> &lt;&lt; message &lt;&lt; std::endl;</div>
-<div class="line">    <span class="keywordflow">return</span> <span class="stringliteral">&quot;Echo: &quot;</span> + message;</div>
-<div class="line">});</div>
-<div class="line">server-&gt;start(<span class="stringliteral">&quot;0.0.0.0&quot;</span>, 8080);</div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Client example</span></div>
-<div class="line"><span class="keyword">auto</span> client = std::make_shared&lt;network_system::core::messaging_client&gt;();</div>
-<div class="line">client-&gt;connect(<span class="stringliteral">&quot;localhost&quot;</span>, 8080);</div>
-<div class="line">client-&gt;send(<span class="stringliteral">&quot;Hello, Network System!&quot;</span>);</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md436"></a>
-🤝 Contributing</h1>
-<p>Contributions are welcome! Please follow these guidelines:</p>
-<ol type="1">
-<li>Fork the repository</li>
-<li>Create a feature branch (<code>git checkout -b feature/amazing-feature</code>)</li>
-<li>Commit your changes following conventional commits</li>
-<li>Push to the branch (<code>git push origin feature/amazing-feature</code>)</li>
-<li>Open a Pull Request</li>
-</ol>
-<h1><a class="anchor" id="autotoc_md437"></a>
-📄 License</h1>
-<p>This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.</p>
-<h1><a class="anchor" id="autotoc_md438"></a>
-🙏 Acknowledgments</h1>
-<ul>
-<li>ASIO library for asynchronous I/O</li>
-<li>fmt library for modern formatting</li>
-<li>Original messaging_system contributors</li>
-</ul>
-<h1><a class="anchor" id="autotoc_md439"></a>
-📧 Contact</h1>
-<p><b>Owner</b>: kcenon (<a href="#" onclick="location.href='mai'+'lto:'+'kce'+'no'+'n@n'+'av'+'er.'+'co'+'m'; return false;">kceno<span class="obfuscator">.nosp@m.</span>n@na<span class="obfuscator">.nosp@m.</span>ver.c<span class="obfuscator">.nosp@m.</span>om</a>) <b>Repository</b>: <a href="https://github.com/kcenon/network_system">https://github.com/kcenon/network_system</a></p>
-<hr  />
-<h1><a class="anchor" id="autotoc_md441"></a>
-📞 Contact and Support</h1>
-<h2><a class="anchor" id="autotoc_md442"></a>
-Project Owner</h2>
-<ul>
-<li><b>Name</b>: kcenon</li>
-<li><b>Email</b>: <a href="#" onclick="location.href='mai'+'lto:'+'kce'+'no'+'n@n'+'av'+'er.'+'co'+'m'; return false;">kceno<span class="obfuscator">.nosp@m.</span>n@na<span class="obfuscator">.nosp@m.</span>ver.c<span class="obfuscator">.nosp@m.</span>om</a></li>
-<li><b>Role</b>: Project Lead, Architect</li>
-</ul>
-<h2><a class="anchor" id="autotoc_md443"></a>
-Inquiries</h2>
-<ul>
-<li><b>Technical questions</b>: GitHub Issues or email</li>
-<li><b>Bug reports</b>: Submit with detailed reproduction steps</li>
-<li><b>Feature requests</b>: Propose with use cases</li>
-</ul>
-<h2><a class="anchor" id="autotoc_md444"></a>
-Document Locations</h2>
-<ul>
-<li><b>Project documentation</b>: <code>/Users/dongcheolshin/Sources/network_system/</code></li>
-<li><b>Source code</b>: Same location after migration completion</li>
-<li><b>Backups</b>: <code>network_migration_backup_YYYYMMDD_HHMMSS/</code></li>
-</ul>
-<h1><a class="anchor" id="autotoc_md445"></a>
-📝 API Example</h1>
-<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_server.h&gt;</span></div>
-<div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_client.h&gt;</span></div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Server example</span></div>
-<div class="line"><span class="keyword">auto</span> server = std::make_shared&lt;network_system::core::messaging_server&gt;();</div>
-<div class="line">server-&gt;set_message_handler([](<span class="keyword">const</span> std::string&amp; message) {</div>
-<div class="line">    std::cout &lt;&lt; <span class="stringliteral">&quot;Received: &quot;</span> &lt;&lt; message &lt;&lt; std::endl;</div>
-<div class="line">    <span class="keywordflow">return</span> <span class="stringliteral">&quot;Echo: &quot;</span> + message;</div>
-<div class="line">});</div>
-<div class="line">server-&gt;start(<span class="stringliteral">&quot;0.0.0.0&quot;</span>, 8080);</div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Client example</span></div>
-<div class="line"><span class="keyword">auto</span> client = std::make_shared&lt;network_system::core::messaging_client&gt;();</div>
-<div class="line">client-&gt;connect(<span class="stringliteral">&quot;localhost&quot;</span>, 8080);</div>
-<div class="line">client-&gt;send(<span class="stringliteral">&quot;Hello, Network System!&quot;</span>);</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md446"></a>
-🤝 Contributing</h1>
-<p>Contributions are welcome! Please follow these guidelines:</p>
-<ol type="1">
-<li>Fork the repository</li>
-<li>Create a feature branch (<code>git checkout -b feature/amazing-feature</code>)</li>
-<li>Commit your changes following conventional commits</li>
-<li>Push to the branch (<code>git push origin feature/amazing-feature</code>)</li>
-<li>Open a Pull Request</li>
-</ol>
-<h1><a class="anchor" id="autotoc_md447"></a>
-📄 License</h1>
-<p>This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.</p>
-<h1><a class="anchor" id="autotoc_md448"></a>
-🙏 Acknowledgments</h1>
-<ul>
-<li>ASIO library for asynchronous I/O</li>
-<li>fmt library for modern formatting</li>
-<li>Original messaging_system contributors</li>
-</ul>
-<h1><a class="anchor" id="autotoc_md449"></a>
-📧 Contact</h1>
-<p><b>Owner</b>: kcenon (<a href="#" onclick="location.href='mai'+'lto:'+'kce'+'no'+'n@n'+'av'+'er.'+'co'+'m'; return false;">kceno<span class="obfuscator">.nosp@m.</span>n@na<span class="obfuscator">.nosp@m.</span>ver.c<span class="obfuscator">.nosp@m.</span>om</a>) <b>Repository</b>: <a href="https://github.com/kcenon/network_system">https://github.com/kcenon/network_system</a></p>
-<hr  />
-<h1><a class="anchor" id="autotoc_md451"></a>
-📝 Change History</h1>
-<h2><a class="anchor" id="autotoc_md452"></a>
-v2.0.0 (2025-09-19) - Planning Phase</h2>
-<ul>
-<li>[x] Migration master plan creation</li>
-<li>[x] Technical implementation details organization</li>
-<li>[x] Automation script development</li>
-<li>[x] Checklist and verification plan establishment</li>
-</ul>
-<h2><a class="anchor" id="autotoc_md453"></a>
-v2.0.1 (Planned) - Core Separation</h2>
-<ul>
-<li>[ ] messaging_system/network code separation</li>
-<li>[ ] Namespace and structure reorganization</li>
-<li>[ ] Basic build system configuration</li>
-</ul>
-<h2><a class="anchor" id="autotoc_md454"></a>
-v2.0.2 (Planned) - Integration Completion</h2>
-<ul>
-<li>[ ] All system integration interface implementation</li>
-<li>[ ] messaging_system compatibility assurance</li>
-<li>[ ] Performance optimization completion</li>
-</ul>
-<h2><a class="anchor" id="autotoc_md455"></a>
-v2.1.0 (Planned) - Stabilization</h2>
-<ul>
-<li>[ ] All tests passing</li>
-<li>[ ] Documentation completion</li>
-<li>[ ] Production deployment readiness</li>
-</ul>
-<h1><a class="anchor" id="autotoc_md456"></a>
-📝 API Example</h1>
-<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_server.h&gt;</span></div>
-<div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_client.h&gt;</span></div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Server example</span></div>
-<div class="line"><span class="keyword">auto</span> server = std::make_shared&lt;network_system::core::messaging_server&gt;();</div>
-<div class="line">server-&gt;set_message_handler([](<span class="keyword">const</span> std::string&amp; message) {</div>
-<div class="line">    std::cout &lt;&lt; <span class="stringliteral">&quot;Received: &quot;</span> &lt;&lt; message &lt;&lt; std::endl;</div>
-<div class="line">    <span class="keywordflow">return</span> <span class="stringliteral">&quot;Echo: &quot;</span> + message;</div>
-<div class="line">});</div>
-<div class="line">server-&gt;start(<span class="stringliteral">&quot;0.0.0.0&quot;</span>, 8080);</div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Client example</span></div>
-<div class="line"><span class="keyword">auto</span> client = std::make_shared&lt;network_system::core::messaging_client&gt;();</div>
-<div class="line">client-&gt;connect(<span class="stringliteral">&quot;localhost&quot;</span>, 8080);</div>
-<div class="line">client-&gt;send(<span class="stringliteral">&quot;Hello, Network System!&quot;</span>);</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md457"></a>
-🤝 Contributing</h1>
-<p>Contributions are welcome! Please follow these guidelines:</p>
-<ol type="1">
-<li>Fork the repository</li>
-<li>Create a feature branch (<code>git checkout -b feature/amazing-feature</code>)</li>
-<li>Commit your changes following conventional commits</li>
-<li>Push to the branch (<code>git push origin feature/amazing-feature</code>)</li>
-<li>Open a Pull Request</li>
-</ol>
-<h1><a class="anchor" id="autotoc_md458"></a>
-📄 License</h1>
-<p>This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.</p>
-<h1><a class="anchor" id="autotoc_md459"></a>
-🙏 Acknowledgments</h1>
-<ul>
-<li>ASIO library for asynchronous I/O</li>
-<li>fmt library for modern formatting</li>
-<li>Original messaging_system contributors</li>
-</ul>
-<h1><a class="anchor" id="autotoc_md460"></a>
-📧 Contact</h1>
-<p><b>Owner</b>: kcenon (<a href="#" onclick="location.href='mai'+'lto:'+'kce'+'no'+'n@n'+'av'+'er.'+'co'+'m'; return false;">kceno<span class="obfuscator">.nosp@m.</span>n@na<span class="obfuscator">.nosp@m.</span>ver.c<span class="obfuscator">.nosp@m.</span>om</a>) <b>Repository</b>: <a href="https://github.com/kcenon/network_system">https://github.com/kcenon/network_system</a></p>
-<hr  />
-<h1><a class="anchor" id="autotoc_md462"></a>
-🎉 Getting Started</h1>
-<p>If you're ready, start the migration with the following command:</p>
-<div class="fragment"><div class="line">cd /Users/dongcheolshin/Sources/network_system</div>
-<div class="line">./scripts/migration/quick_start.sh</div>
-</div><!-- fragment --><p>You can proceed step-by-step through the interactive menu or choose full automated migration.</p>
-<p><b>Good luck!</b> 🚀</p>
-<h1><a class="anchor" id="autotoc_md463"></a>
-📝 API Example</h1>
-<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_server.h&gt;</span></div>
-<div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_client.h&gt;</span></div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Server example</span></div>
-<div class="line"><span class="keyword">auto</span> server = std::make_shared&lt;network_system::core::messaging_server&gt;();</div>
-<div class="line">server-&gt;set_message_handler([](<span class="keyword">const</span> std::string&amp; message) {</div>
-<div class="line">    std::cout &lt;&lt; <span class="stringliteral">&quot;Received: &quot;</span> &lt;&lt; message &lt;&lt; std::endl;</div>
-<div class="line">    <span class="keywordflow">return</span> <span class="stringliteral">&quot;Echo: &quot;</span> + message;</div>
-<div class="line">});</div>
-<div class="line">server-&gt;start(<span class="stringliteral">&quot;0.0.0.0&quot;</span>, 8080);</div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Client example</span></div>
-<div class="line"><span class="keyword">auto</span> client = std::make_shared&lt;network_system::core::messaging_client&gt;();</div>
-<div class="line">client-&gt;connect(<span class="stringliteral">&quot;localhost&quot;</span>, 8080);</div>
-<div class="line">client-&gt;send(<span class="stringliteral">&quot;Hello, Network System!&quot;</span>);</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md464"></a>
-🤝 Contributing</h1>
-<p>Contributions are welcome! Please follow these guidelines:</p>
-<ol type="1">
-<li>Fork the repository</li>
-<li>Create a feature branch (<code>git checkout -b feature/amazing-feature</code>)</li>
-<li>Commit your changes following conventional commits</li>
-<li>Push to the branch (<code>git push origin feature/amazing-feature</code>)</li>
-<li>Open a Pull Request</li>
-</ol>
-<h1><a class="anchor" id="autotoc_md465"></a>
-📄 License</h1>
-<p>This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.</p>
-<h1><a class="anchor" id="autotoc_md466"></a>
-🙏 Acknowledgments</h1>
-<ul>
-<li>ASIO library for asynchronous I/O</li>
-<li>fmt library for modern formatting</li>
-<li>Original messaging_system contributors</li>
-</ul>
-<h1><a class="anchor" id="autotoc_md467"></a>
-📧 Contact</h1>
-<p><b>Owner</b>: kcenon (<a href="#" onclick="location.href='mai'+'lto:'+'kce'+'no'+'n@n'+'av'+'er.'+'co'+'m'; return false;">kceno<span class="obfuscator">.nosp@m.</span>n@na<span class="obfuscator">.nosp@m.</span>ver.c<span class="obfuscator">.nosp@m.</span>om</a>) <b>Repository</b>: <a href="https://github.com/kcenon/network_system">https://github.com/kcenon/network_system</a></p>
-<hr  />
-<p><em>This document is a comprehensive guide for the network_system separation project. Please contact us anytime if you have questions or issues.</em> </p>
+<p><em>This project is actively maintained and welcomes contributions. For questions or support, please open an issue on GitHub.</em> </p>
 </div></div><!-- contents -->
 </div><!-- PageDoc -->
 <!-- start footer part -->
