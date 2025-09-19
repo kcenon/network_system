@@ -8,6 +8,12 @@ on:
   schedule:
     - cron: '0 2 * * *'  # Daily at 2 AM UTC
 
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+  checks: write
+
 jobs:
   integration-tests:
     name: Run Integration Tests
