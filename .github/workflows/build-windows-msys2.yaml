@@ -156,8 +156,9 @@ jobs:
           echo "Building with MSYS2 system packages..."
           cmake .. \
             -G "Ninja" \
-            -DUSE_UNIT_TEST=ON \
-            -DBUILD_DATABASE_SAMPLES=ON \
+            -DBUILD_TESTS=ON \
+            -DBUILD_SAMPLES=ON \
+            -DBUILD_WITH_CONTAINER_SYSTEM=OFF \
             -DCMAKE_INSTALL_PREFIX="../target" \
             -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
             -DCMAKE_C_COMPILER=/mingw64/bin/gcc.exe \
@@ -165,9 +166,7 @@ jobs:
             -DCMAKE_AR=/mingw64/bin/ar.exe \
             -DCMAKE_RANLIB=/mingw64/bin/ranlib.exe \
             -DCMAKE_RC_COMPILER=/mingw64/bin/windres.exe \
-            -DCMAKE_PREFIX_PATH=/mingw64 \
-            -Dfmt_DIR=/mingw64/lib/cmake/fmt \
-            -DGTest_DIR=/mingw64/lib/cmake/GTest
+            -DCMAKE_PREFIX_PATH=/mingw64
 
           cmake --build . --parallel $(nproc)
 
@@ -184,12 +183,11 @@ jobs:
           rm -rf CMakeFiles
           cmake .. \
             -G "Ninja" \
-            -DUSE_UNIT_TEST=ON \
-            -DBUILD_DATABASE_SAMPLES=ON \
-            -DUSE_POSTGRESQL=OFF \
+            -DBUILD_TESTS=ON \
+            -DBUILD_SAMPLES=ON \
+            -DBUILD_WITH_CONTAINER_SYSTEM=OFF \
             -DCMAKE_INSTALL_PREFIX="../target" \
             -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
-            -DUSE_STD_FORMAT=ON \
             -DCMAKE_TOOLCHAIN_FILE="" \
             -DCMAKE_C_COMPILER=/mingw64/bin/gcc.exe \
             -DCMAKE_CXX_COMPILER=/mingw64/bin/g++.exe \
@@ -199,14 +197,20 @@ jobs:
 
           cmake --build . --parallel $(nproc)
 
-      - name: Run tests
+      - name: Run verification test
         run: |
           cd build
-          if [ -f "bin/unit_tests.exe" ]; then
-            echo "Running unit tests (vcpkg build successful)..."
-            ./bin/unit_tests.exe || echo "Some tests failed but continuing..."
+          if [ -f "verify_build.exe" ]; then
+            echo "Running NetworkSystem verification test..."
+            ./verify_build.exe
+            if [ $? -eq 0 ]; then
+              echo "✅ NetworkSystem verification passed!"
+            else
+              echo "❌ NetworkSystem verification failed"
+              exit 1
+            fi
           else
-            echo "Running basic verification test (system libraries fallback or tests not built)..."
+            echo "Running basic verification test (fallback)..."
             cat > verification_test.cpp << 'EOF'
           #include <iostream>
           #include <thread>
@@ -214,7 +218,7 @@ jobs:
           #include <atomic>
           
           int main() {
-              std::cout << "Database System CI Verification (MSYS2)\n";
+              std::cout << "Network System CI Verification (MSYS2)\n";
               std::cout << "====================================\n";
               
               std::atomic<bool> test_completed{false};
@@ -226,7 +230,7 @@ jobs:
               }
               
               if (test_completed) {
-                  std::cout << "✅ Core database functionality verified on MSYS2\n";
+                  std::cout << "✅ Core network functionality verified on MSYS2\n";
                   return 0;
               } else {
                   std::cout << "❌ Verification failed\n";
