@@ -53,12 +53,7 @@ jobs:
           mingw-w64-x86_64-gcc
 
     - name: Configure CMake
-      run: |
-        cmake -B build -G Ninja \
-          -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
-          -DBUILD_TESTS=ON \
-          -DBUILD_SAMPLES=ON \
-          -DENABLE_COVERAGE=${{ matrix.build_type == 'Debug' && 'ON' || 'OFF' }}
+      run: cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DBUILD_TESTS=ON -DBUILD_SAMPLES=ON -DENABLE_COVERAGE=${{ matrix.build_type == 'Debug' && 'ON' || 'OFF' }}
 
     - name: Build
       run: cmake --build build --config ${{ matrix.build_type }}
