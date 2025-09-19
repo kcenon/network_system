@@ -1,12 +1,12 @@
 var searchData=
 [
-  ['objective_0',['Objective',['../md_NETWORK__SYSTEM__SEPARATION__PLAN.html#autotoc_md140',1,'']]],
-  ['objectives_1',['Core Objectives',['../md_README.html#autotoc_md219',1,'']]],
+  ['objective_0',['Objective',['../md_NETWORK__SYSTEM__SEPARATION__PLAN.html#autotoc_md143',1,'']]],
+  ['objectives_1',['Core Objectives',['../md_README.html#autotoc_md222',1,'']]],
   ['of_20contents_2',['Table of Contents',['../md_BUILD.html#autotoc_md1',1,'']]],
   ['on_20windows_3',['pthread Not Found on Windows',['../md_BUILD.html#autotoc_md34',1,'']]],
   ['operations_4',['Asynchronous Operations',['../index.html#feat_async',1,'']]],
-  ['operations_20documentation_5',['3. Operations Documentation',['../md_NETWORK__SYSTEM__SEPARATION__PLAN.html#autotoc_md200',1,'']]],
-  ['optimization_6',['Performance Optimization',['../md_MIGRATION__CHECKLIST.html#autotoc_md116',1,'']]],
+  ['operations_20documentation_5',['3. Operations Documentation',['../md_NETWORK__SYSTEM__SEPARATION__PLAN.html#autotoc_md203',1,'']]],
+  ['optimization_6',['Performance Optimization',['../md_MIGRATION__CHECKLIST.html#autotoc_md119',1,'']]],
   ['optimization_20🚀_20planned_7',['Phase 4: Performance &amp; Optimization 🚀 (Planned)',['../md_README.html#autotoc_md291',1,'']]],
   ['optimization_20guidelines_8',['Optimization Guidelines',['../index.html#perf_optimization',1,'']]],
   ['optimization_20lto_9',['Link-Time Optimization (LTO)',['../md_BUILD.html#autotoc_md41',1,'']]],
@@ -17,7 +17,7 @@ var searchData=
   ['optional_20dependencies_14',['optional dependencies',['../md_BUILD.html#autotoc_md4',1,'Optional Dependencies'],['../index.html#deps_optional',1,'Optional Dependencies']]],
   ['options_15',['options',['../md_BUILD.html#autotoc_md21',1,'Build Options'],['../md_BUILD.html#autotoc_md22',1,'CMake Options']]],
   ['organization_16',['Namespace Organization',['../index.html#namespaces_sec',1,'']]],
-  ['overall_20progress_17',['📋 Overall Progress',['../md_MIGRATION__CHECKLIST.html#autotoc_md67',1,'']]],
-  ['overview_18',['overview',['../md_README.html#autotoc_md218',1,'🎯 Project Overview'],['../md_README.html#autotoc_md274',1,'🏗️ Architecture Overview'],['../md_NETWORK__SYSTEM__SEPARATION__PLAN.html#autotoc_md139',1,'📋 Project Overview'],['../index.html#architecture_sec',1,'Architecture Overview']]],
+  ['overall_20progress_17',['📋 Overall Progress',['../md_MIGRATION__CHECKLIST.html#autotoc_md70',1,'']]],
+  ['overview_18',['overview',['../md_README.html#autotoc_md221',1,'🎯 Project Overview'],['../md_README.html#autotoc_md274',1,'🏗️ Architecture Overview'],['../md_NETWORK__SYSTEM__SEPARATION__PLAN.html#autotoc_md142',1,'📋 Project Overview'],['../index.html#architecture_sec',1,'Architecture Overview']]],
   ['owner_19',['Project Owner',['../md_README.html#autotoc_md442',1,'']]]
 ];
