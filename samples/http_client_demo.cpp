@@ -12,10 +12,9 @@
 #include <thread>
 #include <future>
 #include <iomanip>
-#include "../network_manager.h"
-#include "../http_client.h"
+#include "../network.h"
 
-using namespace network_module;
+using namespace network_system;
 
 class http_demo {
 public:

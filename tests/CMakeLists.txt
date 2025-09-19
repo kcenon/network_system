@@ -21,10 +21,9 @@ if(GTest_FOUND OR GTEST_FOUND)
     
     # Link dependencies
     target_link_libraries(network_unit_tests PRIVATE
-        network
+        NetworkSystem
         GTest::gtest
         GTest::gtest_main
-        ${CONTAINER_TARGET}
         Threads::Threads
     )
     
@@ -57,10 +56,9 @@ if(benchmark_FOUND)
     
     # Link dependencies
     target_link_libraries(network_benchmark_tests PRIVATE
-        network
+        NetworkSystem
         benchmark::benchmark
         benchmark::benchmark_main
-        ${CONTAINER_TARGET}
         Threads::Threads
     )
     

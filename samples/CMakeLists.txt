@@ -53,15 +53,14 @@ foreach(SAMPLE ${SAMPLE_PROGRAMS})
         CXX_EXTENSIONS OFF
     )
     
-    # Include directories
+    # Include directories (link to NetworkSystem target provides proper includes)
     target_include_directories(${SAMPLE} PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/..
-        ${CMAKE_CURRENT_SOURCE_DIR}/../..
     )
-    
+
     # Link libraries
     target_link_libraries(${SAMPLE} PRIVATE
-        network_system
+        NetworkSystem
         fmt::fmt
         Threads::Threads
     )

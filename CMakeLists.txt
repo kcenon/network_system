@@ -31,25 +31,107 @@ option(BUILD_MESSAGING_BRIDGE "Build messaging_system bridge" ON)
 # Global compile features
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-# Find packages
+# Find packages with flexible detection
+# Try modern CMake targets first, then fallback to manual detection
+find_package(PkgConfig QUIET)
+
+# ASIO Detection (standalone, not Boost.ASIO)
 find_path(ASIO_INCLUDE_DIR
     NAMES asio.hpp
-    PATHS /opt/homebrew/include /usr/local/include
-    NO_DEFAULT_PATH
+    PATHS
+        # vcpkg paths
+        ${CMAKE_CURRENT_SOURCE_DIR}/vcpkg_installed/${VCPKG_TARGET_TRIPLET}/include
+        # macOS Homebrew
+        /opt/homebrew/include
+        /usr/local/include
+        # Ubuntu/Debian system paths
+        /usr/include
+        /usr/include/asio
+        # MSYS2/MinGW paths
+        /mingw64/include
+        /mingw32/include
+        # Custom installation paths
+        ${ASIO_ROOT}/include
+        $ENV{ASIO_ROOT}/include
 )
 
-find_path(FMT_INCLUDE_DIR
-    NAMES fmt/format.h
-    PATHS /opt/homebrew/include /usr/local/include
-    NO_DEFAULT_PATH
-)
-
-if(NOT ASIO_INCLUDE_DIR)
-    message(FATAL_ERROR "ASIO not found. Please install ASIO library.")
+# FMT Detection with pkgconfig support
+if(PkgConfig_FOUND)
+    pkg_check_modules(FMT QUIET IMPORTED_TARGET fmt)
+    if(FMT_FOUND)
+        message(STATUS "Found fmt via pkgconfig: ${FMT_VERSION}")
+    endif()
 endif()
 
-if(NOT FMT_INCLUDE_DIR)
-    message(STATUS "FMT not found, will use header-only fmt")
+if(NOT FMT_FOUND)
+    find_path(FMT_INCLUDE_DIR
+        NAMES fmt/format.h
+        PATHS
+            # vcpkg paths
+            ${CMAKE_CURRENT_SOURCE_DIR}/vcpkg_installed/${VCPKG_TARGET_TRIPLET}/include
+            # macOS Homebrew
+            /opt/homebrew/include
+            /usr/local/include
+            # Ubuntu/Debian system paths
+            /usr/include
+            # MSYS2/MinGW paths
+            /mingw64/include
+            /mingw32/include
+            # Custom installation paths
+            ${FMT_ROOT}/include
+            $ENV{FMT_ROOT}/include
+    )
+
+    if(FMT_INCLUDE_DIR)
+        find_library(FMT_LIBRARY
+            NAMES fmt
+            PATHS
+                # vcpkg paths
+                ${CMAKE_CURRENT_SOURCE_DIR}/vcpkg_installed/${VCPKG_TARGET_TRIPLET}/lib
+                # macOS Homebrew
+                /opt/homebrew/lib
+                /usr/local/lib
+                # Ubuntu/Debian system paths
+                /usr/lib
+                /usr/lib/x86_64-linux-gnu
+                # MSYS2/MinGW paths
+                /mingw64/lib
+                /mingw32/lib
+        )
+    endif()
+endif()
+
+# Check for ASIO availability
+if(NOT ASIO_INCLUDE_DIR)
+    message(STATUS "ASIO not found in standard locations. Checking alternative approaches...")
+
+    # Try to find Boost.ASIO as fallback
+    find_package(Boost QUIET COMPONENTS system)
+    if(Boost_FOUND)
+        message(STATUS "Using Boost.ASIO as fallback")
+        set(USE_BOOST_ASIO ON)
+    else()
+        message(FATAL_ERROR "ASIO not found. Please install one of:")
+        message(FATAL_ERROR "  - Standalone ASIO library")
+        message(FATAL_ERROR "  - Boost libraries with ASIO component")
+        message(FATAL_ERROR "  - Use vcpkg: vcpkg install asio")
+    endif()
+else()
+    message(STATUS "Found ASIO at: ${ASIO_INCLUDE_DIR}")
+    set(USE_BOOST_ASIO OFF)
+endif()
+
+# FMT library check
+if(FMT_FOUND)
+    message(STATUS "Found fmt via pkgconfig")
+elseif(FMT_INCLUDE_DIR)
+    message(STATUS "Found fmt at: ${FMT_INCLUDE_DIR}")
+    if(FMT_LIBRARY)
+        message(STATUS "Found fmt library at: ${FMT_LIBRARY}")
+    endif()
+else()
+    message(STATUS "FMT not found, will use std::format (C++20) if available")
+    set(USE_STD_FORMAT ON)
 endif()
 
 # Conditional dependencies
@@ -124,20 +206,49 @@ if(BUILD_WITH_THREAD_SYSTEM AND THREAD_SYSTEM_INCLUDE_DIR)
     target_include_directories(NetworkSystem PRIVATE ${THREAD_SYSTEM_INCLUDE_DIR})
 endif()
 
-# Include directories for external libraries
-if(ASIO_INCLUDE_DIR)
+# Configure ASIO
+if(USE_BOOST_ASIO)
+    target_include_directories(NetworkSystem PRIVATE ${Boost_INCLUDE_DIRS})
+    target_link_libraries(NetworkSystem PRIVATE ${Boost_LIBRARIES})
+    target_compile_definitions(NetworkSystem PRIVATE USE_BOOST_ASIO)
+    message(STATUS "Configured to use Boost.ASIO")
+elseif(ASIO_INCLUDE_DIR)
     target_include_directories(NetworkSystem PRIVATE ${ASIO_INCLUDE_DIR})
+    target_compile_definitions(NetworkSystem PRIVATE ASIO_STANDALONE)
+    target_compile_definitions(NetworkSystem PRIVATE ASIO_NO_DEPRECATED)
+    message(STATUS "Configured to use standalone ASIO")
 endif()
 
-if(FMT_INCLUDE_DIR)
+# Configure FMT
+if(FMT_FOUND AND TARGET PkgConfig::FMT)
+    target_link_libraries(NetworkSystem PRIVATE PkgConfig::FMT)
+    target_compile_definitions(NetworkSystem PRIVATE USE_FMT_LIBRARY)
+    message(STATUS "Configured to use fmt library via pkgconfig")
+elseif(FMT_INCLUDE_DIR)
     target_include_directories(NetworkSystem PRIVATE ${FMT_INCLUDE_DIR})
+    if(FMT_LIBRARY)
+        target_link_libraries(NetworkSystem PRIVATE ${FMT_LIBRARY})
+        target_compile_definitions(NetworkSystem PRIVATE USE_FMT_LIBRARY)
+        message(STATUS "Configured to use fmt library")
+    else()
+        target_compile_definitions(NetworkSystem PRIVATE FMT_HEADER_ONLY)
+        message(STATUS "Configured to use fmt header-only")
+    endif()
+elseif(USE_STD_FORMAT)
+    target_compile_definitions(NetworkSystem PRIVATE USE_STD_FORMAT)
+    message(STATUS "Configured to use std::format")
 endif()
 
-# Link libraries (system libraries)
+# Link system libraries
 target_link_libraries(NetworkSystem
     PUBLIC
         pthread
 )
+
+# Platform-specific libraries
+if(WIN32)
+    target_link_libraries(NetworkSystem PRIVATE ws2_32 mswsock)
+endif()
 
 # Integration layer (conditional compilation)
 if(BUILD_MESSAGING_BRIDGE)

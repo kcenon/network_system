@@ -8,9 +8,9 @@
 #include <memory>
 #include <thread>
 #include <chrono>
-#include "../network_manager.h"
+#include "../network.h"
 
-using namespace network_module;
+using namespace network_system;
 
 int main() {
     std::cout << "=== Network System - Basic Usage Example ===" << std::endl;
