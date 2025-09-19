@@ -1,5 +1,6 @@
 var searchData=
 [
-  ['🔗_20dependency_20management_0',['🔗 Dependency Management',['../md_TECHNICAL__IMPLEMENTATION__DETAILS.html#autotoc_md309',1,'']]],
-  ['🔗_20phase_203_3a_20integration_20interface_20implementation_1',['🔗 Phase 3: Integration Interface Implementation',['../md_MIGRATION__CHECKLIST.html#autotoc_md103',1,'']]]
+  ['📋_20overall_20progress_0',['📋 Overall Progress',['../md_MIGRATION__CHECKLIST.html#autotoc_md118',1,'']]],
+  ['📋_20project_20overview_1',['📋 Project Overview',['../md_NETWORK__SYSTEM__SEPARATION__PLAN.html#autotoc_md232',1,'']]],
+  ['📋_20requirements_2',['📋 Requirements',['../md_RELEASE__NOTES.html#autotoc_md402',1,'']]]
 ];

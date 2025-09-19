@@ -1,7 +1,4 @@
 var searchData=
 [
-  ['🔧_20core_20component_20implementation_0',['🔧 Core Component Implementation',['../md_TECHNICAL__IMPLEMENTATION__DETAILS.html#autotoc_md304',1,'']]],
-  ['🔧_20dependencies_1',['🔧 Dependencies',['../md_README.html#autotoc_md287',1,'']]],
-  ['🔧_20features_2',['🔧 Features',['../md_README.html#autotoc_md279',1,'']]],
-  ['🔧_20phase_202_3a_20core_20system_20separation_3',['🔧 Phase 2: Core System Separation',['../md_MIGRATION__CHECKLIST.html#autotoc_md91',1,'']]]
+  ['📚_20documentation_0',['📚 Documentation',['../md_README.html#autotoc_md374',1,'']]]
 ];

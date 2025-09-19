@@ -73,12 +73,12 @@ $(function() {
   <div class="headertitle"><div class="title">Network System Migration Checklist</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md74"></a></p>
-<h1><a class="anchor" id="autotoc_md75"></a>
+<div class="textblock"><p><a class="anchor" id="autotoc_md115"></a></p>
+<h1><a class="anchor" id="autotoc_md116"></a>
 Detailed Execution Checklist for network_system Separation from messaging_system</h1>
 <p><b>Date</b>: 2025-09-19 <b>Owner</b>: kcenon <b>Project</b>: Network System Separation</p>
 <hr  />
-<h2><a class="anchor" id="autotoc_md77"></a>
+<h2><a class="anchor" id="autotoc_md118"></a>
 📋 Overall Progress</h2>
 <ul>
 <li>[x] <b>Phase 1: Preparation and Analysis</b> (Completed: 2025-09-19)</li>
@@ -89,11 +89,11 @@ Detailed Execution Checklist for network_system Separation from messaging_system
 </ul>
 <p><b>Total Estimated Duration</b>: 13-18 days</p>
 <hr  />
-<h2><a class="anchor" id="autotoc_md79"></a>
+<h2><a class="anchor" id="autotoc_md120"></a>
 🎯 Phase 1: Preparation and Analysis</h2>
-<h3><a class="anchor" id="autotoc_md80"></a>
+<h3><a class="anchor" id="autotoc_md121"></a>
 Day 1: Backup and Current State Analysis</h3>
-<h4><a class="anchor" id="autotoc_md81"></a>
+<h4><a class="anchor" id="autotoc_md122"></a>
 Backup Tasks</h4>
 <ul>
 <li>[ ] Create complete backup of messaging_system/network <div class="fragment"><div class="line">cp -r /Users/dongcheolshin/Sources/messaging_system/network \</div>
@@ -105,7 +105,7 @@ Backup Tasks</h4>
 <li>[ ] Verify backup integrity</li>
 <li>[ ] Check Git status and commit</li>
 </ul>
-<h4><a class="anchor" id="autotoc_md82"></a>
+<h4><a class="anchor" id="autotoc_md123"></a>
 Current State Analysis</h4>
 <ul>
 <li>[ ] Detailed analysis of messaging_system/network structure<ul>
@@ -124,9 +124,9 @@ Current State Analysis</h4>
 <div class="line">./scripts/migration/analyze_dependencies.sh</div>
 </div><!-- fragment --></li>
 </ul>
-<h3><a class="anchor" id="autotoc_md83"></a>
+<h3><a class="anchor" id="autotoc_md124"></a>
 Day 2: Design and Planning</h3>
-<h4><a class="anchor" id="autotoc_md84"></a>
+<h4><a class="anchor" id="autotoc_md125"></a>
 Architecture Design</h4>
 <ul>
 <li>[ ] Write new directory structure design document</li>
@@ -141,7 +141,7 @@ Architecture Design</h4>
 </ul>
 </li>
 </ul>
-<h4><a class="anchor" id="autotoc_md85"></a>
+<h4><a class="anchor" id="autotoc_md126"></a>
 Integration Interface Design</h4>
 <ul>
 <li>[ ] Design messaging_bridge class</li>
@@ -149,9 +149,9 @@ Integration Interface Design</h4>
 <li>[ ] Design thread_system integration interface</li>
 <li>[ ] Design compatibility layer</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md86"></a>
+<h3><a class="anchor" id="autotoc_md127"></a>
 Day 3: Build System and Testing Strategy</h3>
-<h4><a class="anchor" id="autotoc_md87"></a>
+<h4><a class="anchor" id="autotoc_md128"></a>
 Build System Design</h4>
 <ul>
 <li>[ ] Design CMakeLists.txt structure</li>
@@ -159,7 +159,7 @@ Build System Design</h4>
 <li>[ ] Design build scripts (build.sh, dependency.sh)</li>
 <li>[ ] Define installation rules</li>
 </ul>
-<h4><a class="anchor" id="autotoc_md88"></a>
+<h4><a class="anchor" id="autotoc_md129"></a>
 Testing Strategy Development</h4>
 <ul>
 <li>[ ] Establish unit testing plan</li>
@@ -167,7 +167,7 @@ Testing Strategy Development</h4>
 <li>[ ] Set performance test baselines</li>
 <li>[ ] Establish compatibility test plan</li>
 </ul>
-<h4><a class="anchor" id="autotoc_md89"></a>
+<h4><a class="anchor" id="autotoc_md130"></a>
 Risk Assessment</h4>
 <ul>
 <li>[ ] Identify potential issues</li>
@@ -175,11 +175,11 @@ Risk Assessment</h4>
 <li>[ ] Create performance degradation response plan</li>
 </ul>
 <hr  />
-<h2><a class="anchor" id="autotoc_md91"></a>
+<h2><a class="anchor" id="autotoc_md132"></a>
 🔧 Phase 2: Core System Separation</h2>
-<h3><a class="anchor" id="autotoc_md92"></a>
+<h3><a class="anchor" id="autotoc_md133"></a>
 Day 4-5: Basic Structure Creation</h3>
-<h4><a class="anchor" id="autotoc_md93"></a>
+<h4><a class="anchor" id="autotoc_md134"></a>
 Directory Structure Creation</h4>
 <ul>
 <li>[x] Create new network_system directory structure <div class="fragment"><div class="line">network_system/</div>
@@ -193,7 +193,7 @@ Directory Structure Creation</h4>
 </div><!-- fragment --></li>
 <li>[x] Set permissions and ownership</li>
 </ul>
-<h4><a class="anchor" id="autotoc_md94"></a>
+<h4><a class="anchor" id="autotoc_md135"></a>
 Code Copy and Reorganization</h4>
 <ul>
 <li>[x] Copy messaging_system/network code<ul>
@@ -209,9 +209,9 @@ Code Copy and Reorganization</h4>
 </ul>
 </li>
 </ul>
-<h3><a class="anchor" id="autotoc_md95"></a>
+<h3><a class="anchor" id="autotoc_md136"></a>
 Day 6-7: Namespace and Include Path Updates</h3>
-<h4><a class="anchor" id="autotoc_md96"></a>
+<h4><a class="anchor" id="autotoc_md137"></a>
 Namespace Changes</h4>
 <ul>
 <li>[x] Update namespaces in all source files <div class="fragment"><div class="line"># Run automation script</div>
@@ -220,7 +220,7 @@ Namespace Changes</h4>
 <li>[x] Verify changes <div class="fragment"><div class="line">grep -r &quot;network_module&quot; src/ include/ || echo &quot;All namespaces updated&quot;</div>
 </div><!-- fragment --></li>
 </ul>
-<h4><a class="anchor" id="autotoc_md97"></a>
+<h4><a class="anchor" id="autotoc_md138"></a>
 Include Path Updates</h4>
 <ul>
 <li>[x] Change relative paths to absolute paths</li>
@@ -231,9 +231,9 @@ Include Path Updates</h4>
 </li>
 <li>[x] Normalize internal include paths</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md98"></a>
+<h3><a class="anchor" id="autotoc_md139"></a>
 Day 8: Basic Build System Configuration</h3>
-<h4><a class="anchor" id="autotoc_md99"></a>
+<h4><a class="anchor" id="autotoc_md140"></a>
 CMakeLists.txt Creation</h4>
 <ul>
 <li>[ ] Write main CMakeLists.txt</li>
@@ -241,14 +241,14 @@ CMakeLists.txt Creation</h4>
 <li>[ ] Set basic dependencies (asio, fmt)</li>
 <li>[ ] Set conditional dependencies</li>
 </ul>
-<h4><a class="anchor" id="autotoc_md100"></a>
+<h4><a class="anchor" id="autotoc_md141"></a>
 Dependency Configuration</h4>
 <ul>
 <li>[ ] Write vcpkg.json</li>
 <li>[ ] Write dependency.sh script</li>
 <li>[ ] Implement external system detection logic</li>
 </ul>
-<h4><a class="anchor" id="autotoc_md101"></a>
+<h4><a class="anchor" id="autotoc_md142"></a>
 Initial Build Test</h4>
 <ul>
 <li>[ ] Install dependencies <div class="fragment"><div class="line">./dependency.sh</div>
@@ -258,11 +258,11 @@ Initial Build Test</h4>
 <li>[ ] Fix build errors</li>
 </ul>
 <hr  />
-<h2><a class="anchor" id="autotoc_md103"></a>
+<h2><a class="anchor" id="autotoc_md144"></a>
 🔗 Phase 3: Integration Interface Implementation</h2>
-<h3><a class="anchor" id="autotoc_md104"></a>
+<h3><a class="anchor" id="autotoc_md145"></a>
 Day 9-10: Bridge Class Implementation</h3>
-<h4><a class="anchor" id="autotoc_md105"></a>
+<h4><a class="anchor" id="autotoc_md146"></a>
 messaging_bridge Implementation</h4>
 <ul>
 <li>[ ] Write header file (<code>include/network_system/integration/messaging_bridge.h</code>)</li>
@@ -275,7 +275,7 @@ messaging_bridge Implementation</h4>
 </ul>
 </li>
 </ul>
-<h4><a class="anchor" id="autotoc_md106"></a>
+<h4><a class="anchor" id="autotoc_md147"></a>
 Performance Monitoring Implementation</h4>
 <ul>
 <li>[ ] Implement performance_monitor class</li>
@@ -283,9 +283,9 @@ Performance Monitoring Implementation</h4>
 <li>[ ] Implement real-time statistics calculation</li>
 <li>[ ] Implement JSON output functionality</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md107"></a>
+<h3><a class="anchor" id="autotoc_md148"></a>
 Day 11-12: External System Integration</h3>
-<h4><a class="anchor" id="autotoc_md108"></a>
+<h4><a class="anchor" id="autotoc_md149"></a>
 container_system Integration</h4>
 <ul>
 <li>[ ] Implement container_integration class</li>
@@ -293,7 +293,7 @@ container_system Integration</h4>
 <li>[ ] Integrate message serialization/deserialization</li>
 <li>[ ] Test compatibility</li>
 </ul>
-<h4><a class="anchor" id="autotoc_md109"></a>
+<h4><a class="anchor" id="autotoc_md150"></a>
 thread_system Integration</h4>
 <ul>
 <li>[ ] Implement thread_integration class</li>
@@ -301,7 +301,7 @@ thread_system Integration</h4>
 <li>[ ] Integrate asynchronous task scheduling</li>
 <li>[ ] Integrate thread pool connectivity</li>
 </ul>
-<h4><a class="anchor" id="autotoc_md110"></a>
+<h4><a class="anchor" id="autotoc_md151"></a>
 Compatibility API Implementation</h4>
 <ul>
 <li>[ ] Implement existing messaging_system API compatibility layer</li>
@@ -309,11 +309,11 @@ Compatibility API Implementation</h4>
 <li>[ ] Ensure function signature compatibility</li>
 </ul>
 <hr  />
-<h2><a class="anchor" id="autotoc_md112"></a>
+<h2><a class="anchor" id="autotoc_md153"></a>
 🔄 Phase 4: messaging_system Update</h2>
-<h3><a class="anchor" id="autotoc_md113"></a>
+<h3><a class="anchor" id="autotoc_md154"></a>
 Day 13-14: messaging_system Modification</h3>
-<h4><a class="anchor" id="autotoc_md114"></a>
+<h4><a class="anchor" id="autotoc_md155"></a>
 CMakeLists.txt Update</h4>
 <ul>
 <li>[ ] Modify messaging_system/CMakeLists.txt</li>
@@ -322,7 +322,7 @@ CMakeLists.txt Update</h4>
 <li>[ ] Implement conditional build logic</li>
 <li>[ ] Disable existing network folder</li>
 </ul>
-<h4><a class="anchor" id="autotoc_md115"></a>
+<h4><a class="anchor" id="autotoc_md156"></a>
 Code Updates</h4>
 <ul>
 <li>[ ] Update include paths<ul>
@@ -335,9 +335,9 @@ Code Updates</h4>
 </li>
 <li>[ ] Update API calls (if necessary)</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md116"></a>
+<h3><a class="anchor" id="autotoc_md157"></a>
 Day 15: Integration Testing</h3>
-<h4><a class="anchor" id="autotoc_md117"></a>
+<h4><a class="anchor" id="autotoc_md158"></a>
 Existing Code Compatibility Verification</h4>
 <ul>
 <li>[ ] Test messaging_system build <div class="fragment"><div class="line">cd messaging_system</div>
@@ -349,7 +349,7 @@ Existing Code Compatibility Verification</h4>
 </div><!-- fragment --></li>
 <li>[ ] Fix compatibility issues</li>
 </ul>
-<h4><a class="anchor" id="autotoc_md118"></a>
+<h4><a class="anchor" id="autotoc_md159"></a>
 Performance Benchmarks</h4>
 <ul>
 <li>[ ] Measure pre-separation performance (baseline)</li>
@@ -358,11 +358,11 @@ Performance Benchmarks</h4>
 <li>[ ] Optimize if performance degraded</li>
 </ul>
 <hr  />
-<h2><a class="anchor" id="autotoc_md120"></a>
+<h2><a class="anchor" id="autotoc_md161"></a>
 ✅ Phase 5: Verification and Deployment</h2>
-<h3><a class="anchor" id="autotoc_md121"></a>
+<h3><a class="anchor" id="autotoc_md162"></a>
 Day 16-17: Full System Testing</h3>
-<h4><a class="anchor" id="autotoc_md122"></a>
+<h4><a class="anchor" id="autotoc_md163"></a>
 Unit Tests</h4>
 <ul>
 <li>[ ] Write network_system unit tests</li>
@@ -372,7 +372,7 @@ Unit Tests</h4>
 </div><!-- fragment --></li>
 <li>[ ] Verify coverage (target: 80%+)</li>
 </ul>
-<h4><a class="anchor" id="autotoc_md123"></a>
+<h4><a class="anchor" id="autotoc_md164"></a>
 Integration Tests</h4>
 <ul>
 <li>[ ] Independent operation test<ul>
@@ -396,7 +396,7 @@ Integration Tests</h4>
 </ul>
 </li>
 </ul>
-<h4><a class="anchor" id="autotoc_md124"></a>
+<h4><a class="anchor" id="autotoc_md165"></a>
 Stress Tests</h4>
 <ul>
 <li>[ ] High connection load test (10K+ connections)</li>
@@ -404,9 +404,9 @@ Stress Tests</h4>
 <li>[ ] Long-term operation test (24+ hours)</li>
 <li>[ ] Memory leak inspection</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md125"></a>
+<h3><a class="anchor" id="autotoc_md166"></a>
 Day 18: Final Verification and Deployment</h3>
-<h4><a class="anchor" id="autotoc_md126"></a>
+<h4><a class="anchor" id="autotoc_md167"></a>
 Performance Optimization</h4>
 <ul>
 <li>[ ] Run profiling</li>
@@ -414,7 +414,7 @@ Performance Optimization</h4>
 <li>[ ] Optimize memory usage</li>
 <li>[ ] Optimize CPU utilization</li>
 </ul>
-<h4><a class="anchor" id="autotoc_md127"></a>
+<h4><a class="anchor" id="autotoc_md168"></a>
 Documentation Updates</h4>
 <ul>
 <li>[ ] Update README.md</li>
@@ -422,7 +422,7 @@ Documentation Updates</h4>
 <li>[ ] Write migration guide</li>
 <li>[ ] Update change history (CHANGELOG.md)</li>
 </ul>
-<h4><a class="anchor" id="autotoc_md128"></a>
+<h4><a class="anchor" id="autotoc_md169"></a>
 Final Deployment</h4>
 <ul>
 <li>[ ] Create Git tag <div class="fragment"><div class="line">git tag -a v2.0.0 -m &quot;Network system separated from messaging_system&quot;</div>
@@ -431,9 +431,9 @@ Final Deployment</h4>
 <li>[ ] Build and deploy packages</li>
 </ul>
 <hr  />
-<h2><a class="anchor" id="autotoc_md130"></a>
+<h2><a class="anchor" id="autotoc_md171"></a>
 📊 Verification Criteria</h2>
-<h3><a class="anchor" id="autotoc_md131"></a>
+<h3><a class="anchor" id="autotoc_md172"></a>
 Functional Verification</h3>
 <ul>
 <li>[ ] <b>Basic functionality</b>: Client-server communication operates normally</li>
@@ -441,7 +441,7 @@ Functional Verification</h3>
 <li>[ ] <b>Connection management</b>: Connection creation/termination, session management</li>
 <li>[ ] <b>Error handling</b>: Appropriate handling of exceptional situations</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md132"></a>
+<h3><a class="anchor" id="autotoc_md173"></a>
 Performance Verification</h3>
 <ul>
 <li>[ ] <b>Throughput</b>: &gt;= 100K messages/sec (95%+ of baseline)</li>
@@ -449,14 +449,14 @@ Performance Verification</h3>
 <li>[ ] <b>Concurrent connections</b>: Support 10K+ connections</li>
 <li>[ ] <b>Memory usage</b>: &lt; 10KB per connection (125% or less of baseline)</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md133"></a>
+<h3><a class="anchor" id="autotoc_md174"></a>
 Compatibility Verification</h3>
 <ul>
 <li>[ ] <b>API compatibility</b>: Existing messaging_system code works without modification</li>
 <li>[ ] <b>Build compatibility</b>: Successful builds on various compilers/platforms</li>
 <li>[ ] <b>Dependency compatibility</b>: Normal integration with external systems</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md134"></a>
+<h3><a class="anchor" id="autotoc_md175"></a>
 Quality Verification</h3>
 <ul>
 <li>[ ] <b>Code quality</b>: Pass static analysis tools</li>
@@ -465,9 +465,9 @@ Quality Verification</h3>
 <li>[ ] <b>Documentation completeness</b>: Complete API docs and usage guides</li>
 </ul>
 <hr  />
-<h2><a class="anchor" id="autotoc_md136"></a>
+<h2><a class="anchor" id="autotoc_md177"></a>
 🚨 Troubleshooting Guide</h2>
-<h3><a class="anchor" id="autotoc_md137"></a>
+<h3><a class="anchor" id="autotoc_md178"></a>
 Build Failures</h3>
 <ol type="1">
 <li><b>Dependency Issues</b><ul>
@@ -483,7 +483,7 @@ Build Failures</h3>
 </ul>
 </li>
 </ol>
-<h3><a class="anchor" id="autotoc_md138"></a>
+<h3><a class="anchor" id="autotoc_md179"></a>
 Performance Degradation</h3>
 <ol type="1">
 <li><b>Throughput Decline</b><ul>
@@ -499,7 +499,7 @@ Performance Degradation</h3>
 </ul>
 </li>
 </ol>
-<h3><a class="anchor" id="autotoc_md139"></a>
+<h3><a class="anchor" id="autotoc_md180"></a>
 Compatibility Issues</h3>
 <ol type="1">
 <li><b>API Compatibility</b><ul>
@@ -516,22 +516,22 @@ Compatibility Issues</h3>
 </li>
 </ol>
 <hr  />
-<h2><a class="anchor" id="autotoc_md141"></a>
+<h2><a class="anchor" id="autotoc_md182"></a>
 📝 Completion Report Template</h2>
-<h3><a class="anchor" id="autotoc_md142"></a>
+<h3><a class="anchor" id="autotoc_md183"></a>
 Task Completion Report</h3>
 <div class="fragment"><div class="line">[COMPLETED] Task: ________________________</div>
 <div class="line">[DATE] Completion Date: ________________________</div>
 <div class="line">[TIME] Duration: ______________________________</div>
 <div class="line">[RESULT] Success/Failure: ____________________</div>
 <div class="line">[NOTES] Special Notes: _______________________</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md143"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md184"></a>
 Issues and Solutions</h3>
 <div class="fragment"><div class="line">[ISSUE] Problem Description: ____________________</div>
 <div class="line">[CAUSE] Root Cause: ____________________________</div>
 <div class="line">[SOLUTION] Resolution Method: ___________________</div>
 <div class="line">[PREVENTION] Prevention: _______________________</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md144"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md185"></a>
 Final Checklist</h3>
 <ul>
 <li>[ ] All checklist items completed</li>

@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['🚨_20risk_20factors_20and_20mitigation_0',['🚨 Risk Factors and Mitigation',['../md_NETWORK__SYSTEM__SEPARATION__PLAN.html#autotoc_md245',1,'']]],
-  ['🚨_20troubleshooting_20guide_1',['🚨 Troubleshooting Guide',['../md_MIGRATION__CHECKLIST.html#autotoc_md136',1,'']]]
+  ['📦_20installation_0',['📦 Installation',['../md_RELEASE__NOTES.html#autotoc_md395',1,'']]]
 ];

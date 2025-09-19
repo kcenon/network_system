@@ -73,13 +73,13 @@ $(function() {
   <div class="headertitle"><div class="title">Network System</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md263"></a> <a href="https://github.com/kcenon/network_system/actions"><img src="https://github.com/kcenon/network_system/actions/workflows/build-ubuntu-gcc.yaml/badge.svg" alt="Build Status" style="pointer-events: none;" class="inline"/></a> [<img src="https://img.shields.io/badge/license-BSD--3--Clause-blue.svg" alt="License" style="pointer-events: none;" class="inline"/>](LICENSE) <a href="https://en.cppreference.com/w/cpp/20"><img src="https://img.shields.io/badge/C%2B%2B-20-blue.svg" alt="C++ Version" style="pointer-events: none;" class="inline"/></a></p>
+<div class="textblock"><p><a class="anchor" id="autotoc_md346"></a> <a href="https://github.com/kcenon/network_system/actions"><img src="https://github.com/kcenon/network_system/actions/workflows/build-ubuntu-gcc.yaml/badge.svg" alt="Build Status" style="pointer-events: none;" class="inline"/></a> [<img src="https://img.shields.io/badge/license-BSD--3--Clause-blue.svg" alt="License" style="pointer-events: none;" class="inline"/>](LICENSE) <a href="https://en.cppreference.com/w/cpp/20"><img src="https://img.shields.io/badge/C%2B%2B-20-blue.svg" alt="C++ Version" style="pointer-events: none;" class="inline"/></a></p>
 <p><b>Status</b>: Phase 4 In Progress 🚧 (messaging_system Update) <b>Version</b>: 2.0.0 <b>Owner</b>: kcenon (<a href="#" onclick="location.href='mai'+'lto:'+'kce'+'no'+'n@n'+'av'+'er.'+'co'+'m'; return false;">kceno<span class="obfuscator">.nosp@m.</span>n@na<span class="obfuscator">.nosp@m.</span>ver.c<span class="obfuscator">.nosp@m.</span>om</a>)</p>
 <p>High-performance asynchronous network library separated from messaging_system for modularity and reusability.</p>
-<h1><a class="anchor" id="autotoc_md264"></a>
+<h1><a class="anchor" id="autotoc_md347"></a>
 🎯 Project Overview</h1>
 <p>This project is a comprehensive refactoring effort to separate the network module from messaging_system into an independent, reusable library while maintaining full backward compatibility.</p>
-<h2><a class="anchor" id="autotoc_md265"></a>
+<h2><a class="anchor" id="autotoc_md348"></a>
 Core Objectives</h2>
 <ul>
 <li><b>Module Independence</b>: Complete separation of network module from messaging_system ✅</li>
@@ -87,22 +87,22 @@ Core Objectives</h2>
 <li><b>Compatibility Maintenance</b>: Full backward compatibility with legacy code ✅</li>
 <li><b>Performance Optimization</b>: 305K+ msg/s throughput achieved ✅</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md266"></a>
+<h1><a class="anchor" id="autotoc_md349"></a>
 🚀 Quick Start</h1>
-<h2><a class="anchor" id="autotoc_md267"></a>
+<h2><a class="anchor" id="autotoc_md350"></a>
 Prerequisites</h2>
-<h3><a class="anchor" id="autotoc_md268"></a>
+<h3><a class="anchor" id="autotoc_md351"></a>
 Ubuntu/Debian</h3>
 <div class="fragment"><div class="line">sudo apt update</div>
 <div class="line">sudo apt install -y cmake ninja-build libasio-dev libfmt-dev</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md269"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md352"></a>
 macOS</h3>
 <div class="fragment"><div class="line">brew install cmake ninja asio fmt</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md270"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md353"></a>
 Windows (MSYS2)</h3>
 <div class="fragment"><div class="line">pacman -S mingw-w64-x86_64-cmake mingw-w64-x86_64-ninja \</div>
 <div class="line">          mingw-w64-x86_64-asio mingw-w64-x86_64-fmt</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md271"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md354"></a>
 Build Instructions</h2>
 <div class="fragment"><div class="line"># Clone repository</div>
 <div class="line">git clone https://github.com/kcenon/network_system.git</div>
@@ -120,9 +120,9 @@ Build Instructions</h2>
 <div class="line"># Run tests</div>
 <div class="line">./verify_build</div>
 <div class="line">./benchmark</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md272"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md355"></a>
 📝 API Examples</h1>
-<h2><a class="anchor" id="autotoc_md273"></a>
+<h2><a class="anchor" id="autotoc_md356"></a>
 Modern API Usage</h2>
 <div class="fragment"><div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_server.h&gt;</span></div>
 <div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_client.h&gt;</span></div>
@@ -138,7 +138,7 @@ Modern API Usage</h2>
 <div class="line"><span class="comment">// Send message</span></div>
 <div class="line">std::vector&lt;uint8_t&gt; data = {<span class="charliteral">&#39;H&#39;</span>, <span class="charliteral">&#39;e&#39;</span>, <span class="charliteral">&#39;l&#39;</span>, <span class="charliteral">&#39;l&#39;</span>, <span class="charliteral">&#39;o&#39;</span>};</div>
 <div class="line">client-&gt;send_packet(data);</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md274"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md357"></a>
 Legacy API Compatibility</h2>
 <div class="fragment"><div class="line"><span class="preprocessor">#include &lt;network_system/compatibility.h&gt;</span></div>
 <div class="line"> </div>
@@ -148,7 +148,7 @@ Legacy API Compatibility</h2>
 <div class="line"> </div>
 <div class="line"><span class="keyword">auto</span> client = network_module::create_client(<span class="stringliteral">&quot;legacy_client&quot;</span>);</div>
 <div class="line">client-&gt;start_client(<span class="stringliteral">&quot;127.0.0.1&quot;</span>, 8080);</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md275"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md358"></a>
 🏗️ Architecture</h1>
 <div class="fragment"><div class="line">network_system/</div>
 <div class="line">├── include/network_system/</div>
@@ -170,9 +170,9 @@ Legacy API Compatibility</h2>
 <div class="line">├── samples/                    # Usage examples</div>
 <div class="line">├── tests/                      # Test suites</div>
 <div class="line">└── docs/                       # Documentation</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md276"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md359"></a>
 📊 Performance Benchmarks</h1>
-<h2><a class="anchor" id="autotoc_md277"></a>
+<h2><a class="anchor" id="autotoc_md360"></a>
 Latest Results (v2.0.0)</h2>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -192,7 +192,7 @@ Latest Results (v2.0.0)</h2>
 <tr class="markdownTableRowOdd">
 <td class="markdownTableBodyNone"><b>Performance Rating</b>   </td><td class="markdownTableBodyNone">🏆 EXCELLENT   </td><td class="markdownTableBodyNone">Production ready!   </td></tr>
 </table>
-<h2><a class="anchor" id="autotoc_md278"></a>
+<h2><a class="anchor" id="autotoc_md361"></a>
 Key Performance Features</h2>
 <ul>
 <li>Zero-copy message pipeline</li>
@@ -201,9 +201,9 @@ Key Performance Features</h2>
 <li>Async I/O with ASIO</li>
 <li>C++20 coroutine support</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md279"></a>
+<h1><a class="anchor" id="autotoc_md362"></a>
 🔧 Features</h1>
-<h2><a class="anchor" id="autotoc_md280"></a>
+<h2><a class="anchor" id="autotoc_md363"></a>
 Core Features</h2>
 <ul>
 <li>✅ Asynchronous TCP server/client</li>
@@ -212,7 +212,7 @@ Core Features</h2>
 <li>✅ Message pipeline with buffering</li>
 <li>✅ C++20 coroutine support</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md281"></a>
+<h2><a class="anchor" id="autotoc_md364"></a>
 Integration Features</h2>
 <ul>
 <li>✅ Thread pool integration</li>
@@ -221,7 +221,7 @@ Integration Features</h2>
 <li>✅ Comprehensive test coverage</li>
 <li>✅ Performance benchmarking suite</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md282"></a>
+<h2><a class="anchor" id="autotoc_md365"></a>
 Planned Features</h2>
 <ul>
 <li>🚧 WebSocket support</li>
@@ -229,9 +229,9 @@ Planned Features</h2>
 <li>🚧 HTTP/2 client</li>
 <li>🚧 gRPC integration</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md283"></a>
+<h1><a class="anchor" id="autotoc_md366"></a>
 📈 Project Phases</h1>
-<h2><a class="anchor" id="autotoc_md284"></a>
+<h2><a class="anchor" id="autotoc_md367"></a>
 Completed Phases</h2>
 <ul>
 <li><b>Phase 1</b>: Preparation and Analysis ✅ (2025-09-19)<ul>
@@ -253,7 +253,7 @@ Completed Phases</h2>
 </ul>
 </li>
 </ul>
-<h2><a class="anchor" id="autotoc_md285"></a>
+<h2><a class="anchor" id="autotoc_md368"></a>
 Current Phase</h2>
 <ul>
 <li><b>Phase 4</b>: messaging_system Update 🚧 (2025-09-20)<ul>
@@ -265,7 +265,7 @@ Current Phase</h2>
 </ul>
 </li>
 </ul>
-<h2><a class="anchor" id="autotoc_md286"></a>
+<h2><a class="anchor" id="autotoc_md369"></a>
 Upcoming Phase</h2>
 <ul>
 <li><b>Phase 5</b>: Verification and Deployment ⏳<ul>
@@ -275,23 +275,23 @@ Upcoming Phase</h2>
 </ul>
 </li>
 </ul>
-<h1><a class="anchor" id="autotoc_md287"></a>
+<h1><a class="anchor" id="autotoc_md370"></a>
 🔧 Dependencies</h1>
-<h2><a class="anchor" id="autotoc_md288"></a>
+<h2><a class="anchor" id="autotoc_md371"></a>
 Required</h2>
 <ul>
 <li><b>C++20</b> compatible compiler</li>
 <li><b>CMake</b> 3.16+</li>
 <li><b>ASIO</b> or <b>Boost.ASIO</b> 1.28+</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md289"></a>
+<h2><a class="anchor" id="autotoc_md372"></a>
 Optional</h2>
 <ul>
 <li><b>fmt</b> 10.0+ (falls back to std::format)</li>
 <li><b>container_system</b> (for advanced serialization)</li>
 <li><b>thread_system</b> (for thread pool integration)</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md290"></a>
+<h1><a class="anchor" id="autotoc_md373"></a>
 🎯 CI/CD Status</h1>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -305,7 +305,7 @@ Optional</h2>
 <tr class="markdownTableRowEven">
 <td class="markdownTableBodyNone">Windows 2022   </td><td class="markdownTableBodyNone">MinGW64   </td><td class="markdownTableBodyNone"><img src="https://github.com/kcenon/network_system/actions/workflows/build-windows-msys2.yaml/badge.svg" alt="Build" style="pointer-events: none;" class="inline"/>   </td></tr>
 </table>
-<h1><a class="anchor" id="autotoc_md291"></a>
+<h1><a class="anchor" id="autotoc_md374"></a>
 📚 Documentation</h1>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -319,7 +319,7 @@ Optional</h2>
 <tr class="markdownTableRowEven">
 <td class="markdownTableBodyNone">Performance Tuning   </td><td class="markdownTableBodyNone">Optimization guidelines   </td></tr>
 </table>
-<h1><a class="anchor" id="autotoc_md292"></a>
+<h1><a class="anchor" id="autotoc_md375"></a>
 🤝 Contributing</h1>
 <p>Contributions are welcome! Please follow these guidelines:</p>
 <ol type="1">
@@ -329,10 +329,10 @@ Optional</h2>
 <li>Push to the branch (<code>git push origin feature/amazing-feature</code>)</li>
 <li>Open a Pull Request</li>
 </ol>
-<h1><a class="anchor" id="autotoc_md293"></a>
+<h1><a class="anchor" id="autotoc_md376"></a>
 📄 License</h1>
 <p>This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.</p>
-<h1><a class="anchor" id="autotoc_md294"></a>
+<h1><a class="anchor" id="autotoc_md377"></a>
 🙏 Acknowledgments</h1>
 <ul>
 <li>ASIO library for asynchronous I/O</li>
@@ -340,7 +340,7 @@ Optional</h2>
 <li>Original messaging_system contributors</li>
 <li>All contributors to this separation effort</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md295"></a>
+<h1><a class="anchor" id="autotoc_md378"></a>
 📧 Contact</h1>
 <p><b>Owner</b>: kcenon (<a href="#" onclick="location.href='mai'+'lto:'+'kce'+'no'+'n@n'+'av'+'er.'+'co'+'m'; return false;">kceno<span class="obfuscator">.nosp@m.</span>n@na<span class="obfuscator">.nosp@m.</span>ver.c<span class="obfuscator">.nosp@m.</span>om</a>) <b>Repository</b>: <a href="https://github.com/kcenon/network_system">https://github.com/kcenon/network_system</a> <b>Issues</b>: <a href="https://github.com/kcenon/network_system/issues">https://github.com/kcenon/network_system/issues</a></p>
 <hr  />
