@@ -143,7 +143,7 @@ Special thanks to all contributors who made this release possible:
 ## 📝 Known Issues
 
 - WebSocket support is experimental
-- HTTP/3 support planned for v2.1
+- HTTP/3 support planned for future release
 - Some platforms may require manual dependency installation
 
 ## 🔗 Links

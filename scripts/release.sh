@@ -37,16 +37,16 @@ Network System Release Script
 Usage: $0 -v VERSION [OPTIONS]
 
 Options:
-    -v VERSION      Version number (e.g., 2.0.0)
+    -v VERSION      Version number (e.g., 1.0.0)
     -s              Sign packages with GPG
     -u              Upload to GitHub releases (requires GITHUB_TOKEN)
     -t TOKEN        GitHub token for release upload
     -h              Show this help message
 
 Examples:
-    $0 -v 2.0.0                    # Create release packages
-    $0 -v 2.0.0 -s                 # Create and sign packages
-    $0 -v 2.0.0 -u -t ghp_xxx     # Create and upload to GitHub
+    $0 -v 1.0.0                    # Create release packages
+    $0 -v 1.0.0 -s                 # Create and sign packages
+    $0 -v 1.0.0 -u -t ghp_xxx     # Create and upload to GitHub
 
 EOF
 }

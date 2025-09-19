@@ -500,7 +500,7 @@ Network System uses RAII and smart pointers for automatic memory management.
 
 ## Version History
 
-### v2.0.0 (Current)
+### Current Development Version
 - Complete separation from messaging_system
 - C++20 coroutine support
 - Thread pool integration

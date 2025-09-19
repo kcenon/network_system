@@ -267,7 +267,7 @@ includedir=\${prefix}/include
 
 Name: NetworkSystem
 Description: High-performance asynchronous network library
-Version: 2.0.0
+Version: Development
 Requires:
 Libs: -L\${libdir} -lNetworkSystem -pthread
 Cflags: -I\${includedir}
