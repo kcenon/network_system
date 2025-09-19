@@ -1,6 +1,7 @@
 var searchData=
 [
-  ['📝_20change_20history_0',['📝 Change History',['../md_README.html#autotoc_md219',1,'']]],
-  ['📝_20completion_20report_20template_1',['📝 Completion Report Template',['../md_MIGRATION__CHECKLIST.html#autotoc_md67',1,'']]],
-  ['📝_20documentation_20plan_2',['📝 Documentation Plan',['../md_NETWORK__SYSTEM__SEPARATION__PLAN.html#autotoc_md133',1,'']]]
+  ['📊_20development_20roadmap_0',['📊 Development Roadmap',['../md_README.html#autotoc_md313',1,'']]],
+  ['📊_20performance_20monitoring_1',['📊 Performance Monitoring',['../md_TECHNICAL__IMPLEMENTATION__DETAILS.html#autotoc_md515',1,'']]],
+  ['📊_20performance_20requirements_2',['📊 Performance Requirements',['../md_NETWORK__SYSTEM__SEPARATION__PLAN.html#autotoc_md189',1,'']]],
+  ['📊_20verification_20criteria_3',['📊 Verification Criteria',['../md_MIGRATION__CHECKLIST.html#autotoc_md120',1,'']]]
 ];

@@ -1,4 +1,6 @@
 var searchData=
 [
-  ['📈_20performance_20requirements_0',['📈 Performance Requirements',['../md_README.html#autotoc_md206',1,'']]]
+  ['🏗️_20architecture_20design_0',['🏗️ Architecture Design',['../md_TECHNICAL__IMPLEMENTATION__DETAILS.html#autotoc_md498',1,'']]],
+  ['🏗️_20architecture_20overview_1',['🏗️ Architecture Overview',['../md_README.html#autotoc_md300',1,'']]],
+  ['🏗️_20current_20state_20analysis_2',['🏗️ Current State Analysis',['../md_NETWORK__SYSTEM__SEPARATION__PLAN.html#autotoc_md143',1,'']]]
 ];

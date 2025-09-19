@@ -1,5 +1,6 @@
 var searchData=
 [
-  ['migration_20checklist_0',['Network System Migration Checklist',['../md_MIGRATION__CHECKLIST.html',1,'']]],
-  ['migration_20project_1',['Network System Migration Project',['../md_README.html',1,'']]]
+  ['implementation_20details_0',['Technical Implementation Details',['../md_TECHNICAL__IMPLEMENTATION__DETAILS.html',1,'']]],
+  ['implementation_20plan_1',['Phase 2 Implementation Plan',['../md_PHASE2__IMPLEMENTATION__PLAN.html',1,'']]],
+  ['instructions_2',['Build Instructions',['../md_BUILD.html',1,'']]]
 ];

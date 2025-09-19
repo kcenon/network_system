@@ -1,6 +1,4 @@
 var searchData=
 [
-  ['🔧_20core_20component_20implementation_0',['🔧 Core Component Implementation',['../md_TECHNICAL__IMPLEMENTATION__DETAILS.html#autotoc_md234',1,'']]],
-  ['🔧_20phase_202_3a_20core_20system_20separation_1',['🔧 Phase 2: Core System Separation',['../md_MIGRATION__CHECKLIST.html#autotoc_md17',1,'']]],
-  ['🔧_20technology_20stack_2',['🔧 Technology Stack',['../md_README.html#autotoc_md201',1,'']]]
+  ['📞_20contact_20and_20support_0',['📞 contact and support',['../md_NETWORK__SYSTEM__SEPARATION__PLAN.html#autotoc_md209',1,'📞 Contact and Support'],['../md_README.html#autotoc_md467',1,'📞 Contact and Support']]]
 ];

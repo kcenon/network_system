@@ -1,5 +1,7 @@
 var searchData=
 [
-  ['🧪_20test_20framework_0',['🧪 Test Framework',['../md_TECHNICAL__IMPLEMENTATION__DETAILS.html#autotoc_md243',1,'']]],
-  ['🧪_20testing_20strategy_1',['🧪 testing strategy',['../md_NETWORK__SYSTEM__SEPARATION__PLAN.html#autotoc_md119',1,'🧪 Testing Strategy'],['../md_README.html#autotoc_md196',1,'🧪 Testing Strategy']]]
+  ['🔧_20core_20component_20implementation_0',['🔧 Core Component Implementation',['../md_TECHNICAL__IMPLEMENTATION__DETAILS.html#autotoc_md502',1,'']]],
+  ['🔧_20dependencies_1',['🔧 Dependencies',['../md_README.html#autotoc_md358',1,'']]],
+  ['🔧_20phase_202_3a_20core_20system_20separation_2',['🔧 Phase 2: Core System Separation',['../md_MIGRATION__CHECKLIST.html#autotoc_md81',1,'']]],
+  ['🔧_20technology_20stack_3',['🔧 Technology Stack',['../md_README.html#autotoc_md367',1,'']]]
 ];

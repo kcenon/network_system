@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['📞_20contact_20and_20support_0',['📞 contact and support',['../md_NETWORK__SYSTEM__SEPARATION__PLAN.html#autotoc_md145',1,'📞 Contact and Support'],['../md_README.html#autotoc_md214',1,'📞 Contact and Support']]]
+  ['📋_20overall_20progress_0',['📋 Overall Progress',['../md_MIGRATION__CHECKLIST.html#autotoc_md67',1,'']]],
+  ['📋_20project_20overview_1',['📋 Project Overview',['../md_NETWORK__SYSTEM__SEPARATION__PLAN.html#autotoc_md139',1,'']]]
 ];

@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['🛠️_20execution_20scripts_0',['🛠️ Execution Scripts',['../md_README.html#autotoc_md174',1,'']]],
-  ['🛠️_20technical_20implementation_20details_1',['🛠️ Technical Implementation Details',['../md_NETWORK__SYSTEM__SEPARATION__PLAN.html#autotoc_md108',1,'']]]
+  ['🔗_20dependency_20management_0',['🔗 Dependency Management',['../md_TECHNICAL__IMPLEMENTATION__DETAILS.html#autotoc_md507',1,'']]],
+  ['🔗_20phase_203_3a_20integration_20interface_20implementation_1',['🔗 Phase 3: Integration Interface Implementation',['../md_MIGRATION__CHECKLIST.html#autotoc_md93',1,'']]]
 ];

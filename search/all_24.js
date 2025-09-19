@@ -1,6 +1,7 @@
 var searchData=
 [
-  ['🏗️_20architecture_20design_0',['🏗️ Architecture Design',['../md_TECHNICAL__IMPLEMENTATION__DETAILS.html#autotoc_md230',1,'']]],
-  ['🏗️_20architecture_20overview_1',['🏗️ Architecture Overview',['../md_README.html#autotoc_md181',1,'']]],
-  ['🏗️_20current_20state_20analysis_2',['🏗️ Current State Analysis',['../md_NETWORK__SYSTEM__SEPARATION__PLAN.html#autotoc_md79',1,'']]]
+  ['🎯_20ci_20cd_20status_0',['🎯 CI/CD Status',['../md_README.html#autotoc_md325',1,'']]],
+  ['🎯_20phase_201_3a_20preparation_20and_20analysis_1',['🎯 Phase 1: Preparation and Analysis',['../md_MIGRATION__CHECKLIST.html#autotoc_md69',1,'']]],
+  ['🎯_20project_20overview_2',['🎯 Project Overview',['../md_README.html#autotoc_md244',1,'']]],
+  ['🎯_20separation_20strategy_3',['🎯 Separation Strategy',['../md_NETWORK__SYSTEM__SEPARATION__PLAN.html#autotoc_md148',1,'']]]
 ];
