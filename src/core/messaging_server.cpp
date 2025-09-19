@@ -164,7 +164,7 @@ namespace network_system::core
 		}
 
 		// Create a new messaging_session
-		auto new_session = std::make_shared<messaging_session>(
+		auto new_session = std::make_shared<network_system::session::messaging_session>(
 			std::move(socket), server_id_);
 
 		// Track it in our sessions_ vector

@@ -131,9 +131,9 @@ namespace network_system::session
 	private:
 		std::string server_id_; /*!< Identifier for the server side. */
 
-		std::shared_ptr<tcp_socket>
+		std::shared_ptr<internal::tcp_socket>
 			socket_;			/*!< The wrapped TCP socket for this session. */
-		pipeline
+		internal::pipeline
 			pipeline_; /*!< Pipeline for compress/encrypt transformations. */
 
 		bool compress_mode_{

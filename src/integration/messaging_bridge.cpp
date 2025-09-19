@@ -15,7 +15,9 @@ namespace network_system::integration {
 
 class messaging_bridge::impl {
 public:
-    impl() : initialized_(true), start_time_(std::chrono::steady_clock::now()) {}
+    impl() : initialized_(true) {
+        metrics_.start_time = std::chrono::steady_clock::now();
+    }
 
     std::atomic<bool> initialized_{false};
     mutable std::mutex metrics_mutex_;

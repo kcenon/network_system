@@ -48,7 +48,7 @@ namespace network_system::core
 		: client_id_(client_id)
 	{
 		// Optionally configure pipeline or modes here:
-		pipeline_ = make_default_pipeline();
+		pipeline_ = internal::make_default_pipeline();
 		compress_mode_ = false; // set true if you want to compress
 		encrypt_mode_ = false;	// set true if you want to encrypt
 	}
@@ -166,7 +166,7 @@ namespace network_system::core
 							return;
 						}
 						// On success, wrap it in our tcp_socket
-						socket_ = std::make_shared<tcp_socket>(
+						socket_ = std::make_shared<internal::tcp_socket>(
 							std::move(raw_socket));
 						on_connect(connect_ec);
 					});

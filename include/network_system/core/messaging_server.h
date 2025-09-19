@@ -44,7 +44,13 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace network_system::core
 {
+} // namespace network_system::core
+
+namespace network_system::session {
 	class messaging_session;
+}
+
+namespace network_system::core {
 
 	/*!
 	 * \class messaging_server
@@ -188,7 +194,7 @@ namespace network_system::core
 		 *        each session's \c stop_session() is called and they are
 		 * cleared.
 		 */
-		std::vector<std::shared_ptr<messaging_session>> sessions_;
+		std::vector<std::shared_ptr<network_system::session::messaging_session>> sessions_;
 	};
 
 } // namespace network_system::core

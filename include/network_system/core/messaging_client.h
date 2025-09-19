@@ -168,10 +168,10 @@ namespace network_system::core
 			stop_promise_;	/*!< Signals \c wait_for_stop() when stopping. */
 		std::future<void> stop_future_; /*!< Used by \c wait_for_stop(). */
 
-		std::shared_ptr<tcp_socket>
+		std::shared_ptr<internal::tcp_socket>
 			socket_;   /*!< The \c tcp_socket wrapper once connected. */
 
-		pipeline
+		internal::pipeline
 			pipeline_; /*!< Pipeline for optional compression/encryption. */
 		bool compress_mode_{
 			false
