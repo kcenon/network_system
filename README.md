@@ -1,539 +1,2401 @@
 # Network System
 
-Advanced C++20 Network System with High-Performance Messaging and Cross-Platform Support
+[![Build Status](https://github.com/kcenon/network_system/actions/workflows/build-ubuntu-gcc.yaml/badge.svg)](https://github.com/kcenon/network_system/actions)
+[![License](https://img.shields.io/badge/license-BSD--3--Clause-blue.svg)](LICENSE)
+[![C++ Version](https://img.shields.io/badge/C%2B%2B-20-blue.svg)](https://en.cppreference.com/w/cpp/20)
 
-## Overview
+**Status**: Phase 1 Complete ✅
+**Owner**: kcenon (kcenon@naver.com)
 
-The Network Module provides a comprehensive high-performance network communication layer built on top of ASIO. It features asynchronous I/O, TCP/UDP support, message-based communication, and cross-platform compatibility optimized for distributed messaging systems.
+High-performance asynchronous network library separated from messaging_system for modularity and reusability.
 
-## Features
-
-### 🎯 Core Capabilities
-- **Asynchronous I/O**: Non-blocking network operations with ASIO integration
-- **Multi-Protocol Support**: TCP and UDP communication protocols
-- **Message-Based Communication**: High-level messaging abstraction
-- **Cross-Platform**: Windows, Linux, macOS support with platform optimizations
-- **Thread Safety**: Concurrent network operations with proper synchronization
-- **Session Management**: Connection lifecycle and state management
-
-### 🌐 Network Protocols
-
-| Protocol | Status | Features | Use Cases |
-|----------|--------|----------|-----------|
-| TCP | ✅ Full | Reliable, ordered delivery | Client-server messaging |
-| UDP | 🔧 Planned | Fast, connectionless | Real-time data streaming |
-| WebSocket | 🔧 Planned | Bidirectional web communication | Web applications |
-| HTTP | 🔧 Planned | REST API support | Service integration |
-
-### 📡 Communication Patterns
+## 📝 API Example
 
 ```cpp
-// Messaging patterns supported
-enum class messaging_pattern
-{
-    request_response,    // Traditional client-server
-    publish_subscribe,   // Event-driven messaging
-    fire_and_forget,    // One-way messaging
-    streaming          // Continuous data flow
-};
-```
+#include <network_system/core/messaging_server.h>
+#include <network_system/core/messaging_client.h>
 
-## Usage Examples
-
-### Basic Client-Server Communication
-
-```cpp
-#include <network/network.h>
-using namespace network_module;
-
-// Create and start server
-auto server = std::make_shared<messaging_server>("server_01");
-server->set_port(8080);
+// Server example
+auto server = std::make_shared<network_system::core::messaging_server>();
 server->set_message_handler([](const std::string& message) {
     std::cout << "Received: " << message << std::endl;
     return "Echo: " + message;
 });
+server->start("0.0.0.0", 8080);
 
-bool server_started = server->start_server();
-if (server_started) {
-    std::cout << "✓ Server started on port 8080" << std::endl;
-}
-
-// Create and connect client
-auto client = std::make_shared<messaging_client>("client_01");
-bool connected = client->start_client("localhost", 8080);
-
-if (connected) {
-    std::cout << "✓ Connected to server" << std::endl;
-    
-    // Send message
-    std::string response = client->send_message("Hello, Server\!");
-    std::cout << "Server response: " << response << std::endl;
-}
+// Client example
+auto client = std::make_shared<network_system::core::messaging_client>();
+client->connect("localhost", 8080);
+client->send("Hello, Network System!");
 ```
 
-### Session Management
+## 🤝 Contributing
+
+Contributions are welcome! Please follow these guidelines:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes following conventional commits
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- ASIO library for asynchronous I/O
+- fmt library for modern formatting
+- Original messaging_system contributors
+
+## 📧 Contact
+
+**Owner**: kcenon (kcenon@naver.com)
+**Repository**: https://github.com/kcenon/network_system
+
+---
+
+## 🎯 Project Overview
+
+This project involves a large-scale refactoring effort to separate the `Sources/messaging_system/network` module into an independent `network_system`. The goal is to improve modularity, reusability, and maintainability while maintaining compatibility with existing systems.
+
+### Core Objectives
+- **Module Independence**: Complete separation of network module from messaging_system
+- **Enhanced Reusability**: Independent library usable in other projects
+- **Compatibility Maintenance**: Minimize modifications to existing messaging_system code
+- **Performance Optimization**: Prevent performance degradation from separation
+
+## 📝 API Example
 
 ```cpp
-#include <network/session/messaging_session.h>
+#include <network_system/core/messaging_server.h>
+#include <network_system/core/messaging_client.h>
 
-// Create session with custom configuration
-auto session = std::make_shared<messaging_session>();
-
-// Configure session parameters
-session->set_timeout(std::chrono::seconds(30));
-session->set_keepalive(true);
-session->set_buffer_size(4096);
-
-// Set session event handlers
-session->set_connect_handler([](const std::string& peer_id) {
-    std::cout << "Client connected: " << peer_id << std::endl;
-});
-
-session->set_disconnect_handler([](const std::string& peer_id) {
-    std::cout << "Client disconnected: " << peer_id << std::endl;
-});
-
-session->set_error_handler([](const std::string& error) {
-    std::cerr << "Session error: " << error << std::endl;
-});
-
-// Start session
-session->start();
-```
-
-### Asynchronous Operations
-
-```cpp
-#include <network/core/messaging_client.h>
-#include <future>
-
-// Async message sending
-auto client = std::make_shared<messaging_client>("async_client");
-client->start_client("localhost", 8080);
-
-// Send message asynchronously
-auto future_response = client->send_message_async("Async Hello\!");
-
-// Do other work while waiting
-std::cout << "Message sent, doing other work..." << std::endl;
-
-// Get response when ready
-std::string response = future_response.get();
-std::cout << "Async response: " << response << std::endl;
-
-// Multiple concurrent requests
-std::vector<std::future<std::string>> futures;
-for (int i = 0; i < 10; ++i) {
-    futures.push_back(client->send_message_async("Message " + std::to_string(i)));
-}
-
-// Wait for all responses
-for (auto& future : futures) {
-    std::string response = future.get();
-    std::cout << "Response: " << response << std::endl;
-}
-```
-
-### Server with Multiple Clients
-
-```cpp
-#include <network/core/messaging_server.h>
-#include <atomic>
-#include <unordered_map>
-
-class ChatServer {
-public:
-    ChatServer() : server_(std::make_shared<messaging_server>("chat_server")) {
-        setup_handlers();
-    }
-    
-    void start(int port) {
-        server_->set_port(port);
-        server_->start_server();
-        std::cout << "Chat server started on port " << port << std::endl;
-    }
-    
-private:
-    void setup_handlers() {
-        server_->set_message_handler([this](const std::string& message) {
-            return handle_message(message);
-        });
-        
-        server_->set_client_connect_handler([this](const std::string& client_id) {
-            handle_client_connect(client_id);
-        });
-        
-        server_->set_client_disconnect_handler([this](const std::string& client_id) {
-            handle_client_disconnect(client_id);
-        });
-    }
-    
-    std::string handle_message(const std::string& message) {
-        client_count_++;
-        
-        // Broadcast to all clients
-        broadcast_message("Broadcast: " + message);
-        
-        return "Message received by server";
-    }
-    
-    void handle_client_connect(const std::string& client_id) {
-        std::lock_guard<std::mutex> lock(clients_mutex_);
-        connected_clients_[client_id] = std::chrono::steady_clock::now();
-        std::cout << "Client connected: " << client_id 
-                  << " (Total: " << connected_clients_.size() << ")" << std::endl;
-    }
-    
-    void handle_client_disconnect(const std::string& client_id) {
-        std::lock_guard<std::mutex> lock(clients_mutex_);
-        connected_clients_.erase(client_id);
-        std::cout << "Client disconnected: " << client_id 
-                  << " (Total: " << connected_clients_.size() << ")" << std::endl;
-    }
-    
-    void broadcast_message(const std::string& message) {
-        server_->broadcast(message);
-    }
-    
-private:
-    std::shared_ptr<messaging_server> server_;
-    std::atomic<int> client_count_{0};
-    std::unordered_map<std::string, std::chrono::steady_clock::time_point> connected_clients_;
-    std::mutex clients_mutex_;
-};
-
-// Usage
-ChatServer chat_server;
-chat_server.start(9999);
-```
-
-### Low-Level Socket Operations
-
-```cpp
-#include <network/internal/tcp_socket.h>
-
-// Direct socket usage for custom protocols
-auto socket = std::make_shared<tcp_socket>();
-
-// Connect to remote host
-bool connected = socket->connect("192.168.1.100", 1234);
-if (connected) {
-    // Send raw data
-    std::vector<uint8_t> data = {0x01, 0x02, 0x03, 0x04};
-    socket->send_data(data);
-    
-    // Receive raw data
-    auto received_data = socket->receive_data(1024);
-    if (\!received_data.empty()) {
-        std::cout << "Received " << received_data.size() << " bytes" << std::endl;
-    }
-    
-    socket->disconnect();
-}
-```
-
-## API Reference
-
-### messaging_server Class
-
-#### Core Methods
-```cpp
-// Server lifecycle
-bool start_server();
-bool stop_server();
-bool is_running() const;
-
-// Configuration
-void set_port(int port);
-void set_max_connections(int max_conn);
-void set_timeout(std::chrono::milliseconds timeout);
-
-// Message handling
-void set_message_handler(std::function<std::string(const std::string&)> handler);
-void set_client_connect_handler(std::function<void(const std::string&)> handler);
-void set_client_disconnect_handler(std::function<void(const std::string&)> handler);
-
-// Broadcasting
-void broadcast(const std::string& message);
-void send_to_client(const std::string& client_id, const std::string& message);
-
-// Statistics
-int get_connected_clients() const;
-int get_total_messages() const;
-```
-
-### messaging_client Class
-
-```cpp
-// Client lifecycle
-bool start_client(const std::string& host, int port);
-bool stop_client();
-bool is_connected() const;
-
-// Synchronous messaging
-std::string send_message(const std::string& message);
-bool send_raw_message(const std::string& message);
-
-// Asynchronous messaging
-std::future<std::string> send_message_async(const std::string& message);
-
-// Configuration
-void set_timeout(std::chrono::milliseconds timeout);
-void set_retry_count(int retries);
-void set_keepalive(bool enable);
-
-// Event handlers
-void set_disconnect_handler(std::function<void()> handler);
-void set_error_handler(std::function<void(const std::string&)> handler);
-```
-
-### messaging_session Class
-
-```cpp
-// Session management
-void start();
-void stop();
-bool is_active() const;
-
-// Configuration
-void set_timeout(std::chrono::seconds timeout);
-void set_keepalive(bool enable);
-void set_buffer_size(size_t size);
-
-// Event handlers
-void set_connect_handler(std::function<void(const std::string&)> handler);
-void set_disconnect_handler(std::function<void(const std::string&)> handler);
-void set_message_handler(std::function<std::string(const std::string&)> handler);
-void set_error_handler(std::function<void(const std::string&)> handler);
-
-// Statistics
-std::chrono::steady_clock::time_point get_start_time() const;
-size_t get_bytes_sent() const;
-size_t get_bytes_received() const;
-```
-
-## Thread Safety
-
-### Thread-Safe Guarantees
-
-- **Server operations**: Multiple clients can connect and send messages concurrently
-- **Client operations**: Thread-safe message sending and receiving
-- **Session management**: Concurrent session operations with proper synchronization
-- **Event handlers**: Thread-safe callback execution
-
-### Best Practices
-
-```cpp
-// For high-concurrency servers
-auto server = std::make_shared<messaging_server>("high_perf_server");
-
-// Use connection pooling
-server->set_max_connections(1000);
-server->set_worker_threads(std::thread::hardware_concurrency());
-
-// Handle concurrent messages safely
+// Server example
+auto server = std::make_shared<network_system::core::messaging_server>();
 server->set_message_handler([](const std::string& message) {
-    // This handler may be called from multiple threads
-    static std::mutex handler_mutex;
-    std::lock_guard<std::mutex> lock(handler_mutex);
-    
-    // Process message safely
-    return process_message_safely(message);
+    std::cout << "Received: " << message << std::endl;
+    return "Echo: " + message;
 });
+server->start("0.0.0.0", 8080);
+
+// Client example
+auto client = std::make_shared<network_system::core::messaging_client>();
+client->connect("localhost", 8080);
+client->send("Hello, Network System!");
 ```
 
-## Performance Characteristics
+## 🤝 Contributing
 
-### Benchmarks (Intel i7-12700K, 16 threads)
+Contributions are welcome! Please follow these guidelines:
 
-| Operation | Rate | Latency | Notes |
-|-----------|------|---------|-------|
-| TCP Connections | 50K/sec | <1ms | New connections |
-| Message Throughput | 500K/sec | <0.1ms | Small messages |
-| Concurrent Clients | 10K | N/A | Active connections |
-| Memory per Connection | ~4KB | N/A | Including buffers |
-| CPU Usage | <5% | N/A | Idle connections |
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes following conventional commits
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-### Memory Usage
+## 📄 License
 
-- **Server Base**: ~256 bytes per server instance
-- **Client Base**: ~128 bytes per client instance
-- **Connection**: ~4KB per active connection
-- **Message Buffer**: 4KB default (configurable)
-- **Session State**: ~512 bytes per session
+This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.
 
-## Platform Optimizations
+## 🙏 Acknowledgments
 
-### Linux (epoll)
-```cpp
-// Automatically uses epoll on Linux for high-performance I/O
-#ifdef USE_EPOLL
-    // High-performance event notification
-    // Scales to 10K+ concurrent connections
-#endif
-```
+- ASIO library for asynchronous I/O
+- fmt library for modern formatting
+- Original messaging_system contributors
 
-### macOS (kqueue)
-```cpp
-// Automatically uses kqueue on macOS/BSD
-#ifdef USE_KQUEUE
-    // BSD-style event notification
-    // Optimized for macOS performance characteristics
-#endif
-```
+## 📧 Contact
 
-### Windows (IOCP)
-```cpp
-// Uses Windows I/O Completion Ports
-#ifdef WIN32
-    // Windows-native high-performance networking
-    // Scales well on Windows Server platforms
-#endif
-```
+**Owner**: kcenon (kcenon@naver.com)
+**Repository**: https://github.com/kcenon/network_system
 
-## Error Handling
+---
+
+## 📚 Documentation
+
+| Document | Description |
+|## 📝 API Example
 
 ```cpp
-#include <network/core/messaging_client.h>
+#include <network_system/core/messaging_server.h>
+#include <network_system/core/messaging_client.h>
 
-try {
-    auto client = std::make_shared<messaging_client>("error_test");
-    
-    // Set error handler for async errors
-    client->set_error_handler([](const std::string& error) {
-        std::cerr << "Network error: " << error << std::endl;
-    });
-    
-    if (\!client->start_client("invalid_host", 1234)) {
-        throw std::runtime_error("Failed to connect to server");
-    }
-    
-    std::string response = client->send_message("test");
-    
-} catch (const std::runtime_error& e) {
-    std::cerr << "Connection error: " << e.what() << std::endl;
-} catch (const std::exception& e) {
-    std::cerr << "Unexpected network error: " << e.what() << std::endl;
-}
-
-// Check network health
-if (\!client->is_connected()) {
-    std::cerr << "Client is not connected" << std::endl;
-    // Attempt reconnection
-    client->reconnect();
-}
-```
-
-## Integration with Other Modules
-
-### With Container Module
-```cpp
-#include <container/container.h>
-#include <network/core/messaging_server.h>
-
-// Serialize container and send over network
-auto container = std::make_shared<value_container>();
-container->set_message_type("user_data");
-// ... populate container
-
-std::string serialized = container->serialize();
-
-auto server = std::make_shared<messaging_server>("container_server");
+// Server example
+auto server = std::make_shared<network_system::core::messaging_server>();
 server->set_message_handler([](const std::string& message) {
-    // Deserialize received container
-    auto received_container = std::make_shared<value_container>(message);
-    
-    // Process container data
-    auto user_id = received_container->get_value("user_id");
-    if (user_id) {
-        std::cout << "Processing user: " << user_id->to_string() << std::endl;
-    }
-    
-    return "Container processed";
+    std::cout << "Received: " << message << std::endl;
+    return "Echo: " + message;
 });
+server->start("0.0.0.0", 8080);
+
+// Client example
+auto client = std::make_shared<network_system::core::messaging_client>();
+client->connect("localhost", 8080);
+client->send("Hello, Network System!");
 ```
 
-### With Database Module
+## 🤝 Contributing
+
+Contributions are welcome! Please follow these guidelines:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes following conventional commits
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- ASIO library for asynchronous I/O
+- fmt library for modern formatting
+- Original messaging_system contributors
+
+## 📧 Contact
+
+**Owner**: kcenon (kcenon@naver.com)
+**Repository**: https://github.com/kcenon/network_system
+
+---## 📝 API Example
+
 ```cpp
-#include <database/database_manager.h>
-#include <network/core/messaging_server.h>
+#include <network_system/core/messaging_server.h>
+#include <network_system/core/messaging_client.h>
 
-// Store network messages in database
-auto db_manager = std::make_shared<database_manager>();
-db_manager->connect("host=localhost dbname=network_logs");
-
-auto server = std::make_shared<messaging_server>("logging_server");
-server->set_message_handler([&db_manager](const std::string& message) {
-    // Log message to database
-    std::string insert_sql = "INSERT INTO message_logs (content, timestamp) VALUES ('" + 
-                            message + "', CURRENT_TIMESTAMP)";
-    db_manager->insert_query(insert_sql);
-    
-    return "Message logged";
+// Server example
+auto server = std::make_shared<network_system::core::messaging_server>();
+server->set_message_handler([](const std::string& message) {
+    std::cout << "Received: " << message << std::endl;
+    return "Echo: " + message;
 });
+server->start("0.0.0.0", 8080);
+
+// Client example
+auto client = std::make_shared<network_system::core::messaging_client>();
+client->connect("localhost", 8080);
+client->send("Hello, Network System!");
 ```
 
-## Building
+## 🤝 Contributing
 
-The Network module is built as part of the main system:
+Contributions are welcome! Please follow these guidelines:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes following conventional commits
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- ASIO library for asynchronous I/O
+- fmt library for modern formatting
+- Original messaging_system contributors
+
+## 📧 Contact
+
+**Owner**: kcenon (kcenon@naver.com)
+**Repository**: https://github.com/kcenon/network_system
+
+---## 📝 API Example
+
+```cpp
+#include <network_system/core/messaging_server.h>
+#include <network_system/core/messaging_client.h>
+
+// Server example
+auto server = std::make_shared<network_system::core::messaging_server>();
+server->set_message_handler([](const std::string& message) {
+    std::cout << "Received: " << message << std::endl;
+    return "Echo: " + message;
+});
+server->start("0.0.0.0", 8080);
+
+// Client example
+auto client = std::make_shared<network_system::core::messaging_client>();
+client->connect("localhost", 8080);
+client->send("Hello, Network System!");
+```
+
+## 🤝 Contributing
+
+Contributions are welcome! Please follow these guidelines:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes following conventional commits
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- ASIO library for asynchronous I/O
+- fmt library for modern formatting
+- Original messaging_system contributors
+
+## 📧 Contact
+
+**Owner**: kcenon (kcenon@naver.com)
+**Repository**: https://github.com/kcenon/network_system
+
+----|## 📝 API Example
+
+```cpp
+#include <network_system/core/messaging_server.h>
+#include <network_system/core/messaging_client.h>
+
+// Server example
+auto server = std::make_shared<network_system::core::messaging_server>();
+server->set_message_handler([](const std::string& message) {
+    std::cout << "Received: " << message << std::endl;
+    return "Echo: " + message;
+});
+server->start("0.0.0.0", 8080);
+
+// Client example
+auto client = std::make_shared<network_system::core::messaging_client>();
+client->connect("localhost", 8080);
+client->send("Hello, Network System!");
+```
+
+## 🤝 Contributing
+
+Contributions are welcome! Please follow these guidelines:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes following conventional commits
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- ASIO library for asynchronous I/O
+- fmt library for modern formatting
+- Original messaging_system contributors
+
+## 📧 Contact
+
+**Owner**: kcenon (kcenon@naver.com)
+**Repository**: https://github.com/kcenon/network_system
+
+---## 📝 API Example
+
+```cpp
+#include <network_system/core/messaging_server.h>
+#include <network_system/core/messaging_client.h>
+
+// Server example
+auto server = std::make_shared<network_system::core::messaging_server>();
+server->set_message_handler([](const std::string& message) {
+    std::cout << "Received: " << message << std::endl;
+    return "Echo: " + message;
+});
+server->start("0.0.0.0", 8080);
+
+// Client example
+auto client = std::make_shared<network_system::core::messaging_client>();
+client->connect("localhost", 8080);
+client->send("Hello, Network System!");
+```
+
+## 🤝 Contributing
+
+Contributions are welcome! Please follow these guidelines:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes following conventional commits
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- ASIO library for asynchronous I/O
+- fmt library for modern formatting
+- Original messaging_system contributors
+
+## 📧 Contact
+
+**Owner**: kcenon (kcenon@naver.com)
+**Repository**: https://github.com/kcenon/network_system
+
+---## 📝 API Example
+
+```cpp
+#include <network_system/core/messaging_server.h>
+#include <network_system/core/messaging_client.h>
+
+// Server example
+auto server = std::make_shared<network_system::core::messaging_server>();
+server->set_message_handler([](const std::string& message) {
+    std::cout << "Received: " << message << std::endl;
+    return "Echo: " + message;
+});
+server->start("0.0.0.0", 8080);
+
+// Client example
+auto client = std::make_shared<network_system::core::messaging_client>();
+client->connect("localhost", 8080);
+client->send("Hello, Network System!");
+```
+
+## 🤝 Contributing
+
+Contributions are welcome! Please follow these guidelines:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes following conventional commits
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- ASIO library for asynchronous I/O
+- fmt library for modern formatting
+- Original messaging_system contributors
+
+## 📧 Contact
+
+**Owner**: kcenon (kcenon@naver.com)
+**Repository**: https://github.com/kcenon/network_system
+
+---## 📝 API Example
+
+```cpp
+#include <network_system/core/messaging_server.h>
+#include <network_system/core/messaging_client.h>
+
+// Server example
+auto server = std::make_shared<network_system::core::messaging_server>();
+server->set_message_handler([](const std::string& message) {
+    std::cout << "Received: " << message << std::endl;
+    return "Echo: " + message;
+});
+server->start("0.0.0.0", 8080);
+
+// Client example
+auto client = std::make_shared<network_system::core::messaging_client>();
+client->connect("localhost", 8080);
+client->send("Hello, Network System!");
+```
+
+## 🤝 Contributing
+
+Contributions are welcome! Please follow these guidelines:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes following conventional commits
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- ASIO library for asynchronous I/O
+- fmt library for modern formatting
+- Original messaging_system contributors
+
+## 📧 Contact
+
+**Owner**: kcenon (kcenon@naver.com)
+**Repository**: https://github.com/kcenon/network_system
+
+----|
+| [API Documentation](https://kcenon.github.io/network_system) | Doxygen-generated API reference |
+| [Separation Plan](NETWORK_SYSTEM_SEPARATION_PLAN.md) | Complete migration roadmap |
+| [Technical Details](TECHNICAL_IMPLEMENTATION_DETAILS.md) | Implementation specifications |
+| [Phase 2 Plan](PHASE2_IMPLEMENTATION_PLAN.md) | Next phase implementation tasks |
+| [Migration Checklist](MIGRATION_CHECKLIST.md) | Step-by-step checklist |
+
+## ✅ Phase 1 Achievements
+
+- **Core Architecture**: Complete namespace separation (`network_system::{core,session,internal,integration}`)
+- **Build System**: CMake with vcpkg/system package support
+- **CI/CD Pipeline**: GitHub Actions for Ubuntu (GCC/Clang) and Windows (VS/MSYS2)
+- **Container Integration**: Full integration with container_system
+- **Documentation**: Doxygen configuration with architectural overview
+- **Dependency Management**: Flexible ASIO/Boost.ASIO detection with fallbacks
+
+## 📝 API Example
+
+```cpp
+#include <network_system/core/messaging_server.h>
+#include <network_system/core/messaging_client.h>
+
+// Server example
+auto server = std::make_shared<network_system::core::messaging_server>();
+server->set_message_handler([](const std::string& message) {
+    std::cout << "Received: " << message << std::endl;
+    return "Echo: " + message;
+});
+server->start("0.0.0.0", 8080);
+
+// Client example
+auto client = std::make_shared<network_system::core::messaging_client>();
+client->connect("localhost", 8080);
+client->send("Hello, Network System!");
+```
+
+## 🤝 Contributing
+
+Contributions are welcome! Please follow these guidelines:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes following conventional commits
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- ASIO library for asynchronous I/O
+- fmt library for modern formatting
+- Original messaging_system contributors
+
+## 📧 Contact
+
+**Owner**: kcenon (kcenon@naver.com)
+**Repository**: https://github.com/kcenon/network_system
+
+---
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+#### Ubuntu/Debian
+```bash
+sudo apt update
+sudo apt install -y cmake ninja-build libasio-dev libfmt-dev libboost-all-dev
+```
+
+#### macOS
+```bash
+brew install cmake ninja asio fmt boost
+```
+
+#### Windows (MSYS2)
+```bash
+pacman -S mingw-w64-x86_64-cmake mingw-w64-x86_64-ninja \
+          mingw-w64-x86_64-asio mingw-w64-x86_64-fmt mingw-w64-x86_64-boost
+```
+
+### Build Instructions
 
 ```bash
-# Build with network module
+# Clone repository
+git clone https://github.com/kcenon/network_system.git
+cd network_system
+
+# Create build directory
 mkdir build && cd build
-cmake .. -DUSE_SSL=ON -DUSE_EPOLL=ON
-make
 
-# Build network tests
-make network_test
-./bin/network_test
+# Configure with CMake
+cmake .. -G Ninja \
+  -DBUILD_TESTS=ON \
+  -DBUILD_SAMPLES=ON \
+  -DCMAKE_BUILD_TYPE=Release
 
-# Build with specific features
-cmake .. -DUSE_SSL=ON -DBUILD_NETWORK_SAMPLES=ON
+# Build
+cmake --build .
+
+# Run verification
+./verify_build
 ```
 
-## Dependencies
+## 📝 API Example
 
-- **C++20 Standard Library**: Required for coroutines, concepts, and ranges
-- **ASIO**: Asynchronous I/O library (standalone version)
-- **fmt Library**: High-performance string formatting
-- **Threads**: For concurrent network operations
-- **OpenSSL**: For SSL/TLS support (optional)
+```cpp
+#include <network_system/core/messaging_server.h>
+#include <network_system/core/messaging_client.h>
 
-### vcpkg Dependencies
+// Server example
+auto server = std::make_shared<network_system::core::messaging_server>();
+server->set_message_handler([](const std::string& message) {
+    std::cout << "Received: " << message << std::endl;
+    return "Echo: " + message;
+});
+server->start("0.0.0.0", 8080);
+
+// Client example
+auto client = std::make_shared<network_system::core::messaging_client>();
+client->connect("localhost", 8080);
+client->send("Hello, Network System!");
+```
+
+## 🤝 Contributing
+
+Contributions are welcome! Please follow these guidelines:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes following conventional commits
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- ASIO library for asynchronous I/O
+- fmt library for modern formatting
+- Original messaging_system contributors
+
+## 📧 Contact
+
+**Owner**: kcenon (kcenon@naver.com)
+**Repository**: https://github.com/kcenon/network_system
+
+---
+
+## 🏗️ Architecture Overview
+
+### Pre-Separation Structure
+```
+messaging_system/
+├── container/          # → container_system (already separated)
+├── database/           # → database_system (already separated)
+├── network/            # → network_system (separation target)
+├── logger_system/      # (future separation planned)
+├── monitoring_system/  # (already separated)
+└── thread_system/      # (already separated)
+```
+
+### Current Structure
+```
+network_system/
+├── include/network_system/
+│   ├── core/
+│   │   ├── messaging_client.h    # Async client implementation
+│   │   └── messaging_server.h    # Multi-threaded server
+│   ├── session/
+│   │   └── messaging_session.h   # Session lifecycle management
+│   ├── internal/
+│   │   ├── tcp_socket.h         # ASIO TCP wrapper
+│   │   ├── pipeline.h           # Message pipeline
+│   │   └── send_coroutine.h    # C++20 coroutine support
+│   └── integration/
+│       └── messaging_bridge.h   # Legacy system bridge
+├── src/                         # Implementation files
+├── samples/                     # Usage examples (Phase 2)
+├── tests/                       # Test suites (Phase 2)
+└── .github/workflows/           # CI/CD pipelines
+```
+
+### Core Components
+
+#### 1. Core API
+- **messaging_server**: High-performance asynchronous TCP server
+- **messaging_client**: TCP client implementation
+- **messaging_session**: Connection session management
+
+#### 2. Integration Layer
+- **messaging_bridge**: messaging_system compatibility bridge
+- **container_integration**: container_system integration
+- **thread_integration**: thread_system integration
+
+#### 3. Performance Characteristics
+- **Throughput**: 100K+ messages/sec (1KB messages)
+- **Concurrent connections**: 10K+ connections support
+- **Latency**: < 1ms (message processing)
+- **Memory usage**: ~8KB per connection
+
+## 📝 API Example
+
+```cpp
+#include <network_system/core/messaging_server.h>
+#include <network_system/core/messaging_client.h>
+
+// Server example
+auto server = std::make_shared<network_system::core::messaging_server>();
+server->set_message_handler([](const std::string& message) {
+    std::cout << "Received: " << message << std::endl;
+    return "Echo: " + message;
+});
+server->start("0.0.0.0", 8080);
+
+// Client example
+auto client = std::make_shared<network_system::core::messaging_client>();
+client->connect("localhost", 8080);
+client->send("Hello, Network System!");
+```
+
+## 🤝 Contributing
+
+Contributions are welcome! Please follow these guidelines:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes following conventional commits
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- ASIO library for asynchronous I/O
+- fmt library for modern formatting
+- Original messaging_system contributors
+
+## 📧 Contact
+
+**Owner**: kcenon (kcenon@naver.com)
+**Repository**: https://github.com/kcenon/network_system
+
+---
+
+## 📊 Development Roadmap
+
+### Phase 1: Core Infrastructure ✅ (Completed)
+- [x] Directory structure and namespace separation
+- [x] CMake build system with vcpkg support
+- [x] CI/CD pipeline setup (GitHub Actions)
+- [x] Container system integration
+- [x] Doxygen documentation configuration
+- [x] Core library builds successfully on all platforms
+
+### Phase 2: Feature Implementation 🔨 (In Progress)
+- [ ] Implement `network_manager` class
+- [ ] Build `tcp_server` and `tcp_client` classes
+- [ ] Create `http_client` with response handling
+- [ ] Update sample applications
+- [ ] Complete test suite implementation
+
+### Phase 3: Advanced Features 📝 (Planned)
+- [ ] WebSocket support
+- [ ] TLS/SSL encryption
+- [ ] Connection pooling
+- [ ] Message serialization (JSON, Protocol Buffers)
+
+### Phase 4: Performance & Optimization 🚀 (Planned)
+- [ ] Performance benchmarking
+- [ ] Memory optimization
+- [ ] Load balancing implementation
+- [ ] Async/await patterns with C++20 coroutines
+
+### Phase 5: Production Ready 🏆 (Planned)
+- [ ] Full API documentation
+- [ ] User guides and tutorials
+- [ ] Integration examples
+- [ ] Official release planning
+
+## 📝 API Example
+
+```cpp
+#include <network_system/core/messaging_server.h>
+#include <network_system/core/messaging_client.h>
+
+// Server example
+auto server = std::make_shared<network_system::core::messaging_server>();
+server->set_message_handler([](const std::string& message) {
+    std::cout << "Received: " << message << std::endl;
+    return "Echo: " + message;
+});
+server->start("0.0.0.0", 8080);
+
+// Client example
+auto client = std::make_shared<network_system::core::messaging_client>();
+client->connect("localhost", 8080);
+client->send("Hello, Network System!");
+```
+
+## 🤝 Contributing
+
+Contributions are welcome! Please follow these guidelines:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes following conventional commits
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- ASIO library for asynchronous I/O
+- fmt library for modern formatting
+- Original messaging_system contributors
+
+## 📧 Contact
+
+**Owner**: kcenon (kcenon@naver.com)
+**Repository**: https://github.com/kcenon/network_system
+
+---
+
+## 🎯 CI/CD Status
+
+| Platform | Compiler | Status |
+|## 📝 API Example
+
+```cpp
+#include <network_system/core/messaging_server.h>
+#include <network_system/core/messaging_client.h>
+
+// Server example
+auto server = std::make_shared<network_system::core::messaging_server>();
+server->set_message_handler([](const std::string& message) {
+    std::cout << "Received: " << message << std::endl;
+    return "Echo: " + message;
+});
+server->start("0.0.0.0", 8080);
+
+// Client example
+auto client = std::make_shared<network_system::core::messaging_client>();
+client->connect("localhost", 8080);
+client->send("Hello, Network System!");
+```
+
+## 🤝 Contributing
+
+Contributions are welcome! Please follow these guidelines:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes following conventional commits
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- ASIO library for asynchronous I/O
+- fmt library for modern formatting
+- Original messaging_system contributors
+
+## 📧 Contact
+
+**Owner**: kcenon (kcenon@naver.com)
+**Repository**: https://github.com/kcenon/network_system
+
+---## 📝 API Example
+
+```cpp
+#include <network_system/core/messaging_server.h>
+#include <network_system/core/messaging_client.h>
+
+// Server example
+auto server = std::make_shared<network_system::core::messaging_server>();
+server->set_message_handler([](const std::string& message) {
+    std::cout << "Received: " << message << std::endl;
+    return "Echo: " + message;
+});
+server->start("0.0.0.0", 8080);
+
+// Client example
+auto client = std::make_shared<network_system::core::messaging_client>();
+client->connect("localhost", 8080);
+client->send("Hello, Network System!");
+```
+
+## 🤝 Contributing
+
+Contributions are welcome! Please follow these guidelines:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes following conventional commits
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- ASIO library for asynchronous I/O
+- fmt library for modern formatting
+- Original messaging_system contributors
+
+## 📧 Contact
+
+**Owner**: kcenon (kcenon@naver.com)
+**Repository**: https://github.com/kcenon/network_system
+
+---## 📝 API Example
+
+```cpp
+#include <network_system/core/messaging_server.h>
+#include <network_system/core/messaging_client.h>
+
+// Server example
+auto server = std::make_shared<network_system::core::messaging_server>();
+server->set_message_handler([](const std::string& message) {
+    std::cout << "Received: " << message << std::endl;
+    return "Echo: " + message;
+});
+server->start("0.0.0.0", 8080);
+
+// Client example
+auto client = std::make_shared<network_system::core::messaging_client>();
+client->connect("localhost", 8080);
+client->send("Hello, Network System!");
+```
+
+## 🤝 Contributing
+
+Contributions are welcome! Please follow these guidelines:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes following conventional commits
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- ASIO library for asynchronous I/O
+- fmt library for modern formatting
+- Original messaging_system contributors
+
+## 📧 Contact
+
+**Owner**: kcenon (kcenon@naver.com)
+**Repository**: https://github.com/kcenon/network_system
+
+----|## 📝 API Example
+
+```cpp
+#include <network_system/core/messaging_server.h>
+#include <network_system/core/messaging_client.h>
+
+// Server example
+auto server = std::make_shared<network_system::core::messaging_server>();
+server->set_message_handler([](const std::string& message) {
+    std::cout << "Received: " << message << std::endl;
+    return "Echo: " + message;
+});
+server->start("0.0.0.0", 8080);
+
+// Client example
+auto client = std::make_shared<network_system::core::messaging_client>();
+client->connect("localhost", 8080);
+client->send("Hello, Network System!");
+```
+
+## 🤝 Contributing
+
+Contributions are welcome! Please follow these guidelines:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes following conventional commits
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- ASIO library for asynchronous I/O
+- fmt library for modern formatting
+- Original messaging_system contributors
+
+## 📧 Contact
+
+**Owner**: kcenon (kcenon@naver.com)
+**Repository**: https://github.com/kcenon/network_system
+
+---## 📝 API Example
+
+```cpp
+#include <network_system/core/messaging_server.h>
+#include <network_system/core/messaging_client.h>
+
+// Server example
+auto server = std::make_shared<network_system::core::messaging_server>();
+server->set_message_handler([](const std::string& message) {
+    std::cout << "Received: " << message << std::endl;
+    return "Echo: " + message;
+});
+server->start("0.0.0.0", 8080);
+
+// Client example
+auto client = std::make_shared<network_system::core::messaging_client>();
+client->connect("localhost", 8080);
+client->send("Hello, Network System!");
+```
+
+## 🤝 Contributing
+
+Contributions are welcome! Please follow these guidelines:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes following conventional commits
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- ASIO library for asynchronous I/O
+- fmt library for modern formatting
+- Original messaging_system contributors
+
+## 📧 Contact
+
+**Owner**: kcenon (kcenon@naver.com)
+**Repository**: https://github.com/kcenon/network_system
+
+---## 📝 API Example
+
+```cpp
+#include <network_system/core/messaging_server.h>
+#include <network_system/core/messaging_client.h>
+
+// Server example
+auto server = std::make_shared<network_system::core::messaging_server>();
+server->set_message_handler([](const std::string& message) {
+    std::cout << "Received: " << message << std::endl;
+    return "Echo: " + message;
+});
+server->start("0.0.0.0", 8080);
+
+// Client example
+auto client = std::make_shared<network_system::core::messaging_client>();
+client->connect("localhost", 8080);
+client->send("Hello, Network System!");
+```
+
+## 🤝 Contributing
+
+Contributions are welcome! Please follow these guidelines:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes following conventional commits
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- ASIO library for asynchronous I/O
+- fmt library for modern formatting
+- Original messaging_system contributors
+
+## 📧 Contact
+
+**Owner**: kcenon (kcenon@naver.com)
+**Repository**: https://github.com/kcenon/network_system
+
+----|## 📝 API Example
+
+```cpp
+#include <network_system/core/messaging_server.h>
+#include <network_system/core/messaging_client.h>
+
+// Server example
+auto server = std::make_shared<network_system::core::messaging_server>();
+server->set_message_handler([](const std::string& message) {
+    std::cout << "Received: " << message << std::endl;
+    return "Echo: " + message;
+});
+server->start("0.0.0.0", 8080);
+
+// Client example
+auto client = std::make_shared<network_system::core::messaging_client>();
+client->connect("localhost", 8080);
+client->send("Hello, Network System!");
+```
+
+## 🤝 Contributing
+
+Contributions are welcome! Please follow these guidelines:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes following conventional commits
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- ASIO library for asynchronous I/O
+- fmt library for modern formatting
+- Original messaging_system contributors
+
+## 📧 Contact
+
+**Owner**: kcenon (kcenon@naver.com)
+**Repository**: https://github.com/kcenon/network_system
+
+---## 📝 API Example
+
+```cpp
+#include <network_system/core/messaging_server.h>
+#include <network_system/core/messaging_client.h>
+
+// Server example
+auto server = std::make_shared<network_system::core::messaging_server>();
+server->set_message_handler([](const std::string& message) {
+    std::cout << "Received: " << message << std::endl;
+    return "Echo: " + message;
+});
+server->start("0.0.0.0", 8080);
+
+// Client example
+auto client = std::make_shared<network_system::core::messaging_client>();
+client->connect("localhost", 8080);
+client->send("Hello, Network System!");
+```
+
+## 🤝 Contributing
+
+Contributions are welcome! Please follow these guidelines:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes following conventional commits
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- ASIO library for asynchronous I/O
+- fmt library for modern formatting
+- Original messaging_system contributors
+
+## 📧 Contact
+
+**Owner**: kcenon (kcenon@naver.com)
+**Repository**: https://github.com/kcenon/network_system
+
+-----|
+| Ubuntu 22.04 | GCC 11 | ![Build](https://github.com/kcenon/network_system/actions/workflows/build-ubuntu-gcc.yaml/badge.svg) |
+| Ubuntu 22.04 | Clang 14 | ![Build](https://github.com/kcenon/network_system/actions/workflows/build-ubuntu-clang.yaml/badge.svg) |
+| Windows 2022 | MSVC 2022 | ![Build](https://github.com/kcenon/network_system/actions/workflows/build-windows-vs.yaml/badge.svg) |
+| Windows 2022 | MinGW64 | ![Build](https://github.com/kcenon/network_system/actions/workflows/build-windows-msys2.yaml/badge.svg) |
+| Security | Trivy | ![Scan](https://github.com/kcenon/network_system/actions/workflows/dependency-security-scan.yml/badge.svg) |
+
+## 🔧 Dependencies
+
+### Required
+- **C++20** compatible compiler
+- **CMake** 3.16+
+- **ASIO** or **Boost.ASIO** 1.28+
+
+### Optional
+- **fmt** 10.0+ (falls back to std::format)
+- **container_system** (for advanced container support)
+- **thread_system** (for thread pool integration)
+- **vcpkg** (for dependency management)
+
+## 📝 API Example
+
+```cpp
+#include <network_system/core/messaging_server.h>
+#include <network_system/core/messaging_client.h>
+
+// Server example
+auto server = std::make_shared<network_system::core::messaging_server>();
+server->set_message_handler([](const std::string& message) {
+    std::cout << "Received: " << message << std::endl;
+    return "Echo: " + message;
+});
+server->start("0.0.0.0", 8080);
+
+// Client example
+auto client = std::make_shared<network_system::core::messaging_client>();
+client->connect("localhost", 8080);
+client->send("Hello, Network System!");
+```
+
+## 🤝 Contributing
+
+Contributions are welcome! Please follow these guidelines:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes following conventional commits
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- ASIO library for asynchronous I/O
+- fmt library for modern formatting
+- Original messaging_system contributors
+
+## 📧 Contact
+
+**Owner**: kcenon (kcenon@naver.com)
+**Repository**: https://github.com/kcenon/network_system
+
+---
+
+## 🔧 Technology Stack
+
+### Core Dependencies
+- **ASIO**: Asynchronous I/O and networking
+- **fmt**: String formatting
+- **C++20**: Modern C++ features
+
+### Integration Dependencies (Conditional)
+- **container_system**: Message serialization/deserialization
+- **thread_system**: Asynchronous task scheduling
+- **GTest**: Unit testing framework
+- **Benchmark**: Performance benchmarking
+
+### Build Tools
+- **CMake 3.16+**: Build system
+- **vcpkg**: Package management
+- **Git**: Version control
+
+## 📝 API Example
+
+```cpp
+#include <network_system/core/messaging_server.h>
+#include <network_system/core/messaging_client.h>
+
+// Server example
+auto server = std::make_shared<network_system::core::messaging_server>();
+server->set_message_handler([](const std::string& message) {
+    std::cout << "Received: " << message << std::endl;
+    return "Echo: " + message;
+});
+server->start("0.0.0.0", 8080);
+
+// Client example
+auto client = std::make_shared<network_system::core::messaging_client>();
+client->connect("localhost", 8080);
+client->send("Hello, Network System!");
+```
+
+## 🤝 Contributing
+
+Contributions are welcome! Please follow these guidelines:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes following conventional commits
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- ASIO library for asynchronous I/O
+- fmt library for modern formatting
+- Original messaging_system contributors
+
+## 📧 Contact
+
+**Owner**: kcenon (kcenon@naver.com)
+**Repository**: https://github.com/kcenon/network_system
+
+---
+
+## 📈 Performance Requirements
+
+### Baseline (Pre-Separation)
+| Metric | Value | Conditions |
+|## 📝 API Example
+
+```cpp
+#include <network_system/core/messaging_server.h>
+#include <network_system/core/messaging_client.h>
+
+// Server example
+auto server = std::make_shared<network_system::core::messaging_server>();
+server->set_message_handler([](const std::string& message) {
+    std::cout << "Received: " << message << std::endl;
+    return "Echo: " + message;
+});
+server->start("0.0.0.0", 8080);
+
+// Client example
+auto client = std::make_shared<network_system::core::messaging_client>();
+client->connect("localhost", 8080);
+client->send("Hello, Network System!");
+```
+
+## 🤝 Contributing
+
+Contributions are welcome! Please follow these guidelines:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes following conventional commits
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- ASIO library for asynchronous I/O
+- fmt library for modern formatting
+- Original messaging_system contributors
+
+## 📧 Contact
+
+**Owner**: kcenon (kcenon@naver.com)
+**Repository**: https://github.com/kcenon/network_system
+
+---## 📝 API Example
+
+```cpp
+#include <network_system/core/messaging_server.h>
+#include <network_system/core/messaging_client.h>
+
+// Server example
+auto server = std::make_shared<network_system::core::messaging_server>();
+server->set_message_handler([](const std::string& message) {
+    std::cout << "Received: " << message << std::endl;
+    return "Echo: " + message;
+});
+server->start("0.0.0.0", 8080);
+
+// Client example
+auto client = std::make_shared<network_system::core::messaging_client>();
+client->connect("localhost", 8080);
+client->send("Hello, Network System!");
+```
+
+## 🤝 Contributing
+
+Contributions are welcome! Please follow these guidelines:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes following conventional commits
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- ASIO library for asynchronous I/O
+- fmt library for modern formatting
+- Original messaging_system contributors
+
+## 📧 Contact
+
+**Owner**: kcenon (kcenon@naver.com)
+**Repository**: https://github.com/kcenon/network_system
+
+-----|## 📝 API Example
+
+```cpp
+#include <network_system/core/messaging_server.h>
+#include <network_system/core/messaging_client.h>
+
+// Server example
+auto server = std::make_shared<network_system::core::messaging_server>();
+server->set_message_handler([](const std::string& message) {
+    std::cout << "Received: " << message << std::endl;
+    return "Echo: " + message;
+});
+server->start("0.0.0.0", 8080);
+
+// Client example
+auto client = std::make_shared<network_system::core::messaging_client>();
+client->connect("localhost", 8080);
+client->send("Hello, Network System!");
+```
+
+## 🤝 Contributing
+
+Contributions are welcome! Please follow these guidelines:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes following conventional commits
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- ASIO library for asynchronous I/O
+- fmt library for modern formatting
+- Original messaging_system contributors
+
+## 📧 Contact
+
+**Owner**: kcenon (kcenon@naver.com)
+**Repository**: https://github.com/kcenon/network_system
+
+---## 📝 API Example
+
+```cpp
+#include <network_system/core/messaging_server.h>
+#include <network_system/core/messaging_client.h>
+
+// Server example
+auto server = std::make_shared<network_system::core::messaging_server>();
+server->set_message_handler([](const std::string& message) {
+    std::cout << "Received: " << message << std::endl;
+    return "Echo: " + message;
+});
+server->start("0.0.0.0", 8080);
+
+// Client example
+auto client = std::make_shared<network_system::core::messaging_client>();
+client->connect("localhost", 8080);
+client->send("Hello, Network System!");
+```
+
+## 🤝 Contributing
+
+Contributions are welcome! Please follow these guidelines:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes following conventional commits
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- ASIO library for asynchronous I/O
+- fmt library for modern formatting
+- Original messaging_system contributors
+
+## 📧 Contact
+
+**Owner**: kcenon (kcenon@naver.com)
+**Repository**: https://github.com/kcenon/network_system
+
+----|## 📝 API Example
+
+```cpp
+#include <network_system/core/messaging_server.h>
+#include <network_system/core/messaging_client.h>
+
+// Server example
+auto server = std::make_shared<network_system::core::messaging_server>();
+server->set_message_handler([](const std::string& message) {
+    std::cout << "Received: " << message << std::endl;
+    return "Echo: " + message;
+});
+server->start("0.0.0.0", 8080);
+
+// Client example
+auto client = std::make_shared<network_system::core::messaging_client>();
+client->connect("localhost", 8080);
+client->send("Hello, Network System!");
+```
+
+## 🤝 Contributing
+
+Contributions are welcome! Please follow these guidelines:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes following conventional commits
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- ASIO library for asynchronous I/O
+- fmt library for modern formatting
+- Original messaging_system contributors
+
+## 📧 Contact
+
+**Owner**: kcenon (kcenon@naver.com)
+**Repository**: https://github.com/kcenon/network_system
+
+---## 📝 API Example
+
+```cpp
+#include <network_system/core/messaging_server.h>
+#include <network_system/core/messaging_client.h>
+
+// Server example
+auto server = std::make_shared<network_system::core::messaging_server>();
+server->set_message_handler([](const std::string& message) {
+    std::cout << "Received: " << message << std::endl;
+    return "Echo: " + message;
+});
+server->start("0.0.0.0", 8080);
+
+// Client example
+auto client = std::make_shared<network_system::core::messaging_client>();
+client->connect("localhost", 8080);
+client->send("Hello, Network System!");
+```
+
+## 🤝 Contributing
+
+Contributions are welcome! Please follow these guidelines:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes following conventional commits
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- ASIO library for asynchronous I/O
+- fmt library for modern formatting
+- Original messaging_system contributors
+
+## 📧 Contact
+
+**Owner**: kcenon (kcenon@naver.com)
+**Repository**: https://github.com/kcenon/network_system
+
+---## 📝 API Example
+
+```cpp
+#include <network_system/core/messaging_server.h>
+#include <network_system/core/messaging_client.h>
+
+// Server example
+auto server = std::make_shared<network_system::core::messaging_server>();
+server->set_message_handler([](const std::string& message) {
+    std::cout << "Received: " << message << std::endl;
+    return "Echo: " + message;
+});
+server->start("0.0.0.0", 8080);
+
+// Client example
+auto client = std::make_shared<network_system::core::messaging_client>();
+client->connect("localhost", 8080);
+client->send("Hello, Network System!");
+```
+
+## 🤝 Contributing
+
+Contributions are welcome! Please follow these guidelines:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes following conventional commits
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- ASIO library for asynchronous I/O
+- fmt library for modern formatting
+- Original messaging_system contributors
+
+## 📧 Contact
+
+**Owner**: kcenon (kcenon@naver.com)
+**Repository**: https://github.com/kcenon/network_system
+
+---## 📝 API Example
+
+```cpp
+#include <network_system/core/messaging_server.h>
+#include <network_system/core/messaging_client.h>
+
+// Server example
+auto server = std::make_shared<network_system::core::messaging_server>();
+server->set_message_handler([](const std::string& message) {
+    std::cout << "Received: " << message << std::endl;
+    return "Echo: " + message;
+});
+server->start("0.0.0.0", 8080);
+
+// Client example
+auto client = std::make_shared<network_system::core::messaging_client>();
+client->connect("localhost", 8080);
+client->send("Hello, Network System!");
+```
+
+## 🤝 Contributing
+
+Contributions are welcome! Please follow these guidelines:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes following conventional commits
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- ASIO library for asynchronous I/O
+- fmt library for modern formatting
+- Original messaging_system contributors
+
+## 📧 Contact
+
+**Owner**: kcenon (kcenon@naver.com)
+**Repository**: https://github.com/kcenon/network_system
+
+---|
+| Throughput | 100K messages/sec | 1KB messages, localhost |
+| Latency | < 1ms | Message processing latency |
+| Concurrent connections | 10K+ | Within system resource limits |
+| Memory usage | ~8KB/connection | Including buffers and session data |
+
+### Target (Post-Separation)
+| Metric | Target | Acceptable Range |
+|## 📝 API Example
+
+```cpp
+#include <network_system/core/messaging_server.h>
+#include <network_system/core/messaging_client.h>
+
+// Server example
+auto server = std::make_shared<network_system::core::messaging_server>();
+server->set_message_handler([](const std::string& message) {
+    std::cout << "Received: " << message << std::endl;
+    return "Echo: " + message;
+});
+server->start("0.0.0.0", 8080);
+
+// Client example
+auto client = std::make_shared<network_system::core::messaging_client>();
+client->connect("localhost", 8080);
+client->send("Hello, Network System!");
+```
+
+## 🤝 Contributing
+
+Contributions are welcome! Please follow these guidelines:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes following conventional commits
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- ASIO library for asynchronous I/O
+- fmt library for modern formatting
+- Original messaging_system contributors
+
+## 📧 Contact
+
+**Owner**: kcenon (kcenon@naver.com)
+**Repository**: https://github.com/kcenon/network_system
+
+---## 📝 API Example
+
+```cpp
+#include <network_system/core/messaging_server.h>
+#include <network_system/core/messaging_client.h>
+
+// Server example
+auto server = std::make_shared<network_system::core::messaging_server>();
+server->set_message_handler([](const std::string& message) {
+    std::cout << "Received: " << message << std::endl;
+    return "Echo: " + message;
+});
+server->start("0.0.0.0", 8080);
+
+// Client example
+auto client = std::make_shared<network_system::core::messaging_client>();
+client->connect("localhost", 8080);
+client->send("Hello, Network System!");
+```
+
+## 🤝 Contributing
+
+Contributions are welcome! Please follow these guidelines:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes following conventional commits
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- ASIO library for asynchronous I/O
+- fmt library for modern formatting
+- Original messaging_system contributors
+
+## 📧 Contact
+
+**Owner**: kcenon (kcenon@naver.com)
+**Repository**: https://github.com/kcenon/network_system
+
+-----|## 📝 API Example
+
+```cpp
+#include <network_system/core/messaging_server.h>
+#include <network_system/core/messaging_client.h>
+
+// Server example
+auto server = std::make_shared<network_system::core::messaging_server>();
+server->set_message_handler([](const std::string& message) {
+    std::cout << "Received: " << message << std::endl;
+    return "Echo: " + message;
+});
+server->start("0.0.0.0", 8080);
+
+// Client example
+auto client = std::make_shared<network_system::core::messaging_client>();
+client->connect("localhost", 8080);
+client->send("Hello, Network System!");
+```
+
+## 🤝 Contributing
+
+Contributions are welcome! Please follow these guidelines:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes following conventional commits
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- ASIO library for asynchronous I/O
+- fmt library for modern formatting
+- Original messaging_system contributors
+
+## 📧 Contact
+
+**Owner**: kcenon (kcenon@naver.com)
+**Repository**: https://github.com/kcenon/network_system
+
+---## 📝 API Example
+
+```cpp
+#include <network_system/core/messaging_server.h>
+#include <network_system/core/messaging_client.h>
+
+// Server example
+auto server = std::make_shared<network_system::core::messaging_server>();
+server->set_message_handler([](const std::string& message) {
+    std::cout << "Received: " << message << std::endl;
+    return "Echo: " + message;
+});
+server->start("0.0.0.0", 8080);
+
+// Client example
+auto client = std::make_shared<network_system::core::messaging_client>();
+client->connect("localhost", 8080);
+client->send("Hello, Network System!");
+```
+
+## 🤝 Contributing
+
+Contributions are welcome! Please follow these guidelines:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes following conventional commits
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- ASIO library for asynchronous I/O
+- fmt library for modern formatting
+- Original messaging_system contributors
+
+## 📧 Contact
+
+**Owner**: kcenon (kcenon@naver.com)
+**Repository**: https://github.com/kcenon/network_system
+
+-----|## 📝 API Example
+
+```cpp
+#include <network_system/core/messaging_server.h>
+#include <network_system/core/messaging_client.h>
+
+// Server example
+auto server = std::make_shared<network_system::core::messaging_server>();
+server->set_message_handler([](const std::string& message) {
+    std::cout << "Received: " << message << std::endl;
+    return "Echo: " + message;
+});
+server->start("0.0.0.0", 8080);
+
+// Client example
+auto client = std::make_shared<network_system::core::messaging_client>();
+client->connect("localhost", 8080);
+client->send("Hello, Network System!");
+```
+
+## 🤝 Contributing
+
+Contributions are welcome! Please follow these guidelines:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes following conventional commits
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- ASIO library for asynchronous I/O
+- fmt library for modern formatting
+- Original messaging_system contributors
+
+## 📧 Contact
+
+**Owner**: kcenon (kcenon@naver.com)
+**Repository**: https://github.com/kcenon/network_system
+
+---## 📝 API Example
+
+```cpp
+#include <network_system/core/messaging_server.h>
+#include <network_system/core/messaging_client.h>
+
+// Server example
+auto server = std::make_shared<network_system::core::messaging_server>();
+server->set_message_handler([](const std::string& message) {
+    std::cout << "Received: " << message << std::endl;
+    return "Echo: " + message;
+});
+server->start("0.0.0.0", 8080);
+
+// Client example
+auto client = std::make_shared<network_system::core::messaging_client>();
+client->connect("localhost", 8080);
+client->send("Hello, Network System!");
+```
+
+## 🤝 Contributing
+
+Contributions are welcome! Please follow these guidelines:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes following conventional commits
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- ASIO library for asynchronous I/O
+- fmt library for modern formatting
+- Original messaging_system contributors
+
+## 📧 Contact
+
+**Owner**: kcenon (kcenon@naver.com)
+**Repository**: https://github.com/kcenon/network_system
+
+---## 📝 API Example
+
+```cpp
+#include <network_system/core/messaging_server.h>
+#include <network_system/core/messaging_client.h>
+
+// Server example
+auto server = std::make_shared<network_system::core::messaging_server>();
+server->set_message_handler([](const std::string& message) {
+    std::cout << "Received: " << message << std::endl;
+    return "Echo: " + message;
+});
+server->start("0.0.0.0", 8080);
+
+// Client example
+auto client = std::make_shared<network_system::core::messaging_client>();
+client->connect("localhost", 8080);
+client->send("Hello, Network System!");
+```
+
+## 🤝 Contributing
+
+Contributions are welcome! Please follow these guidelines:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes following conventional commits
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- ASIO library for asynchronous I/O
+- fmt library for modern formatting
+- Original messaging_system contributors
+
+## 📧 Contact
+
+**Owner**: kcenon (kcenon@naver.com)
+**Repository**: https://github.com/kcenon/network_system
+
+---## 📝 API Example
+
+```cpp
+#include <network_system/core/messaging_server.h>
+#include <network_system/core/messaging_client.h>
+
+// Server example
+auto server = std::make_shared<network_system::core::messaging_server>();
+server->set_message_handler([](const std::string& message) {
+    std::cout << "Received: " << message << std::endl;
+    return "Echo: " + message;
+});
+server->start("0.0.0.0", 8080);
+
+// Client example
+auto client = std::make_shared<network_system::core::messaging_client>();
+client->connect("localhost", 8080);
+client->send("Hello, Network System!");
+```
+
+## 🤝 Contributing
+
+Contributions are welcome! Please follow these guidelines:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes following conventional commits
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- ASIO library for asynchronous I/O
+- fmt library for modern formatting
+- Original messaging_system contributors
+
+## 📧 Contact
+
+**Owner**: kcenon (kcenon@naver.com)
+**Repository**: https://github.com/kcenon/network_system
+
+---## 📝 API Example
+
+```cpp
+#include <network_system/core/messaging_server.h>
+#include <network_system/core/messaging_client.h>
+
+// Server example
+auto server = std::make_shared<network_system::core::messaging_server>();
+server->set_message_handler([](const std::string& message) {
+    std::cout << "Received: " << message << std::endl;
+    return "Echo: " + message;
+});
+server->start("0.0.0.0", 8080);
+
+// Client example
+auto client = std::make_shared<network_system::core::messaging_client>();
+client->connect("localhost", 8080);
+client->send("Hello, Network System!");
+```
+
+## 🤝 Contributing
+
+Contributions are welcome! Please follow these guidelines:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes following conventional commits
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- ASIO library for asynchronous I/O
+- fmt library for modern formatting
+- Original messaging_system contributors
+
+## 📧 Contact
+
+**Owner**: kcenon (kcenon@naver.com)
+**Repository**: https://github.com/kcenon/network_system
+
+---## 📝 API Example
+
+```cpp
+#include <network_system/core/messaging_server.h>
+#include <network_system/core/messaging_client.h>
+
+// Server example
+auto server = std::make_shared<network_system::core::messaging_server>();
+server->set_message_handler([](const std::string& message) {
+    std::cout << "Received: " << message << std::endl;
+    return "Echo: " + message;
+});
+server->start("0.0.0.0", 8080);
+
+// Client example
+auto client = std::make_shared<network_system::core::messaging_client>();
+client->connect("localhost", 8080);
+client->send("Hello, Network System!");
+```
+
+## 🤝 Contributing
+
+Contributions are welcome! Please follow these guidelines:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes following conventional commits
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- ASIO library for asynchronous I/O
+- fmt library for modern formatting
+- Original messaging_system contributors
+
+## 📧 Contact
+
+**Owner**: kcenon (kcenon@naver.com)
+**Repository**: https://github.com/kcenon/network_system
+
+---|
+| Throughput | >= 100K messages/sec | Performance degradation < 5% |
+| Latency | < 1.2ms | Bridge overhead < 20% |
+| Concurrent connections | 10K+ | No change |
+| Memory usage | ~10KB/connection | Increase < 25% |
+
+## 📝 API Example
+
+```cpp
+#include <network_system/core/messaging_server.h>
+#include <network_system/core/messaging_client.h>
+
+// Server example
+auto server = std::make_shared<network_system::core::messaging_server>();
+server->set_message_handler([](const std::string& message) {
+    std::cout << "Received: " << message << std::endl;
+    return "Echo: " + message;
+});
+server->start("0.0.0.0", 8080);
+
+// Client example
+auto client = std::make_shared<network_system::core::messaging_client>();
+client->connect("localhost", 8080);
+client->send("Hello, Network System!");
+```
+
+## 🤝 Contributing
+
+Contributions are welcome! Please follow these guidelines:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes following conventional commits
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- ASIO library for asynchronous I/O
+- fmt library for modern formatting
+- Original messaging_system contributors
+
+## 📧 Contact
+
+**Owner**: kcenon (kcenon@naver.com)
+**Repository**: https://github.com/kcenon/network_system
+
+---
+
+## 🚨 Risk Factors and Mitigation
+
+### Major Risks
+1. **Conflict with existing network_system**
+   - **Mitigation**: Namespace separation, rename existing system
+
+2. **Performance degradation**
+   - **Mitigation**: Zero-copy bridge, optimized integration layer
+
+3. **Compatibility issues**
+   - **Mitigation**: Thorough compatibility testing, gradual migration
+
+4. **Increased complexity**
+   - **Mitigation**: Automated build scripts, clear documentation
+
+### Rollback Plan
+- Phase-wise checkpoints
+- Original code backup retention (30 days)
+- Runtime system switching capability
+- Real-time performance monitoring
+
+## 📝 API Example
+
+```cpp
+#include <network_system/core/messaging_server.h>
+#include <network_system/core/messaging_client.h>
+
+// Server example
+auto server = std::make_shared<network_system::core::messaging_server>();
+server->set_message_handler([](const std::string& message) {
+    std::cout << "Received: " << message << std::endl;
+    return "Echo: " + message;
+});
+server->start("0.0.0.0", 8080);
+
+// Client example
+auto client = std::make_shared<network_system::core::messaging_client>();
+client->connect("localhost", 8080);
+client->send("Hello, Network System!");
+```
+
+## 🤝 Contributing
+
+Contributions are welcome! Please follow these guidelines:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes following conventional commits
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- ASIO library for asynchronous I/O
+- fmt library for modern formatting
+- Original messaging_system contributors
+
+## 📧 Contact
+
+**Owner**: kcenon (kcenon@naver.com)
+**Repository**: https://github.com/kcenon/network_system
+
+---
+
+## 📞 Contact and Support
+
+### Project Owner
+- **Name**: kcenon
+- **Email**: kcenon@naver.com
+- **Role**: Project Lead, Architect
+
+### Inquiries
+- **Technical questions**: GitHub Issues or email
+- **Bug reports**: Submit with detailed reproduction steps
+- **Feature requests**: Propose with use cases
+
+### Document Locations
+- **Project documentation**: `/Users/dongcheolshin/Sources/network_system/`
+- **Source code**: Same location after migration completion
+- **Backups**: `network_migration_backup_YYYYMMDD_HHMMSS/`
+
+## 📝 API Example
+
+```cpp
+#include <network_system/core/messaging_server.h>
+#include <network_system/core/messaging_client.h>
+
+// Server example
+auto server = std::make_shared<network_system::core::messaging_server>();
+server->set_message_handler([](const std::string& message) {
+    std::cout << "Received: " << message << std::endl;
+    return "Echo: " + message;
+});
+server->start("0.0.0.0", 8080);
+
+// Client example
+auto client = std::make_shared<network_system::core::messaging_client>();
+client->connect("localhost", 8080);
+client->send("Hello, Network System!");
+```
+
+## 🤝 Contributing
+
+Contributions are welcome! Please follow these guidelines:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes following conventional commits
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- ASIO library for asynchronous I/O
+- fmt library for modern formatting
+- Original messaging_system contributors
+
+## 📧 Contact
+
+**Owner**: kcenon (kcenon@naver.com)
+**Repository**: https://github.com/kcenon/network_system
+
+---
+
+## 📝 Change History
+
+### v2.0.0 (2025-09-19) - Planning Phase
+- [x] Migration master plan creation
+- [x] Technical implementation details organization
+- [x] Automation script development
+- [x] Checklist and verification plan establishment
+
+### v2.0.1 (Planned) - Core Separation
+- [ ] messaging_system/network code separation
+- [ ] Namespace and structure reorganization
+- [ ] Basic build system configuration
+
+### v2.0.2 (Planned) - Integration Completion
+- [ ] All system integration interface implementation
+- [ ] messaging_system compatibility assurance
+- [ ] Performance optimization completion
+
+### v2.1.0 (Planned) - Stabilization
+- [ ] All tests passing
+- [ ] Documentation completion
+- [ ] Production deployment readiness
+
+## 📝 API Example
+
+```cpp
+#include <network_system/core/messaging_server.h>
+#include <network_system/core/messaging_client.h>
+
+// Server example
+auto server = std::make_shared<network_system::core::messaging_server>();
+server->set_message_handler([](const std::string& message) {
+    std::cout << "Received: " << message << std::endl;
+    return "Echo: " + message;
+});
+server->start("0.0.0.0", 8080);
+
+// Client example
+auto client = std::make_shared<network_system::core::messaging_client>();
+client->connect("localhost", 8080);
+client->send("Hello, Network System!");
+```
+
+## 🤝 Contributing
+
+Contributions are welcome! Please follow these guidelines:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes following conventional commits
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- ASIO library for asynchronous I/O
+- fmt library for modern formatting
+- Original messaging_system contributors
+
+## 📧 Contact
+
+**Owner**: kcenon (kcenon@naver.com)
+**Repository**: https://github.com/kcenon/network_system
+
+---
+
+## 🎉 Getting Started
+
+If you're ready, start the migration with the following command:
 
 ```bash
-# Install required packages
-vcpkg install asio fmt
-# Optional SSL support
-vcpkg install openssl
+cd /Users/dongcheolshin/Sources/network_system
+./scripts/migration/quick_start.sh
 ```
 
-## Configuration
+You can proceed step-by-step through the interactive menu or choose full automated migration.
 
-### CMake Options
+**Good luck!** 🚀
 
-```cmake
-option(USE_SSL "Enable SSL/TLS support" OFF)
-option(USE_EPOLL "Enable epoll support (Linux)" ON)
-option(USE_KQUEUE "Enable kqueue support (macOS/BSD)" ON)
-option(BUILD_NETWORK_SAMPLES "Build network system samples" ON)
+## 📝 API Example
+
+```cpp
+#include <network_system/core/messaging_server.h>
+#include <network_system/core/messaging_client.h>
+
+// Server example
+auto server = std::make_shared<network_system::core::messaging_server>();
+server->set_message_handler([](const std::string& message) {
+    std::cout << "Received: " << message << std::endl;
+    return "Echo: " + message;
+});
+server->start("0.0.0.0", 8080);
+
+// Client example
+auto client = std::make_shared<network_system::core::messaging_client>();
+client->connect("localhost", 8080);
+client->send("Hello, Network System!");
 ```
 
-### Environment Variables
+## 🤝 Contributing
 
-```bash
-# Network configuration
-export NETWORK_BIND_ADDRESS=0.0.0.0
-export NETWORK_DEFAULT_PORT=8080
-export NETWORK_MAX_CONNECTIONS=1000
-export NETWORK_TIMEOUT=30
+Contributions are welcome! Please follow these guidelines:
 
-# Performance tuning
-export NETWORK_BUFFER_SIZE=4096
-export NETWORK_WORKER_THREADS=8
-```
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes following conventional commits
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-## License
+## 📄 License
 
-BSD 3-Clause License - see main project LICENSE file.
+This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- ASIO library for asynchronous I/O
+- fmt library for modern formatting
+- Original messaging_system contributors
+
+## 📧 Contact
+
+**Owner**: kcenon (kcenon@naver.com)
+**Repository**: https://github.com/kcenon/network_system
+
+---
+
+*This document is a comprehensive guide for the network_system separation project. Please contact us anytime if you have questions or issues.*
