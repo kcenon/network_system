@@ -319,6 +319,11 @@ elseif(ASIO_INCLUDE_DIR)
     message(STATUS "Configured to use standalone ASIO")
 endif()
 
+# Define Windows version for ASIO
+if(WIN32)
+    target_compile_definitions(NetworkSystem PRIVATE _WIN32_WINNT=0x0601)
+endif()
+
 # Configure FMT
 if(FMT_FOUND AND TARGET PkgConfig::FMT)
     target_link_libraries(NetworkSystem PRIVATE PkgConfig::FMT)
@@ -340,10 +345,12 @@ elseif(USE_STD_FORMAT)
 endif()
 
 # Link system libraries
-target_link_libraries(NetworkSystem
-    PUBLIC
-        pthread
-)
+if(NOT WIN32)
+    target_link_libraries(NetworkSystem
+        PUBLIC
+            pthread
+    )
+endif()
 
 # Platform-specific libraries
 if(WIN32)
@@ -374,6 +381,11 @@ elseif(ASIO_INCLUDE_DIR)
     target_include_directories(verify_build PRIVATE ${ASIO_INCLUDE_DIR})
     target_compile_definitions(verify_build PRIVATE ASIO_STANDALONE)
     target_compile_definitions(verify_build PRIVATE ASIO_NO_DEPRECATED)
+endif()
+
+# Define Windows version for ASIO
+if(WIN32)
+    target_compile_definitions(verify_build PRIVATE _WIN32_WINNT=0x0601)
 endif()
 
 # Configure FMT for verification test
