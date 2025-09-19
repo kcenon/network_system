@@ -1,5 +1,10 @@
 cmake_minimum_required(VERSION 3.16)
 
+# Set policy for FindBoost module (suppress warning)
+if(POLICY CMP0167)
+    cmake_policy(SET CMP0167 NEW)
+endif()
+
 ##################################################
 # Network System CMakeLists.txt
 #
@@ -106,15 +111,39 @@ if(NOT ASIO_INCLUDE_DIR)
     message(STATUS "ASIO not found in standard locations. Checking alternative approaches...")
 
     # Try to find Boost.ASIO as fallback
-    find_package(Boost QUIET COMPONENTS system)
+    # First try modern CMake config mode
+    find_package(Boost QUIET CONFIG COMPONENTS system)
+    if(NOT Boost_FOUND)
+        # Fallback to module mode for older installations
+        find_package(Boost QUIET MODULE COMPONENTS system)
+    endif()
+
     if(Boost_FOUND)
-        message(STATUS "Using Boost.ASIO as fallback")
+        message(STATUS "Using Boost.ASIO as fallback (version: ${Boost_VERSION})")
         set(USE_BOOST_ASIO ON)
     else()
-        message(FATAL_ERROR "ASIO not found. Please install one of:")
-        message(FATAL_ERROR "  - Standalone ASIO library")
-        message(FATAL_ERROR "  - Boost libraries with ASIO component")
-        message(FATAL_ERROR "  - Use vcpkg: vcpkg install asio")
+        # Try to find boost headers manually for header-only usage
+        find_path(BOOST_INCLUDE_DIR
+            NAMES boost/asio.hpp
+            PATHS
+                /usr/include
+                /usr/local/include
+                /opt/homebrew/include
+                /mingw64/include
+                /mingw32/include
+        )
+
+        if(BOOST_INCLUDE_DIR)
+            message(STATUS "Using Boost.ASIO headers-only fallback at: ${BOOST_INCLUDE_DIR}")
+            set(USE_BOOST_ASIO ON)
+            set(Boost_INCLUDE_DIRS ${BOOST_INCLUDE_DIR})
+        else()
+            message(FATAL_ERROR "ASIO not found. Please install one of:")
+            message(FATAL_ERROR "  - libasio-dev (Ubuntu/Debian): sudo apt install libasio-dev")
+            message(FATAL_ERROR "  - Boost libraries: sudo apt install libboost-all-dev")
+            message(FATAL_ERROR "  - vcpkg: vcpkg install asio")
+            message(FATAL_ERROR "  - macOS Homebrew: brew install asio boost")
+        endif()
     endif()
 else()
     message(STATUS "Found ASIO at: ${ASIO_INCLUDE_DIR}")
@@ -209,9 +238,14 @@ endif()
 # Configure ASIO
 if(USE_BOOST_ASIO)
     target_include_directories(NetworkSystem PRIVATE ${Boost_INCLUDE_DIRS})
-    target_link_libraries(NetworkSystem PRIVATE ${Boost_LIBRARIES})
+    if(Boost_LIBRARIES)
+        target_link_libraries(NetworkSystem PRIVATE ${Boost_LIBRARIES})
+        message(STATUS "Configured to use Boost.ASIO with libraries")
+    else()
+        message(STATUS "Configured to use Boost.ASIO header-only")
+    endif()
     target_compile_definitions(NetworkSystem PRIVATE USE_BOOST_ASIO)
-    message(STATUS "Configured to use Boost.ASIO")
+    target_compile_definitions(NetworkSystem PRIVATE BOOST_ASIO_STANDALONE)
 elseif(ASIO_INCLUDE_DIR)
     target_include_directories(NetworkSystem PRIVATE ${ASIO_INCLUDE_DIR})
     target_compile_definitions(NetworkSystem PRIVATE ASIO_STANDALONE)
