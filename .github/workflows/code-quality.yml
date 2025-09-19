@@ -57,7 +57,7 @@ jobs:
 
     - name: Upload Analysis Reports
       if: always()
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: analysis-reports
         path: |
@@ -148,7 +148,7 @@ jobs:
         fi
 
     - name: Upload Coverage Report
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: coverage-report
         path: build/coverage-report.html
@@ -180,7 +180,7 @@ jobs:
         echo "All dependencies are compatible with BSD-3-Clause license" >> license-report.md
 
     - name: Upload License Report
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: license-report
         path: license-report.md
