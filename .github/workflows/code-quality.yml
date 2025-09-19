@@ -151,10 +151,21 @@ jobs:
     - name: Check Coverage Threshold
       run: |
         cd build
-        coverage=$(gcovr -r .. --exclude='.*test.*' --exclude='.*sample.*' --print-summary | grep "TOTAL" | awk '{print $4}' | sed 's/%//')
+        # Fix for gcovr issues with certain GCC versions
+        export GCOV_ERROR_FILE=/dev/null
+
+        # Get coverage with error handling
+        coverage=$(gcovr -r .. --exclude='.*test.*' --exclude='.*sample.*' --print-summary 2>/dev/null | grep "TOTAL" | awk '{print $4}' | sed 's/%//' || echo "0")
+
+        # Default to 0 if parsing fails
+        if [ -z "$coverage" ]; then
+          coverage=0
+        fi
+
         threshold=50
 
-        if (( $(echo "$coverage < $threshold" | bc -l) )); then
+        # Use arithmetic comparison instead of bc
+        if [ "$coverage" -lt "$threshold" ] 2>/dev/null || [ "$coverage" = "0" ]; then
           echo "⚠️ Code coverage ($coverage%) is below threshold ($threshold%)"
           echo "Note: Coverage improvement needed in future iterations"
         else
