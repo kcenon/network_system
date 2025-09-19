@@ -359,6 +359,7 @@ if(BUILD_MESSAGING_BRIDGE)
     target_sources(NetworkSystem PRIVATE
         src/integration/messaging_bridge.cpp
         src/integration/thread_integration.cpp
+        src/integration/container_integration.cpp
     )
     add_compile_definitions(BUILD_MESSAGING_BRIDGE)
 endif()
