@@ -69,3 +69,6 @@ Thumbs.db
 # Backup files
 *.bak
 *.orig
+
+# Documentation
+documents/
