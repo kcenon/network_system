@@ -404,6 +404,66 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/tests/integration/test_compatibility.cpp)
     endif()
 endif()
 
+# End-to-end tests (optional)
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/tests/integration/test_e2e.cpp)
+    add_executable(test_e2e tests/integration/test_e2e.cpp)
+    target_link_libraries(test_e2e PRIVATE NetworkSystem)
+
+    # Add container_system include path
+    if(CONTAINER_SYSTEM_INCLUDE_DIR)
+        target_include_directories(test_e2e PRIVATE ${CONTAINER_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(test_e2e PRIVATE BUILD_WITH_CONTAINER_SYSTEM)
+    endif()
+
+    # Configure same as main library
+    if(USE_BOOST_ASIO)
+        target_include_directories(test_e2e PRIVATE ${Boost_INCLUDE_DIRS})
+        if(Boost_LIBRARIES)
+            target_link_libraries(test_e2e PRIVATE ${Boost_LIBRARIES})
+        endif()
+        target_compile_definitions(test_e2e PRIVATE USE_BOOST_ASIO)
+        target_compile_definitions(test_e2e PRIVATE BOOST_ASIO_STANDALONE)
+    elseif(ASIO_INCLUDE_DIR)
+        target_include_directories(test_e2e PRIVATE ${ASIO_INCLUDE_DIR})
+        target_compile_definitions(test_e2e PRIVATE ASIO_STANDALONE)
+        target_compile_definitions(test_e2e PRIVATE ASIO_NO_DEPRECATED)
+    endif()
+
+    if(WIN32)
+        target_compile_definitions(test_e2e PRIVATE _WIN32_WINNT=0x0601)
+    endif()
+endif()
+
+# Stress tests (optional)
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/tests/stress/stress_test.cpp)
+    add_executable(stress_test tests/stress/stress_test.cpp)
+    target_link_libraries(stress_test PRIVATE NetworkSystem)
+
+    # Add container_system include path
+    if(CONTAINER_SYSTEM_INCLUDE_DIR)
+        target_include_directories(stress_test PRIVATE ${CONTAINER_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(stress_test PRIVATE BUILD_WITH_CONTAINER_SYSTEM)
+    endif()
+
+    # Configure same as main library
+    if(USE_BOOST_ASIO)
+        target_include_directories(stress_test PRIVATE ${Boost_INCLUDE_DIRS})
+        if(Boost_LIBRARIES)
+            target_link_libraries(stress_test PRIVATE ${Boost_LIBRARIES})
+        endif()
+        target_compile_definitions(stress_test PRIVATE USE_BOOST_ASIO)
+        target_compile_definitions(stress_test PRIVATE BOOST_ASIO_STANDALONE)
+    elseif(ASIO_INCLUDE_DIR)
+        target_include_directories(stress_test PRIVATE ${ASIO_INCLUDE_DIR})
+        target_compile_definitions(stress_test PRIVATE ASIO_STANDALONE)
+        target_compile_definitions(stress_test PRIVATE ASIO_NO_DEPRECATED)
+    endif()
+
+    if(WIN32)
+        target_compile_definitions(stress_test PRIVATE _WIN32_WINNT=0x0601)
+    endif()
+endif()
+
 # Performance benchmark (optional)
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/tests/performance/benchmark.cpp)
     add_executable(benchmark tests/performance/benchmark.cpp)
