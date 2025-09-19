@@ -16,7 +16,7 @@
 #include "network_system/core/messaging_server.h"
 
 #ifdef BUILD_WITH_CONTAINER_SYSTEM
-#include "container_system/container.h"
+#include "container.h"
 #endif
 
 #ifdef BUILD_WITH_THREAD_SYSTEM
@@ -69,11 +69,11 @@ public:
 
 #ifdef BUILD_WITH_CONTAINER_SYSTEM
     /**
-     * @brief Set container factory for message serialization/deserialization
-     * @param factory Shared pointer to container factory
+     * @brief Set container for message serialization/deserialization
+     * @param container Shared pointer to value container
      */
-    void set_container_factory(
-        std::shared_ptr<container_system::factory> factory
+    void set_container(
+        std::shared_ptr<container_module::value_container> container
     );
 
     /**
@@ -81,7 +81,7 @@ public:
      * @param handler Function to handle container messages
      */
     void set_container_message_handler(
-        std::function<void(const container_system::message&)> handler
+        std::function<void(const container_module::value_container&)> handler
     );
 #endif
 

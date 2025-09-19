@@ -165,17 +165,46 @@ endif()
 
 # Conditional dependencies
 if(BUILD_WITH_CONTAINER_SYSTEM)
-    find_path(CONTAINER_SYSTEM_INCLUDE_DIR
-        NAMES container_system/container.h
-        PATHS ../container_system/include
-        NO_DEFAULT_PATH
-    )
-    if(CONTAINER_SYSTEM_INCLUDE_DIR)
-        message(STATUS "Found container_system at: ${CONTAINER_SYSTEM_INCLUDE_DIR}")
+    # First try to find container_system as a CMake target (if built as subdirectory)
+    if(TARGET ContainerSystem::container)
+        message(STATUS "Found container_system CMake target: ContainerSystem::container")
+        set(CONTAINER_SYSTEM_TARGET ContainerSystem::container)
         add_compile_definitions(BUILD_WITH_CONTAINER_SYSTEM)
     else()
-        message(WARNING "container_system not found, integration disabled")
-        set(BUILD_WITH_CONTAINER_SYSTEM OFF)
+        # Fallback to path-based detection
+        find_path(CONTAINER_SYSTEM_INCLUDE_DIR
+            NAMES container.h
+            PATHS
+                ../container_system
+                ${CMAKE_CURRENT_SOURCE_DIR}/../container_system
+            NO_DEFAULT_PATH
+        )
+
+        if(CONTAINER_SYSTEM_INCLUDE_DIR)
+            message(STATUS "Found container_system headers at: ${CONTAINER_SYSTEM_INCLUDE_DIR}")
+
+            # Check if the library exists
+            find_library(CONTAINER_SYSTEM_LIBRARY
+                NAMES container_system ContainerSystem
+                PATHS
+                    ../container_system/build
+                    ${CMAKE_CURRENT_SOURCE_DIR}/../container_system/build
+                PATH_SUFFIXES lib Debug Release
+                NO_DEFAULT_PATH
+            )
+
+            if(CONTAINER_SYSTEM_LIBRARY)
+                message(STATUS "Found container_system library at: ${CONTAINER_SYSTEM_LIBRARY}")
+            else()
+                message(STATUS "container_system library not found, will build from source if available")
+            endif()
+
+            add_compile_definitions(BUILD_WITH_CONTAINER_SYSTEM)
+        else()
+            message(WARNING "container_system not found, integration disabled")
+            message(STATUS "Searched paths: ../container_system, ${CMAKE_CURRENT_SOURCE_DIR}/../container_system")
+            set(BUILD_WITH_CONTAINER_SYSTEM OFF)
+        endif()
     endif()
 endif()
 
@@ -226,9 +255,20 @@ target_include_directories(NetworkSystem
         ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
 
-# External system include directories
-if(BUILD_WITH_CONTAINER_SYSTEM AND CONTAINER_SYSTEM_INCLUDE_DIR)
-    target_include_directories(NetworkSystem PRIVATE ${CONTAINER_SYSTEM_INCLUDE_DIR})
+# External system integration
+if(BUILD_WITH_CONTAINER_SYSTEM)
+    if(CONTAINER_SYSTEM_TARGET)
+        # Link against the CMake target
+        target_link_libraries(NetworkSystem PRIVATE ${CONTAINER_SYSTEM_TARGET})
+        message(STATUS "Linked NetworkSystem with container_system target")
+    elseif(CONTAINER_SYSTEM_INCLUDE_DIR)
+        # Manual include and library linking
+        target_include_directories(NetworkSystem PRIVATE ${CONTAINER_SYSTEM_INCLUDE_DIR})
+        if(CONTAINER_SYSTEM_LIBRARY)
+            target_link_libraries(NetworkSystem PRIVATE ${CONTAINER_SYSTEM_LIBRARY})
+        endif()
+        message(STATUS "Configured NetworkSystem with container_system paths")
+    endif()
 endif()
 
 if(BUILD_WITH_THREAD_SYSTEM AND THREAD_SYSTEM_INCLUDE_DIR)
@@ -317,6 +357,18 @@ elseif(FMT_INCLUDE_DIR)
     target_include_directories(verify_build PRIVATE ${FMT_INCLUDE_DIR})
     if(FMT_LIBRARY)
         target_link_libraries(verify_build PRIVATE ${FMT_LIBRARY})
+    endif()
+endif()
+
+# Configure container_system for verification test
+if(BUILD_WITH_CONTAINER_SYSTEM)
+    if(CONTAINER_SYSTEM_TARGET)
+        target_link_libraries(verify_build PRIVATE ${CONTAINER_SYSTEM_TARGET})
+    elseif(CONTAINER_SYSTEM_INCLUDE_DIR)
+        target_include_directories(verify_build PRIVATE ${CONTAINER_SYSTEM_INCLUDE_DIR})
+        if(CONTAINER_SYSTEM_LIBRARY)
+            target_link_libraries(verify_build PRIVATE ${CONTAINER_SYSTEM_LIBRARY})
+        endif()
     endif()
 endif()
 
