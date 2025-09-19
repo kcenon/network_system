@@ -53,6 +53,8 @@ jobs:
             mingw-w64-x86_64-gtest
             mingw-w64-x86_64-benchmark
             mingw-w64-x86_64-spdlog
+            mingw-w64-x86_64-asio
+            mingw-w64-x86_64-boost
             git
 
       - name: Cache vcpkg
