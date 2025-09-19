@@ -368,6 +368,36 @@ endif()
 add_executable(verify_build verify_build.cpp)
 target_link_libraries(verify_build PRIVATE NetworkSystem)
 
+# Integration tests (optional)
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/tests/integration/test_integration.cpp)
+    add_executable(test_integration tests/integration/test_integration.cpp)
+    target_link_libraries(test_integration PRIVATE NetworkSystem)
+
+    # Add container_system include path
+    if(CONTAINER_SYSTEM_INCLUDE_DIR)
+        target_include_directories(test_integration PRIVATE ${CONTAINER_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(test_integration PRIVATE BUILD_WITH_CONTAINER_SYSTEM)
+    endif()
+
+    # Configure same as main library
+    if(USE_BOOST_ASIO)
+        target_include_directories(test_integration PRIVATE ${Boost_INCLUDE_DIRS})
+        if(Boost_LIBRARIES)
+            target_link_libraries(test_integration PRIVATE ${Boost_LIBRARIES})
+        endif()
+        target_compile_definitions(test_integration PRIVATE USE_BOOST_ASIO)
+        target_compile_definitions(test_integration PRIVATE BOOST_ASIO_STANDALONE)
+    elseif(ASIO_INCLUDE_DIR)
+        target_include_directories(test_integration PRIVATE ${ASIO_INCLUDE_DIR})
+        target_compile_definitions(test_integration PRIVATE ASIO_STANDALONE)
+        target_compile_definitions(test_integration PRIVATE ASIO_NO_DEPRECATED)
+    endif()
+
+    if(WIN32)
+        target_compile_definitions(test_integration PRIVATE _WIN32_WINNT=0x0601)
+    endif()
+endif()
+
 # Configure ASIO for verification test (same as main library)
 if(USE_BOOST_ASIO)
     target_include_directories(verify_build PRIVATE ${Boost_INCLUDE_DIRS})

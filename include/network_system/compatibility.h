@@ -169,5 +169,3 @@ namespace network_system::compat {
         }
     }
 }
-
-#endif // NETWORK_SYSTEM_COMPATIBILITY_H
