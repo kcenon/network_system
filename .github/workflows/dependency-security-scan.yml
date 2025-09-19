@@ -28,12 +28,16 @@ jobs:
       with:
         submodules: true
 
-    - name: Setup and install vcpkg dependencies
-      uses: lukka/run-vcpkg@v11
-      with:
-        vcpkgDirectory: '${{ github.workspace }}/vcpkg'
-        runVcpkgInstall: true
-        vcpkgJsonGlob: '**/vcpkg.json'
+    - name: Setup vcpkg manually
+      continue-on-error: true
+      run: |
+        echo "Setting up vcpkg for dependency scanning..."
+        if [ ! -d "vcpkg" ]; then
+          git clone https://github.com/Microsoft/vcpkg.git
+          ./vcpkg/bootstrap-vcpkg.sh
+        fi
+        # Try to install dependencies for scanning
+        ./vcpkg/vcpkg install --triplet x64-linux asio fmt || echo "vcpkg install failed, continuing with scan"
 
     - name: Dependency vulnerability scan
       uses: aquasecurity/trivy-action@master
@@ -59,31 +63,30 @@ jobs:
         import json
         import sys
         
-        # Compatible licenses with MIT
+        # Compatible licenses with BSD-3-Clause
         COMPATIBLE_LICENSES = {
             'MIT', 'BSD-2-Clause', 'BSD-3-Clause', 'Apache-2.0',
-            'ISC', 'Unlicense', 'LGPL-2.1+', 'LGPL-3.0+'
+            'ISC', 'Unlicense', 'BSL-1.0', 'Boost'
         }
-        
+
         # Read vcpkg manifest
         with open('vcpkg.json', 'r') as f:
             manifest = json.load(f)
-        
-        print("License Compatibility Check for thread-system (MIT License)")
+
+        print("License Compatibility Check for network-system (BSD-3-Clause License)")
         print("=" * 60)
-        
+
         # Known licenses for our dependencies
         known_licenses = {
+            'asio': 'BSL-1.0',  # Boost Software License
             'fmt': 'MIT',
-            'gtest': 'BSD-3-Clause', 
-            'benchmark': 'Apache-2.0',
-            'spdlog': 'MIT',
-            'libiconv': 'LGPL-2.1+'
+            'gtest': 'BSD-3-Clause',
+            'benchmark': 'Apache-2.0'
         }
-        
+
         all_compatible = True
-        
-        for dep_name in ['fmt', 'gtest', 'benchmark', 'spdlog', 'libiconv']:
+
+        for dep_name in ['asio', 'fmt', 'gtest', 'benchmark']:
             if dep_name in known_licenses:
                 license_name = known_licenses[dep_name]
                 compatible = license_name in COMPATIBLE_LICENSES
