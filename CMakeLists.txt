@@ -654,3 +654,6 @@ set(OLD_FILES
 )
 
 # Note: We'll clean these manually after successful build
+
+# Include CPack for distribution packages
+include(cmake/CPack.cmake)
