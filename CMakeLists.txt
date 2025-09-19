@@ -404,6 +404,36 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/tests/integration/test_compatibility.cpp)
     endif()
 endif()
 
+# Performance benchmark (optional)
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/tests/performance/benchmark.cpp)
+    add_executable(benchmark tests/performance/benchmark.cpp)
+    target_link_libraries(benchmark PRIVATE NetworkSystem)
+
+    # Add container_system include path
+    if(CONTAINER_SYSTEM_INCLUDE_DIR)
+        target_include_directories(benchmark PRIVATE ${CONTAINER_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(benchmark PRIVATE BUILD_WITH_CONTAINER_SYSTEM)
+    endif()
+
+    # Configure same as main library
+    if(USE_BOOST_ASIO)
+        target_include_directories(benchmark PRIVATE ${Boost_INCLUDE_DIRS})
+        if(Boost_LIBRARIES)
+            target_link_libraries(benchmark PRIVATE ${Boost_LIBRARIES})
+        endif()
+        target_compile_definitions(benchmark PRIVATE USE_BOOST_ASIO)
+        target_compile_definitions(benchmark PRIVATE BOOST_ASIO_STANDALONE)
+    elseif(ASIO_INCLUDE_DIR)
+        target_include_directories(benchmark PRIVATE ${ASIO_INCLUDE_DIR})
+        target_compile_definitions(benchmark PRIVATE ASIO_STANDALONE)
+        target_compile_definitions(benchmark PRIVATE ASIO_NO_DEPRECATED)
+    endif()
+
+    if(WIN32)
+        target_compile_definitions(benchmark PRIVATE _WIN32_WINNT=0x0601)
+    endif()
+endif()
+
 # Update test_integration configuration to use proper structure
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/tests/integration/test_integration.cpp)
     # Add container_system include path for test_integration too
