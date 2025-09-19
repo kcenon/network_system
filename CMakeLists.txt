@@ -372,8 +372,41 @@ target_link_libraries(verify_build PRIVATE NetworkSystem)
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/tests/integration/test_integration.cpp)
     add_executable(test_integration tests/integration/test_integration.cpp)
     target_link_libraries(test_integration PRIVATE NetworkSystem)
+endif()
+
+# Compatibility tests (optional)
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/tests/integration/test_compatibility.cpp)
+    add_executable(test_compatibility tests/integration/test_compatibility.cpp)
+    target_link_libraries(test_compatibility PRIVATE NetworkSystem)
 
     # Add container_system include path
+    if(CONTAINER_SYSTEM_INCLUDE_DIR)
+        target_include_directories(test_compatibility PRIVATE ${CONTAINER_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(test_compatibility PRIVATE BUILD_WITH_CONTAINER_SYSTEM)
+    endif()
+
+    # Configure same as main library
+    if(USE_BOOST_ASIO)
+        target_include_directories(test_compatibility PRIVATE ${Boost_INCLUDE_DIRS})
+        if(Boost_LIBRARIES)
+            target_link_libraries(test_compatibility PRIVATE ${Boost_LIBRARIES})
+        endif()
+        target_compile_definitions(test_compatibility PRIVATE USE_BOOST_ASIO)
+        target_compile_definitions(test_compatibility PRIVATE BOOST_ASIO_STANDALONE)
+    elseif(ASIO_INCLUDE_DIR)
+        target_include_directories(test_compatibility PRIVATE ${ASIO_INCLUDE_DIR})
+        target_compile_definitions(test_compatibility PRIVATE ASIO_STANDALONE)
+        target_compile_definitions(test_compatibility PRIVATE ASIO_NO_DEPRECATED)
+    endif()
+
+    if(WIN32)
+        target_compile_definitions(test_compatibility PRIVATE _WIN32_WINNT=0x0601)
+    endif()
+endif()
+
+# Update test_integration configuration to use proper structure
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/tests/integration/test_integration.cpp)
+    # Add container_system include path for test_integration too
     if(CONTAINER_SYSTEM_INCLUDE_DIR)
         target_include_directories(test_integration PRIVATE ${CONTAINER_SYSTEM_INCLUDE_DIR})
         target_compile_definitions(test_integration PRIVATE BUILD_WITH_CONTAINER_SYSTEM)
