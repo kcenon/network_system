@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['changelog_0',['Changelog',['../md_CHANGELOG.html',1,'']]],
-  ['checklist_1',['Network System Migration Checklist',['../md_MIGRATION__CHECKLIST.html',1,'']]]
+  ['details_0',['Technical Implementation Details',['../md_TECHNICAL__IMPLEMENTATION__DETAILS.html',1,'']]],
+  ['documentation_1',['Network System Documentation',['../index.html',1,'']]]
 ];

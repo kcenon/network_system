@@ -21,7 +21,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">Network System<span id="projectnumber">&#160;2.0.0</span>
+   <div id="projectname">Network System
    </div>
    <div id="projectbrief">High-performance modular networking library for scalable client-server applications</div>
   </td>
@@ -74,7 +74,7 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><p><a class="anchor" id="autotoc_md46"></a> All notable changes to the Network System project will be documented in this file.</p>
-<p>The format is based on <a href="https://keepachangelog.com/en/1.0.0/">Keep a Changelog</a>, and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semantic Versioning</a>.</p>
+<p>The format is based on <a href="https://keepachangelog.com/en/1.0.0/">Keep a Changelog</a>.</p>
 <h1><a class="anchor" id="autotoc_md47"></a>
 [Unreleased]</h1>
 <h2><a class="anchor" id="autotoc_md48"></a>
@@ -89,7 +89,7 @@ To Be Implemented</h2>
 <li>Performance benchmarks</li>
 </ul>
 <h1><a class="anchor" id="autotoc_md49"></a>
-[2.0.0] - 2025-09-19</h1>
+2025-09-19 - Phase 1 Complete</h1>
 <h2><a class="anchor" id="autotoc_md50"></a>
 Added</h2>
 <ul>
@@ -166,50 +166,50 @@ Security</h2>
 <li>Configured security event reporting</li>
 </ul>
 <h1><a class="anchor" id="autotoc_md54"></a>
-[1.0.0] - 2025-09-18</h1>
+2025-09-18 - Initial Separation</h1>
 <h2><a class="anchor" id="autotoc_md55"></a>
 Added</h2>
 <ul>
-<li>Initial implementation within messaging_system</li>
+<li>Initial implementation separated from messaging_system</li>
 <li>Basic TCP client/server functionality</li>
 <li>Session management</li>
 <li>Message pipeline processing</li>
 </ul>
 <hr  />
 <h1><a class="anchor" id="autotoc_md57"></a>
-Version History</h1>
+Development Timeline</h1>
 <table class="markdownTable">
 <tr class="markdownTableHead">
-<th class="markdownTableHeadNone">Version   </th><th class="markdownTableHeadNone">Date   </th><th class="markdownTableHeadNone">Description    </th></tr>
+<th class="markdownTableHeadNone">Date   </th><th class="markdownTableHeadNone">Milestone   </th><th class="markdownTableHeadNone">Description    </th></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">2.0.0   </td><td class="markdownTableBodyNone">2025-09-19   </td><td class="markdownTableBodyNone">Phase 1 complete - Infrastructure and separation    </td></tr>
+<td class="markdownTableBodyNone">2025-09-19   </td><td class="markdownTableBodyNone">Phase 1 Complete   </td><td class="markdownTableBodyNone">Infrastructure and separation complete    </td></tr>
 <tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone">1.0.0   </td><td class="markdownTableBodyNone">2025-09-18   </td><td class="markdownTableBodyNone">Initial version within messaging_system   </td></tr>
+<td class="markdownTableBodyNone">2025-09-18   </td><td class="markdownTableBodyNone">Initial Separation   </td><td class="markdownTableBodyNone">Started separation from messaging_system   </td></tr>
 </table>
 <h1><a class="anchor" id="autotoc_md58"></a>
-Upgrade Guide</h1>
+Migration Guide</h1>
 <h2><a class="anchor" id="autotoc_md59"></a>
-From 1.0.0 to 2.0.0</h2>
+From messaging_system to network_system</h2>
 <h3><a class="anchor" id="autotoc_md60"></a>
 Namespace Changes</h3>
-<div class="fragment"><div class="line"><span class="comment">// Old (1.0.0)</span></div>
+<div class="fragment"><div class="line"><span class="comment">// Old (messaging_system)</span></div>
 <div class="line"><span class="preprocessor">#include &lt;messaging_system/network/tcp_server.h&gt;</span></div>
 <div class="line"><span class="keyword">using namespace </span>network_module;</div>
 <div class="line"> </div>
-<div class="line"><span class="comment">// New (2.0.0)</span></div>
+<div class="line"><span class="comment">// New (network_system)</span></div>
 <div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_server.h&gt;</span></div>
 <div class="line"><span class="keyword">using namespace </span>network_system::core;</div>
 </div><!-- fragment --><h3><a class="anchor" id="autotoc_md61"></a>
 CMake Integration</h3>
-<div class="fragment"><div class="line"># Old (1.0.0)</div>
+<div class="fragment"><div class="line"># Old (messaging_system)</div>
 <div class="line"># Part of messaging_system</div>
 <div class="line"> </div>
-<div class="line"># New (2.0.0)</div>
+<div class="line"># New (network_system)</div>
 <div class="line">find_package(NetworkSystem REQUIRED)</div>
 <div class="line">target_link_libraries(your_target NetworkSystem::NetworkSystem)</div>
 </div><!-- fragment --><h3><a class="anchor" id="autotoc_md62"></a>
 Container Integration</h3>
-<div class="fragment"><div class="line"><span class="comment">// New feature in 2.0.0</span></div>
+<div class="fragment"><div class="line"><span class="comment">// New feature in network_system</span></div>
 <div class="line"><span class="preprocessor">#include &lt;network_system/integration/messaging_bridge.h&gt;</span></div>
 <div class="line"> </div>
 <div class="line"><span class="keyword">auto</span> bridge = std::make_unique&lt;network_system::integration::messaging_bridge&gt;();</div>

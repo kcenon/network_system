@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['build_20instructions_0',['Build Instructions',['../md_BUILD.html',1,'']]]
+  ['changelog_0',['Changelog',['../md_CHANGELOG.html',1,'']]],
+  ['checklist_1',['Network System Migration Checklist',['../md_MIGRATION__CHECKLIST.html',1,'']]]
 ];
