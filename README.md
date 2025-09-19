@@ -4,7 +4,6 @@
 [![License](https://img.shields.io/badge/license-BSD--3--Clause-blue.svg)](LICENSE)
 [![C++ Version](https://img.shields.io/badge/C%2B%2B-20-blue.svg)](https://en.cppreference.com/w/cpp/20)
 
-**Version**: 2.0.0
 **Status**: Phase 1 Complete ✅
 **Owner**: kcenon (kcenon@naver.com)
 
@@ -718,7 +717,7 @@ This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICE
 - [ ] Full API documentation
 - [ ] User guides and tutorials
 - [ ] Integration examples
-- [ ] Release v2.0.0
+- [ ] Official release planning
 
 ## 📝 API Example
 

@@ -14,7 +14,6 @@ endif()
 
 # Project definition
 project(NetworkSystem
-    VERSION 2.0.0
     DESCRIPTION "Independent High-Performance Network System"
     LANGUAGES CXX
 )
@@ -268,8 +267,6 @@ add_library(NetworkSystem
 set_target_properties(NetworkSystem PROPERTIES
     CXX_STANDARD 20
     CXX_STANDARD_REQUIRED ON
-    VERSION ${PROJECT_VERSION}
-    SOVERSION ${PROJECT_VERSION_MAJOR}
 )
 
 # Include directories
@@ -462,8 +459,8 @@ configure_package_config_file(
 # Generate version file
 write_basic_package_version_file(
     "${CMAKE_CURRENT_BINARY_DIR}/NetworkSystemConfigVersion.cmake"
-    VERSION ${PROJECT_VERSION}
-    COMPATIBILITY SameMajorVersion
+    VERSION 0.0.0
+    COMPATIBILITY AnyNewerVersion
 )
 
 # Install config files
@@ -482,7 +479,6 @@ install(EXPORT NetworkSystemTargets
 
 # Print configuration summary
 message(STATUS "NetworkSystem Configuration Summary:")
-message(STATUS "  Version: ${PROJECT_VERSION}")
 message(STATUS "  Build type: ${CMAKE_BUILD_TYPE}")
 message(STATUS "  C++ standard: ${CMAKE_CXX_STANDARD}")
 message(STATUS "  Build shared libs: ${BUILD_SHARED_LIBS}")

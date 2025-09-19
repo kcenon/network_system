@@ -5,7 +5,7 @@
 #---------------------------------------------------------------------------
 DOXYFILE_ENCODING      = UTF-8
 PROJECT_NAME           = "Network System"
-PROJECT_NUMBER         = 2.0.0
+PROJECT_NUMBER         =
 PROJECT_BRIEF          = "High-performance modular networking library for scalable client-server applications"
 PROJECT_LOGO           =
 OUTPUT_DIRECTORY       = documents
