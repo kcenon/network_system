@@ -90,22 +90,11 @@ jobs:
           gcc --version
           g++ --version
 
-      - name: Set up vcpkg (optional - try system packages first)
+      - name: Set up vcpkg (optional - skip if system packages work)
         id: vcpkg_setup
         continue-on-error: true
         run: |
-          if [ ! -d "vcpkg" ]; then
-            echo "Cloning vcpkg repository..."
-            git clone https://github.com/Microsoft/vcpkg.git
-          else
-            echo "Updating existing vcpkg repository..."
-            cd vcpkg
-            git pull
-            cd ..
-          fi
-          
-          echo "Bootstrapping vcpkg..."
-          ./vcpkg/bootstrap-vcpkg.sh
+          echo "Skipping vcpkg setup - using MSYS2 packages"
 
       - name: Determine vcpkg commit
         id: vcpkg-commit
@@ -121,13 +110,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-msys2-vcpkg-installed-${{ env.VCPKG_DEFAULT_TRIPLET }}-
 
-      - name: Install dependencies with vcpkg (if setup succeeded, uses binary cache)
-        if: steps.vcpkg-installed.outputs.cache-hit != 'true' && steps.vcpkg_setup.outcome == 'success'
-        continue-on-error: true
+      - name: Skip vcpkg dependency installation
         run: |
-          echo "Installing dependencies via vcpkg..."
-          GWS="$(cygpath -u "$GITHUB_WORKSPACE")"
-          ./vcpkg/vcpkg install --x-manifest-root=. --x-install-root="${GWS}/vcpkg_installed" --triplet $VCPKG_DEFAULT_TRIPLET
+          echo "Using MSYS2 system packages instead of vcpkg"
 
       - name: Cache CMake build
         uses: actions/cache@v3
@@ -144,8 +129,8 @@ jobs:
           rm -rf build
           mkdir -p build
 
-      - name: Build application (prefer system packages)
-        id: build_system
+      - name: Build application with MSYS2 packages
+        id: build_main
         env:
           CC: /mingw64/bin/gcc
           CXX: /mingw64/bin/g++
@@ -170,8 +155,8 @@ jobs:
 
           cmake --build . --parallel $(nproc)
 
-      - name: Build application (minimal fallback)
-        if: steps.build_system.outcome == 'failure'
+      - name: Build application (fallback)
+        if: steps.build_main.outcome == 'failure'
         env:
           CC: gcc
           CXX: g++

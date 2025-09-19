@@ -41,14 +41,24 @@ jobs:
           vs-version: '17.0'
           msbuild-architecture: x64
 
-      - name: Setup and install vcpkg dependencies
+      - name: Setup vcpkg (manual)
         id: vcpkg_step
         continue-on-error: true
-        uses: lukka/run-vcpkg@v11
-        with:
-          vcpkgDirectory: '${{ github.workspace }}/vcpkg'
-          runVcpkgInstall: true
-          vcpkgJsonGlob: 'vcpkg.json'
+        shell: pwsh
+        run: |
+          Write-Host "Setting up vcpkg manually..."
+          if (!(Test-Path vcpkg)) {
+            git clone https://github.com/Microsoft/vcpkg.git
+            ./vcpkg/bootstrap-vcpkg.bat
+          }
+
+          # Try to install dependencies, but continue even if it fails
+          Write-Host "Attempting to install vcpkg dependencies..."
+          try {
+            ./vcpkg/vcpkg install --triplet x64-windows asio fmt
+          } catch {
+            Write-Host "vcpkg install failed, will use system libraries"
+          }
 
       - name: Cache CMake build
         uses: actions/cache@v3
@@ -68,54 +78,34 @@ jobs:
           }
           New-Item -ItemType Directory -Force -Path build | Out-Null
 
-      - name: Build application (vcpkg first attempt)
-        id: build_vcpkg
-        continue-on-error: true
+      - name: Build application (with flexible dependency detection)
+        id: build_main
         shell: pwsh
         run: |
-          Write-Host "Configuring CMake with vcpkg..."
+          Write-Host "Configuring CMake with flexible dependency detection..."
           Push-Location build
 
-          cmake .. -G "Visual Studio 17 2022" -A x64 `
-                  -DBUILD_TESTS=ON `
-                  -DBUILD_SAMPLES=ON `
-                  -DBUILD_WITH_CONTAINER_SYSTEM=ON `
-                  -DCMAKE_INSTALL_PREFIX="..\target" `
-                  -DCMAKE_BUILD_TYPE=$env:BUILD_TYPE `
-                  -DCMAKE_TOOLCHAIN_FILE="$env:GITHUB_WORKSPACE\vcpkg\scripts\buildsystems\vcpkg.cmake" `
-                  -DVCPKG_TARGET_TRIPLET=$env:VCPKG_DEFAULT_TRIPLET
-          
-          Write-Host "Building project..."
-          cmake --build . --config $env:BUILD_TYPE --parallel $env:NUMBER_OF_PROCESSORS
-          Pop-Location
-
-      - name: Build application (system libraries fallback)
-        if: steps.build_vcpkg.outcome == 'failure'
-        shell: pwsh
-        run: |
-          Write-Host "vcpkg build failed, falling back to system libraries..."
-          Push-Location build
-          
-          # Clean CMake cache
-          if (Test-Path "CMakeCache.txt") {
-            Remove-Item "CMakeCache.txt" -Force
-          }
-          if (Test-Path "CMakeFiles") {
-            Remove-Item -Recurse -Force "CMakeFiles"
+          # First try with vcpkg if it exists
+          $vcpkgToolchain = ""
+          if (Test-Path "$env:GITHUB_WORKSPACE\vcpkg\scripts\buildsystems\vcpkg.cmake") {
+            $vcpkgToolchain = "$env:GITHUB_WORKSPACE\vcpkg\scripts\buildsystems\vcpkg.cmake"
+            Write-Host "Using vcpkg toolchain: $vcpkgToolchain"
+          } else {
+            Write-Host "vcpkg not available, using system libraries"
           }
 
-          Write-Host "Building with system libraries (vcpkg failed)..."
           cmake .. -G "Visual Studio 17 2022" -A x64 `
                   -DBUILD_TESTS=ON `
                   -DBUILD_SAMPLES=ON `
                   -DBUILD_WITH_CONTAINER_SYSTEM=OFF `
                   -DCMAKE_INSTALL_PREFIX="..\target" `
                   -DCMAKE_BUILD_TYPE=$env:BUILD_TYPE `
-                  -DCMAKE_TOOLCHAIN_FILE=""
+                  -DCMAKE_TOOLCHAIN_FILE="$vcpkgToolchain"
 
-          Write-Host "Building NetworkSystem library..."
+          Write-Host "Building project..."
           cmake --build . --config $env:BUILD_TYPE --parallel $env:NUMBER_OF_PROCESSORS
           Pop-Location
+
 
       - name: Setup MSVC Developer Command Prompt
         uses: ilammy/msvc-dev-cmd@v1
