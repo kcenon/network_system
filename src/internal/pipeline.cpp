@@ -31,8 +31,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *****************************************************************************/
 
 #include "pipeline.h"
-
-#include <iostream>
+#include "network_system/integration/logger_integration.h"
 #include <string_view>
 
 // Using nested namespace definition for implementation details (C++17)
@@ -48,7 +47,7 @@ namespace network_system::internal::detail
 	auto default_compress_stub(const std::vector<uint8_t>& data)
 		-> std::vector<uint8_t>
 	{
-		std::cout << compress_debug_msg << '\n';
+		NETWORK_LOG_TRACE(std::string(compress_debug_msg));
 		// No real compression, just return data
 		return data;
 	}
@@ -56,7 +55,7 @@ namespace network_system::internal::detail
 	auto default_decompress_stub(const std::vector<uint8_t>& data)
 		-> std::vector<uint8_t>
 	{
-		std::cout << decompress_debug_msg << '\n';
+		NETWORK_LOG_TRACE(std::string(decompress_debug_msg));
 		// No real decompression, just return data
 		return data;
 	}
@@ -64,7 +63,7 @@ namespace network_system::internal::detail
 	auto default_encrypt_stub(const std::vector<uint8_t>& data)
 		-> std::vector<uint8_t>
 	{
-		std::cout << encrypt_debug_msg << '\n';
+		NETWORK_LOG_TRACE(std::string(encrypt_debug_msg));
 		// No real encryption, just return data
 		return data;
 	}
@@ -72,7 +71,7 @@ namespace network_system::internal::detail
 	auto default_decrypt_stub(const std::vector<uint8_t>& data)
 		-> std::vector<uint8_t>
 	{
-		std::cout << decrypt_debug_msg << '\n';
+		NETWORK_LOG_TRACE(std::string(decrypt_debug_msg));
 		// No real decryption, just return data
 		return data;
 	}

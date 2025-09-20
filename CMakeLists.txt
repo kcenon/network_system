@@ -30,6 +30,7 @@ option(BUILD_TESTS "Build tests" ON)
 option(BUILD_SAMPLES "Build samples" ON)
 option(BUILD_WITH_CONTAINER_SYSTEM "Build with container_system integration" ON)
 option(BUILD_WITH_THREAD_SYSTEM "Build with thread_system integration" ON)
+option(BUILD_WITH_LOGGER_SYSTEM "Build with logger_system integration" ON)
 option(BUILD_MESSAGING_BRIDGE "Build messaging_system bridge" ON)
 option(ENABLE_COVERAGE "Enable code coverage" OFF)
 
@@ -266,6 +267,21 @@ if(BUILD_WITH_THREAD_SYSTEM)
     endif()
 endif()
 
+if(BUILD_WITH_LOGGER_SYSTEM)
+    find_path(LOGGER_SYSTEM_INCLUDE_DIR
+        NAMES kcenon/logger/core/logger.h
+        PATHS ../logger_system/include
+        NO_DEFAULT_PATH
+    )
+    if(LOGGER_SYSTEM_INCLUDE_DIR)
+        message(STATUS "Found logger_system at: ${LOGGER_SYSTEM_INCLUDE_DIR}")
+        add_compile_definitions(BUILD_WITH_LOGGER_SYSTEM)
+    else()
+        message(WARNING "logger_system not found, integration disabled")
+        set(BUILD_WITH_LOGGER_SYSTEM OFF)
+    endif()
+endif()
+
 # Create main library
 add_library(NetworkSystem
     # Core implementation
@@ -279,6 +295,12 @@ add_library(NetworkSystem
     src/internal/tcp_socket.cpp
     src/internal/send_coroutine.cpp
     src/internal/pipeline.cpp
+)
+
+# Add logger integration if not using logger_system
+# (Always add it to provide basic logging functionality)
+target_sources(NetworkSystem PRIVATE
+    src/integration/logger_integration.cpp
 )
 
 # Set target properties
@@ -314,6 +336,10 @@ endif()
 
 if(BUILD_WITH_THREAD_SYSTEM AND THREAD_SYSTEM_INCLUDE_DIR)
     target_include_directories(NetworkSystem PRIVATE ${THREAD_SYSTEM_INCLUDE_DIR})
+endif()
+
+if(BUILD_WITH_LOGGER_SYSTEM AND LOGGER_SYSTEM_INCLUDE_DIR)
+    target_include_directories(NetworkSystem PRIVATE ${LOGGER_SYSTEM_INCLUDE_DIR})
 endif()
 
 # Configure ASIO
