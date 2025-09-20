@@ -73,8 +73,8 @@ $(function() {
   <div class="headertitle"><div class="title">Operations Guide</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md304"></a> This guide covers deployment, configuration, monitoring, and operational best practices for the Network System.</p>
-<h1><a class="anchor" id="autotoc_md305"></a>
+<div class="textblock"><p><a class="anchor" id="autotoc_md305"></a> This guide covers deployment, configuration, monitoring, and operational best practices for the Network System.</p>
+<h1><a class="anchor" id="autotoc_md306"></a>
 Table of Contents</h1>
 <ul>
 <li>Deployment Best Practices</li>
@@ -85,9 +85,9 @@ Table of Contents</h1>
 <li>Security Considerations</li>
 <li>Scaling Strategies</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md306"></a>
+<h1><a class="anchor" id="autotoc_md307"></a>
 Deployment Best Practices</h1>
-<h2><a class="anchor" id="autotoc_md307"></a>
+<h2><a class="anchor" id="autotoc_md308"></a>
 Pre-deployment Checklist</h2>
 <ol type="1">
 <li><b>Environment Verification</b><ul>
@@ -115,9 +115,9 @@ Pre-deployment Checklist</h2>
 </ul>
 </li>
 </ol>
-<h2><a class="anchor" id="autotoc_md308"></a>
+<h2><a class="anchor" id="autotoc_md309"></a>
 Platform-Specific Deployment</h2>
-<h3><a class="anchor" id="autotoc_md309"></a>
+<h3><a class="anchor" id="autotoc_md310"></a>
 Linux Deployment</h3>
 <div class="fragment"><div class="line"># Create service user</div>
 <div class="line">sudo useradd -r -s /bin/false network_service</div>
@@ -127,7 +127,7 @@ Linux Deployment</h3>
 <div class="line">sudo systemctl daemon-reload</div>
 <div class="line">sudo systemctl enable network_service</div>
 <div class="line">sudo systemctl start network_service</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md310"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md311"></a>
 Docker Deployment</h3>
 <div class="fragment"><div class="line">FROM ubuntu:22.04</div>
 <div class="line">RUN apt-get update &amp;&amp; apt-get install -y \</div>
@@ -136,15 +136,15 @@ Docker Deployment</h3>
 <div class="line">COPY build/network_server /usr/local/bin/</div>
 <div class="line">EXPOSE 8080</div>
 <div class="line">CMD [<span class="stringliteral">&quot;/usr/local/bin/network_server&quot;</span>]</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md311"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md312"></a>
 Windows Service</h3>
 <div class="fragment"><div class="line"># Install as Windows service</div>
 <div class="line">sc create NetworkService binPath= &quot;C:\Program Files\NetworkSystem\network_server.exe&quot;</div>
 <div class="line">sc config NetworkService start= auto</div>
 <div class="line">sc start NetworkService</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md312"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md313"></a>
 Configuration Management</h1>
-<h2><a class="anchor" id="autotoc_md313"></a>
+<h2><a class="anchor" id="autotoc_md314"></a>
 Configuration Structure</h2>
 <div class="fragment"><div class="line"># config.yaml</div>
 <div class="line">server:</div>
@@ -172,7 +172,7 @@ Configuration Structure</h2>
 <div class="line">  max_size_mb: 100</div>
 <div class="line">  max_files: 10</div>
 <div class="line">  format: json</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md314"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md315"></a>
 Environment Variables</h2>
 <div class="fragment"><div class="line"># Override configuration via environment</div>
 <div class="line">export NETWORK_SERVER_HOST=0.0.0.0</div>
@@ -180,7 +180,7 @@ Environment Variables</h2>
 <div class="line">export NETWORK_LOG_LEVEL=DEBUG</div>
 <div class="line">export NETWORK_SSL_ENABLED=true</div>
 <div class="line">export NETWORK_MAX_CONNECTIONS=5000</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md315"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md316"></a>
 Configuration Validation</h2>
 <div class="fragment"><div class="line"><span class="comment">// Validate configuration at startup</span></div>
 <div class="line"><span class="keywordtype">bool</span> validate_config(<span class="keyword">const</span> Config&amp; config) {</div>
@@ -195,9 +195,9 @@ Configuration Validation</h2>
 <div class="line">    }</div>
 <div class="line">    <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
 <div class="line">}</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md316"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md317"></a>
 Monitoring and Metrics</h1>
-<h2><a class="anchor" id="autotoc_md317"></a>
+<h2><a class="anchor" id="autotoc_md318"></a>
 Key Metrics to Monitor</h2>
 <ol type="1">
 <li><b>System Metrics</b><ul>
@@ -225,7 +225,7 @@ Key Metrics to Monitor</h2>
 </ul>
 </li>
 </ol>
-<h2><a class="anchor" id="autotoc_md318"></a>
+<h2><a class="anchor" id="autotoc_md319"></a>
 Prometheus Integration</h2>
 <div class="fragment"><div class="line"><span class="comment">// Expose metrics endpoint</span></div>
 <div class="line"><span class="keyword">class </span>MetricsHandler {</div>
@@ -247,7 +247,7 @@ Prometheus Integration</h2>
 <div class="line">        <span class="keywordflow">return</span> ss.str();</div>
 <div class="line">    }</div>
 <div class="line">};</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md319"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md320"></a>
 Logging Configuration</h2>
 <div class="fragment"><div class="line"># Structured logging configuration</div>
 <div class="line">logging:</div>
@@ -265,7 +265,7 @@ Logging Configuration</h2>
 <div class="line">    - type: syslog</div>
 <div class="line">      level: ERROR</div>
 <div class="line">      facility: local0</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md320"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md321"></a>
 Health Checks</h2>
 <div class="fragment"><div class="line"><span class="comment">// Health check endpoint implementation</span></div>
 <div class="line"><span class="keyword">class </span>HealthCheck {</div>
@@ -293,11 +293,11 @@ Health Checks</h2>
 <div class="line">        <span class="keywordflow">return</span> status;</div>
 <div class="line">    }</div>
 <div class="line">};</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md321"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md322"></a>
 Performance Tuning</h1>
-<h2><a class="anchor" id="autotoc_md322"></a>
+<h2><a class="anchor" id="autotoc_md323"></a>
 System-Level Optimization</h2>
-<h3><a class="anchor" id="autotoc_md323"></a>
+<h3><a class="anchor" id="autotoc_md324"></a>
 Linux Kernel Parameters</h3>
 <div class="fragment"><div class="line"># /etc/sysctl.conf</div>
 <div class="line"># Network stack tuning</div>
@@ -316,14 +316,14 @@ Linux Kernel Parameters</h3>
 <div class="line"># Memory tuning</div>
 <div class="line">vm.max_map_count = 262144</div>
 <div class="line">vm.swappiness = 10</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md324"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md325"></a>
 Resource Limits</h3>
 <div class="fragment"><div class="line"># /etc/security/limits.conf</div>
 <div class="line">network_service soft nofile 1000000</div>
 <div class="line">network_service hard nofile 1000000</div>
 <div class="line">network_service soft nproc 32768</div>
 <div class="line">network_service hard nproc 32768</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md325"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md326"></a>
 Application-Level Optimization</h2>
 <ol type="1">
 <li><b>Connection Pooling</b> <div class="fragment"><div class="line"><span class="keyword">class </span>ConnectionPool {</div>
@@ -375,7 +375,7 @@ Application-Level Optimization</h2>
 <div class="line">};</div>
 </div><!-- fragment --></li>
 </ol>
-<h2><a class="anchor" id="autotoc_md326"></a>
+<h2><a class="anchor" id="autotoc_md327"></a>
 Profiling and Benchmarking</h2>
 <div class="fragment"><div class="line"># CPU profiling with perf</div>
 <div class="line">perf record -g ./network_server</div>
@@ -389,9 +389,9 @@ Profiling and Benchmarking</h2>
 <div class="line"> </div>
 <div class="line"># Load testing</div>
 <div class="line">wrk -t12 -c400 -d30s --latency http://localhost:8080/</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md327"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md328"></a>
 Backup and Recovery</h1>
-<h2><a class="anchor" id="autotoc_md328"></a>
+<h2><a class="anchor" id="autotoc_md329"></a>
 Backup Strategy</h2>
 <ol type="1">
 <li><b>Configuration Backup</b> <div class="fragment"><div class="line">#!/bin/bash</div>
@@ -428,7 +428,7 @@ Backup Strategy</h2>
 <div class="line">};</div>
 </div><!-- fragment --></li>
 </ol>
-<h2><a class="anchor" id="autotoc_md329"></a>
+<h2><a class="anchor" id="autotoc_md330"></a>
 Disaster Recovery</h2>
 <ol type="1">
 <li><b>Recovery Time Objective (RTO)</b><ul>
@@ -463,9 +463,9 @@ Disaster Recovery</h2>
 <div class="line">fi</div>
 </div><!-- fragment --></li>
 </ol>
-<h1><a class="anchor" id="autotoc_md330"></a>
+<h1><a class="anchor" id="autotoc_md331"></a>
 Security Considerations</h1>
-<h2><a class="anchor" id="autotoc_md331"></a>
+<h2><a class="anchor" id="autotoc_md332"></a>
 Network Security</h2>
 <ol type="1">
 <li><b>TLS Configuration</b> <div class="fragment"><div class="line">SSL_CTX* create_ssl_context() {</div>
@@ -491,7 +491,7 @@ Network Security</h2>
 <div class="line">iptables -A INPUT -j DROP</div>
 </div><!-- fragment --></li>
 </ol>
-<h2><a class="anchor" id="autotoc_md332"></a>
+<h2><a class="anchor" id="autotoc_md333"></a>
 Access Control</h2>
 <ol type="1">
 <li><b>Authentication</b> <div class="fragment"><div class="line"><span class="keyword">class </span>Authenticator {</div>
@@ -519,7 +519,7 @@ Access Control</h2>
 <div class="line">};</div>
 </div><!-- fragment --></li>
 </ol>
-<h2><a class="anchor" id="autotoc_md333"></a>
+<h2><a class="anchor" id="autotoc_md334"></a>
 Security Auditing</h2>
 <div class="fragment"><div class="line"><span class="keyword">class </span>AuditLogger {</div>
 <div class="line">    <span class="keywordtype">void</span> log_security_event(<span class="keyword">const</span> SecurityEvent&amp; event) {</div>
@@ -536,9 +536,9 @@ Security Auditing</h2>
 <div class="line">        security_log_ &lt;&lt; log_entry.dump() &lt;&lt; std::endl;</div>
 <div class="line">    }</div>
 <div class="line">};</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md334"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md335"></a>
 Scaling Strategies</h1>
-<h2><a class="anchor" id="autotoc_md335"></a>
+<h2><a class="anchor" id="autotoc_md336"></a>
 Vertical Scaling</h2>
 <ol type="1">
 <li><b>Resource Allocation</b><ul>
@@ -558,7 +558,7 @@ Vertical Scaling</h2>
 <div class="line">  buffer_size: 1048576  # 1MB buffers</div>
 </div><!-- fragment --></li>
 </ol>
-<h2><a class="anchor" id="autotoc_md336"></a>
+<h2><a class="anchor" id="autotoc_md337"></a>
 Horizontal Scaling</h2>
 <ol type="1">
 <li><b>Load Balancing</b> <div class="fragment"><div class="line"># nginx load balancer configuration</div>
@@ -635,7 +635,7 @@ Horizontal Scaling</h2>
 <div class="line">        averageUtilization: 80</div>
 </div><!-- fragment --></li>
 </ol>
-<h2><a class="anchor" id="autotoc_md337"></a>
+<h2><a class="anchor" id="autotoc_md338"></a>
 Database Scaling</h2>
 <ol type="1">
 <li><b>Connection Pooling</b> <div class="fragment"><div class="line"><span class="keyword">class </span>DatabasePool {</div>
@@ -663,7 +663,7 @@ Database Scaling</h2>
 <div class="line">};</div>
 </div><!-- fragment --></li>
 </ol>
-<h2><a class="anchor" id="autotoc_md338"></a>
+<h2><a class="anchor" id="autotoc_md339"></a>
 Caching Strategy</h2>
 <div class="fragment"><div class="line"><span class="keyword">class </span>CacheManager {</div>
 <div class="line">    LRUCache&lt;std::string, Response&gt; response_cache_{10000};</div>
@@ -679,9 +679,9 @@ Caching Strategy</h2>
 <div class="line">        response_cache_.put(key, response, ttl_);</div>
 <div class="line">    }</div>
 <div class="line">};</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md339"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md340"></a>
 Maintenance Windows</h1>
-<h2><a class="anchor" id="autotoc_md340"></a>
+<h2><a class="anchor" id="autotoc_md341"></a>
 Planned Maintenance</h2>
 <ol type="1">
 <li><b>Announcement Timeline</b><ul>
@@ -713,7 +713,7 @@ Planned Maintenance</h2>
 <div class="line">check_service_health</div>
 </div><!-- fragment --></li>
 </ol>
-<h2><a class="anchor" id="autotoc_md341"></a>
+<h2><a class="anchor" id="autotoc_md342"></a>
 Rolling Updates</h2>
 <div class="fragment"><div class="line">#!/bin/bash</div>
 <div class="line"># rolling_update.sh</div>
@@ -744,9 +744,9 @@ Rolling Updates</h2>
 <div class="line">    # Wait before next server</div>
 <div class="line">    sleep 120</div>
 <div class="line">done</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md342"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md343"></a>
 Compliance and Auditing</h1>
-<h2><a class="anchor" id="autotoc_md343"></a>
+<h2><a class="anchor" id="autotoc_md344"></a>
 Audit Requirements</h2>
 <ol type="1">
 <li><b>Security Audits</b><ul>
@@ -774,7 +774,7 @@ Audit Requirements</h2>
 <div class="line">};</div>
 </div><!-- fragment --></li>
 </ol>
-<h2><a class="anchor" id="autotoc_md344"></a>
+<h2><a class="anchor" id="autotoc_md345"></a>
 Retention Policies</h2>
 <div class="fragment"><div class="line"># Log retention configuration</div>
 <div class="line">retention:</div>
@@ -792,7 +792,7 @@ Retention Policies</h2>
 <div class="line">    duration: 2555d  # 7 years</div>
 <div class="line">    compress_after: 90d</div>
 <div class="line">    archive_to: s3://backup/compliance/</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md345"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md346"></a>
 Conclusion</h1>
 <p>This operations guide provides comprehensive coverage of deployment, monitoring, performance tuning, security, and scaling strategies for the Network System. Regular reviews and updates of these procedures ensure optimal system performance and reliability.</p>
 <p>For specific troubleshooting scenarios, refer to the <a class="el" href="md_TROUBLESHOOTING.html">Troubleshooting Guide</a>. </p>

@@ -73,13 +73,13 @@ $(function() {
   <div class="headertitle"><div class="title">Network System v2.0.0 Release Notes</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md380"></a> </p>
-<h1><a class="anchor" id="autotoc_md381"></a>
+<div class="textblock"><p><a class="anchor" id="autotoc_md381"></a> </p>
+<h1><a class="anchor" id="autotoc_md382"></a>
 🎉 Release Highlights</h1>
 <p>Network System v2.0.0 is a major release that represents a complete architectural overhaul from the legacy messaging_system. This release delivers a 3x performance improvement, modern C++20 features, and comprehensive production-ready tooling.</p>
-<h1><a class="anchor" id="autotoc_md382"></a>
+<h1><a class="anchor" id="autotoc_md383"></a>
 ✨ New Features</h1>
-<h2><a class="anchor" id="autotoc_md383"></a>
+<h2><a class="anchor" id="autotoc_md384"></a>
 Core Improvements</h2>
 <ul>
 <li><b>High-Performance Architecture</b>: Complete rewrite for 305K+ msg/s throughput</li>
@@ -88,7 +88,7 @@ Core Improvements</h2>
 <li><b>Thread Pool Integration</b>: Efficient work distribution across CPU cores</li>
 <li><b>Container Serialization</b>: Pluggable serialization interface</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md384"></a>
+<h2><a class="anchor" id="autotoc_md385"></a>
 Testing &amp; Quality</h2>
 <ul>
 <li><b>Comprehensive Test Suite</b>: Unit, integration, E2E, and stress tests</li>
@@ -96,7 +96,7 @@ Testing &amp; Quality</h2>
 <li><b>Memory Leak Detection</b>: Built-in tracking and sanitizer support</li>
 <li><b>Code Coverage</b>: 85%+ coverage with automated reporting</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md385"></a>
+<h2><a class="anchor" id="autotoc_md386"></a>
 DevOps &amp; Deployment</h2>
 <ul>
 <li><b>CI/CD Pipeline</b>: Multi-platform automated testing</li>
@@ -104,7 +104,7 @@ DevOps &amp; Deployment</h2>
 <li><b>Docker Support</b>: Production-ready containerization</li>
 <li><b>Kubernetes Ready</b>: HPA, health checks, and observability</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md386"></a>
+<h2><a class="anchor" id="autotoc_md387"></a>
 Documentation</h2>
 <ul>
 <li><b>API Reference</b>: Complete class and method documentation</li>
@@ -112,7 +112,7 @@ Documentation</h2>
 <li><b>Troubleshooting Guide</b>: Common issues and debugging techniques</li>
 <li><b>Migration Guide</b>: Step-by-step upgrade from messaging_system</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md387"></a>
+<h1><a class="anchor" id="autotoc_md388"></a>
 📊 Performance Metrics</h1>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -128,31 +128,31 @@ Documentation</h2>
 <tr class="markdownTableRowOdd">
 <td class="markdownTableBodyNone">Memory per Connection   </td><td class="markdownTableBodyNone">24KB   </td><td class="markdownTableBodyNone">10KB   </td><td class="markdownTableBodyNone">2.4x   </td></tr>
 </table>
-<h1><a class="anchor" id="autotoc_md388"></a>
+<h1><a class="anchor" id="autotoc_md389"></a>
 🔄 Breaking Changes</h1>
-<h2><a class="anchor" id="autotoc_md389"></a>
+<h2><a class="anchor" id="autotoc_md390"></a>
 Namespace Changes</h2>
 <ul>
 <li><code>messaging_system</code> → <code>network_system</code></li>
 <li><code>network_module</code> preserved for compatibility</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md390"></a>
+<h2><a class="anchor" id="autotoc_md391"></a>
 API Changes</h2>
 <ul>
 <li><code>send_message()</code> → <code>send_packet()</code></li>
 <li><code>on_message()</code> → <code>on_packet()</code></li>
 <li>New async/await pattern with coroutines</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md391"></a>
+<h2><a class="anchor" id="autotoc_md392"></a>
 Configuration</h2>
 <ul>
 <li>YAML configuration format (was JSON)</li>
 <li>Environment variable overrides</li>
 <li>Hot-reload support</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md392"></a>
+<h1><a class="anchor" id="autotoc_md393"></a>
 🚀 Migration from v1.x</h1>
-<h2><a class="anchor" id="autotoc_md393"></a>
+<h2><a class="anchor" id="autotoc_md394"></a>
 Quick Migration</h2>
 <div class="fragment"><div class="line"><span class="comment">// Old (v1.x)</span></div>
 <div class="line"><span class="keyword">auto</span> server = messaging_system::server::create(<span class="stringliteral">&quot;server&quot;</span>);</div>
@@ -165,7 +165,7 @@ Quick Migration</h2>
 <div class="line"><span class="comment">// New (v2.0) - Native API</span></div>
 <div class="line"><span class="keyword">auto</span> server = std::make_shared&lt;network_system::core::messaging_server&gt;(<span class="stringliteral">&quot;server&quot;</span>);</div>
 <div class="line">server-&gt;start_server(8080);</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md394"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md395"></a>
 Gradual Migration Strategy</h2>
 <ol type="1">
 <li>Update includes to use compatibility headers</li>
@@ -173,23 +173,23 @@ Gradual Migration Strategy</h2>
 <li>Gradually migrate to new namespaces</li>
 <li>Update to use new features (coroutines, etc.)</li>
 </ol>
-<h1><a class="anchor" id="autotoc_md395"></a>
+<h1><a class="anchor" id="autotoc_md396"></a>
 📦 Installation</h1>
-<h2><a class="anchor" id="autotoc_md396"></a>
+<h2><a class="anchor" id="autotoc_md397"></a>
 Linux/macOS</h2>
 <div class="fragment"><div class="line">curl -L https://github.com/your-org/network_system/releases/download/v2.0.0/install.sh | bash</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md397"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md398"></a>
 Windows</h2>
 <div class="fragment"><div class="line">Invoke-WebRequest -Uri https://github.com/your-org/network_system/releases/download/v2.0.0/install.ps1 -OutFile install.ps1</div>
 <div class="line">.\install.ps1</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md398"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md399"></a>
 CMake Integration</h2>
 <div class="fragment"><div class="line">find_package(NetworkSystem 2.0 REQUIRED)</div>
 <div class="line">target_link_libraries(your_app NetworkSystem::NetworkSystem)</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md399"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md400"></a>
 vcpkg</h2>
 <div class="fragment"><div class="line">vcpkg install network-system</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md400"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md401"></a>
 🐛 Bug Fixes</h1>
 <ul>
 <li>Fixed race condition in connection pool (#234)</li>
@@ -198,7 +198,7 @@ vcpkg</h2>
 <li>Fixed Windows socket initialization (#271)</li>
 <li>Resolved macOS kqueue performance issue (#285)</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md401"></a>
+<h1><a class="anchor" id="autotoc_md402"></a>
 🔒 Security Updates</h1>
 <ul>
 <li>TLS 1.3 support</li>
@@ -206,23 +206,23 @@ vcpkg</h2>
 <li>Rate limiting enhancements</li>
 <li>Security audit compliance</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md402"></a>
+<h1><a class="anchor" id="autotoc_md403"></a>
 📋 Requirements</h1>
-<h2><a class="anchor" id="autotoc_md403"></a>
+<h2><a class="anchor" id="autotoc_md404"></a>
 Minimum Requirements</h2>
 <ul>
 <li>C++20 compiler (GCC 10+, Clang 12+, MSVC 2019+)</li>
 <li>CMake 3.16+</li>
 <li>ASIO 1.28+ or Boost.ASIO 1.70+</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md404"></a>
+<h2><a class="anchor" id="autotoc_md405"></a>
 Recommended</h2>
 <ul>
 <li>Linux kernel 5.0+ or Windows 10/11</li>
 <li>4+ CPU cores</li>
 <li>4GB+ RAM for production workloads</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md405"></a>
+<h1><a class="anchor" id="autotoc_md406"></a>
 👥 Contributors</h1>
 <p>Special thanks to all contributors who made this release possible:</p><ul>
 <li>Core Architecture: @lead-developer</li>
@@ -231,14 +231,14 @@ Recommended</h2>
 <li>Documentation: @docs-team</li>
 <li>CI/CD Pipeline: @devops-team</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md406"></a>
+<h1><a class="anchor" id="autotoc_md407"></a>
 📝 Known Issues</h1>
 <ul>
 <li>WebSocket support is experimental</li>
 <li>HTTP/3 support planned for future release</li>
 <li>Some platforms may require manual dependency installation</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md407"></a>
+<h1><a class="anchor" id="autotoc_md408"></a>
 🔗 Links</h1>
 <ul>
 <li><a href="https://network-system.io/docs">Documentation</a></li>
@@ -247,7 +247,7 @@ Recommended</h2>
 <li><a href="https://github.com/your-org/network_system/issues">GitHub Issues</a></li>
 <li><a href="https://discord.gg/network-system">Discord Community</a></li>
 </ul>
-<h1><a class="anchor" id="autotoc_md408"></a>
+<h1><a class="anchor" id="autotoc_md409"></a>
 📄 License</h1>
 <p>Network System is released under the MIT License. See LICENSE file for details.</p>
 <hr  />
