@@ -134,19 +134,23 @@ jobs:
     - name: Generate Coverage Report
       run: |
         cd build
+
+        # Generate coverage data with gcov bug workaround
         gcovr -r .. \
+          --gcov-ignore-parse-errors=negative_hits.warn_once_per_file \
           --exclude='.*test.*' \
           --exclude='.*sample.*' \
           --exclude='.*build.*' \
           --html --html-details \
-          -o coverage-report.html
+          -o coverage-report.html || true
 
-        # Generate summary
+        # Generate summary with error handling
         gcovr -r .. \
+          --gcov-ignore-parse-errors=negative_hits.warn_once_per_file \
           --exclude='.*test.*' \
           --exclude='.*sample.*' \
           --exclude='.*build.*' \
-          --print-summary
+          --print-summary || echo "Coverage summary generation failed"
 
     - name: Check Coverage Threshold
       run: |
@@ -154,8 +158,12 @@ jobs:
         # Fix for gcovr issues with certain GCC versions
         export GCOV_ERROR_FILE=/dev/null
 
-        # Get coverage with error handling
-        coverage=$(gcovr -r .. --exclude='.*test.*' --exclude='.*sample.*' --print-summary 2>/dev/null | grep "TOTAL" | awk '{print $4}' | sed 's/%//' || echo "0")
+        # Get coverage with error handling and gcov bug workaround
+        coverage=$(gcovr -r .. \
+          --gcov-ignore-parse-errors=negative_hits.warn_once_per_file \
+          --exclude='.*test.*' \
+          --exclude='.*sample.*' \
+          --print-summary 2>/dev/null | grep "TOTAL" | awk '{print $4}' | sed 's/%//' || echo "0")
 
         # Default to 0 if parsing fails
         if [ -z "$coverage" ]; then
