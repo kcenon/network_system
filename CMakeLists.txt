@@ -31,9 +31,27 @@ option(BUILD_SAMPLES "Build samples" ON)
 option(BUILD_WITH_CONTAINER_SYSTEM "Build with container_system integration" ON)
 option(BUILD_WITH_THREAD_SYSTEM "Build with thread_system integration" ON)
 option(BUILD_MESSAGING_BRIDGE "Build messaging_system bridge" ON)
+option(ENABLE_COVERAGE "Enable code coverage" OFF)
 
 # Global compile features
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
+# Coverage settings
+if(ENABLE_COVERAGE)
+    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+        # Add atomic updates to prevent negative counts in coverage
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage -fprofile-arcs -ftest-coverage -fprofile-update=atomic")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --coverage -fprofile-arcs -ftest-coverage -fprofile-update=atomic")
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --coverage")
+        set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} --coverage")
+
+        # Only add libatomic on Linux (not needed on macOS or Windows)
+        if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+            set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -latomic")
+            set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -latomic")
+        endif()
+    endif()
+endif()
 
 # Find packages with flexible detection
 # Try modern CMake targets first, then fallback to manual detection
@@ -404,6 +422,66 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/tests/integration/test_compatibility.cpp)
     endif()
 endif()
 
+# End-to-end tests (optional)
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/tests/integration/test_e2e.cpp)
+    add_executable(test_e2e tests/integration/test_e2e.cpp)
+    target_link_libraries(test_e2e PRIVATE NetworkSystem)
+
+    # Add container_system include path
+    if(CONTAINER_SYSTEM_INCLUDE_DIR)
+        target_include_directories(test_e2e PRIVATE ${CONTAINER_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(test_e2e PRIVATE BUILD_WITH_CONTAINER_SYSTEM)
+    endif()
+
+    # Configure same as main library
+    if(USE_BOOST_ASIO)
+        target_include_directories(test_e2e PRIVATE ${Boost_INCLUDE_DIRS})
+        if(Boost_LIBRARIES)
+            target_link_libraries(test_e2e PRIVATE ${Boost_LIBRARIES})
+        endif()
+        target_compile_definitions(test_e2e PRIVATE USE_BOOST_ASIO)
+        target_compile_definitions(test_e2e PRIVATE BOOST_ASIO_STANDALONE)
+    elseif(ASIO_INCLUDE_DIR)
+        target_include_directories(test_e2e PRIVATE ${ASIO_INCLUDE_DIR})
+        target_compile_definitions(test_e2e PRIVATE ASIO_STANDALONE)
+        target_compile_definitions(test_e2e PRIVATE ASIO_NO_DEPRECATED)
+    endif()
+
+    if(WIN32)
+        target_compile_definitions(test_e2e PRIVATE _WIN32_WINNT=0x0601)
+    endif()
+endif()
+
+# Stress tests (optional)
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/tests/stress/stress_test.cpp)
+    add_executable(stress_test tests/stress/stress_test.cpp)
+    target_link_libraries(stress_test PRIVATE NetworkSystem)
+
+    # Add container_system include path
+    if(CONTAINER_SYSTEM_INCLUDE_DIR)
+        target_include_directories(stress_test PRIVATE ${CONTAINER_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(stress_test PRIVATE BUILD_WITH_CONTAINER_SYSTEM)
+    endif()
+
+    # Configure same as main library
+    if(USE_BOOST_ASIO)
+        target_include_directories(stress_test PRIVATE ${Boost_INCLUDE_DIRS})
+        if(Boost_LIBRARIES)
+            target_link_libraries(stress_test PRIVATE ${Boost_LIBRARIES})
+        endif()
+        target_compile_definitions(stress_test PRIVATE USE_BOOST_ASIO)
+        target_compile_definitions(stress_test PRIVATE BOOST_ASIO_STANDALONE)
+    elseif(ASIO_INCLUDE_DIR)
+        target_include_directories(stress_test PRIVATE ${ASIO_INCLUDE_DIR})
+        target_compile_definitions(stress_test PRIVATE ASIO_STANDALONE)
+        target_compile_definitions(stress_test PRIVATE ASIO_NO_DEPRECATED)
+    endif()
+
+    if(WIN32)
+        target_compile_definitions(stress_test PRIVATE _WIN32_WINNT=0x0601)
+    endif()
+endif()
+
 # Performance benchmark (optional)
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/tests/performance/benchmark.cpp)
     add_executable(benchmark tests/performance/benchmark.cpp)
@@ -594,3 +672,6 @@ set(OLD_FILES
 )
 
 # Note: We'll clean these manually after successful build
+
+# Include CPack for distribution packages
+include(cmake/CPack.cmake)
