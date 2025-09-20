@@ -10,6 +10,7 @@
 #include "network_system/integration/logger_integration.h"
 #include <iostream>
 #include <mutex>
+#include <atomic>
 #include <chrono>
 #include <iomanip>
 #include <sstream>
@@ -53,10 +54,10 @@ static std::string get_timestamp() {
 
 class basic_logger::impl {
 public:
-    explicit impl(log_level min_level) : min_level_(min_level) {}
+    explicit impl(log_level min_level) : min_level_(static_cast<int>(min_level)) {}
 
     void log(log_level level, const std::string& message) {
-        if (level < min_level_) return;
+        if (static_cast<int>(level) < min_level_) return;
 
         std::lock_guard<std::mutex> lock(mutex_);
 
@@ -71,7 +72,7 @@ public:
 
     void log(log_level level, const std::string& message,
             const std::string& file, int line, const std::string& function) {
-        if (level < min_level_) return;
+        if (static_cast<int>(level) < min_level_) return;
 
         std::lock_guard<std::mutex> lock(mutex_);
 
@@ -86,7 +87,7 @@ public:
     }
 
     bool is_level_enabled(log_level level) const {
-        return level >= min_level_;
+        return static_cast<int>(level) >= min_level_;
     }
 
     void flush() {
@@ -95,16 +96,16 @@ public:
     }
 
     void set_min_level(log_level level) {
-        min_level_ = level;
+        min_level_ = static_cast<int>(level);
     }
 
     log_level get_min_level() const {
-        return min_level_;
+        return static_cast<log_level>(min_level_.load());
     }
 
 private:
     mutable std::mutex mutex_;
-    std::atomic<log_level> min_level_;
+    std::atomic<int> min_level_;
 };
 
 basic_logger::basic_logger(log_level min_level)

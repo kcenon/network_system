@@ -22,7 +22,7 @@ namespace network_system::integration {
  * @enum log_level
  * @brief Log severity levels matching logger_system
  */
-enum class log_level {
+enum class log_level : int {
     trace = 0,
     debug = 1,
     info = 2,
