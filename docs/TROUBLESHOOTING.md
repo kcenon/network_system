@@ -1,394 +1,544 @@
-# Network System Troubleshooting Guide
+# Troubleshooting Guide
+
+This guide provides solutions for common issues, debugging techniques, and problem resolution strategies for the Network System.
 
 ## Table of Contents
-1. [Common Issues and Solutions](#common-issues-and-solutions)
-2. [Debugging Techniques](#debugging-techniques)
-3. [Performance Problems](#performance-problems)
-4. [Connection Issues](#connection-issues)
-5. [Memory Leaks](#memory-leaks)
-6. [Build Problems](#build-problems)
-7. [Platform-Specific Issues](#platform-specific-issues)
-8. [Error Reference](#error-reference)
+
+- [Common Issues and Solutions](#common-issues-and-solutions)
+- [Debugging Techniques](#debugging-techniques)
+- [Performance Problems](#performance-problems)
+- [Connection Issues](#connection-issues)
+- [Memory Leaks](#memory-leaks)
+- [Build Problems](#build-problems)
+- [Platform-Specific Issues](#platform-specific-issues)
+- [Error Reference](#error-reference)
+- [Support Resources](#support-resources)
 
 ## Common Issues and Solutions
 
-### Server Fails to Start
+### Server Won't Start
 
-#### Problem: Port Already in Use
-```
-Error: Failed to bind to port 8080: Address already in use
-```
+#### Symptoms
+- Server process exits immediately
+- No log output
+- Service fails to initialize
 
-**Solution:**
+#### Diagnosis Steps
+1. Check system logs
 ```bash
-# Find process using the port
+# Linux/macOS
+tail -f /var/log/syslog
+journalctl -u network_service -f
+
+# Windows Event Viewer
+eventvwr.msc
+```
+
+2. Run in debug mode
+```bash
+./network_server --debug --foreground
+```
+
+3. Verify configuration
+```bash
+./network_server --validate-config
+```
+
+#### Common Causes and Solutions
+
+**Port Already in Use**
+```bash
+# Check if port is in use
 lsof -i :8080  # Linux/macOS
 netstat -ano | findstr :8080  # Windows
 
-# Kill the process
-kill -9 <PID>  # Linux/macOS
-taskkill /PID <PID> /F  # Windows
-
-# Or change the port in configuration
-server->start_server(8081);
+# Solution: Kill the process or use different port
+kill -9 <PID>
+# Or change configuration
+export NETWORK_SERVER_PORT=8081
 ```
 
-#### Problem: Insufficient Permissions
-```
-Error: Permission denied: Cannot bind to port 80
-```
-
-**Solution:**
+**Permission Denied**
 ```bash
-# Use a port above 1024, or run with elevated privileges
-sudo ./network_server  # Not recommended for production
+# Check file permissions
+ls -la /etc/network_system/
 
-# Better: Use capabilities on Linux
-sudo setcap 'cap_net_bind_service=+ep' ./network_server
+# Fix permissions
+sudo chown -R network_service:network_service /etc/network_system/
+sudo chmod 600 /etc/network_system/server.key
 ```
 
-#### Problem: Missing Dependencies
-```
-Error: libNetworkSystem.so: cannot open shared object file
-```
-
-**Solution:**
+**Missing Dependencies**
 ```bash
-# Update library path
-export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH  # Linux
-export DYLD_LIBRARY_PATH=/usr/local/lib:$DYLD_LIBRARY_PATH  # macOS
+# Check library dependencies
+ldd network_server  # Linux
+otool -L network_server  # macOS
+dumpbin /DEPENDENTS network_server.exe  # Windows
 
-# Or reinstall
-sudo ldconfig  # Linux
-```
-
-### Client Connection Failures
-
-#### Problem: Connection Refused
-```cpp
-std::runtime_error: Connection refused: localhost:8080
-```
-
-**Solution:**
-```bash
-# Verify server is running
-ps aux | grep network_server
-systemctl status network_system
-
-# Check firewall rules
-sudo iptables -L -n  # Linux
-sudo pfctl -s rules  # macOS
-netsh advfirewall show all  # Windows
-
-# Allow port in firewall
-sudo ufw allow 8080  # Ubuntu
-sudo firewall-cmd --add-port=8080/tcp --permanent  # CentOS
-```
-
-#### Problem: Connection Timeout
-```cpp
-timeout_error: Connection timeout after 30 seconds
-```
-
-**Solution:**
-```cpp
-// Increase timeout
-client->set_connect_timeout(std::chrono::seconds(60));
-
-// Check network connectivity
-ping server_host
-traceroute server_host  # or tracert on Windows
-
-// Verify MTU settings
-ping -M do -s 1472 server_host  # Linux
-ping -f -l 1472 server_host  # Windows
+# Install missing libraries
+sudo apt-get install libssl1.1  # Ubuntu/Debian
+brew install openssl  # macOS
 ```
 
 ### High CPU Usage
 
-#### Problem: CPU at 100%
-**Diagnosis:**
+#### Symptoms
+- CPU usage consistently above 80%
+- System becomes unresponsive
+- Increased response times
+
+#### Diagnosis
 ```bash
-# Identify high CPU threads
+# Monitor CPU usage by thread
 top -H -p $(pidof network_server)
-htop  # Better visualization
 
 # Profile CPU usage
 perf top -p $(pidof network_server)
+
+# Check thread activity
+gdb -p $(pidof network_server)
+(gdb) info threads
+(gdb) thread apply all bt
 ```
 
-**Solution:**
+#### Solutions
+
+**Infinite Loop in Code**
 ```cpp
-// Reduce thread pool size
-server->set_thread_pool_size(4);  // Instead of auto
+// Check for loops without exit conditions
+void process_messages() {
+    while (running_) {  // Ensure proper exit condition
+        if (!message_queue_.empty()) {
+            process_message(message_queue_.pop());
+        } else {
+            // Add sleep to prevent busy waiting
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        }
+    }
+}
+```
 
-// Enable CPU throttling
-server->set_max_cpu_usage(80);  // Limit to 80%
+**Excessive Logging**
+```cpp
+// Reduce log level in production
+logger.set_level(LogLevel::WARNING);
 
-// Optimize message processing
-server->enable_batch_processing(true);
-server->set_batch_size(1000);
+// Use conditional logging
+if (logger.should_log(LogLevel::DEBUG)) {
+    logger.debug("Expensive debug info: {}", generate_debug_info());
+}
+```
+
+**Lock Contention**
+```cpp
+// Use lock-free data structures
+std::atomic<int> counter{0};
+counter.fetch_add(1, std::memory_order_relaxed);
+
+// Or use read-write locks
+std::shared_mutex mutex;
+// For reads
+std::shared_lock lock(mutex);
+// For writes
+std::unique_lock lock(mutex);
 ```
 
 ### Memory Issues
 
-#### Problem: Out of Memory
-```
-std::bad_alloc: Cannot allocate memory
+#### Symptoms
+- Increasing memory usage over time
+- Out of memory errors
+- System swap usage increases
+
+#### Diagnosis
+```bash
+# Monitor memory usage
+valgrind --leak-check=full --track-origins=yes ./network_server
+
+# Use AddressSanitizer
+g++ -fsanitize=address -g network_server.cpp
+ASAN_OPTIONS=detect_leaks=1 ./network_server
+
+# Memory profiling
+heaptrack ./network_server
+heaptrack_gui heaptrack.network_server.*.gz
 ```
 
-**Solution:**
-```cpp
-// Limit connection count
-server->set_max_connections(1000);
-
-// Enable memory limits
-server->set_max_memory_usage(1024 * 1024 * 1024);  // 1GB
-
-// Use memory pool
-auto pool = std::make_shared<memory_pool>(100 * 1024 * 1024);  // 100MB pool
-server->set_memory_pool(pool);
-```
+#### Solutions
+See [Memory Leaks](#memory-leaks) section for detailed solutions.
 
 ## Debugging Techniques
-
-### Enable Debug Logging
-
-```cpp
-// Set log level to debug
-network_system::logger::set_level(network_system::log_level::debug);
-
-// Enable component-specific debugging
-server->enable_debug_mode({
-    .log_packets = true,
-    .log_connections = true,
-    .log_errors = true,
-    .log_performance = true
-});
-```
 
 ### Core Dump Analysis
 
 #### Enable Core Dumps
 ```bash
-# Linux
+# Enable core dumps
 ulimit -c unlimited
-echo "/tmp/core-%e-%p-%t" | sudo tee /proc/sys/kernel/core_pattern
 
-# macOS
-ulimit -c unlimited
-sudo sysctl kern.corefile=/cores/core.%P
+# Set core dump pattern
+echo "/tmp/core.%e.%p.%t" | sudo tee /proc/sys/kernel/core_pattern
 ```
 
 #### Analyze Core Dump
 ```bash
-# Using GDB
-gdb ./network_server core.12345
-(gdb) bt  # Backtrace
-(gdb) thread apply all bt  # All threads
-(gdb) info registers
-(gdb) info locals
-(gdb) list
+# Open core dump in GDB
+gdb network_server core.12345
 
-# Using LLDB (macOS)
-lldb ./network_server -c core.12345
-(lldb) bt all
-(lldb) thread list
-(lldb) frame variable
+# Basic commands
+(gdb) bt                    # Backtrace
+(gdb) info threads          # List all threads
+(gdb) thread 3              # Switch to thread 3
+(gdb) frame 2               # Switch to frame 2
+(gdb) info locals           # Show local variables
+(gdb) print variable_name   # Print variable value
 ```
 
-### Network Traffic Analysis
+### Logging and Tracing
 
-#### Using tcpdump
-```bash
-# Capture all traffic on port 8080
-sudo tcpdump -i any -n port 8080 -w capture.pcap
-
-# Real-time monitoring
-sudo tcpdump -i eth0 -n port 8080 -A  # ASCII output
-
-# Filter specific IP
-sudo tcpdump -i any host 192.168.1.100 and port 8080
+#### Enable Debug Logging
+```cpp
+// Configure detailed logging
+LogConfig config;
+config.level = LogLevel::TRACE;
+config.include_thread_id = true;
+config.include_timestamp = true;
+config.include_source_location = true;
+logger.configure(config);
 ```
 
-#### Using Wireshark
-```bash
-# Capture with dumpcap (Wireshark's capture tool)
-dumpcap -i eth0 -f "tcp port 8080" -w capture.pcapng
+#### Trace Execution Flow
+```cpp
+class TraceGuard {
+    std::string function_name_;
+    std::chrono::steady_clock::time_point start_;
 
-# Analyze in Wireshark
-wireshark capture.pcapng
-# Apply display filter: tcp.port == 8080
+public:
+    TraceGuard(const std::string& name)
+        : function_name_(name), start_(std::chrono::steady_clock::now()) {
+        LOG_TRACE("Entering: {}", function_name_);
+    }
+
+    ~TraceGuard() {
+        auto duration = std::chrono::steady_clock::now() - start_;
+        LOG_TRACE("Exiting: {} ({}ms)", function_name_,
+            std::chrono::duration_cast<std::chrono::milliseconds>(duration).count());
+    }
+};
+
+// Usage
+void process_request(const Request& req) {
+    TraceGuard guard(__FUNCTION__);
+    // Function implementation
+}
 ```
 
-### Debugging with Sanitizers
+### Network Packet Capture
 
-#### AddressSanitizer
 ```bash
-# Build with ASAN
-cmake -DCMAKE_BUILD_TYPE=Debug -DENABLE_ASAN=ON ..
-./network_server
+# Capture network traffic
+sudo tcpdump -i any -w network.pcap port 8080
 
-# Interpret ASAN output
-==12345==ERROR: AddressSanitizer: heap-buffer-overflow
-    #0 0x7f8b in process_message() messaging_session.cpp:123
+# Analyze with Wireshark
+wireshark network.pcap
+
+# Quick analysis with tcpdump
+tcpdump -r network.pcap -nn -A
+
+# Monitor specific connections
+sudo netstat -antp | grep network_server
+sudo ss -antp | grep network_server
 ```
 
-#### ThreadSanitizer
-```bash
-# Build with TSAN
-cmake -DCMAKE_BUILD_TYPE=Debug -DENABLE_TSAN=ON ..
-./network_server
+### Strace/DTrace Analysis
 
-# Detect race conditions
-WARNING: ThreadSanitizer: data race
-  Write of size 8 at 0x7b04 by thread T2:
-    #0 update_counter() metrics.cpp:45
+```bash
+# Trace system calls
+strace -f -e network -p $(pidof network_server)
+
+# Trace file operations
+strace -f -e file -p $(pidof network_server)
+
+# Count system calls
+strace -c -p $(pidof network_server)
+
+# macOS dtrace
+sudo dtrace -n 'syscall:::entry /pid == $target/ { @[probefunc] = count(); }' -p $(pgrep network_server)
 ```
 
 ## Performance Problems
 
-### Slow Message Processing
+### Slow Response Times
 
 #### Diagnosis
 ```cpp
-// Enable performance metrics
-auto metrics = server->get_performance_metrics();
-std::cout << "Avg latency: " << metrics.avg_latency_ms << "ms\n";
-std::cout << "P99 latency: " << metrics.p99_latency_ms << "ms\n";
+class PerformanceProfiler {
+    struct Timing {
+        std::chrono::microseconds parse_time;
+        std::chrono::microseconds process_time;
+        std::chrono::microseconds send_time;
+    };
+
+    void profile_request(const Request& req) {
+        auto start = std::chrono::steady_clock::now();
+
+        // Parse phase
+        auto parsed = parse_request(req);
+        auto parse_end = std::chrono::steady_clock::now();
+
+        // Process phase
+        auto result = process_request(parsed);
+        auto process_end = std::chrono::steady_clock::now();
+
+        // Send phase
+        send_response(result);
+        auto send_end = std::chrono::steady_clock::now();
+
+        // Log timings
+        LOG_INFO("Request timing - Parse: {}μs, Process: {}μs, Send: {}μs",
+            duration_cast<microseconds>(parse_end - start).count(),
+            duration_cast<microseconds>(process_end - parse_end).count(),
+            duration_cast<microseconds>(send_end - process_end).count());
+    }
+};
 ```
 
-#### Solutions
+#### Common Causes
+
+**Database Queries**
 ```cpp
-// 1. Optimize serialization
-server->use_binary_protocol();  // Instead of JSON
+// Add query caching
+class QueryCache {
+    std::unordered_map<std::string, CachedResult> cache_;
 
-// 2. Enable zero-copy
-server->enable_zero_copy(true);
+    Result execute_query(const std::string& query) {
+        auto it = cache_.find(query);
+        if (it != cache_.end() && !it->second.is_expired()) {
+            return it->second.result;
+        }
 
-// 3. Reduce allocations
-server->set_buffer_reuse(true);
-server->set_initial_buffer_size(4096);
+        auto result = db_.execute(query);
+        cache_[query] = {result, std::chrono::steady_clock::now()};
+        return result;
+    }
+};
 ```
 
-### Low Throughput
+**Synchronous I/O**
+```cpp
+// Convert to async I/O
+class AsyncIOHandler {
+    std::future<std::string> read_file_async(const std::string& path) {
+        return std::async(std::launch::async, [path]() {
+            std::ifstream file(path);
+            return std::string(std::istreambuf_iterator<char>(file), {});
+        });
+    }
+};
+```
+
+**Lock Contention**
+```cpp
+// Use fine-grained locking
+class ConnectionManager {
+    struct ConnectionBucket {
+        mutable std::mutex mutex;
+        std::vector<Connection> connections;
+    };
+
+    static constexpr size_t BUCKET_COUNT = 16;
+    std::array<ConnectionBucket, BUCKET_COUNT> buckets_;
+
+    size_t get_bucket_index(ConnectionId id) {
+        return std::hash<ConnectionId>{}(id) % BUCKET_COUNT;
+    }
+
+    Connection& get_connection(ConnectionId id) {
+        auto& bucket = buckets_[get_bucket_index(id)];
+        std::lock_guard lock(bucket.mutex);
+        // Find connection in bucket
+    }
+};
+```
+
+### Throughput Issues
 
 #### Diagnosis
 ```bash
-# Monitor network utilization
-iftop -i eth0
-nethogs  # Per-process bandwidth
+# Network throughput test
+iperf3 -s  # Server side
+iperf3 -c server_ip -t 60 -P 10  # Client side
 
-# Check TCP statistics
-ss -s
-netstat -s | grep -i retrans
+# Application throughput test
+wrk -t12 -c400 -d30s --latency http://localhost:8080/
 ```
 
 #### Solutions
+
+**Increase Buffer Sizes**
 ```cpp
-// 1. Increase buffer sizes
-server->set_receive_buffer_size(256 * 1024);
-server->set_send_buffer_size(256 * 1024);
+// Socket buffer tuning
+int send_buffer_size = 1048576;  // 1MB
+setsockopt(socket_fd, SOL_SOCKET, SO_SNDBUF,
+    &send_buffer_size, sizeof(send_buffer_size));
 
-// 2. Enable TCP optimizations
-server->set_tcp_nodelay(true);  // Disable Nagle
-server->set_tcp_quickack(true);  // Quick ACKs
-
-// 3. Use multiple acceptor threads
-server->set_acceptor_threads(4);
+int recv_buffer_size = 1048576;  // 1MB
+setsockopt(socket_fd, SOL_SOCKET, SO_RCVBUF,
+    &recv_buffer_size, sizeof(recv_buffer_size));
 ```
 
-### High Latency
-
-#### Network Latency Check
-```bash
-# Measure RTT
-ping -c 100 server_host | tail -1
-
-# TCP connection time
-time nc -zv server_host 8080
-
-# Full transaction time
-curl -w "@curl-format.txt" -o /dev/null -s http://server:8080/health
-```
-
-#### Application Latency
+**Batch Processing**
 ```cpp
-// Profile message handling
-server->enable_profiling({
-    .sample_rate = 0.01,  // 1% of messages
-    .output_file = "profile.json"
-});
+class BatchProcessor {
+    std::vector<Request> batch_;
+    std::mutex batch_mutex_;
+    std::condition_variable cv_;
 
-// Analyze hotspots
-auto profile = server->get_profile_data();
-for (const auto& [function, time] : profile.hotspots) {
-    std::cout << function << ": " << time << "ms\n";
-}
+    void add_request(Request req) {
+        {
+            std::lock_guard lock(batch_mutex_);
+            batch_.push_back(std::move(req));
+        }
+
+        if (batch_.size() >= BATCH_SIZE) {
+            cv_.notify_one();
+        }
+    }
+
+    void process_batch() {
+        std::unique_lock lock(batch_mutex_);
+        cv_.wait(lock, [this] {
+            return batch_.size() >= BATCH_SIZE || shutdown_;
+        });
+
+        auto local_batch = std::move(batch_);
+        batch_.clear();
+        lock.unlock();
+
+        // Process batch without holding lock
+        process_all(local_batch);
+    }
+};
 ```
 
 ## Connection Issues
+
+### Connection Refused
+
+#### Diagnosis
+```bash
+# Check if server is listening
+netstat -tlnp | grep 8080
+ss -tlnp | grep 8080
+
+# Test connectivity
+telnet localhost 8080
+nc -zv localhost 8080
+
+# Check firewall rules
+sudo iptables -L -n -v
+sudo ufw status verbose
+```
+
+#### Solutions
+
+**Firewall Blocking**
+```bash
+# Allow port in firewall
+sudo ufw allow 8080/tcp
+sudo iptables -A INPUT -p tcp --dport 8080 -j ACCEPT
+```
+
+**Bind Address Issues**
+```cpp
+// Bind to all interfaces
+address.sin_addr.s_addr = INADDR_ANY;
+
+// Or specific interface
+inet_pton(AF_INET, "0.0.0.0", &address.sin_addr);
+```
+
+### Connection Timeouts
+
+#### Diagnosis
+```cpp
+class TimeoutDiagnostics {
+    void log_timeout_details(const Connection& conn) {
+        LOG_ERROR("Connection timeout: {}", conn.id);
+        LOG_ERROR("  State: {}", conn.state);
+        LOG_ERROR("  Last activity: {}ms ago",
+            duration_since(conn.last_activity));
+        LOG_ERROR("  Pending writes: {}", conn.write_buffer.size());
+        LOG_ERROR("  RTT: {}ms", conn.round_trip_time);
+    }
+};
+```
+
+#### Solutions
+
+**Adjust Timeout Values**
+```cpp
+// Increase timeouts for slow networks
+struct TimeoutConfig {
+    std::chrono::seconds connect_timeout{30};
+    std::chrono::seconds read_timeout{60};
+    std::chrono::seconds write_timeout{60};
+    std::chrono::seconds keep_alive_timeout{300};
+};
+```
+
+**Implement Keep-Alive**
+```cpp
+// TCP keep-alive
+int enable = 1;
+setsockopt(socket_fd, SOL_SOCKET, SO_KEEPALIVE, &enable, sizeof(enable));
+
+int idle = 60;  // Start keep-alive after 60 seconds
+setsockopt(socket_fd, IPPROTO_TCP, TCP_KEEPIDLE, &idle, sizeof(idle));
+
+int interval = 10;  // Send keep-alive every 10 seconds
+setsockopt(socket_fd, IPPROTO_TCP, TCP_KEEPINTVL, &interval, sizeof(interval));
+
+int count = 6;  // Send 6 keep-alive probes
+setsockopt(socket_fd, IPPROTO_TCP, TCP_KEEPCNT, &count, sizeof(count));
+```
 
 ### Connection Drops
 
 #### Diagnosis
 ```bash
-# Check connection state
-ss -tan | grep 8080
-netstat -an | grep 8080
+# Monitor connection states
+watch 'netstat -tan | grep :8080 | awk "{print \$6}" | sort | uniq -c'
 
-# Monitor connection drops
-watch 'ss -s'
+# Check for network errors
+netstat -s | grep -i error
+ip -s link show
 ```
 
-#### Common Causes and Solutions
+#### Solutions
 
-**1. Timeout Issues**
+**Handle Partial Writes**
 ```cpp
-// Increase timeouts
-server->set_idle_timeout(std::chrono::minutes(30));
-server->set_keepalive_interval(std::chrono::seconds(30));
-```
+ssize_t send_all(int socket, const char* buffer, size_t length) {
+    size_t total_sent = 0;
 
-**2. Resource Limits**
-```bash
-# Check system limits
-ulimit -n  # File descriptors
-sysctl net.core.somaxconn  # Listen backlog
+    while (total_sent < length) {
+        ssize_t sent = send(socket, buffer + total_sent,
+            length - total_sent, MSG_NOSIGNAL);
 
-# Increase limits
-ulimit -n 65535
-sudo sysctl -w net.core.somaxconn=8192
-```
+        if (sent < 0) {
+            if (errno == EAGAIN || errno == EWOULDBLOCK) {
+                // Wait for socket to become writable
+                continue;
+            }
+            return -1;  // Error
+        }
 
-**3. Network Issues**
-```bash
-# Check for packet loss
-mtr server_host  # Continuous traceroute
-iperf3 -c server_host  # Bandwidth test
-```
+        total_sent += sent;
+    }
 
-### SSL/TLS Issues
-
-#### Certificate Problems
-```bash
-# Verify certificate
-openssl s_client -connect server:8443 -showcerts
-
-# Check certificate expiry
-openssl x509 -in cert.pem -noout -dates
-
-# Verify certificate chain
-openssl verify -CAfile ca.pem cert.pem
-```
-
-#### Cipher Suite Issues
-```cpp
-// Enable all secure ciphers
-server->set_tls_ciphers("HIGH:!aNULL:!MD5:!RC4");
-
-// Debug TLS handshake
-server->enable_tls_debug(true);
+    return total_sent;
+}
 ```
 
 ## Memory Leaks
@@ -400,279 +550,471 @@ server->enable_tls_debug(true);
 valgrind --leak-check=full \
          --show-leak-kinds=all \
          --track-origins=yes \
-         --log-file=valgrind.log \
+         --verbose \
+         --log-file=valgrind-out.txt \
          ./network_server
-
-# Analyze results
-grep "definitely lost" valgrind.log
-grep "indirectly lost" valgrind.log
 ```
 
-#### Using Built-in Tracking
+#### Using AddressSanitizer
+```bash
+# Compile with AddressSanitizer
+g++ -fsanitize=address -fno-omit-frame-pointer -g -O1 network_server.cpp
+
+# Run with leak detection
+ASAN_OPTIONS=detect_leaks=1:check_initialization_order=1 ./network_server
+```
+
+#### Using HeapTrack
+```bash
+heaptrack ./network_server
+heaptrack_gui heaptrack.network_server.*.gz
+```
+
+### Common Memory Leak Patterns
+
+#### Missing Delete
 ```cpp
-// Enable memory tracking
-server->enable_memory_tracking(true);
+// Problem
+void process() {
+    Buffer* buffer = new Buffer(1024);
+    // Missing delete
+}
 
-// Get memory report
-auto report = server->get_memory_report();
-std::cout << "Allocated: " << report.allocated_bytes << "\n";
-std::cout << "Freed: " << report.freed_bytes << "\n";
-std::cout << "Leaked: " << report.leaked_bytes << "\n";
-
-// Dump allocation sites
-for (const auto& [location, size] : report.allocations) {
-    std::cout << location << ": " << size << " bytes\n";
+// Solution
+void process() {
+    std::unique_ptr<Buffer> buffer = std::make_unique<Buffer>(1024);
+    // Automatic cleanup
 }
 ```
 
-### Common Leak Patterns
-
-**1. Circular References**
+#### Circular References
 ```cpp
-// Problem: Shared pointers creating cycles
-class Session {
-    std::shared_ptr<Connection> connection;  // Connection holds Session
+// Problem
+class Node {
+    std::shared_ptr<Node> next;
+    std::shared_ptr<Node> prev;  // Creates cycle
 };
 
-// Solution: Use weak_ptr
-class Session {
-    std::weak_ptr<Connection> connection;
+// Solution
+class Node {
+    std::shared_ptr<Node> next;
+    std::weak_ptr<Node> prev;  // Breaks cycle
 };
 ```
 
-**2. Forgotten Callbacks**
+#### Container Leaks
 ```cpp
-// Problem: Callbacks holding references
-server->on_message([this, large_object](auto msg) {
-    // large_object never freed
-});
+// Problem
+std::vector<Resource*> resources;
+resources.push_back(new Resource());
+// Vector cleared but resources not deleted
 
-// Solution: Capture by weak_ptr
-server->on_message([weak_this = weak_from_this()](auto msg) {
-    if (auto self = weak_this.lock()) {
-        // Process message
+// Solution
+std::vector<std::unique_ptr<Resource>> resources;
+resources.push_back(std::make_unique<Resource>());
+// Automatic cleanup when vector is cleared
+```
+
+### Memory Leak Prevention
+
+```cpp
+// RAII wrapper for C resources
+template<typename T, typename Deleter>
+class RAIIWrapper {
+    T* resource_;
+    Deleter deleter_;
+
+public:
+    explicit RAIIWrapper(T* resource, Deleter deleter)
+        : resource_(resource), deleter_(deleter) {}
+
+    ~RAIIWrapper() {
+        if (resource_) {
+            deleter_(resource_);
+        }
     }
-});
+
+    // Delete copy operations
+    RAIIWrapper(const RAIIWrapper&) = delete;
+    RAIIWrapper& operator=(const RAIIWrapper&) = delete;
+
+    // Allow move operations
+    RAIIWrapper(RAIIWrapper&& other) noexcept
+        : resource_(std::exchange(other.resource_, nullptr)),
+          deleter_(std::move(other.deleter_)) {}
+};
+
+// Usage
+RAIIWrapper file(fopen("data.txt", "r"), fclose);
+RAIIWrapper ssl_ctx(SSL_CTX_new(TLS_method()), SSL_CTX_free);
 ```
 
 ## Build Problems
 
-### CMake Configuration Errors
-
-#### Missing Dependencies
-```
-CMake Error: Could NOT find ASIO (missing: ASIO_INCLUDE_DIR)
-```
-
-**Solution:**
-```bash
-# Install ASIO
-sudo apt-get install libasio-dev  # Ubuntu/Debian
-brew install asio  # macOS
-vcpkg install asio  # Windows
-
-# Specify path manually
-cmake -DASIO_ROOT=/usr/local/include ..
-```
-
-#### Compiler Version Issues
-```
-CMake Error: C++20 support required
-```
-
-**Solution:**
-```bash
-# Update compiler
-sudo apt-get install g++-11  # Ubuntu
-brew install gcc@11  # macOS
-
-# Specify compiler
-cmake -DCMAKE_CXX_COMPILER=g++-11 ..
-```
-
 ### Compilation Errors
 
-#### Template Errors
-```cpp
-error: template argument deduction/substitution failed
-```
-
-**Solution:**
-```cpp
-// Be explicit with template parameters
-auto result = function<int, std::string>(42, "test");
-// Instead of: auto result = function(42, "test");
-```
-
-#### Linking Errors
-```
-undefined reference to `network_system::core::messaging_server::start_server(unsigned short)'
-```
-
-**Solution:**
+#### Missing Headers
 ```bash
-# Ensure library is linked
-target_link_libraries(your_app NetworkSystem::NetworkSystem)
+# Error: fatal error: openssl/ssl.h: No such file or directory
 
-# Check library path
-ldd your_app | grep NetworkSystem
+# Solution - Install development packages
+sudo apt-get install libssl-dev  # Ubuntu/Debian
+sudo yum install openssl-devel  # RHEL/CentOS
+brew install openssl  # macOS
+
+# Update include paths
+export CPLUS_INCLUDE_PATH=/usr/local/opt/openssl/include:$CPLUS_INCLUDE_PATH
+```
+
+#### Undefined References
+```bash
+# Error: undefined reference to `SSL_library_init'
+
+# Solution - Link libraries correctly
+g++ network_server.cpp -lssl -lcrypto -lpthread
+
+# Or in CMakeLists.txt
+find_package(OpenSSL REQUIRED)
+target_link_libraries(network_server OpenSSL::SSL OpenSSL::Crypto)
+```
+
+#### Template Instantiation Issues
+```cpp
+// Problem: undefined reference to template function
+
+// Solution 1: Define in header
+template<typename T>
+class Container {
+    T* data_;
+public:
+    T& get() { return *data_; }  // Define inline
+};
+
+// Solution 2: Explicit instantiation
+// In .cpp file
+template class Container<int>;
+template class Container<std::string>;
+```
+
+### Linking Errors
+
+#### Symbol Conflicts
+```bash
+# Multiple definition errors
+
+# Check for duplicate symbols
+nm -C *.o | grep "T " | sort | uniq -d
+
+# Use unnamed namespaces for internal linkage
+namespace {
+    void internal_function() { }
+}
+```
+
+#### Library Order
+```bash
+# Correct library order (dependencies last)
+g++ main.o -lmylib -lssl -lcrypto -lpthread
+
+# Wrong order (will fail)
+g++ main.o -lpthread -lcrypto -lssl -lmylib
+```
+
+### CMake Issues
+
+#### Finding Packages
+```cmake
+# Set hints for finding packages
+set(CMAKE_PREFIX_PATH "/usr/local/opt/openssl")
+find_package(OpenSSL REQUIRED)
+
+# Or use pkg-config
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(OPENSSL REQUIRED openssl)
+```
+
+#### Cross-Platform Builds
+```cmake
+# Platform-specific settings
+if(WIN32)
+    set(PLATFORM_LIBS ws2_32)
+elseif(APPLE)
+    set(PLATFORM_LIBS "-framework CoreFoundation")
+else()
+    set(PLATFORM_LIBS pthread dl)
+endif()
+
+target_link_libraries(network_server ${PLATFORM_LIBS})
 ```
 
 ## Platform-Specific Issues
 
-### Linux
+### Linux Issues
 
-#### epoll Errors
-```
-Error: epoll_wait failed: Bad file descriptor
-```
+#### File Descriptor Limits
+```bash
+# Check current limits
+ulimit -n
 
-**Solution:**
-```cpp
-// Recreate epoll instance
-server->restart_event_loop();
+# Increase limits temporarily
+ulimit -n 65535
 
-// Or increase epoll limits
-echo 65535 | sudo tee /proc/sys/fs/epoll/max_user_watches
+# Increase limits permanently
+# /etc/security/limits.conf
+* soft nofile 65535
+* hard nofile 65535
 ```
 
 #### Systemd Service Issues
 ```bash
-# Service fails to start
-journalctl -u network_system -n 50
+# Check service status
+systemctl status network_service
+
+# View full logs
+journalctl -u network_service --no-pager
 
 # Common fixes
-# 1. Fix permissions
-sudo chown -R network_system:network_system /opt/network_system
-
-# 2. Fix path
-systemctl edit network_system
-# Add: Environment="LD_LIBRARY_PATH=/usr/local/lib"
+systemctl daemon-reload  # After changing service file
+systemctl reset-failed network_service  # Clear failed state
 ```
 
-### macOS
+### macOS Issues
 
-#### kqueue Errors
-```
-Error: kqueue failed: Too many open files
-```
-
-**Solution:**
+#### Code Signing
 ```bash
-# Increase limits
-sudo launchctl limit maxfiles 65536 200000
-ulimit -n 65536
+# Sign binary to avoid firewall prompts
+codesign -s "Developer ID" network_server
 
-# Permanent fix in /etc/sysctl.conf
-kern.maxfiles=65536
-kern.maxfilesperproc=65536
+# Allow unsigned binary
+spctl --add network_server
 ```
 
-#### Code Signing Issues
-```
-killed: 9
-```
-
-**Solution:**
+#### Homebrew Library Paths
 ```bash
-# Sign the binary
-codesign -s - ./network_server
+# Fix library paths
+export DYLD_LIBRARY_PATH=/usr/local/lib:$DYLD_LIBRARY_PATH
 
-# Or disable library validation
-sudo spctl --master-disable  # Not recommended
+# Or use install_name_tool
+install_name_tool -change @rpath/libssl.dylib /usr/local/lib/libssl.dylib network_server
 ```
 
-### Windows
+### Windows Issues
 
-#### Winsock Errors
-```
-Error: WSAStartup failed: 10093
-```
-
-**Solution:**
-```cpp
-// Initialize Winsock properly
-WSADATA wsaData;
-int result = WSAStartup(MAKEWORD(2, 2), &wsaData);
-if (result != 0) {
-    std::cerr << "WSAStartup failed: " << result << std::endl;
-}
-```
-
-#### Firewall Blocking
+#### DLL Not Found
 ```powershell
-# Add firewall rule
-New-NetFirewallRule -DisplayName "Network System" `
-    -Direction Inbound `
-    -Protocol TCP `
-    -LocalPort 8080 `
-    -Action Allow
+# Check dependencies
+dumpbin /DEPENDENTS network_server.exe
+
+# Add to PATH
+$env:PATH += ";C:\Program Files\OpenSSL\bin"
+
+# Or copy DLLs to executable directory
+copy "C:\Program Files\OpenSSL\bin\*.dll" .
+```
+
+#### Windows Firewall
+```powershell
+# Add firewall exception
+netsh advfirewall firewall add rule name="Network Server" dir=in action=allow program="C:\network\network_server.exe"
+
+# Check firewall rules
+netsh advfirewall firewall show rule name="Network Server"
+```
+
+#### Visual Studio Runtime
+```powershell
+# Install Visual C++ Redistributable
+# Download from Microsoft website
+
+# Or link statically
+# In CMake:
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 ```
 
 ## Error Reference
 
 ### Error Codes
 
-| Code | Name | Description | Solution |
-|------|------|-------------|----------|
-| 1001 | CONNECTION_REFUSED | Server not accepting connections | Check server status |
-| 1002 | CONNECTION_TIMEOUT | Connection attempt timed out | Increase timeout, check network |
-| 1003 | CONNECTION_RESET | Connection reset by peer | Check for crashes, review logs |
-| 2001 | INVALID_MESSAGE | Message format invalid | Validate message structure |
-| 2002 | MESSAGE_TOO_LARGE | Message exceeds size limit | Increase limit or split message |
-| 3001 | AUTH_FAILED | Authentication failure | Verify credentials |
-| 3002 | PERMISSION_DENIED | Insufficient permissions | Check access rights |
-| 4001 | RESOURCE_EXHAUSTED | System resources depleted | Scale resources or limit usage |
-| 4002 | MEMORY_LIMIT | Memory limit exceeded | Increase limit or optimize usage |
-| 5001 | INTERNAL_ERROR | Unexpected server error | Check logs, report bug |
+```cpp
+enum class ErrorCode {
+    SUCCESS = 0,
 
-### Common Log Messages
+    // Connection errors (1000-1999)
+    CONNECTION_REFUSED = 1001,
+    CONNECTION_TIMEOUT = 1002,
+    CONNECTION_CLOSED = 1003,
+    CONNECTION_RESET = 1004,
 
-#### INFO Level
-```
-[INFO] Server started on port 8080
-[INFO] Client connected from 192.168.1.100:45678
-[INFO] Session sess-abc123 established
+    // Protocol errors (2000-2999)
+    INVALID_MESSAGE = 2001,
+    UNSUPPORTED_VERSION = 2002,
+    AUTHENTICATION_FAILED = 2003,
+
+    // Resource errors (3000-3999)
+    OUT_OF_MEMORY = 3001,
+    TOO_MANY_CONNECTIONS = 3002,
+    RESOURCE_EXHAUSTED = 3003,
+
+    // System errors (4000-4999)
+    FILE_NOT_FOUND = 4001,
+    PERMISSION_DENIED = 4002,
+    OPERATION_NOT_SUPPORTED = 4003
+};
+
+const char* error_to_string(ErrorCode code) {
+    switch (code) {
+        case ErrorCode::CONNECTION_REFUSED:
+            return "Connection refused by remote host";
+        case ErrorCode::CONNECTION_TIMEOUT:
+            return "Connection attempt timed out";
+        // ... more cases
+    }
+}
 ```
 
-#### WARNING Level
-```
-[WARN] Connection pool near capacity (90% used)
-[WARN] Message processing slow: 500ms for msg-xyz789
-[WARN] Memory usage high: 1.8GB of 2GB limit
+### Error Recovery Strategies
+
+```cpp
+class ErrorRecovery {
+    template<typename Func>
+    auto retry_with_backoff(Func func, int max_retries = 3) {
+        int retry = 0;
+        std::chrono::milliseconds delay(100);
+
+        while (retry < max_retries) {
+            try {
+                return func();
+            } catch (const std::exception& e) {
+                if (++retry >= max_retries) {
+                    throw;
+                }
+
+                LOG_WARN("Attempt {} failed: {}. Retrying in {}ms",
+                    retry, e.what(), delay.count());
+
+                std::this_thread::sleep_for(delay);
+                delay *= 2;  // Exponential backoff
+            }
+        }
+    }
+};
 ```
 
-#### ERROR Level
+## Support Resources
+
+### Logging Best Practices
+
+```cpp
+// Structured logging for better debugging
+class StructuredLogger {
+    void log_error(const std::string& message,
+                   const std::map<std::string, std::any>& context) {
+        json log_entry;
+        log_entry["timestamp"] = std::chrono::system_clock::now();
+        log_entry["level"] = "ERROR";
+        log_entry["message"] = message;
+
+        for (const auto& [key, value] : context) {
+            log_entry["context"][key] = value;
+        }
+
+        std::cerr << log_entry.dump() << std::endl;
+    }
+};
+
+// Usage
+logger.log_error("Connection failed", {
+    {"remote_ip", "192.168.1.100"},
+    {"port", 8080},
+    {"error_code", ECONNREFUSED},
+    {"retry_count", 3}
+});
 ```
-[ERROR] Failed to bind to port: Address in use
-[ERROR] Session timeout after 30 seconds
-[ERROR] Memory allocation failed: std::bad_alloc
+
+### Performance Metrics Collection
+
+```cpp
+class MetricsCollector {
+    void record_latency(const std::string& operation,
+                       std::chrono::microseconds duration) {
+        histogram_[operation].record(duration.count());
+
+        // Alert on high latency
+        if (duration > std::chrono::seconds(1)) {
+            alert_manager_.send({
+                .severity = AlertSeverity::WARNING,
+                .message = fmt::format("{} took {}ms",
+                    operation, duration.count() / 1000)
+            });
+        }
+    }
+};
 ```
 
 ### Getting Help
 
-If issues persist after trying these solutions:
+1. **Check Logs First**
+   - Application logs: `/var/log/network_system/`
+   - System logs: `journalctl`, `dmesg`, Event Viewer
+   - Enable debug logging for detailed information
 
-1. **Collect Diagnostic Information**
-```bash
-./scripts/collect_diagnostics.sh
-# Creates diagnostic_bundle.tar.gz with:
-# - System info
-# - Configuration
-# - Recent logs
-# - Performance metrics
+2. **Gather Information**
+   - Operating system and version
+   - Compiler version
+   - Library versions
+   - Configuration settings
+   - Recent changes
+   - Error messages and stack traces
+
+3. **Create Minimal Reproduction**
+```cpp
+// Minimal test case
+#include <iostream>
+#include "network_system.h"
+
+int main() {
+    try {
+        NetworkServer server;
+        server.configure("config.json");
+        server.start();
+
+        // Reproduce issue here
+
+    } catch (const std::exception& e) {
+        std::cerr << "Error: " << e.what() << std::endl;
+        return 1;
+    }
+}
 ```
 
-2. **Check Documentation**
-- [API Reference](API_REFERENCE.md)
-- [Operations Guide](OPERATIONS.md)
-- [GitHub Issues](https://github.com/your-org/network_system/issues)
+4. **Community Resources**
+   - GitHub Issues: Report bugs and feature requests
+   - Stack Overflow: Search for similar issues
+   - Discord/Slack: Real-time community support
+   - Documentation: Check API reference and guides
 
-3. **Contact Support**
-- Email: support@network-system.io
-- Slack: #network-system-help
-- Include diagnostic bundle and steps to reproduce
+5. **Professional Support**
+   - Enterprise support contracts
+   - Consulting services
+   - Training workshops
+   - Priority bug fixes
 
----
+## Conclusion
 
-Remember: Most issues can be diagnosed by checking logs, monitoring metrics, and understanding the system's behavior under load.
+This troubleshooting guide covers the most common issues and their solutions. For issues not covered here:
+
+1. Enable debug logging to gather more information
+2. Check the error reference for specific error codes
+3. Use the debugging techniques to isolate the problem
+4. Create a minimal reproduction case
+5. Reach out to the community or support channels
+
+Remember to always:
+- Keep your system updated
+- Monitor logs and metrics
+- Implement proper error handling
+- Test thoroughly before deployment
+- Document any workarounds or custom solutions
+
+For operational procedures, see the [Operations Guide](OPERATIONS.md).
+For API documentation, see the [API Reference](API_REFERENCE.md).
