@@ -1,8 +1,13 @@
 # Network System
 
-[![Build Status](https://github.com/kcenon/network_system/actions/workflows/build-ubuntu-gcc.yaml/badge.svg)](https://github.com/kcenon/network_system/actions)
-[![License](https://img.shields.io/badge/license-BSD--3--Clause-blue.svg)](LICENSE)
-[![C++ Version](https://img.shields.io/badge/C%2B%2B-20-blue.svg)](https://en.cppreference.com/w/cpp/20)
+[![Ubuntu GCC](https://github.com/kcenon/network_system/actions/workflows/build-ubuntu-gcc.yaml/badge.svg)](https://github.com/kcenon/network_system/actions/workflows/build-ubuntu-gcc.yaml)
+[![Ubuntu Clang](https://github.com/kcenon/network_system/actions/workflows/build-ubuntu-clang.yaml/badge.svg)](https://github.com/kcenon/network_system/actions/workflows/build-ubuntu-clang.yaml)
+[![Windows MSVC](https://github.com/kcenon/network_system/actions/workflows/build-windows-vs.yaml/badge.svg)](https://github.com/kcenon/network_system/actions/workflows/build-windows-vs.yaml)
+[![Windows MinGW](https://github.com/kcenon/network_system/actions/workflows/build-windows-msys2.yaml/badge.svg)](https://github.com/kcenon/network_system/actions/workflows/build-windows-msys2.yaml)
+
+[![License: BSD-3-Clause](https://img.shields.io/badge/License-BSD--3--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
+[![C++ Standard](https://img.shields.io/badge/C%2B%2B-20-blue.svg)](https://en.cppreference.com/w/cpp/20)
+[![GitHub release](https://img.shields.io/github/v/release/kcenon/network_system?include_prereleases)](https://github.com/kcenon/network_system/releases)
 
 **Status**: Phase 4 In Progress 🚧 (messaging_system Update)
 **Version**: 2.0.0
@@ -217,14 +222,15 @@ network_system/
 - **thread_system** (for thread pool integration)
 - **logger_system** (for structured logging)
 
-## 🎯 CI/CD Status
+## 🎯 Platform Support
 
-| Platform | Compiler | Status |
-|----------|----------|--------|
-| Ubuntu 22.04 | GCC 11 | ![Build](https://github.com/kcenon/network_system/actions/workflows/build-ubuntu-gcc.yaml/badge.svg) |
-| Ubuntu 22.04 | Clang 14 | ![Build](https://github.com/kcenon/network_system/actions/workflows/build-ubuntu-clang.yaml/badge.svg) |
-| Windows 2022 | MSVC 2022 | ![Build](https://github.com/kcenon/network_system/actions/workflows/build-windows-vs.yaml/badge.svg) |
-| Windows 2022 | MinGW64 | ![Build](https://github.com/kcenon/network_system/actions/workflows/build-windows-msys2.yaml/badge.svg) |
+| Platform | Compiler | Architecture | Support Level |
+|----------|----------|--------------|---------------|
+| Ubuntu 22.04+ | GCC 11+ | x86_64 | ✅ Full Support |
+| Ubuntu 22.04+ | Clang 14+ | x86_64 | ✅ Full Support |
+| Windows 2022+ | MSVC 2022+ | x86_64 | ✅ Full Support |
+| Windows 2022+ | MinGW64 | x86_64 | ✅ Full Support |
+| macOS 12+ | Apple Clang 14+ | x86_64/ARM64 | 🚧 Experimental |
 
 ## 📚 Documentation
 
