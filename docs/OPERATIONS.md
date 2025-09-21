@@ -1,320 +1,241 @@
-# Network System Operations Guide
+# Operations Guide
+
+This guide covers deployment, configuration, monitoring, and operational best practices for the Network System.
 
 ## Table of Contents
-1. [Deployment](#deployment)
-2. [Configuration Management](#configuration-management)
-3. [Monitoring and Metrics](#monitoring-and-metrics)
-4. [Performance Tuning](#performance-tuning)
-5. [Backup and Recovery](#backup-and-recovery)
-6. [Security Considerations](#security-considerations)
-7. [Scaling Strategies](#scaling-strategies)
-8. [Maintenance Procedures](#maintenance-procedures)
 
-## Deployment
+- [Deployment Best Practices](#deployment-best-practices)
+- [Configuration Management](#configuration-management)
+- [Monitoring and Metrics](#monitoring-and-metrics)
+- [Performance Tuning](#performance-tuning)
+- [Backup and Recovery](#backup-and-recovery)
+- [Security Considerations](#security-considerations)
+- [Scaling Strategies](#scaling-strategies)
 
-### Prerequisites
-- C++20 compatible system
-- CMake 3.16 or later
-- ASIO or Boost.ASIO 1.28+
-- Minimum 2GB RAM for production workloads
-- Network ports configured for application traffic
+## Deployment Best Practices
 
-### Linux Deployment
+### Pre-deployment Checklist
 
-#### System Preparation
+1. **Environment Verification**
+   - Verify target platform compatibility
+   - Check required dependencies are installed
+   - Ensure sufficient system resources
+   - Validate network connectivity
+
+2. **Build Configuration**
+   ```bash
+   # Production build with optimizations
+   cmake -DCMAKE_BUILD_TYPE=Release \
+         -DENABLE_TESTING=OFF \
+         -DENABLE_PROFILING=OFF \
+         -B build
+
+   cmake --build build --config Release --parallel
+   ```
+
+3. **Deployment Steps**
+   - Stop existing services gracefully
+   - Backup current configuration
+   - Deploy new binaries
+   - Update configuration files
+   - Start services with monitoring
+   - Verify service health
+
+### Platform-Specific Deployment
+
+#### Linux Deployment
 ```bash
-# Update system
-sudo apt-get update && sudo apt-get upgrade
-
-# Install dependencies
-sudo apt-get install -y build-essential cmake libasio-dev libfmt-dev
-
-# Configure system limits
-echo "* soft nofile 65535" | sudo tee -a /etc/security/limits.conf
-echo "* hard nofile 65535" | sudo tee -a /etc/security/limits.conf
-
-# Optimize network stack
-sudo sysctl -w net.core.rmem_max=134217728
-sudo sysctl -w net.core.wmem_max=134217728
-sudo sysctl -w net.core.netdev_max_backlog=5000
-sudo sysctl -w net.ipv4.tcp_rmem="4096 87380 134217728"
-sudo sysctl -w net.ipv4.tcp_wmem="4096 65536 134217728"
-```
-
-#### Installation Steps
-```bash
-# Clone and build
-git clone https://github.com/your-org/network_system.git
-cd network_system
-./scripts/install.sh --prefix /opt/network_system --build-type Release
-
 # Create service user
-sudo useradd -r -s /bin/false network_system
+sudo useradd -r -s /bin/false network_service
 
-# Set permissions
-sudo chown -R network_system:network_system /opt/network_system
+# Install systemd service
+sudo cp network_service.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable network_service
+sudo systemctl start network_service
 ```
 
-#### Systemd Service
-```ini
-# /etc/systemd/system/network_system.service
-[Unit]
-Description=Network System Service
-After=network.target
-
-[Service]
-Type=simple
-User=network_system
-Group=network_system
-ExecStart=/opt/network_system/bin/network_server
-ExecReload=/bin/kill -HUP $MAINPID
-Restart=on-failure
-RestartSec=10
-StandardOutput=journal
-StandardError=journal
-LimitNOFILE=65535
-
-[Install]
-WantedBy=multi-user.target
-```
-
-### Docker Deployment
-
-#### Dockerfile
+#### Docker Deployment
 ```dockerfile
-FROM ubuntu:22.04 AS builder
-
-RUN apt-get update && apt-get install -y \
-    build-essential cmake git libasio-dev libfmt-dev
-
-WORKDIR /build
-COPY . .
-RUN cmake -B build -DCMAKE_BUILD_TYPE=Release \
-    && cmake --build build --parallel \
-    && cmake --install build --prefix /app
-
 FROM ubuntu:22.04
-
 RUN apt-get update && apt-get install -y \
-    libasio-dev libfmt9 \
-    && rm -rf /var/lib/apt/lists/*
-
-COPY --from=builder /app /app
-WORKDIR /app
-
-USER 1000:1000
+    libssl-dev \
+    libcurl4-openssl-dev
+COPY build/network_server /usr/local/bin/
 EXPOSE 8080
-CMD ["/app/bin/network_server"]
+CMD ["/usr/local/bin/network_server"]
 ```
 
-#### Docker Compose
-```yaml
-version: '3.8'
-
-services:
-  network_system:
-    image: network_system:latest
-    ports:
-      - "8080:8080"
-    environment:
-      - NETWORK_LOG_LEVEL=info
-      - NETWORK_MAX_CONNECTIONS=10000
-    volumes:
-      - ./config:/app/config:ro
-      - ./logs:/app/logs
-    restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          cpus: '4'
-          memory: 4G
-        reservations:
-          cpus: '2'
-          memory: 2G
-```
-
-### Windows Deployment
-
-#### PowerShell Installation
+#### Windows Service
 ```powershell
-# Run as Administrator
-Set-ExecutionPolicy Bypass -Scope Process
-
-# Install with script
-.\scripts\install.ps1 -InstallPrefix "C:\NetworkSystem" -BuildType Release
-
-# Create Windows Service
-New-Service -Name "NetworkSystem" `
-    -BinaryPath "C:\NetworkSystem\bin\network_server.exe" `
-    -DisplayName "Network System Service" `
-    -StartupType Automatic `
-    -Description "High-performance network service"
-
-Start-Service -Name "NetworkSystem"
+# Install as Windows service
+sc create NetworkService binPath= "C:\Program Files\NetworkSystem\network_server.exe"
+sc config NetworkService start= auto
+sc start NetworkService
 ```
 
 ## Configuration Management
 
-### Configuration File Structure
+### Configuration Structure
 
-#### config.yaml
 ```yaml
-# Network System Configuration
+# config.yaml
 server:
-  host: "0.0.0.0"
+  host: 0.0.0.0
   port: 8080
-  max_connections: 10000
-  connection_timeout: 30s
-  keep_alive: true
-  no_delay: true
-
-performance:
-  thread_pool_size: 0  # 0 = auto-detect
-  receive_buffer_size: 65536
-  send_buffer_size: 65536
-  message_batch_size: 100
-  flush_interval: 10ms
-
-logging:
-  level: info  # debug, info, warning, error
-  file: /var/log/network_system/server.log
-  max_size: 100MB
-  max_files: 10
-  format: json
+  max_connections: 1000
+  worker_threads: 4
 
 security:
-  tls_enabled: false
-  cert_file: /etc/network_system/cert.pem
-  key_file: /etc/network_system/key.pem
-  allowed_ips:
-    - 192.168.1.0/24
-    - 10.0.0.0/8
+  ssl_enabled: true
+  cert_file: /etc/network/server.crt
+  key_file: /etc/network/server.key
+  allowed_origins:
+    - https://trusted.domain.com
+
+performance:
+  connection_pool_size: 100
+  request_timeout_ms: 30000
+  keep_alive_timeout_ms: 60000
+  max_request_size: 10485760  # 10MB
+
+logging:
+  level: INFO
+  file: /var/log/network/server.log
+  max_size_mb: 100
+  max_files: 10
+  format: json
 ```
 
 ### Environment Variables
+
 ```bash
-# Override configuration with environment variables
-export NETWORK_SERVER_PORT=9090
-export NETWORK_LOG_LEVEL=debug
+# Override configuration via environment
+export NETWORK_SERVER_HOST=0.0.0.0
+export NETWORK_SERVER_PORT=8080
+export NETWORK_LOG_LEVEL=DEBUG
+export NETWORK_SSL_ENABLED=true
 export NETWORK_MAX_CONNECTIONS=5000
-export NETWORK_TLS_ENABLED=true
 ```
 
-### Dynamic Configuration Updates
-```cpp
-// Runtime configuration changes
-auto config = network_system::config::load("config.yaml");
-server->apply_config(config);
+### Configuration Validation
 
-// Hot reload on SIGHUP
-signal(SIGHUP, [](int) {
-    auto new_config = network_system::config::load("config.yaml");
-    server->apply_config(new_config);
-});
+```cpp
+// Validate configuration at startup
+bool validate_config(const Config& config) {
+    if (config.port < 1 || config.port > 65535) {
+        return false;
+    }
+    if (config.max_connections < 1) {
+        return false;
+    }
+    if (config.worker_threads < 1) {
+        return false;
+    }
+    return true;
+}
 ```
 
 ## Monitoring and Metrics
 
+### Key Metrics to Monitor
+
+1. **System Metrics**
+   - CPU utilization per core
+   - Memory usage (RSS, heap, stack)
+   - Network I/O (bytes in/out, packets)
+   - Disk I/O (if logging/caching)
+   - File descriptor usage
+
+2. **Application Metrics**
+   - Active connections count
+   - Request rate (req/sec)
+   - Response time (p50, p95, p99)
+   - Error rate by type
+   - Connection pool utilization
+   - Message queue depth
+
+3. **Business Metrics**
+   - Transaction success rate
+   - Data transfer volume
+   - Client session duration
+   - Protocol-specific metrics
+
 ### Prometheus Integration
 
-#### Metrics Endpoint
 ```cpp
-// Expose metrics on /metrics endpoint
-server->register_metrics_handler("/metrics", [](const auto& request) {
-    return network_system::metrics::prometheus_format();
-});
-```
+// Expose metrics endpoint
+class MetricsHandler {
+public:
+    std::string get_metrics() {
+        std::stringstream ss;
+        ss << "# HELP network_connections_active Active connection count\n";
+        ss << "# TYPE network_connections_active gauge\n";
+        ss << "network_connections_active " << active_connections_ << "\n";
 
-#### Key Metrics
-```yaml
-# Prometheus scrape configuration
-scrape_configs:
-  - job_name: 'network_system'
-    static_configs:
-      - targets: ['localhost:8080']
-    metrics_path: '/metrics'
-    scrape_interval: 15s
-```
+        ss << "# HELP network_requests_total Total request count\n";
+        ss << "# TYPE network_requests_total counter\n";
+        ss << "network_requests_total " << total_requests_ << "\n";
 
-#### Available Metrics
-- `network_connections_total` - Total connections handled
-- `network_connections_active` - Current active connections
-- `network_messages_sent_total` - Total messages sent
-- `network_messages_received_total` - Total messages received
-- `network_bytes_sent_total` - Total bytes sent
-- `network_bytes_received_total` - Total bytes received
-- `network_errors_total` - Total errors by type
-- `network_message_latency_seconds` - Message processing latency
-- `network_connection_duration_seconds` - Connection duration histogram
+        ss << "# HELP network_response_time_seconds Response time histogram\n";
+        ss << "# TYPE network_response_time_seconds histogram\n";
+        ss << response_time_histogram_.to_prometheus();
+
+        return ss.str();
+    }
+};
+```
 
 ### Logging Configuration
 
-#### Structured Logging
-```cpp
-// JSON format for log aggregation
-{
-    "timestamp": "2024-01-15T10:30:45.123Z",
-    "level": "info",
-    "thread": "worker-3",
-    "session": "sess-abc123",
-    "message": "Connection established",
-    "client_ip": "192.168.1.100",
-    "port": 45678,
-    "latency_ms": 23
-}
-```
-
-#### Log Aggregation
 ```yaml
-# Fluentd configuration
-<source>
-  @type tail
-  path /var/log/network_system/*.log
-  pos_file /var/log/td-agent/network_system.pos
-  tag network.system
-  <parse>
-    @type json
-  </parse>
-</source>
-
-<match network.system>
-  @type elasticsearch
-  host elasticsearch.local
-  port 9200
-  index_name network_system
-</match>
+# Structured logging configuration
+logging:
+  outputs:
+    - type: console
+      level: INFO
+      format: json
+    - type: file
+      level: DEBUG
+      path: /var/log/network/server.log
+      rotation:
+        max_size: 100MB
+        max_age: 30d
+        max_backups: 10
+    - type: syslog
+      level: ERROR
+      facility: local0
 ```
 
 ### Health Checks
 
-#### HTTP Health Endpoint
 ```cpp
-server->register_handler("/health", [](const auto& request) {
-    auto health = network_system::health::check();
-    return json{
-        {"status", health.is_healthy ? "healthy" : "unhealthy"},
-        {"uptime", health.uptime_seconds},
-        {"connections", health.active_connections},
-        {"memory_mb", health.memory_usage_mb}
+// Health check endpoint implementation
+class HealthCheck {
+public:
+    struct Status {
+        bool healthy;
+        std::string status;
+        std::map<std::string, bool> checks;
     };
-});
-```
 
-#### Kubernetes Probes
-```yaml
-livenessProbe:
-  httpGet:
-    path: /health
-    port: 8080
-  initialDelaySeconds: 30
-  periodSeconds: 10
+    Status check() {
+        Status status;
+        status.checks["database"] = check_database();
+        status.checks["memory"] = check_memory();
+        status.checks["disk"] = check_disk_space();
+        status.checks["network"] = check_network();
 
-readinessProbe:
-  httpGet:
-    path: /ready
-    port: 8080
-  initialDelaySeconds: 5
-  periodSeconds: 5
+        status.healthy = std::all_of(
+            status.checks.begin(),
+            status.checks.end(),
+            [](const auto& check) { return check.second; }
+        );
+
+        status.status = status.healthy ? "healthy" : "unhealthy";
+        return status;
+    }
+};
 ```
 
 ## Performance Tuning
@@ -323,232 +244,361 @@ readinessProbe:
 
 #### Linux Kernel Parameters
 ```bash
-# /etc/sysctl.d/99-network-system.conf
+# /etc/sysctl.conf
+# Network stack tuning
 net.core.somaxconn = 65535
-net.ipv4.tcp_max_syn_backlog = 8192
+net.core.netdev_max_backlog = 65535
+net.ipv4.tcp_max_syn_backlog = 65535
 net.ipv4.tcp_fin_timeout = 30
 net.ipv4.tcp_keepalive_time = 300
-net.ipv4.tcp_keepalive_probes = 5
-net.ipv4.tcp_keepalive_intvl = 15
-net.ipv4.ip_local_port_range = 1024 65535
 net.ipv4.tcp_tw_reuse = 1
+net.ipv4.ip_local_port_range = 10000 65000
+
+# File descriptor limits
+fs.file-max = 2097152
+fs.nr_open = 2097152
+
+# Memory tuning
+vm.max_map_count = 262144
+vm.swappiness = 10
 ```
 
-#### CPU Affinity
-```cpp
-// Pin worker threads to specific CPUs
-server->set_thread_affinity({
-    {0, {0, 1}},    // Thread 0 -> CPUs 0,1
-    {1, {2, 3}},    // Thread 1 -> CPUs 2,3
-    {2, {4, 5}},    // Thread 2 -> CPUs 4,5
-    {3, {6, 7}}     // Thread 3 -> CPUs 6,7
-});
+#### Resource Limits
+```bash
+# /etc/security/limits.conf
+network_service soft nofile 1000000
+network_service hard nofile 1000000
+network_service soft nproc 32768
+network_service hard nproc 32768
 ```
 
 ### Application-Level Optimization
 
-#### Connection Pooling
+1. **Connection Pooling**
 ```cpp
-auto pool = std::make_shared<network_system::connection_pool>();
-pool->set_min_connections(10);
-pool->set_max_connections(100);
-pool->set_idle_timeout(std::chrono::minutes(5));
+class ConnectionPool {
+    size_t min_size = 10;
+    size_t max_size = 100;
+    std::chrono::seconds idle_timeout{60};
+    std::chrono::seconds connection_timeout{5};
+    bool validate_on_checkout = true;
+};
 ```
 
-#### Message Batching
+2. **Thread Pool Tuning**
 ```cpp
-server->set_batch_size(1000);
-server->set_flush_interval(std::chrono::milliseconds(10));
+// Optimal thread count calculation
+size_t calculate_thread_count() {
+    size_t hw_threads = std::thread::hardware_concurrency();
+    size_t min_threads = 4;
+    size_t max_threads = 64;
+
+    // For I/O bound: 2 * CPU cores
+    // For CPU bound: CPU cores
+    size_t optimal = hw_threads * 2;
+
+    return std::clamp(optimal, min_threads, max_threads);
+}
 ```
 
-#### Memory Pool
+3. **Memory Management**
 ```cpp
-// Pre-allocate message buffers
-auto buffer_pool = std::make_shared<network_system::buffer_pool>();
-buffer_pool->reserve(10000, 4096);  // 10000 buffers of 4KB each
-server->set_buffer_pool(buffer_pool);
+// Use memory pools for frequent allocations
+template<typename T>
+class ObjectPool {
+    std::queue<std::unique_ptr<T>> pool_;
+    std::mutex mutex_;
+    size_t max_size_ = 1000;
+
+public:
+    std::unique_ptr<T> acquire() {
+        std::lock_guard lock(mutex_);
+        if (!pool_.empty()) {
+            auto obj = std::move(pool_.front());
+            pool_.pop();
+            return obj;
+        }
+        return std::make_unique<T>();
+    }
+
+    void release(std::unique_ptr<T> obj) {
+        std::lock_guard lock(mutex_);
+        if (pool_.size() < max_size_) {
+            obj->reset();
+            pool_.push(std::move(obj));
+        }
+    }
+};
 ```
 
-### Profiling and Analysis
+### Profiling and Benchmarking
 
-#### CPU Profiling
 ```bash
-# Using perf
-sudo perf record -g ./network_server
-sudo perf report
+# CPU profiling with perf
+perf record -g ./network_server
+perf report
 
-# Using Intel VTune
-vtune -collect hotspots -app-working-dir=/app -- ./network_server
-```
+# Memory profiling with valgrind
+valgrind --leak-check=full --track-origins=yes ./network_server
 
-#### Memory Profiling
-```bash
-# Using Valgrind
-valgrind --leak-check=full --show-leak-kinds=all ./network_server
+# Network performance testing
+iperf3 -c server_host -p 8080 -t 60
 
-# Using AddressSanitizer
-cmake -DCMAKE_BUILD_TYPE=Debug -DENABLE_ASAN=ON ..
-./network_server
+# Load testing
+wrk -t12 -c400 -d30s --latency http://localhost:8080/
 ```
 
 ## Backup and Recovery
 
-### Data Backup
+### Backup Strategy
 
-#### Configuration Backup
+1. **Configuration Backup**
 ```bash
 #!/bin/bash
-# Daily backup script
-BACKUP_DIR="/backup/network_system"
-DATE=$(date +%Y%m%d)
+# backup_config.sh
+BACKUP_DIR="/var/backups/network_system"
+DATE=$(date +%Y%m%d_%H%M%S)
 
 mkdir -p "$BACKUP_DIR"
-tar czf "$BACKUP_DIR/config_$DATE.tar.gz" /etc/network_system/
-tar czf "$BACKUP_DIR/logs_$DATE.tar.gz" /var/log/network_system/
+tar -czf "$BACKUP_DIR/config_$DATE.tar.gz" \
+    /etc/network_system/ \
+    /var/lib/network_system/
 
-# Keep only last 30 days
-find "$BACKUP_DIR" -name "*.tar.gz" -mtime +30 -delete
+# Keep last 30 days of backups
+find "$BACKUP_DIR" -name "config_*.tar.gz" -mtime +30 -delete
+```
+
+2. **State Backup**
+```cpp
+class StateManager {
+public:
+    void save_checkpoint(const std::string& path) {
+        std::ofstream file(path, std::ios::binary);
+        serialize_state(file);
+        file.close();
+
+        // Atomic rename for consistency
+        std::filesystem::rename(
+            path + ".tmp",
+            path
+        );
+    }
+
+    void restore_checkpoint(const std::string& path) {
+        std::ifstream file(path, std::ios::binary);
+        deserialize_state(file);
+    }
+};
 ```
 
 ### Disaster Recovery
 
-#### Failover Configuration
-```yaml
-# HAProxy configuration for active-passive setup
-global
-    maxconn 50000
+1. **Recovery Time Objective (RTO)**
+   - Cold standby: < 4 hours
+   - Warm standby: < 30 minutes
+   - Hot standby: < 5 minutes
 
-defaults
-    mode tcp
-    timeout connect 5s
-    timeout client 30s
-    timeout server 30s
+2. **Recovery Point Objective (RPO)**
+   - Configuration: Daily backups
+   - State data: Hourly snapshots
+   - Transaction logs: Real-time replication
 
-backend network_system
-    balance roundrobin
-    server primary 192.168.1.10:8080 check
-    server backup 192.168.1.11:8080 backup check
-```
+3. **Failover Procedures**
+```bash
+#!/bin/bash
+# failover.sh
+PRIMARY_HOST="primary.example.com"
+SECONDARY_HOST="secondary.example.com"
 
-#### State Replication
-```cpp
-// Replicate session state to backup
-server->enable_state_replication("192.168.1.11", 9090);
-server->set_replication_interval(std::chrono::seconds(1));
+# Check primary health
+if ! curl -f http://$PRIMARY_HOST:8080/health; then
+    echo "Primary is down, initiating failover"
+
+    # Update DNS or load balancer
+    update_dns_record $SECONDARY_HOST
+
+    # Promote secondary
+    ssh $SECONDARY_HOST "systemctl start network_service_primary"
+
+    # Notify operations team
+    send_alert "Failover completed to $SECONDARY_HOST"
+fi
 ```
 
 ## Security Considerations
 
-### TLS Configuration
+### Network Security
 
-#### Certificate Management
-```bash
-# Generate self-signed certificate for testing
-openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 365 -nodes
+1. **TLS Configuration**
+```cpp
+SSL_CTX* create_ssl_context() {
+    SSL_CTX* ctx = SSL_CTX_new(TLS_server_method());
 
-# Production certificate with Let's Encrypt
-certbot certonly --standalone -d network.example.com
+    // Use TLS 1.2 or higher
+    SSL_CTX_set_min_proto_version(ctx, TLS1_2_VERSION);
+
+    // Strong cipher suites
+    SSL_CTX_set_cipher_list(ctx,
+        "ECDHE+AESGCM:ECDHE+AES256:!aNULL:!MD5:!DSS");
+
+    // Enable OCSP stapling
+    SSL_CTX_set_tlsext_status_type(ctx, TLSEXT_STATUSTYPE_ocsp);
+
+    return ctx;
+}
 ```
 
-#### TLS Settings
-```cpp
-server->enable_tls({
-    .cert_file = "/etc/letsencrypt/live/network.example.com/fullchain.pem",
-    .key_file = "/etc/letsencrypt/live/network.example.com/privkey.pem",
-    .min_version = network_system::tls::version::tls_1_2,
-    .ciphers = "ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384"
-});
+2. **Firewall Rules**
+```bash
+# iptables configuration
+iptables -A INPUT -p tcp --dport 8080 -m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT
+iptables -A INPUT -p tcp --dport 8443 -m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT
+iptables -A INPUT -p tcp --dport 9090 -s 10.0.0.0/8 -j ACCEPT  # Metrics from internal
+iptables -A INPUT -j DROP
 ```
 
 ### Access Control
 
-#### IP Whitelisting
+1. **Authentication**
 ```cpp
-server->set_ip_filter({
-    .mode = network_system::ip_filter::whitelist,
-    .addresses = {
-        "192.168.1.0/24",
-        "10.0.0.0/8",
-        "172.16.0.0/12"
+class Authenticator {
+    bool validate_token(const std::string& token) {
+        // Validate JWT token
+        auto decoded = jwt::decode(token);
+        auto verifier = jwt::verify()
+            .allow_algorithm(jwt::algorithm::hs256{secret_})
+            .with_issuer("network_system")
+            .with_claim("exp", jwt::claim(std::chrono::system_clock::now()));
+
+        verifier.verify(decoded);
+        return true;
     }
-});
+};
 ```
 
-#### Rate Limiting
+2. **Rate Limiting**
 ```cpp
-server->enable_rate_limiting({
-    .max_requests_per_second = 1000,
-    .burst_size = 5000,
-    .block_duration = std::chrono::minutes(5)
-});
+class RateLimiter {
+    std::unordered_map<std::string, TokenBucket> buckets_;
+
+public:
+    bool allow_request(const std::string& client_id) {
+        auto& bucket = buckets_[client_id];
+        return bucket.consume(1);
+    }
+};
 ```
 
-### Audit Logging
+### Security Auditing
 
 ```cpp
-server->enable_audit_log({
-    .file = "/var/log/network_system/audit.log",
-    .events = {
-        network_system::audit::connection_established,
-        network_system::audit::connection_closed,
-        network_system::audit::authentication_failed,
-        network_system::audit::rate_limit_exceeded
+class AuditLogger {
+    void log_security_event(const SecurityEvent& event) {
+        json log_entry = {
+            {"timestamp", std::chrono::system_clock::now()},
+            {"event_type", event.type},
+            {"client_ip", event.client_ip},
+            {"user_id", event.user_id},
+            {"action", event.action},
+            {"result", event.result},
+            {"details", event.details}
+        };
+
+        security_log_ << log_entry.dump() << std::endl;
     }
-});
+};
 ```
 
 ## Scaling Strategies
 
 ### Vertical Scaling
 
-#### Resource Allocation
+1. **Resource Allocation**
+   - Increase CPU cores for compute-intensive workloads
+   - Add memory for caching and buffering
+   - Use faster storage (NVMe SSD) for I/O operations
+   - Upgrade network interfaces (10Gbps, 25Gbps)
+
+2. **Configuration Adjustments**
 ```yaml
-# Kubernetes resource limits
-resources:
-  requests:
-    memory: "2Gi"
-    cpu: "2"
-  limits:
-    memory: "8Gi"
-    cpu: "8"
+# Scale up configuration
+server:
+  worker_threads: 32  # Increased from 4
+  max_connections: 10000  # Increased from 1000
+
+performance:
+  connection_pool_size: 1000  # Increased from 100
+  buffer_size: 1048576  # 1MB buffers
 ```
 
 ### Horizontal Scaling
 
-#### Load Balancing
+1. **Load Balancing**
 ```nginx
-# Nginx load balancer configuration
-upstream network_system {
+# nginx load balancer configuration
+upstream network_backend {
     least_conn;
-    server backend1.example.com:8080 weight=5;
-    server backend2.example.com:8080 weight=5;
-    server backend3.example.com:8080 weight=5;
+    server backend1.example.com:8080 weight=1;
+    server backend2.example.com:8080 weight=1;
+    server backend3.example.com:8080 weight=1;
+
     keepalive 32;
 }
 
 server {
     listen 80;
     location / {
-        proxy_pass http://network_system;
+        proxy_pass http://network_backend;
         proxy_http_version 1.1;
         proxy_set_header Connection "";
     }
 }
 ```
 
-#### Auto-Scaling
+2. **Service Mesh Architecture**
 ```yaml
-# Kubernetes HPA
+# Kubernetes deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: network-service
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: network-service
+  template:
+    metadata:
+      labels:
+        app: network-service
+    spec:
+      containers:
+      - name: network-server
+        image: network-system:latest
+        ports:
+        - containerPort: 8080
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "1Gi"
+            cpu: "1000m"
+```
+
+3. **Auto-scaling Rules**
+```yaml
+# Horizontal Pod Autoscaler
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: network-system-hpa
+  name: network-service-hpa
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: network-system
-  minReplicas: 3
+    name: network-service
+  minReplicas: 2
   maxReplicas: 10
   metrics:
   - type: Resource
@@ -565,65 +615,178 @@ spec:
         averageUtilization: 80
 ```
 
-### Database Sharding
+### Database Scaling
 
+1. **Connection Pooling**
 ```cpp
-// Connection routing based on shard key
-auto shard_id = hash(session_id) % num_shards;
-auto connection = shard_pools[shard_id]->get_connection();
+class DatabasePool {
+    HikariConfig config;
+    config.setJdbcUrl("jdbc:postgresql://localhost/network");
+    config.setMaximumPoolSize(20);
+    config.setMinimumIdle(5);
+    config.setIdleTimeout(300000);
+    config.setConnectionTimeout(30000);
+};
 ```
 
-## Maintenance Procedures
+2. **Read Replicas**
+```cpp
+class DatabaseManager {
+    std::vector<Database> read_replicas_;
+    Database write_master_;
+
+    Database& get_read_connection() {
+        // Round-robin selection
+        static std::atomic<size_t> index{0};
+        return read_replicas_[index++ % read_replicas_.size()];
+    }
+
+    Database& get_write_connection() {
+        return write_master_;
+    }
+};
+```
+
+### Caching Strategy
+
+```cpp
+class CacheManager {
+    LRUCache<std::string, Response> response_cache_{10000};
+    std::chrono::seconds ttl_{60};
+
+    std::optional<Response> get(const Request& request) {
+        auto key = generate_cache_key(request);
+        return response_cache_.get(key);
+    }
+
+    void put(const Request& request, const Response& response) {
+        auto key = generate_cache_key(request);
+        response_cache_.put(key, response, ttl_);
+    }
+};
+```
+
+## Maintenance Windows
+
+### Planned Maintenance
+
+1. **Announcement Timeline**
+   - 2 weeks before: Initial notification
+   - 1 week before: Detailed maintenance plan
+   - 1 day before: Final reminder
+   - 1 hour before: Last warning
+
+2. **Maintenance Procedure**
+```bash
+#!/bin/bash
+# maintenance.sh
+
+# Enable maintenance mode
+echo "true" > /var/run/network_service/maintenance
+
+# Wait for active connections to drain
+sleep 30
+
+# Perform maintenance tasks
+backup_configuration
+update_software
+run_migrations
+verify_configuration
+
+# Disable maintenance mode
+echo "false" > /var/run/network_service/maintenance
+
+# Verify service health
+check_service_health
+```
 
 ### Rolling Updates
 
 ```bash
 #!/bin/bash
-# Zero-downtime deployment
+# rolling_update.sh
+
 SERVERS=("server1" "server2" "server3")
+LOAD_BALANCER="lb.example.com"
 
 for server in "${SERVERS[@]}"; do
-    echo "Updating $server..."
-    ssh $server "sudo systemctl stop network_system"
-    scp build/network_server $server:/opt/network_system/bin/
-    ssh $server "sudo systemctl start network_system"
+    echo "Updating $server"
 
-    # Wait for health check
-    until curl -f http://$server:8080/health; do
-        sleep 5
-    done
+    # Remove from load balancer
+    remove_from_lb $LOAD_BALANCER $server
+
+    # Wait for connections to drain
+    sleep 60
+
+    # Update server
+    ssh $server "sudo systemctl stop network_service"
+    ssh $server "sudo apt-get update && sudo apt-get upgrade network-system"
+    ssh $server "sudo systemctl start network_service"
+
+    # Health check
+    wait_for_health $server
+
+    # Add back to load balancer
+    add_to_lb $LOAD_BALANCER $server
+
+    # Wait before next server
+    sleep 120
 done
 ```
 
-### Log Rotation
+## Compliance and Auditing
 
-```bash
-# /etc/logrotate.d/network_system
-/var/log/network_system/*.log {
-    daily
-    rotate 30
-    compress
-    delaycompress
-    missingok
-    notifempty
-    create 0644 network_system network_system
-    postrotate
-        systemctl reload network_system
-    endscript
-}
+### Audit Requirements
+
+1. **Security Audits**
+   - Authentication attempts
+   - Authorization failures
+   - Configuration changes
+   - Data access patterns
+   - Network connections
+
+2. **Compliance Logging**
+```cpp
+class ComplianceLogger {
+    void log_data_access(const DataAccessEvent& event) {
+        // GDPR/CCPA compliance logging
+        json entry = {
+            {"timestamp", event.timestamp},
+            {"user_id", hash_user_id(event.user_id)},
+            {"data_type", event.data_type},
+            {"operation", event.operation},
+            {"purpose", event.purpose},
+            {"legal_basis", event.legal_basis}
+        };
+
+        compliance_log_ << entry.dump() << std::endl;
+    }
+};
 ```
 
-### Performance Baseline
+### Retention Policies
 
-```bash
-# Establish performance baseline
-./tests/performance/benchmark --output baseline.json
-
-# Compare after changes
-./tests/performance/benchmark --output current.json
-./scripts/compare_performance.py baseline.json current.json
+```yaml
+# Log retention configuration
+retention:
+  access_logs:
+    duration: 90d
+    compress_after: 7d
+  error_logs:
+    duration: 180d
+    compress_after: 30d
+  security_logs:
+    duration: 365d
+    compress_after: 30d
+    archive_to: s3://backup/security/
+  compliance_logs:
+    duration: 2555d  # 7 years
+    compress_after: 90d
+    archive_to: s3://backup/compliance/
 ```
 
----
+## Conclusion
 
-For additional support, consult the [Troubleshooting Guide](TROUBLESHOOTING.md) or contact the development team.
+This operations guide provides comprehensive coverage of deployment, monitoring, performance tuning, security, and scaling strategies for the Network System. Regular reviews and updates of these procedures ensure optimal system performance and reliability.
+
+For specific troubleshooting scenarios, refer to the [Troubleshooting Guide](TROUBLESHOOTING.md).
