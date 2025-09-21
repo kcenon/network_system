@@ -9,7 +9,6 @@
  *
  * @author kcenon
  * @date 2025-09-19
- * @version 2.0.0
  */
 
 // Core networking components
@@ -32,12 +31,6 @@
  * @brief Main namespace for all Network System components
  */
 namespace network_system {
-
-/**
- * @brief Get version information
- * @return Version string in format "MAJOR.MINOR.PATCH"
- */
-const char* get_version();
 
 /**
  * @brief Initialize the network system

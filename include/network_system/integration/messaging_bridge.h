@@ -41,7 +41,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * @author kcenon
  * @date 2025-09-19
- * @version 2.0.0
  */
 
 #include "network_system/core/messaging_client.h"

@@ -4,7 +4,7 @@
  *
  * @author kcenon
  * @date 2025-09-20
- * @version 2.0.0
+
  */
 
 #include "network_system/integration/thread_integration.h"

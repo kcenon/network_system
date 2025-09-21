@@ -7,7 +7,7 @@
  *
  * @author kcenon
  * @date 2025-09-20
- * @version 2.0.0
+
  */
 
 #include <iostream>
@@ -171,13 +171,6 @@ void test_feature_detection(TestResults& results) {
     }
 #endif
 
-    // Test version macro
-    const char* version = network_system::compat::version();
-    if (version && std::string(version) == NETWORK_SYSTEM_VERSION) {
-        results.record_pass("Version macro");
-    } else {
-        results.record_fail("Version macro", "Version mismatch");
-    }
 }
 
 // Test initialization and shutdown
