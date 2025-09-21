@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['7_0',['Day 6-7',['../md_NETWORK__SYSTEM__SEPARATION__PLAN.html#autotoc_md254',1,'']]],
-  ['7_3a_20namespace_20and_20include_20path_20updates_1',['Day 6-7: Namespace and Include Path Updates',['../md_MIGRATION__CHECKLIST.html#autotoc_md137',1,'']]]
+  ['guide_0',['Migration Guide',['../index.html#migration_sec',1,'']]],
+  ['guidelines_1',['guidelines',['../index.html#contrib_guidelines',1,'Development Guidelines'],['../index.html#perf_optimization',1,'Optimization Guidelines']]]
 ];

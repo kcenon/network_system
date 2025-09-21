@@ -1,25 +1,4 @@
 var searchData=
 [
-  ['ubuntu_20debian_0',['ubuntu debian',['../md_BUILD.html#autotoc_md48',1,'Ubuntu/Debian'],['../md_README.html#autotoc_md352',1,'Ubuntu/Debian']]],
-  ['undefined_20reference_20errors_1',['1. Undefined Reference Errors',['../md_MIGRATION__GUIDE.html#autotoc_md218',1,'']]],
-  ['undefined_20references_2',['Undefined References',['../md_TROUBLESHOOTING.html#autotoc_md489',1,'']]],
-  ['unit_20test_20structure_3',['1. Unit Test Structure',['../md_TECHNICAL__IMPLEMENTATION__DETAILS.html#autotoc_md428',1,'']]],
-  ['unit_20tests_4',['unit tests',['../md_NETWORK__SYSTEM__SEPARATION__PLAN.html#autotoc_md278',1,'1. Unit Tests'],['../md_MIGRATION__CHECKLIST.html#autotoc_md164',1,'Unit Tests']]],
-  ['unreleased_5',['[Unreleased]',['../md_CHANGELOG.html#autotoc_md88',1,'']]],
-  ['upcoming_20phase_6',['Upcoming Phase',['../md_README.html#autotoc_md370',1,'']]],
-  ['update_7',['update',['../md_MIGRATION__CHECKLIST.html#autotoc_md154',1,'🔄 Phase 4: messaging_system Update'],['../md_MIGRATION__CHECKLIST.html#autotoc_md156',1,'CMakeLists.txt Update'],['../md_NETWORK__SYSTEM__SEPARATION__PLAN.html#autotoc_md300',1,'Phase 4: messaging_system Update']]],
-  ['update_202_203_20days_8',['Phase 4: messaging_system Update (2-3 days)',['../md_NETWORK__SYSTEM__SEPARATION__PLAN.html#autotoc_md259',1,'']]],
-  ['update_20dependencies_9',['Step 1: Update Dependencies',['../md_MIGRATION__GUIDE.html#autotoc_md193',1,'']]],
-  ['update_20includes_20compatibility_20mode_10',['Step 2: Update Includes (Compatibility Mode)',['../md_MIGRATION__GUIDE.html#autotoc_md194',1,'']]],
-  ['updated_11',['updated',['../md_CHANGELOG.html#autotoc_md100',1,'Updated'],['../md_CHANGELOG.html#autotoc_md93',1,'Updated']]],
-  ['updates_12',['updates',['../md_RELEASE__NOTES.html#autotoc_md402',1,'🔒 Security Updates'],['../md_MIGRATION__CHECKLIST.html#autotoc_md157',1,'Code Updates'],['../md_MIGRATION__CHECKLIST.html#autotoc_md137',1,'Day 6-7: Namespace and Include Path Updates'],['../md_MIGRATION__CHECKLIST.html#autotoc_md169',1,'Documentation Updates'],['../md_MIGRATION__CHECKLIST.html#autotoc_md139',1,'Include Path Updates'],['../md_OPERATIONS.html#autotoc_md342',1,'Rolling Updates']]],
-  ['usage_13',['usage',['../index.html#usage_client',1,'Basic Client Usage'],['../index.html#usage_server',1,'Basic Server Usage'],['../md_TROUBLESHOOTING.html#autotoc_md442',1,'High CPU Usage'],['../md_README.html#autotoc_md357',1,'Modern API Usage']]],
-  ['usage_20examples_14',['Usage Examples',['../index.html#usage_sec',1,'']]],
-  ['using_20addresssanitizer_15',['Using AddressSanitizer',['../md_TROUBLESHOOTING.html#autotoc_md479',1,'']]],
-  ['using_20heaptrack_16',['Using HeapTrack',['../md_TROUBLESHOOTING.html#autotoc_md480',1,'']]],
-  ['using_20networksystem_20in_20your_20project_17',['Using NetworkSystem in Your Project',['../md_BUILD.html#autotoc_md69',1,'']]],
-  ['using_20system_20packages_18',['Using System Packages',['../md_MIGRATION__GUIDE.html#autotoc_md211',1,'']]],
-  ['using_20valgrind_19',['Using Valgrind',['../md_TROUBLESHOOTING.html#autotoc_md478',1,'']]],
-  ['using_20vcpkg_20optional_20',['Using vcpkg (Optional)',['../md_MIGRATION__GUIDE.html#autotoc_md210',1,'']]],
-  ['utility_20classes_21',['Utility Classes',['../md_API__REFERENCE.html#autotoc_md14',1,'']]]
+  ['📧_20contact_0',['📧 Contact',['../md_README.html#autotoc_md36',1,'']]]
 ];

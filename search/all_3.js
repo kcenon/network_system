@@ -1,18 +1,16 @@
 var searchData=
 [
-  ['3_0',['Day 3',['../md_NETWORK__SYSTEM__SEPARATION__PLAN.html#autotoc_md251',1,'']]],
-  ['3_204_20days_1',['Phase 3: Integration Interface Implementation (3-4 days)',['../md_NETWORK__SYSTEM__SEPARATION__PLAN.html#autotoc_md256',1,'']]],
-  ['3_20api_20method_20missing_2',['3. API Method Missing',['../md_MIGRATION__GUIDE.html#autotoc_md220',1,'']]],
-  ['3_20compatibility_20layer_3',['3. Compatibility Layer',['../md_NETWORK__SYSTEM__SEPARATION__PLAN.html#autotoc_md245',1,'']]],
-  ['3_20complete_4',['2025-09-20 - Phase 3 Complete',['../md_CHANGELOG.html#autotoc_md95',1,'']]],
-  ['3_20days_5',['3 days',['../md_NETWORK__SYSTEM__SEPARATION__PLAN.html#autotoc_md248',1,'Phase 1: Preparation and Analysis (2-3 days)'],['../md_NETWORK__SYSTEM__SEPARATION__PLAN.html#autotoc_md259',1,'Phase 4: messaging_system Update (2-3 days)'],['../md_NETWORK__SYSTEM__SEPARATION__PLAN.html#autotoc_md262',1,'Phase 5: Verification and Deployment (2-3 days)']]],
-  ['3_20integration_20interface_20design_6',['3. Integration Interface Design',['../md_NETWORK__SYSTEM__SEPARATION__PLAN.html#autotoc_md271',1,'']]],
-  ['3_20operations_20documentation_7',['3. Operations Documentation',['../md_NETWORK__SYSTEM__SEPARATION__PLAN.html#autotoc_md294',1,'']]],
-  ['3_20performance_20test_8',['3. Performance Test',['../md_MIGRATION__GUIDE.html#autotoc_md215',1,'']]],
-  ['3_20performance_20tests_9',['3. Performance Tests',['../md_NETWORK__SYSTEM__SEPARATION__PLAN.html#autotoc_md280',1,'']]],
-  ['3_20session_20management_10',['3. Session Management',['../md_TECHNICAL__IMPLEMENTATION__DETAILS.html#autotoc_md421',1,'']]],
-  ['3_3a_20build_20system_20and_20testing_20strategy_11',['Day 3: Build System and Testing Strategy',['../md_MIGRATION__CHECKLIST.html#autotoc_md128',1,'']]],
-  ['3_3a_20initialize_20system_12',['Step 3: Initialize System',['../md_MIGRATION__GUIDE.html#autotoc_md195',1,'']]],
-  ['3_3a_20integration_20interface_20implementation_13',['3: integration interface implementation',['../md_MIGRATION__CHECKLIST.html#autotoc_md145',1,'🔗 Phase 3: Integration Interface Implementation'],['../md_NETWORK__SYSTEM__SEPARATION__PLAN.html#autotoc_md299',1,'Phase 3: Integration Interface Implementation']]],
-  ['3_3a_20integration_20interface_20implementation_203_204_20days_14',['Phase 3: Integration Interface Implementation (3-4 days)',['../md_NETWORK__SYSTEM__SEPARATION__PLAN.html#autotoc_md256',1,'']]]
+  ['characteristics_0',['Performance Characteristics',['../index.html#performance_sec',1,'']]],
+  ['client_20usage_1',['Basic Client Usage',['../index.html#usage_client',1,'']]],
+  ['common_20issues_2',['Common Issues',['../index.html#trouble_common',1,'']]],
+  ['compatibility_3',['Legacy API Compatibility',['../md_README.html#autotoc_md11',1,'']]],
+  ['compatibility_20strong_20✅_4',['&lt;strong&gt;Backward Compatibility&lt;/strong&gt; ✅',['../md_README.html#autotoc_md23',1,'']]],
+  ['complete_20independence_20strong_20✅_5',['&lt;strong&gt;Complete Independence&lt;/strong&gt; ✅',['../md_README.html#autotoc_md22',1,'']]],
+  ['considerations_6',['Security Considerations',['../index.html#feat_security',1,'']]],
+  ['contact_7',['📧 Contact',['../md_README.html#autotoc_md36',1,'']]],
+  ['contact_20and_20support_8',['Contact and Support',['../index.html#contact_sec',1,'']]],
+  ['contributing_9',['contributing',['../md_README.html#autotoc_md33',1,'🤝 Contributing'],['../index.html#contributing_sec',1,'Contributing']]],
+  ['core_20features_10',['Core Features',['../md_README.html#autotoc_md17',1,'']]],
+  ['core_20layer_11',['Core Layer',['../index.html#arch_core',1,'']]],
+  ['core_20objectives_12',['Core Objectives',['../md_README.html#autotoc_md2',1,'']]]
 ];

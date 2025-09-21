@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['6_207_0',['Day 6-7',['../md_NETWORK__SYSTEM__SEPARATION__PLAN.html#autotoc_md254',1,'']]],
-  ['6_207_3a_20namespace_20and_20include_20path_20updates_1',['Day 6-7: Namespace and Include Path Updates',['../md_MIGRATION__CHECKLIST.html#autotoc_md137',1,'']]]
+  ['features_0',['features',['../md_README.html#autotoc_md16',1,'🔧 Features'],['../md_README.html#autotoc_md17',1,'Core Features'],['../md_README.html#autotoc_md18',1,'Integration Features'],['../index.html#features_sec',1,'Key Features'],['../md_README.html#autotoc_md15',1,'Key Performance Features'],['../md_README.html#autotoc_md19',1,'Planned Features'],['../index.html#feat_reliability',1,'Reliability Features']]],
+  ['from_20legacy_20messaging_5fsystem_1',['From Legacy messaging_system',['../index.html#migration_from_legacy',1,'']]]
 ];
