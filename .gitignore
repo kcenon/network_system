@@ -25,6 +25,14 @@ install/
 *.dylib
 *.exe
 
+# Test executables (Unix/macOS)
+test_integration
+test_compatibility
+test_e2e
+stress_test
+benchmark
+verify_build
+
 # Debug files
 *.pdb
 *.ilk

@@ -54,6 +54,12 @@ mkdir build && cd build
 # Configure with CMake
 cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release
 
+# Build with optional integrations
+cmake .. -G Ninja \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DBUILD_WITH_THREAD_SYSTEM=ON \
+    -DBUILD_WITH_LOGGER_SYSTEM=ON
+
 # Build
 cmake --build .
 
@@ -113,7 +119,8 @@ network_system/
 │   ├── integration/             # External system integration
 │   │   ├── messaging_bridge.h
 │   │   ├── thread_integration.h
-│   │   └── container_integration.h
+│   │   ├── container_integration.h
+│   │   └── logger_integration.h
 │   └── compatibility.h         # Legacy API support
 ├── src/                        # Implementation files
 ├── samples/                    # Usage examples
@@ -154,6 +161,7 @@ network_system/
 ### Integration Features
 - ✅ Thread pool integration
 - ✅ Container serialization support
+- ✅ Logger system integration
 - ✅ Legacy API compatibility layer
 - ✅ Comprehensive test coverage
 - ✅ Performance benchmarking suite
@@ -207,6 +215,7 @@ network_system/
 - **fmt** 10.0+ (falls back to std::format)
 - **container_system** (for advanced serialization)
 - **thread_system** (for thread pool integration)
+- **logger_system** (for structured logging)
 
 ## 🎯 CI/CD Status
 

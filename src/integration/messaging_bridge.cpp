@@ -34,7 +34,7 @@ public:
 #endif
 
 #ifdef BUILD_WITH_THREAD_SYSTEM
-    std::shared_ptr<thread_system::thread_pool> thread_pool_;
+    std::shared_ptr<kcenon::thread::thread_pool> thread_pool_;
 #endif
     std::shared_ptr<thread_pool_interface> thread_pool_interface_;
 };
@@ -73,7 +73,7 @@ void messaging_bridge::set_container_message_handler(
 
 #ifdef BUILD_WITH_THREAD_SYSTEM
 void messaging_bridge::set_thread_pool(
-    std::shared_ptr<thread_system::thread_pool> pool
+    std::shared_ptr<kcenon::thread::thread_pool> pool
 ) {
     pimpl_->thread_pool_ = pool;
 }
