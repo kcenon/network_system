@@ -20,7 +20,7 @@
 #endif
 
 #ifdef BUILD_WITH_THREAD_SYSTEM
-#include "thread_system/thread_pool.h"
+#include <kcenon/thread/core/thread_pool.h>
 #endif
 
 #include "network_system/integration/thread_integration.h"
@@ -93,7 +93,7 @@ public:
      * @param pool Shared pointer to thread pool
      */
     void set_thread_pool(
-        std::shared_ptr<thread_system::thread_pool> pool
+        std::shared_ptr<kcenon::thread::thread_pool> pool
     );
 #endif
 

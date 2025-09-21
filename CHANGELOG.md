@@ -6,6 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added
+- **Logger System Integration** (2025-09-20)
+  - New logger_integration interface for structured logging
+  - Support for external logger_system when available
+  - Fallback to basic console logger for standalone operation
+  - Replaced all std::cout/cerr with NETWORK_LOG_* macros
+  - Added BUILD_WITH_LOGGER_SYSTEM CMake option
+  - Log levels: TRACE, DEBUG, INFO, WARN, ERROR, FATAL
+  - Source location tracking (__FILE__, __LINE__, __FUNCTION__)
+  - Timestamp formatting with millisecond precision
+
 ### To Be Implemented
 - Network manager factory class
 - TCP server and client high-level interfaces
