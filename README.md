@@ -7,10 +7,8 @@
 
 [![License: BSD-3-Clause](https://img.shields.io/badge/License-BSD--3--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
 [![C++ Standard](https://img.shields.io/badge/C%2B%2B-20-blue.svg)](https://en.cppreference.com/w/cpp/20)
-[![GitHub release](https://img.shields.io/github/v/release/kcenon/network_system?include_prereleases)](https://github.com/kcenon/network_system/releases)
 
 **Status**: Production Ready ✅ (Completed Migration)
-**Version**: 2.0.0
 **Owner**: kcenon (kcenon@naver.com)
 
 High-performance asynchronous network library separated from messaging_system for modularity and reusability.
@@ -135,7 +133,7 @@ network_system/
 
 ## 📊 Performance Benchmarks
 
-### Latest Results (v2.0.0)
+### Latest Results
 
 | Metric | Result | Test Conditions |
 |--------|--------|-----------------|

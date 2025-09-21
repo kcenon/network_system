@@ -10,7 +10,6 @@
  *
  * @author kcenon
  * @date 2025-09-20
- * @version 2.0.0
  */
 
 #include "network_system/core/messaging_server.h"
@@ -79,10 +78,6 @@ namespace messaging {
     using namespace network_module;
 }
 
-// Convenience macros for migration
-#define NETWORK_MODULE_VERSION "2.0.0"
-#define NETWORK_SYSTEM_VERSION "2.0.0"
-
 // Feature detection macros
 #ifdef BUILD_WITH_CONTAINER_SYSTEM
     #define HAS_CONTAINER_INTEGRATION 1
@@ -125,14 +120,6 @@ namespace network_system::compat {
      */
     inline constexpr bool has_thread_support() {
         return HAS_THREAD_INTEGRATION;
-    }
-
-    /**
-     * @brief Get network system version string
-     * @return Version string
-     */
-    inline const char* version() {
-        return NETWORK_SYSTEM_VERSION;
     }
 
     /**

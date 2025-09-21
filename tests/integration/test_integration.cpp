@@ -7,7 +7,7 @@
  *
  * @author kcenon
  * @date 2025-09-20
- * @version 2.0.0
+
  */
 
 #include <iostream>
@@ -118,7 +118,6 @@ bool test_compatibility_api() {
               << (network_system::compat::has_container_support() ? "yes" : "no") << std::endl;
     std::cout << "✓ Thread support: "
               << (network_system::compat::has_thread_support() ? "yes" : "no") << std::endl;
-    std::cout << "✓ Version: " << network_system::compat::version() << std::endl;
 
     return true;
 }
@@ -158,7 +157,7 @@ bool test_messaging_bridge() {
 // Main test runner
 int main() {
     std::cout << "=== Network System Integration Tests ===" << std::endl;
-    std::cout << "Testing network_system version " << NETWORK_SYSTEM_VERSION << std::endl;
+    std::cout << "Testing network_system" << std::endl;
 
     int tests_passed = 0;
     int tests_failed = 0;
