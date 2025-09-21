@@ -351,7 +351,7 @@ BenchmarkResult benchmark_container_serialization(size_t num_operations) {
  */
 int main(int argc, char* argv[]) {
     std::cout << "=== Network System Performance Benchmarks ===" << std::endl;
-    std::cout << "Version: " << NETWORK_SYSTEM_VERSION << std::endl;
+    std::cout << "Version: Network System" << std::endl;
     std::cout << "CPU Threads: " << std::thread::hardware_concurrency() << std::endl;
 
     // Initialize system
