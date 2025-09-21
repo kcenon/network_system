@@ -254,12 +254,26 @@ endif()
 
 if(BUILD_WITH_THREAD_SYSTEM)
     find_path(THREAD_SYSTEM_INCLUDE_DIR
-        NAMES thread_system/thread_pool.h
+        NAMES kcenon/thread/core/thread_pool.h
         PATHS ../thread_system/include
+        NO_DEFAULT_PATH
+    )
+    find_library(THREAD_SYSTEM_LIBRARY
+        NAMES thread_base
+        PATHS
+            ../thread_system/build/lib
+            ../thread_system/build
+            ../thread_system/lib
         NO_DEFAULT_PATH
     )
     if(THREAD_SYSTEM_INCLUDE_DIR)
         message(STATUS "Found thread_system at: ${THREAD_SYSTEM_INCLUDE_DIR}")
+        if(THREAD_SYSTEM_LIBRARY)
+            message(STATUS "Found thread_system library at: ${THREAD_SYSTEM_LIBRARY}")
+        else()
+            message(WARNING "thread_system library not found, integration disabled")
+            set(BUILD_WITH_THREAD_SYSTEM OFF)
+        endif()
         add_compile_definitions(BUILD_WITH_THREAD_SYSTEM)
     else()
         message(WARNING "thread_system not found, integration disabled")
@@ -273,8 +287,23 @@ if(BUILD_WITH_LOGGER_SYSTEM)
         PATHS ../logger_system/include
         NO_DEFAULT_PATH
     )
+    find_library(LOGGER_SYSTEM_LIBRARY
+        NAMES LoggerSystem logger_system logger
+        PATHS
+            ../logger_system/build/lib
+            ../logger_system/build_test/lib
+            ../logger_system/build
+            ../logger_system/lib
+        NO_DEFAULT_PATH
+    )
     if(LOGGER_SYSTEM_INCLUDE_DIR)
         message(STATUS "Found logger_system at: ${LOGGER_SYSTEM_INCLUDE_DIR}")
+        if(LOGGER_SYSTEM_LIBRARY)
+            message(STATUS "Found logger_system library at: ${LOGGER_SYSTEM_LIBRARY}")
+        else()
+            message(WARNING "logger_system library not found, integration disabled")
+            set(BUILD_WITH_LOGGER_SYSTEM OFF)
+        endif()
         add_compile_definitions(BUILD_WITH_LOGGER_SYSTEM)
     else()
         message(WARNING "logger_system not found, integration disabled")
@@ -336,10 +365,16 @@ endif()
 
 if(BUILD_WITH_THREAD_SYSTEM AND THREAD_SYSTEM_INCLUDE_DIR)
     target_include_directories(NetworkSystem PRIVATE ${THREAD_SYSTEM_INCLUDE_DIR})
+    if(THREAD_SYSTEM_LIBRARY)
+        target_link_libraries(NetworkSystem PUBLIC ${THREAD_SYSTEM_LIBRARY})
+    endif()
 endif()
 
 if(BUILD_WITH_LOGGER_SYSTEM AND LOGGER_SYSTEM_INCLUDE_DIR)
     target_include_directories(NetworkSystem PRIVATE ${LOGGER_SYSTEM_INCLUDE_DIR})
+    if(LOGGER_SYSTEM_LIBRARY)
+        target_link_libraries(NetworkSystem PUBLIC ${LOGGER_SYSTEM_LIBRARY})
+    endif()
 endif()
 
 # Configure ASIO
@@ -412,10 +447,46 @@ endif()
 add_executable(verify_build verify_build.cpp)
 target_link_libraries(verify_build PRIVATE NetworkSystem)
 
+# Add container_system include path
+if(CONTAINER_SYSTEM_INCLUDE_DIR)
+    target_include_directories(verify_build PRIVATE ${CONTAINER_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(verify_build PRIVATE BUILD_WITH_CONTAINER_SYSTEM)
+endif()
+
+# Add thread_system include path
+if(THREAD_SYSTEM_INCLUDE_DIR)
+    target_include_directories(verify_build PRIVATE ${THREAD_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(verify_build PRIVATE BUILD_WITH_THREAD_SYSTEM)
+endif()
+
+# Add logger_system include path
+if(LOGGER_SYSTEM_INCLUDE_DIR)
+    target_include_directories(verify_build PRIVATE ${LOGGER_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(verify_build PRIVATE BUILD_WITH_LOGGER_SYSTEM)
+endif()
+
 # Integration tests (optional)
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/tests/integration/test_integration.cpp)
     add_executable(test_integration tests/integration/test_integration.cpp)
     target_link_libraries(test_integration PRIVATE NetworkSystem)
+
+    # Add container_system include path
+    if(CONTAINER_SYSTEM_INCLUDE_DIR)
+        target_include_directories(test_integration PRIVATE ${CONTAINER_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(test_integration PRIVATE BUILD_WITH_CONTAINER_SYSTEM)
+    endif()
+
+    # Add thread_system include path
+    if(THREAD_SYSTEM_INCLUDE_DIR)
+        target_include_directories(test_integration PRIVATE ${THREAD_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(test_integration PRIVATE BUILD_WITH_THREAD_SYSTEM)
+    endif()
+
+    # Add logger_system include path
+    if(LOGGER_SYSTEM_INCLUDE_DIR)
+        target_include_directories(test_integration PRIVATE ${LOGGER_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(test_integration PRIVATE BUILD_WITH_LOGGER_SYSTEM)
+    endif()
 endif()
 
 # Compatibility tests (optional)
@@ -427,6 +498,18 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/tests/integration/test_compatibility.cpp)
     if(CONTAINER_SYSTEM_INCLUDE_DIR)
         target_include_directories(test_compatibility PRIVATE ${CONTAINER_SYSTEM_INCLUDE_DIR})
         target_compile_definitions(test_compatibility PRIVATE BUILD_WITH_CONTAINER_SYSTEM)
+    endif()
+
+    # Add thread_system include path
+    if(THREAD_SYSTEM_INCLUDE_DIR)
+        target_include_directories(test_compatibility PRIVATE ${THREAD_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(test_compatibility PRIVATE BUILD_WITH_THREAD_SYSTEM)
+    endif()
+
+    # Add logger_system include path
+    if(LOGGER_SYSTEM_INCLUDE_DIR)
+        target_include_directories(test_compatibility PRIVATE ${LOGGER_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(test_compatibility PRIVATE BUILD_WITH_LOGGER_SYSTEM)
     endif()
 
     # Configure same as main library
@@ -459,6 +542,18 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/tests/integration/test_e2e.cpp)
         target_compile_definitions(test_e2e PRIVATE BUILD_WITH_CONTAINER_SYSTEM)
     endif()
 
+    # Add thread_system include path
+    if(THREAD_SYSTEM_INCLUDE_DIR)
+        target_include_directories(test_e2e PRIVATE ${THREAD_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(test_e2e PRIVATE BUILD_WITH_THREAD_SYSTEM)
+    endif()
+
+    # Add logger_system include path
+    if(LOGGER_SYSTEM_INCLUDE_DIR)
+        target_include_directories(test_e2e PRIVATE ${LOGGER_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(test_e2e PRIVATE BUILD_WITH_LOGGER_SYSTEM)
+    endif()
+
     # Configure same as main library
     if(USE_BOOST_ASIO)
         target_include_directories(test_e2e PRIVATE ${Boost_INCLUDE_DIRS})
@@ -489,6 +584,18 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/tests/stress/stress_test.cpp)
         target_compile_definitions(stress_test PRIVATE BUILD_WITH_CONTAINER_SYSTEM)
     endif()
 
+    # Add thread_system include path
+    if(THREAD_SYSTEM_INCLUDE_DIR)
+        target_include_directories(stress_test PRIVATE ${THREAD_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(stress_test PRIVATE BUILD_WITH_THREAD_SYSTEM)
+    endif()
+
+    # Add logger_system include path
+    if(LOGGER_SYSTEM_INCLUDE_DIR)
+        target_include_directories(stress_test PRIVATE ${LOGGER_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(stress_test PRIVATE BUILD_WITH_LOGGER_SYSTEM)
+    endif()
+
     # Configure same as main library
     if(USE_BOOST_ASIO)
         target_include_directories(stress_test PRIVATE ${Boost_INCLUDE_DIRS})
@@ -517,6 +624,18 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/tests/performance/benchmark.cpp)
     if(CONTAINER_SYSTEM_INCLUDE_DIR)
         target_include_directories(benchmark PRIVATE ${CONTAINER_SYSTEM_INCLUDE_DIR})
         target_compile_definitions(benchmark PRIVATE BUILD_WITH_CONTAINER_SYSTEM)
+    endif()
+
+    # Add thread_system include path
+    if(THREAD_SYSTEM_INCLUDE_DIR)
+        target_include_directories(benchmark PRIVATE ${THREAD_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(benchmark PRIVATE BUILD_WITH_THREAD_SYSTEM)
+    endif()
+
+    # Add logger_system include path
+    if(LOGGER_SYSTEM_INCLUDE_DIR)
+        target_include_directories(benchmark PRIVATE ${LOGGER_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(benchmark PRIVATE BUILD_WITH_LOGGER_SYSTEM)
     endif()
 
     # Configure same as main library
