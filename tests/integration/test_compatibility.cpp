@@ -374,7 +374,7 @@ void test_legacy_thread_integration(TestResults& results) {
 
 int main() {
     std::cout << "=== Network System Compatibility Tests ===" << std::endl;
-    std::cout << "Version: " << NETWORK_SYSTEM_VERSION << std::endl;
+    std::cout << "Version: Network System" << std::endl;
 
     TestResults results;
 

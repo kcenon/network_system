@@ -361,7 +361,7 @@ bool connection_storm_test(StressMetrics& metrics) {
  */
 int main(int argc, char* argv[]) {
     std::cout << "=== Network System Stress Tests ===" << std::endl;
-    std::cout << "Version: " << NETWORK_SYSTEM_VERSION << std::endl;
+    std::cout << "Version: Network System" << std::endl;
 
     // Parse command line arguments
     StressConfig config;
