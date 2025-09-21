@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['v2_200_200_0',['Latest Results (v2.0.0)',['../md_README.html#autotoc_md14',1,'']]]
+  ['✅_0',['✅',['../md_README.html#autotoc_md23',1,'&lt;strong&gt;Backward Compatibility&lt;/strong&gt; ✅'],['../md_README.html#autotoc_md22',1,'&lt;strong&gt;Complete Independence&lt;/strong&gt; ✅'],['../md_README.html#autotoc_md25',1,'&lt;strong&gt;Integration Ecosystem&lt;/strong&gt; ✅'],['../md_README.html#autotoc_md24',1,'&lt;strong&gt;Performance Excellence&lt;/strong&gt; ✅']]]
 ];

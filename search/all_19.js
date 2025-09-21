@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['🏗️_20architecture_0',['🏗️ Architecture',['../md_README.html#autotoc_md12',1,'']]]
+  ['📊_20impact_20benefits_0',['📊 Impact &amp; Benefits',['../md_README.html#autotoc_md27',1,'']]],
+  ['📊_20performance_20benchmarks_1',['📊 Performance Benchmarks',['../md_README.html#autotoc_md13',1,'']]]
 ];

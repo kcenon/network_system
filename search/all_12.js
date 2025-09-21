@@ -1,7 +1,6 @@
 var searchData=
 [
-  ['testing_20during_20migration_0',['Testing During Migration',['../index.html#migration_testing',1,'']]],
-  ['testing_20requirements_1',['Testing Requirements',['../index.html#contrib_testing',1,'']]],
-  ['tips_2',['Debugging Tips',['../index.html#trouble_debugging',1,'']]],
-  ['troubleshooting_3',['Troubleshooting',['../index.html#troubleshooting_sec',1,'']]]
+  ['ubuntu_20debian_0',['Ubuntu/Debian',['../md_README.html#autotoc_md5',1,'']]],
+  ['usage_1',['usage',['../index.html#usage_client',1,'Basic Client Usage'],['../index.html#usage_server',1,'Basic Server Usage'],['../md_README.html#autotoc_md10',1,'Modern API Usage']]],
+  ['usage_20examples_2',['Usage Examples',['../index.html#usage_sec',1,'']]]
 ];

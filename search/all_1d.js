@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['📝_20api_20examples_0',['📝 API Examples',['../md_README.html#autotoc_md9',1,'']]]
+  ['🔧_20dependencies_0',['🔧 Dependencies',['../md_README.html#autotoc_md28',1,'']]],
+  ['🔧_20features_1',['🔧 Features',['../md_README.html#autotoc_md16',1,'']]]
 ];

@@ -1,12 +1,11 @@
 var searchData=
 [
-  ['macos_0',['macOS',['../md_README.html#autotoc_md6',1,'']]],
-  ['messaging_5fsystem_1',['From Legacy messaging_system',['../index.html#migration_from_legacy',1,'']]],
-  ['migration_2',['Testing During Migration',['../index.html#migration_testing',1,'']]],
-  ['migration_20guide_3',['Migration Guide',['../index.html#migration_sec',1,'']]],
-  ['migration_20status_4',['🚀 Migration Status',['../md_README.html#autotoc_md26',1,'']]],
-  ['migration_20with_20bridge_5',['Migration with Bridge',['../index.html#usage_bridge',1,'']]],
-  ['mission_6',['Mission',['../index.html#mission_sec',1,'']]],
-  ['modern_20api_20usage_7',['Modern API Usage',['../md_README.html#autotoc_md10',1,'']]],
-  ['msys2_8',['Windows (MSYS2)',['../md_README.html#autotoc_md7',1,'']]]
+  ['namespace_20organization_0',['Namespace Organization',['../index.html#namespaces_sec',1,'']]],
+  ['network_20system_1',['Network System',['../md_README.html',1,'']]],
+  ['network_20system_20documentation_2',['Network System Documentation',['../index.html',1,'']]],
+  ['network_2eh_3',['network.h',['../network_8h.html',1,'']]],
+  ['network_5fsystem_3a_3acore_4',['network_system::core',['../index.html#ns_core',1,'']]],
+  ['network_5fsystem_3a_3aintegration_5',['network_system::integration',['../index.html#ns_integration',1,'']]],
+  ['network_5fsystem_3a_3ainternal_6',['network_system::internal',['../index.html#ns_internal',1,'']]],
+  ['network_5fsystem_3a_3asession_7',['network_system::session',['../index.html#ns_session',1,'']]]
 ];

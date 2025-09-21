@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['🏆_20key_20achievements_0',['🏆 Key Achievements',['../md_README.html#autotoc_md21',1,'']]]
+  ['📄_20license_0',['📄 License',['../md_README.html#autotoc_md34',1,'']]]
 ];

@@ -1,8 +1,12 @@
 var searchData=
 [
-  ['latest_20results_20v2_200_200_0',['Latest Results (v2.0.0)',['../md_README.html#autotoc_md14',1,'']]],
-  ['layer_1',['layer',['../index.html#arch_core',1,'Core Layer'],['../index.html#arch_integration',1,'Integration Layer'],['../index.html#arch_internal',1,'Internal Layer'],['../index.html#arch_session',1,'Session Layer']]],
-  ['legacy_20api_20compatibility_2',['Legacy API Compatibility',['../md_README.html#autotoc_md11',1,'']]],
-  ['legacy_20messaging_5fsystem_3',['From Legacy messaging_system',['../index.html#migration_from_legacy',1,'']]],
-  ['license_4',['license',['../md_README.html#autotoc_md34',1,'📄 License'],['../index.html#license_sec',1,'License']]]
+  ['macos_0',['macOS',['../md_README.html#autotoc_md6',1,'']]],
+  ['messaging_5fsystem_1',['From Legacy messaging_system',['../index.html#migration_from_legacy',1,'']]],
+  ['migration_2',['Testing During Migration',['../index.html#migration_testing',1,'']]],
+  ['migration_20guide_3',['Migration Guide',['../index.html#migration_sec',1,'']]],
+  ['migration_20status_4',['🚀 Migration Status',['../md_README.html#autotoc_md26',1,'']]],
+  ['migration_20with_20bridge_5',['Migration with Bridge',['../index.html#usage_bridge',1,'']]],
+  ['mission_6',['Mission',['../index.html#mission_sec',1,'']]],
+  ['modern_20api_20usage_7',['Modern API Usage',['../md_README.html#autotoc_md10',1,'']]],
+  ['msys2_8',['Windows (MSYS2)',['../md_README.html#autotoc_md7',1,'']]]
 ];
