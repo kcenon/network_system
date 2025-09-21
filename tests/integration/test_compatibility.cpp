@@ -374,7 +374,17 @@ void test_legacy_thread_integration(TestResults& results) {
 
 int main() {
     std::cout << "=== Network System Compatibility Tests ===" << std::endl;
-    std::cout << "Version: Network System" << std::endl;
+    std::cout << "Build: "
+#ifdef BUILD_WITH_CONTAINER_SYSTEM
+              << "Container+"
+#endif
+#ifdef BUILD_WITH_THREAD_SYSTEM
+              << "Thread+"
+#endif
+#ifdef BUILD_WITH_LOGGER_SYSTEM
+              << "Logger+"
+#endif
+              << "Core" << std::endl;
 
     TestResults results;
 
