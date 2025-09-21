@@ -427,7 +427,8 @@ bool test_container_integration(TestResults& results) {
  */
 int main(int argc, char* argv[]) {
     std::cout << "=== Network System End-to-End Tests ===" << std::endl;
-    std::cout << "Version: Network System" << std::endl;
+    std::cout << "Runtime: C++20 | Threads: " << std::thread::hardware_concurrency()
+              << " | Build: " << (argc > 1 ? "Debug" : "Standard") << std::endl;
 
     // Initialize system
     network_system::compat::initialize();
