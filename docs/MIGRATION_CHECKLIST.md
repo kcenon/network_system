@@ -299,7 +299,7 @@
 #### Final Deployment
 - [ ] Create Git tag
   ```bash
-  git tag -a v2.0.0 -m "Network system separated from messaging_system"
+  git tag -a release -m "Network system separated from messaging_system"
   ```
 - [ ] Write release notes
 - [ ] Build and deploy packages

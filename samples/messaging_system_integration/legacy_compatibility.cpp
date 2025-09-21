@@ -7,7 +7,7 @@
  *
  * @author kcenon
  * @date 2025-09-20
- * @version 2.0.0
+
  */
 
 #include <iostream>
@@ -143,8 +143,6 @@ void demonstrate_integration_features() {
               << (network_system::compat::has_container_support() ? "YES" : "NO") << std::endl;
     std::cout << "Thread support: "
               << (network_system::compat::has_thread_support() ? "YES" : "NO") << std::endl;
-    std::cout << "Network system version: "
-              << network_system::compat::version() << std::endl;
 
     // Use thread pool if available
     auto& thread_mgr = thread_integration_manager::instance();
