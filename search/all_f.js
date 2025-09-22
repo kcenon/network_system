@@ -1,8 +1,28 @@
 var searchData=
 [
-  ['reliability_20features_0',['Reliability Features',['../index.html#feat_reliability',1,'']]],
-  ['required_1',['Required',['../md_README.html#autotoc_md29',1,'']]],
-  ['required_20dependencies_2',['Required Dependencies',['../index.html#deps_required',1,'']]],
-  ['requirements_3',['requirements',['../index.html#deps_build',1,'Build Requirements'],['../index.html#dependencies_sec',1,'Dependencies and Requirements'],['../index.html#contrib_testing',1,'Testing Requirements']]],
-  ['results_4',['results',['../index.html#perf_benchmarks',1,'Benchmark Results'],['../md_README.html#autotoc_md14',1,'Latest Results']]]
+  ['patterns_0',['Design Patterns',['../md_README.html#autotoc_md24',1,'']]],
+  ['performance_20benchmarks_1',['📊 Performance Benchmarks',['../md_README.html#autotoc_md45',1,'']]],
+  ['performance_20benchmarks_20strong_2',['📊 &lt;strong&gt;Performance Benchmarks&lt;/strong&gt;',['../md_README.html#autotoc_md16',1,'']]],
+  ['performance_20characteristics_3',['Performance Characteristics',['../index.html#performance_sec',1,'']]],
+  ['performance_20comparison_20with_20industry_20standards_4',['Performance Comparison with Industry Standards',['../md_README.html#autotoc_md18',1,'']]],
+  ['performance_20excellence_20strong_5',['🚀 &lt;strong&gt;Performance Excellence&lt;/strong&gt;',['../md_README.html#autotoc_md9',1,'']]],
+  ['performance_20excellence_20strong_20✅_6',['&lt;strong&gt;Performance Excellence&lt;/strong&gt; ✅',['../md_README.html#autotoc_md56',1,'']]],
+  ['performance_20features_7',['performance features',['../md_README.html#autotoc_md42',1,'High-Performance Features'],['../md_README.html#autotoc_md47',1,'Key Performance Features']]],
+  ['performance_20insights_8',['Key Performance Insights',['../md_README.html#autotoc_md19',1,'']]],
+  ['performance_20metrics_20latest_20benchmarks_9',['Core Performance Metrics (Latest Benchmarks)',['../md_README.html#autotoc_md17',1,'']]],
+  ['performance_20optimizations_10',['Performance Optimizations',['../index.html#feat_perf',1,'']]],
+  ['planned_20features_11',['Planned Features',['../md_README.html#autotoc_md51',1,'']]],
+  ['platform_20compatibility_20strong_12',['🌐 &lt;strong&gt;Cross-Platform Compatibility&lt;/strong&gt;',['../md_README.html#autotoc_md12',1,'']]],
+  ['platform_20support_13',['🎯 Platform Support',['../md_README.html#autotoc_md63',1,'']]],
+  ['prerequisites_14',['Prerequisites',['../md_README.html#autotoc_md29',1,'']]],
+  ['production_20grade_20reliability_20strong_15',['🛡️ &lt;strong&gt;Production-Grade Reliability&lt;/strong&gt;',['../md_README.html#autotoc_md10',1,'']]],
+  ['productivity_20strong_16',['🔧 &lt;strong&gt;Developer Productivity&lt;/strong&gt;',['../md_README.html#autotoc_md11',1,'']]],
+  ['project_17',['Network System Project',['../md_README.html#autotoc_md0',1,'']]],
+  ['project_20ecosystem_20inter_20dependencies_18',['🔗 Project Ecosystem &amp; Inter-Dependencies',['../md_README.html#autotoc_md2',1,'']]],
+  ['project_20overview_19',['Project Overview',['../md_README.html#autotoc_md1',1,'']]],
+  ['project_20purpose_20mission_20',['Project Purpose &amp; Mission',['../md_README.html#autotoc_md7',1,'']]],
+  ['project_20structure_21',['📁 Project Structure',['../md_README.html#autotoc_md25',1,'']]],
+  ['project_20summary_22',['🎯 Project Summary',['../md_README.html#autotoc_md52',1,'']]],
+  ['projects_23',['Related Projects',['../md_README.html#autotoc_md4',1,'']]],
+  ['purpose_20mission_24',['Project Purpose &amp; Mission',['../md_README.html#autotoc_md7',1,'']]]
 ];

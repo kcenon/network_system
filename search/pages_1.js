@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['network_20system_0',['Network System',['../md_README.html',1,'']]],
-  ['network_20system_20documentation_1',['Network System Documentation',['../index.html',1,'']]]
+  ['network_20system_20documentation_0',['Network System Documentation',['../index.html',1,'']]]
 ];

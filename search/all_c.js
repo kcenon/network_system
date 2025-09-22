@@ -1,11 +1,14 @@
 var searchData=
 [
-  ['objectives_0',['Core Objectives',['../md_README.html#autotoc_md2',1,'']]],
-  ['operations_1',['Asynchronous Operations',['../index.html#feat_async',1,'']]],
-  ['optimization_20guidelines_2',['Optimization Guidelines',['../index.html#perf_optimization',1,'']]],
-  ['optimizations_3',['Performance Optimizations',['../index.html#feat_perf',1,'']]],
-  ['optional_4',['Optional',['../md_README.html#autotoc_md30',1,'']]],
-  ['optional_20dependencies_5',['Optional Dependencies',['../index.html#deps_optional',1,'']]],
-  ['organization_6',['Namespace Organization',['../index.html#namespaces_sec',1,'']]],
-  ['overview_7',['overview',['../md_README.html#autotoc_md1',1,'🎯 Project Overview'],['../index.html#architecture_sec',1,'Architecture Overview']]]
+  ['macos_0',['macOS',['../md_README.html#autotoc_md31',1,'']]],
+  ['messaging_5fsystem_1',['From Legacy messaging_system',['../index.html#migration_from_legacy',1,'']]],
+  ['metrics_20latest_20benchmarks_2',['Core Performance Metrics (Latest Benchmarks)',['../md_README.html#autotoc_md17',1,'']]],
+  ['migration_3',['Testing During Migration',['../index.html#migration_testing',1,'']]],
+  ['migration_20guide_4',['Migration Guide',['../index.html#migration_sec',1,'']]],
+  ['migration_20status_5',['🚀 Migration Status',['../md_README.html#autotoc_md58',1,'']]],
+  ['migration_20with_20bridge_6',['Migration with Bridge',['../index.html#usage_bridge',1,'']]],
+  ['minutes_7',['Getting Started in 5 Minutes',['../md_README.html#autotoc_md28',1,'']]],
+  ['mission_8',['mission',['../index.html#mission_sec',1,'Mission'],['../md_README.html#autotoc_md7',1,'Project Purpose &amp; Mission']]],
+  ['modern_20api_20usage_9',['Modern API Usage',['../md_README.html#autotoc_md35',1,'']]],
+  ['msys2_10',['Windows (MSYS2)',['../md_README.html#autotoc_md32',1,'']]]
 ];

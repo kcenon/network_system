@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['🎉_20release_20highlights_0',['🎉 Release Highlights',['../md_RELEASE__NOTES.html#autotoc_md382',1,'']]]
+  ['🛠️_20technology_20stack_20architecture_0',['🛠️ Technology Stack &amp; Architecture',['../md_README.html#autotoc_md21',1,'']]]
 ];

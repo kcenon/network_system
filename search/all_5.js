@@ -1,5 +1,11 @@
 var searchData=
 [
-  ['features_0',['features',['../md_README.html#autotoc_md16',1,'🔧 Features'],['../md_README.html#autotoc_md17',1,'Core Features'],['../md_README.html#autotoc_md18',1,'Integration Features'],['../index.html#features_sec',1,'Key Features'],['../md_README.html#autotoc_md15',1,'Key Performance Features'],['../md_README.html#autotoc_md19',1,'Planned Features'],['../index.html#feat_reliability',1,'Reliability Features']]],
-  ['from_20legacy_20messaging_5fsystem_1',['From Legacy messaging_system',['../index.html#migration_from_legacy',1,'']]]
+  ['ecosystem_20integration_0',['Ecosystem Integration',['../md_README.html#autotoc_md69',1,'']]],
+  ['ecosystem_20inter_20dependencies_1',['🔗 Project Ecosystem &amp; Inter-Dependencies',['../md_README.html#autotoc_md2',1,'']]],
+  ['ecosystem_20strong_20✅_2',['&lt;strong&gt;Integration Ecosystem&lt;/strong&gt; ✅',['../md_README.html#autotoc_md57',1,'']]],
+  ['enterprise_20ready_20features_20strong_3',['📈 &lt;strong&gt;Enterprise-Ready Features&lt;/strong&gt;',['../md_README.html#autotoc_md13',1,'']]],
+  ['error_20handling_20diagnostics_4',['Error Handling &amp; Diagnostics',['../md_README.html#autotoc_md44',1,'']]],
+  ['examples_5',['examples',['../md_README.html#autotoc_md34',1,'📝 API Examples'],['../md_README.html#autotoc_md27',1,'🚀 Quick Start &amp; Usage Examples'],['../index.html#usage_sec',1,'Usage Examples']]],
+  ['excellence_20strong_6',['🚀 &lt;strong&gt;Performance Excellence&lt;/strong&gt;',['../md_README.html#autotoc_md9',1,'']]],
+  ['excellence_20strong_20✅_7',['&lt;strong&gt;Performance Excellence&lt;/strong&gt; ✅',['../md_README.html#autotoc_md56',1,'']]]
 ];

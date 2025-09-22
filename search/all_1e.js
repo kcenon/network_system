@@ -1,4 +1,6 @@
 var searchData=
 [
-  ['🙏_20acknowledgments_0',['🙏 Acknowledgments',['../md_README.html#autotoc_md35',1,'']]]
+  ['📊_20impact_20benefits_0',['📊 Impact &amp; Benefits',['../md_README.html#autotoc_md59',1,'']]],
+  ['📊_20performance_20benchmarks_1',['📊 Performance Benchmarks',['../md_README.html#autotoc_md45',1,'']]],
+  ['📊_20strong_20performance_20benchmarks_20strong_2',['📊 &lt;strong&gt;Performance Benchmarks&lt;/strong&gt;',['../md_README.html#autotoc_md16',1,'']]]
 ];

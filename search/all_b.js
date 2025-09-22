@@ -1,11 +1,9 @@
 var searchData=
 [
-  ['namespace_20organization_0',['Namespace Organization',['../index.html#namespaces_sec',1,'']]],
-  ['network_20system_1',['Network System',['../md_README.html',1,'']]],
-  ['network_20system_20documentation_2',['Network System Documentation',['../index.html',1,'']]],
-  ['network_2eh_3',['network.h',['../network_8h.html',1,'']]],
-  ['network_5fsystem_3a_3acore_4',['network_system::core',['../index.html#ns_core',1,'']]],
-  ['network_5fsystem_3a_3aintegration_5',['network_system::integration',['../index.html#ns_integration',1,'']]],
-  ['network_5fsystem_3a_3ainternal_6',['network_system::internal',['../index.html#ns_internal',1,'']]],
-  ['network_5fsystem_3a_3asession_7',['network_system::session',['../index.html#ns_session',1,'']]]
+  ['latest_20benchmarks_0',['Core Performance Metrics (Latest Benchmarks)',['../md_README.html#autotoc_md17',1,'']]],
+  ['latest_20results_1',['Latest Results',['../md_README.html#autotoc_md46',1,'']]],
+  ['layer_2',['layer',['../index.html#arch_core',1,'Core Layer'],['../index.html#arch_integration',1,'Integration Layer'],['../index.html#arch_internal',1,'Internal Layer'],['../index.html#arch_session',1,'Session Layer']]],
+  ['legacy_20api_20compatibility_3',['Legacy API Compatibility',['../md_README.html#autotoc_md36',1,'']]],
+  ['legacy_20messaging_5fsystem_4',['From Legacy messaging_system',['../index.html#migration_from_legacy',1,'']]],
+  ['license_5',['license',['../md_README.html#autotoc_md66',1,'📄 License'],['../index.html#license_sec',1,'License']]]
 ];

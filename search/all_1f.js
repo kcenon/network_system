@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['🚀_20migration_20status_0',['🚀 Migration Status',['../md_README.html#autotoc_md26',1,'']]],
-  ['🚀_20quick_20start_1',['🚀 Quick Start',['../md_README.html#autotoc_md3',1,'']]]
+  ['📚_20api_20documentation_0',['📚 API Documentation',['../md_README.html#autotoc_md38',1,'']]],
+  ['📚_20documentation_1',['📚 Documentation',['../md_README.html#autotoc_md64',1,'']]]
 ];
