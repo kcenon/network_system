@@ -368,6 +368,10 @@ if(BUILD_WITH_THREAD_SYSTEM AND THREAD_SYSTEM_INCLUDE_DIR)
     if(THREAD_SYSTEM_LIBRARY)
         target_link_libraries(NetworkSystem PUBLIC ${THREAD_SYSTEM_LIBRARY})
     endif()
+    # Add thread_system adapter source for DI/scheduling integration
+    target_sources(NetworkSystem PRIVATE
+        src/integration/thread_system_adapter.cpp
+    )
 endif()
 
 if(BUILD_WITH_LOGGER_SYSTEM AND LOGGER_SYSTEM_INCLUDE_DIR)
