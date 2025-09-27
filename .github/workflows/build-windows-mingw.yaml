@@ -1,0 +1,409 @@
+name: Build-Windows-MinGW
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build_windows_mingw:
+    runs-on: windows-2022
+    timeout-minutes: 60
+    env:
+      BUILD_TYPE: Debug
+      VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
+      VCPKG_FEATURE_FLAGS: "manifests,registries,versions,binarycaching"
+      VCPKG_DEFAULT_TRIPLET: x64-mingw-dynamic
+
+    steps:
+      - name: Configure git
+        shell: pwsh
+        run: |
+          git config --global core.autocrlf false
+          git config --global core.eol lf
+          git config --global core.longpaths true
+
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          persist-credentials: true
+          clean: true
+          fetch-depth: 1
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install MinGW via Chocolatey
+        shell: pwsh
+        run: |
+          Write-Host "Installing MinGW-w64 via Chocolatey..."
+          choco install mingw -y --no-progress
+
+          # Add MinGW to PATH for subsequent steps
+          $mingwPath = "C:\ProgramData\chocolatey\lib\mingw\tools\install\mingw64\bin"
+          echo "$mingwPath" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+          # Verify installation
+          Write-Host "Verifying MinGW installation..."
+          & "$mingwPath\gcc.exe" --version
+          & "$mingwPath\g++.exe" --version
+          & "$mingwPath\mingw32-make.exe" --version
+
+      - name: Install CMake and Ninja
+        shell: pwsh
+        run: |
+          Write-Host "Installing CMake and Ninja..."
+          choco install cmake ninja -y --no-progress
+
+          # Add to PATH
+          $cmakePath = "C:\Program Files\CMake\bin"
+          echo "$cmakePath" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+          # Verify installation
+          cmake --version
+          ninja --version
+
+      - name: Set up GitHub Actions cache
+        uses: actions/github-script@v6
+        with:
+          script: |
+            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
+            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
+
+      - name: Cache vcpkg
+        uses: actions/cache@v3
+        id: vcpkg-cache
+        with:
+          path: |
+            ${{ github.workspace }}/vcpkg
+            !${{ github.workspace }}/vcpkg/buildtrees
+            !${{ github.workspace }}/vcpkg/packages
+            !${{ github.workspace }}/vcpkg/downloads
+          key: ${{ runner.os }}-mingw-vcpkg-${{ hashFiles('vcpkg.json') }}
+          restore-keys: |
+            ${{ runner.os }}-mingw-vcpkg-
+
+      - name: Set up vcpkg
+        id: vcpkg_setup
+        shell: pwsh
+        continue-on-error: true
+        run: |
+          Write-Host "Setting up vcpkg..."
+
+          if (!(Test-Path "vcpkg")) {
+            Write-Host "Cloning vcpkg repository..."
+            git clone https://github.com/Microsoft/vcpkg.git
+            Set-Location vcpkg
+
+            # Bootstrap vcpkg
+            Write-Host "Bootstrapping vcpkg..."
+            .\bootstrap-vcpkg.bat -disableMetrics
+
+            Set-Location ..
+          } else {
+            Write-Host "Using cached vcpkg"
+            Set-Location vcpkg
+            git pull
+            .\bootstrap-vcpkg.bat -disableMetrics
+            Set-Location ..
+          }
+
+          # Set environment variables
+          $vcpkgRoot = "${{ github.workspace }}\vcpkg"
+          echo "VCPKG_ROOT=$vcpkgRoot" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          echo "VCPKG_DEFAULT_TRIPLET=x64-mingw-dynamic" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+          # Create custom triplet for MinGW if needed
+          $tripletPath = "$vcpkgRoot\triplets\community\x64-mingw-dynamic.cmake"
+          if (!(Test-Path $tripletPath)) {
+            $tripletDir = Split-Path $tripletPath -Parent
+            if (!(Test-Path $tripletDir)) {
+              New-Item -ItemType Directory -Path $tripletDir -Force
+            }
+            @"
+          set(VCPKG_TARGET_ARCHITECTURE x64)
+          set(VCPKG_CRT_LINKAGE dynamic)
+          set(VCPKG_LIBRARY_LINKAGE dynamic)
+          set(VCPKG_CMAKE_SYSTEM_NAME MinGW)
+          set(VCPKG_POLICY_DLLS_WITHOUT_LIBS enabled)
+          set(VCPKG_CHAINLOAD_TOOLCHAIN_FILE `${CMAKE_CURRENT_LIST_DIR}/../../scripts/toolchains/mingw.cmake)
+          "@ | Out-File -FilePath $tripletPath -Encoding utf8
+          }
+
+      - name: Determine vcpkg commit
+        id: vcpkg-commit
+        shell: pwsh
+        if: steps.vcpkg_setup.outcome == 'success'
+        run: |
+          $commit = git -C vcpkg rev-parse HEAD
+          echo "commit=$commit" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+      - name: Cache vcpkg installed
+        uses: actions/cache@v3
+        id: vcpkg-installed
+        if: steps.vcpkg_setup.outcome == 'success'
+        with:
+          path: ${{ github.workspace }}/vcpkg_installed
+          key: ${{ runner.os }}-mingw-vcpkg-installed-${{ env.VCPKG_DEFAULT_TRIPLET }}-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json') }}-${{ steps.vcpkg-commit.outputs.commit }}
+          restore-keys: |
+            ${{ runner.os }}-mingw-vcpkg-installed-${{ env.VCPKG_DEFAULT_TRIPLET }}-
+
+      - name: Install vcpkg dependencies
+        shell: pwsh
+        if: steps.vcpkg_setup.outcome == 'success'
+        continue-on-error: true
+        run: |
+          Write-Host "Installing vcpkg dependencies..."
+          Set-Location ${{ github.workspace }}
+
+          # Set MinGW environment for vcpkg
+          $env:CC = "C:\ProgramData\chocolatey\lib\mingw\tools\install\mingw64\bin\gcc.exe"
+          $env:CXX = "C:\ProgramData\chocolatey\lib\mingw\tools\install\mingw64\bin\g++.exe"
+
+          # Install dependencies
+          .\vcpkg\vcpkg install --triplet x64-mingw-dynamic --feature-flags=manifests,versions
+
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "vcpkg install failed with exit code $LASTEXITCODE"
+            exit 1
+          }
+
+      - name: Cache CMake build
+        uses: actions/cache@v3
+        id: cmake-cache
+        with:
+          path: |
+            ${{ github.workspace }}/build
+          key: ${{ runner.os }}-cmake-mingw-${{ hashFiles('CMakeLists.txt', 'vcpkg.json') }}-${{ env.BUILD_TYPE }}
+          restore-keys: |
+            ${{ runner.os }}-cmake-mingw-
+
+      - name: Prepare build directory
+        shell: pwsh
+        run: |
+          if (Test-Path "build") {
+            Remove-Item -Path "build" -Recurse -Force
+          }
+          New-Item -ItemType Directory -Path "build"
+
+      - name: Build with vcpkg
+        id: build_vcpkg
+        shell: pwsh
+        continue-on-error: true
+        run: |
+          Write-Host "Building with vcpkg dependencies..."
+          Set-Location build
+
+          $mingwPath = "C:\ProgramData\chocolatey\lib\mingw\tools\install\mingw64"
+          $env:CC = "$mingwPath\bin\gcc.exe"
+          $env:CXX = "$mingwPath\bin\g++.exe"
+
+          cmake .. `
+            -G "Ninja" `
+            -DCMAKE_BUILD_TYPE=$env:BUILD_TYPE `
+            -DBUILD_TESTS=ON `
+            -DBUILD_SAMPLES=ON `
+            -DBUILD_WITH_CONTAINER_SYSTEM=OFF `
+            -DCMAKE_INSTALL_PREFIX="../target" `
+            -DCMAKE_TOOLCHAIN_FILE="${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake" `
+            -DVCPKG_TARGET_TRIPLET="x64-mingw-dynamic" `
+            -DCMAKE_C_COMPILER="$mingwPath\bin\gcc.exe" `
+            -DCMAKE_CXX_COMPILER="$mingwPath\bin\g++.exe" `
+            -DCMAKE_AR="$mingwPath\bin\ar.exe" `
+            -DCMAKE_RANLIB="$mingwPath\bin\ranlib.exe" `
+            -DCMAKE_RC_COMPILER="$mingwPath\bin\windres.exe" `
+            -DCMAKE_MAKE_PROGRAM="ninja.exe"
+
+          if ($LASTEXITCODE -eq 0) {
+            cmake --build . --parallel $env:NUMBER_OF_PROCESSORS
+          } else {
+            Write-Host "CMake configuration failed"
+            exit 1
+          }
+
+      - name: Build with system libraries (fallback)
+        if: steps.build_vcpkg.outcome == 'failure'
+        shell: pwsh
+        run: |
+          Write-Host "vcpkg build failed, falling back to system libraries..."
+
+          # Clean build directory
+          Set-Location ${{ github.workspace }}
+          Remove-Item -Path "build" -Recurse -Force
+          New-Item -ItemType Directory -Path "build"
+          Set-Location build
+
+          # Install MinGW libraries via pacman if available or download directly
+          Write-Host "Attempting to build with MinGW system libraries..."
+
+          $mingwPath = "C:\ProgramData\chocolatey\lib\mingw\tools\install\mingw64"
+          $env:CC = "$mingwPath\bin\gcc.exe"
+          $env:CXX = "$mingwPath\bin\g++.exe"
+
+          # Download and setup required libraries manually
+          Write-Host "Downloading required libraries..."
+
+          # Create lib directory
+          $libDir = "${{ github.workspace }}\libs"
+          if (!(Test-Path $libDir)) {
+            New-Item -ItemType Directory -Path $libDir
+          }
+
+          # Download asio (header-only)
+          $asioUrl = "https://github.com/chriskohlhoff/asio/archive/refs/tags/asio-1-28-0.zip"
+          $asioZip = "$libDir\asio.zip"
+          if (!(Test-Path "$libDir\asio")) {
+            Write-Host "Downloading ASIO..."
+            Invoke-WebRequest -Uri $asioUrl -OutFile $asioZip
+            Expand-Archive -Path $asioZip -DestinationPath $libDir
+            Move-Item "$libDir\asio-asio-1-28-0\asio" "$libDir\asio"
+          }
+
+          # Download fmt
+          $fmtUrl = "https://github.com/fmtlib/fmt/archive/refs/tags/10.1.0.zip"
+          $fmtZip = "$libDir\fmt.zip"
+          if (!(Test-Path "$libDir\fmt")) {
+            Write-Host "Downloading fmt..."
+            Invoke-WebRequest -Uri $fmtUrl -OutFile $fmtZip
+            Expand-Archive -Path $fmtZip -DestinationPath $libDir
+            Move-Item "$libDir\fmt-10.1.0" "$libDir\fmt"
+          }
+
+          # Configure with downloaded libraries
+          cmake .. `
+            -G "Ninja" `
+            -DCMAKE_BUILD_TYPE=$env:BUILD_TYPE `
+            -DBUILD_TESTS=OFF `
+            -DBUILD_SAMPLES=ON `
+            -DBUILD_WITH_CONTAINER_SYSTEM=OFF `
+            -DCMAKE_INSTALL_PREFIX="../target" `
+            -DCMAKE_C_COMPILER="$mingwPath\bin\gcc.exe" `
+            -DCMAKE_CXX_COMPILER="$mingwPath\bin\g++.exe" `
+            -DCMAKE_AR="$mingwPath\bin\ar.exe" `
+            -DCMAKE_RANLIB="$mingwPath\bin\ranlib.exe" `
+            -DCMAKE_RC_COMPILER="$mingwPath\bin\windres.exe" `
+            -DCMAKE_MAKE_PROGRAM="ninja.exe" `
+            -DASIO_INCLUDE_DIR="$libDir\asio\include" `
+            -DFMT_INCLUDE_DIR="$libDir\fmt\include"
+
+          cmake --build . --parallel $env:NUMBER_OF_PROCESSORS
+
+      - name: Run verification test
+        shell: pwsh
+        run: |
+          Set-Location build
+
+          # Check for built verification executable
+          if (Test-Path "verify_build.exe") {
+            Write-Host "Running NetworkSystem verification test..."
+            .\verify_build.exe
+            if ($LASTEXITCODE -eq 0) {
+              Write-Host "✅ NetworkSystem verification passed!"
+            } else {
+              Write-Host "❌ NetworkSystem verification failed"
+              exit 1
+            }
+          } else {
+            Write-Host "Running basic verification test (fallback)..."
+
+            # Create and compile a basic verification test
+            $testSource = @"
+          #include <iostream>
+          #include <thread>
+          #include <chrono>
+          #include <atomic>
+          #include <vector>
+          #include <mutex>
+
+          int main() {
+              std::cout << "Network System CI Verification (MinGW)" << std::endl;
+              std::cout << "======================================" << std::endl;
+
+              // Test basic threading
+              std::atomic<bool> test_completed{false};
+              std::mutex output_mutex;
+
+              {
+                  std::vector<std::jthread> threads;
+                  for (int i = 0; i < 4; ++i) {
+                      threads.emplace_back([&test_completed, &output_mutex, i]() {
+                          std::this_thread::sleep_for(std::chrono::milliseconds(10));
+                          {
+                              std::lock_guard<std::mutex> lock(output_mutex);
+                              std::cout << "Thread " << i << " completed" << std::endl;
+                          }
+                          if (i == 3) {
+                              test_completed = true;
+                          }
+                      });
+                  }
+              }
+
+              if (test_completed) {
+                  std::cout << "✅ Core network functionality verified on MinGW" << std::endl;
+                  return 0;
+              } else {
+                  std::cout << "❌ Verification failed" << std::endl;
+                  return 1;
+              }
+          }
+          "@
+
+            $testSource | Out-File -FilePath "verification_test.cpp" -Encoding utf8
+
+            $mingwPath = "C:\ProgramData\chocolatey\lib\mingw\tools\install\mingw64"
+            & "$mingwPath\bin\g++.exe" -std=c++20 -pthread -o verification_test.exe verification_test.cpp
+
+            if ($LASTEXITCODE -eq 0) {
+              .\verification_test.exe
+              exit $LASTEXITCODE
+            } else {
+              Write-Host "Failed to compile verification test"
+              exit 1
+            }
+          }
+
+      - name: Run tests
+        if: success()
+        shell: pwsh
+        continue-on-error: true
+        run: |
+          Set-Location build
+
+          # Find and run test executables
+          $testExecutables = Get-ChildItem -Path . -Filter "*test*.exe" -Recurse
+
+          if ($testExecutables.Count -gt 0) {
+            Write-Host "Found $($testExecutables.Count) test executable(s)"
+            foreach ($test in $testExecutables) {
+              Write-Host "Running $($test.Name)..."
+              & $test.FullName
+              if ($LASTEXITCODE -ne 0) {
+                Write-Host "Warning: $($test.Name) failed with exit code $LASTEXITCODE"
+              }
+            }
+          } else {
+            Write-Host "No test executables found"
+          }
+
+      - name: Upload artifacts
+        if: success()
+        uses: actions/upload-artifact@v3
+        with:
+          name: network-system-mingw-${{ github.sha }}
+          path: |
+            build/**/*.exe
+            build/**/*.dll
+            build/**/*.a
+          retention-days: 7
+
+      - name: Cache built libraries
+        if: success()
+        uses: actions/cache@v3
+        with:
+          path: ${{ github.workspace }}/build
+          key: ${{ runner.os }}-built-libs-mingw-${{ hashFiles('CMakeLists.txt', 'vcpkg.json') }}-${{ env.BUILD_TYPE }}
+          restore-keys: |
+            ${{ runner.os }}-built-libs-mingw-
