@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['5_20minutes_0',['Getting Started in 5 Minutes',['../md_README.html#autotoc_md28',1,'']]]
+  ['09_2028_0',['Last Updated: 2025-09-28',['../md_INTEGRATION__STATUS.html#autotoc_md1',1,'']]]
 ];

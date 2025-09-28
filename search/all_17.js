@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['🌐_20strong_20cross_20platform_20compatibility_20strong_0',['🌐 &lt;strong&gt;Cross-Platform Compatibility&lt;/strong&gt;',['../md_README.html#autotoc_md12',1,'']]]
+  ['verification_20results_0',['Build Verification Results',['../md_INTEGRATION__STATUS.html#autotoc_md6',1,'']]]
 ];

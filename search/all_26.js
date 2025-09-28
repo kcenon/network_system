@@ -1,4 +1,6 @@
 var searchData=
 [
-  ['🛠️_20technology_20stack_20architecture_0',['🛠️ Technology Stack &amp; Architecture',['../md_README.html#autotoc_md21',1,'']]]
+  ['🔧_20dependencies_0',['🔧 Dependencies',['../md_README.html#autotoc_md70',1,'']]],
+  ['🔧_20features_1',['🔧 Features',['../md_README.html#autotoc_md58',1,'']]],
+  ['🔧_20strong_20developer_20productivity_20strong_2',['🔧 &lt;strong&gt;Developer Productivity&lt;/strong&gt;',['../md_README.html#autotoc_md21',1,'']]]
 ];

@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['🔗_20project_20ecosystem_20inter_20dependencies_0',['🔗 Project Ecosystem &amp; Inter-Dependencies',['../md_README.html#autotoc_md2',1,'']]]
+  ['📚_20api_20documentation_0',['📚 API Documentation',['../md_README.html#autotoc_md48',1,'']]],
+  ['📚_20documentation_1',['📚 Documentation',['../md_README.html#autotoc_md74',1,'']]]
 ];

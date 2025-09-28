@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['🐛_20bug_20fixes_0',['🐛 Bug Fixes',['../md_RELEASE__NOTES.html#autotoc_md401',1,'']]]
+  ['🛠️_20technology_20stack_20architecture_0',['🛠️ Technology Stack &amp; Architecture',['../md_README.html#autotoc_md31',1,'']]]
 ];

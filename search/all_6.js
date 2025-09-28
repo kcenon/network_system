@@ -1,6 +1,16 @@
 var searchData=
 [
-  ['features_0',['features',['../md_README.html#autotoc_md48',1,'🔧 Features'],['../md_README.html#autotoc_md49',1,'Core Features'],['../md_README.html#autotoc_md42',1,'High-Performance Features'],['../md_README.html#autotoc_md50',1,'Integration Features'],['../index.html#features_sec',1,'Key Features'],['../md_README.html#autotoc_md47',1,'Key Performance Features'],['../md_README.html#autotoc_md51',1,'Planned Features'],['../index.html#feat_reliability',1,'Reliability Features']]],
-  ['features_20strong_1',['📈 &lt;strong&gt;Enterprise-Ready Features&lt;/strong&gt;',['../md_README.html#autotoc_md13',1,'']]],
-  ['from_20legacy_20messaging_5fsystem_2',['From Legacy messaging_system',['../index.html#migration_from_legacy',1,'']]]
+  ['debian_0',['Ubuntu/Debian',['../md_README.html#autotoc_md40',1,'']]],
+  ['debugging_20tips_1',['Debugging Tips',['../index.html#trouble_debugging',1,'']]],
+  ['dependencies_2',['dependencies',['../md_README.html#autotoc_md12',1,'🔗 Project Ecosystem &amp; Inter-Dependencies'],['../md_README.html#autotoc_md70',1,'🔧 Dependencies'],['../md_README.html#autotoc_md78',1,'Core Dependencies'],['../index.html#deps_optional',1,'Optional Dependencies'],['../index.html#deps_required',1,'Required Dependencies']]],
+  ['dependencies_20and_20requirements_3',['Dependencies and Requirements',['../index.html#dependencies_sec',1,'']]],
+  ['design_4',['Architecture Design',['../md_README.html#autotoc_md33',1,'']]],
+  ['design_20patterns_5',['Design Patterns',['../md_README.html#autotoc_md34',1,'']]],
+  ['developer_20productivity_20strong_6',['🔧 &lt;strong&gt;Developer Productivity&lt;/strong&gt;',['../md_README.html#autotoc_md21',1,'']]],
+  ['development_20guidelines_7',['Development Guidelines',['../index.html#contrib_guidelines',1,'']]],
+  ['development_20timeline_8',['Development Timeline',['../md_README.html#autotoc_md84',1,'']]],
+  ['diagnostics_9',['Error Handling &amp; Diagnostics',['../md_README.html#autotoc_md54',1,'']]],
+  ['directory_20organization_10',['Directory Organization',['../md_README.html#autotoc_md36',1,'']]],
+  ['documentation_11',['documentation',['../md_README.html#autotoc_md48',1,'📚 API Documentation'],['../md_README.html#autotoc_md74',1,'📚 Documentation'],['../index.html',1,'Network System Documentation']]],
+  ['during_20migration_12',['Testing During Migration',['../index.html#migration_testing',1,'']]]
 ];

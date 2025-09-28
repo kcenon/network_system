@@ -1,7 +1,6 @@
 var searchData=
 [
-  ['key_20achievements_0',['🏆 Key Achievements',['../md_README.html#autotoc_md53',1,'']]],
-  ['key_20features_1',['Key Features',['../index.html#features_sec',1,'']]],
-  ['key_20performance_20features_2',['Key Performance Features',['../md_README.html#autotoc_md47',1,'']]],
-  ['key_20performance_20insights_3',['Key Performance Insights',['../md_README.html#autotoc_md19',1,'']]]
+  ['handling_20diagnostics_0',['Error Handling &amp; Diagnostics',['../md_README.html#autotoc_md54',1,'']]],
+  ['high_20performance_20features_1',['High-Performance Features',['../md_README.html#autotoc_md52',1,'']]],
+  ['historical_20context_2',['Historical Context',['../md_README.html#autotoc_md13',1,'']]]
 ];
