@@ -33,6 +33,7 @@ set(SAMPLE_PROGRAMS
     tcp_server_client
     http_client_demo
     run_all_samples
+    memory_profile_demo
 )
 
 # Output directory
@@ -135,6 +136,7 @@ install(FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/tcp_server_client.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/http_client_demo.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/run_all_samples.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/memory_profile_demo.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt
     ${CMAKE_CURRENT_SOURCE_DIR}/README.md
     DESTINATION share/network_system/samples
