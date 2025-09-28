@@ -75,9 +75,9 @@ $(function() {
 <div class="contents">
 <div class="textblock"><p><a href="https://www.codefactor.io/repository/github/kcenon/network_system"><img src="https://www.codefactor.io/repository/github/kcenon/network_system/badge" alt="CodeFactor" class="inline"/></a></p>
 <p><a href="https://github.com/kcenon/network_system/actions/workflows/build-ubuntu-gcc.yaml"><img src="https://github.com/kcenon/network_system/actions/workflows/build-ubuntu-gcc.yaml/badge.svg" alt="Ubuntu-GCC" style="pointer-events: none;" class="inline"/></a> <a href="https://github.com/kcenon/network_system/actions/workflows/build-ubuntu-clang.yaml"><img src="https://github.com/kcenon/network_system/actions/workflows/build-ubuntu-clang.yaml/badge.svg" alt="Ubuntu-Clang" style="pointer-events: none;" class="inline"/></a> <a href="https://github.com/kcenon/network_system/actions/workflows/build-windows-msys2.yaml"><img src="https://github.com/kcenon/network_system/actions/workflows/build-windows-msys2.yaml/badge.svg" alt="Windows-MSYS2" style="pointer-events: none;" class="inline"/></a> <a href="https://github.com/kcenon/network_system/actions/workflows/build-windows-vs.yaml"><img src="https://github.com/kcenon/network_system/actions/workflows/build-windows-vs.yaml/badge.svg" alt="Windows-VisualStudio" style="pointer-events: none;" class="inline"/></a></p>
-<h1><a class="anchor" id="autotoc_md10"></a>
+<h1><a class="anchor" id="autotoc_md11"></a>
 Network System Project</h1>
-<h2><a class="anchor" id="autotoc_md11"></a>
+<h2><a class="anchor" id="autotoc_md12"></a>
 Project Overview</h2>
 <p>The Network System Project is a production-ready, high-performance C++20 asynchronous network library designed to provide enterprise-grade networking capabilities for distributed systems and messaging applications. Originally separated from messaging_system for enhanced modularity, it delivers exceptional performance with 305K+ messages/second throughput while maintaining full backward compatibility and seamless ecosystem integration.</p>
 <blockquote class="doxtable">
@@ -86,17 +86,17 @@ Project Overview</h2>
 <blockquote class="doxtable">
 <p>&zwj;<b>✅ Latest Updates</b>: Complete independence from messaging_system, enhanced performance optimization, comprehensive integration ecosystem, and production-ready deployment. All CI/CD pipelines green across platforms. </p>
 </blockquote>
-<h2><a class="anchor" id="autotoc_md12"></a>
+<h2><a class="anchor" id="autotoc_md13"></a>
 🔗 Project Ecosystem &amp; Inter-Dependencies</h2>
 <p>This network system is a foundational component separated from messaging_system to provide enhanced modularity and reusability across the ecosystem:</p>
-<h3><a class="anchor" id="autotoc_md13"></a>
+<h3><a class="anchor" id="autotoc_md14"></a>
 Historical Context</h3>
 <ul>
 <li><b>Original Integration</b>: Part of messaging_system as a tightly-coupled network module</li>
 <li><b>Separation Rationale</b>: Extracted for enhanced modularity, reusability, and maintainability</li>
 <li><b>Migration Achievement</b>: Complete independence while maintaining 100% backward compatibility</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md14"></a>
+<h3><a class="anchor" id="autotoc_md15"></a>
 Related Projects</h3>
 <ul>
 <li><b><a href="https://github.com/kcenon/messaging_system">messaging_system</a></b>: Primary consumer using network for message transport<ul>
@@ -130,7 +130,7 @@ Related Projects</h3>
 </ul>
 </li>
 </ul>
-<h3><a class="anchor" id="autotoc_md15"></a>
+<h3><a class="anchor" id="autotoc_md16"></a>
 Integration Architecture</h3>
 <div class="fragment"><div class="line">┌─────────────────┐     ┌─────────────────┐</div>
 <div class="line">│  thread_system  │ ──► │ network_system  │ ◄── Foundation: Async I/O, Connection Management</div>
@@ -146,7 +146,7 @@ Integration Architecture</h3>
 <div class="line">    ┌─────────────────────────┐</div>
 <div class="line">    │   logger_system        │</div>
 <div class="line">    └─────────────────────────┘</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md16"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md17"></a>
 Integration Benefits</h3>
 <ul>
 <li><b>Universal transport layer</b>: High-performance networking for all ecosystem components</li>
@@ -158,7 +158,7 @@ Integration Benefits</h3>
 <blockquote class="doxtable">
 <p>&zwj;📖 <b>Complete Architecture Guide</b>: Comprehensive documentation of the entire ecosystem architecture, dependency relationships, and integration patterns. </p>
 </blockquote>
-<h2><a class="anchor" id="autotoc_md17"></a>
+<h2><a class="anchor" id="autotoc_md18"></a>
 Project Purpose &amp; Mission</h2>
 <p>This project addresses the fundamental challenge faced by developers worldwide: <b>making high-performance network programming accessible, modular, and reliable</b>. Traditional network libraries often tightly couple with specific frameworks, lack comprehensive async support, and provide insufficient performance for high-throughput applications. Our mission is to provide a comprehensive solution that:</p>
 <ul>
@@ -168,9 +168,9 @@ Project Purpose &amp; Mission</h2>
 <li><b>Promotes reusability</b> through clean interfaces and ecosystem integration capabilities</li>
 <li><b>Accelerates development</b> by providing production-ready networking with minimal setup</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md18"></a>
+<h2><a class="anchor" id="autotoc_md19"></a>
 Core Advantages &amp; Benefits</h2>
-<h3><a class="anchor" id="autotoc_md19"></a>
+<h3><a class="anchor" id="autotoc_md20"></a>
 🚀 &lt;strong&gt;Performance Excellence&lt;/strong&gt;</h3>
 <ul>
 <li><b>Ultra-high throughput</b>: 305K+ messages/second average, 769K+ msg/s for small messages</li>
@@ -178,7 +178,7 @@ Core Advantages &amp; Benefits</h2>
 <li><b>Async I/O optimization</b>: ASIO-based non-blocking operations with C++20 coroutines</li>
 <li><b>Connection pooling</b>: Intelligent connection reuse and lifecycle management</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md20"></a>
+<h3><a class="anchor" id="autotoc_md21"></a>
 🛡️ &lt;strong&gt;Production-Grade Reliability&lt;/strong&gt;</h3>
 <ul>
 <li><b>Modular independence</b>: Zero external dependencies beyond standard libraries</li>
@@ -186,7 +186,7 @@ Core Advantages &amp; Benefits</h2>
 <li><b>Memory safety</b>: RAII principles and smart pointers prevent leaks and corruption</li>
 <li><b>Thread safety</b>: Concurrent operations with proper synchronization</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md21"></a>
+<h3><a class="anchor" id="autotoc_md22"></a>
 🔧 &lt;strong&gt;Developer Productivity&lt;/strong&gt;</h3>
 <ul>
 <li><b>Intuitive API design</b>: Clean, self-documenting interfaces reduce learning curve</li>
@@ -194,7 +194,7 @@ Core Advantages &amp; Benefits</h2>
 <li><b>Rich integration</b>: Seamless integration with thread, container, and logger systems</li>
 <li><b>Modern C++ features</b>: C++20 coroutines, concepts, and ranges support</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md22"></a>
+<h3><a class="anchor" id="autotoc_md23"></a>
 🌐 &lt;strong&gt;Cross-Platform Compatibility&lt;/strong&gt;</h3>
 <ul>
 <li><b>Universal support</b>: Works on Windows, Linux, and macOS</li>
@@ -202,7 +202,7 @@ Core Advantages &amp; Benefits</h2>
 <li><b>Compiler flexibility</b>: Compatible with GCC, Clang, and MSVC</li>
 <li><b>Container support</b>: Docker-ready with automated CI/CD</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md23"></a>
+<h3><a class="anchor" id="autotoc_md24"></a>
 📈 &lt;strong&gt;Enterprise-Ready Features&lt;/strong&gt;</h3>
 <ul>
 <li><b>Session management</b>: Comprehensive session lifecycle and state management</li>
@@ -210,9 +210,9 @@ Core Advantages &amp; Benefits</h2>
 <li><b>Performance monitoring</b>: Real-time metrics and performance analysis</li>
 <li><b>Migration support</b>: Complete migration tools from messaging_system integration</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md24"></a>
+<h2><a class="anchor" id="autotoc_md25"></a>
 Real-World Impact &amp; Use Cases</h2>
-<h3><a class="anchor" id="autotoc_md25"></a>
+<h3><a class="anchor" id="autotoc_md26"></a>
 🎯 &lt;strong&gt;Ideal Applications&lt;/strong&gt;</h3>
 <ul>
 <li><b>Messaging systems</b>: High-throughput message routing and delivery</li>
@@ -222,13 +222,13 @@ Real-World Impact &amp; Use Cases</h2>
 <li><b>Database clustering</b>: Database replication and distributed query processing</li>
 <li><b>Content delivery</b>: High-performance content streaming and caching</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md26"></a>
+<h3><a class="anchor" id="autotoc_md27"></a>
 📊 &lt;strong&gt;Performance Benchmarks&lt;/strong&gt;</h3>
 <p><em>Benchmarked on production hardware: Intel i7-12700K @ 3.8GHz, 32GB RAM, Ubuntu 22.04, GCC 11</em></p>
 <blockquote class="doxtable">
 <p>&zwj;<b>🚀 Architecture Update</b>: Latest modular architecture with zero-copy pipeline and connection pooling delivers exceptional performance for network-intensive applications. Independent design enables optimal resource utilization. </p>
 </blockquote>
-<h4><a class="anchor" id="autotoc_md27"></a>
+<h4><a class="anchor" id="autotoc_md28"></a>
 Core Performance Metrics (Latest Benchmarks)</h4>
 <ul>
 <li><b>Peak Throughput</b>: Up to 769K messages/second (64-byte messages)</li>
@@ -252,7 +252,7 @@ Core Performance Metrics (Latest Benchmarks)</h4>
 </li>
 <li>**Memory efficiency**: &lt;10MB baseline with efficient connection pooling</li>
 </ul>
-<h4><a class="anchor" id="autotoc_md28"></a>
+<h4><a class="anchor" id="autotoc_md29"></a>
 Performance Comparison with Industry Standards</h4>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -268,7 +268,7 @@ Performance Comparison with Industry Standards</h4>
 <tr class="markdownTableRowOdd">
 <td class="markdownTableBodyNone">📦 <b>ZeroMQ</b>   </td><td class="markdownTableBodyNone">200K msg/s   </td><td class="markdownTableBodyNone">150μs   </td><td class="markdownTableBodyNone">20MB   </td><td class="markdownTableBodyNone">Message queuing   </td></tr>
 </table>
-<h4><a class="anchor" id="autotoc_md29"></a>
+<h4><a class="anchor" id="autotoc_md30"></a>
 Key Performance Insights</h4>
 <ul>
 <li>🏃 <b>Message throughput</b>: Industry-leading performance across all message sizes</li>
@@ -276,7 +276,7 @@ Key Performance Insights</h4>
 <li>⏱️ <b>Ultra-low latency</b>: Sub-microsecond latency for most operations</li>
 <li>📈 <b>Memory efficiency</b>: Optimal memory usage with intelligent pooling</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md30"></a>
+<h3><a class="anchor" id="autotoc_md31"></a>
 Core Objectives</h3>
 <ul>
 <li><b>Module Independence</b>: Complete separation of network module from messaging_system ✅</li>
@@ -284,9 +284,9 @@ Core Objectives</h3>
 <li><b>Compatibility Maintenance</b>: Full backward compatibility with legacy code ✅</li>
 <li><b>Performance Optimization</b>: 305K+ msg/s throughput achieved ✅</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md31"></a>
+<h2><a class="anchor" id="autotoc_md32"></a>
 🛠️ Technology Stack &amp; Architecture</h2>
-<h3><a class="anchor" id="autotoc_md32"></a>
+<h3><a class="anchor" id="autotoc_md33"></a>
 Core Technologies</h3>
 <ul>
 <li><b>C++20</b>: Modern C++ features including concepts, coroutines, and ranges</li>
@@ -294,7 +294,7 @@ Core Technologies</h3>
 <li><b>CMake</b>: Build system with comprehensive dependency management</li>
 <li><b>Cross-Platform</b>: Native support for Windows, Linux, and macOS</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md33"></a>
+<h3><a class="anchor" id="autotoc_md34"></a>
 Architecture Design</h3>
 <div class="fragment"><div class="line">┌─────────────────────────────────────────────────────────────┐</div>
 <div class="line">│                    Network System Architecture              │</div>
@@ -323,7 +323,7 @@ Architecture Design</h3>
 <div class="line">│  │  System     │ │   System    │ │   System    │           │</div>
 <div class="line">│  └─────────────┘ └─────────────┘ └─────────────┘           │</div>
 <div class="line">└─────────────────────────────────────────────────────────────┘</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md34"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md35"></a>
 Design Patterns</h3>
 <ul>
 <li><b>Factory Pattern</b>: Network component creation and configuration</li>
@@ -332,9 +332,9 @@ Design Patterns</h3>
 <li><b>RAII</b>: Automatic resource management for connections</li>
 <li><b>Template Metaprogramming</b>: Compile-time protocol optimization</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md35"></a>
+<h2><a class="anchor" id="autotoc_md36"></a>
 📁 Project Structure</h2>
-<h3><a class="anchor" id="autotoc_md36"></a>
+<h3><a class="anchor" id="autotoc_md37"></a>
 Directory Organization</h3>
 <div class="fragment"><div class="line">network_system/</div>
 <div class="line">├── 📁 include/network/           # Public header files</div>
@@ -383,9 +383,9 @@ Directory Organization</h3>
 <div class="line">├── 📄 CMakeLists.txt            # Build configuration</div>
 <div class="line">├── 📄 .clang-format             # Code formatting rules</div>
 <div class="line">└── 📄 README.md                 # This file</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md37"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md38"></a>
 🚀 Quick Start &amp; Usage Examples</h2>
-<h3><a class="anchor" id="autotoc_md38"></a>
+<h3><a class="anchor" id="autotoc_md39"></a>
 Getting Started in 5 Minutes</h3>
 <p><b>Step 1: Quick Installation</b> </p><div class="fragment"><div class="line"># Clone and build</div>
 <div class="line">git clone https://github.com/kcenon/network_system.git</div>
@@ -444,20 +444,20 @@ Getting Started in 5 Minutes</h3>
 <div class="line"> </div>
 <div class="line">    <span class="keywordflow">return</span> 0;</div>
 <div class="line">}</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md39"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md40"></a>
 Prerequisites</h3>
-<h4><a class="anchor" id="autotoc_md40"></a>
+<h4><a class="anchor" id="autotoc_md41"></a>
 Ubuntu/Debian</h4>
 <div class="fragment"><div class="line">sudo apt update</div>
 <div class="line">sudo apt install -y cmake ninja-build libasio-dev libfmt-dev</div>
-</div><!-- fragment --><h4><a class="anchor" id="autotoc_md41"></a>
+</div><!-- fragment --><h4><a class="anchor" id="autotoc_md42"></a>
 macOS</h4>
 <div class="fragment"><div class="line">brew install cmake ninja asio fmt</div>
-</div><!-- fragment --><h4><a class="anchor" id="autotoc_md42"></a>
+</div><!-- fragment --><h4><a class="anchor" id="autotoc_md43"></a>
 Windows (MSYS2)</h4>
 <div class="fragment"><div class="line">pacman -S mingw-w64-x86_64-cmake mingw-w64-x86_64-ninja \</div>
 <div class="line">          mingw-w64-x86_64-asio mingw-w64-x86_64-fmt</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md43"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md44"></a>
 Build Instructions</h3>
 <div class="fragment"><div class="line"># Clone repository</div>
 <div class="line">git clone https://github.com/kcenon/network_system.git</div>
@@ -481,9 +481,9 @@ Build Instructions</h3>
 <div class="line"># Run tests</div>
 <div class="line">./verify_build</div>
 <div class="line">./benchmark</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md44"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md45"></a>
 📝 API Examples</h2>
-<h3><a class="anchor" id="autotoc_md45"></a>
+<h3><a class="anchor" id="autotoc_md46"></a>
 Modern API Usage</h3>
 <div class="fragment"><div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_server.h&gt;</span></div>
 <div class="line"><span class="preprocessor">#include &lt;network_system/core/messaging_client.h&gt;</span></div>
@@ -499,7 +499,7 @@ Modern API Usage</h3>
 <div class="line"><span class="comment">// Send message</span></div>
 <div class="line">std::vector&lt;uint8_t&gt; data = {<span class="charliteral">&#39;H&#39;</span>, <span class="charliteral">&#39;e&#39;</span>, <span class="charliteral">&#39;l&#39;</span>, <span class="charliteral">&#39;l&#39;</span>, <span class="charliteral">&#39;o&#39;</span>};</div>
 <div class="line">client-&gt;send_packet(data);</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md46"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md47"></a>
 Legacy API Compatibility</h3>
 <div class="fragment"><div class="line"><span class="preprocessor">#include &lt;network_system/compatibility.h&gt;</span></div>
 <div class="line"> </div>
@@ -509,7 +509,7 @@ Legacy API Compatibility</h3>
 <div class="line"> </div>
 <div class="line"><span class="keyword">auto</span> client = network_module::create_client(<span class="stringliteral">&quot;legacy_client&quot;</span>);</div>
 <div class="line">client-&gt;start_client(<span class="stringliteral">&quot;127.0.0.1&quot;</span>, 8080);</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md47"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md48"></a>
 🏗️ Architecture</h2>
 <div class="fragment"><div class="line">network_system/</div>
 <div class="line">├── include/network_system/</div>
@@ -532,11 +532,11 @@ Legacy API Compatibility</h3>
 <div class="line">├── samples/                    # Usage examples</div>
 <div class="line">├── tests/                      # Test suites</div>
 <div class="line">└── docs/                       # Documentation</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md48"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md49"></a>
 📚 API Documentation</h2>
-<h3><a class="anchor" id="autotoc_md49"></a>
+<h3><a class="anchor" id="autotoc_md50"></a>
 Quick API Reference</h3>
-<h4><a class="anchor" id="autotoc_md50"></a>
+<h4><a class="anchor" id="autotoc_md51"></a>
 TCP Server</h4>
 <div class="fragment"><div class="line"><span class="preprocessor">#include &quot;network/server/tcp_server.hpp&quot;</span></div>
 <div class="line"> </div>
@@ -555,7 +555,7 @@ TCP Server</h4>
 <div class="line">server.start();                                <span class="comment">// Non-blocking start</span></div>
 <div class="line">server.run();                                  <span class="comment">// Blocking run</span></div>
 <div class="line">server.stop();                                 <span class="comment">// Graceful shutdown</span></div>
-</div><!-- fragment --><h4><a class="anchor" id="autotoc_md51"></a>
+</div><!-- fragment --><h4><a class="anchor" id="autotoc_md52"></a>
 TCP Client</h4>
 <div class="fragment"><div class="line"><span class="preprocessor">#include &quot;network/client/tcp_client.hpp&quot;</span></div>
 <div class="line"> </div>
@@ -575,7 +575,7 @@ TCP Client</h4>
 <div class="line">client.send(<span class="stringliteral">&quot;message&quot;</span>);                        <span class="comment">// Send string</span></div>
 <div class="line">client.send(binary_data);                      <span class="comment">// Send binary data</span></div>
 <div class="line">client.disconnect();                           <span class="comment">// Clean disconnect</span></div>
-</div><!-- fragment --><h4><a class="anchor" id="autotoc_md52"></a>
+</div><!-- fragment --><h4><a class="anchor" id="autotoc_md53"></a>
 High-Performance Features</h4>
 <div class="fragment"><div class="line"><span class="comment">// Connection pooling</span></div>
 <div class="line">network::connection_pool pool;</div>
@@ -597,7 +597,7 @@ High-Performance Features</h4>
 <div class="line">    <span class="keyword">auto</span> data = <span class="keyword">co_await</span> conn.receive();       <span class="comment">// Async receive</span></div>
 <div class="line">    <span class="keyword">co_await</span> conn.send(<span class="stringliteral">&quot;response&quot;</span>);            <span class="comment">// Async send</span></div>
 <div class="line">}</div>
-</div><!-- fragment --><h4><a class="anchor" id="autotoc_md53"></a>
+</div><!-- fragment --><h4><a class="anchor" id="autotoc_md54"></a>
 Integration with Other Systems</h4>
 <div class="fragment"><div class="line"><span class="comment">// Thread system integration</span></div>
 <div class="line"><span class="preprocessor">#include &quot;network/integration/thread_integration.hpp&quot;</span></div>
@@ -615,7 +615,7 @@ Integration with Other Systems</h4>
 <div class="line"><span class="comment">// Monitoring integration</span></div>
 <div class="line"><span class="preprocessor">#include &quot;network/integration/monitoring_integration.hpp&quot;</span></div>
 <div class="line">server.enable_monitoring();                   <span class="comment">// Automatic metrics collection</span></div>
-</div><!-- fragment --><h4><a class="anchor" id="autotoc_md54"></a>
+</div><!-- fragment --><h4><a class="anchor" id="autotoc_md55"></a>
 Error Handling &amp; Diagnostics</h4>
 <div class="fragment"><div class="line"><span class="comment">// Comprehensive error handling</span></div>
 <div class="line"><span class="keywordflow">try</span> {</div>
@@ -638,9 +638,9 @@ Error Handling &amp; Diagnostics</h4>
 <div class="line">std::cout &lt;&lt; <span class="stringliteral">&quot;Messages/sec: &quot;</span> &lt;&lt; stats.messages_per_second &lt;&lt; std::endl;</div>
 <div class="line">std::cout &lt;&lt; <span class="stringliteral">&quot;Bytes/sec: &quot;</span> &lt;&lt; stats.bytes_per_second &lt;&lt; std::endl;</div>
 <div class="line">std::cout &lt;&lt; <span class="stringliteral">&quot;Avg latency: &quot;</span> &lt;&lt; stats.average_latency &lt;&lt; <span class="stringliteral">&quot;ms&quot;</span> &lt;&lt; std::endl;</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md55"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md56"></a>
 📊 Performance Benchmarks</h2>
-<h3><a class="anchor" id="autotoc_md56"></a>
+<h3><a class="anchor" id="autotoc_md57"></a>
 Latest Results</h3>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -660,7 +660,7 @@ Latest Results</h3>
 <tr class="markdownTableRowOdd">
 <td class="markdownTableBodyNone"><b>Performance Rating</b>   </td><td class="markdownTableBodyNone">🏆 EXCELLENT   </td><td class="markdownTableBodyNone">Production ready!   </td></tr>
 </table>
-<h3><a class="anchor" id="autotoc_md57"></a>
+<h3><a class="anchor" id="autotoc_md58"></a>
 Key Performance Features</h3>
 <ul>
 <li>Zero-copy message pipeline</li>
@@ -669,9 +669,9 @@ Key Performance Features</h3>
 <li>Async I/O with ASIO</li>
 <li>C++20 coroutine support</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md58"></a>
+<h2><a class="anchor" id="autotoc_md59"></a>
 🔧 Features</h2>
-<h3><a class="anchor" id="autotoc_md59"></a>
+<h3><a class="anchor" id="autotoc_md60"></a>
 Core Features</h3>
 <ul>
 <li>✅ Asynchronous TCP server/client</li>
@@ -680,7 +680,7 @@ Core Features</h3>
 <li>✅ Message pipeline with buffering</li>
 <li>✅ C++20 coroutine support</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md60"></a>
+<h3><a class="anchor" id="autotoc_md61"></a>
 Integration Features</h3>
 <ul>
 <li>✅ Thread pool integration</li>
@@ -690,7 +690,7 @@ Integration Features</h3>
 <li>✅ Comprehensive test coverage</li>
 <li>✅ Performance benchmarking suite</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md61"></a>
+<h3><a class="anchor" id="autotoc_md62"></a>
 Planned Features</h3>
 <ul>
 <li>🚧 WebSocket support</li>
@@ -698,26 +698,26 @@ Planned Features</h3>
 <li>🚧 HTTP/2 client</li>
 <li>🚧 gRPC integration</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md62"></a>
+<h2><a class="anchor" id="autotoc_md63"></a>
 🎯 Project Summary</h2>
 <p>Network System is a <b>production-ready</b>, high-performance asynchronous network library that has been successfully separated from messaging_system to provide enhanced modularity and reusability.</p>
-<h3><a class="anchor" id="autotoc_md63"></a>
+<h3><a class="anchor" id="autotoc_md64"></a>
 🏆 Key Achievements</h3>
-<h4><a class="anchor" id="autotoc_md64"></a>
+<h4><a class="anchor" id="autotoc_md65"></a>
 &lt;strong&gt;Complete Independence&lt;/strong&gt; ✅</h4>
 <ul>
 <li>Fully separated from messaging_system with zero dependencies</li>
 <li>Independent library suitable for integration into any C++ project</li>
 <li>Clean namespace isolation (<code>network_system::</code>)</li>
 </ul>
-<h4><a class="anchor" id="autotoc_md65"></a>
+<h4><a class="anchor" id="autotoc_md66"></a>
 &lt;strong&gt;Backward Compatibility&lt;/strong&gt; ✅</h4>
 <ul>
 <li>100% compatibility with existing messaging_system code</li>
 <li>Seamless migration path through compatibility layer</li>
 <li>Legacy API support maintained (<code>network_module::</code>)</li>
 </ul>
-<h4><a class="anchor" id="autotoc_md66"></a>
+<h4><a class="anchor" id="autotoc_md67"></a>
 &lt;strong&gt;Performance Excellence&lt;/strong&gt; ✅</h4>
 <ul>
 <li><b>305K+ messages/second</b> average throughput</li>
@@ -725,7 +725,7 @@ Planned Features</h3>
 <li>Sub-microsecond latency for most operations</li>
 <li>Production-tested with 50+ concurrent connections</li>
 </ul>
-<h4><a class="anchor" id="autotoc_md67"></a>
+<h4><a class="anchor" id="autotoc_md68"></a>
 &lt;strong&gt;Integration Ecosystem&lt;/strong&gt; ✅</h4>
 <ul>
 <li><b>Thread System Integration</b>: Seamless thread pool management</li>
@@ -733,7 +733,7 @@ Planned Features</h3>
 <li><b>Container System Integration</b>: Advanced serialization support</li>
 <li><b>Cross-Platform Support</b>: Ubuntu, Windows, macOS compatibility</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md68"></a>
+<h3><a class="anchor" id="autotoc_md69"></a>
 🚀 Migration Status</h3>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -751,7 +751,7 @@ Planned Features</h3>
 <tr class="markdownTableRowEven">
 <td class="markdownTableBodyNone"><b>CI/CD Pipeline</b>   </td><td class="markdownTableBodyNone">✅ Complete   </td><td class="markdownTableBodyNone">Multi-platform automated testing   </td></tr>
 </table>
-<h3><a class="anchor" id="autotoc_md69"></a>
+<h3><a class="anchor" id="autotoc_md70"></a>
 📊 Impact &amp; Benefits</h3>
 <ul>
 <li><b>Modularity</b>: Independent library reduces coupling and improves maintainability</li>
@@ -760,16 +760,16 @@ Planned Features</h3>
 <li><b>Compatibility</b>: Zero-downtime migration path for existing applications</li>
 <li><b>Quality</b>: Comprehensive test coverage and continuous integration</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md70"></a>
+<h2><a class="anchor" id="autotoc_md71"></a>
 🔧 Dependencies</h2>
-<h3><a class="anchor" id="autotoc_md71"></a>
+<h3><a class="anchor" id="autotoc_md72"></a>
 Required</h3>
 <ul>
 <li><b>C++20</b> compatible compiler</li>
 <li><b>CMake</b> 3.16+</li>
 <li><b>ASIO</b> or <b>Boost.ASIO</b> 1.28+</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md72"></a>
+<h3><a class="anchor" id="autotoc_md73"></a>
 Optional</h3>
 <ul>
 <li><b>fmt</b> 10.0+ (falls back to std::format)</li>
@@ -777,7 +777,7 @@ Optional</h3>
 <li><b>thread_system</b> (for thread pool integration)</li>
 <li><b>logger_system</b> (for structured logging)</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md73"></a>
+<h2><a class="anchor" id="autotoc_md74"></a>
 🎯 Platform Support</h2>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -793,7 +793,7 @@ Optional</h3>
 <tr class="markdownTableRowOdd">
 <td class="markdownTableBodyNone">macOS 12+   </td><td class="markdownTableBodyNone">Apple Clang 14+   </td><td class="markdownTableBodyNone">x86_64/ARM64   </td><td class="markdownTableBodyNone">🚧 Experimental   </td></tr>
 </table>
-<h2><a class="anchor" id="autotoc_md74"></a>
+<h2><a class="anchor" id="autotoc_md75"></a>
 📚 Documentation</h2>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -807,7 +807,7 @@ Optional</h3>
 <tr class="markdownTableRowEven">
 <td class="markdownTableBodyNone">Performance Tuning   </td><td class="markdownTableBodyNone">Optimization guidelines   </td></tr>
 </table>
-<h2><a class="anchor" id="autotoc_md75"></a>
+<h2><a class="anchor" id="autotoc_md76"></a>
 🤝 Contributing</h2>
 <p>Contributions are welcome! Please follow these guidelines:</p>
 <ol type="1">
@@ -817,19 +817,19 @@ Optional</h3>
 <li>Push to the branch (<code>git push origin feature/amazing-feature</code>)</li>
 <li>Open a Pull Request</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md76"></a>
+<h2><a class="anchor" id="autotoc_md77"></a>
 📄 License</h2>
 <p>This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.</p>
-<h2><a class="anchor" id="autotoc_md77"></a>
+<h2><a class="anchor" id="autotoc_md78"></a>
 🙏 Acknowledgments</h2>
-<h3><a class="anchor" id="autotoc_md78"></a>
+<h3><a class="anchor" id="autotoc_md79"></a>
 Core Dependencies</h3>
 <ul>
 <li><b>ASIO Library Team</b>: For providing the foundation of asynchronous network programming in C++</li>
 <li><b>fmt Library Contributors</b>: For modern, safe, and fast formatting capabilities</li>
 <li><b>C++ Standards Committee</b>: For C++20 features that make modern networking possible</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md79"></a>
+<h3><a class="anchor" id="autotoc_md80"></a>
 Ecosystem Integration</h3>
 <ul>
 <li><b>Thread System Team</b>: For seamless thread pool integration and multi-threaded architecture</li>
@@ -838,7 +838,7 @@ Ecosystem Integration</h3>
 <li><b>Database System Team</b>: For network-database integration patterns</li>
 <li><b>Monitoring System Team</b>: For performance metrics and observability features</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md80"></a>
+<h3><a class="anchor" id="autotoc_md81"></a>
 Community &amp; Contributions</h3>
 <ul>
 <li><b>Original messaging_system Contributors</b>: For the foundational network code and architecture</li>
@@ -846,7 +846,7 @@ Community &amp; Contributions</h3>
 <li><b>Performance Testing Community</b>: For rigorous benchmarking and optimization suggestions</li>
 <li><b>Cross-Platform Validators</b>: For ensuring compatibility across Windows, Linux, and macOS</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md81"></a>
+<h3><a class="anchor" id="autotoc_md82"></a>
 Special Recognition</h3>
 <ul>
 <li><b>Code Review Team</b>: For maintaining high code quality standards during the separation process</li>
@@ -854,7 +854,7 @@ Special Recognition</h3>
 <li><b>CI/CD Infrastructure Team</b>: For automated testing and deployment pipeline setup</li>
 </ul>
 <hr  />
-<h2><a class="anchor" id="autotoc_md83"></a>
+<h2><a class="anchor" id="autotoc_md84"></a>
 📧 Contact &amp; Support</h2>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -870,7 +870,7 @@ Special Recognition</h3>
 <tr class="markdownTableRowOdd">
 <td class="markdownTableBodyNone"><b>Security Concerns</b>   </td><td class="markdownTableBodyNone"><a href="#" onclick="location.href='mai'+'lto:'+'sec'+'ur'+'ity'+'@n'+'etw'+'or'+'k-s'+'ys'+'tem'+'.d'+'ev'; return false;">secur<span class="obfuscator">.nosp@m.</span>ity@<span class="obfuscator">.nosp@m.</span>netwo<span class="obfuscator">.nosp@m.</span>rk-s<span class="obfuscator">.nosp@m.</span>ystem<span class="obfuscator">.nosp@m.</span>.dev</a>   </td></tr>
 </table>
-<h3><a class="anchor" id="autotoc_md84"></a>
+<h3><a class="anchor" id="autotoc_md85"></a>
 Development Timeline</h3>
 <ul>
 <li><b>Phase 1</b>: Initial separation from messaging_system</li>

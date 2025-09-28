@@ -1,7 +1,7 @@
 var searchData=
 [
-  ['key_20achievements_0',['🏆 Key Achievements',['../md_README.html#autotoc_md63',1,'']]],
+  ['key_20achievements_0',['🏆 Key Achievements',['../md_README.html#autotoc_md64',1,'']]],
   ['key_20features_1',['Key Features',['../index.html#features_sec',1,'']]],
-  ['key_20performance_20features_2',['Key Performance Features',['../md_README.html#autotoc_md57',1,'']]],
-  ['key_20performance_20insights_3',['Key Performance Insights',['../md_README.html#autotoc_md29',1,'']]]
+  ['key_20performance_20features_2',['Key Performance Features',['../md_README.html#autotoc_md58',1,'']]],
+  ['key_20performance_20insights_3',['Key Performance Insights',['../md_README.html#autotoc_md30',1,'']]]
 ];

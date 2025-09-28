@@ -1,15 +1,15 @@
 var searchData=
 [
-  ['backward_20compatibility_20strong_20✅_0',['&lt;strong&gt;Backward Compatibility&lt;/strong&gt; ✅',['../md_README.html#autotoc_md65',1,'']]],
+  ['backward_20compatibility_20strong_20✅_0',['&lt;strong&gt;Backward Compatibility&lt;/strong&gt; ✅',['../md_README.html#autotoc_md66',1,'']]],
   ['basic_20client_20usage_1',['Basic Client Usage',['../index.html#usage_client',1,'']]],
   ['basic_20server_20usage_2',['Basic Server Usage',['../index.html#usage_server',1,'']]],
   ['benchmark_20results_3',['Benchmark Results',['../index.html#perf_benchmarks',1,'']]],
-  ['benchmarks_4',['benchmarks',['../md_README.html#autotoc_md55',1,'📊 Performance Benchmarks'],['../md_README.html#autotoc_md27',1,'Core Performance Metrics (Latest Benchmarks)']]],
-  ['benchmarks_20strong_5',['📊 &lt;strong&gt;Performance Benchmarks&lt;/strong&gt;',['../md_README.html#autotoc_md26',1,'']]],
-  ['benefits_6',['benefits',['../md_README.html#autotoc_md69',1,'📊 Impact &amp; Benefits'],['../md_README.html#autotoc_md18',1,'Core Advantages &amp; Benefits'],['../md_README.html#autotoc_md16',1,'Integration Benefits']]],
+  ['benchmarks_4',['benchmarks',['../md_README.html#autotoc_md56',1,'📊 Performance Benchmarks'],['../md_README.html#autotoc_md28',1,'Core Performance Metrics (Latest Benchmarks)']]],
+  ['benchmarks_20strong_5',['📊 &lt;strong&gt;Performance Benchmarks&lt;/strong&gt;',['../md_README.html#autotoc_md27',1,'']]],
+  ['benefits_6',['benefits',['../md_README.html#autotoc_md70',1,'📊 Impact &amp; Benefits'],['../md_README.html#autotoc_md19',1,'Core Advantages &amp; Benefits'],['../md_README.html#autotoc_md17',1,'Integration Benefits']]],
   ['bridge_7',['Migration with Bridge',['../index.html#usage_bridge',1,'']]],
-  ['build_20configuration_8',['Build Configuration',['../md_INTEGRATION__STATUS.html#autotoc_md7',1,'']]],
-  ['build_20instructions_9',['Build Instructions',['../md_README.html#autotoc_md43',1,'']]],
+  ['build_20configuration_8',['Build Configuration',['../md_INTEGRATION__STATUS.html#autotoc_md8',1,'']]],
+  ['build_20instructions_9',['Build Instructions',['../md_README.html#autotoc_md44',1,'']]],
   ['build_20requirements_10',['Build Requirements',['../index.html#deps_build',1,'']]],
-  ['build_20verification_20results_11',['Build Verification Results',['../md_INTEGRATION__STATUS.html#autotoc_md6',1,'']]]
+  ['build_20verification_20results_11',['Build Verification Results',['../md_INTEGRATION__STATUS.html#autotoc_md7',1,'']]]
 ];

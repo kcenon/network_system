@@ -106,6 +106,11 @@ container_system</h3>
 <li><b>Features</b>: Container integration for data management</li>
 </ul>
 <h2><a class="anchor" id="autotoc_md6"></a>
+Notes on Flags</h2>
+<ul>
+<li>Compiled with: <code>-DBUILD_WITH_THREAD_SYSTEM=ON -DBUILD_WITH_LOGGER_SYSTEM=ON -DBUILD_WITH_CONTAINER_SYSTEM=ON</code></li>
+</ul>
+<h2><a class="anchor" id="autotoc_md7"></a>
 Build Verification Results</h2>
 <div class="fragment"><div class="line">=== Network System Build Verification ===</div>
 <div class="line">✅ Core headers can be included successfully</div>
@@ -114,13 +119,13 @@ Build Verification Results</h2>
 <div class="line">✅ Container system integration works</div>
 <div class="line">✅ Network System library verification complete</div>
 <div class="line">🎯 Core library builds and links successfully</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md7"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md8"></a>
 Build Configuration</h2>
 <div class="fragment"><div class="line">cmake .. -DCMAKE_BUILD_TYPE=Release \</div>
 <div class="line">         -DBUILD_WITH_THREAD_SYSTEM=ON \</div>
 <div class="line">         -DBUILD_WITH_LOGGER_SYSTEM=ON \</div>
 <div class="line">         -DBUILD_WITH_CONTAINER_SYSTEM=ON</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md8"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md9"></a>
 Integration Test Status</h2>
 <p>All external project integrations have been verified with:</p><ul>
 <li>Header inclusion tests</li>
@@ -128,7 +133,7 @@ Integration Test Status</h2>
 <li>Runtime integration tests</li>
 <li>Cross-system communication tests</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md9"></a>
+<h2><a class="anchor" id="autotoc_md10"></a>
 Notes</h2>
 <ul>
 <li>All external projects are referenced using relative paths (<code>../project_name</code>)</li>
