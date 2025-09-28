@@ -161,6 +161,20 @@ The system provides macros to check which integrations are available:
 #endif
 ```
 
+## Common Flags Summary
+
+- `BUILD_WITH_THREAD_SYSTEM` — enable thread pool integration via `thread_integration_manager`.
+- `BUILD_WITH_CONTAINER_SYSTEM` — enable container adapters via `container_manager`.
+- `BUILD_WITH_LOGGER_SYSTEM` — use `logger_system_adapter`; otherwise falls back to `basic_logger`.
+
+## Versioning & Dependencies
+
+- Recommended vcpkg baseline alignment across modules (example):
+  - fmt: 10.2.1
+  - Provide a top-level `vcpkg-configuration.json` to set a shared `builtin-baseline` and fmt override.
+- C++ standard: C++20 (string_view and coroutine-friendly APIs; falls back to non-coroutine path when disabled).
+- ASIO standalone is required (see `vcpkg.json`).
+
 ## Performance Considerations
 
 ### With Thread System
