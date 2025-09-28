@@ -405,6 +405,15 @@ if(WIN32)
     target_compile_definitions(NetworkSystem PRIVATE _WIN32_WINNT=0x0601)
 endif()
 
+# Configure common_system integration
+if(BUILD_WITH_COMMON_SYSTEM)
+    target_include_directories(NetworkSystem PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../common_system/include>
+    )
+    target_compile_definitions(NetworkSystem PUBLIC BUILD_WITH_COMMON_SYSTEM)
+    message(STATUS "NetworkSystem: common_system integration enabled")
+endif()
+
 # Configure FMT
 if(FMT_FOUND AND TARGET PkgConfig::FMT)
     target_link_libraries(NetworkSystem PRIVATE PkgConfig::FMT)
