@@ -10,6 +10,11 @@ Layers
 - Internal: tcp_socket, pipeline, send_coroutine, common_defs
 - Integration: thread_integration (thread pool abstraction), logger_integration (logging abstraction)
 
+Integration Flags
+- `BUILD_WITH_THREAD_SYSTEM`: use external thread pool via adapters
+- `BUILD_WITH_LOGGER_SYSTEM`: use logger_system adapter (fallback: basic_logger)
+- `BUILD_WITH_CONTAINER_SYSTEM`: enable container_system adapters for serialization
+
 Integration Topology
 ```
 thread_system (optional) ──► network_system ◄── logger_system (optional)
@@ -29,4 +34,3 @@ Performance
 
 Build
 - C++20, CMake. Optional feature flags: BUILD_WITH_LOGGER_SYSTEM, USE_THREAD_SYSTEM.
-
