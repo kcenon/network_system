@@ -25,6 +25,9 @@
 - **Location**: `../container_system/build/lib/`
 - **Features**: Container integration for data management
 
+### Notes on Flags
+- Compiled with: `-DBUILD_WITH_THREAD_SYSTEM=ON -DBUILD_WITH_LOGGER_SYSTEM=ON -DBUILD_WITH_CONTAINER_SYSTEM=ON`
+
 ### Build Verification Results
 
 ```
