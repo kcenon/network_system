@@ -39,7 +39,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <future>
 #include <atomic>
 
-#include "../network.h"
+#include "network_system/compatibility.h"
 #include <container.h>
 #include <values/string_value.h>
 #include <values/numeric_value.h>
