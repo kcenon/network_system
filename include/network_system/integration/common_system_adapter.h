@@ -5,7 +5,7 @@
  * @brief Adapter for common_system integration
  */
 
-#ifdef USE_COMMON_SYSTEM
+#ifdef BUILD_WITH_COMMON_SYSTEM
 #include <kcenon/common/interfaces/executor_interface.h>
 #include <kcenon/common/patterns/result.h>
 #endif
@@ -17,7 +17,7 @@
 namespace network_system {
 namespace integration {
 
-#ifdef USE_COMMON_SYSTEM
+#ifdef BUILD_WITH_COMMON_SYSTEM
 
 /**
  * @brief Adapter to use common_system IExecutor for async operations
@@ -78,7 +78,7 @@ inline ::common::VoidResult to_common_error(int code, const std::string& msg) {
     return ::common::VoidResult(::common::error_info(code, msg, "network_system"));
 }
 
-#endif // USE_COMMON_SYSTEM
+#endif // BUILD_WITH_COMMON_SYSTEM
 
 } // namespace integration
 } // namespace network_system
