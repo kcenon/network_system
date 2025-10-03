@@ -35,7 +35,7 @@ option(BUILD_SAMPLES "Build samples" ON)
 option(BUILD_WITH_CONTAINER_SYSTEM "Build with container_system integration" ON)
 option(BUILD_WITH_THREAD_SYSTEM "Build with thread_system integration" ON)
 option(BUILD_WITH_LOGGER_SYSTEM "Build with logger_system integration" ON)
-option(BUILD_WITH_COMMON_SYSTEM "Build with common_system integration" OFF)
+option(BUILD_WITH_COMMON_SYSTEM "Build with common_system integration" ON)
 option(BUILD_MESSAGING_BRIDGE "Build messaging_system bridge" ON)
 option(ENABLE_COVERAGE "Enable code coverage" OFF)
 
