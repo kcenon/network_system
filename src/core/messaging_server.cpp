@@ -157,6 +157,13 @@ namespace network_system::core
 		if (ec)
 		{
 			NETWORK_LOG_ERROR("[messaging_server] Accept error: " + ec.message());
+#ifdef BUILD_WITH_COMMON_SYSTEM
+			// Record connection error
+			connection_errors_.fetch_add(1, std::memory_order_relaxed);
+			if (monitor_) {
+				monitor_->record_metric("connection_errors", static_cast<double>(connection_errors_.load()));
+			}
+#endif
 			return;
 		}
 
@@ -170,8 +177,27 @@ namespace network_system::core
 		// Start the session
 		new_session->start_session();
 
+#ifdef BUILD_WITH_COMMON_SYSTEM
+		// Record active connections metric
+		if (monitor_) {
+			monitor_->record_metric("active_connections", static_cast<double>(sessions_.size()));
+		}
+#endif
+
 		// Accept next connection
 		do_accept();
 	}
+
+#ifdef BUILD_WITH_COMMON_SYSTEM
+	auto messaging_server::set_monitor(common::interfaces::IMonitor* monitor) -> void
+	{
+		monitor_ = monitor;
+	}
+
+	auto messaging_server::get_monitor() const -> common::interfaces::IMonitor*
+	{
+		return monitor_;
+	}
+#endif
 
 } // namespace network_system::core
