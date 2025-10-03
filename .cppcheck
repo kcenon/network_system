@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="1">
+    <root name="."/>
+    <builddir>build/cppcheck</builddir>
+    <importproject>compile_commands.json</importproject>
+    <analyze-all-vs-configs>true</analyze-all-vs-configs>
+    <check-headers>true</check-headers>
+    <check-unused-templates>true</check-unused-templates>
+    <max-ctu-depth>4</max-ctu-depth>
+    <max-template-recursion>100</max-template-recursion>
+
+    <!-- Paths to check -->
+    <paths>
+        <dir name="include/"/>
+        <dir name="src/"/>
+    </paths>
+
+    <!-- Excluded paths -->
+    <exclude>
+        <path name="build/"/>
+        <path name="build-*/"/>
+        <path name="vcpkg/"/>
+        <path name="vcpkg_installed/"/>
+        <path name=".git/"/>
+        <path name="tests/"/>
+        <path name="samples/"/>
+    </exclude>
+
+    <!-- Suppressions for network system -->
+    <suppressions>
+        <!-- Suppress performance warnings for ASIO handlers -->
+        <suppression>passedByValue</suppression>
+
+        <!-- Suppress warnings about async operations -->
+        <suppression>
+            <id>variableScope</id>
+            <fileName>src/internal/tcp_socket.cpp</fileName>
+        </suppression>
+
+        <!-- Suppress warnings about coroutine lifetimes -->
+        <suppression>
+            <id>unusedVariable</id>
+            <fileName>src/internal/send_coroutine.cpp</fileName>
+        </suppression>
+    </suppressions>
+
+    <!-- Enabled checks -->
+    <addon>threadsafety.py</addon>
+    <addon>cert.py</addon>
+</project>
