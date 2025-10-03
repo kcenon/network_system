@@ -79,4 +79,4 @@ Thumbs.db
 *.orig
 
 # Documentation
-documents/
+documents/docs/api/
