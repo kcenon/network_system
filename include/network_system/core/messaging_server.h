@@ -42,6 +42,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <asio.hpp>
 
+// Optional monitoring support via common_system
+#ifdef BUILD_WITH_COMMON_SYSTEM
+	#include <kcenon/common/interfaces/monitoring_interface.h>
+#endif
+
 namespace network_system::core
 {
 } // namespace network_system::core
@@ -147,6 +152,26 @@ namespace network_system::core {
 		 */
 		auto wait_for_stop() -> void;
 
+#ifdef BUILD_WITH_COMMON_SYSTEM
+		/*!
+		 * \brief Set a monitoring interface for metrics collection
+		 * \param monitor Pointer to IMonitor implementation (not owned)
+		 *
+		 * When set, the server will record metrics such as:
+		 * - messages_received: Total count of received messages
+		 * - messages_sent: Total count of sent messages
+		 * - active_connections: Current number of active sessions
+		 * - connection_errors: Count of connection failures
+		 */
+		auto set_monitor(common::interfaces::IMonitor* monitor) -> void;
+
+		/*!
+		 * \brief Get the current monitor
+		 * \return Pointer to monitor or nullptr if not set
+		 */
+		auto get_monitor() const -> common::interfaces::IMonitor*;
+#endif
+
 	private:
 		/*!
 		 * \brief Initiates an asynchronous accept operation (\c async_accept).
@@ -195,6 +220,20 @@ namespace network_system::core {
 		 * cleared.
 		 */
 		std::vector<std::shared_ptr<network_system::session::messaging_session>> sessions_;
+
+#ifdef BUILD_WITH_COMMON_SYSTEM
+		/*!
+		 * \brief Optional monitoring interface for metrics collection
+		 */
+		common::interfaces::IMonitor* monitor_ = nullptr;
+
+		/*!
+		 * \brief Atomic counters for metrics
+		 */
+		std::atomic<uint64_t> messages_received_{0};
+		std::atomic<uint64_t> messages_sent_{0};
+		std::atomic<uint64_t> connection_errors_{0};
+#endif
 	};
 
 } // namespace network_system::core
