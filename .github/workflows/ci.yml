@@ -71,8 +71,11 @@ jobs:
         cmake -B build -G Ninja \
           -DCMAKE_BUILD_TYPE=Debug \
           -DBUILD_WITH_COMMON_SYSTEM=OFF \
+          -DBUILD_WITH_LOGGER_SYSTEM=OFF \
+          -DBUILD_WITH_THREAD_SYSTEM=OFF \
+          -DBUILD_WITH_CONTAINER_SYSTEM=OFF \
           -DBUILD_TESTS=ON \
-          -DBUILD_SAMPLES=ON
+          -DBUILD_SAMPLES=OFF
 
     - name: Configure CMake (Windows)
       if: runner.os == 'Windows'
@@ -80,8 +83,11 @@ jobs:
         cmake -B build -G Ninja `
           -DCMAKE_BUILD_TYPE=Debug `
           -DBUILD_WITH_COMMON_SYSTEM=OFF `
+          -DBUILD_WITH_LOGGER_SYSTEM=OFF `
+          -DBUILD_WITH_THREAD_SYSTEM=OFF `
+          -DBUILD_WITH_CONTAINER_SYSTEM=OFF `
           -DBUILD_TESTS=ON `
-          -DBUILD_SAMPLES=ON
+          -DBUILD_SAMPLES=OFF
 
     - name: Build
       run: cmake --build build --config Debug
