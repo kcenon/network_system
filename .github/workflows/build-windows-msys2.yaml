@@ -11,6 +11,7 @@ on:
 
 jobs:
   build_windows_msys2:
+    if: github.ref != 'refs/heads/gh-pages'
     runs-on: windows-2022  # Fixed version to avoid runner image issues
     defaults:
       run:

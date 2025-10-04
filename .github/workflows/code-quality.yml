@@ -15,6 +15,7 @@ permissions:
 
 jobs:
   static-analysis:
+    if: github.ref != 'refs/heads/gh-pages'
     name: Static Code Analysis
     runs-on: ubuntu-latest
 

@@ -11,6 +11,7 @@ on:
 
 jobs:
   build_linux_gcc:
+    if: github.ref != 'refs/heads/gh-pages'
     permissions:
       contents: write
     runs-on: ubuntu-latest

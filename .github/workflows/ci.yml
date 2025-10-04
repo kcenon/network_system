@@ -10,6 +10,8 @@ jobs:
   build:
     name: ${{ matrix.os }} / ${{ matrix.compiler }}
     runs-on: ${{ matrix.os }}
+    # Skip only if pushed to gh-pages branch
+    if: github.ref != 'refs/heads/gh-pages'
 
     strategy:
       fail-fast: false

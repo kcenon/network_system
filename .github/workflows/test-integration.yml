@@ -16,6 +16,7 @@ permissions:
 
 jobs:
   integration-tests:
+    if: github.ref != 'refs/heads/gh-pages'
     name: Run Integration Tests
     runs-on: ${{ matrix.os }}
     strategy:
