@@ -70,7 +70,7 @@ jobs:
       run: |
         cmake -B build -G Ninja \
           -DCMAKE_BUILD_TYPE=Debug \
-          -DBUILD_WITH_COMMON_SYSTEM=ON \
+          -DBUILD_WITH_COMMON_SYSTEM=OFF \
           -DBUILD_TESTS=ON \
           -DBUILD_SAMPLES=ON
 
@@ -79,7 +79,7 @@ jobs:
       run: |
         cmake -B build -G Ninja `
           -DCMAKE_BUILD_TYPE=Debug `
-          -DBUILD_WITH_COMMON_SYSTEM=ON `
+          -DBUILD_WITH_COMMON_SYSTEM=OFF `
           -DBUILD_TESTS=ON `
           -DBUILD_SAMPLES=ON
 
