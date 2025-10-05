@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - main
+    # Exclude gh-pages to prevent infinite loop
+    branches-ignore:
+      - gh-pages
   pull_request:
     branches:
       - main
@@ -14,6 +17,8 @@ jobs:
     permissions:
       contents: write
     runs-on: ubuntu-latest
+    # Skip if commit message contains [skip ci] or [ci skip]
+    if: "!contains(github.event.head_commit.message, '[skip ci]') && !contains(github.event.head_commit.message, '[ci skip]')"
     steps:
       - uses: actions/checkout@v4
         with:
@@ -51,5 +56,8 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./documents/html
-          commit_message: "Update documentation via GitHub Actions"
+          commit_message: "docs: update API documentation [skip ci]"
           enable_jekyll: false
+          force_orphan: true
+          user_name: 'github-actions[bot]'
+          user_email: 'github-actions[bot]@users.noreply.github.com'

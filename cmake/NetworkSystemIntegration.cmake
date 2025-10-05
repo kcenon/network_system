@@ -102,6 +102,11 @@ endfunction()
 # Configure logger_system integration
 ##################################################
 function(setup_logger_system_integration target)
+    # Always add logger_integration.cpp as it provides fallback logging
+    target_sources(${target} PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/integration/logger_integration.cpp
+    )
+
     if(NOT BUILD_WITH_LOGGER_SYSTEM)
         return()
     endif()

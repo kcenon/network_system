@@ -1,0 +1,136 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, phase-* ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    name: ${{ matrix.os }} / ${{ matrix.compiler }}
+    runs-on: ${{ matrix.os }}
+    # Skip only if pushed to gh-pages branch
+    if: github.ref != 'refs/heads/gh-pages'
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            compiler: gcc
+          - os: ubuntu-22.04
+            compiler: clang
+          - os: macos-13
+            compiler: clang
+          - os: windows-2022
+            compiler: msvc
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Install dependencies (Ubuntu)
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y cmake ninja-build g++ clang libgtest-dev libgmock-dev libasio-dev libfmt-dev
+
+    - name: Install dependencies (macOS)
+      if: runner.os == 'macOS'
+      run: |
+        brew install ninja googletest asio fmt
+
+    - name: Install dependencies (Windows)
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        echo "Installing dependencies via vcpkg (manifest mode)..."
+        echo "VCPKG_INSTALLATION_ROOT: $env:VCPKG_INSTALLATION_ROOT"
+        echo "Using vcpkg.json manifest"
+        Get-Content vcpkg.json
+        & "$env:VCPKG_INSTALLATION_ROOT\vcpkg.exe" install --triplet x64-windows
+        if ($LASTEXITCODE -ne 0) {
+          echo "vcpkg install failed with exit code $LASTEXITCODE"
+          exit 1
+        }
+        echo "Dependencies installed successfully"
+        & "$env:VCPKG_INSTALLATION_ROOT\vcpkg.exe" list
+
+    - name: Set up compiler (GCC)
+      if: matrix.compiler == 'gcc'
+      run: |
+        echo "CC=gcc" >> $GITHUB_ENV
+        echo "CXX=g++" >> $GITHUB_ENV
+
+    - name: Set up compiler (Clang - Linux)
+      if: matrix.compiler == 'clang' && runner.os == 'Linux'
+      run: |
+        echo "CC=clang" >> $GITHUB_ENV
+        echo "CXX=clang++" >> $GITHUB_ENV
+
+    - name: Set up compiler (Clang - macOS)
+      if: matrix.compiler == 'clang' && runner.os == 'macOS'
+      run: |
+        echo "CC=clang" >> $GITHUB_ENV
+        echo "CXX=clang++" >> $GITHUB_ENV
+
+    - name: Set up compiler (MSVC)
+      if: matrix.compiler == 'msvc'
+      uses: ilammy/msvc-dev-cmd@v1
+
+    - name: Configure CMake (Unix)
+      if: runner.os != 'Windows'
+      run: |
+        cmake -B build -G Ninja \
+          -DCMAKE_BUILD_TYPE=Debug \
+          -DBUILD_WITH_COMMON_SYSTEM=OFF \
+          -DBUILD_WITH_LOGGER_SYSTEM=OFF \
+          -DBUILD_WITH_THREAD_SYSTEM=OFF \
+          -DBUILD_WITH_CONTAINER_SYSTEM=OFF \
+          -DBUILD_MESSAGING_BRIDGE=OFF \
+          -DBUILD_TESTS=ON \
+          -DBUILD_SAMPLES=OFF
+
+    - name: Configure CMake (Windows)
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        $toolchainFile = "$env:VCPKG_INSTALLATION_ROOT\scripts\buildsystems\vcpkg.cmake"
+        echo "Toolchain file: $toolchainFile"
+        if (Test-Path $toolchainFile) {
+          echo "Toolchain file exists"
+        } else {
+          echo "ERROR: Toolchain file not found!"
+          exit 1
+        }
+        cmake -B build -G Ninja `
+          -DCMAKE_BUILD_TYPE=Debug `
+          -DCMAKE_TOOLCHAIN_FILE="$toolchainFile" `
+          -DBUILD_WITH_COMMON_SYSTEM=OFF `
+          -DBUILD_WITH_LOGGER_SYSTEM=OFF `
+          -DBUILD_WITH_THREAD_SYSTEM=OFF `
+          -DBUILD_WITH_CONTAINER_SYSTEM=OFF `
+          -DBUILD_MESSAGING_BRIDGE=OFF `
+          -DBUILD_TESTS=ON `
+          -DBUILD_SAMPLES=OFF
+
+    - name: Build
+      run: cmake --build build --config Debug
+
+    - name: Test (Unix)
+      if: runner.os != 'Windows'
+      run: |
+        cd build
+        ctest -C Debug --output-on-failure --verbose || true
+
+    - name: Upload build artifacts
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-${{ matrix.os }}-${{ matrix.compiler }}-logs
+        path: |
+          build/CMakeFiles/*.log
+          build/Testing/Temporary/

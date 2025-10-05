@@ -6,7 +6,9 @@
 #include "network_system/core/messaging_client.h"
 #include "network_system/core/messaging_server.h"
 #include "network_system/session/messaging_session.h"
+#ifdef BUILD_MESSAGING_BRIDGE
 #include "network_system/integration/messaging_bridge.h"
+#endif
 
 #include <iostream>
 #include <memory>
@@ -18,6 +20,7 @@ int main() {
     // Test that we can create basic objects (without initializing them)
     std::cout << "✅ Core classes can be instantiated" << std::endl;
 
+#ifdef BUILD_MESSAGING_BRIDGE
     // Test messaging bridge (basic instantiation)
     try {
         auto bridge = std::make_unique<network_system::integration::messaging_bridge>();
@@ -39,6 +42,9 @@ int main() {
     } catch (const std::exception& e) {
         std::cout << "ℹ️  Messaging bridge instantiation: " << e.what() << std::endl;
     }
+#else
+    std::cout << "ℹ️  Messaging bridge disabled" << std::endl;
+#endif
 
     std::cout << "✅ Network System library verification complete" << std::endl;
     std::cout << "🎯 Core library builds and links successfully" << std::endl;
