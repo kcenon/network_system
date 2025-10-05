@@ -11,6 +11,18 @@ include(CheckCXXSourceCompiles)
 # Check ASIO support
 ##################################################
 function(check_asio_support)
+    set(_prev_required_includes "${CMAKE_REQUIRED_INCLUDES}")
+    set(_prev_required_definitions "${CMAKE_REQUIRED_DEFINITIONS}")
+
+    if(ASIO_INCLUDE_DIR)
+        set(CMAKE_REQUIRED_INCLUDES "${ASIO_INCLUDE_DIR}")
+        if(NOT USE_BOOST_ASIO)
+            set(CMAKE_REQUIRED_DEFINITIONS "${CMAKE_REQUIRED_DEFINITIONS} -DASIO_STANDALONE -DASIO_NO_DEPRECATED")
+        endif()
+    elseif(USE_BOOST_ASIO AND Boost_INCLUDE_DIRS)
+        set(CMAKE_REQUIRED_INCLUDES "${Boost_INCLUDE_DIRS}")
+    endif()
+
     # Check for basic ASIO functionality
     check_cxx_source_compiles("
         #ifdef USE_BOOST_ASIO
@@ -34,6 +46,9 @@ function(check_asio_support)
     else()
         message(WARNING "ASIO basic functionality check failed")
     endif()
+
+    set(CMAKE_REQUIRED_INCLUDES "${_prev_required_includes}")
+    set(CMAKE_REQUIRED_DEFINITIONS "${_prev_required_definitions}")
 
     set(HAS_ASIO_BASIC ${HAS_ASIO_BASIC} PARENT_SCOPE)
 endfunction()

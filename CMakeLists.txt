@@ -100,9 +100,6 @@ add_library(NetworkSystem
     src/internal/tcp_socket.cpp
     src/internal/send_coroutine.cpp
     src/internal/pipeline.cpp
-
-    # Logger integration (always included for basic logging)
-    src/integration/logger_integration.cpp
 )
 
 # Set target properties
@@ -157,6 +154,10 @@ endif()
 if(LOGGER_SYSTEM_INCLUDE_DIR)
     target_include_directories(verify_build PRIVATE ${LOGGER_SYSTEM_INCLUDE_DIR})
     target_compile_definitions(verify_build PRIVATE BUILD_WITH_LOGGER_SYSTEM)
+endif()
+
+if(BUILD_MESSAGING_BRIDGE)
+    target_compile_definitions(verify_build PRIVATE BUILD_MESSAGING_BRIDGE)
 endif()
 
 # Configure ASIO and FMT for verify_build

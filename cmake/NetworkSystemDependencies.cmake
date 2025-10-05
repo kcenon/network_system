@@ -5,6 +5,8 @@
 # Handles ASIO, FMT, and system integrations
 ##################################################
 
+include(FetchContent)
+
 ##################################################
 # Find ASIO (standalone or Boost.ASIO)
 ##################################################
@@ -60,6 +62,30 @@ function(find_asio_library)
         set(USE_BOOST_ASIO ON PARENT_SCOPE)
         set(Boost_INCLUDE_DIRS ${BOOST_INCLUDE_DIR} PARENT_SCOPE)
         set(ASIO_FOUND TRUE PARENT_SCOPE)
+        return()
+    endif()
+
+    # Fetch standalone ASIO as a last resort
+    message(STATUS "Standalone ASIO not found locally - fetching asio-1-36-0 from upstream...")
+
+    FetchContent_Declare(network_system_asio
+        GIT_REPOSITORY https://github.com/chriskohlhoff/asio.git
+        GIT_TAG asio-1-36-0
+    )
+
+    FetchContent_GetProperties(network_system_asio)
+    if(NOT network_system_asio_POPULATED)
+        FetchContent_Populate(network_system_asio)
+    endif()
+
+    set(_asio_include_dir "${network_system_asio_SOURCE_DIR}/asio/include")
+
+    if(EXISTS "${_asio_include_dir}/asio.hpp")
+        message(STATUS "Fetched standalone ASIO headers at: ${_asio_include_dir}")
+        set(USE_BOOST_ASIO OFF PARENT_SCOPE)
+        set(ASIO_INCLUDE_DIR ${_asio_include_dir} PARENT_SCOPE)
+        set(ASIO_FOUND TRUE PARENT_SCOPE)
+        set(ASIO_FETCHED TRUE PARENT_SCOPE)
         return()
     endif()
 
