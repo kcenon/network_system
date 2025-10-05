@@ -47,9 +47,11 @@ jobs:
       if: runner.os == 'Windows'
       shell: pwsh
       run: |
-        echo "Installing dependencies via vcpkg..."
+        echo "Installing dependencies via vcpkg (manifest mode)..."
         echo "VCPKG_INSTALLATION_ROOT: $env:VCPKG_INSTALLATION_ROOT"
-        & "$env:VCPKG_INSTALLATION_ROOT\vcpkg.exe" install asio:x64-windows fmt:x64-windows
+        echo "Using vcpkg.json manifest"
+        Get-Content vcpkg.json
+        & "$env:VCPKG_INSTALLATION_ROOT\vcpkg.exe" install --triplet x64-windows
         if ($LASTEXITCODE -ne 0) {
           echo "vcpkg install failed with exit code $LASTEXITCODE"
           exit 1
