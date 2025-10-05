@@ -45,8 +45,17 @@ jobs:
 
     - name: Install dependencies (Windows)
       if: runner.os == 'Windows'
+      shell: pwsh
       run: |
-        vcpkg install asio fmt --triplet x64-windows
+        echo "Installing dependencies via vcpkg..."
+        echo "VCPKG_INSTALLATION_ROOT: $env:VCPKG_INSTALLATION_ROOT"
+        & "$env:VCPKG_INSTALLATION_ROOT\vcpkg.exe" install asio:x64-windows fmt:x64-windows
+        if ($LASTEXITCODE -ne 0) {
+          echo "vcpkg install failed with exit code $LASTEXITCODE"
+          exit 1
+        }
+        echo "Dependencies installed successfully"
+        & "$env:VCPKG_INSTALLATION_ROOT\vcpkg.exe" list
 
     - name: Set up compiler (GCC)
       if: matrix.compiler == 'gcc'
@@ -85,10 +94,19 @@ jobs:
 
     - name: Configure CMake (Windows)
       if: runner.os == 'Windows'
+      shell: pwsh
       run: |
+        $toolchainFile = "$env:VCPKG_INSTALLATION_ROOT\scripts\buildsystems\vcpkg.cmake"
+        echo "Toolchain file: $toolchainFile"
+        if (Test-Path $toolchainFile) {
+          echo "Toolchain file exists"
+        } else {
+          echo "ERROR: Toolchain file not found!"
+          exit 1
+        }
         cmake -B build -G Ninja `
           -DCMAKE_BUILD_TYPE=Debug `
-          -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" `
+          -DCMAKE_TOOLCHAIN_FILE="$toolchainFile" `
           -DBUILD_WITH_COMMON_SYSTEM=OFF `
           -DBUILD_WITH_LOGGER_SYSTEM=OFF `
           -DBUILD_WITH_THREAD_SYSTEM=OFF `
