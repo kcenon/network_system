@@ -134,3 +134,72 @@ jobs:
         path: |
           build/CMakeFiles/*.log
           build/Testing/Temporary/
+
+  # Phase 0: Allow failures, just collect data
+  sanitizers:
+    name: Sanitizers (${{ matrix.sanitizer }})
+    runs-on: ubuntu-22.04
+    continue-on-error: true
+    timeout-minutes: 60
+
+    strategy:
+      fail-fast: false
+      matrix:
+        sanitizer:
+          - name: ThreadSanitizer
+            flags: "-fsanitize=thread -g -O1"
+            env: "TSAN_OPTIONS=second_deadlock_stack=1"
+          - name: AddressSanitizer
+            flags: "-fsanitize=address -fno-omit-frame-pointer -g -O1"
+            env: "ASAN_OPTIONS=detect_leaks=1:strict_string_checks=1:detect_stack_use_after_return=1:check_initialization_order=1:strict_init_order=1"
+          - name: UndefinedBehaviorSanitizer
+            flags: "-fsanitize=undefined -fno-omit-frame-pointer -g -O1"
+            env: "UBSAN_OPTIONS=print_stacktrace=1:halt_on_error=0"
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y cmake ninja-build clang libgtest-dev libgmock-dev libasio-dev libfmt-dev
+
+    - name: Configure CMake with ${{ matrix.sanitizer.name }}
+      run: |
+        cmake -B build -G Ninja \
+          -DCMAKE_BUILD_TYPE=Debug \
+          -DBUILD_WITH_COMMON_SYSTEM=OFF \
+          -DBUILD_WITH_LOGGER_SYSTEM=OFF \
+          -DBUILD_WITH_THREAD_SYSTEM=OFF \
+          -DBUILD_WITH_CONTAINER_SYSTEM=OFF \
+          -DBUILD_MESSAGING_BRIDGE=OFF \
+          -DBUILD_TESTS=ON \
+          -DBUILD_SAMPLES=OFF \
+          -DCMAKE_C_COMPILER=clang \
+          -DCMAKE_CXX_COMPILER=clang++ \
+          -DCMAKE_C_FLAGS="${{ matrix.sanitizer.flags }}" \
+          -DCMAKE_CXX_FLAGS="${{ matrix.sanitizer.flags }}" \
+          -DCMAKE_EXE_LINKER_FLAGS="${{ matrix.sanitizer.flags }}" \
+          -DCMAKE_SHARED_LINKER_FLAGS="${{ matrix.sanitizer.flags }}"
+
+    - name: Build with ${{ matrix.sanitizer.name }}
+      run: cmake --build build --config Debug
+
+    - name: Run tests with ${{ matrix.sanitizer.name }}
+      run: |
+        cd build
+        export ${{ matrix.sanitizer.env }}
+        ctest -C Debug --output-on-failure --verbose || echo "${{ matrix.sanitizer.name }} detected issues (expected in Phase 0)"
+
+    - name: Upload sanitizer logs
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: sanitizer-${{ matrix.sanitizer.name }}-logs
+        path: |
+          build/Testing/
+          build/**/*.log
+        retention-days: 7
