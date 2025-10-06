@@ -1,7 +1,7 @@
-[![Ubuntu-GCC](https://github.com/kcenon/network_system/actions/workflows/build-ubuntu-gcc.yaml/badge.svg)](https://github.com/kcenon/network_system/actions/workflows/build-ubuntu-gcc.yaml)
-[![Ubuntu-Clang](https://github.com/kcenon/network_system/actions/workflows/build-ubuntu-clang.yaml/badge.svg)](https://github.com/kcenon/network_system/actions/workflows/build-ubuntu-clang.yaml)
-[![Windows-MSYS2](https://github.com/kcenon/network_system/actions/workflows/build-windows-msys2.yaml/badge.svg)](https://github.com/kcenon/network_system/actions/workflows/build-windows-msys2.yaml)
-[![Windows-VisualStudio](https://github.com/kcenon/network_system/actions/workflows/build-windows-vs.yaml/badge.svg)](https://github.com/kcenon/network_system/actions/workflows/build-windows-vs.yaml)
+[![CI](https://github.com/kcenon/network_system/actions/workflows/ci.yml/badge.svg)](https://github.com/kcenon/network_system/actions/workflows/ci.yml)
+[![Code Quality](https://github.com/kcenon/network_system/actions/workflows/code-quality.yml/badge.svg)](https://github.com/kcenon/network_system/actions/workflows/code-quality.yml)
+[![Coverage](https://github.com/kcenon/network_system/actions/workflows/coverage.yml/badge.svg)](https://github.com/kcenon/network_system/actions/workflows/coverage.yml)
+[![Doxygen](https://github.com/kcenon/network_system/actions/workflows/build-Doxygen.yaml/badge.svg)](https://github.com/kcenon/network_system/actions/workflows/build-Doxygen.yaml)
 
 # Network System Project
 
