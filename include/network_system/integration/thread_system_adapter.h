@@ -15,6 +15,12 @@
 #include <string>
 
 #if defined(BUILD_WITH_THREAD_SYSTEM)
+// Include fmt before thread_system headers since thread_system uses fmt formatters
+#  if defined(USE_FMT_LIBRARY)
+#    include <fmt/format.h>
+#  elif defined(USE_STD_FORMAT)
+#    include <format>
+#  endif
 #  include <kcenon/thread/core/thread_pool.h>
 #  include <kcenon/thread/interfaces/thread_context.h>
 #  include <kcenon/thread/interfaces/service_container.h>

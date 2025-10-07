@@ -10,7 +10,10 @@
 ##################################################
 function(setup_asio_integration target)
     if(USE_BOOST_ASIO)
-        target_include_directories(${target} PRIVATE ${Boost_INCLUDE_DIRS})
+        target_include_directories(${target}
+            PRIVATE
+                $<BUILD_INTERFACE:${Boost_INCLUDE_DIRS}>
+        )
         if(Boost_LIBRARIES)
             target_link_libraries(${target} PRIVATE ${Boost_LIBRARIES})
             message(STATUS "Configured ${target} with Boost.ASIO libraries")
@@ -19,7 +22,10 @@ function(setup_asio_integration target)
         endif()
         target_compile_definitions(${target} PRIVATE USE_BOOST_ASIO BOOST_ASIO_STANDALONE)
     elseif(ASIO_INCLUDE_DIR)
-        target_include_directories(${target} PRIVATE ${ASIO_INCLUDE_DIR})
+        target_include_directories(${target}
+            PRIVATE
+                $<BUILD_INTERFACE:${ASIO_INCLUDE_DIR}>
+        )
         target_compile_definitions(${target} PRIVATE ASIO_STANDALONE ASIO_NO_DEPRECATED)
         message(STATUS "Configured ${target} with standalone ASIO")
     endif()
@@ -35,21 +41,25 @@ endfunction()
 ##################################################
 function(setup_fmt_integration target)
     if(FMT_FOUND AND TARGET PkgConfig::FMT)
-        target_link_libraries(${target} PRIVATE PkgConfig::FMT)
-        target_compile_definitions(${target} PRIVATE USE_FMT_LIBRARY)
+        target_link_libraries(${target} PUBLIC PkgConfig::FMT)
+        target_compile_definitions(${target} PUBLIC USE_FMT_LIBRARY)
         message(STATUS "Configured ${target} with fmt library (pkgconfig)")
     elseif(FMT_INCLUDE_DIR)
-        target_include_directories(${target} PRIVATE ${FMT_INCLUDE_DIR})
+        target_include_directories(${target}
+            PUBLIC
+                $<BUILD_INTERFACE:${FMT_INCLUDE_DIR}>
+                $<INSTALL_INTERFACE:include>
+        )
         if(FMT_LIBRARY)
-            target_link_libraries(${target} PRIVATE ${FMT_LIBRARY})
-            target_compile_definitions(${target} PRIVATE USE_FMT_LIBRARY)
+            target_link_libraries(${target} PUBLIC ${FMT_LIBRARY})
+            target_compile_definitions(${target} PUBLIC USE_FMT_LIBRARY)
             message(STATUS "Configured ${target} with fmt library")
         else()
-            target_compile_definitions(${target} PRIVATE FMT_HEADER_ONLY)
+            target_compile_definitions(${target} PUBLIC FMT_HEADER_ONLY)
             message(STATUS "Configured ${target} with fmt header-only")
         endif()
     elseif(USE_STD_FORMAT)
-        target_compile_definitions(${target} PRIVATE USE_STD_FORMAT)
+        target_compile_definitions(${target} PUBLIC USE_STD_FORMAT)
         message(STATUS "Configured ${target} with std::format")
     endif()
 endfunction()

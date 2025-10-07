@@ -1,0 +1,163 @@
+name: Benchmarks
+
+on:
+  push:
+    branches: [ main, phase-* ]
+    paths:
+      - 'benchmarks/**'
+      - 'src/**'
+      - 'include/**'
+      - '.github/workflows/benchmarks.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'benchmarks/**'
+      - 'src/**'
+      - 'include/**'
+  workflow_dispatch:
+    inputs:
+      save_baseline:
+        description: 'Save as baseline'
+        required: false
+        default: 'false'
+
+jobs:
+  benchmark:
+    name: Run Performance Benchmarks
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, macos-13]
+        compiler: [clang]
+        build_type: [Release]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Full history for comparison
+
+    - name: Install dependencies (Ubuntu)
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y cmake ninja-build clang libbenchmark-dev libgtest-dev libfmt-dev libboost-all-dev libasio-dev
+
+    - name: Install dependencies (macOS)
+      if: runner.os == 'macOS'
+      run: |
+        brew install ninja google-benchmark googletest fmt boost asio
+
+    - name: Set up compiler
+      run: |
+        echo "CC=clang" >> $GITHUB_ENV
+        echo "CXX=clang++" >> $GITHUB_ENV
+
+    - name: Configure CMake
+      run: |
+        cmake -B build -S . \
+          -GNinja \
+          -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+          -DNETWORK_BUILD_BENCHMARKS=ON \
+          -DBUILD_TESTS=OFF \
+          -DBUILD_SAMPLES=OFF
+
+    - name: Build benchmarks
+      run: cmake --build build --config ${{ matrix.build_type }} --target network_benchmarks -j
+
+    - name: Run benchmarks
+      run: |
+        cd build/benchmarks
+        ./network_benchmarks \
+          --benchmark_format=json \
+          --benchmark_out=benchmark_results_${{ matrix.os }}.json \
+          --benchmark_repetitions=3 \
+          --benchmark_report_aggregates_only=true
+
+    - name: Run benchmarks (console output)
+      run: |
+        cd build/benchmarks
+        ./network_benchmarks \
+          --benchmark_filter="Message_Create|Connection_Create|Session_Create" \
+          --benchmark_repetitions=3
+
+    - name: Upload benchmark results
+      uses: actions/upload-artifact@v4
+      with:
+        name: benchmark-results-${{ matrix.os }}
+        path: build/benchmarks/benchmark_results_${{ matrix.os }}.json
+        retention-days: 30
+
+    - name: Save baseline (if requested)
+      if: github.event.inputs.save_baseline == 'true' && github.ref == 'refs/heads/main'
+      run: |
+        mkdir -p benchmarks/baselines
+        cp build/benchmarks/benchmark_results_${{ matrix.os }}.json \
+           benchmarks/baselines/baseline_${{ matrix.os }}_$(date +%Y%m%d).json
+
+    - name: Compare with baseline (if exists)
+      if: hashFiles('benchmarks/baselines/baseline_${{ matrix.os }}_*.json') != ''
+      run: |
+        echo "Comparing with baseline..."
+        # Install compare.py from Google Benchmark tools
+        pip3 install --user scipy
+
+        # Find latest baseline
+        BASELINE=$(ls -t benchmarks/baselines/baseline_${{ matrix.os }}_*.json | head -1)
+
+        if [ -f "$BASELINE" ]; then
+          echo "Baseline: $BASELINE"
+          echo "Current: build/benchmarks/benchmark_results_${{ matrix.os }}.json"
+
+          # Download compare.py
+          curl -O https://raw.githubusercontent.com/google/benchmark/main/tools/compare.py
+          chmod +x compare.py
+
+          # Run comparison
+          python3 compare.py \
+            "$BASELINE" \
+            build/benchmarks/benchmark_results_${{ matrix.os }}.json
+        fi
+
+    - name: Check for performance regression
+      run: |
+        echo "Performance regression detection: TBD"
+        echo "Will be implemented in Phase 1 with baseline establishment"
+
+  report:
+    name: Generate Benchmark Report
+    needs: benchmark
+    runs-on: ubuntu-22.04
+    if: always()
+
+    steps:
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+
+    - name: Generate summary
+      run: |
+        echo "# Benchmark Results Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "## Phase 0: Baseline Measurement" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+
+        for dir in benchmark-results-*; do
+          if [ -d "$dir" ]; then
+            echo "### $dir" >> $GITHUB_STEP_SUMMARY
+            if [ -f "$dir/benchmark_results_"*.json ]; then
+              echo "✅ Benchmarks completed" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "❌ No results found" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+            fi
+          fi
+        done
+
+        echo "## Next Steps" >> $GITHUB_STEP_SUMMARY
+        echo "- Review benchmark results" >> $GITHUB_STEP_SUMMARY
+        echo "- Document baseline in docs/BASELINE.md" >> $GITHUB_STEP_SUMMARY
+        echo "- Set performance targets for Phase 1" >> $GITHUB_STEP_SUMMARY
