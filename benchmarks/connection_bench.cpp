@@ -9,6 +9,8 @@
 #include <vector>
 #include <string>
 #include <atomic>
+#include <thread>
+#include <chrono>
 
 // Mock connection class for benchmarking
 class mock_connection {
