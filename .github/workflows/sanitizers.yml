@@ -1,0 +1,99 @@
+name: Sanitizer Tests
+
+on:
+  push:
+    branches: [ main, phase-* ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  sanitizer-tests:
+    name: ${{ matrix.sanitizer }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04]
+        sanitizer: [thread, address, undefined]
+        build_type: [Debug]
+
+    steps:
+    - name: Checkout network_system
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        path: network_system
+
+    - name: Checkout common_system
+      uses: actions/checkout@v4
+      with:
+        repository: kcenon/common_system
+        path: common_system
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y cmake ninja-build clang libgtest-dev libfmt-dev libboost-all-dev libasio-dev
+
+    - name: Set up compiler
+      run: |
+        echo "CC=clang" >> $GITHUB_ENV
+        echo "CXX=clang++" >> $GITHUB_ENV
+
+    - name: Configure CMake with ${{ matrix.sanitizer }} sanitizer
+      run: |
+        cd network_system
+        SANITIZER_FLAGS="-fsanitize=${{ matrix.sanitizer }} -fno-omit-frame-pointer -g"
+        cmake -B build -S . \
+          -GNinja \
+          -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+          -DCMAKE_CXX_FLAGS="${SANITIZER_FLAGS}" \
+          -DCMAKE_C_FLAGS="${SANITIZER_FLAGS}" \
+          -DCMAKE_EXE_LINKER_FLAGS="-fsanitize=${{ matrix.sanitizer }}" \
+          -DCMAKE_SHARED_LINKER_FLAGS="-fsanitize=${{ matrix.sanitizer }}" \
+          -DBUILD_TESTS=ON \
+          -DBUILD_SAMPLES=OFF
+
+    - name: Build with ${{ matrix.sanitizer }} sanitizer
+      run: |
+        cd network_system
+        cmake --build build -j
+
+    - name: Run tests with ${{ matrix.sanitizer }} sanitizer
+      run: |
+        cd network_system/build
+        ctest --output-on-failure --verbose
+      env:
+        TSAN_OPTIONS: "halt_on_error=0 second_deadlock_stack=1"
+        ASAN_OPTIONS: "halt_on_error=0 detect_leaks=1"
+        UBSAN_OPTIONS: "halt_on_error=0 print_stacktrace=1"
+
+    - name: Upload sanitizer logs
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: sanitizer-logs-${{ matrix.sanitizer }}-${{ matrix.os }}
+        path: |
+          network_system/build/Testing/Temporary/LastTest.log
+          network_system/build/**/*.log
+        retention-days: 7
+
+  sanitizer-summary:
+    name: Sanitizer Test Summary
+    needs: sanitizer-tests
+    runs-on: ubuntu-22.04
+    if: always()
+
+    steps:
+    - name: Generate summary
+      run: |
+        echo "# Sanitizer Test Results" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "## Phase 0: Baseline Establishment" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "Sanitizer tests configured and running." >> $GITHUB_STEP_SUMMARY
+        echo "Warnings allowed in Phase 0 for baseline establishment." >> $GITHUB_STEP_SUMMARY
