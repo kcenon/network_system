@@ -21,10 +21,18 @@ jobs:
         build_type: [Debug]
 
     steps:
-    - name: Checkout code
+    - name: Checkout network_system
       uses: actions/checkout@v4
       with:
         fetch-depth: 0
+        path: network_system
+
+    - name: Checkout common_system
+      uses: actions/checkout@v4
+      with:
+        repository: kcenon/common_system
+        path: common_system
+        token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Install dependencies
       run: |
@@ -38,6 +46,7 @@ jobs:
 
     - name: Configure CMake with ${{ matrix.sanitizer }} sanitizer
       run: |
+        cd network_system
         SANITIZER_FLAGS="-fsanitize=${{ matrix.sanitizer }} -fno-omit-frame-pointer -g"
         cmake -B build -S . \
           -GNinja \
@@ -50,11 +59,13 @@ jobs:
           -DBUILD_SAMPLES=OFF
 
     - name: Build with ${{ matrix.sanitizer }} sanitizer
-      run: cmake --build build -j
+      run: |
+        cd network_system
+        cmake --build build -j
 
     - name: Run tests with ${{ matrix.sanitizer }} sanitizer
       run: |
-        cd build
+        cd network_system/build
         ctest --output-on-failure --verbose
       env:
         TSAN_OPTIONS: "halt_on_error=0 second_deadlock_stack=1"
@@ -67,8 +78,8 @@ jobs:
       with:
         name: sanitizer-logs-${{ matrix.sanitizer }}-${{ matrix.os }}
         path: |
-          build/Testing/Temporary/LastTest.log
-          build/**/*.log
+          network_system/build/Testing/Temporary/LastTest.log
+          network_system/build/**/*.log
         retention-days: 7
 
   sanitizer-summary:
