@@ -38,6 +38,7 @@ option(BUILD_WITH_LOGGER_SYSTEM "Build with logger_system integration" ON)
 option(BUILD_WITH_COMMON_SYSTEM "Build with common_system integration" ON)
 option(BUILD_MESSAGING_BRIDGE "Build messaging_system bridge" ON)
 option(ENABLE_COVERAGE "Enable code coverage" OFF)
+option(NETWORK_BUILD_BENCHMARKS "Build network system benchmarks" OFF)
 
 ##################################################
 # Global Configuration
@@ -184,6 +185,15 @@ if(BUILD_SAMPLES)
 endif()
 
 ##################################################
+# Benchmarks
+##################################################
+
+if(NETWORK_BUILD_BENCHMARKS AND EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/benchmarks)
+    add_subdirectory(benchmarks)
+    message(STATUS "Network benchmarks will be built")
+endif()
+
+##################################################
 # Installation
 ##################################################
 
@@ -214,4 +224,5 @@ message(STATUS "  thread_system: ${BUILD_WITH_THREAD_SYSTEM}")
 message(STATUS "  logger_system: ${BUILD_WITH_LOGGER_SYSTEM}")
 message(STATUS "  common_system: ${BUILD_WITH_COMMON_SYSTEM}")
 message(STATUS "  Messaging bridge: ${BUILD_MESSAGING_BRIDGE}")
+message(STATUS "  Benchmarks: ${NETWORK_BUILD_BENCHMARKS}")
 message(STATUS "========================================")
