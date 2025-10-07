@@ -10,6 +10,7 @@
 #include <unordered_map>
 #include <string>
 #include <chrono>
+#include <mutex>
 
 // Mock session class
 class mock_session {

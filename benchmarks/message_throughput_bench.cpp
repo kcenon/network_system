@@ -169,11 +169,12 @@ static void BM_Message_ConcurrentProcessing(benchmark::State& state) {
 
     for (auto _ : state) {
         // Simulate processing work
-        volatile int sum = 0;
+        int sum = 0;
         for (size_t i = 0; i < msg.data.size(); i += 64) {
             sum += msg.data[i];
         }
         benchmark::DoNotOptimize(sum);
+        benchmark::ClobberMemory();
     }
 
     state.SetItemsProcessed(state.iterations());
