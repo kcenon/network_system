@@ -66,6 +66,12 @@ namespace network_system::session
 	 * - \c start_session() sets up callbacks and begins \c
 	 * socket_->start_read().
 	 * - \c stop_session() closes the underlying socket, stopping further I/O.
+	 *
+	 * ### Thread Safety
+	 * - All public methods are thread-safe.
+	 * - Session state (is_stopped_) is protected by atomic operations.
+	 * - Pipeline mode flags are protected by mode_mutex_.
+	 * - Socket operations are serialized through ASIO's io_context.
 	 */
 	class messaging_session
 		: public std::enable_shared_from_this<messaging_session>
@@ -136,6 +142,7 @@ namespace network_system::session
 		internal::pipeline
 			pipeline_; /*!< Pipeline for compress/encrypt transformations. */
 
+		mutable std::mutex mode_mutex_; /*!< Protects pipeline mode flags. */
 		bool compress_mode_{
 			false
 		}; /*!< If true, compress data before sending. */
