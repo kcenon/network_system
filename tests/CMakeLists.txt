@@ -40,6 +40,27 @@ if(GTest_FOUND OR GTEST_FOUND)
     # Enable test discovery
     include(GoogleTest)
     gtest_discover_tests(network_unit_tests)
+
+    # Thread safety tests (Phase 1 - Task 1.6)
+    add_executable(network_thread_safety_test
+        thread_safety_tests.cpp
+    )
+
+    target_link_libraries(network_thread_safety_test PRIVATE
+        NetworkSystem
+        GTest::gtest
+        GTest::gtest_main
+        Threads::Threads
+    )
+
+    set_target_properties(network_thread_safety_test PROPERTIES
+        CXX_STANDARD 20
+        CXX_STANDARD_REQUIRED ON
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+    )
+
+    add_test(NAME NetworkThreadSafetyTests COMMAND network_thread_safety_test)
+    gtest_discover_tests(network_thread_safety_test)
 else()
     message(WARNING "GTest not found - unit tests will not be built")
 endif()
