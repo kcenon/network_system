@@ -85,10 +85,15 @@ namespace network_system::session
 		{
 			return;
 		}
-		// Close socket
+		// Close socket safely
 		if (socket_)
 		{
-			socket_->socket().close();
+			std::error_code ec;
+			socket_->socket().close(ec);
+			if (ec)
+			{
+				NETWORK_LOG_ERROR("[messaging_session] Error closing socket: " + ec.message());
+			}
 		}
 		NETWORK_LOG_INFO("[messaging_session] Stopped.");
 	}
@@ -99,6 +104,16 @@ namespace network_system::session
 		{
 			return;
 		}
+
+		// Capture mode flags atomically
+		bool compress_mode;
+		bool encrypt_mode;
+		{
+			std::lock_guard<std::mutex> lock(mode_mutex_);
+			compress_mode = compress_mode_;
+			encrypt_mode = encrypt_mode_;
+		}
+
 // Using if constexpr for compile-time branching (C++17)
 if constexpr (std::is_same_v<decltype(socket_->socket().get_executor()), asio::io_context::executor_type>)
 {
@@ -106,8 +121,8 @@ if constexpr (std::is_same_v<decltype(socket_->socket().get_executor()), asio::i
 		// Coroutine-based approach
 		asio::co_spawn(socket_->socket().get_executor(),
 					   internal::async_send_with_pipeline_co(socket_, std::move(data),
-												   pipeline_, compress_mode_,
-												   encrypt_mode_),
+												   pipeline_, compress_mode,
+												   encrypt_mode),
 					   [](std::error_code ec)
 					   {
 						   if (ec)
@@ -118,8 +133,8 @@ if constexpr (std::is_same_v<decltype(socket_->socket().get_executor()), asio::i
 #else
 		// Fallback approach
 		auto fut = internal::async_send_with_pipeline_no_co(
-			socket_, std::move(data), pipeline_, compress_mode_, encrypt_mode_);
-		
+			socket_, std::move(data), pipeline_, compress_mode, encrypt_mode);
+
 		// Use structured binding with try/catch for better error handling (C++17)
 		try {
 			auto result_ec = fut.get();

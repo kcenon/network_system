@@ -56,9 +56,10 @@ namespace network_system::internal
 	 * - \c async_send() performs an \c async_write of a given data buffer.
 	 *
 	 * ### Thread Safety
-	 * - Typically, all asynchronous calls (e.g., \c async_read_some, \c
-	 * async_write) should be called from the same thread context unless
-	 * carefully managed with strands.
+	 * - All public methods are thread-safe. Callback registration is protected
+	 *   by callback_mutex_.
+	 * - ASIO operations are serialized through the io_context, ensuring
+	 *   read_buffer_ is only accessed by one async operation at a time.
 	 * - The provided callbacks will be invoked on an ASIO worker thread;
 	 *   ensure that your callback logic is thread-safe if it shares data.
 	 */
@@ -165,6 +166,7 @@ namespace network_system::internal
 		std::array<uint8_t, 4096>
 			read_buffer_; /*!< Buffer for receiving data in \c do_read(). */
 
+		std::mutex callback_mutex_; /*!< Protects callback registration and access. */
 		std::function<void(const std::vector<uint8_t>&)>
 			receive_callback_; /*!< Inbound data callback. */
 		std::function<void(std::error_code)>

@@ -48,12 +48,14 @@ namespace network_system::internal
 	auto tcp_socket::set_receive_callback(
 		std::function<void(const std::vector<uint8_t>&)> callback) -> void
 	{
+		std::lock_guard<std::mutex> lock(callback_mutex_);
 		receive_callback_ = std::move(callback);
 	}
 
 	auto tcp_socket::set_error_callback(
 		std::function<void(std::error_code)> callback) -> void
 	{
+		std::lock_guard<std::mutex> lock(callback_mutex_);
 		error_callback_ = std::move(callback);
 	}
 
@@ -75,6 +77,7 @@ namespace network_system::internal
 					// On error, invoke the error callback using if constexpr to check invocability
 					if constexpr (std::is_invocable_v<decltype(error_callback_), std::error_code>)
 					{
+						std::lock_guard<std::mutex> lock(callback_mutex_);
 						if (error_callback_) {
 							error_callback_(ec);
 						}
@@ -86,9 +89,10 @@ namespace network_system::internal
 				{
 					if constexpr (std::is_invocable_v<decltype(receive_callback_), const std::vector<uint8_t>&>)
 					{
+						std::vector<uint8_t> chunk(read_buffer_.begin(),
+											   read_buffer_.begin() + length);
+						std::lock_guard<std::mutex> lock(callback_mutex_);
 						if (receive_callback_) {
-							std::vector<uint8_t> chunk(read_buffer_.begin(),
-												   read_buffer_.begin() + length);
 							receive_callback_(chunk);
 						}
 					}
