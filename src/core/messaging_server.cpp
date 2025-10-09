@@ -96,8 +96,9 @@ namespace network_system::core
 		{
 			is_running_.store(false);
 
-			// Check for specific error codes
-			if (e.code() == std::errc::address_in_use)
+			// Check for specific error codes (ASIO uses asio::error category)
+			if (e.code() == asio::error::address_in_use ||
+			    e.code() == std::errc::address_in_use)
 			{
 				return error_void(
 					error_codes::network_system::bind_failed,
@@ -106,7 +107,8 @@ namespace network_system::core
 					"Port: " + std::to_string(port)
 				);
 			}
-			else if (e.code() == std::errc::permission_denied)
+			else if (e.code() == asio::error::access_denied ||
+			         e.code() == std::errc::permission_denied)
 			{
 				return error_void(
 					error_codes::network_system::bind_failed,
