@@ -1,6 +1,10 @@
 # Network System Samples
 
-This directory contains example programs demonstrating the Network System's networking capabilities including TCP/UDP communications and HTTP client functionality.
+This directory contains example programs demonstrating the Network System's networking capabilities including TCP/UDP communications, HTTP client functionality, and modern Result<T> error handling patterns.
+
+## Latest Updates (2025-10-10)
+
+**Result<T> Error Handling**: The modern_usage.cpp example now demonstrates the new Result<T> pattern for type-safe error handling. All primary networking APIs (start_server, start_client, send_packet, etc.) now return VoidResult instead of throwing exceptions, providing explicit error checking and better error recovery patterns.
 
 ## Available Samples
 
@@ -49,7 +53,28 @@ Comprehensive HTTP client functionality:
 ./http_client_demo
 ```
 
-### 4. Run All Samples (`run_all_samples.cpp`)
+### 4. Modern Usage (`messaging_system_integration/modern_usage.cpp`)
+**NEW**: Demonstrates modern API with Result<T> error handling pattern:
+- Modern network_system API with Result<T> return types
+- Type-safe error checking without exceptions
+- Explicit error code handling for all operations
+- Integration with thread pool and container systems
+- Proper error handling and recovery patterns
+- Async operations with error reporting
+
+**Key Features:**
+- All server/client operations return VoidResult
+- Explicit error checking: `result.is_err()` and `result.error()`
+- Error codes with detailed messages
+- Graceful error recovery examples
+
+**Usage:**
+```bash
+cd messaging_system_integration/build
+./modern_usage
+```
+
+### 5. Run All Samples (`run_all_samples.cpp`)
 Utility to run all samples or a specific sample:
 
 **Usage:**
@@ -222,6 +247,64 @@ Status code: 200
 - **Content Types**: JSON, form data, binary, and text handling
 - **Authentication**: Basic auth and custom header support
 - **Error Recovery**: Timeout and retry mechanisms
+
+## Result<T> Error Handling Pattern
+
+### Type-Safe Error Checking
+
+The modern network_system API uses Result<T> pattern for explicit error handling:
+
+```cpp
+// Start server with error checking
+auto result = server->start_server(8080);
+if (result.is_err()) {
+    std::cerr << "Server start failed: " << result.error().message
+              << " (code: " << result.error().code << ")" << std::endl;
+    return -1;
+}
+
+// Send packet with error handling
+auto send_result = client->send_packet(data);
+if (send_result.is_err()) {
+    std::cerr << "Send failed: " << send_result.error().message << std::endl;
+    // Implement retry or recovery logic
+}
+```
+
+### Error Code Categories
+
+Network system error codes are organized by category:
+- **Connection errors** (-600 to -619): connection_failed, connection_refused, connection_timeout
+- **Session errors** (-620 to -639): session_not_found, session_expired
+- **Send/Receive errors** (-640 to -659): send_failed, receive_failed
+- **Server errors** (-660 to -679): server_already_running, bind_failed
+
+### Error Recovery Patterns
+
+```cpp
+// Retry on failure
+int max_retries = 3;
+for (int i = 0; i < max_retries; ++i) {
+    auto result = client->send_packet(data);
+    if (result.is_ok()) {
+        break;  // Success
+    }
+
+    if (i < max_retries - 1) {
+        std::cerr << "Retry " << (i + 1) << "/" << max_retries << std::endl;
+        std::this_thread::sleep_for(100ms);
+    }
+}
+
+// Fallback on specific errors
+auto result = server->start_server(port);
+if (result.is_err()) {
+    if (result.error().code == error_codes::network_system::bind_failed) {
+        // Try alternative port
+        result = server->start_server(port + 1);
+    }
+}
+```
 
 ## Advanced Usage
 
