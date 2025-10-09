@@ -176,12 +176,24 @@ set_target_properties(verify_build PROPERTIES
 
 if(BUILD_TESTS)
     enable_testing()
-    message(STATUS "Tests temporarily disabled - core implementation in progress")
+    message(STATUS "Building network_system tests")
     add_test(NAME verify_build_test COMMAND verify_build)
+
+    # Add tests subdirectory if it exists
+    if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/tests/CMakeLists.txt)
+        add_subdirectory(tests)
+        message(STATUS "Network system unit tests and thread safety tests enabled")
+    endif()
 endif()
 
 if(BUILD_SAMPLES)
-    message(STATUS "Samples temporarily disabled - core implementation in progress")
+    message(STATUS "Building network_system samples")
+
+    # Add samples subdirectory if it exists
+    if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/samples/CMakeLists.txt)
+        add_subdirectory(samples)
+        message(STATUS "Network system samples enabled")
+    endif()
 endif()
 
 ##################################################
