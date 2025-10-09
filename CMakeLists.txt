@@ -31,7 +31,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 option(BUILD_SHARED_LIBS "Build using shared libraries" OFF)
 option(BUILD_TESTS "Build tests" ON)
-option(BUILD_SAMPLES "Build samples" ON)
+option(BUILD_SAMPLES "Build samples" OFF)
 option(BUILD_WITH_CONTAINER_SYSTEM "Build with container_system integration" ON)
 option(BUILD_WITH_THREAD_SYSTEM "Build with thread_system integration" ON)
 option(BUILD_WITH_LOGGER_SYSTEM "Build with logger_system integration" ON)
@@ -101,6 +101,11 @@ add_library(NetworkSystem
     src/internal/tcp_socket.cpp
     src/internal/send_coroutine.cpp
     src/internal/pipeline.cpp
+
+    # Basic integration layer (always built - no external dependencies)
+    src/integration/logger_integration.cpp
+    src/integration/thread_integration.cpp
+    src/integration/container_integration.cpp
 )
 
 # Set target properties
@@ -124,12 +129,10 @@ target_include_directories(NetworkSystem
 
 setup_network_system_integrations(NetworkSystem)
 
-# Integration layer (conditional compilation)
+# Messaging bridge (optional - requires external systems)
 if(BUILD_MESSAGING_BRIDGE)
     target_sources(NetworkSystem PRIVATE
         src/integration/messaging_bridge.cpp
-        src/integration/thread_integration.cpp
-        src/integration/container_integration.cpp
     )
     target_compile_definitions(NetworkSystem PRIVATE BUILD_MESSAGING_BRIDGE)
 endif()
@@ -176,12 +179,24 @@ set_target_properties(verify_build PROPERTIES
 
 if(BUILD_TESTS)
     enable_testing()
-    message(STATUS "Tests temporarily disabled - core implementation in progress")
+    message(STATUS "Building network_system tests")
     add_test(NAME verify_build_test COMMAND verify_build)
+
+    # Add tests subdirectory if it exists
+    if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/tests/CMakeLists.txt)
+        add_subdirectory(tests)
+        message(STATUS "Network system unit tests and thread safety tests enabled")
+    endif()
 endif()
 
 if(BUILD_SAMPLES)
-    message(STATUS "Samples temporarily disabled - core implementation in progress")
+    message(STATUS "Building network_system samples")
+
+    # Add samples subdirectory if it exists
+    if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/samples/CMakeLists.txt)
+        add_subdirectory(samples)
+        message(STATUS "Network system samples enabled")
+    endif()
 endif()
 
 ##################################################
