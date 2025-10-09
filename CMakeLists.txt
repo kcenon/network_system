@@ -31,7 +31,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 option(BUILD_SHARED_LIBS "Build using shared libraries" OFF)
 option(BUILD_TESTS "Build tests" ON)
-option(BUILD_SAMPLES "Build samples" ON)
+option(BUILD_SAMPLES "Build samples" OFF)
 option(BUILD_WITH_CONTAINER_SYSTEM "Build with container_system integration" ON)
 option(BUILD_WITH_THREAD_SYSTEM "Build with thread_system integration" ON)
 option(BUILD_WITH_LOGGER_SYSTEM "Build with logger_system integration" ON)

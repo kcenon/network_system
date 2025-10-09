@@ -125,20 +125,22 @@ TEST_F(NetworkTest, ServerMultipleStartStop) {
 TEST_F(NetworkTest, ServerPortAlreadyInUse) {
     auto port = FindAvailablePort();
     ASSERT_NE(port, 0) << "No available port found";
-    
+
     auto server1 = std::make_shared<messaging_server>("server1");
-    auto server2 = std::make_shared<messaging_server>("server2");
-    
+
     // Start first server
     server1->start_server(port);
-    std::this_thread::sleep_for(100ms);
-    
-    // Second server on same port should handle gracefully
-    EXPECT_NO_THROW(server2->start_server(port));
-    std::this_thread::sleep_for(100ms);
-    
+    std::this_thread::sleep_for(100ms);  // Ensure server is fully started
+
+    // Second server on same port should throw system_error
+    auto server2 = std::make_shared<messaging_server>("server2");
+    EXPECT_THROW({
+        server2->start_server(port);
+    }, std::system_error);
+
+    // Cleanup first server
     server1->stop_server();
-    server2->stop_server();
+    std::this_thread::sleep_for(50ms);  // Allow port to be released
 }
 
 // ============================================================================
