@@ -1,13 +1,20 @@
 /**
  * @file modern_usage.cpp
- * @brief Example of using network_system with modern API
+ * @brief Example of using network_system with modern API and Result<T> pattern
  *
- * This example shows how to use the new network_system API directly
- * with all modern features including integration interfaces.
+ * This example demonstrates:
+ * - Modern network_system API with Result<T> error handling
+ * - Type-safe error checking with VoidResult return types
+ * - Integration with thread pool and container systems
+ * - Proper error handling and recovery patterns
+ *
+ * Note: All primary APIs (start_server, start_client, send_packet, etc.)
+ * now return Result<T> for type-safe error handling instead of throwing
+ * exceptions or using callback-only error reporting.
  *
  * @author kcenon
  * @date 2025-09-20
-
+ * @updated 2025-10-10 - Added Result<T> pattern support
  */
 
 #include <iostream>
@@ -40,16 +47,29 @@ public:
         std::cout << "[Modern Server] Created with ID: " << server_id_ << std::endl;
     }
 
-    void start(uint16_t port) {
-        server_->start_server(port);
-        port_ = port;
+    bool start(uint16_t port) {
+        auto result = server_->start_server(port);
+        if (result.is_err()) {
+            std::cerr << "[Modern Server] Failed to start: " << result.error().message
+                      << " (code: " << result.error().code << ")" << std::endl;
+            return false;
+        }
 
+        port_ = port;
         std::cout << "[Modern Server] Started on port " << port << std::endl;
+        return true;
     }
 
-    void stop() {
-        server_->stop_server();
+    bool stop() {
+        auto result = server_->stop_server();
+        if (result.is_err()) {
+            std::cerr << "[Modern Server] Failed to stop: " << result.error().message
+                      << " (code: " << result.error().code << ")" << std::endl;
+            return false;
+        }
+
         std::cout << "[Modern Server] Stopped" << std::endl;
+        return true;
     }
 
     void enable_async_processing() {
@@ -125,35 +145,68 @@ public:
         std::cout << "[Modern Client] Created with ID: " << client_id_ << std::endl;
     }
 
-    void connect(const std::string& host, uint16_t port) {
-        client_->start_client(host, port);
+    bool connect(const std::string& host, uint16_t port) {
+        auto result = client_->start_client(host, port);
+        if (result.is_err()) {
+            std::cerr << "[Modern Client] Failed to connect: " << result.error().message
+                      << " (code: " << result.error().code << ")" << std::endl;
+            return false;
+        }
+
         std::cout << "[Modern Client] Connecting to " << host << ":" << port << std::endl;
         std::this_thread::sleep_for(200ms);  // Give time to connect
+        return true;
     }
 
-    void send_batch(const std::vector<std::string>& messages) {
+    size_t send_batch(const std::vector<std::string>& messages) {
         std::cout << "[Modern Client] Sending batch of " << messages.size()
                   << " messages" << std::endl;
 
+        size_t successful = 0;
         for (const auto& msg : messages) {
             std::vector<uint8_t> data(msg.begin(), msg.end());
-            client_->send_packet(data);
+            auto result = client_->send_packet(data);
+
+            if (result.is_err()) {
+                std::cerr << "[Modern Client] Failed to send message: " << result.error().message
+                          << " (code: " << result.error().code << ")" << std::endl;
+            } else {
+                successful++;
+            }
+
             std::this_thread::sleep_for(50ms);
         }
+
+        std::cout << "[Modern Client] Successfully sent " << successful << "/" << messages.size()
+                  << " messages" << std::endl;
+        return successful;
     }
 
     void send_async(const std::string& message) {
         auto& thread_mgr = integration::thread_integration_manager::instance();
         thread_mgr.submit_task([this, message]() {
             std::vector<uint8_t> data(message.begin(), message.end());
-            client_->send_packet(data);
-            std::cout << "[Modern Client] Async sent: " << message << std::endl;
+            auto result = client_->send_packet(data);
+
+            if (result.is_err()) {
+                std::cerr << "[Modern Client] Async send failed: " << result.error().message
+                          << " (code: " << result.error().code << ")" << std::endl;
+            } else {
+                std::cout << "[Modern Client] Async sent: " << message << std::endl;
+            }
         });
     }
 
-    void disconnect() {
-        client_->stop_client();
+    bool disconnect() {
+        auto result = client_->stop_client();
+        if (result.is_err()) {
+            std::cerr << "[Modern Client] Failed to disconnect: " << result.error().message
+                      << " (code: " << result.error().code << ")" << std::endl;
+            return false;
+        }
+
         std::cout << "[Modern Client] Disconnected" << std::endl;
+        return true;
     }
 
 private:
@@ -233,7 +286,11 @@ int main(int argc, char* argv[]) {
         // Create modern server
         ModernServer server("modern_server_001");
         server.enable_async_processing();
-        server.start(9090);
+
+        if (!server.start(9090)) {
+            std::cerr << "Failed to start server, aborting demo" << std::endl;
+            return 1;
+        }
 
         // Allow server to start
         std::this_thread::sleep_for(500ms);
@@ -241,7 +298,11 @@ int main(int argc, char* argv[]) {
         // Create modern client
         ModernClient client("modern_client_001");
 
-        client.connect("127.0.0.1", 9090);
+        if (!client.connect("127.0.0.1", 9090)) {
+            std::cerr << "Failed to connect client, stopping server" << std::endl;
+            server.stop();
+            return 1;
+        }
 
         // Send batch messages
         std::vector<std::string> batch = {
@@ -249,7 +310,11 @@ int main(int argc, char* argv[]) {
             "Modern message 2",
             "Modern message 3"
         };
-        client.send_batch(batch);
+        size_t sent = client.send_batch(batch);
+
+        if (sent < batch.size()) {
+            std::cout << "[Warning] Not all messages were sent successfully" << std::endl;
+        }
 
         // Send async messages
         for (int i = 1; i <= 3; ++i) {
@@ -263,13 +328,17 @@ int main(int argc, char* argv[]) {
         server.show_statistics();
 
         // Disconnect
-        client.disconnect();
+        if (!client.disconnect()) {
+            std::cout << "[Warning] Client disconnection had issues" << std::endl;
+        }
 
         // Demonstrate advanced features
         demonstrate_advanced_features();
 
         // Stop server
-        server.stop();
+        if (!server.stop()) {
+            std::cout << "[Warning] Server shutdown had issues" << std::endl;
+        }
 
     } catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << std::endl;
