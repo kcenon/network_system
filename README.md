@@ -897,6 +897,92 @@ For detailed migration plan, see [PHASE_3_PREPARATION.md](docs/PHASE_3_PREPARATI
 
 For detailed improvement plans and tracking, see the project's [NEED_TO_FIX.md](/Users/dongcheolshin/Sources/NEED_TO_FIX.md).
 
+### Architecture Improvement Phases
+
+**Phase Status Overview** (as of 2025-10-09):
+
+| Phase | Status | Completion | Key Achievements |
+|-------|--------|------------|------------------|
+| **Phase 0**: Foundation | ✅ Complete | 100% | CI/CD pipelines, baseline metrics, test coverage |
+| **Phase 1**: Thread Safety | ✅ Complete | 100% | ThreadSanitizer validation, concurrent session handling |
+| **Phase 2**: Resource Management | ✅ Complete | 100% | Grade A RAII, AddressSanitizer clean |
+| **Phase 3**: Error Handling | 🔄 In Progress | 50% | **Migration Pending** - Foundation ready, API migration pending |
+| **Phase 4**: Performance | ⏳ Planned | 0% | Advanced zero-copy, NUMA-aware thread pinning |
+| **Phase 5**: Stability | ⏳ Planned | 0% | API stabilization, semantic versioning |
+| **Phase 6**: Documentation | ⏳ Planned | 0% | Comprehensive guides, tutorials, examples |
+
+#### Phase 3: Error Handling (50% Complete) - Migration Pending
+
+The network_system has **completed all foundational work** for Result<T> adoption:
+- **Error Code Registry**: Complete error codes (-600 to -699) defined in common_system
+- **Adapter Utilities**: `common_system_adapter.h` with conversion helpers ready
+- **Migration Guide**: Comprehensive implementation examples in PHASE_3_PREPARATION.md
+
+**Current Status: Foundation Ready**
+```cpp
+// ✅ Completed: Error codes defined
+- Connection errors (-600 to -619): connection_failed, connection_refused, connection_timeout
+- Session errors (-620 to -639): session_not_found, session_expired, invalid_session
+- Send/Receive errors (-640 to -659): send_failed, receive_failed, message_too_large
+- Server errors (-660 to -679): server_not_started, server_already_running, bind_failed
+
+// ✅ Completed: Adapter utilities ready
+inline ::common::VoidResult to_common_result_void();
+inline ::common::VoidResult to_common_error(int code, const std::string& msg);
+template<typename T> auto to_common_result(T&& value) -> ::common::Result<T>;
+```
+
+**Current API Pattern** (Pending Migration):
+```cpp
+// Current: void/callback-based error handling
+auto start_server(unsigned short port) -> void;
+auto stop_server() -> void;
+auto start_client(std::string_view host, unsigned short port) -> void;
+auto send_packet(std::vector<uint8_t> data) -> void;
+
+// Errors handled via callbacks
+auto on_error(std::error_code ec) -> void;
+```
+
+**Target API Pattern** (After Migration):
+```cpp
+// Planned: Result<T> return values
+auto start_server(unsigned short port) -> result_void;
+auto stop_server() -> result_void;
+auto start_client(std::string_view host, unsigned short port) -> result_void;
+auto send_packet(std::vector<uint8_t> data) -> result_void;
+
+// Usage example with Result<T>
+auto result = server.start_server(8080);
+if (!result) {
+    std::cerr << "Failed to start server: " << result.get_error().message << "\n";
+    return -1;
+}
+```
+
+**Error Code Allocation**: `-600` to `-699` (Centralized in common_system)
+- **-600 to -619**: Connection errors
+- **-620 to -639**: Session errors
+- **-640 to -659**: Send/Receive errors
+- **-660 to -679**: Server errors
+
+**Why Migration Pending?**
+1. **Foundation Complete**: All error codes defined and adapter utilities ready
+2. **API Stability**: Maintaining backward compatibility during migration
+3. **Gradual Rollout**: Planned incremental migration to minimize disruption
+4. **Performance Priority**: Current async callback pattern provides excellent performance (305K+ msg/s)
+
+**Performance Achievement**: network_system delivers **305K+ messages/second** average throughput with **<50μs P50 latency**, demonstrating that migration will maintain performance while adding type-safety.
+
+**Remaining Migration Tasks** (50%):
+- Core API migration: Convert void returns to `result_void`
+- Callback conversion: Replace callback-based error handling with Result<T>
+- Async variants: Add async Result<T> variants for network operations
+- Session management: Migrate session management to Result<T>
+- Test updates: Update unit tests for Result<T> APIs
+
+For detailed Phase 3 migration plan, see [PHASE_3_PREPARATION.md](docs/PHASE_3_PREPARATION.md).
+
 ---
 
 <div align="center">

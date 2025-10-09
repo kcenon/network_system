@@ -45,6 +45,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "network_system/internal/tcp_socket.h"
 #include "network_system/internal/pipeline.h"
+#include "network_system/utils/result_types.h"
 
 // Use nested namespace definition in C++17
 namespace network_system::core
@@ -87,20 +88,45 @@ namespace network_system::core
 		 * asynchronously, and spawning a thread to run \c io_context_.
 		 * \param host The remote hostname or IP address.
 		 * \param port The remote port number to connect.
+		 * \return Result<void> - Success if client started, or error with code:
+		 *         - error_codes::common::already_exists if already running
+		 *         - error_codes::common::invalid_argument if empty host
+		 *         - error_codes::common::internal_error for other failures
 		 *
 		 * ### Steps:
 		 * 1. Create \c io_context_.
 		 * 2. Launch \c client_thread_ running \c io_context_->run().
 		 * 3. Resolve & connect, on success calling \c on_connect().
 		 * 4. \c on_connect() sets up the \c tcp_socket and starts reading.
+		 *
+		 * ### Example
+		 * \code
+		 * auto result = client->start_client("localhost", 5555);
+		 * if (!result) {
+		 *     std::cerr << "Client start failed: " << result.error().message << "\n";
+		 *     return -1;
+		 * }
+		 * \endcode
+		 *
+		 * \note Connection result is async; check is_connected() or use callbacks
 		 */
-		auto start_client(std::string_view host, unsigned short port) -> void;
+		auto start_client(std::string_view host, unsigned short port) -> VoidResult;
 
 		/*!
 		 * \brief Stops the client: closes the socket, stops the \c io_context_,
 		 *        and joins the worker thread.
+		 * \return Result<void> - Success if client stopped, or error with code:
+		 *         - error_codes::common::internal_error for failures
+		 *
+		 * ### Example
+		 * \code
+		 * auto result = client->stop_client();
+		 * if (!result) {
+		 *     std::cerr << "Client stop failed: " << result.error().message << "\n";
+		 * }
+		 * \endcode
 		 */
-		auto stop_client() -> void;
+		auto stop_client() -> VoidResult;
 
 		/*!
 		 * \brief Blocks until \c stop_client() is invoked, i.e., a
@@ -112,12 +138,23 @@ namespace network_system::core
 		 * \brief Sends data over the connection, optionally
 		 * compressing/encrypting via the \c pipeline.
 		 * \param data The buffer to send.
+		 * \return Result<void> - Success if data queued for send, or error with code:
+		 *         - error_codes::network_system::connection_closed if not connected
+		 *         - error_codes::common::invalid_argument if empty data
+		 *         - error_codes::network_system::send_failed for other failures
 		 *
-		 * If not connected or not running, this call does nothing.
-		 * Otherwise, \c prepare_data_async() + \c tcp_socket::async_send is
-		 * used to deliver the bytes.
+		 * ### Example
+		 * \code
+		 * std::vector<uint8_t> data = {1, 2, 3, 4};
+		 * auto result = client->send_packet(data);
+		 * if (!result) {
+		 *     std::cerr << "Send failed: " << result.error().message << "\n";
+		 * }
+		 * \endcode
+		 *
+		 * \note This is async; actual send happens in background
 		 */
-		auto send_packet(std::vector<uint8_t> data) -> void;
+		auto send_packet(std::vector<uint8_t> data) -> VoidResult;
 
 	private:
 		/*!

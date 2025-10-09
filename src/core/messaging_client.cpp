@@ -57,71 +57,121 @@ namespace network_system::core
 
 	// Use string_view for more efficient string handling (C++17)
 	auto messaging_client::start_client(std::string_view host,
-										unsigned short port) -> void
+										unsigned short port) -> VoidResult
 	{
 		if (is_running_.load())
 		{
-			return;
+			return error_void(
+				error_codes::common::already_exists,
+				"Client is already running",
+				"messaging_client::start_client",
+				"Client ID: " + client_id_
+			);
 		}
-		is_running_.store(true);
-		is_connected_.store(false);
 
-		io_context_ = std::make_unique<asio::io_context>();
-		// For wait_for_stop()
-		stop_promise_.emplace();
-		stop_future_ = stop_promise_->get_future();
+		if (host.empty())
+		{
+			return error_void(
+				error_codes::common::invalid_argument,
+				"Host cannot be empty",
+				"messaging_client::start_client",
+				"Client ID: " + client_id_
+			);
+		}
 
-		// Launch the thread to run the io_context
-		client_thread_ = std::make_unique<std::thread>(
-			[this]()
-			{
-				try
+		try
+		{
+			is_running_.store(true);
+			is_connected_.store(false);
+
+			io_context_ = std::make_unique<asio::io_context>();
+			// For wait_for_stop()
+			stop_promise_.emplace();
+			stop_future_ = stop_promise_->get_future();
+
+			// Launch the thread to run the io_context
+			client_thread_ = std::make_unique<std::thread>(
+				[this]()
 				{
-					io_context_->run();
-				}
-				catch (...)
-				{
-					// handle exceptions if needed
-				}
-			});
+					try
+					{
+						io_context_->run();
+					}
+					catch (...)
+					{
+						// handle exceptions if needed
+					}
+				});
 
-		do_connect(host, port);
+			do_connect(host, port);
 
-		NETWORK_LOG_INFO("[messaging_client] started. ID=" + client_id_
-				+ " target=" + std::string(host) + ":" + std::to_string(port));
+			NETWORK_LOG_INFO("[messaging_client] started. ID=" + client_id_
+					+ " target=" + std::string(host) + ":" + std::to_string(port));
+
+			return ok();
+		}
+		catch (const std::exception& e)
+		{
+			is_running_.store(false);
+			return error_void(
+				error_codes::common::internal_error,
+				"Failed to start client: " + std::string(e.what()),
+				"messaging_client::start_client",
+				"Client ID: " + client_id_ + ", Host: " + std::string(host)
+			);
+		}
 	}
 
-	auto messaging_client::stop_client() -> void
+	auto messaging_client::stop_client() -> VoidResult
 	{
 		if (!is_running_.load())
 		{
-			return;
-		}
-		is_running_.store(false);
-
-		// Close the socket
-		if (socket_)
-		{
-			socket_->socket().close();
-		}
-		// Stop io_context
-		if (io_context_)
-		{
-			io_context_->stop();
-		}
-		// Join thread
-		if (client_thread_ && client_thread_->joinable())
-		{
-			client_thread_->join();
-		}
-		// Signal stop
-		if (stop_promise_.has_value())
-		{
-			stop_promise_->set_value();
-			stop_promise_.reset();
+			return error_void(
+				error_codes::common::internal_error,
+				"Client is not running",
+				"messaging_client::stop_client",
+				"Client ID: " + client_id_
+			);
 		}
 
-		NETWORK_LOG_INFO("[messaging_client] stopped.");
+		try
+		{
+			is_running_.store(false);
+
+			// Close the socket
+			if (socket_)
+			{
+				socket_->socket().close();
+			}
+			// Stop io_context
+			if (io_context_)
+			{
+				io_context_->stop();
+			}
+			// Join thread
+			if (client_thread_ && client_thread_->joinable())
+			{
+				client_thread_->join();
+			}
+			// Signal stop
+			if (stop_promise_.has_value())
+			{
+				stop_promise_->set_value();
+				stop_promise_.reset();
+			}
+
+			NETWORK_LOG_INFO("[messaging_client] stopped.");
+			return ok();
+		}
+		catch (const std::exception& e)
+		{
+			return error_void(
+				error_codes::common::internal_error,
+				"Failed to stop client: " + std::string(e.what()),
+				"messaging_client::stop_client",
+				"Client ID: " + client_id_
+			);
+		}
 	}
 
 	auto messaging_client::wait_for_stop() -> void
@@ -190,11 +240,36 @@ namespace network_system::core
 		socket_->start_read();
 	}
 
-	auto messaging_client::send_packet(std::vector<uint8_t> data) -> void
+	auto messaging_client::send_packet(std::vector<uint8_t> data) -> VoidResult
 	{
-		if (!is_connected_.load() || !is_running_.load() || !socket_)
+		if (!is_running_.load())
 		{
-			return;
+			return error_void(
+				error_codes::network_system::connection_closed,
+				"Client is not running",
+				"messaging_client::send_packet",
+				"Client ID: " + client_id_
+			);
+		}
+
+		if (!is_connected_.load() || !socket_)
+		{
+			return error_void(
+				error_codes::network_system::connection_closed,
+				"Client is not connected",
+				"messaging_client::send_packet",
+				"Client ID: " + client_id_
+			);
+		}
+
+		if (data.empty())
+		{
+			return error_void(
+				error_codes::common::invalid_argument,
+				"Data cannot be empty",
+				"messaging_client::send_packet",
+				"Client ID: " + client_id_
+			);
 		}
 // Using if constexpr for compile-time branching (C++17)
 if constexpr (std::is_same_v<decltype(socket_->socket().get_executor()), asio::io_context::executor_type>)
@@ -228,6 +303,7 @@ if constexpr (std::is_same_v<decltype(socket_->socket().get_executor()), asio::i
 		}
 #endif
 }
+		return ok();
 	}
 
 	auto messaging_client::on_receive(const std::vector<uint8_t>& data) -> void
