@@ -15,7 +15,9 @@
 #include "network_system/core/messaging_server.h"
 #include "network_system/core/messaging_client.h"
 #include "network_system/session/messaging_session.h"
+#ifdef BUILD_MESSAGING_BRIDGE
 #include "network_system/integration/messaging_bridge.h"
+#endif
 #include "network_system/integration/thread_integration.h"
 #include "network_system/integration/container_integration.h"
 
@@ -28,8 +30,10 @@ namespace network_module {
     // Session types
     using messaging_session = ::network_system::session::messaging_session;
 
+#ifdef BUILD_MESSAGING_BRIDGE
     // Integration types
     using messaging_bridge = ::network_system::integration::messaging_bridge;
+#endif
 
     // Thread integration
     using thread_pool_interface = ::network_system::integration::thread_pool_interface;
@@ -63,6 +67,7 @@ namespace network_module {
         return std::make_shared<messaging_client>(client_id);
     }
 
+#ifdef BUILD_MESSAGING_BRIDGE
     /**
      * @brief Legacy factory function for creating bridges
      * @return Shared pointer to messaging bridge
@@ -70,6 +75,7 @@ namespace network_module {
     inline std::shared_ptr<messaging_bridge> create_bridge() {
         return std::make_shared<messaging_bridge>();
     }
+#endif
 }
 
 // Additional compatibility namespace
