@@ -4,9 +4,6 @@ on:
   push:
     branches:
       - main
-    # Exclude gh-pages to prevent infinite loop
-    branches-ignore:
-      - gh-pages
   pull_request:
     branches:
       - main
@@ -23,16 +20,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
-          ssh-strict: true
-          ssh-user: git
-          persist-credentials: true
-          clean: true
-          sparse-checkout-cone-mode: true
-          fetch-depth: 1
-          fetch-tags: false
-          show-progress: true
-          lfs: false
-          set-safe-directory: true
+          fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install Doxygen
