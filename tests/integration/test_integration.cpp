@@ -108,9 +108,13 @@ bool test_compatibility_api() {
         assert(client != nullptr);
         std::cout << "✓ Legacy client creation works" << std::endl;
 
+#ifdef BUILD_MESSAGING_BRIDGE
         auto bridge = network_module::create_bridge();
         assert(bridge != nullptr);
         std::cout << "✓ Legacy bridge creation works" << std::endl;
+#else
+        std::cout << "⚠️  Skipping bridge test (BUILD_MESSAGING_BRIDGE=OFF)" << std::endl;
+#endif
     }
 
     // Test feature detection
