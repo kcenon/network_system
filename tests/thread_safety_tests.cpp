@@ -7,8 +7,8 @@ All rights reserved.
 
 #include <gtest/gtest.h>
 #include "network_system/session/messaging_session.h"
-#include "network_system/client/messaging_client.h"
-#include "network_system/server/messaging_server.h"
+#include "network_system/core/messaging_client.h"
+#include "network_system/core/messaging_server.h"
 
 #include <thread>
 #include <vector>

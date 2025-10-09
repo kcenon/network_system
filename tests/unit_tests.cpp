@@ -40,12 +40,15 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <atomic>
 
 #include "network_system/compatibility.h"
+
+#ifdef BUILD_WITH_CONTAINER_SYSTEM
 #include <container.h>
 #include <values/string_value.h>
 #include <values/numeric_value.h>
+using namespace container_module;
+#endif
 
 using namespace network_module;
-using namespace container_module;
 using namespace std::chrono_literals;
 
 // Test fixture for network tests
@@ -224,6 +227,7 @@ TEST_F(NetworkTest, MultipleClientsConnection) {
 // Message Transfer Tests
 // ============================================================================
 
+#ifdef BUILD_WITH_CONTAINER_SYSTEM
 TEST_F(NetworkTest, BasicMessageTransfer) {
     auto port = FindAvailablePort();
     ASSERT_NE(port, 0) << "No available port found";
@@ -330,6 +334,7 @@ TEST_F(NetworkTest, MultipleMessageTransfer) {
     client->stop_client();
     server->stop_server();
 }
+#endif // BUILD_WITH_CONTAINER_SYSTEM
 
 // ============================================================================
 // Stress Tests
@@ -415,15 +420,17 @@ TEST(NetworkStressTest, ConcurrentClients) {
                 
                 client->start_client("127.0.0.1", port);
                 std::this_thread::sleep_for(50ms);
-                
+
+#ifdef BUILD_WITH_CONTAINER_SYSTEM
                 // Send a message
                 auto message = std::make_shared<value_container>();
                 message->add(std::make_shared<string_value>("thread", std::to_string(t)));
                 message->add(std::make_shared<string_value>("client", std::to_string(c)));
-                
+
                 auto serialized = message->serialize_array();
                 client->send_packet(serialized);
-                
+#endif
+
                 std::this_thread::sleep_for(50ms);
                 client->stop_client();
             }
@@ -443,15 +450,20 @@ TEST(NetworkStressTest, ConcurrentClients) {
 
 TEST_F(NetworkTest, SendWithoutConnection) {
     auto client = std::make_shared<messaging_client>("disconnected_client");
-    
+
+#ifdef BUILD_WITH_CONTAINER_SYSTEM
     // Create a message
     auto message = std::make_shared<value_container>();
     message->add(std::make_shared<string_value>("test", "data"));
-    
+
     auto serialized = message->serialize_array();
-    
+
     // Send should not crash when not connected
     EXPECT_NO_THROW(client->send_packet(serialized));
+#else
+    // Without container_system, just verify client can be created
+    EXPECT_NE(client, nullptr);
+#endif
 }
 
 TEST_F(NetworkTest, ServerStopWhileClientsConnected) {
