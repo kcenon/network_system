@@ -122,8 +122,9 @@ bool test_compatibility_api() {
     return true;
 }
 
-// Test messaging bridge integration
+// Test messaging bridge integration (only if available)
 bool test_messaging_bridge() {
+#ifdef BUILD_MESSAGING_BRIDGE
     std::cout << "\n=== Testing Messaging Bridge ===" << std::endl;
 
     auto bridge = std::make_shared<network_system::integration::messaging_bridge>();
@@ -152,6 +153,11 @@ bool test_messaging_bridge() {
     std::cout << "✓ Bridge metrics - connections: " << metrics.connections_active << std::endl;
 
     return true;
+#else
+    std::cout << "\n=== Testing Messaging Bridge ===" << std::endl;
+    std::cout << "⚠️  Messaging bridge not available (BUILD_MESSAGING_BRIDGE=OFF)" << std::endl;
+    return true; // Not a failure, just not available
+#endif
 }
 
 // Main test runner

@@ -101,6 +101,11 @@ add_library(NetworkSystem
     src/internal/tcp_socket.cpp
     src/internal/send_coroutine.cpp
     src/internal/pipeline.cpp
+
+    # Basic integration layer (always built - no external dependencies)
+    src/integration/logger_integration.cpp
+    src/integration/thread_integration.cpp
+    src/integration/container_integration.cpp
 )
 
 # Set target properties
@@ -124,12 +129,10 @@ target_include_directories(NetworkSystem
 
 setup_network_system_integrations(NetworkSystem)
 
-# Integration layer (conditional compilation)
+# Messaging bridge (optional - requires external systems)
 if(BUILD_MESSAGING_BRIDGE)
     target_sources(NetworkSystem PRIVATE
         src/integration/messaging_bridge.cpp
-        src/integration/thread_integration.cpp
-        src/integration/container_integration.cpp
     )
     target_compile_definitions(NetworkSystem PRIVATE BUILD_MESSAGING_BRIDGE)
 endif()

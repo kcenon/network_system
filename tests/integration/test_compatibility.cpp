@@ -73,12 +73,16 @@ void test_legacy_namespaces(TestResults& results) {
             results.record_fail("network_module::create_client", "returned nullptr");
         }
 
+#ifdef BUILD_MESSAGING_BRIDGE
         auto bridge = network_module::create_bridge();
         if (bridge) {
             results.record_pass("network_module::create_bridge");
         } else {
             results.record_fail("network_module::create_bridge", "returned nullptr");
         }
+#else
+        std::cout << "⚠️  Skipping create_bridge (BUILD_MESSAGING_BRIDGE=OFF)" << std::endl;
+#endif
     } catch (const std::exception& e) {
         results.record_fail("network_module namespace", e.what());
     }
@@ -114,9 +118,11 @@ void test_type_aliases(TestResults& results) {
         network_module::messaging_session* session_ptr = nullptr;
         results.record_pass("network_module::messaging_session type");
 
+#ifdef BUILD_MESSAGING_BRIDGE
         // Bridge type
         network_module::messaging_bridge* bridge_ptr = nullptr;
         results.record_pass("network_module::messaging_bridge type");
+#endif
 
         // Thread pool type
         network_module::thread_pool_interface* pool_ptr = nullptr;
@@ -224,6 +230,7 @@ void test_cross_compatibility(TestResults& results) {
             results.record_fail("Mixed namespace object creation", "One or both objects null");
         }
 
+#ifdef BUILD_MESSAGING_BRIDGE
         // Test that legacy bridge works with modern objects
         auto legacy_bridge = network_module::create_bridge();
         auto modern_client = legacy_bridge->create_client("bridge_client");
@@ -233,6 +240,9 @@ void test_cross_compatibility(TestResults& results) {
         } else {
             results.record_fail("Legacy bridge creates modern client", "Client is null");
         }
+#else
+        std::cout << "⚠️  Skipping legacy bridge test (BUILD_MESSAGING_BRIDGE=OFF)" << std::endl;
+#endif
 
     } catch (const std::exception& e) {
         results.record_fail("Cross-compatibility", e.what());
