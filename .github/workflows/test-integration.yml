@@ -78,12 +78,12 @@ jobs:
               -DBUILD_WITH_CONTAINER_SYSTEM=OFF \
               -DBUILD_MESSAGING_BRIDGE=OFF \
               -DBUILD_TESTS=ON \
-              -DBUILD_SAMPLES=ON \
+              -DBUILD_SAMPLES=OFF \
               -DENABLE_COVERAGE=OFF
 
     - name: Configure CMake (Unix)
       if: "!startsWith(matrix.os, 'windows')"
-      run: cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DBUILD_WITH_COMMON_SYSTEM=OFF -DBUILD_WITH_LOGGER_SYSTEM=OFF -DBUILD_WITH_THREAD_SYSTEM=OFF -DBUILD_WITH_CONTAINER_SYSTEM=OFF -DBUILD_MESSAGING_BRIDGE=OFF -DBUILD_TESTS=ON -DBUILD_SAMPLES=ON -DENABLE_COVERAGE=${{ matrix.build_type == 'Debug' && 'ON' || 'OFF' }}
+      run: cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DBUILD_WITH_COMMON_SYSTEM=OFF -DBUILD_WITH_LOGGER_SYSTEM=OFF -DBUILD_WITH_THREAD_SYSTEM=OFF -DBUILD_WITH_CONTAINER_SYSTEM=OFF -DBUILD_MESSAGING_BRIDGE=OFF -DBUILD_TESTS=ON -DBUILD_SAMPLES=OFF -DENABLE_COVERAGE=${{ matrix.build_type == 'Debug' && 'ON' || 'OFF' }}
 
     - name: Build (Windows)
       if: startsWith(matrix.os, 'windows')

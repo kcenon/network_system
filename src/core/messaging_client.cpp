@@ -150,11 +150,11 @@ namespace network_system::core
 					return;
 				}
 				// Attempt to connect to one of the resolved endpoints
-				// Create a raw ASIO socket
-				tcp::socket raw_socket(*io_context_);
+				// Create socket on heap to avoid dangling reference
+				auto raw_socket = std::make_shared<tcp::socket>(*io_context_);
 				asio::async_connect(
-					raw_socket, results,
-					[this, self, &raw_socket](std::error_code connect_ec,
+					*raw_socket, results,
+					[this, self, raw_socket](std::error_code connect_ec,
 											 const tcp::endpoint& endpoint)
 					{
 						if (connect_ec)
@@ -164,7 +164,7 @@ namespace network_system::core
 						}
 						// On success, wrap it in our tcp_socket
 						socket_ = std::make_shared<internal::tcp_socket>(
-							std::move(raw_socket));
+							std::move(*raw_socket));
 						on_connect(connect_ec);
 					});
 			});

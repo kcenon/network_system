@@ -92,14 +92,19 @@ namespace network_system::core
 		}
 		is_running_.store(false);
 
-		// Close the acceptor
-		if (acceptor_ && acceptor_->is_open())
+		// Step 1: Cancel and close the acceptor to stop accepting new connections
+		if (acceptor_)
 		{
 			asio::error_code ec;
-			acceptor_->close(ec);
+			// Cancel pending async_accept operations to prevent memory leaks
+			acceptor_->cancel(ec);
+			if (acceptor_->is_open())
+			{
+				acceptor_->close(ec);
+			}
 		}
 
-		// Stop all active sessions
+		// Step 2: Stop all active sessions
 		for (auto& sess : sessions_)
 		{
 			if (sess)
@@ -109,19 +114,24 @@ namespace network_system::core
 		}
 		sessions_.clear();
 
-		// Stop io_context
+		// Step 3: Stop io_context (this cancels all remaining pending operations)
 		if (io_context_)
 		{
 			io_context_->stop();
 		}
 
-		// Join the thread
+		// Step 4: Join the io_context thread
 		if (server_thread_ && server_thread_->joinable())
 		{
 			server_thread_->join();
 		}
 
-		// Signal the promise for wait_for_stop()
+		// Step 5: Release resources explicitly to ensure cleanup
+		acceptor_.reset();
+		server_thread_.reset();
+		io_context_.reset();
+
+		// Step 6: Signal the promise for wait_for_stop()
 		if (stop_promise_.has_value())
 		{
 			stop_promise_->set_value();

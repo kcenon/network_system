@@ -106,6 +106,16 @@ else()
 endif()
 
 ##################################################
+# Integration Tests
+##################################################
+
+# Add integration tests subdirectory if it exists
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/integration/CMakeLists.txt)
+    add_subdirectory(integration)
+    message(STATUS "Integration tests enabled")
+endif()
+
+##################################################
 # Test Data Setup
 ##################################################
 
