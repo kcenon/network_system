@@ -46,99 +46,171 @@ namespace network_system::core
 
 	messaging_server::~messaging_server() { stop_server(); }
 
-	auto messaging_server::start_server(unsigned short port) -> void
+	auto messaging_server::start_server(unsigned short port) -> VoidResult
 	{
-		// If already running, do nothing
+		// If already running, return error
 		if (is_running_.load())
 		{
-			return;
+			return error_void(
+				error_codes::network_system::server_already_running,
+				"Server is already running",
+				"messaging_server::start_server",
+				"Server ID: " + server_id_
+			);
 		}
-		is_running_.store(true);
 
-		// Create io_context and acceptor
-		io_context_ = std::make_unique<asio::io_context>();
-		acceptor_ = std::make_unique<tcp::acceptor>(
-			*io_context_, tcp::endpoint(tcp::v4(), port));
+		try
+		{
+			// Create io_context and acceptor
+			io_context_ = std::make_unique<asio::io_context>();
+			acceptor_ = std::make_unique<tcp::acceptor>(
+				*io_context_, tcp::endpoint(tcp::v4(), port));
 
-		// Prepare promise/future for wait_for_stop()
-		stop_promise_.emplace();
-		stop_future_ = stop_promise_->get_future();
+			is_running_.store(true);
 
-		// Begin accepting connections
-		do_accept();
+			// Prepare promise/future for wait_for_stop()
+			stop_promise_.emplace();
+			stop_future_ = stop_promise_->get_future();
 
-		// Start thread to run the io_context
-		server_thread_ = std::make_unique<std::thread>(
-			[this]()
+			// Begin accepting connections
+			do_accept();
+
+			// Start thread to run the io_context
+			server_thread_ = std::make_unique<std::thread>(
+				[this]()
+				{
+					try
+					{
+						io_context_->run();
+					}
+					catch (...)
+					{
+						// Optionally handle any uncaught exceptions
+					}
+				});
+
+			NETWORK_LOG_INFO("[messaging_server] Started listening on port " + std::to_string(port));
+			return ok();
+		}
+		catch (const std::system_error& e)
+		{
+			is_running_.store(false);
+
+			// Check for specific error codes (ASIO uses asio::error category)
+			if (e.code() == asio::error::address_in_use ||
+			    e.code() == std::errc::address_in_use)
 			{
-				try
-				{
-					io_context_->run();
-				}
-				catch (...)
-				{
-					// Optionally handle any uncaught exceptions
-				}
-			});
+				return error_void(
+					error_codes::network_system::bind_failed,
+					"Failed to bind to port: address already in use",
+					"messaging_server::start_server",
+					"Port: " + std::to_string(port)
+				);
+			}
+			else if (e.code() == asio::error::access_denied ||
+			         e.code() == std::errc::permission_denied)
+			{
+				return error_void(
+					error_codes::network_system::bind_failed,
+					"Failed to bind to port: permission denied",
+					"messaging_server::start_server",
+					"Port: " + std::to_string(port)
+				);
+			}
 
-		NETWORK_LOG_INFO("[messaging_server] Started listening on port " + std::to_string(port));
+			return error_void(
+				error_codes::common::internal_error,
+				"Failed to start server: " + std::string(e.what()),
+				"messaging_server::start_server",
+				"Port: " + std::to_string(port)
+			);
+		}
+		catch (const std::exception& e)
+		{
+			is_running_.store(false);
+			return error_void(
+				error_codes::common::internal_error,
+				"Failed to start server: " + std::string(e.what()),
+				"messaging_server::start_server",
+				"Port: " + std::to_string(port)
+			);
+		}
 	}
 
-	auto messaging_server::stop_server() -> void
+	auto messaging_server::stop_server() -> VoidResult
 	{
 		if (!is_running_.load())
 		{
-			return;
+			return error_void(
+				error_codes::network_system::server_not_started,
+				"Server is not running",
+				"messaging_server::stop_server",
+				"Server ID: " + server_id_
+			);
 		}
-		is_running_.store(false);
 
-		// Step 1: Cancel and close the acceptor to stop accepting new connections
-		if (acceptor_)
+		try
 		{
-			asio::error_code ec;
-			// Cancel pending async_accept operations to prevent memory leaks
-			acceptor_->cancel(ec);
-			if (acceptor_->is_open())
+			is_running_.store(false);
+
+			// Step 1: Cancel and close the acceptor to stop accepting new connections
+			if (acceptor_)
 			{
-				acceptor_->close(ec);
+				asio::error_code ec;
+				// Cancel pending async_accept operations to prevent memory leaks
+				acceptor_->cancel(ec);
+				if (acceptor_->is_open())
+				{
+					acceptor_->close(ec);
+				}
 			}
-		}
 
-		// Step 2: Stop all active sessions
-		for (auto& sess : sessions_)
-		{
-			if (sess)
+			// Step 2: Stop all active sessions
+			for (auto& sess : sessions_)
 			{
-				sess->stop_session();
+				if (sess)
+				{
+					sess->stop_session();
+				}
 			}
-		}
-		sessions_.clear();
+			sessions_.clear();
 
-		// Step 3: Stop io_context (this cancels all remaining pending operations)
-		if (io_context_)
+			// Step 3: Stop io_context (this cancels all remaining pending operations)
+			if (io_context_)
+			{
+				io_context_->stop();
+			}
+
+			// Step 4: Join the io_context thread
+			if (server_thread_ && server_thread_->joinable())
+			{
+				server_thread_->join();
+			}
+
+			// Step 5: Release resources explicitly to ensure cleanup
+			acceptor_.reset();
+			server_thread_.reset();
+			io_context_.reset();
+
+			// Step 6: Signal the promise for wait_for_stop()
+			if (stop_promise_.has_value())
+			{
+				stop_promise_->set_value();
+				stop_promise_.reset();
+			}
+
+			NETWORK_LOG_INFO("[messaging_server] Stopped.");
+			return ok();
+		}
+		catch (const std::exception& e)
 		{
-			io_context_->stop();
+			return error_void(
+				error_codes::common::internal_error,
+				"Failed to stop server: " + std::string(e.what()),
+				"messaging_server::stop_server",
+				"Server ID: " + server_id_
+			);
 		}
-
-		// Step 4: Join the io_context thread
-		if (server_thread_ && server_thread_->joinable())
-		{
-			server_thread_->join();
-		}
-
-		// Step 5: Release resources explicitly to ensure cleanup
-		acceptor_.reset();
-		server_thread_.reset();
-		io_context_.reset();
-
-		// Step 6: Signal the promise for wait_for_stop()
-		if (stop_promise_.has_value())
-		{
-			stop_promise_->set_value();
-			stop_promise_.reset();
-		}
-
-		NETWORK_LOG_INFO("[messaging_server] Stopped.");
 	}
 
 	auto messaging_server::wait_for_stop() -> void

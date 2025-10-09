@@ -40,6 +40,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <atomic>
 
 #include "network_system/compatibility.h"
+#include "network_system/utils/result_types.h"
 
 #ifdef BUILD_WITH_CONTAINER_SYSTEM
 #include <container.h>
@@ -49,6 +50,7 @@ using namespace container_module;
 #endif
 
 using namespace network_module;
+using namespace network_system;  // For error_codes and Result types
 using namespace std::chrono_literals;
 
 // Test fixture for network tests
@@ -93,31 +95,40 @@ TEST_F(NetworkTest, ServerConstruction) {
 
 TEST_F(NetworkTest, ServerStartStop) {
     auto server = std::make_shared<messaging_server>("test_server");
-    
+
     auto port = FindAvailablePort();
     ASSERT_NE(port, 0) << "No available port found";
-    
-    // Start server
-    EXPECT_NO_THROW(server->start_server(port));
-    
+
+    // Start server - should succeed
+    auto start_result = server->start_server(port);
+    EXPECT_TRUE(start_result.is_ok()) << "Server start should succeed: "
+                                       << (start_result.is_err() ? start_result.error().message : "");
+
     // Give it time to start
     std::this_thread::sleep_for(100ms);
-    
-    // Stop server
-    EXPECT_NO_THROW(server->stop_server());
+
+    // Stop server - should succeed
+    auto stop_result = server->stop_server();
+    EXPECT_TRUE(stop_result.is_ok()) << "Server stop should succeed: "
+                                      << (stop_result.is_err() ? stop_result.error().message : "");
 }
 
 TEST_F(NetworkTest, ServerMultipleStartStop) {
     auto server = std::make_shared<messaging_server>("test_server");
-    
+
     auto port = FindAvailablePort();
     ASSERT_NE(port, 0) << "No available port found";
-    
+
     // Multiple start/stop cycles
     for (int i = 0; i < 3; ++i) {
-        server->start_server(port);
+        auto start_result = server->start_server(port);
+        EXPECT_TRUE(start_result.is_ok()) << "Server start cycle " << i << " should succeed: "
+                                           << (start_result.is_err() ? start_result.error().message : "");
         std::this_thread::sleep_for(50ms);
-        server->stop_server();
+
+        auto stop_result = server->stop_server();
+        EXPECT_TRUE(stop_result.is_ok()) << "Server stop cycle " << i << " should succeed: "
+                                          << (stop_result.is_err() ? stop_result.error().message : "");
         std::this_thread::sleep_for(50ms);
     }
 }
@@ -128,18 +139,27 @@ TEST_F(NetworkTest, ServerPortAlreadyInUse) {
 
     auto server1 = std::make_shared<messaging_server>("server1");
 
-    // Start first server
-    server1->start_server(port);
+    // Start first server - should succeed
+    auto result1 = server1->start_server(port);
+    EXPECT_TRUE(result1.is_ok()) << "First server should start successfully: "
+                                  << (result1.is_err() ? result1.error().message : "");
     std::this_thread::sleep_for(100ms);  // Ensure server is fully started
 
-    // Second server on same port should throw system_error
+    // Second server on same port should return error
     auto server2 = std::make_shared<messaging_server>("server2");
-    EXPECT_THROW({
-        server2->start_server(port);
-    }, std::system_error);
+    auto result2 = server2->start_server(port);
+    EXPECT_TRUE(result2.is_err()) << "Second server should fail to start on same port";
+
+    if (result2.is_err()) {
+        EXPECT_EQ(result2.error().code, error_codes::network_system::bind_failed)
+            << "Should return bind_failed error code, got: " << result2.error().code;
+        EXPECT_FALSE(result2.error().message.empty())
+            << "Error message should not be empty";
+    }
 
     // Cleanup first server
-    server1->stop_server();
+    auto stop_result = server1->stop_server();
+    EXPECT_TRUE(stop_result.is_ok()) << "Server stop should succeed";
     std::this_thread::sleep_for(50ms);  // Allow port to be released
 }
 
@@ -154,16 +174,20 @@ TEST_F(NetworkTest, ClientConstruction) {
 
 TEST_F(NetworkTest, ClientConnectToNonExistentServer) {
     auto client = std::make_shared<messaging_client>("test_client");
-    
+
     // Start client connecting to non-existent server
-    // This should not throw, but connection will fail
-    EXPECT_NO_THROW(client->start_client("127.0.0.1", 59999)); // Unlikely port
-    
-    // Give it a moment to try connecting
+    // Should succeed in starting (async operation), but connection will fail
+    auto start_result = client->start_client("127.0.0.1", 59999); // Unlikely port
+    EXPECT_TRUE(start_result.is_ok()) << "Client start should succeed (connection is async): "
+                                       << (start_result.is_err() ? start_result.error().message : "");
+
+    // Give it a moment to try connecting (will fail in background)
     std::this_thread::sleep_for(100ms);
-    
-    // Stop the client
-    client->stop_client();
+
+    // Stop the client - should succeed
+    auto stop_result = client->stop_client();
+    EXPECT_TRUE(stop_result.is_ok()) << "Client stop should succeed: "
+                                      << (stop_result.is_err() ? stop_result.error().message : "");
 }
 
 // ============================================================================
@@ -173,56 +197,68 @@ TEST_F(NetworkTest, ClientConnectToNonExistentServer) {
 TEST_F(NetworkTest, ClientServerBasicConnection) {
     auto port = FindAvailablePort();
     ASSERT_NE(port, 0) << "No available port found";
-    
+
     // Start server
     auto server = std::make_shared<messaging_server>("test_server");
-    server->start_server(port);
-    
+    auto server_start = server->start_server(port);
+    EXPECT_TRUE(server_start.is_ok()) << "Server should start successfully: "
+                                       << (server_start.is_err() ? server_start.error().message : "");
+
     // Give server time to start
     std::this_thread::sleep_for(100ms);
-    
+
     // Create and connect client
     auto client = std::make_shared<messaging_client>("test_client");
-    client->start_client("127.0.0.1", port);
-    
+    auto client_start = client->start_client("127.0.0.1", port);
+    EXPECT_TRUE(client_start.is_ok()) << "Client should start successfully: "
+                                       << (client_start.is_err() ? client_start.error().message : "");
+
     // Give it time to connect
     std::this_thread::sleep_for(100ms);
-    
-    client->stop_client();
-    server->stop_server();
+
+    auto client_stop = client->stop_client();
+    EXPECT_TRUE(client_stop.is_ok()) << "Client stop should succeed";
+
+    auto server_stop = server->stop_server();
+    EXPECT_TRUE(server_stop.is_ok()) << "Server stop should succeed";
 }
 
 TEST_F(NetworkTest, MultipleClientsConnection) {
     auto port = FindAvailablePort();
     ASSERT_NE(port, 0) << "No available port found";
-    
+
     // Start server
     auto server = std::make_shared<messaging_server>("test_server");
-    server->start_server(port);
-    
+    auto server_start = server->start_server(port);
+    EXPECT_TRUE(server_start.is_ok()) << "Server should start successfully";
+
     // Give server time to start
     std::this_thread::sleep_for(100ms);
-    
+
     // Connect multiple clients
     const int client_count = 5;
     std::vector<std::shared_ptr<messaging_client>> clients;
-    
+
     for (int i = 0; i < client_count; ++i) {
         auto client = std::make_shared<messaging_client>(
             "client_" + std::to_string(i));
-        client->start_client("127.0.0.1", port);
+        auto client_start = client->start_client("127.0.0.1", port);
+        EXPECT_TRUE(client_start.is_ok()) << "Client " << i << " should start successfully: "
+                                           << (client_start.is_err() ? client_start.error().message : "");
         clients.push_back(client);
     }
-    
+
     // Let them all connect
     std::this_thread::sleep_for(200ms);
-    
+
     // Disconnect all clients
-    for (auto& client : clients) {
-        client->stop_client();
+    for (size_t i = 0; i < clients.size(); ++i) {
+        auto client_stop = clients[i]->stop_client();
+        EXPECT_TRUE(client_stop.is_ok()) << "Client " << i << " stop should succeed";
     }
-    
-    server->stop_server();
+
+    auto server_stop = server->stop_server();
+    EXPECT_TRUE(server_stop.is_ok()) << "Server stop should succeed";
 }
 
 // ============================================================================
@@ -233,90 +269,112 @@ TEST_F(NetworkTest, MultipleClientsConnection) {
 TEST_F(NetworkTest, BasicMessageTransfer) {
     auto port = FindAvailablePort();
     ASSERT_NE(port, 0) << "No available port found";
-    
+
     // Start server
     auto server = std::make_shared<messaging_server>("test_server");
-    server->start_server(port);
-    
+    auto server_start = server->start_server(port);
+    EXPECT_TRUE(server_start.is_ok()) << "Server should start successfully: "
+                                       << (server_start.is_err() ? server_start.error().message : "");
+
     // Give server time to start
     std::this_thread::sleep_for(100ms);
-    
+
     // Create client
     auto client = std::make_shared<messaging_client>("test_client");
-    client->start_client("127.0.0.1", port);
-    
+    auto client_start = client->start_client("127.0.0.1", port);
+    EXPECT_TRUE(client_start.is_ok()) << "Client should start successfully: "
+                                       << (client_start.is_err() ? client_start.error().message : "");
+
     // Give time to connect
     std::this_thread::sleep_for(100ms);
-    
+
     // Create a message
     auto message = std::make_shared<value_container>();
     message->add(std::make_shared<string_value>("type", "test_message"));
     message->add(std::make_shared<string_value>("content", "Hello, Server!"));
     message->add(std::make_shared<int_value>("sequence", 1));
-    
+
     // Serialize message to bytes
     auto serialized = message->serialize_array();
-    
+
     // Send message
-    EXPECT_NO_THROW(client->send_packet(serialized));
-    
+    auto send_result = client->send_packet(serialized);
+    EXPECT_TRUE(send_result.is_ok()) << "Message send should succeed: "
+                                      << (send_result.is_err() ? send_result.error().message : "");
+
     // Give time for message to be sent
     std::this_thread::sleep_for(100ms);
-    
-    client->stop_client();
-    server->stop_server();
+
+    auto client_stop = client->stop_client();
+    EXPECT_TRUE(client_stop.is_ok()) << "Client stop should succeed";
+
+    auto server_stop = server->stop_server();
+    EXPECT_TRUE(server_stop.is_ok()) << "Server stop should succeed";
 }
 
 TEST_F(NetworkTest, LargeMessageTransfer) {
     auto port = FindAvailablePort();
     ASSERT_NE(port, 0) << "No available port found";
-    
+
     // Start server
     auto server = std::make_shared<messaging_server>("test_server");
-    server->start_server(port);
-    
+    auto server_start = server->start_server(port);
+    EXPECT_TRUE(server_start.is_ok()) << "Server should start successfully: "
+                                       << (server_start.is_err() ? server_start.error().message : "");
+
     std::this_thread::sleep_for(100ms);
-    
+
     // Create client
     auto client = std::make_shared<messaging_client>("test_client");
-    client->start_client("127.0.0.1", port);
-    
+    auto client_start = client->start_client("127.0.0.1", port);
+    EXPECT_TRUE(client_start.is_ok()) << "Client should start successfully: "
+                                       << (client_start.is_err() ? client_start.error().message : "");
+
     std::this_thread::sleep_for(100ms);
-    
+
     // Create a large message
     auto message = std::make_shared<value_container>();
     message->add(std::make_shared<string_value>("type", "large_message"));
-    
+
     // Add 1MB of data
     std::string large_data(1024 * 1024, 'X');
     message->add(std::make_shared<string_value>("data", large_data));
-    
+
     // Serialize and send
     auto serialized = message->serialize_array();
-    EXPECT_NO_THROW(client->send_packet(serialized));
-    
+    auto send_result = client->send_packet(serialized);
+    EXPECT_TRUE(send_result.is_ok()) << "Large message send should succeed: "
+                                      << (send_result.is_err() ? send_result.error().message : "");
+
     std::this_thread::sleep_for(200ms);
-    
-    client->stop_client();
-    server->stop_server();
+
+    auto client_stop = client->stop_client();
+    EXPECT_TRUE(client_stop.is_ok()) << "Client stop should succeed";
+
+    auto server_stop = server->stop_server();
+    EXPECT_TRUE(server_stop.is_ok()) << "Server stop should succeed";
 }
 
 TEST_F(NetworkTest, MultipleMessageTransfer) {
     auto port = FindAvailablePort();
     ASSERT_NE(port, 0) << "No available port found";
-    
+
     // Start server
     auto server = std::make_shared<messaging_server>("test_server");
-    server->start_server(port);
-    
+    auto server_start = server->start_server(port);
+    EXPECT_TRUE(server_start.is_ok()) << "Server should start successfully: "
+                                       << (server_start.is_err() ? server_start.error().message : "");
+
     std::this_thread::sleep_for(100ms);
-    
+
     // Create client
     auto client = std::make_shared<messaging_client>("test_client");
-    client->start_client("127.0.0.1", port);
-    
+    auto client_start = client->start_client("127.0.0.1", port);
+    EXPECT_TRUE(client_start.is_ok()) << "Client should start successfully: "
+                                       << (client_start.is_err() ? client_start.error().message : "");
+
     std::this_thread::sleep_for(100ms);
-    
+
     // Send multiple messages
     const int message_count = 10;
     for (int i = 0; i < message_count; ++i) {
@@ -324,17 +382,22 @@ TEST_F(NetworkTest, MultipleMessageTransfer) {
         message->add(std::make_shared<string_value>("type", "sequence_message"));
         message->add(std::make_shared<int_value>("sequence", i));
         message->add(std::make_shared<string_value>("data", "Message " + std::to_string(i)));
-        
+
         auto serialized = message->serialize_array();
-        client->send_packet(serialized);
-        
+        auto send_result = client->send_packet(serialized);
+        EXPECT_TRUE(send_result.is_ok()) << "Message " << i << " send should succeed: "
+                                          << (send_result.is_err() ? send_result.error().message : "");
+
         std::this_thread::sleep_for(10ms);
     }
-    
+
     std::this_thread::sleep_for(100ms);
-    
-    client->stop_client();
-    server->stop_server();
+
+    auto client_stop = client->stop_client();
+    EXPECT_TRUE(client_stop.is_ok()) << "Client stop should succeed";
+
+    auto server_stop = server->stop_server();
+    EXPECT_TRUE(server_stop.is_ok()) << "Server stop should succeed";
 }
 #endif // BUILD_WITH_CONTAINER_SYSTEM
 
@@ -361,25 +424,29 @@ TEST(NetworkStressTest, RapidConnectionDisconnection) {
         }
         return 0;
     };
-    
+
     auto port = findPort();
     ASSERT_NE(port, 0) << "No available port found";
-    
+
     auto server = std::make_shared<messaging_server>("stress_server");
-    server->start_server(port);
-    
+    auto server_start = server->start_server(port);
+    EXPECT_TRUE(server_start.is_ok()) << "Server should start successfully";
+
     std::this_thread::sleep_for(100ms);
-    
+
     // Rapid connect/disconnect cycles
     const int cycles = 10;
     for (int i = 0; i < cycles; ++i) {
         auto client = std::make_shared<messaging_client>("rapid_client_" + std::to_string(i));
-        client->start_client("127.0.0.1", port);
+        auto client_start = client->start_client("127.0.0.1", port);
+        EXPECT_TRUE(client_start.is_ok()) << "Client " << i << " should start successfully";
         std::this_thread::sleep_for(20ms);
-        client->stop_client();
+        auto client_stop = client->stop_client();
+        EXPECT_TRUE(client_stop.is_ok()) << "Client " << i << " should stop successfully";
     }
-    
-    server->stop_server();
+
+    auto server_stop = server->stop_server();
+    EXPECT_TRUE(server_stop.is_ok()) << "Server should stop successfully";
 }
 
 TEST(NetworkStressTest, ConcurrentClients) {
@@ -401,26 +468,28 @@ TEST(NetworkStressTest, ConcurrentClients) {
         }
         return 0;
     };
-    
+
     auto port = findPort();
     ASSERT_NE(port, 0) << "No available port found";
-    
+
     auto server = std::make_shared<messaging_server>("concurrent_server");
-    server->start_server(port);
-    
+    auto server_start = server->start_server(port);
+    EXPECT_TRUE(server_start.is_ok()) << "Server should start successfully";
+
     std::this_thread::sleep_for(100ms);
-    
+
     const int num_threads = 5;
     const int clients_per_thread = 2;
     std::vector<std::thread> threads;
-    
+
     for (int t = 0; t < num_threads; ++t) {
         threads.emplace_back([port, t, clients_per_thread]() {
             for (int c = 0; c < clients_per_thread; ++c) {
                 auto client = std::make_shared<messaging_client>(
                     "thread_" + std::to_string(t) + "_client_" + std::to_string(c));
-                
-                client->start_client("127.0.0.1", port);
+
+                auto client_start = client->start_client("127.0.0.1", port);
+                EXPECT_TRUE(client_start.is_ok()) << "Client should start successfully";
                 std::this_thread::sleep_for(50ms);
 
 #ifdef BUILD_WITH_CONTAINER_SYSTEM
@@ -430,20 +499,23 @@ TEST(NetworkStressTest, ConcurrentClients) {
                 message->add(std::make_shared<string_value>("client", std::to_string(c)));
 
                 auto serialized = message->serialize_array();
-                client->send_packet(serialized);
+                auto send_result = client->send_packet(serialized);
+                EXPECT_TRUE(send_result.is_ok()) << "Message send should succeed";
 #endif
 
                 std::this_thread::sleep_for(50ms);
-                client->stop_client();
+                auto client_stop = client->stop_client();
+                EXPECT_TRUE(client_stop.is_ok()) << "Client stop should succeed";
             }
         });
     }
-    
+
     for (auto& t : threads) {
         t.join();
     }
-    
-    server->stop_server();
+
+    auto server_stop = server->stop_server();
+    EXPECT_TRUE(server_stop.is_ok()) << "Server should stop successfully";
 }
 
 // ============================================================================
@@ -460,8 +532,14 @@ TEST_F(NetworkTest, SendWithoutConnection) {
 
     auto serialized = message->serialize_array();
 
-    // Send should not crash when not connected
-    EXPECT_NO_THROW(client->send_packet(serialized));
+    // Send should return error when not connected
+    auto send_result = client->send_packet(serialized);
+    EXPECT_TRUE(send_result.is_err()) << "Send without connection should return error";
+
+    if (send_result.is_err()) {
+        EXPECT_EQ(send_result.error().code, error_codes::network_system::connection_closed)
+            << "Should return connection_closed error code";
+    }
 #else
     // Without container_system, just verify client can be created
     EXPECT_NE(client, nullptr);
@@ -471,30 +549,39 @@ TEST_F(NetworkTest, SendWithoutConnection) {
 TEST_F(NetworkTest, ServerStopWhileClientsConnected) {
     auto port = FindAvailablePort();
     ASSERT_NE(port, 0) << "No available port found";
-    
+
     auto server = std::make_shared<messaging_server>("stopping_server");
-    server->start_server(port);
-    
+    auto server_start = server->start_server(port);
+    EXPECT_TRUE(server_start.is_ok()) << "Server should start successfully";
+
     std::this_thread::sleep_for(100ms);
-    
+
     // Connect clients
     std::vector<std::shared_ptr<messaging_client>> clients;
     for (int i = 0; i < 3; ++i) {
         auto client = std::make_shared<messaging_client>("client_" + std::to_string(i));
-        client->start_client("127.0.0.1", port);
+        auto client_start = client->start_client("127.0.0.1", port);
+        EXPECT_TRUE(client_start.is_ok()) << "Client " << i << " should start successfully";
         clients.push_back(client);
     }
-    
+
     std::this_thread::sleep_for(100ms);
-    
-    // Stop server while clients are connected
-    server->stop_server();
-    
+
+    // Stop server while clients are connected - should still succeed
+    auto server_stop = server->stop_server();
+    EXPECT_TRUE(server_stop.is_ok()) << "Server should stop successfully even with connected clients";
+
     std::this_thread::sleep_for(100ms);
-    
-    // Stop clients
-    for (auto& client : clients) {
-        client->stop_client();
+
+    // Stop clients - may succeed or fail depending on connection state
+    for (size_t i = 0; i < clients.size(); ++i) {
+        auto client_stop = clients[i]->stop_client();
+        // Client stop might fail if connection was already closed by server
+        // but we don't strictly require it to succeed in this test
+        if (client_stop.is_err()) {
+            // Log but don't fail the test - this is expected behavior
+            EXPECT_NE(client_stop.error().message, "") << "Client " << i << " stop returned error (expected)";
+        }
     }
 }
 

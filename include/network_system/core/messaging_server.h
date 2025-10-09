@@ -42,6 +42,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <asio.hpp>
 
+#include "network_system/utils/result_types.h"
+
 // Optional monitoring support via common_system
 #ifdef BUILD_WITH_COMMON_SYSTEM
 	#include <kcenon/common/interfaces/monitoring_interface.h>
@@ -119,19 +121,35 @@ namespace network_system::core {
 		 * connections.
 		 *
 		 * \param port The TCP port to bind and listen on (e.g., 5555).
+		 * \return Result<void> - Success if server started, or error with code:
+		 *         - error_codes::network_system::server_already_running if already running
+		 *         - error_codes::network_system::bind_failed if port binding failed
+		 *         - error_codes::common::internal_error for other failures
 		 *
 		 * #### Behavior
-		 * - If the server is already running (\c is_running_ is \c true), this
-		 * call does nothing.
+		 * - If the server is already running (\c is_running_ is \c true), returns error.
 		 * - Otherwise, an \c io_context and \c acceptor are created, \c
 		 * do_accept() is invoked, and a new thread is spawned to run \c
 		 * io_context->run().
+		 *
+		 * #### Example
+		 * \code
+		 * auto result = server->start_server(5555);
+		 * if (!result) {
+		 *     std::cerr << "Server start failed: " << result.error().message << "\n";
+		 *     return -1;
+		 * }
+		 * \endcode
 		 */
-		auto start_server(unsigned short port) -> void;
+		auto start_server(unsigned short port) -> VoidResult;
 
 		/*!
 		 * \brief Stops the server, closing the acceptor and all active
 		 * sessions, then stops the \c io_context and joins the internal thread.
+		 *
+		 * \return Result<void> - Success if server stopped, or error with code:
+		 *         - error_codes::network_system::server_not_started if not running
+		 *         - error_codes::common::internal_error for other failures
 		 *
 		 * #### Steps:
 		 * 1. Set \c is_running_ to \c false.
@@ -142,9 +160,15 @@ namespace network_system::core {
 		 * 6. Fulfill the \c stop_promise_ so that \c wait_for_stop() can
 		 * return.
 		 *
-		 * \note If the server is not running, this function does nothing.
+		 * #### Example
+		 * \code
+		 * auto result = server->stop_server();
+		 * if (!result) {
+		 *     std::cerr << "Server stop failed: " << result.error().message << "\n";
+		 * }
+		 * \endcode
 		 */
-		auto stop_server() -> void;
+		auto stop_server() -> VoidResult;
 
 		/*!
 		 * \brief Blocks until \c stop_server() is called, allowing the caller
