@@ -1,0 +1,185 @@
+name: Integration Tests
+
+on:
+  push:
+    branches: [ main, develop, feat/* ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+jobs:
+  integration-tests:
+    name: ${{ matrix.os }} - ${{ matrix.build_type }}
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        build_type: [Debug, Release]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install dependencies (Ubuntu)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            cmake \
+            ninja-build \
+            libgtest-dev \
+            libboost-all-dev \
+            lcov
+
+      - name: Install dependencies (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          brew install \
+            cmake \
+            ninja \
+            googletest \
+            boost \
+            lcov
+
+      - name: Configure CMake
+        run: |
+          cmake -B build \
+            -G Ninja \
+            -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+            -DBUILD_TESTS=ON \
+            -DNETWORK_BUILD_INTEGRATION_TESTS=ON \
+            -DENABLE_COVERAGE=${{ matrix.build_type == 'Debug' && 'ON' || 'OFF' }} \
+            -DBUILD_SAMPLES=OFF \
+            -DNETWORK_BUILD_BENCHMARKS=OFF
+
+      - name: Build
+        run: cmake --build build --parallel
+
+      - name: Run Integration Tests
+        working-directory: build
+        run: |
+          ctest --output-on-failure -R "ConnectionLifecycle|ProtocolIntegration|NetworkPerformance|ErrorHandling"
+
+      - name: Generate Coverage Report (Debug only)
+        if: matrix.build_type == 'Debug' && runner.os == 'Linux'
+        working-directory: build
+        run: |
+          # Create coverage directory
+          mkdir -p coverage
+
+          # Capture coverage data
+          lcov --capture \
+            --directory . \
+            --output-file coverage/coverage.info \
+            --ignore-errors gcov,source,unused \
+            --rc lcov_branch_coverage=1
+
+          # Remove system and test files
+          lcov --remove coverage/coverage.info \
+            '/usr/*' \
+            '*/tests/*' \
+            '*/integration_tests/*' \
+            '*/test/*' \
+            '*/gtest/*' \
+            '*/googletest/*' \
+            --output-file coverage/coverage_filtered.info \
+            --ignore-errors unused \
+            --rc lcov_branch_coverage=1
+
+          # Generate HTML report
+          genhtml coverage/coverage_filtered.info \
+            --output-directory coverage/html \
+            --ignore-errors source \
+            --rc lcov_branch_coverage=1
+
+          # Print coverage summary
+          lcov --list coverage/coverage_filtered.info \
+            --ignore-errors unused \
+            --rc lcov_branch_coverage=1
+
+      - name: Upload Coverage Report
+        if: matrix.build_type == 'Debug' && runner.os == 'Linux'
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report-${{ matrix.os }}-${{ matrix.build_type }}
+          path: build/coverage/html
+          retention-days: 30
+
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ matrix.os }}-${{ matrix.build_type }}
+          path: |
+            build/Testing/Temporary/LastTest.log
+          retention-days: 7
+
+  performance-validation:
+    name: Performance Baseline Validation
+    runs-on: ubuntu-latest
+    needs: integration-tests
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            cmake \
+            ninja-build \
+            libgtest-dev \
+            libboost-all-dev
+
+      - name: Configure CMake
+        run: |
+          cmake -B build \
+            -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DBUILD_TESTS=ON \
+            -DNETWORK_BUILD_INTEGRATION_TESTS=ON \
+            -DBUILD_SAMPLES=OFF
+
+      - name: Build
+        run: cmake --build build --parallel
+
+      - name: Run Performance Tests
+        working-directory: build
+        run: |
+          ctest --output-on-failure -R "NetworkPerformance" -V
+
+      - name: Validate Performance Baselines
+        run: |
+          echo "Performance baseline validation"
+          echo "Expected baselines:"
+          echo "  - Connection establishment: < 100ms"
+          echo "  - Message latency P50: < 10ms"
+          echo "  - Message latency P95: < 50ms"
+          echo "  - Throughput: > 1000 msg/s"
+          echo "  - Concurrent connections: > 20"
+
+  test-summary:
+    name: Test Summary
+    runs-on: ubuntu-latest
+    needs: [integration-tests, performance-validation]
+    if: always()
+
+    steps:
+      - name: Summary
+        run: |
+          echo "Integration Test Suite Complete"
+          echo "================================"
+          echo "Test Suites:"
+          echo "  - Connection Lifecycle Tests"
+          echo "  - Protocol Integration Tests"
+          echo "  - Network Performance Tests"
+          echo "  - Error Handling Tests"
+          echo ""
+          echo "Coverage reports available in artifacts"

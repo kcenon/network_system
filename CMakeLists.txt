@@ -39,6 +39,7 @@ option(BUILD_WITH_COMMON_SYSTEM "Build with common_system integration" ON)
 option(BUILD_MESSAGING_BRIDGE "Build messaging_system bridge" ON)
 option(ENABLE_COVERAGE "Enable code coverage" OFF)
 option(NETWORK_BUILD_BENCHMARKS "Build network system benchmarks" OFF)
+option(NETWORK_BUILD_INTEGRATION_TESTS "Build network system integration tests" ON)
 
 ##################################################
 # Global Configuration
@@ -187,6 +188,12 @@ if(BUILD_TESTS)
         add_subdirectory(tests)
         message(STATUS "Network system unit tests and thread safety tests enabled")
     endif()
+
+    # Add integration tests subdirectory if enabled
+    if(NETWORK_BUILD_INTEGRATION_TESTS AND EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/integration_tests/CMakeLists.txt)
+        add_subdirectory(integration_tests)
+        message(STATUS "Network system integration tests enabled")
+    endif()
 endif()
 
 if(BUILD_SAMPLES)
@@ -233,6 +240,7 @@ message(STATUS "  Build type: ${CMAKE_BUILD_TYPE}")
 message(STATUS "  C++ standard: ${CMAKE_CXX_STANDARD}")
 message(STATUS "  Shared libs: ${BUILD_SHARED_LIBS}")
 message(STATUS "  Tests: ${BUILD_TESTS}")
+message(STATUS "  Integration tests: ${NETWORK_BUILD_INTEGRATION_TESTS}")
 message(STATUS "  Samples: ${BUILD_SAMPLES}")
 message(STATUS "  container_system: ${BUILD_WITH_CONTAINER_SYSTEM}")
 message(STATUS "  thread_system: ${BUILD_WITH_THREAD_SYSTEM}")
