@@ -1,0 +1,27 @@
+var searchData=
+[
+  ['a_0',['Resource Management (RAII - Grade A)',['../md_README.html#autotoc_md155',1,'']]],
+  ['acceptance_20criteria_1',['Acceptance Criteria',['../md_BASELINE.html#autotoc_md18',1,'']]],
+  ['achievements_2',['🏆 Key Achievements',['../md_README.html#autotoc_md130',1,'']]],
+  ['acknowledgments_3',['🙏 Acknowledgments',['../md_README.html#autotoc_md144',1,'']]],
+  ['advantages_20benefits_4',['Core Advantages &amp; Benefits',['../md_README.html#autotoc_md85',1,'']]],
+  ['allocation_5',['1. Dynamic Port Allocation',['../md_IMPLEMENTATION__SUMMARY.html#autotoc_md37',1,'']]],
+  ['analysis_6',['Statistical Analysis',['../md_IMPLEMENTATION__SUMMARY.html#autotoc_md48',1,'']]],
+  ['and_20requirements_7',['Dependencies and Requirements',['../index.html#dependencies_sec',1,'']]],
+  ['and_20support_8',['Contact and Support',['../index.html#contact_sec',1,'']]],
+  ['api_20compatibility_9',['Legacy API Compatibility',['../md_README.html#autotoc_md113',1,'']]],
+  ['api_20documentation_10',['📚 API Documentation',['../md_README.html#autotoc_md115',1,'']]],
+  ['api_20examples_11',['📝 API Examples',['../md_README.html#autotoc_md111',1,'']]],
+  ['api_20migration_20complete_20✅_12',['Phase 3: Error Handling (75-80% Complete) - Core API Migration Complete ✅',['../md_README.html#autotoc_md158',1,'']]],
+  ['api_20migration_20complete_2075_2080_20complete_13',['Error Handling (Core API Migration Complete - 75-80% Complete)',['../md_README.html#autotoc_md156',1,'']]],
+  ['api_20patterns_20used_14',['API Patterns Used',['../md_IMPLEMENTATION__SUMMARY.html#autotoc_md42',1,'']]],
+  ['api_20reference_15',['Quick API Reference',['../md_README.html#autotoc_md116',1,'']]],
+  ['api_20usage_16',['Modern API Usage',['../md_README.html#autotoc_md112',1,'']]],
+  ['applications_20strong_17',['🎯 &lt;strong&gt;Ideal Applications&lt;/strong&gt;',['../md_README.html#autotoc_md92',1,'']]],
+  ['architecture_18',['architecture',['../md_README.html#autotoc_md114',1,'🏗️ Architecture'],['../md_README.html#autotoc_md98',1,'🛠️ Technology Stack &amp; Architecture'],['../md_README.html#autotoc_md82',1,'Integration Architecture'],['../md_README.html#autotoc_md152',1,'Production Quality &amp; Architecture']]],
+  ['architecture_20design_19',['Architecture Design',['../md_README.html#autotoc_md100',1,'']]],
+  ['architecture_20improvement_20phases_20',['Architecture Improvement Phases',['../md_README.html#autotoc_md157',1,'']]],
+  ['architecture_20overview_21',['Architecture Overview',['../index.html#architecture_sec',1,'']]],
+  ['async_20operation_20handling_22',['3. Async Operation Handling',['../md_IMPLEMENTATION__SUMMARY.html#autotoc_md39',1,'']]],
+  ['asynchronous_20operations_23',['Asynchronous Operations',['../index.html#feat_async',1,'']]]
+];
