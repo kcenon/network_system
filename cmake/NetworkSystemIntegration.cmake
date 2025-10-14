@@ -22,12 +22,16 @@ function(setup_asio_integration target)
         endif()
         target_compile_definitions(${target} PRIVATE USE_BOOST_ASIO BOOST_ASIO_STANDALONE)
     elseif(ASIO_INCLUDE_DIR)
+        # Always add ASIO include directory, even if it's a system path
+        # This ensures compatibility across different CMake versions and platforms
         target_include_directories(${target}
             PRIVATE
                 $<BUILD_INTERFACE:${ASIO_INCLUDE_DIR}>
         )
         target_compile_definitions(${target} PRIVATE ASIO_STANDALONE ASIO_NO_DEPRECATED)
-        message(STATUS "Configured ${target} with standalone ASIO")
+        message(STATUS "Configured ${target} with standalone ASIO at: ${ASIO_INCLUDE_DIR}")
+    else()
+        message(WARNING "${target}: ASIO not found - this target may fail to compile")
     endif()
 
     # Windows-specific definitions
