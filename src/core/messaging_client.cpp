@@ -85,6 +85,10 @@ namespace network_system::core
 			is_connected_.store(false);
 
 			io_context_ = std::make_unique<asio::io_context>();
+			// Create work guard to keep io_context running
+			work_guard_ = std::make_unique<asio::executor_work_guard<asio::io_context::executor_type>>(
+				asio::make_work_guard(*io_context_)
+			);
 			// For wait_for_stop()
 			stop_promise_.emplace();
 			stop_future_ = stop_promise_->get_future();
@@ -143,6 +147,11 @@ namespace network_system::core
 			{
 				socket_->socket().close();
 			}
+			// Release work guard to allow io_context to finish
+			if (work_guard_)
+			{
+				work_guard_.reset();
+			}
 			// Stop io_context
 			if (io_context_)
 			{
@@ -186,19 +195,24 @@ namespace network_system::core
 									  unsigned short port) -> void
 	{
 		// Use resolver to get endpoints
-		tcp::resolver resolver(*io_context_);
+		// Create resolver on heap to keep it alive during async operation
+		auto resolver = std::make_shared<tcp::resolver>(*io_context_);
 		auto self = shared_from_this();
 
-		resolver.async_resolve(
+		NETWORK_LOG_INFO("[messaging_client] Starting async resolve for " + std::string(host) + ":" + std::to_string(port));
+
+		resolver->async_resolve(
 			std::string(host), std::to_string(port),
-			[this, self](std::error_code ec,
+			[this, self, resolver](std::error_code ec,
 						   tcp::resolver::results_type results)
 			{
+				NETWORK_LOG_INFO("[messaging_client] Resolve callback invoked");
 				if (ec)
 				{
 					NETWORK_LOG_ERROR("[messaging_client] Resolve error: " + ec.message());
 					return;
 				}
+				NETWORK_LOG_INFO("[messaging_client] Resolve successful, starting async connect");
 				// Attempt to connect to one of the resolved endpoints
 				// Create socket on heap to avoid dangling reference
 				auto raw_socket = std::make_shared<tcp::socket>(*io_context_);
@@ -207,11 +221,13 @@ namespace network_system::core
 					[this, self, raw_socket](std::error_code connect_ec,
 											 const tcp::endpoint& endpoint)
 					{
+						NETWORK_LOG_INFO("[messaging_client] Connect callback invoked");
 						if (connect_ec)
 						{
 							NETWORK_LOG_ERROR("[messaging_client] Connect error: " + connect_ec.message());
 							return;
 						}
+						NETWORK_LOG_INFO("[messaging_client] Connect successful, calling on_connect");
 						// On success, wrap it in our tcp_socket
 						socket_ = std::make_shared<internal::tcp_socket>(
 							std::move(*raw_socket));

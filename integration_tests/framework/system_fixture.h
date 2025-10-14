@@ -88,7 +88,7 @@ protected:
      */
     bool StartServer() {
         auto result = server_->start_server(test_port_);
-        if (!result) {
+        if (!result.is_ok()) {
             return false;
         }
 
@@ -112,7 +112,7 @@ protected:
      */
     bool ConnectClient() {
         auto result = client_->start_client("localhost", test_port_);
-        if (!result) {
+        if (!result.is_ok()) {
             return false;
         }
 
@@ -159,12 +159,45 @@ protected:
 };
 
 /**
- * @brief Fixture for multiple concurrent connections
+ * @brief Fixture for performance testing
  */
-class MultiConnectionFixture : public NetworkSystemFixture {
+class PerformanceFixture : public NetworkSystemFixture {
 protected:
     void SetUp() override {
         NetworkSystemFixture::SetUp();
+    }
+
+    /**
+     * @brief Measure operation duration
+     * @param operation Function to measure
+     * @return Duration in milliseconds
+     */
+    template<typename F>
+    double MeasureDuration(F&& operation) {
+        auto start = std::chrono::high_resolution_clock::now();
+        operation();
+        auto end = std::chrono::high_resolution_clock::now();
+        return std::chrono::duration<double, std::milli>(end - start).count();
+    }
+
+    /**
+     * @brief Calculate statistics from measurements
+     * @param measurements Vector of measurement values
+     * @return Statistics (min, max, mean, p50, p95, p99)
+     */
+    test_helpers::Statistics CalculateStats(const std::vector<double>& measurements) {
+        return test_helpers::calculate_statistics(measurements);
+    }
+};
+
+/**
+ * @brief Fixture for multiple concurrent connections
+ * Inherits from PerformanceFixture to allow performance measurements
+ */
+class MultiConnectionFixture : public PerformanceFixture {
+protected:
+    void SetUp() override {
+        PerformanceFixture::SetUp();
     }
 
     void TearDown() override {
@@ -200,7 +233,7 @@ protected:
         size_t connected = 0;
         for (auto& client : clients_) {
             auto result = client->start_client("localhost", test_port_);
-            if (result) {
+            if (result.is_ok()) {
                 if (test_helpers::wait_for_connection(client, std::chrono::seconds(5))) {
                     ++connected;
                 }
@@ -211,38 +244,6 @@ protected:
 
 protected:
     std::vector<std::shared_ptr<core::messaging_client>> clients_;
-};
-
-/**
- * @brief Fixture for performance testing
- */
-class PerformanceFixture : public NetworkSystemFixture {
-protected:
-    void SetUp() override {
-        NetworkSystemFixture::SetUp();
-    }
-
-    /**
-     * @brief Measure operation duration
-     * @param operation Function to measure
-     * @return Duration in milliseconds
-     */
-    template<typename F>
-    double MeasureDuration(F&& operation) {
-        auto start = std::chrono::high_resolution_clock::now();
-        operation();
-        auto end = std::chrono::high_resolution_clock::now();
-        return std::chrono::duration<double, std::milli>(end - start).count();
-    }
-
-    /**
-     * @brief Calculate statistics from measurements
-     * @param measurements Vector of measurement values
-     * @return Statistics (min, max, mean, p50, p95, p99)
-     */
-    test_helpers::Statistics CalculateStats(const std::vector<double>& measurements) {
-        return test_helpers::calculate_statistics(measurements);
-    }
 };
 
 } // namespace network_system::integration_tests

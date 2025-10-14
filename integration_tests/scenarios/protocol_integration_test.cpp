@@ -94,7 +94,7 @@ TEST_F(ProtocolIntegrationTest, EmptyMessageHandling) {
     auto result = client_->send_packet(empty_message);
 
     // Should fail with invalid argument
-    EXPECT_FALSE(result);
+    EXPECT_FALSE(result.is_ok());
 }
 
 // ============================================================================

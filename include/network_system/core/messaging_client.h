@@ -134,6 +134,13 @@ namespace network_system::core
 		 */
 		auto wait_for_stop() -> void;
 
+	/*!
+	 * \brief Check if the client is currently connected to the server.
+	 * \return true if connected, false otherwise
+	 */
+	auto is_connected() const -> bool { return is_connected_.load(); }
+
+
 		/*!
 		 * \brief Sends data over the connection, optionally
 		 * compressing/encrypting via the \c pipeline.
@@ -198,6 +205,7 @@ namespace network_system::core
 
 		std::unique_ptr<asio::io_context>
 			io_context_;	/*!< I/O context for async operations. */
+	std::unique_ptr<asio::executor_work_guard<asio::io_context::executor_type>> work_guard_; /*!< Keeps io_context running. */
 		std::unique_ptr<std::thread>
 			client_thread_; /*!< Thread running \c io_context->run(). */
 

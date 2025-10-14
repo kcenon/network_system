@@ -108,21 +108,16 @@ inline bool wait_for_connection(
     std::shared_ptr<ClientType> client,
     std::chrono::seconds timeout = std::chrono::seconds(5)
 ) {
-    auto start = std::chrono::steady_clock::now();
-    auto deadline = start + timeout;
+    auto deadline = std::chrono::steady_clock::now() + timeout;
 
     while (std::chrono::steady_clock::now() < deadline) {
-        // Give time for async operations to complete
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));
-
-        // Note: We rely on the client's internal state
-        // In a real implementation, you might check is_connected() if available
-
-        // For now, we assume connection is established after brief delay
-        auto elapsed = std::chrono::steady_clock::now() - start;
-        if (elapsed > std::chrono::milliseconds(200)) {
+        // Check if client is actually connected
+        if (client && client->is_connected()) {
             return true;
         }
+
+        // Give time for async operations to complete
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
     }
 
     return false;

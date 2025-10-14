@@ -75,7 +75,7 @@ TEST_F(ConnectionLifecycleTest, ServerStartupOnUsedPort) {
     auto result = second_server->start_server(test_port_);
 
     // Should fail because port is already in use
-    EXPECT_FALSE(result);
+    EXPECT_FALSE(result.is_ok());
 
     // Cleanup
     second_server->stop_server();
@@ -87,7 +87,7 @@ TEST_F(ConnectionLifecycleTest, ServerMultipleStartAttempts) {
 
     // Try to start again - should fail
     auto result = server_->start_server(test_port_);
-    EXPECT_FALSE(result);
+    EXPECT_FALSE(result.is_ok());
 }
 
 // ============================================================================
@@ -119,7 +119,7 @@ TEST_F(ConnectionLifecycleTest, ClientMultipleConnectionAttempts) {
 
     // Try to connect again - should fail or be handled gracefully
     auto result = client_->start_client("localhost", test_port_);
-    EXPECT_FALSE(result);
+    EXPECT_FALSE(result.is_ok());
 }
 
 // ============================================================================
@@ -141,7 +141,7 @@ TEST_F(ConnectionLifecycleTest, SendMessageBeforeConnection) {
     auto result = client_->send_packet(message);
 
     // Should fail because not connected
-    EXPECT_FALSE(result);
+    EXPECT_FALSE(result.is_ok());
 }
 
 TEST_F(ConnectionLifecycleTest, SendMultipleMessages) {
@@ -165,7 +165,7 @@ TEST_F(ConnectionLifecycleTest, ClientGracefulDisconnect) {
 
     // Disconnect client
     auto result = client_->stop_client();
-    EXPECT_TRUE(result);
+    EXPECT_TRUE(result.is_ok());
 
     // Brief pause for cleanup
     WaitFor(100);
@@ -219,7 +219,7 @@ TEST_F(MultiConnectionLifecycleTest, SequentialConnections) {
 
     for (auto& client : clients_) {
         auto result = client->start_client("localhost", test_port_);
-        EXPECT_TRUE(result);
+        EXPECT_TRUE(result.is_ok());
         WaitFor(50);
     }
 }

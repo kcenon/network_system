@@ -63,6 +63,10 @@ namespace network_system::core
 		{
 			// Create io_context and acceptor
 			io_context_ = std::make_unique<asio::io_context>();
+			// Create work guard to keep io_context running
+			work_guard_ = std::make_unique<asio::executor_work_guard<asio::io_context::executor_type>>(
+				asio::make_work_guard(*io_context_)
+			);
 			acceptor_ = std::make_unique<tcp::acceptor>(
 				*io_context_, tcp::endpoint(tcp::v4(), port));
 
@@ -175,7 +179,13 @@ namespace network_system::core
 			}
 			sessions_.clear();
 
-			// Step 3: Stop io_context (this cancels all remaining pending operations)
+			// Step 3: Release work guard to allow io_context to finish
+			if (work_guard_)
+			{
+				work_guard_.reset();
+			}
+
+			// Step 4: Stop io_context (this cancels all remaining pending operations)
 			if (io_context_)
 			{
 				io_context_->stop();

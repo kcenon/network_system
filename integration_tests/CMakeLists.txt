@@ -51,6 +51,27 @@ target_link_libraries(connection_lifecycle_test PRIVATE
     Threads::Threads
 )
 
+# Setup ASIO and FMT integration (required for network_system headers)
+setup_asio_integration(connection_lifecycle_test)
+setup_fmt_integration(connection_lifecycle_test)
+
+# Add system integration paths
+if(CONTAINER_SYSTEM_INCLUDE_DIR)
+    target_include_directories(connection_lifecycle_test PRIVATE ${CONTAINER_SYSTEM_INCLUDE_DIR})
+endif()
+
+if(THREAD_SYSTEM_INCLUDE_DIR)
+    target_include_directories(connection_lifecycle_test PRIVATE ${THREAD_SYSTEM_INCLUDE_DIR})
+endif()
+
+if(LOGGER_SYSTEM_INCLUDE_DIR)
+    target_include_directories(connection_lifecycle_test PRIVATE ${LOGGER_SYSTEM_INCLUDE_DIR})
+endif()
+
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(connection_lifecycle_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+endif()
+
 if(INTEGRATION_TEST_DEFINITIONS)
     target_compile_definitions(connection_lifecycle_test PRIVATE
         ${INTEGRATION_TEST_DEFINITIONS}
@@ -89,6 +110,27 @@ target_link_libraries(protocol_integration_test PRIVATE
     Threads::Threads
 )
 
+# Setup ASIO and FMT integration (required for network_system headers)
+setup_asio_integration(protocol_integration_test)
+setup_fmt_integration(protocol_integration_test)
+
+# Add system integration paths
+if(CONTAINER_SYSTEM_INCLUDE_DIR)
+    target_include_directories(protocol_integration_test PRIVATE ${CONTAINER_SYSTEM_INCLUDE_DIR})
+endif()
+
+if(THREAD_SYSTEM_INCLUDE_DIR)
+    target_include_directories(protocol_integration_test PRIVATE ${THREAD_SYSTEM_INCLUDE_DIR})
+endif()
+
+if(LOGGER_SYSTEM_INCLUDE_DIR)
+    target_include_directories(protocol_integration_test PRIVATE ${LOGGER_SYSTEM_INCLUDE_DIR})
+endif()
+
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(protocol_integration_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+endif()
+
 if(INTEGRATION_TEST_DEFINITIONS)
     target_compile_definitions(protocol_integration_test PRIVATE
         ${INTEGRATION_TEST_DEFINITIONS}
@@ -126,6 +168,27 @@ target_link_libraries(network_performance_test PRIVATE
     Threads::Threads
 )
 
+# Setup ASIO and FMT integration (required for network_system headers)
+setup_asio_integration(network_performance_test)
+setup_fmt_integration(network_performance_test)
+
+# Add system integration paths
+if(CONTAINER_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_performance_test PRIVATE ${CONTAINER_SYSTEM_INCLUDE_DIR})
+endif()
+
+if(THREAD_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_performance_test PRIVATE ${THREAD_SYSTEM_INCLUDE_DIR})
+endif()
+
+if(LOGGER_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_performance_test PRIVATE ${LOGGER_SYSTEM_INCLUDE_DIR})
+endif()
+
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_performance_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+endif()
+
 if(INTEGRATION_TEST_DEFINITIONS)
     target_compile_definitions(network_performance_test PRIVATE
         ${INTEGRATION_TEST_DEFINITIONS}
@@ -162,6 +225,27 @@ target_link_libraries(error_handling_test PRIVATE
     GTest::gtest_main
     Threads::Threads
 )
+
+# Setup ASIO and FMT integration (required for network_system headers)
+setup_asio_integration(error_handling_test)
+setup_fmt_integration(error_handling_test)
+
+# Add system integration paths
+if(CONTAINER_SYSTEM_INCLUDE_DIR)
+    target_include_directories(error_handling_test PRIVATE ${CONTAINER_SYSTEM_INCLUDE_DIR})
+endif()
+
+if(THREAD_SYSTEM_INCLUDE_DIR)
+    target_include_directories(error_handling_test PRIVATE ${THREAD_SYSTEM_INCLUDE_DIR})
+endif()
+
+if(LOGGER_SYSTEM_INCLUDE_DIR)
+    target_include_directories(error_handling_test PRIVATE ${LOGGER_SYSTEM_INCLUDE_DIR})
+endif()
+
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(error_handling_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+endif()
 
 if(INTEGRATION_TEST_DEFINITIONS)
     target_compile_definitions(error_handling_test PRIVATE

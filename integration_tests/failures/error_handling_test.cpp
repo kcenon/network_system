@@ -89,7 +89,7 @@ TEST_F(ErrorHandlingTest, ServerStartOnPrivilegedPort) {
     auto result = server_->start_server(80);
 
     // Should fail with permission error (unless running as root)
-    EXPECT_FALSE(result);
+    EXPECT_FALSE(result.is_ok());
 }
 
 // ============================================================================
@@ -102,7 +102,7 @@ TEST_F(ErrorHandlingTest, SendWithoutConnection) {
     auto result = client_->send_packet(message);
 
     // Should fail because not connected
-    EXPECT_FALSE(result);
+    EXPECT_FALSE(result.is_ok());
 }
 
 TEST_F(ErrorHandlingTest, SendEmptyMessage) {
@@ -114,7 +114,7 @@ TEST_F(ErrorHandlingTest, SendEmptyMessage) {
     auto result = client_->send_packet(empty);
 
     // Should fail with invalid argument
-    EXPECT_FALSE(result);
+    EXPECT_FALSE(result.is_ok());
 }
 
 TEST_F(ErrorHandlingTest, SendAfterDisconnect) {
@@ -130,7 +130,7 @@ TEST_F(ErrorHandlingTest, SendAfterDisconnect) {
     auto result = client_->send_packet(message);
 
     // Should fail because disconnected
-    EXPECT_FALSE(result);
+    EXPECT_FALSE(result.is_ok());
 }
 
 TEST_F(ErrorHandlingTest, DoubleServerStart) {
@@ -140,7 +140,7 @@ TEST_F(ErrorHandlingTest, DoubleServerStart) {
     auto result = server_->start_server(test_port_);
 
     // Should fail because already running
-    EXPECT_FALSE(result);
+    EXPECT_FALSE(result.is_ok());
 }
 
 TEST_F(ErrorHandlingTest, StopServerNotStarted) {
@@ -148,7 +148,7 @@ TEST_F(ErrorHandlingTest, StopServerNotStarted) {
     auto result = server_->stop_server();
 
     // Should fail or be handled gracefully
-    EXPECT_FALSE(result);
+    EXPECT_FALSE(result.is_ok());
 }
 
 // ============================================================================
@@ -174,7 +174,7 @@ TEST_F(ErrorHandlingTest, ServerShutdownDuringTransmission) {
     auto result = client_->send_packet(message);
 
     // Should fail because server stopped
-    EXPECT_FALSE(result);
+    EXPECT_FALSE(result.is_ok());
 }
 
 TEST_F(ErrorHandlingTest, ClientDisconnectDuringReceive) {
@@ -238,7 +238,7 @@ TEST_F(ErrorHandlingTest, ExcessiveMessageRate) {
         auto message = CreateTestMessage(128);
         auto result = client_->send_packet(message);
 
-        if (result) {
+        if (result.is_ok()) {
             ++successful;
         } else {
             ++failed;
@@ -293,7 +293,7 @@ TEST_F(ErrorHandlingTest, PartialMessageRecovery) {
     // Try to send invalid message
     std::vector<uint8_t> invalid;
     auto result = client_->send_packet(invalid);
-    EXPECT_FALSE(result);
+    EXPECT_FALSE(result.is_ok());
 
     // Send another valid message
     EXPECT_TRUE(SendMessage(valid_message));
