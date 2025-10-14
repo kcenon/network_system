@@ -60,7 +60,7 @@ TEST_F(ConcurrentPerformanceTest, ConnectionThroughput) {
     constexpr size_t num_connections = 100;
     CreateClients(num_connections);
 
-    auto duration = MeasureDuration([&]() {
+    auto duration = this->MeasureDuration([&]() {
         ConnectAllClients();
     });
 
@@ -82,7 +82,7 @@ TEST_F(NetworkPerformanceTest, SingleConnectionLatency) {
     for (int i = 0; i < 100; ++i) {
         client_ = std::make_shared<core::messaging_client>("client_" + std::to_string(i));
 
-        auto latency = MeasureDuration([&]() {
+        auto latency = this->MeasureDuration([&]() {
             ConnectClient();
         });
 
@@ -92,7 +92,7 @@ TEST_F(NetworkPerformanceTest, SingleConnectionLatency) {
         WaitFor(10);
     }
 
-    auto stats = CalculateStats(latencies);
+    auto stats = this->CalculateStats(latencies);
 
     std::cout << "Connection latency (ms):\n"
               << "  P50: " << stats.p50 << "\n"
@@ -118,7 +118,7 @@ TEST_F(NetworkPerformanceTest, SmallMessageLatency) {
     for (int i = 0; i < 100; ++i) {
         auto message = CreateTestMessage(message_size);
 
-        auto latency = MeasureDuration([&]() {
+        auto latency = this->MeasureDuration([&]() {
             SendMessage(message);
         });
 
@@ -126,7 +126,7 @@ TEST_F(NetworkPerformanceTest, SmallMessageLatency) {
         WaitFor(5);
     }
 
-    auto stats = CalculateStats(latencies);
+    auto stats = this->CalculateStats(latencies);
 
     std::cout << "Small message latency (ms):\n"
               << "  P50: " << stats.p50 << "\n"
@@ -149,7 +149,7 @@ TEST_F(NetworkPerformanceTest, LargeMessageLatency) {
     for (int i = 0; i < 50; ++i) {
         auto message = CreateTestMessage(message_size);
 
-        auto latency = MeasureDuration([&]() {
+        auto latency = this->MeasureDuration([&]() {
             SendMessage(message);
         });
 
@@ -157,7 +157,7 @@ TEST_F(NetworkPerformanceTest, LargeMessageLatency) {
         WaitFor(10);
     }
 
-    auto stats = CalculateStats(latencies);
+    auto stats = this->CalculateStats(latencies);
 
     std::cout << "Large message latency (ms):\n"
               << "  P50: " << stats.p50 << "\n"
@@ -178,7 +178,7 @@ TEST_F(NetworkPerformanceTest, MessageThroughput) {
     constexpr size_t num_messages = 1000;
     constexpr size_t message_size = 256;
 
-    auto duration = MeasureDuration([&]() {
+    auto duration = this->MeasureDuration([&]() {
         for (size_t i = 0; i < num_messages; ++i) {
             auto message = CreateTestMessage(message_size);
             SendMessage(message);
@@ -202,7 +202,7 @@ TEST_F(NetworkPerformanceTest, BandwidthUtilization) {
     constexpr size_t message_size = 10 * 1024;  // 10KB
     constexpr size_t total_bytes = num_messages * message_size;
 
-    auto duration = MeasureDuration([&]() {
+    auto duration = this->MeasureDuration([&]() {
         for (size_t i = 0; i < num_messages; ++i) {
             auto message = CreateTestMessage(message_size);
             SendMessage(message);
@@ -239,7 +239,7 @@ TEST_F(ConcurrentPerformanceTest, ConcurrentConnectionScalability) {
 
         CreateClients(count);
 
-        auto duration = MeasureDuration([&]() {
+        auto duration = this->MeasureDuration([&]() {
             ConnectAllClients();
         });
 
@@ -267,7 +267,7 @@ TEST_F(ConcurrentPerformanceTest, ConcurrentMessageSending) {
     // Each client sends messages concurrently
     constexpr size_t messages_per_client = 50;
 
-    auto duration = MeasureDuration([&]() {
+    auto duration = this->MeasureDuration([&]() {
         for (auto& client : clients_) {
             for (size_t i = 0; i < messages_per_client; ++i) {
                 auto message = CreateTestMessage(128);
@@ -323,7 +323,7 @@ TEST_F(NetworkPerformanceTest, BurstLoad) {
     // Send burst of messages
     constexpr size_t burst_size = 500;
 
-    auto duration = MeasureDuration([&]() {
+    auto duration = this->MeasureDuration([&]() {
         for (size_t i = 0; i < burst_size; ++i) {
             auto message = CreateTestMessage(256);
             SendMessage(message);
