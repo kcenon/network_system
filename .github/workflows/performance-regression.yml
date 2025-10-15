@@ -20,7 +20,7 @@ jobs:
 
     - name: Checkout Base Branch
       run: |
-        git checkout \${{ github.base_ref }}
+        git checkout ${{ github.base_ref }}
 
     - name: Setup Environment
       run: |
@@ -29,13 +29,26 @@ jobs:
 
     - name: Build Base Branch
       run: |
-        cmake -B build-base -G Ninja -DCMAKE_BUILD_TYPE=Release -DNETWORK_BUILD_BENCHMARKS=ON || true
-        cmake --build build-base --target benchmark || true
+        cmake -B build-base -G Ninja \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DNETWORK_BUILD_BENCHMARKS=ON \
+          -DBUILD_WITH_COMMON_SYSTEM=OFF \
+          -DBUILD_WITH_LOGGER_SYSTEM=OFF \
+          -DBUILD_WITH_THREAD_SYSTEM=OFF \
+          -DBUILD_WITH_CONTAINER_SYSTEM=OFF \
+          -DBUILD_MESSAGING_BRIDGE=OFF \
+          -DBUILD_TESTS=OFF \
+          -DBUILD_SAMPLES=OFF || true
+        cmake --build build-base --target network_benchmarks || true
 
     - name: Run Base Benchmark
       continue-on-error: true
       run: |
-        if [ -f "build-base/benchmark" ]; then
+        if [ -f "build-base/bin/benchmark" ]; then
+          cd build-base
+          ./bin/benchmark > ../benchmark-base.txt || echo "No benchmark results" > ../benchmark-base.txt
+          cd ..
+        elif [ -f "build-base/benchmark" ]; then
           cd build-base
           ./benchmark > ../benchmark-base.txt || echo "No benchmark results" > ../benchmark-base.txt
           cd ..
@@ -45,17 +58,30 @@ jobs:
 
     - name: Checkout PR Branch
       run: |
-        git checkout \${{ github.head_ref }}
+        git checkout ${{ github.head_ref }}
 
     - name: Build PR Branch
       run: |
-        cmake -B build-pr -G Ninja -DCMAKE_BUILD_TYPE=Release -DNETWORK_BUILD_BENCHMARKS=ON || true
-        cmake --build build-pr --target benchmark || true
+        cmake -B build-pr -G Ninja \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DNETWORK_BUILD_BENCHMARKS=ON \
+          -DBUILD_WITH_COMMON_SYSTEM=OFF \
+          -DBUILD_WITH_LOGGER_SYSTEM=OFF \
+          -DBUILD_WITH_THREAD_SYSTEM=OFF \
+          -DBUILD_WITH_CONTAINER_SYSTEM=OFF \
+          -DBUILD_MESSAGING_BRIDGE=OFF \
+          -DBUILD_TESTS=OFF \
+          -DBUILD_SAMPLES=OFF || true
+        cmake --build build-pr --target network_benchmarks || true
 
     - name: Run PR Benchmark
       continue-on-error: true
       run: |
-        if [ -f "build-pr/benchmark" ]; then
+        if [ -f "build-pr/bin/benchmark" ]; then
+          cd build-pr
+          ./bin/benchmark > ../benchmark-pr.txt || echo "No benchmark results" > ../benchmark-pr.txt
+          cd ..
+        elif [ -f "build-pr/benchmark" ]; then
           cd build-pr
           ./benchmark > ../benchmark-pr.txt || echo "No benchmark results" > ../benchmark-pr.txt
           cd ..
