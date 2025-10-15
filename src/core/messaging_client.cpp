@@ -94,6 +94,12 @@ namespace network_system::core
 		{
 			is_running_.store(true);
 			is_connected_.store(false);
+			stop_initiated_.store(false);
+
+			{
+				std::lock_guard<std::mutex> lock(socket_mutex_);
+				socket_.reset();
+			}
 
 			io_context_ = std::make_unique<asio::io_context>();
 			// Create work guard to keep io_context running
@@ -101,6 +107,7 @@ namespace network_system::core
 				asio::make_work_guard(*io_context_)
 			);
 			// For wait_for_stop()
+			stop_future_ = std::future<void>();
 			stop_promise_.emplace();
 			stop_future_ = stop_promise_->get_future();
 
@@ -158,65 +165,71 @@ namespace network_system::core
 			is_running_.store(false);
 			is_connected_.store(false);
 
-			// Close the socket with mutex protection
-			{
-				std::lock_guard<std::mutex> lock(socket_mutex_);
-				if (socket_)
-				{
-					try
-					{
-						socket_->socket().close();
-					}
-					catch (const std::exception& e)
-					{
-						NETWORK_LOG_ERROR("[messaging_client] Error closing socket: " + std::string(e.what()));
-					}
-					socket_.reset(); // Release the socket
-				}
-			}
+		// Swap out socket with mutex protection and close outside lock
+		std::shared_ptr<internal::tcp_socket> local_socket;
+		{
+			std::lock_guard<std::mutex> lock(socket_mutex_);
+			local_socket = std::move(socket_);
+		}
+		if (local_socket)
+		{
+			asio::error_code ec;
+			local_socket->socket().close(ec);
+		}
 
-			// Release work guard to allow io_context to finish
-			if (work_guard_)
+		// Release work guard to allow io_context to finish
+		if (work_guard_)
+		{
+			work_guard_.reset();
+		}
+		// Stop io_context
+		if (io_context_)
+		{
+			io_context_->stop();
+		}
+		// Join or detach thread depending on caller context
+		if (client_thread_ && client_thread_->joinable())
+		{
+			if (std::this_thread::get_id() == client_thread_->get_id())
 			{
-				work_guard_.reset();
+				client_thread_->detach();
 			}
-			// Stop io_context
-			if (io_context_)
-			{
-				io_context_->stop();
-			}
-			// Join thread
-			if (client_thread_ && client_thread_->joinable())
+			else
 			{
 				client_thread_->join();
 			}
-			// Signal stop
-			if (stop_promise_.has_value())
-			{
-				try
-				{
-					stop_promise_->set_value();
-				}
-				catch (const std::future_error& e)
-				{
-					// Promise already satisfied, ignore
-					NETWORK_LOG_DEBUG("[messaging_client] Promise already satisfied");
-				}
-				stop_promise_.reset();
-			}
-
-			NETWORK_LOG_INFO("[messaging_client] stopped.");
-			return ok();
 		}
-		catch (const std::exception& e)
+		client_thread_.reset();
+		io_context_.reset();
+		// Signal stop
+		if (stop_promise_.has_value())
 		{
-			return error_void(
-				error_codes::common::internal_error,
-				"Failed to stop client: " + std::string(e.what()),
-				"messaging_client::stop_client",
-				"Client ID: " + client_id_
-			);
+			try
+			{
+				stop_promise_->set_value();
+			}
+			catch (const std::future_error& e)
+			{
+				// Promise already satisfied, ignore
+				NETWORK_LOG_DEBUG("[messaging_client] Promise already satisfied");
+			}
+			stop_promise_.reset();
 		}
+		stop_future_ = std::future<void>();
+
+		NETWORK_LOG_INFO("[messaging_client] stopped.");
+		return ok();
+	}
+	catch (const std::exception& e)
+	{
+		stop_initiated_.store(false);
+		return error_void(
+			error_codes::common::internal_error,
+			"Failed to stop client: " + std::string(e.what()),
+			"messaging_client::stop_client",
+			"Client ID: " + client_id_
+		);
+	}
 	}
 
 	auto messaging_client::wait_for_stop() -> void
@@ -285,13 +298,9 @@ namespace network_system::core
 		NETWORK_LOG_INFO("[messaging_client] Connected successfully.");
 		is_connected_.store(true);
 
-		// set callbacks and start read loop with mutex protection
-		auto self = shared_from_this();
-		std::shared_ptr<internal::tcp_socket> local_socket;
-		{
-			std::lock_guard<std::mutex> lock(socket_mutex_);
-			local_socket = socket_;
-		}
+	// set callbacks and start read loop with mutex protection
+	auto self = shared_from_this();
+	auto local_socket = get_socket();
 
 		if (local_socket)
 		{
@@ -326,12 +335,8 @@ namespace network_system::core
 			);
 		}
 
-		// Get a local copy of socket with mutex protection
-		std::shared_ptr<internal::tcp_socket> local_socket;
-		{
-			std::lock_guard<std::mutex> lock(socket_mutex_);
-			local_socket = socket_;
-		}
+	// Get a local copy of socket with mutex protection
+	auto local_socket = get_socket();
 
 		if (!is_connected_.load() || !local_socket)
 		{
@@ -394,11 +399,17 @@ if constexpr (std::is_same_v<decltype(local_socket->socket().get_executor()), as
 		//   parse or handle...
 	}
 
-	auto messaging_client::on_error(std::error_code ec) -> void
-	{
-		NETWORK_LOG_ERROR("[messaging_client] Socket error: " + ec.message());
-		// Perhaps reconnect or just stop
-		stop_client();
-	}
+auto messaging_client::on_error(std::error_code ec) -> void
+{
+	NETWORK_LOG_ERROR("[messaging_client] Socket error: " + ec.message());
+	// Perhaps reconnect or just stop
+	stop_client();
+}
+
+auto messaging_client::get_socket() const -> std::shared_ptr<internal::tcp_socket>
+{
+	std::lock_guard<std::mutex> lock(socket_mutex_);
+	return socket_;
+}
 
 } // namespace network_system::core

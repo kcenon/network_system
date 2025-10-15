@@ -208,14 +208,17 @@ namespace network_system::core
 		}; /*!< True if stop has been called to prevent re-entry. */
 
 		std::unique_ptr<asio::io_context>
-			io_context_;	/*!< I/O context for async operations. */
-	std::unique_ptr<asio::executor_work_guard<asio::io_context::executor_type>> work_guard_; /*!< Keeps io_context running. */
+			io_context_; /*!< I/O context for async operations. */
+		std::unique_ptr<asio::executor_work_guard<asio::io_context::executor_type>>
+			work_guard_; /*!< Keeps io_context running. */
 		std::unique_ptr<std::thread>
 			client_thread_; /*!< Thread running \c io_context->run(). */
 
 		std::optional<std::promise<void>>
 			stop_promise_;	/*!< Signals \c wait_for_stop() when stopping. */
 		std::future<void> stop_future_; /*!< Used by \c wait_for_stop(). */
+
+		auto get_socket() const -> std::shared_ptr<internal::tcp_socket>;
 
 		mutable std::mutex socket_mutex_; /*!< Protects socket_ from data races. */
 		std::shared_ptr<internal::tcp_socket>
