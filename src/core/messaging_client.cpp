@@ -53,7 +53,18 @@ namespace network_system::core
 		encrypt_mode_ = false;	// set true if you want to encrypt
 	}
 
-	messaging_client::~messaging_client() { stop_client(); }
+	messaging_client::~messaging_client() noexcept
+	{
+		try
+		{
+			// Ignore the return value in destructor to avoid throwing
+			(void)stop_client();
+		}
+		catch (...)
+		{
+			// Destructor must not throw - swallow all exceptions
+		}
+	}
 
 	// Use string_view for more efficient string handling (C++17)
 	auto messaging_client::start_client(std::string_view host,

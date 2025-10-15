@@ -56,7 +56,18 @@ namespace network_system::session
 		encrypt_mode_ = false;
 	}
 
-	messaging_session::~messaging_session() { stop_session(); }
+	messaging_session::~messaging_session() noexcept
+	{
+		try
+		{
+			// Call stop_session to clean up resources
+			stop_session();
+		}
+		catch (...)
+		{
+			// Destructor must not throw - swallow all exceptions
+		}
+	}
 
 	auto messaging_session::start_session() -> void
 	{

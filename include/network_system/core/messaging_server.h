@@ -113,7 +113,7 @@ namespace network_system::core {
 		 * \brief Destructor. If the server is still running, \c stop_server()
 		 * is invoked.
 		 */
-		~messaging_server();
+		~messaging_server() noexcept;
 
 		/*!
 		 * \brief Begins listening on the specified TCP \p port, creates a

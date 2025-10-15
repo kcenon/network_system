@@ -82,7 +82,7 @@ namespace network_system::core
 		 * \brief Destructor; automatically calls \c stop_client() if the client
 		 * is still running.
 		 */
-		~messaging_client();
+		~messaging_client() noexcept;
 
 		/*!
 		 * \brief Starts the client by resolving \p host and \p port, connecting

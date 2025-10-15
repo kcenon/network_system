@@ -44,7 +44,18 @@ namespace network_system::core
 	{
 	}
 
-	messaging_server::~messaging_server() { stop_server(); }
+	messaging_server::~messaging_server() noexcept
+	{
+		try
+		{
+			// Ignore the return value in destructor to avoid throwing
+			(void)stop_server();
+		}
+		catch (...)
+		{
+			// Destructor must not throw - swallow all exceptions
+		}
+	}
 
 	auto messaging_server::start_server(unsigned short port) -> VoidResult
 	{
@@ -205,7 +216,14 @@ namespace network_system::core
 			// Step 6: Signal the promise for wait_for_stop()
 			if (stop_promise_.has_value())
 			{
-				stop_promise_->set_value();
+				try
+				{
+					stop_promise_->set_value();
+				}
+				catch (const std::future_error&)
+				{
+					// Promise already satisfied - this is OK during shutdown
+				}
 				stop_promise_.reset();
 			}
 
