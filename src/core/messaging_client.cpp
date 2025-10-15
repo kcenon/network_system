@@ -128,25 +128,42 @@ namespace network_system::core
 
 	auto messaging_client::stop_client() -> VoidResult
 	{
+		// Use compare_exchange to ensure only one thread executes cleanup
+		bool expected = false;
+		if (!stop_initiated_.compare_exchange_strong(expected, true))
+		{
+			// Another thread is already stopping or has stopped
+			NETWORK_LOG_DEBUG("[messaging_client] stop_client already called, returning success");
+			return ok();
+		}
+
 		if (!is_running_.load())
 		{
-			return error_void(
-				error_codes::common::internal_error,
-				"Client is not running",
-				"messaging_client::stop_client",
-				"Client ID: " + client_id_
-			);
+			return ok(); // Already stopped, not an error
 		}
 
 		try
 		{
 			is_running_.store(false);
+			is_connected_.store(false);
 
-			// Close the socket
-			if (socket_)
+			// Close the socket with mutex protection
 			{
-				socket_->socket().close();
+				std::lock_guard<std::mutex> lock(socket_mutex_);
+				if (socket_)
+				{
+					try
+					{
+						socket_->socket().close();
+					}
+					catch (const std::exception& e)
+					{
+						NETWORK_LOG_ERROR("[messaging_client] Error closing socket: " + std::string(e.what()));
+					}
+					socket_.reset(); // Release the socket
+				}
 			}
+
 			// Release work guard to allow io_context to finish
 			if (work_guard_)
 			{
@@ -165,7 +182,15 @@ namespace network_system::core
 			// Signal stop
 			if (stop_promise_.has_value())
 			{
-				stop_promise_->set_value();
+				try
+				{
+					stop_promise_->set_value();
+				}
+				catch (const std::future_error& e)
+				{
+					// Promise already satisfied, ignore
+					NETWORK_LOG_DEBUG("[messaging_client] Promise already satisfied");
+				}
 				stop_promise_.reset();
 			}
 
@@ -228,9 +253,12 @@ namespace network_system::core
 							return;
 						}
 						NETWORK_LOG_INFO("[messaging_client] Connect successful, calling on_connect");
-						// On success, wrap it in our tcp_socket
-						socket_ = std::make_shared<internal::tcp_socket>(
-							std::move(*raw_socket));
+						// On success, wrap it in our tcp_socket with mutex protection
+						{
+							std::lock_guard<std::mutex> lock(socket_mutex_);
+							socket_ = std::make_shared<internal::tcp_socket>(
+								std::move(*raw_socket));
+						}
 						on_connect(connect_ec);
 					});
 			});
@@ -246,14 +274,23 @@ namespace network_system::core
 		NETWORK_LOG_INFO("[messaging_client] Connected successfully.");
 		is_connected_.store(true);
 
-		// set callbacks and start read loop
+		// set callbacks and start read loop with mutex protection
 		auto self = shared_from_this();
-		socket_->set_receive_callback(
-			[this, self](const std::vector<uint8_t>& chunk)
-			{ on_receive(chunk); });
-		socket_->set_error_callback([this, self](std::error_code err)
-									{ on_error(err); });
-		socket_->start_read();
+		std::shared_ptr<internal::tcp_socket> local_socket;
+		{
+			std::lock_guard<std::mutex> lock(socket_mutex_);
+			local_socket = socket_;
+		}
+
+		if (local_socket)
+		{
+			local_socket->set_receive_callback(
+				[this, self](const std::vector<uint8_t>& chunk)
+				{ on_receive(chunk); });
+			local_socket->set_error_callback([this, self](std::error_code err)
+										{ on_error(err); });
+			local_socket->start_read();
+		}
 	}
 
 	auto messaging_client::send_packet(std::vector<uint8_t> data) -> VoidResult
@@ -268,16 +305,6 @@ namespace network_system::core
 			);
 		}
 
-		if (!is_connected_.load() || !socket_)
-		{
-			return error_void(
-				error_codes::network_system::connection_closed,
-				"Client is not connected",
-				"messaging_client::send_packet",
-				"Client ID: " + client_id_
-			);
-		}
-
 		if (data.empty())
 		{
 			return error_void(
@@ -287,13 +314,31 @@ namespace network_system::core
 				"Client ID: " + client_id_
 			);
 		}
+
+		// Get a local copy of socket with mutex protection
+		std::shared_ptr<internal::tcp_socket> local_socket;
+		{
+			std::lock_guard<std::mutex> lock(socket_mutex_);
+			local_socket = socket_;
+		}
+
+		if (!is_connected_.load() || !local_socket)
+		{
+			return error_void(
+				error_codes::network_system::connection_closed,
+				"Client is not connected",
+				"messaging_client::send_packet",
+				"Client ID: " + client_id_
+			);
+		}
+
 // Using if constexpr for compile-time branching (C++17)
-if constexpr (std::is_same_v<decltype(socket_->socket().get_executor()), asio::io_context::executor_type>)
+if constexpr (std::is_same_v<decltype(local_socket->socket().get_executor()), asio::io_context::executor_type>)
 {
 #ifdef USE_STD_COROUTINE
 		// Coroutine approach
-		asio::co_spawn(socket_->socket().get_executor(),
-					   async_send_with_pipeline_co(socket_, std::move(data),
+		asio::co_spawn(local_socket->socket().get_executor(),
+					   async_send_with_pipeline_co(local_socket, std::move(data),
 												   pipeline_, compress_mode_,
 												   encrypt_mode_),
 					   [](std::error_code ec)
@@ -306,7 +351,7 @@ if constexpr (std::is_same_v<decltype(socket_->socket().get_executor()), asio::i
 #else
 		// Fallback approach
 		auto fut = async_send_with_pipeline_no_co(
-			socket_, std::move(data), pipeline_, compress_mode_, encrypt_mode_);
+			local_socket, std::move(data), pipeline_, compress_mode_, encrypt_mode_);
 		// Use structured binding with try/catch for better error handling (C++17)
 		try {
 			auto result_ec = fut.get();

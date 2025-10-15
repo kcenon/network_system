@@ -40,6 +40,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <future>
 #include <optional>
 #include <type_traits>
+#include <mutex>
 
 #include <asio.hpp>
 
@@ -202,6 +203,9 @@ namespace network_system::core
 		std::atomic<bool> is_connected_{
 			false
 		}; /*!< True if connected to remote. */
+		std::atomic<bool> stop_initiated_{
+			false
+		}; /*!< True if stop has been called to prevent re-entry. */
 
 		std::unique_ptr<asio::io_context>
 			io_context_;	/*!< I/O context for async operations. */
@@ -213,6 +217,7 @@ namespace network_system::core
 			stop_promise_;	/*!< Signals \c wait_for_stop() when stopping. */
 		std::future<void> stop_future_; /*!< Used by \c wait_for_stop(). */
 
+		mutable std::mutex socket_mutex_; /*!< Protects socket_ from data races. */
 		std::shared_ptr<internal::tcp_socket>
 			socket_;   /*!< The \c tcp_socket wrapper once connected. */
 
