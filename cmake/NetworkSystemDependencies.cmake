@@ -13,33 +13,23 @@ include(FetchContent)
 function(find_asio_library)
     message(STATUS "Looking for ASIO library...")
 
-    # Try standalone ASIO - multi-stage search for maximum compatibility
-    # Stage 1: vcpkg and common non-system locations
+    # First, let CMake's standard search work (respects CMAKE_PREFIX_PATH set by vcpkg)
+    # This is crucial for vcpkg toolchain integration
     find_path(ASIO_INCLUDE_DIR
         NAMES asio.hpp
-        PATHS
-            ${CMAKE_CURRENT_SOURCE_DIR}/vcpkg_installed/${VCPKG_TARGET_TRIPLET}/include
-            /opt/homebrew/include
-            /usr/local/include
-        NO_DEFAULT_PATH
         DOC "Path to standalone ASIO headers"
     )
 
-    # Stage 2: System paths (needed for CI environments)
+    # If standard search failed, try explicit common locations
     if(NOT ASIO_INCLUDE_DIR)
         find_path(ASIO_INCLUDE_DIR
             NAMES asio.hpp
-            PATHS /usr/include
-            NO_CMAKE_SYSTEM_PATH
-            DOC "Path to standalone ASIO headers in system directories"
-        )
-    endif()
-
-    # Stage 3: Default CMake search (last resort)
-    if(NOT ASIO_INCLUDE_DIR)
-        find_path(ASIO_INCLUDE_DIR
-            NAMES asio.hpp
-            DOC "Path to standalone ASIO headers (default search)"
+            PATHS
+                /opt/homebrew/include
+                /usr/local/include
+                /usr/include
+            NO_DEFAULT_PATH
+            DOC "Path to standalone ASIO headers in common locations"
         )
     endif()
 
