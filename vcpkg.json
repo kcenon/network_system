@@ -4,15 +4,14 @@
     "license": "BSD-3-Clause",
     "dependencies": [
         "asio",
-        "fmt"
+        "fmt",
+        "gtest",
+        "benchmark"
     ],
     "features": {
         "tests": {
-            "description": "Build unit tests",
-            "dependencies": [
-                "gtest",
-                "benchmark"
-            ]
+            "description": "Build unit tests (deprecated - dependencies now in main list)",
+            "dependencies": []
         },
         "samples": {
             "description": "Build sample applications",
