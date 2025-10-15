@@ -85,6 +85,13 @@ TEST_F(ErrorHandlingTest, ServerStartOnInvalidPort) {
 }
 
 TEST_F(ErrorHandlingTest, ServerStartOnPrivilegedPort) {
+    // Skip this test in CI environments as it's environment-dependent
+    // CI runners may have root access or port 80 may already be in use
+    const char* ci_env = std::getenv("CI");
+    if (ci_env && std::string(ci_env) == "true") {
+        GTEST_SKIP() << "Skipping privileged port test in CI environment";
+    }
+
     // Try to start server on privileged port (requires root)
     auto result = server_->start_server(80);
 

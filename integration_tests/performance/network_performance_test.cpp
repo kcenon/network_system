@@ -74,6 +74,13 @@ TEST_F(ConcurrentPerformanceTest, ConnectionThroughput) {
 }
 
 TEST_F(NetworkPerformanceTest, SingleConnectionLatency) {
+    // Skip this test in CI environments due to resource contention
+    // Performance tests are not reliable in shared CI runners
+    const char* ci_env = std::getenv("CI");
+    if (ci_env && std::string(ci_env) == "true") {
+        GTEST_SKIP() << "Skipping latency test in CI environment";
+    }
+
     ASSERT_TRUE(StartServer());
 
     // Measure latency for single connection
