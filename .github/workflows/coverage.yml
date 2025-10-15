@@ -47,11 +47,19 @@ jobs:
     - name: Generate coverage report
       run: |
         cd build
-        # Capture coverage data
-        lcov --directory . --capture --output-file coverage.info || true
+        # Capture coverage data (ignore gcov mismatches from external dependencies)
+        lcov --directory . --capture --output-file coverage.info --ignore-errors mismatch,gcov,source,unused || true
 
-        # Filter out system headers and test files
-        lcov --remove coverage.info '/usr/*' '*/test/*' '*/tests/*' '*/examples/*' --output-file coverage_filtered.info || true
+        # Filter out system headers, test files, and external dependencies (FetchContent)
+        lcov --remove coverage.info \
+          '/usr/*' \
+          '*/test/*' \
+          '*/tests/*' \
+          '*/examples/*' \
+          '*/build/_deps/*' \
+          '*/googletest/*' \
+          '*/asio/*' \
+          --output-file coverage_filtered.info || true
 
         # Generate HTML report
         genhtml coverage_filtered.info --output-directory coverage_html || true
