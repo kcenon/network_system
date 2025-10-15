@@ -164,6 +164,9 @@ protected:
 class PerformanceFixture : public NetworkSystemFixture {
 protected:
     void SetUp() override {
+        if (test_helpers::is_sanitizer_run()) {
+            GTEST_SKIP() << "Skipping performance-sensitive test under sanitizer instrumentation";
+        }
         NetworkSystemFixture::SetUp();
     }
 

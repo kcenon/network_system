@@ -225,6 +225,23 @@ inline bool is_ci_environment() {
 }
 
 /**
+ * @brief Detect whether tests are running under a sanitizer (ASan, TSan, etc.)
+ * @return true when sanitizer environment variables are present
+ */
+inline bool is_sanitizer_run() {
+    const auto flag_set = [](const char* value) {
+        return value != nullptr && *value != '\0' && std::string_view(value) != "0";
+    };
+
+    return flag_set(std::getenv("TSAN_OPTIONS")) ||
+           flag_set(std::getenv("ASAN_OPTIONS")) ||
+           flag_set(std::getenv("UBSAN_OPTIONS")) ||
+           flag_set(std::getenv("MSAN_OPTIONS")) ||
+           flag_set(std::getenv("SANITIZER")) ||
+           flag_set(std::getenv("NETWORK_SYSTEM_SANITIZER"));
+}
+
+/**
  * @brief Generate sequential binary data
  * @param size Size of data to generate
  * @param start Starting value (default: 0)

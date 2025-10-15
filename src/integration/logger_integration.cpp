@@ -331,8 +331,10 @@ private:
 };
 
 logger_integration_manager& logger_integration_manager::instance() {
-    static logger_integration_manager instance;
-    return instance;
+    // Intentionally leak the singleton to avoid destruction order issues
+    // during sanitizer runs and shutdown hooks.
+    static logger_integration_manager* instance = new logger_integration_manager();
+    return *instance;
 }
 
 logger_integration_manager::logger_integration_manager()
