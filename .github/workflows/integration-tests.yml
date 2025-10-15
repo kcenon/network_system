@@ -33,7 +33,8 @@ jobs:
             cmake \
             ninja-build \
             libgtest-dev \
-            libboost-all-dev \
+            libasio-dev \
+            libfmt-dev \
             lcov
 
       - name: Install dependencies (macOS)
@@ -43,7 +44,8 @@ jobs:
             cmake \
             ninja \
             googletest \
-            boost \
+            asio \
+            fmt \
             lcov
 
       - name: Configure CMake
@@ -52,10 +54,8 @@ jobs:
             -G Ninja \
             -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
             -DBUILD_TESTS=ON \
-            -DNETWORK_BUILD_INTEGRATION_TESTS=ON \
             -DENABLE_COVERAGE=${{ matrix.build_type == 'Debug' && 'ON' || 'OFF' }} \
-            -DBUILD_SAMPLES=OFF \
-            -DNETWORK_BUILD_BENCHMARKS=OFF
+            -DBUILD_SAMPLES=OFF
 
       - name: Build
         run: cmake --build build --parallel
@@ -79,7 +79,7 @@ jobs:
             --ignore-errors gcov,source,unused \
             --rc lcov_branch_coverage=1
 
-          # Remove system and test files
+          # Remove system and test files and external dependencies
           lcov --remove coverage/coverage.info \
             '/usr/*' \
             '*/tests/*' \
@@ -87,8 +87,10 @@ jobs:
             '*/test/*' \
             '*/gtest/*' \
             '*/googletest/*' \
+            '*/build/_deps/*' \
+            '*/asio/*' \
             --output-file coverage/coverage_filtered.info \
-            --ignore-errors unused \
+            --ignore-errors unused,mismatch \
             --rc lcov_branch_coverage=1
 
           # Generate HTML report
@@ -136,7 +138,8 @@ jobs:
             cmake \
             ninja-build \
             libgtest-dev \
-            libboost-all-dev
+            libasio-dev \
+            libfmt-dev
 
       - name: Configure CMake
         run: |
@@ -144,7 +147,6 @@ jobs:
             -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
             -DBUILD_TESTS=ON \
-            -DNETWORK_BUILD_INTEGRATION_TESTS=ON \
             -DBUILD_SAMPLES=OFF
 
       - name: Build
