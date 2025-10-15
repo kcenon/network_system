@@ -10,6 +10,9 @@ enable_testing()
 # Find GTest
 find_package(GTest REQUIRED)
 
+# Find Threads (required for all tests)
+find_package(Threads REQUIRED)
+
 ##################################################
 # Common Setup for All Tests
 ##################################################
