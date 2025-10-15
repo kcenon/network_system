@@ -9,26 +9,17 @@
 # Configure ASIO integration
 ##################################################
 function(setup_asio_integration target)
+    # Note: This project only supports standalone ASIO (not Boost.ASIO)
+    # Source files use #include <asio.hpp> which is standalone ASIO path
+    # Boost.ASIO would require #include <boost/asio.hpp>
+
     # First try using ASIO CMake target (vcpkg provides this)
     if(ASIO_TARGET AND TARGET ${ASIO_TARGET})
         target_link_libraries(${target} PRIVATE ${ASIO_TARGET})
         target_compile_definitions(${target} PRIVATE ASIO_STANDALONE ASIO_NO_DEPRECATED)
         message(STATUS "Configured ${target} with ASIO target: ${ASIO_TARGET}")
-    elseif(USE_BOOST_ASIO AND Boost_INCLUDE_DIRS)
-        # Boost.ASIO - must add include directories explicitly
-        target_include_directories(${target}
-            PRIVATE
-                $<BUILD_INTERFACE:${Boost_INCLUDE_DIRS}>
-        )
-        if(Boost_LIBRARIES)
-            target_link_libraries(${target} PRIVATE ${Boost_LIBRARIES})
-            message(STATUS "Configured ${target} with Boost.ASIO at: ${Boost_INCLUDE_DIRS}")
-        else()
-            message(STATUS "Configured ${target} with Boost.ASIO header-only at: ${Boost_INCLUDE_DIRS}")
-        endif()
-        target_compile_definitions(${target} PRIVATE USE_BOOST_ASIO BOOST_ASIO_STANDALONE)
     elseif(ASIO_INCLUDE_DIR)
-        # Standalone ASIO
+        # Standalone ASIO via include directory
         target_include_directories(${target}
             PRIVATE
                 $<BUILD_INTERFACE:${ASIO_INCLUDE_DIR}>
@@ -36,7 +27,7 @@ function(setup_asio_integration target)
         target_compile_definitions(${target} PRIVATE ASIO_STANDALONE ASIO_NO_DEPRECATED)
         message(STATUS "Configured ${target} with standalone ASIO at: ${ASIO_INCLUDE_DIR}")
     else()
-        message(FATAL_ERROR "${target}: ASIO not found - cannot compile without ASIO")
+        message(FATAL_ERROR "${target}: Standalone ASIO not found - cannot compile without ASIO")
     endif()
 
     # Windows-specific definitions
