@@ -63,6 +63,11 @@ jobs:
           -GNinja \
           -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
           -DNETWORK_BUILD_BENCHMARKS=ON \
+          -DBUILD_WITH_COMMON_SYSTEM=OFF \
+          -DBUILD_WITH_LOGGER_SYSTEM=OFF \
+          -DBUILD_WITH_THREAD_SYSTEM=OFF \
+          -DBUILD_WITH_CONTAINER_SYSTEM=OFF \
+          -DBUILD_MESSAGING_BRIDGE=OFF \
           -DBUILD_TESTS=OFF \
           -DBUILD_SAMPLES=OFF
 
