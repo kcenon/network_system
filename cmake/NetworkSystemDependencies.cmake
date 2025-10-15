@@ -13,14 +13,28 @@ include(FetchContent)
 function(find_asio_library)
     message(STATUS "Looking for ASIO library...")
 
-    # First, let CMake's standard search work (respects CMAKE_PREFIX_PATH set by vcpkg)
-    # This is crucial for vcpkg toolchain integration
+    # Try CMake config package first (vcpkg provides asioConfig.cmake)
+    find_package(asio QUIET CONFIG)
+    if(asio_FOUND OR TARGET asio::asio)
+        if(TARGET asio::asio)
+            get_target_property(ASIO_INC asio::asio INTERFACE_INCLUDE_DIRECTORIES)
+            message(STATUS "Found ASIO via CMake package (target: asio::asio)")
+            message(STATUS "  Include directory: ${ASIO_INC}")
+            set(USE_BOOST_ASIO OFF PARENT_SCOPE)
+            set(ASIO_INCLUDE_DIR ${ASIO_INC} PARENT_SCOPE)
+            set(ASIO_FOUND TRUE PARENT_SCOPE)
+            set(ASIO_TARGET asio::asio PARENT_SCOPE)
+            return()
+        endif()
+    endif()
+
+    # Standard header search (respects CMAKE_PREFIX_PATH set by vcpkg)
     find_path(ASIO_INCLUDE_DIR
         NAMES asio.hpp
         DOC "Path to standalone ASIO headers"
     )
 
-    # If standard search failed, try explicit common locations
+    # Fallback: explicit common locations
     if(NOT ASIO_INCLUDE_DIR)
         find_path(ASIO_INCLUDE_DIR
             NAMES asio.hpp
@@ -347,6 +361,7 @@ function(find_network_system_dependencies)
     # ASIO variables
     set(ASIO_FOUND ${ASIO_FOUND} PARENT_SCOPE)
     set(ASIO_INCLUDE_DIR ${ASIO_INCLUDE_DIR} PARENT_SCOPE)
+    set(ASIO_TARGET ${ASIO_TARGET} PARENT_SCOPE)
     set(USE_BOOST_ASIO ${USE_BOOST_ASIO} PARENT_SCOPE)
     set(Boost_INCLUDE_DIRS ${Boost_INCLUDE_DIRS} PARENT_SCOPE)
     set(Boost_LIBRARIES ${Boost_LIBRARIES} PARENT_SCOPE)

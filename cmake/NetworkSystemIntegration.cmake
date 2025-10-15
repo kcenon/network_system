@@ -9,7 +9,12 @@
 # Configure ASIO integration
 ##################################################
 function(setup_asio_integration target)
-    if(USE_BOOST_ASIO)
+    # First try using ASIO CMake target (vcpkg provides this)
+    if(ASIO_TARGET AND TARGET ${ASIO_TARGET})
+        target_link_libraries(${target} PRIVATE ${ASIO_TARGET})
+        target_compile_definitions(${target} PRIVATE ASIO_STANDALONE ASIO_NO_DEPRECATED)
+        message(STATUS "Configured ${target} with ASIO target: ${ASIO_TARGET}")
+    elseif(USE_BOOST_ASIO)
         target_include_directories(${target}
             PRIVATE
                 $<BUILD_INTERFACE:${Boost_INCLUDE_DIRS}>
