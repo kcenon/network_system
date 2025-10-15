@@ -72,12 +72,14 @@ jobs:
           # Create coverage directory
           mkdir -p coverage
 
-          # Capture coverage data
+          # Capture coverage data (ignore known mismatches from system headers)
+          export GENINFO_OPTS="--ignore-errors mismatch,gcov,source,unused"
+
           lcov --capture \
             --directory . \
             --output-file coverage/coverage.info \
-            --ignore-errors gcov,source,unused \
-            --rc lcov_branch_coverage=1
+            --ignore-errors mismatch,gcov,source,unused \
+            --rc branch_coverage=1
 
           # Remove system and test files and external dependencies
           lcov --remove coverage/coverage.info \
@@ -90,19 +92,19 @@ jobs:
             '*/build/_deps/*' \
             '*/asio/*' \
             --output-file coverage/coverage_filtered.info \
-            --ignore-errors unused,mismatch \
-            --rc lcov_branch_coverage=1
+            --ignore-errors mismatch,unused \
+            --rc branch_coverage=1
 
           # Generate HTML report
           genhtml coverage/coverage_filtered.info \
             --output-directory coverage/html \
             --ignore-errors source \
-            --rc lcov_branch_coverage=1
+            --rc branch_coverage=1
 
           # Print coverage summary
           lcov --list coverage/coverage_filtered.info \
             --ignore-errors unused \
-            --rc lcov_branch_coverage=1
+            --rc branch_coverage=1
 
       - name: Upload Coverage Report
         if: matrix.build_type == 'Debug' && runner.os == 'Linux'
