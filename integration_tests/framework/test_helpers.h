@@ -34,6 +34,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <chrono>
 #include <thread>
+#include <cstdlib>
+#include <string_view>
 #include <memory>
 #include <vector>
 #include <algorithm>
@@ -206,6 +208,20 @@ inline std::vector<uint8_t> generate_random_data(size_t size) {
     }
 
     return data;
+}
+
+/**
+ * @brief Detect whether tests are running in a CI environment
+ * @return true when common CI environment variables are present
+ */
+inline bool is_ci_environment() {
+    const auto flag_set = [](const char* value) {
+        return value != nullptr && *value != '\0' && std::string_view(value) != "0";
+    };
+
+    return flag_set(std::getenv("CI")) ||
+           flag_set(std::getenv("GITHUB_ACTIONS")) ||
+           flag_set(std::getenv("NETWORK_SYSTEM_CI"));
 }
 
 /**

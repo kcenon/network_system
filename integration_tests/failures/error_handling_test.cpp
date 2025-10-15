@@ -86,17 +86,22 @@ TEST_F(ErrorHandlingTest, ServerStartOnInvalidPort) {
 
 TEST_F(ErrorHandlingTest, ServerStartOnPrivilegedPort) {
     // Skip this test in CI environments as it's environment-dependent
-    // CI runners may have root access or port 80 may already be in use
-    const char* ci_env = std::getenv("CI");
-    if (ci_env && std::string(ci_env) == "true") {
+    // CI runners may have elevated capabilities or port 80 may already be in use
+    if (test_helpers::is_ci_environment()) {
         GTEST_SKIP() << "Skipping privileged port test in CI environment";
     }
 
     // Try to start server on privileged port (requires root)
     auto result = server_->start_server(80);
 
+    if (result.is_ok()) {
+        server_->stop_server();
+        GTEST_SKIP() << "Environment allows binding to privileged ports; skipping assertion.";
+    }
+
     // Should fail with permission error (unless running as root)
     EXPECT_FALSE(result.is_ok());
+    EXPECT_EQ(result.error().code, error_codes::network_system::bind_failed);
 }
 
 // ============================================================================

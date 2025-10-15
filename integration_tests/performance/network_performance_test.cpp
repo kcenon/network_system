@@ -55,8 +55,7 @@ class ConcurrentPerformanceTest : public MultiConnectionFixture {};
 
 TEST_F(ConcurrentPerformanceTest, ConnectionThroughput) {
     // Skip concurrent performance tests in CI due to resource contention
-    const char* ci_env = std::getenv("CI");
-    if (ci_env && std::string(ci_env) == "true") {
+    if (test_helpers::is_ci_environment()) {
         GTEST_SKIP() << "Skipping concurrent performance test in CI environment";
     }
 
@@ -82,8 +81,7 @@ TEST_F(ConcurrentPerformanceTest, ConnectionThroughput) {
 TEST_F(NetworkPerformanceTest, SingleConnectionLatency) {
     // Skip this test in CI environments due to resource contention
     // Performance tests are not reliable in shared CI runners
-    const char* ci_env = std::getenv("CI");
-    if (ci_env && std::string(ci_env) == "true") {
+    if (test_helpers::is_ci_environment()) {
         GTEST_SKIP() << "Skipping latency test in CI environment";
     }
 
@@ -237,8 +235,7 @@ TEST_F(NetworkPerformanceTest, BandwidthUtilization) {
 
 TEST_F(ConcurrentPerformanceTest, ConcurrentConnectionScalability) {
     // Skip concurrent performance tests in CI due to resource contention
-    const char* ci_env = std::getenv("CI");
-    if (ci_env && std::string(ci_env) == "true") {
+    if (test_helpers::is_ci_environment()) {
         GTEST_SKIP() << "Skipping concurrent scalability test in CI environment";
     }
 
