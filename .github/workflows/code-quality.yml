@@ -25,7 +25,7 @@ jobs:
     - name: Install Analysis Tools
       run: |
         sudo apt-get update
-        sudo apt-get install -y cppcheck clang-tidy clang-format python3-pip
+        sudo apt-get install -y cppcheck clang-tidy clang-format python3-pip cmake ninja-build libasio-dev libfmt-dev
         pip3 install cpplint
 
     - name: Run cppcheck
@@ -43,7 +43,15 @@ jobs:
     - name: Run clang-tidy
       run: |
         # First configure the project to generate compile_commands.json
-        cmake -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+        cmake -B build -G Ninja \
+          -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+          -DBUILD_TESTS=OFF \
+          -DBUILD_SAMPLES=OFF \
+          -DBUILD_WITH_COMMON_SYSTEM=OFF \
+          -DBUILD_WITH_LOGGER_SYSTEM=OFF \
+          -DBUILD_WITH_THREAD_SYSTEM=OFF \
+          -DBUILD_WITH_CONTAINER_SYSTEM=OFF \
+          -DBUILD_MESSAGING_BRIDGE=OFF
 
         find src include -name '*.cpp' -o -name '*.h' | \
         xargs clang-tidy -p=build \
@@ -119,7 +127,14 @@ jobs:
         cmake -B build -G Ninja \
           -DCMAKE_BUILD_TYPE=Debug \
           -DCMAKE_CXX_FLAGS="--coverage -fprofile-arcs -ftest-coverage" \
-          -DCMAKE_C_FLAGS="--coverage -fprofile-arcs -ftest-coverage"
+          -DCMAKE_C_FLAGS="--coverage -fprofile-arcs -ftest-coverage" \
+          -DBUILD_TESTS=ON \
+          -DBUILD_SAMPLES=OFF \
+          -DBUILD_WITH_COMMON_SYSTEM=OFF \
+          -DBUILD_WITH_LOGGER_SYSTEM=OFF \
+          -DBUILD_WITH_THREAD_SYSTEM=OFF \
+          -DBUILD_WITH_CONTAINER_SYSTEM=OFF \
+          -DBUILD_MESSAGING_BRIDGE=OFF
 
     - name: Build
       run: cmake --build build

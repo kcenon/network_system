@@ -37,7 +37,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y cmake ninja-build clang libgtest-dev libfmt-dev libboost-all-dev libasio-dev
+        sudo apt-get install -y cmake ninja-build clang libgtest-dev libfmt-dev libasio-dev
 
     - name: Set up compiler
       run: |
