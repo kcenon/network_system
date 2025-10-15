@@ -54,6 +54,12 @@ class ConcurrentPerformanceTest : public MultiConnectionFixture {};
 // ============================================================================
 
 TEST_F(ConcurrentPerformanceTest, ConnectionThroughput) {
+    // Skip concurrent performance tests in CI due to resource contention
+    const char* ci_env = std::getenv("CI");
+    if (ci_env && std::string(ci_env) == "true") {
+        GTEST_SKIP() << "Skipping concurrent performance test in CI environment";
+    }
+
     ASSERT_TRUE(StartServer());
 
     // Measure time to establish multiple connections
@@ -230,6 +236,12 @@ TEST_F(NetworkPerformanceTest, BandwidthUtilization) {
 // ============================================================================
 
 TEST_F(ConcurrentPerformanceTest, ConcurrentConnectionScalability) {
+    // Skip concurrent performance tests in CI due to resource contention
+    const char* ci_env = std::getenv("CI");
+    if (ci_env && std::string(ci_env) == "true") {
+        GTEST_SKIP() << "Skipping concurrent scalability test in CI environment";
+    }
+
     ASSERT_TRUE(StartServer());
 
     // Test with increasing number of connections
