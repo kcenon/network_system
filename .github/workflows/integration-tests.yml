@@ -54,8 +54,14 @@ jobs:
             -G Ninja \
             -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
             -DBUILD_TESTS=ON \
+            -DNETWORK_BUILD_INTEGRATION_TESTS=ON \
             -DENABLE_COVERAGE=${{ matrix.build_type == 'Debug' && 'ON' || 'OFF' }} \
-            -DBUILD_SAMPLES=OFF
+            -DBUILD_SAMPLES=OFF \
+            -DBUILD_WITH_COMMON_SYSTEM=OFF \
+            -DBUILD_WITH_LOGGER_SYSTEM=OFF \
+            -DBUILD_WITH_THREAD_SYSTEM=OFF \
+            -DBUILD_WITH_CONTAINER_SYSTEM=OFF \
+            -DBUILD_MESSAGING_BRIDGE=OFF
 
       - name: Build
         run: cmake --build build --parallel
@@ -79,7 +85,7 @@ jobs:
             --directory . \
             --output-file coverage/coverage.info \
             --ignore-errors mismatch,gcov,source,unused \
-            --rc branch_coverage=1
+            --rc lcov_branch_coverage=1
 
           # Remove system and test files and external dependencies
           lcov --remove coverage/coverage.info \
@@ -93,18 +99,18 @@ jobs:
             '*/asio/*' \
             --output-file coverage/coverage_filtered.info \
             --ignore-errors mismatch,unused \
-            --rc branch_coverage=1
+            --rc lcov_branch_coverage=1
 
           # Generate HTML report
           genhtml coverage/coverage_filtered.info \
             --output-directory coverage/html \
             --ignore-errors source \
-            --rc branch_coverage=1
+            --rc lcov_branch_coverage=1
 
           # Print coverage summary
           lcov --list coverage/coverage_filtered.info \
             --ignore-errors unused \
-            --rc branch_coverage=1
+            --rc lcov_branch_coverage=1
 
       - name: Upload Coverage Report
         if: matrix.build_type == 'Debug' && runner.os == 'Linux'
@@ -149,7 +155,13 @@ jobs:
             -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
             -DBUILD_TESTS=ON \
-            -DBUILD_SAMPLES=OFF
+            -DNETWORK_BUILD_INTEGRATION_TESTS=ON \
+            -DBUILD_SAMPLES=OFF \
+            -DBUILD_WITH_COMMON_SYSTEM=OFF \
+            -DBUILD_WITH_LOGGER_SYSTEM=OFF \
+            -DBUILD_WITH_THREAD_SYSTEM=OFF \
+            -DBUILD_WITH_CONTAINER_SYSTEM=OFF \
+            -DBUILD_MESSAGING_BRIDGE=OFF
 
       - name: Build
         run: cmake --build build --parallel
