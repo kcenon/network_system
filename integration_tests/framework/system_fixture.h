@@ -242,8 +242,12 @@ protected:
     }
 
     /**
-     * @brief Connect all created clients to the server
+     * @brief Connect all created clients to the server in parallel
      * @return Number of successfully connected clients
+     *
+     * Initiates all connections simultaneously then waits for completion.
+     * This avoids sequential timeout accumulation and significantly reduces
+     * total connection time for multiple clients.
      */
     size_t ConnectAllClients() {
         // Use shorter timeout in CI and per-client timeout to avoid hangs
@@ -251,15 +255,27 @@ protected:
             ? std::chrono::seconds(2)
             : std::chrono::seconds(3);
 
-        size_t connected = 0;
+        // Start all connections in parallel (async operations)
         for (auto& client : clients_) {
-            auto result = client->start_client("localhost", test_port_);
-            if (result.is_ok()) {
-                if (test_helpers::wait_for_connection(client, timeout)) {
-                    ++connected;
-                }
+            client->start_client("localhost", test_port_);
+        }
+
+        // Wait for all to complete with single timeout period
+        size_t connected = 0;
+        auto deadline = std::chrono::steady_clock::now() + timeout;
+
+        for (auto& client : clients_) {
+            auto remaining = deadline - std::chrono::steady_clock::now();
+            if (remaining <= std::chrono::milliseconds(0)) {
+                break;  // Timeout reached
+            }
+
+            auto client_timeout = std::chrono::duration_cast<std::chrono::seconds>(remaining);
+            if (test_helpers::wait_for_connection(client, client_timeout)) {
+                ++connected;
             }
         }
+
         return connected;
     }
 
