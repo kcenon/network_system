@@ -55,6 +55,12 @@ namespace network_system::integration_tests {
 class NetworkSystemFixture : public ::testing::Test {
 protected:
     void SetUp() override {
+        const auto* info = ::testing::UnitTest::GetInstance()->current_test_info();
+        std::string context = info ? (std::string(info->test_suite_name()) + "." + info->name())
+                                   : std::string("unknown_test");
+        timeout_guard_ = std::make_unique<test_helpers::ScopedTestTimeout>(
+            std::chrono::milliseconds(kDefaultTimeoutMs), std::move(context));
+
         // Find available port for testing
         test_port_ = test_helpers::find_available_port();
 
@@ -80,6 +86,8 @@ protected:
 
         // Brief pause to ensure cleanup
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
+
+        timeout_guard_.reset();
     }
 
     /**
@@ -156,6 +164,8 @@ protected:
     std::shared_ptr<core::messaging_server> server_;
     std::shared_ptr<core::messaging_client> client_;
     unsigned short test_port_{0};
+    std::unique_ptr<test_helpers::ScopedTestTimeout> timeout_guard_;
+    static constexpr int kDefaultTimeoutMs = 30000;
 };
 
 /**
@@ -164,6 +174,9 @@ protected:
 class PerformanceFixture : public NetworkSystemFixture {
 protected:
     void SetUp() override {
+        if (test_helpers::is_sanitizer_run()) {
+            GTEST_SKIP() << "Skipping performance-sensitive test under sanitizer instrumentation";
+        }
         if (test_helpers::is_sanitizer_run()) {
             GTEST_SKIP() << "Skipping performance-sensitive test under sanitizer instrumentation";
         }

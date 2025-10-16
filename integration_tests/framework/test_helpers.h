@@ -42,6 +42,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <numeric>
 #include <cmath>
 #include <random>
+#include <atomic>
+#include <cstdio>
 
 #include <asio.hpp>
 
@@ -240,6 +242,61 @@ inline bool is_sanitizer_run() {
            flag_set(std::getenv("SANITIZER")) ||
            flag_set(std::getenv("NETWORK_SYSTEM_SANITIZER"));
 }
+
+/**
+ * @brief Watchdog that aborts a test if it runs longer than the given timeout.
+ */
+class ScopedTestTimeout {
+public:
+    ScopedTestTimeout(std::chrono::milliseconds timeout, std::string context)
+        : cancel_{false}, watchdog_([timeout, ctx = std::move(context), this]() {
+              const auto deadline = std::chrono::steady_clock::now() + timeout;
+              while (!cancel_.load(std::memory_order_acquire)) {
+                  if (std::chrono::steady_clock::now() >= deadline) {
+                      std::fprintf(stderr,
+                                   "[network_system][timeout] %s exceeded %lld ms, aborting to avoid hang\n",
+                                   ctx.c_str(),
+                                   static_cast<long long>(timeout.count()));
+                      std::fflush(stderr);
+                      std::abort();
+                  }
+                  std::this_thread::sleep_for(std::chrono::milliseconds(10));
+              }
+          }) {}
+
+    ScopedTestTimeout(const ScopedTestTimeout&) = delete;
+    ScopedTestTimeout& operator=(const ScopedTestTimeout&) = delete;
+
+    ScopedTestTimeout(ScopedTestTimeout&& other) noexcept
+        : cancel_(other.cancel_.load(std::memory_order_relaxed)),
+          watchdog_(std::move(other.watchdog_)) {
+        other.cancel_.store(true, std::memory_order_relaxed);
+    }
+
+    ScopedTestTimeout& operator=(ScopedTestTimeout&& other) noexcept {
+        if (this != &other) {
+            cancel_.store(true, std::memory_order_release);
+            if (watchdog_.joinable()) {
+                watchdog_.join();
+            }
+            cancel_.store(other.cancel_.load(std::memory_order_acquire), std::memory_order_release);
+            watchdog_ = std::move(other.watchdog_);
+            other.cancel_.store(true, std::memory_order_release);
+        }
+        return *this;
+    }
+
+    ~ScopedTestTimeout() {
+        cancel_.store(true, std::memory_order_release);
+        if (watchdog_.joinable()) {
+            watchdog_.join();
+        }
+    }
+
+private:
+    std::atomic<bool> cancel_;
+    std::thread watchdog_;
+};
 
 /**
  * @brief Generate sequential binary data
