@@ -414,6 +414,14 @@ TEST_F(NetworkThreadSafetyTest, MemorySafety) {
         }
 
         total_errors += errors.load();
+
+        // Ensure all async operations complete before next iteration
+        // Stop client and server explicitly before destroying
+        client->stop_client();
+        server->stop_server();
+
+        // Give time for cleanup
+        std::this_thread::sleep_for(10ms);
     }
 
     EXPECT_EQ(total_errors.load(), 0);

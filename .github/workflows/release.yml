@@ -68,7 +68,14 @@ jobs:
         cmake -B build -G Ninja \
           -DCMAKE_BUILD_TYPE=Release \
           -DBUILD_SHARED_LIBS=OFF \
-          -DCMAKE_INSTALL_PREFIX=install
+          -DCMAKE_INSTALL_PREFIX=install \
+          -DBUILD_WITH_COMMON_SYSTEM=OFF \
+          -DBUILD_WITH_LOGGER_SYSTEM=OFF \
+          -DBUILD_WITH_THREAD_SYSTEM=OFF \
+          -DBUILD_WITH_CONTAINER_SYSTEM=OFF \
+          -DBUILD_MESSAGING_BRIDGE=OFF \
+          -DBUILD_TESTS=ON \
+          -DBUILD_SAMPLES=OFF
 
     - name: Build
       run: |
@@ -153,7 +160,7 @@ jobs:
         echo "## 🔧 Requirements" >> release-notes.md
         echo "- C++20 compatible compiler" >> release-notes.md
         echo "- CMake 3.16+" >> release-notes.md
-        echo "- ASIO or Boost.ASIO 1.28+" >> release-notes.md
+        echo "- Standalone ASIO 1.28+ (Boost.ASIO not supported)" >> release-notes.md
         echo "" >> release-notes.md
 
         echo "## 📄 Checksums" >> release-notes.md

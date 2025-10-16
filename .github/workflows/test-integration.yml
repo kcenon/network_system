@@ -83,7 +83,17 @@ jobs:
 
     - name: Configure CMake (Unix)
       if: "!startsWith(matrix.os, 'windows')"
-      run: cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DBUILD_WITH_COMMON_SYSTEM=OFF -DBUILD_WITH_LOGGER_SYSTEM=OFF -DBUILD_WITH_THREAD_SYSTEM=OFF -DBUILD_WITH_CONTAINER_SYSTEM=OFF -DBUILD_MESSAGING_BRIDGE=OFF -DBUILD_TESTS=ON -DBUILD_SAMPLES=OFF -DENABLE_COVERAGE=${{ matrix.build_type == 'Debug' && 'ON' || 'OFF' }}
+      run: |
+        cmake -B build -G Ninja \
+          -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+          -DBUILD_WITH_COMMON_SYSTEM=OFF \
+          -DBUILD_WITH_LOGGER_SYSTEM=OFF \
+          -DBUILD_WITH_THREAD_SYSTEM=OFF \
+          -DBUILD_WITH_CONTAINER_SYSTEM=OFF \
+          -DBUILD_MESSAGING_BRIDGE=OFF \
+          -DBUILD_TESTS=ON \
+          -DBUILD_SAMPLES=OFF \
+          -DENABLE_COVERAGE=${{ matrix.build_type == 'Debug' && 'ON' || 'OFF' }}
 
     - name: Build (Windows)
       if: startsWith(matrix.os, 'windows')
@@ -104,21 +114,39 @@ jobs:
       if: "!startsWith(matrix.os, 'windows')"
       run: |
         cd build
-        ./test_e2e || true
+        if [ -f ./test_e2e ]; then
+          ./test_e2e || true
+        elif [ -f ./bin/test_e2e ]; then
+          ./bin/test_e2e || true
+        else
+          echo "test_e2e not found, skipping"
+        fi
       continue-on-error: true
 
     - name: Run Stress Tests (Release only)
       if: matrix.build_type == 'Release' && !startsWith(matrix.os, 'windows')
       run: |
         cd build
-        ./stress_test 20 100 10 || true
+        if [ -f ./stress_test ]; then
+          ./stress_test 20 100 10 || true
+        elif [ -f ./bin/stress_test ]; then
+          ./bin/stress_test 20 100 10 || true
+        else
+          echo "stress_test not found, skipping"
+        fi
       continue-on-error: true
 
     - name: Run Performance Benchmark (Release only)
       if: matrix.build_type == 'Release' && !startsWith(matrix.os, 'windows')
       run: |
         cd build
-        ./benchmark || true
+        if [ -f ./benchmark ]; then
+          ./benchmark || true
+        elif [ -f ./bin/benchmark ]; then
+          ./bin/benchmark || true
+        else
+          echo "benchmark not found, skipping"
+        fi
       continue-on-error: true
 
     - name: Generate Coverage Report (Debug only)

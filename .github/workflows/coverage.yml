@@ -47,17 +47,34 @@ jobs:
     - name: Generate coverage report
       run: |
         cd build
-        # Capture coverage data
-        lcov --directory . --capture --output-file coverage.info || true
+        # Create coverage directory
+        mkdir -p coverage
 
-        # Filter out system headers and test files
-        lcov --remove coverage.info '/usr/*' '*/test/*' '*/tests/*' '*/examples/*' --output-file coverage_filtered.info || true
+        # Capture coverage data (ignore gcov mismatches from external dependencies)
+        # Set environment variable to pass ignore-errors to geninfo
+        export GENINFO_OPTS="--ignore-errors mismatch,gcov,source,unused"
+        lcov --directory . --capture --output-file coverage.info \
+          --ignore-errors mismatch,gcov,source,unused \
+          --rc geninfo_gcov_all_blocks=0 || true
+
+        # Filter out system headers, test files, and external dependencies (FetchContent)
+        lcov --remove coverage.info \
+          '/usr/*' \
+          '*/test/*' \
+          '*/tests/*' \
+          '*/examples/*' \
+          '*/build/_deps/*' \
+          '*/googletest/*' \
+          '*/asio/*' \
+          --output-file coverage_filtered.info \
+          --ignore-errors unused,mismatch || true
 
         # Generate HTML report
-        genhtml coverage_filtered.info --output-directory coverage_html || true
+        genhtml coverage_filtered.info --output-directory coverage_html \
+          --ignore-errors source,unmapped || true
 
         # Print summary
-        lcov --list coverage_filtered.info || true
+        lcov --list coverage_filtered.info --ignore-errors unused || true
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v4

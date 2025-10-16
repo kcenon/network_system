@@ -89,7 +89,7 @@ namespace network_system::session
 		/*!
 		 * \brief Destructor; calls \c stop_session() if not already stopped.
 		 */
-		~messaging_session();
+		~messaging_session() noexcept;
 
 		/*!
 		 * \brief Starts the session: sets up read/error callbacks and begins

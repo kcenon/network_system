@@ -150,6 +150,11 @@ namespace network_system::internal
 		 */
 		auto socket() -> asio::ip::tcp::socket& { return socket_; }
 
+		/*!
+		 * \brief Stops the read loop to prevent further async operations
+		 */
+		auto stop_read() -> void;
+
 	private:
 		/*!
 		 * \brief Internal function to handle the read logic with \c
@@ -171,5 +176,7 @@ namespace network_system::internal
 			receive_callback_; /*!< Inbound data callback. */
 		std::function<void(std::error_code)>
 			error_callback_;   /*!< Error callback. */
+
+		std::atomic<bool> is_reading_{false}; /*!< Flag to prevent read after stop. */
 	};
 } // namespace network_system::internal

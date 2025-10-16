@@ -27,6 +27,31 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/test_e2e.cpp)
         Threads::Threads
     )
 
+    # Setup ASIO and FMT integration (required for network_system headers)
+    setup_asio_integration(test_e2e)
+    setup_fmt_integration(test_e2e)
+
+    # Add system integration paths
+    if(CONTAINER_SYSTEM_INCLUDE_DIR)
+        target_include_directories(test_e2e PRIVATE ${CONTAINER_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(test_e2e PRIVATE BUILD_WITH_CONTAINER_SYSTEM)
+    endif()
+
+    if(THREAD_SYSTEM_INCLUDE_DIR)
+        target_include_directories(test_e2e PRIVATE ${THREAD_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(test_e2e PRIVATE BUILD_WITH_THREAD_SYSTEM)
+    endif()
+
+    if(LOGGER_SYSTEM_INCLUDE_DIR)
+        target_include_directories(test_e2e PRIVATE ${LOGGER_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(test_e2e PRIVATE BUILD_WITH_LOGGER_SYSTEM)
+    endif()
+
+    if(COMMON_SYSTEM_INCLUDE_DIR)
+        target_include_directories(test_e2e PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(test_e2e PRIVATE BUILD_WITH_COMMON_SYSTEM)
+    endif()
+
     set_target_properties(test_e2e PROPERTIES
         CXX_STANDARD 20
         CXX_STANDARD_REQUIRED ON
@@ -47,6 +72,31 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/test_integration.cpp)
         Threads::Threads
     )
 
+    # Setup ASIO and FMT integration (required for network_system headers)
+    setup_asio_integration(stress_test)
+    setup_fmt_integration(stress_test)
+
+    # Add system integration paths
+    if(CONTAINER_SYSTEM_INCLUDE_DIR)
+        target_include_directories(stress_test PRIVATE ${CONTAINER_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(stress_test PRIVATE BUILD_WITH_CONTAINER_SYSTEM)
+    endif()
+
+    if(THREAD_SYSTEM_INCLUDE_DIR)
+        target_include_directories(stress_test PRIVATE ${THREAD_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(stress_test PRIVATE BUILD_WITH_THREAD_SYSTEM)
+    endif()
+
+    if(LOGGER_SYSTEM_INCLUDE_DIR)
+        target_include_directories(stress_test PRIVATE ${LOGGER_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(stress_test PRIVATE BUILD_WITH_LOGGER_SYSTEM)
+    endif()
+
+    if(COMMON_SYSTEM_INCLUDE_DIR)
+        target_include_directories(stress_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(stress_test PRIVATE BUILD_WITH_COMMON_SYSTEM)
+    endif()
+
     set_target_properties(stress_test PROPERTIES
         CXX_STANDARD 20
         CXX_STANDARD_REQUIRED ON
@@ -64,6 +114,31 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/test_compatibility.cpp)
         NetworkSystem
         Threads::Threads
     )
+
+    # Setup ASIO and FMT integration (required for network_system headers)
+    setup_asio_integration(benchmark)
+    setup_fmt_integration(benchmark)
+
+    # Add system integration paths
+    if(CONTAINER_SYSTEM_INCLUDE_DIR)
+        target_include_directories(benchmark PRIVATE ${CONTAINER_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(benchmark PRIVATE BUILD_WITH_CONTAINER_SYSTEM)
+    endif()
+
+    if(THREAD_SYSTEM_INCLUDE_DIR)
+        target_include_directories(benchmark PRIVATE ${THREAD_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(benchmark PRIVATE BUILD_WITH_THREAD_SYSTEM)
+    endif()
+
+    if(LOGGER_SYSTEM_INCLUDE_DIR)
+        target_include_directories(benchmark PRIVATE ${LOGGER_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(benchmark PRIVATE BUILD_WITH_LOGGER_SYSTEM)
+    endif()
+
+    if(COMMON_SYSTEM_INCLUDE_DIR)
+        target_include_directories(benchmark PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(benchmark PRIVATE BUILD_WITH_COMMON_SYSTEM)
+    endif()
 
     set_target_properties(benchmark PROPERTIES
         CXX_STANDARD 20

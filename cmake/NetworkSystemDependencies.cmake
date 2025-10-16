@@ -13,57 +13,45 @@ include(FetchContent)
 function(find_asio_library)
     message(STATUS "Looking for ASIO library...")
 
-    # Try standalone ASIO first
+    # Try CMake config package first (vcpkg provides asioConfig.cmake)
+    find_package(asio QUIET CONFIG)
+    if(TARGET asio::asio)
+        message(STATUS "Found ASIO via CMake package (target: asio::asio)")
+        set(ASIO_FOUND TRUE PARENT_SCOPE)
+        set(ASIO_TARGET asio::asio PARENT_SCOPE)
+        return()
+    endif()
+
+    # Standard header search (respects CMAKE_PREFIX_PATH set by vcpkg)
     find_path(ASIO_INCLUDE_DIR
         NAMES asio.hpp
-        PATHS
-            ${CMAKE_CURRENT_SOURCE_DIR}/vcpkg_installed/${VCPKG_TARGET_TRIPLET}/include
-            /opt/homebrew/include
-            /usr/local/include
-            /usr/include
+        DOC "Path to standalone ASIO headers"
     )
+
+    # Fallback: explicit common locations
+    if(NOT ASIO_INCLUDE_DIR)
+        find_path(ASIO_INCLUDE_DIR
+            NAMES asio.hpp
+            PATHS
+                /opt/homebrew/include
+                /usr/local/include
+                /usr/include
+            NO_DEFAULT_PATH
+            DOC "Path to standalone ASIO headers in common locations"
+        )
+    endif()
 
     if(ASIO_INCLUDE_DIR)
         message(STATUS "Found standalone ASIO at: ${ASIO_INCLUDE_DIR}")
-        set(USE_BOOST_ASIO OFF PARENT_SCOPE)
         set(ASIO_INCLUDE_DIR ${ASIO_INCLUDE_DIR} PARENT_SCOPE)
         set(ASIO_FOUND TRUE PARENT_SCOPE)
         return()
     endif()
 
-    # Fallback to Boost.ASIO
-    message(STATUS "Standalone ASIO not found, checking for Boost.ASIO...")
-
-    find_package(Boost QUIET CONFIG COMPONENTS system)
-    if(NOT Boost_FOUND)
-        find_package(Boost QUIET MODULE COMPONENTS system)
-    endif()
-
-    if(Boost_FOUND)
-        message(STATUS "Using Boost.ASIO (version: ${Boost_VERSION})")
-        set(USE_BOOST_ASIO ON PARENT_SCOPE)
-        set(Boost_INCLUDE_DIRS ${Boost_INCLUDE_DIRS} PARENT_SCOPE)
-        set(Boost_LIBRARIES ${Boost_LIBRARIES} PARENT_SCOPE)
-        set(ASIO_FOUND TRUE PARENT_SCOPE)
-        return()
-    endif()
-
-    # Try manual Boost header search
-    find_path(BOOST_INCLUDE_DIR
-        NAMES boost/asio.hpp
-        PATHS
-            /opt/homebrew/include
-            /usr/local/include
-            /usr/include
-    )
-
-    if(BOOST_INCLUDE_DIR)
-        message(STATUS "Using Boost.ASIO headers at: ${BOOST_INCLUDE_DIR}")
-        set(USE_BOOST_ASIO ON PARENT_SCOPE)
-        set(Boost_INCLUDE_DIRS ${BOOST_INCLUDE_DIR} PARENT_SCOPE)
-        set(ASIO_FOUND TRUE PARENT_SCOPE)
-        return()
-    endif()
+    # Note: Boost.ASIO fallback is NOT compatible with our source code
+    # Source files use #include <asio.hpp> (standalone path)
+    # Boost provides #include <boost/asio.hpp> (different path)
+    # Therefore, we skip Boost.ASIO and fetch standalone ASIO directly
 
     # Fetch standalone ASIO as a last resort
     message(STATUS "Standalone ASIO not found locally - fetching asio-1-36-0 from upstream...")
@@ -82,15 +70,13 @@ function(find_asio_library)
 
     if(EXISTS "${_asio_include_dir}/asio.hpp")
         message(STATUS "Fetched standalone ASIO headers at: ${_asio_include_dir}")
-        set(USE_BOOST_ASIO OFF PARENT_SCOPE)
         set(ASIO_INCLUDE_DIR ${_asio_include_dir} PARENT_SCOPE)
         set(ASIO_FOUND TRUE PARENT_SCOPE)
         set(ASIO_FETCHED TRUE PARENT_SCOPE)
         return()
     endif()
 
-    message(WARNING "ASIO not found - network functionality may be limited")
-    set(ASIO_FOUND FALSE PARENT_SCOPE)
+    message(FATAL_ERROR "Failed to fetch standalone ASIO - cannot build without ASIO")
 endfunction()
 
 ##################################################
@@ -333,13 +319,43 @@ function(find_network_system_dependencies)
     find_logger_system()
     find_common_system()
 
-    # Export to parent scope
+    # Export all variables to parent scope
+    # ASIO variables (standalone only - Boost.ASIO not supported)
     set(ASIO_FOUND ${ASIO_FOUND} PARENT_SCOPE)
+    set(ASIO_INCLUDE_DIR ${ASIO_INCLUDE_DIR} PARENT_SCOPE)
+    set(ASIO_TARGET ${ASIO_TARGET} PARENT_SCOPE)
+    set(ASIO_FETCHED ${ASIO_FETCHED} PARENT_SCOPE)
+
+    # FMT variables
     set(FMT_FOUND ${FMT_FOUND} PARENT_SCOPE)
+    set(FMT_INCLUDE_DIR ${FMT_INCLUDE_DIR} PARENT_SCOPE)
+    set(FMT_LIBRARY ${FMT_LIBRARY} PARENT_SCOPE)
+    set(FMT_TARGET ${FMT_TARGET} PARENT_SCOPE)
+    set(FMT_HEADER_ONLY ${FMT_HEADER_ONLY} PARENT_SCOPE)
+    set(USE_STD_FORMAT ${USE_STD_FORMAT} PARENT_SCOPE)
+
+    # System integration variables
     set(CONTAINER_SYSTEM_FOUND ${CONTAINER_SYSTEM_FOUND} PARENT_SCOPE)
+    set(CONTAINER_SYSTEM_INCLUDE_DIR ${CONTAINER_SYSTEM_INCLUDE_DIR} PARENT_SCOPE)
+    set(CONTAINER_SYSTEM_LIBRARY ${CONTAINER_SYSTEM_LIBRARY} PARENT_SCOPE)
+    set(CONTAINER_SYSTEM_TARGET ${CONTAINER_SYSTEM_TARGET} PARENT_SCOPE)
+
     set(THREAD_SYSTEM_FOUND ${THREAD_SYSTEM_FOUND} PARENT_SCOPE)
+    set(THREAD_SYSTEM_INCLUDE_DIR ${THREAD_SYSTEM_INCLUDE_DIR} PARENT_SCOPE)
+    set(THREAD_SYSTEM_LIBRARY ${THREAD_SYSTEM_LIBRARY} PARENT_SCOPE)
+
     set(LOGGER_SYSTEM_FOUND ${LOGGER_SYSTEM_FOUND} PARENT_SCOPE)
+    set(LOGGER_SYSTEM_INCLUDE_DIR ${LOGGER_SYSTEM_INCLUDE_DIR} PARENT_SCOPE)
+    set(LOGGER_SYSTEM_LIBRARY ${LOGGER_SYSTEM_LIBRARY} PARENT_SCOPE)
+
     set(COMMON_SYSTEM_FOUND ${COMMON_SYSTEM_FOUND} PARENT_SCOPE)
+    set(COMMON_SYSTEM_INCLUDE_DIR ${COMMON_SYSTEM_INCLUDE_DIR} PARENT_SCOPE)
+
+    # Update BUILD_WITH_* flags if systems not found
+    set(BUILD_WITH_CONTAINER_SYSTEM ${BUILD_WITH_CONTAINER_SYSTEM} PARENT_SCOPE)
+    set(BUILD_WITH_THREAD_SYSTEM ${BUILD_WITH_THREAD_SYSTEM} PARENT_SCOPE)
+    set(BUILD_WITH_LOGGER_SYSTEM ${BUILD_WITH_LOGGER_SYSTEM} PARENT_SCOPE)
+    set(BUILD_WITH_COMMON_SYSTEM ${BUILD_WITH_COMMON_SYSTEM} PARENT_SCOPE)
 
     message(STATUS "Dependency detection complete")
 endfunction()

@@ -113,7 +113,7 @@ namespace network_system::core {
 		 * \brief Destructor. If the server is still running, \c stop_server()
 		 * is invoked.
 		 */
-		~messaging_server();
+		~messaging_server() noexcept;
 
 		/*!
 		 * \brief Begins listening on the specified TCP \p port, creates a
@@ -224,6 +224,7 @@ namespace network_system::core {
 
 		std::unique_ptr<asio::io_context>
 			io_context_;	/*!< The I/O context for async ops. */
+	std::unique_ptr<asio::executor_work_guard<asio::io_context::executor_type>> work_guard_; /*!< Keeps io_context running. */
 		std::unique_ptr<asio::ip::tcp::acceptor>
 			acceptor_;		/*!< Acceptor to listen for new connections. */
 		std::unique_ptr<std::thread>
