@@ -40,6 +40,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <future>
 #include <optional>
 #include <type_traits>
+#include <mutex>
 
 #include <asio.hpp>
 
@@ -81,7 +82,7 @@ namespace network_system::core
 		 * \brief Destructor; automatically calls \c stop_client() if the client
 		 * is still running.
 		 */
-		~messaging_client();
+		~messaging_client() noexcept;
 
 		/*!
 		 * \brief Starts the client by resolving \p host and \p port, connecting
@@ -133,6 +134,13 @@ namespace network_system::core
 		 * synchronization mechanism.
 		 */
 		auto wait_for_stop() -> void;
+
+	/*!
+	 * \brief Check if the client is currently connected to the server.
+	 * \return true if connected, false otherwise
+	 */
+	auto is_connected() const -> bool { return is_connected_.load(); }
+
 
 		/*!
 		 * \brief Sends data over the connection, optionally
@@ -195,9 +203,14 @@ namespace network_system::core
 		std::atomic<bool> is_connected_{
 			false
 		}; /*!< True if connected to remote. */
+		std::atomic<bool> stop_initiated_{
+			false
+		}; /*!< True if stop has been called to prevent re-entry. */
 
 		std::unique_ptr<asio::io_context>
-			io_context_;	/*!< I/O context for async operations. */
+			io_context_; /*!< I/O context for async operations. */
+		std::unique_ptr<asio::executor_work_guard<asio::io_context::executor_type>>
+			work_guard_; /*!< Keeps io_context running. */
 		std::unique_ptr<std::thread>
 			client_thread_; /*!< Thread running \c io_context->run(). */
 
@@ -205,6 +218,9 @@ namespace network_system::core
 			stop_promise_;	/*!< Signals \c wait_for_stop() when stopping. */
 		std::future<void> stop_future_; /*!< Used by \c wait_for_stop(). */
 
+		auto get_socket() const -> std::shared_ptr<internal::tcp_socket>;
+
+		mutable std::mutex socket_mutex_; /*!< Protects socket_ from data races. */
 		std::shared_ptr<internal::tcp_socket>
 			socket_;   /*!< The \c tcp_socket wrapper once connected. */
 

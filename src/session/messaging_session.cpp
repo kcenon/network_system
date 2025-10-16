@@ -56,7 +56,18 @@ namespace network_system::session
 		encrypt_mode_ = false;
 	}
 
-	messaging_session::~messaging_session() { stop_session(); }
+	messaging_session::~messaging_session() noexcept
+	{
+		try
+		{
+			// Call stop_session to clean up resources
+			stop_session();
+		}
+		catch (...)
+		{
+			// Destructor must not throw - swallow all exceptions
+		}
+	}
 
 	auto messaging_session::start_session() -> void
 	{
@@ -84,6 +95,11 @@ namespace network_system::session
 		if (is_stopped_.exchange(true))
 		{
 			return;
+		}
+		// Stop reading first to prevent new async operations
+		if (socket_)
+		{
+			socket_->stop_read();
 		}
 		// Close socket safely
 		if (socket_)

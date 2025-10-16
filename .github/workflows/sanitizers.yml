@@ -37,7 +37,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y cmake ninja-build clang libgtest-dev libfmt-dev libboost-all-dev libasio-dev
+        sudo apt-get install -y cmake ninja-build clang libgtest-dev libfmt-dev libasio-dev
 
     - name: Set up compiler
       run: |
@@ -73,6 +73,7 @@ jobs:
         cd network_system/build
         ctest --output-on-failure --verbose
       env:
+        NETWORK_SYSTEM_SANITIZER: ${{ matrix.sanitizer }}
         TSAN_OPTIONS: "halt_on_error=0 second_deadlock_stack=1"
         ASAN_OPTIONS: "halt_on_error=0 detect_leaks=1"
         UBSAN_OPTIONS: "halt_on_error=0 print_stacktrace=1"

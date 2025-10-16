@@ -39,11 +39,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 #include "network_system/integration/logger_integration.h"
-#include <iostream>
-#include <mutex>
 #include <atomic>
 #include <chrono>
+#include <cstdio>
 #include <iomanip>
+#include <iostream>
+#include <mutex>
 #include <sstream>
 
 #ifdef BUILD_WITH_LOGGER_SYSTEM
@@ -92,13 +93,18 @@ public:
 
         std::lock_guard<std::mutex> lock(mutex_);
 
-        // Use cerr for errors and above, cout for others
-        auto& stream = (level >= log_level::error) ? std::cerr : std::cout;
+        auto timestamp = get_timestamp();
+        std::ostringstream oss;
+        oss << "[" << timestamp << "] "
+            << "[" << level_to_string(level) << "] "
+            << "[network_system] "
+            << message;
 
-        stream << "[" << get_timestamp() << "] "
-               << "[" << level_to_string(level) << "] "
-               << "[network_system] "
-               << message << std::endl;
+        auto* target = (level >= log_level::error) ? stderr : stdout;
+        const auto& record = oss.str();
+        std::fwrite(record.data(), 1, record.size(), target);
+        std::fputc('\n', target);
+        std::fflush(target);
     }
 
     void log(log_level level, const std::string& message,
@@ -107,14 +113,19 @@ public:
 
         std::lock_guard<std::mutex> lock(mutex_);
 
-        auto& stream = (level >= log_level::error) ? std::cerr : std::cout;
+        auto timestamp = get_timestamp();
+        std::ostringstream oss;
+        oss << "[" << timestamp << "] "
+            << "[" << level_to_string(level) << "] "
+            << "[network_system] "
+            << message
+            << " (" << file << ":" << line << " in " << function << ")";
 
-        stream << "[" << get_timestamp() << "] "
-               << "[" << level_to_string(level) << "] "
-               << "[network_system] "
-               << message
-               << " (" << file << ":" << line << " in " << function << ")"
-               << std::endl;
+        auto* target = (level >= log_level::error) ? stderr : stdout;
+        const auto& record = oss.str();
+        std::fwrite(record.data(), 1, record.size(), target);
+        std::fputc('\n', target);
+        std::fflush(target);
     }
 
     bool is_level_enabled(log_level level) const {
@@ -122,8 +133,9 @@ public:
     }
 
     void flush() {
-        std::cout.flush();
-        std::cerr.flush();
+        std::lock_guard<std::mutex> lock(mutex_);
+        std::fflush(stdout);
+        std::fflush(stderr);
     }
 
     void set_min_level(log_level level) {
@@ -319,8 +331,10 @@ private:
 };
 
 logger_integration_manager& logger_integration_manager::instance() {
-    static logger_integration_manager instance;
-    return instance;
+    // Intentionally leak the singleton to avoid destruction order issues
+    // during sanitizer runs and shutdown hooks.
+    static logger_integration_manager* instance = new logger_integration_manager();
+    return *instance;
 }
 
 logger_integration_manager::logger_integration_manager()
