@@ -61,17 +61,36 @@ namespace network_system::internal
 
 	auto tcp_socket::start_read() -> void
 	{
-		// Kick off the initial read loop
+		// Set reading flag and kick off the initial read loop
+		is_reading_.store(true);
 		do_read();
+	}
+
+	auto tcp_socket::stop_read() -> void
+	{
+		// Stop further read operations
+		is_reading_.store(false);
 	}
 
 	auto tcp_socket::do_read() -> void
 	{
+		// Check if reading has been stopped before initiating new async operation
+		if (!is_reading_.load())
+		{
+			return;
+		}
+
 		auto self = shared_from_this();
 		socket_.async_read_some(
 			asio::buffer(read_buffer_),
 			[this, self](std::error_code ec, std::size_t length)
 			{
+				// Check if reading has been stopped at callback time
+				if (!is_reading_.load())
+				{
+					return;
+				}
+
 				if (ec)
 				{
 					// On error, invoke the error callback using if constexpr to check invocability
@@ -97,8 +116,11 @@ namespace network_system::internal
 						}
 					}
 				}
-				// Continue reading
-				do_read();
+				// Continue reading only if still active
+				if (is_reading_.load())
+				{
+					do_read();
+				}
 			});
 	}
 

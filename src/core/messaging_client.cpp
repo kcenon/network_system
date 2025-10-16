@@ -173,6 +173,8 @@ namespace network_system::core
 		}
 		if (local_socket)
 		{
+			// Stop reading first to prevent new async operations
+			local_socket->stop_read();
 			asio::error_code ec;
 			local_socket->socket().close(ec);
 		}

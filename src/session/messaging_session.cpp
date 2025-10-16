@@ -96,6 +96,11 @@ namespace network_system::session
 		{
 			return;
 		}
+		// Stop reading first to prevent new async operations
+		if (socket_)
+		{
+			socket_->stop_read();
+		}
 		// Close socket safely
 		if (socket_)
 		{
