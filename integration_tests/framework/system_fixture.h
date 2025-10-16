@@ -124,8 +124,11 @@ protected:
             return false;
         }
 
-        // Wait for connection to establish
-        return test_helpers::wait_for_connection(client_, std::chrono::seconds(5));
+        // Wait for connection to establish with shorter timeout in CI
+        auto timeout = test_helpers::is_ci_environment()
+            ? std::chrono::seconds(3)
+            : std::chrono::seconds(5);
+        return test_helpers::wait_for_connection(client_, timeout);
     }
 
     /**
@@ -174,9 +177,6 @@ protected:
 class PerformanceFixture : public NetworkSystemFixture {
 protected:
     void SetUp() override {
-        if (test_helpers::is_sanitizer_run()) {
-            GTEST_SKIP() << "Skipping performance-sensitive test under sanitizer instrumentation";
-        }
         if (test_helpers::is_sanitizer_run()) {
             GTEST_SKIP() << "Skipping performance-sensitive test under sanitizer instrumentation";
         }
@@ -246,11 +246,16 @@ protected:
      * @return Number of successfully connected clients
      */
     size_t ConnectAllClients() {
+        // Use shorter timeout in CI and per-client timeout to avoid hangs
+        auto timeout = test_helpers::is_ci_environment()
+            ? std::chrono::seconds(2)
+            : std::chrono::seconds(3);
+
         size_t connected = 0;
         for (auto& client : clients_) {
             auto result = client->start_client("localhost", test_port_);
             if (result.is_ok()) {
-                if (test_helpers::wait_for_connection(client, std::chrono::seconds(5))) {
+                if (test_helpers::wait_for_connection(client, timeout)) {
                     ++connected;
                 }
             }
