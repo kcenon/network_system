@@ -109,9 +109,10 @@ set_target_properties(connection_lifecycle_test PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/integration_tests
 )
 
-add_test(NAME ConnectionLifecycleTests
-    COMMAND connection_lifecycle_test
-)
+# Don't add suite-level test to prevent port conflicts during parallel execution
+# add_test(NAME ConnectionLifecycleTests
+#     COMMAND connection_lifecycle_test
+# )
 
 include(GoogleTest)
 gtest_discover_tests(connection_lifecycle_test)
@@ -168,9 +169,10 @@ set_target_properties(protocol_integration_test PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/integration_tests
 )
 
-add_test(NAME ProtocolIntegrationTests
-    COMMAND protocol_integration_test
-)
+# Don't add suite-level test to prevent port conflicts during parallel execution
+# add_test(NAME ProtocolIntegrationTests
+#     COMMAND protocol_integration_test
+# )
 
 gtest_discover_tests(protocol_integration_test)
 
@@ -226,9 +228,10 @@ set_target_properties(network_performance_test PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/integration_tests
 )
 
-add_test(NAME NetworkPerformanceTests
-    COMMAND network_performance_test
-)
+# Don't add suite-level test to prevent port conflicts during parallel execution
+# add_test(NAME NetworkPerformanceTests
+#     COMMAND network_performance_test
+# )
 
 gtest_discover_tests(network_performance_test)
 
@@ -284,9 +287,10 @@ set_target_properties(error_handling_test PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/integration_tests
 )
 
-add_test(NAME ErrorHandlingTests
-    COMMAND error_handling_test
-)
+# Don't add suite-level test to prevent port conflicts during parallel execution
+# add_test(NAME ErrorHandlingTests
+#     COMMAND error_handling_test
+# )
 
 gtest_discover_tests(error_handling_test)
 

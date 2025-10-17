@@ -58,10 +58,10 @@ if(GTest_FOUND OR GTEST_FOUND)
         CXX_STANDARD_REQUIRED ON
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
     )
-    
-    # Add test
-    add_test(NAME NetworkUnitTests COMMAND network_unit_tests)
-    
+
+    # Don't add suite-level test to prevent port conflicts during parallel execution
+    # add_test(NAME NetworkUnitTests COMMAND network_unit_tests)
+
     # Enable test discovery
     include(GoogleTest)
     gtest_discover_tests(network_unit_tests)
@@ -109,7 +109,9 @@ if(GTest_FOUND OR GTEST_FOUND)
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
     )
 
-    add_test(NAME NetworkThreadSafetyTests COMMAND network_thread_safety_test)
+    # Don't add suite-level test to prevent port conflicts during parallel execution
+    # add_test(NAME NetworkThreadSafetyTests COMMAND network_thread_safety_test)
+
     gtest_discover_tests(network_thread_safety_test)
 else()
     message(WARNING "GTest not found - unit tests will not be built")
