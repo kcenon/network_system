@@ -124,24 +124,24 @@ namespace network_system::internal
 			});
 	}
 
-	auto tcp_socket::async_send(
-		const std::vector<uint8_t>& data,
-		std::function<void(std::error_code, std::size_t)> handler) -> void
-	{
-		auto self = shared_from_this();
-		asio::async_write(
-			socket_, asio::buffer(data),
-			[handler = std::move(handler), self](std::error_code ec, std::size_t bytes_transferred)
-			{
-				// Using if constexpr to check if handler is invocable
-				if constexpr (std::is_invocable_v<decltype(handler), std::error_code, std::size_t>)
-				{
-					if (handler)
-					{
-						handler(ec, bytes_transferred);
-					}
-				}
-			});
-	}
+auto tcp_socket::async_send(
+    std::vector<uint8_t> data,
+    std::function<void(std::error_code, std::size_t)> handler) -> void
+{
+    auto self = shared_from_this();
+    auto buffer = std::make_shared<std::vector<uint8_t>>(std::move(data));
+    asio::async_write(
+        socket_, asio::buffer(*buffer),
+        [handler = std::move(handler), self, buffer](std::error_code ec, std::size_t bytes_transferred)
+        {
+            if constexpr (std::is_invocable_v<decltype(handler), std::error_code, std::size_t>)
+            {
+                if (handler)
+                {
+                    handler(ec, bytes_transferred);
+                }
+            }
+        });
+}
 
 } // namespace network_system::internal
