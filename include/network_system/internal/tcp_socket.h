@@ -116,7 +116,7 @@ namespace network_system::internal
 
 		/*!
 		 * \brief Initiates an asynchronous write of the given \p data buffer.
-		 * \param data The buffer to send over TCP.
+		 * \param data The buffer to send over TCP (moved for efficiency).
 		 * \param handler A completion handler with signature \c
 		 * void(std::error_code, std::size_t) that is invoked upon success or
 		 * failure.
@@ -129,7 +129,7 @@ namespace network_system::internal
 		 * \code
 		 * auto sock = std::make_shared<network::tcp_socket>(...);
 		 * std::vector<uint8_t> buf = {0x01, 0x02, 0x03};
-		 * sock->async_send(buf, [](std::error_code ec, std::size_t len) {
+		 * sock->async_send(std::move(buf), [](std::error_code ec, std::size_t len) {
 		 *     if(ec) {
 		 *         // handle error
 		 *     }
@@ -138,9 +138,12 @@ namespace network_system::internal
 		 *     }
 		 * });
 		 * \endcode
+		 *
+		 * \note Data is moved (not copied) to avoid memory allocation.
+		 * \note The original vector will be empty after this call.
 		 */
         auto async_send(
-            std::vector<uint8_t> data,
+            std::vector<uint8_t>&& data,
             std::function<void(std::error_code, std::size_t)> handler) -> void;
 
 		/*!
