@@ -80,14 +80,14 @@ namespace network_system::internal::detail
 namespace network_system::internal
 {
 	// Using aggregate initialization with designated initializers (C++17)
-	auto make_default_pipeline() -> pipeline
-	{
-		return pipeline{
-			.compress = detail::default_compress_stub,
-			.decompress = detail::default_decompress_stub,
-			.encrypt = detail::default_encrypt_stub,
-			.decrypt = detail::default_decrypt_stub
-		};
-	}
+    auto make_default_pipeline() -> pipeline
+    {
+        pipeline result;
+        result.compress = detail::default_compress_stub;
+        result.decompress = detail::default_decompress_stub;
+        result.encrypt = detail::default_encrypt_stub;
+        result.decrypt = detail::default_decrypt_stub;
+        return result;
+    }
 
 } // namespace network_system::internal
