@@ -184,21 +184,26 @@ namespace network_system::core
 		{
 			work_guard_.reset();
 		}
-		// Stop io_context
+		// Stop io_context first to cancel all pending operations
 		if (io_context_)
 		{
 			io_context_->stop();
 		}
-		// Join or detach thread depending on caller context
+		// Always join thread if joinable, even from callback context
+		// io_context->stop() above will cause io_context->run() to return
 		if (client_thread_ && client_thread_->joinable())
 		{
-			if (std::this_thread::get_id() == client_thread_->get_id())
+			// Give io_context time to finish pending callbacks
+			if (std::this_thread::get_id() != client_thread_->get_id())
 			{
-				client_thread_->detach();
+				client_thread_->join();
 			}
 			else
 			{
-				client_thread_->join();
+				// Called from io_context thread - cannot join self
+				// This should be rare now that on_error doesn't call stop_client
+				NETWORK_LOG_WARN("[messaging_client] stop_client called from io_context thread, detaching");
+				client_thread_->detach();
 			}
 		}
 		client_thread_.reset();
@@ -404,8 +409,10 @@ if constexpr (std::is_same_v<decltype(local_socket->socket().get_executor()), as
 auto messaging_client::on_error(std::error_code ec) -> void
 {
 	NETWORK_LOG_ERROR("[messaging_client] Socket error: " + ec.message());
-	// Perhaps reconnect or just stop
-	stop_client();
+	// Mark connection as lost but don't call stop_client from callback thread
+	// to avoid race conditions with destructor or explicit stop_client calls
+	is_connected_.store(false);
+	is_running_.store(false);
 }
 
 auto messaging_client::get_socket() const -> std::shared_ptr<internal::tcp_socket>
