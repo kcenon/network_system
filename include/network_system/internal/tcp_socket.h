@@ -139,9 +139,9 @@ namespace network_system::internal
 		 * });
 		 * \endcode
 		 */
-		auto async_send(
-			const std::vector<uint8_t>& data,
-			std::function<void(std::error_code, std::size_t)> handler) -> void;
+        auto async_send(
+            std::vector<uint8_t> data,
+            std::function<void(std::error_code, std::size_t)> handler) -> void;
 
 		/*!
 		 * \brief Provides direct access to the underlying \c
