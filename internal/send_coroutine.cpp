@@ -1,7 +1,7 @@
 /*****************************************************************************
 BSD 3-Clause License
 
-Copyright (c) 2024, 🍀☀🌕🌥 🌊
+Copyright (c) 2021, 🍀☀🌕🌥 🌊
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -174,4 +174,3 @@ auto async_send_with_pipeline_no_co(std::shared_ptr<tcp_socket> sock,
 #endif
 
 } // namespace network_system::internal
-
