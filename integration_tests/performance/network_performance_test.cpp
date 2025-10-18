@@ -130,7 +130,7 @@ TEST_F(NetworkPerformanceTest, SmallMessageLatency) {
         auto message = CreateTestMessage(message_size);
 
         auto latency = this->MeasureDuration([&]() {
-            SendMessage(message);
+            SendMessage(std::move(message));
         });
 
         latencies.push_back(latency);
@@ -161,7 +161,7 @@ TEST_F(NetworkPerformanceTest, LargeMessageLatency) {
         auto message = CreateTestMessage(message_size);
 
         auto latency = this->MeasureDuration([&]() {
-            SendMessage(message);
+            SendMessage(std::move(message));
         });
 
         latencies.push_back(latency);
@@ -192,7 +192,7 @@ TEST_F(NetworkPerformanceTest, MessageThroughput) {
     auto duration = this->MeasureDuration([&]() {
         for (size_t i = 0; i < num_messages; ++i) {
             auto message = CreateTestMessage(message_size);
-            SendMessage(message);
+            SendMessage(std::move(message));
         }
     });
 
@@ -216,7 +216,7 @@ TEST_F(NetworkPerformanceTest, BandwidthUtilization) {
     auto duration = this->MeasureDuration([&]() {
         for (size_t i = 0; i < num_messages; ++i) {
             auto message = CreateTestMessage(message_size);
-            SendMessage(message);
+            SendMessage(std::move(message));
         }
     });
 
@@ -288,7 +288,7 @@ TEST_F(ConcurrentPerformanceTest, ConcurrentMessageSending) {
         for (auto& client : clients_) {
             for (size_t i = 0; i < messages_per_client; ++i) {
                 auto message = CreateTestMessage(128);
-                client->send_packet(message);
+                client->send_packet(std::move(message));
             }
         }
     });
@@ -316,7 +316,7 @@ TEST_F(NetworkPerformanceTest, SustainedLoad) {
 
     while (std::chrono::steady_clock::now() - start < test_duration) {
         auto message = CreateTestMessage(512);
-        if (SendMessage(message)) {
+        if (SendMessage(std::move(message))) {
             ++message_count;
         }
     }
@@ -343,7 +343,7 @@ TEST_F(NetworkPerformanceTest, BurstLoad) {
     auto duration = this->MeasureDuration([&]() {
         for (size_t i = 0; i < burst_size; ++i) {
             auto message = CreateTestMessage(256);
-            SendMessage(message);
+            SendMessage(std::move(message));
         }
     });
 

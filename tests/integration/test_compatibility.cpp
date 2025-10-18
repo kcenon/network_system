@@ -271,7 +271,7 @@ void test_message_passing(TestResults& results) {
         // Send test message
         std::string test_msg = "Compatibility test message";
         std::vector<uint8_t> data(test_msg.begin(), test_msg.end());
-        client->send_packet(data);
+        client->send_packet(std::move(data));
 
         results.record_pass("Legacy API message send");
 

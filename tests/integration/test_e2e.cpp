@@ -78,7 +78,7 @@ bool test_basic_connectivity(TestResults& results) {
         // Send test message
         std::string test_data = "Hello, E2E Test!";
         std::vector<uint8_t> data(test_data.begin(), test_data.end());
-        client->send_packet(data);
+        client->send_packet(std::move(data));
         results.messages_sent++;
 
         std::this_thread::sleep_for(100ms);
@@ -131,7 +131,7 @@ bool test_multi_client(TestResults& results) {
                         std::string msg = "Client " + std::to_string(i) +
                                           " Message " + std::to_string(j);
                         std::vector<uint8_t> data(msg.begin(), msg.end());
-                        client->send_packet(data);
+                        client->send_packet(std::move(data));
                         local_messages++;
                         std::this_thread::sleep_for(5ms);
                     }
@@ -199,7 +199,7 @@ bool test_large_messages(TestResults& results) {
             std::generate(data.begin(), data.end(),
                           []() { return rand() % 256; });
 
-            client->send_packet(data);
+            client->send_packet(std::move(data));
             results.messages_sent++;
             std::this_thread::sleep_for(10ms);
         }
@@ -245,7 +245,7 @@ bool test_connection_resilience(TestResults& results) {
             // Send a message
             std::string msg = "Resilience test " + std::to_string(i);
             std::vector<uint8_t> data(msg.begin(), msg.end());
-            client->send_packet(data);
+            client->send_packet(std::move(data));
             results.messages_sent++;
 
             std::this_thread::sleep_for(50ms);
@@ -267,7 +267,7 @@ bool test_connection_resilience(TestResults& results) {
 
         std::string msg = "Final message after restart";
         std::vector<uint8_t> data(msg.begin(), msg.end());
-        client->send_packet(data);
+        client->send_packet(std::move(data));
         results.messages_sent++;
 
         client->stop_client();
@@ -307,7 +307,7 @@ bool test_rapid_connections(TestResults& results) {
 
             // Send message immediately
             std::vector<uint8_t> data = {static_cast<uint8_t>(i)};
-            client->send_packet(data);
+            client->send_packet(std::move(data));
             results.messages_sent++;
 
             // Disconnect quickly

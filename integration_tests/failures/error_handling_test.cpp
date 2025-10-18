@@ -111,7 +111,7 @@ TEST_F(ErrorHandlingTest, ServerStartOnPrivilegedPort) {
 TEST_F(ErrorHandlingTest, SendWithoutConnection) {
     // Try to send message without connecting
     auto message = CreateTestMessage(256);
-    auto result = client_->send_packet(message);
+    auto result = client_->send_packet(std::move(message));
 
     // Should fail because not connected
     EXPECT_FALSE(result.is_ok());
@@ -123,7 +123,7 @@ TEST_F(ErrorHandlingTest, SendEmptyMessage) {
 
     // Try to send empty message
     std::vector<uint8_t> empty;
-    auto result = client_->send_packet(empty);
+    auto result = client_->send_packet(std::move(empty));
 
     // Should fail with invalid argument
     EXPECT_FALSE(result.is_ok());
@@ -139,7 +139,7 @@ TEST_F(ErrorHandlingTest, SendAfterDisconnect) {
 
     // Try to send message after disconnect
     auto message = CreateTestMessage(256);
-    auto result = client_->send_packet(message);
+    auto result = client_->send_packet(std::move(message));
 
     // Should fail because disconnected
     EXPECT_FALSE(result.is_ok());
@@ -174,7 +174,7 @@ TEST_F(ErrorHandlingTest, ServerShutdownDuringTransmission) {
     // Start sending messages
     for (int i = 0; i < 5; ++i) {
         auto message = CreateTestMessage(1024);
-        SendMessage(message);
+        SendMessage(std::move(message));
     }
 
     // Shutdown server during transmission
@@ -183,7 +183,7 @@ TEST_F(ErrorHandlingTest, ServerShutdownDuringTransmission) {
 
     // Try to send more messages
     auto message = CreateTestMessage(256);
-    auto result = client_->send_packet(message);
+    auto result = client_->send_packet(std::move(message));
 
     // Should fail because server stopped
     EXPECT_FALSE(result.is_ok());
@@ -195,7 +195,7 @@ TEST_F(ErrorHandlingTest, ClientDisconnectDuringReceive) {
 
     // Send some messages
     auto message = CreateTestMessage(2048);
-    SendMessage(message);
+    SendMessage(std::move(message));
 
     // Abruptly disconnect client
     client_->stop_client();
@@ -231,7 +231,7 @@ TEST_F(ErrorHandlingTest, LargeMessageHandling) {
 
     // Try to send very large message (1MB)
     auto message = CreateTestMessage(1024 * 1024);
-    auto result = client_->send_packet(message);
+    auto result = client_->send_packet(std::move(message));
 
     // Should handle or reject gracefully
     // Behavior depends on buffer limits
@@ -248,7 +248,7 @@ TEST_F(ErrorHandlingTest, ExcessiveMessageRate) {
 
     for (int i = 0; i < 1000; ++i) {
         auto message = CreateTestMessage(128);
-        auto result = client_->send_packet(message);
+        auto result = client_->send_packet(std::move(message));
 
         if (result.is_ok()) {
             ++successful;
@@ -300,15 +300,15 @@ TEST_F(ErrorHandlingTest, PartialMessageRecovery) {
 
     // Send valid message
     auto valid_message = CreateTestMessage(512);
-    EXPECT_TRUE(SendMessage(valid_message));
+    EXPECT_TRUE(SendMessage(std::move(valid_message)));
 
     // Try to send invalid message
     std::vector<uint8_t> invalid;
-    auto result = client_->send_packet(invalid);
+    auto result = client_->send_packet(std::move(invalid));
     EXPECT_FALSE(result.is_ok());
 
     // Send another valid message
-    EXPECT_TRUE(SendMessage(valid_message));
+    EXPECT_TRUE(SendMessage(std::move(valid_message)));
 }
 
 } // namespace network_system::integration_tests

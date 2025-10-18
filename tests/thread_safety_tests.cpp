@@ -187,7 +187,7 @@ TEST_F(NetworkThreadSafetyTest, ConcurrentSendPacket) {
                     static_cast<uint8_t>(thread_id),
                     static_cast<uint8_t>(j)
                 };
-                client->send_packet(data);
+                client->send_packet(std::move(data));
                 ++sent_attempts;
             }
         });
@@ -401,7 +401,7 @@ TEST_F(NetworkThreadSafetyTest, MemorySafety) {
             try {
                 for (int i = 0; i < 10; ++i) {
                     std::vector<uint8_t> data = {0x01, 0x02, 0x03};
-                    client->send_packet(data);
+                    client->send_packet(std::move(data));
                     std::this_thread::sleep_for(5ms);
                 }
             } catch (...) {
