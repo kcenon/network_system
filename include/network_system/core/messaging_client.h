@@ -58,6 +58,13 @@ namespace network_system::core
 	 * data using asynchronous operations, and can apply a pipeline for
 	 * transformations.
 	 *
+	 * ### Thread Safety
+	 * - All public methods are thread-safe.
+	 * - Socket access is protected by socket_mutex_.
+	 * - Atomic flags (is_running_, is_connected_, stop_initiated_) prevent race conditions.
+	 * - send_packet() can be called from any thread safely.
+	 * - Connection state changes are serialized through ASIO's io_context.
+	 *
 	 * ### Key Features
 	 * - Uses \c asio::io_context in a dedicated thread to handle I/O events.
 	 * - Connects via \c async_connect, then wraps the socket in a \c tcp_socket
@@ -145,7 +152,7 @@ namespace network_system::core
 		/*!
 		 * \brief Sends data over the connection, optionally
 		 * compressing/encrypting via the \c pipeline.
-		 * \param data The buffer to send.
+		 * \param data The buffer to send (moved for efficiency).
 		 * \return Result<void> - Success if data queued for send, or error with code:
 		 *         - error_codes::network_system::connection_closed if not connected
 		 *         - error_codes::common::invalid_argument if empty data
@@ -154,15 +161,14 @@ namespace network_system::core
 		 * ### Example
 		 * \code
 		 * std::vector<uint8_t> data = {1, 2, 3, 4};
-		 * auto result = client->send_packet(data);
-		 * if (!result) {
-		 *     std::cerr << "Send failed: " << result.error().message << "\n";
-		 * }
+		 * auto result = client->send_packet(std::move(data)); // Move ownership
+		 * // data is now empty after move
 		 * \endcode
 		 *
-		 * \note This is async; actual send happens in background
+		 * \note This is async; actual send happens in background.
+		 * \note Data is moved (not copied) for zero-copy efficiency.
 		 */
-		auto send_packet(std::vector<uint8_t> data) -> VoidResult;
+		auto send_packet(std::vector<uint8_t>&& data) -> VoidResult;
 
 	private:
 		/*!

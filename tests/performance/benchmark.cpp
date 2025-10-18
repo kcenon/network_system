@@ -108,7 +108,7 @@ BenchmarkResult benchmark_throughput(
     for (size_t i = 0; i < num_messages; ++i) {
         auto msg_start = std::chrono::high_resolution_clock::now();
 
-        client->send_packet(message);
+        client->send_packet(std::move(message));
 
         auto msg_end = std::chrono::high_resolution_clock::now();
         auto latency = std::chrono::duration<double, std::micro>(msg_end - msg_start).count();
@@ -185,7 +185,7 @@ BenchmarkResult benchmark_concurrent_connections(
 
             for (size_t j = 0; j < messages_per_client; ++j) {
                 auto msg_start = std::chrono::high_resolution_clock::now();
-                client->send_packet(message);
+                client->send_packet(std::move(message));
                 auto msg_end = std::chrono::high_resolution_clock::now();
 
                 auto latency = std::chrono::duration<double, std::micro>(msg_end - msg_start).count();

@@ -106,14 +106,16 @@ namespace network_system::session
 		/*!
 		 * \brief Sends data to the connected client, optionally using
 		 * compression/encryption.
-		 * \param data The raw bytes to transmit.
+		 * \param data The raw bytes to transmit (moved for efficiency).
 		 *
 		 * ### Notes
 		 * - If \c compress_mode_ or \c encrypt_mode_ is true, the data will be
 		 * processed by the pipeline's compress/encrypt functions before
 		 * writing.
+		 * - Data is moved (not copied) to avoid memory allocation overhead.
+		 * - After calling this function, the original vector will be empty.
 		 */
-		auto send_packet(std::vector<uint8_t> data) -> void;
+		auto send_packet(std::vector<uint8_t>&& data) -> void;
 
 	private:
 		/*!

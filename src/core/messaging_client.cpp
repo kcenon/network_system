@@ -320,7 +320,7 @@ namespace network_system::core
 		}
 	}
 
-	auto messaging_client::send_packet(std::vector<uint8_t> data) -> VoidResult
+	auto messaging_client::send_packet(std::vector<uint8_t>&& data) -> VoidResult
 	{
 		if (!is_running_.load())
 		{

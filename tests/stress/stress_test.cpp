@@ -179,7 +179,7 @@ void stress_client_worker(
 
             // Send message
             try {
-                client->send_packet(data);
+                client->send_packet(std::move(data));
                 metrics.total_messages_sent++;
                 metrics.total_bytes_sent += msg_size;
                 messages_sent++;
