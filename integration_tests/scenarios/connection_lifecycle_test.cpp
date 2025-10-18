@@ -132,13 +132,13 @@ TEST_F(ConnectionLifecycleTest, SendMessageAfterConnection) {
 
     // Create and send test message
     auto message = CreateTestMessage(1024);
-    EXPECT_TRUE(SendMessage(message));
+    EXPECT_TRUE(SendMessage(std::move(message)));
 }
 
 TEST_F(ConnectionLifecycleTest, SendMessageBeforeConnection) {
     // Try to send without connecting
     auto message = CreateTestMessage(512);
-    auto result = client_->send_packet(message);
+    auto result = client_->send_packet(std::move(message));
 
     // Should fail because not connected
     EXPECT_FALSE(result.is_ok());
@@ -151,7 +151,7 @@ TEST_F(ConnectionLifecycleTest, SendMultipleMessages) {
     // Send multiple messages
     for (int i = 0; i < 10; ++i) {
         auto message = CreateTestMessage(256, static_cast<uint8_t>(i));
-        EXPECT_TRUE(SendMessage(message));
+        EXPECT_TRUE(SendMessage(std::move(message)));
     }
 }
 

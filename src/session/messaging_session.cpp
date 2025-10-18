@@ -114,7 +114,7 @@ namespace network_system::session
 		NETWORK_LOG_INFO("[messaging_session] Stopped.");
 	}
 
-	auto messaging_session::send_packet(std::vector<uint8_t> data) -> void
+	auto messaging_session::send_packet(std::vector<uint8_t>&& data) -> void
 	{
 		if (is_stopped_.load())
 		{

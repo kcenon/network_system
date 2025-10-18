@@ -114,7 +114,7 @@ namespace network_system::internal
                 auto processed_data = future.get();
                 
                 // Perform async write and capture result in the promise
-                sock->async_send(processed_data, 
+                sock->async_send(std::move(processed_data),
                     [promise](std::error_code ec, std::size_t /*bytes_transferred*/) {
                         promise->set_value(ec);
                     });

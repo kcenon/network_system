@@ -64,6 +64,13 @@ namespace network_system::core {
 	 * \brief A server class that manages incoming TCP connections, creating
 	 *        \c messaging_session instances for each accepted socket.
 	 *
+	 * ### Thread Safety
+	 * - All public methods are thread-safe.
+	 * - Internal state (is_running_, sessions_) is protected by atomics and ASIO's thread safety.
+	 * - Background thread runs io_context.run() independently.
+	 * - Multiple sessions can be active concurrently without blocking each other.
+	 * - Sessions vector is NOT protected by mutex - only accessed in single-threaded ASIO context.
+	 *
 	 * ### Key Responsibilities
 	 * - Maintains an \c asio::io_context and \c tcp::acceptor to listen on a
 	 * specified port.

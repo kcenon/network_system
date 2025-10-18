@@ -136,8 +136,8 @@ protected:
      * @param data Message data to send
      * @return true if message sent successfully
      */
-    bool SendMessage(const std::vector<uint8_t>& data) {
-        auto result = client_->send_packet(data);
+    bool SendMessage(std::vector<uint8_t>&& data) {
+        auto result = client_->send_packet(std::move(data));
         return result.is_ok();
     }
 

@@ -298,7 +298,7 @@ TEST_F(NetworkTest, BasicMessageTransfer) {
     auto serialized = message->serialize_array();
 
     // Send message
-    auto send_result = client->send_packet(serialized);
+    auto send_result = client->send_packet(std::move(serialized));
     EXPECT_TRUE(send_result.is_ok()) << "Message send should succeed: "
                                       << (send_result.is_err() ? send_result.error().message : "");
 
@@ -342,7 +342,7 @@ TEST_F(NetworkTest, LargeMessageTransfer) {
 
     // Serialize and send
     auto serialized = message->serialize_array();
-    auto send_result = client->send_packet(serialized);
+    auto send_result = client->send_packet(std::move(serialized));
     EXPECT_TRUE(send_result.is_ok()) << "Large message send should succeed: "
                                       << (send_result.is_err() ? send_result.error().message : "");
 
@@ -384,7 +384,7 @@ TEST_F(NetworkTest, MultipleMessageTransfer) {
         message->add(std::make_shared<string_value>("data", "Message " + std::to_string(i)));
 
         auto serialized = message->serialize_array();
-        auto send_result = client->send_packet(serialized);
+        auto send_result = client->send_packet(std::move(serialized));
         EXPECT_TRUE(send_result.is_ok()) << "Message " << i << " send should succeed: "
                                           << (send_result.is_err() ? send_result.error().message : "");
 
@@ -499,7 +499,7 @@ TEST(NetworkStressTest, ConcurrentClients) {
                 message->add(std::make_shared<string_value>("client", std::to_string(c)));
 
                 auto serialized = message->serialize_array();
-                auto send_result = client->send_packet(serialized);
+                auto send_result = client->send_packet(std::move(serialized));
                 EXPECT_TRUE(send_result.is_ok()) << "Message send should succeed";
 #endif
 
@@ -533,7 +533,7 @@ TEST_F(NetworkTest, SendWithoutConnection) {
     auto serialized = message->serialize_array();
 
     // Send should return error when not connected
-    auto send_result = client->send_packet(serialized);
+    auto send_result = client->send_packet(std::move(serialized));
     EXPECT_TRUE(send_result.is_err()) << "Send without connection should return error";
 
     if (send_result.is_err()) {

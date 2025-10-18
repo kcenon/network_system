@@ -125,10 +125,11 @@ namespace network_system::internal
 	}
 
 auto tcp_socket::async_send(
-    std::vector<uint8_t> data,
+    std::vector<uint8_t>&& data,
     std::function<void(std::error_code, std::size_t)> handler) -> void
 {
     auto self = shared_from_this();
+    // Move data into shared_ptr for lifetime management
     auto buffer = std::make_shared<std::vector<uint8_t>>(std::move(data));
     asio::async_write(
         socket_, asio::buffer(*buffer),

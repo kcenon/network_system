@@ -57,7 +57,7 @@ TEST_F(ProtocolIntegrationTest, SmallMessageTransmission) {
 
     // Send small message (< 1KB)
     auto message = test_helpers::create_text_message("Hello, Network!");
-    EXPECT_TRUE(SendMessage(message));
+    EXPECT_TRUE(SendMessage(std::move(message)));
 
     // Allow time for message processing
     WaitFor(50);
@@ -69,7 +69,7 @@ TEST_F(ProtocolIntegrationTest, MediumMessageTransmission) {
 
     // Send medium message (1KB - 10KB)
     auto message = CreateTestMessage(5 * 1024);  // 5KB
-    EXPECT_TRUE(SendMessage(message));
+    EXPECT_TRUE(SendMessage(std::move(message)));
 
     WaitFor(100);
 }
@@ -80,7 +80,7 @@ TEST_F(ProtocolIntegrationTest, LargeMessageTransmission) {
 
     // Send large message (> 10KB)
     auto message = CreateTestMessage(50 * 1024);  // 50KB
-    EXPECT_TRUE(SendMessage(message));
+    EXPECT_TRUE(SendMessage(std::move(message)));
 
     WaitFor(200);
 }
@@ -91,7 +91,7 @@ TEST_F(ProtocolIntegrationTest, EmptyMessageHandling) {
 
     // Try to send empty message
     std::vector<uint8_t> empty_message;
-    auto result = client_->send_packet(empty_message);
+    auto result = client_->send_packet(std::move(empty_message));
 
     // Should fail with invalid argument
     EXPECT_FALSE(result.is_ok());
@@ -110,7 +110,7 @@ TEST_F(ProtocolIntegrationTest, SequentialMessages) {
         auto message = test_helpers::create_text_message(
             "Message #" + std::to_string(i)
         );
-        EXPECT_TRUE(SendMessage(message));
+        EXPECT_TRUE(SendMessage(std::move(message)));
         WaitFor(20);
     }
 }
@@ -122,7 +122,7 @@ TEST_F(ProtocolIntegrationTest, BurstMessages) {
     // Send burst of messages without delay
     for (int i = 0; i < 10; ++i) {
         auto message = CreateTestMessage(256, static_cast<uint8_t>(i));
-        EXPECT_TRUE(SendMessage(message));
+        EXPECT_TRUE(SendMessage(std::move(message)));
     }
 
     // Allow time for all messages to be processed
@@ -137,11 +137,11 @@ TEST_F(ProtocolIntegrationTest, AlternatingMessageSizes) {
     for (int i = 0; i < 5; ++i) {
         // Small message
         auto small_msg = CreateTestMessage(128);
-        EXPECT_TRUE(SendMessage(small_msg));
+        EXPECT_TRUE(SendMessage(std::move(small_msg)));
 
         // Large message
         auto large_msg = CreateTestMessage(8192);
-        EXPECT_TRUE(SendMessage(large_msg));
+        EXPECT_TRUE(SendMessage(std::move(large_msg)));
 
         WaitFor(50);
     }
@@ -157,7 +157,7 @@ TEST_F(ProtocolIntegrationTest, MessageFragmentation) {
 
     // Send very large message that may require fragmentation
     auto message = CreateTestMessage(100 * 1024);  // 100KB
-    EXPECT_TRUE(SendMessage(message));
+    EXPECT_TRUE(SendMessage(std::move(message)));
 
     WaitFor(500);
 }
@@ -169,7 +169,7 @@ TEST_F(ProtocolIntegrationTest, MultipleFragmentedMessages) {
     // Send multiple large messages
     for (int i = 0; i < 3; ++i) {
         auto message = CreateTestMessage(64 * 1024);  // 64KB each
-        EXPECT_TRUE(SendMessage(message));
+        EXPECT_TRUE(SendMessage(std::move(message)));
         WaitFor(100);
     }
 }
@@ -184,7 +184,7 @@ TEST_F(ProtocolIntegrationTest, BinaryDataTransmission) {
 
     // Send random binary data
     auto message = test_helpers::generate_random_data(2048);
-    EXPECT_TRUE(SendMessage(message));
+    EXPECT_TRUE(SendMessage(std::move(message)));
 
     WaitFor(100);
 }
@@ -195,7 +195,7 @@ TEST_F(ProtocolIntegrationTest, SequentialDataPattern) {
 
     // Send sequential data pattern
     auto message = test_helpers::generate_sequential_data(4096);
-    EXPECT_TRUE(SendMessage(message));
+    EXPECT_TRUE(SendMessage(std::move(message)));
 
     WaitFor(100);
 }
@@ -206,7 +206,7 @@ TEST_F(ProtocolIntegrationTest, RepeatingPatternData) {
 
     // Send data with repeating pattern
     auto message = CreateTestMessage(1024, 0xAA);
-    EXPECT_TRUE(SendMessage(message));
+    EXPECT_TRUE(SendMessage(std::move(message)));
 
     WaitFor(50);
 }
@@ -223,7 +223,7 @@ TEST_F(ProtocolIntegrationTest, InitialHandshake) {
 
     // First message after handshake
     auto message = test_helpers::create_text_message("First message");
-    EXPECT_TRUE(SendMessage(message));
+    EXPECT_TRUE(SendMessage(std::move(message)));
 
     WaitFor(50);
 }
