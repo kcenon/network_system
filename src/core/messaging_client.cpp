@@ -57,12 +57,40 @@ namespace network_system::core
 	{
 		try
 		{
+			// Early exit if already stopped (optimization)
+			if (!is_running_.load(std::memory_order_acquire))
+			{
+				return;
+			}
+
+			// Ensure client is properly stopped before destruction
 			// Ignore the return value in destructor to avoid throwing
-			(void)stop_client();
+			auto result = stop_client();
+			if (!result)
+			{
+				// Log error but don't throw (destructors must not throw)
+				NETWORK_LOG_WARN("[messaging_client::~messaging_client] "
+					"Failed to stop client cleanly: " + result.error().message +
+					" (Client ID: " + client_id_ + ")");
+			}
+			else
+			{
+				NETWORK_LOG_DEBUG("[messaging_client::~messaging_client] "
+					"Client stopped successfully (Client ID: " + client_id_ + ")");
+			}
+		}
+		catch (const std::exception& e)
+		{
+			// Destructor must not throw - swallow all exceptions but log them
+			NETWORK_LOG_ERROR("[messaging_client::~messaging_client] "
+				"Exception during cleanup: " + std::string(e.what()) +
+				" (Client ID: " + client_id_ + ")");
 		}
 		catch (...)
 		{
-			// Destructor must not throw - swallow all exceptions
+			// Destructor must not throw - swallow unknown exceptions
+			NETWORK_LOG_ERROR("[messaging_client::~messaging_client] "
+				"Unknown exception during cleanup (Client ID: " + client_id_ + ")");
 		}
 	}
 
