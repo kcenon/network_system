@@ -113,6 +113,36 @@ if(GTest_FOUND OR GTEST_FOUND)
     # add_test(NAME NetworkThreadSafetyTests COMMAND network_thread_safety_test)
 
     gtest_discover_tests(network_thread_safety_test)
+
+    # TLS configuration tests
+    add_executable(network_tls_config_test
+        unit/test_tls_config.cpp
+    )
+
+    target_link_libraries(network_tls_config_test PRIVATE
+        NetworkSystem
+        GTest::gtest
+        GTest::gtest_main
+        Threads::Threads
+    )
+
+    # Setup ASIO and FMT integration
+    setup_asio_integration(network_tls_config_test)
+    setup_fmt_integration(network_tls_config_test)
+
+    # Add system integration paths
+    if(COMMON_SYSTEM_INCLUDE_DIR)
+        target_include_directories(network_tls_config_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(network_tls_config_test PRIVATE BUILD_WITH_COMMON_SYSTEM)
+    endif()
+
+    set_target_properties(network_tls_config_test PROPERTIES
+        CXX_STANDARD 20
+        CXX_STANDARD_REQUIRED ON
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+    )
+
+    gtest_discover_tests(network_tls_config_test)
 else()
     message(WARNING "GTest not found - unit tests will not be built")
 endif()
