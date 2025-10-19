@@ -66,7 +66,7 @@ namespace network_system::core
 			// Ensure client is properly stopped before destruction
 			// Ignore the return value in destructor to avoid throwing
 			auto result = stop_client();
-			if (!result)
+			if (result.is_err())
 			{
 				// Log error but don't throw (destructors must not throw)
 				NETWORK_LOG_WARN("[messaging_client::~messaging_client] "
