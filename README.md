@@ -711,22 +711,15 @@ This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICE
 - **C++ Standards Committee**: For C++20 features that make modern networking possible
 
 ### Ecosystem Integration
-- **Thread System Team**: For seamless thread pool integration and multi-threaded architecture
-- **Logger System Team**: For comprehensive logging and debugging capabilities
-- **Container System Team**: For advanced serialization and data container support
-- **Database System Team**: For network-database integration patterns
-- **Monitoring System Team**: For performance metrics and observability features
+- **Thread System**: For seamless thread pool integration and multi-threaded architecture
+- **Logger System**: For comprehensive logging and debugging capabilities
+- **Container System**: For advanced serialization and data container support
+- **Database System**: For network-database integration patterns
+- **Monitoring System**: For performance metrics and observability features
 
-### Community & Contributions
-- **Original messaging_system Contributors**: For the foundational network code and architecture
-- **Early Adopters**: For testing the independence migration and providing valuable feedback
-- **Performance Testing Community**: For rigorous benchmarking and optimization suggestions
-- **Cross-Platform Validators**: For ensuring compatibility across Windows, Linux, and macOS
-
-### Special Recognition
-- **Code Review Team**: For maintaining high code quality standards during the separation process
-- **Documentation Contributors**: For creating comprehensive guides and examples
-- **CI/CD Infrastructure Team**: For automated testing and deployment pipeline setup
+### Acknowledgments
+- Inspired by modern network programming patterns and best practices
+- Maintained by kcenon@naver.com
 
 ---
 

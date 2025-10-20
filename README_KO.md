@@ -711,22 +711,15 @@ Network System은 향상된 모듈성과 재사용성을 제공하기 위해 mes
 - **C++ Standards Committee**: 최신 네트워킹을 가능하게 하는 C++20 기능 제공
 
 ### 생태계 통합
-- **Thread System Team**: 원활한 thread pool 통합 및 멀티스레드 아키텍처
-- **Logger System Team**: 포괄적인 로깅 및 디버깅 기능
-- **Container System Team**: 고급 직렬화 및 데이터 container 지원
-- **Database System Team**: 네트워크-데이터베이스 통합 패턴
-- **Monitoring System Team**: 성능 메트릭 및 관찰 가능성 기능
+- **Thread System**: 원활한 thread pool 통합 및 멀티스레드 아키텍처
+- **Logger System**: 포괄적인 로깅 및 디버깅 기능
+- **Container System**: 고급 직렬화 및 데이터 container 지원
+- **Database System**: 네트워크-데이터베이스 통합 패턴
+- **Monitoring System**: 성능 메트릭 및 관찰 가능성 기능
 
-### 커뮤니티 및 기여
-- **원래 messaging_system 기여자**: 기본 네트워크 코드 및 아키텍처
-- **얼리 어답터**: 독립성 마이그레이션 테스트 및 귀중한 피드백 제공
-- **성능 테스팅 커뮤니티**: 엄격한 벤치마킹 및 최적화 제안
-- **크로스 플랫폼 검증자**: Windows, Linux 및 macOS 전반에 걸친 호환성 보장
-
-### 특별 감사
-- **Code Review Team**: 분리 프로세스 동안 높은 코드 품질 표준 유지
-- **문서 기여자**: 포괄적인 가이드 및 예제 생성
-- **CI/CD 인프라 팀**: 자동화된 테스트 및 배포 파이프라인 설정
+### 감사의 말
+- 최신 네트워크 프로그래밍 패턴과 모범 사례에서 영감을 받았습니다
+- 관리자: kcenon@naver.com
 
 ---
 
