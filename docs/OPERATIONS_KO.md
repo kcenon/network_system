@@ -422,7 +422,7 @@ if ! curl -f http://$PRIMARY_HOST:8080/health; then
     # 보조 서버 승격
     ssh $SECONDARY_HOST "systemctl start network_service_primary"
 
-    # 운영 팀에 알림
+    # 운영자에 알림
     send_alert "Failover completed to $SECONDARY_HOST"
 fi
 ```

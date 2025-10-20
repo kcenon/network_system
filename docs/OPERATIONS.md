@@ -422,7 +422,7 @@ if ! curl -f http://$PRIMARY_HOST:8080/health; then
     # Promote secondary
     ssh $SECONDARY_HOST "systemctl start network_service_primary"
 
-    # Notify operations team
+    # Notify operator
     send_alert "Failover completed to $SECONDARY_HOST"
 fi
 ```

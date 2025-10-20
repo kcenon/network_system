@@ -989,10 +989,10 @@ int main() {
 }
 ```
 
-4. **Community Resources**
+4. **Support Resources**
    - GitHub Issues: Report bugs and feature requests
    - Stack Overflow: Search for similar issues
-   - Discord/Slack: Real-time community support
+   - Discord/Slack: Real-time support
    - Documentation: Check API reference and guides
 
 5. **Professional Support**
@@ -1009,7 +1009,7 @@ This troubleshooting guide covers the most common issues and their solutions. Fo
 2. Check the error reference for specific error codes
 3. Use the debugging techniques to isolate the problem
 4. Create a minimal reproduction case
-5. Reach out to the community or support channels
+5. Contact the maintainer at kcenon@naver.com
 
 Remember to always:
 - Keep your system updated
