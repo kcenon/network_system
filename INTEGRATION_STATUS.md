@@ -1,5 +1,7 @@
 # External Project Integration Status
 
+**English** | [한국어](INTEGRATION_STATUS_KO.md)
+
 ## Last Updated: 2025-09-28
 
 ### Integrated Systems
