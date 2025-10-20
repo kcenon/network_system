@@ -36,3 +36,7 @@ Performance
 
 Build
 - C++20, CMake. Optional feature flags: BUILD_WITH_LOGGER_SYSTEM, USE_THREAD_SYSTEM.
+
+---
+
+*Last Updated: 2025-10-20*

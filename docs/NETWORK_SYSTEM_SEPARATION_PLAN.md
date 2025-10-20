@@ -3,6 +3,70 @@
 
 > **Language:** **English** | [한국어](NETWORK_SYSTEM_SEPARATION_PLAN_KO.md)
 
+## Table of Contents
+
+- [📋 Project Overview](#-project-overview)
+  - [Objective](#objective)
+  - [Scope](#scope)
+- [🏗️ Current State Analysis](#-current-state-analysis)
+  - [messaging_system/network Structure](#messaging_systemnetwork-structure)
+  - [Existing network_system Structure](#existing-network_system-structure)
+  - [Key Dependencies](#key-dependencies)
+- [🎯 Separation Strategy](#-separation-strategy)
+  - [1. Basic Principles](#1-basic-principles)
+  - [2. Namespace Policy](#2-namespace-policy)
+  - [3. Compatibility Layer](#3-compatibility-layer)
+- [📅 Implementation Roadmap](#-implementation-roadmap)
+  - [Phase 1: Preparation and Analysis (2-3 days)](#phase-1-preparation-and-analysis-2-3-days)
+    - [Day 1](#day-1)
+    - [Day 2](#day-2)
+    - [Day 3](#day-3)
+  - [Phase 2: Core System Separation (4-5 days)](#phase-2-core-system-separation-4-5-days)
+    - [Day 4-5](#day-4-5)
+    - [Day 6-7](#day-6-7)
+    - [Day 8](#day-8)
+  - [Phase 3: Integration Interface Implementation (3-4 days)](#phase-3-integration-interface-implementation-3-4-days)
+    - [Day 9-10](#day-9-10)
+    - [Day 11-12](#day-11-12)
+  - [Phase 4: messaging_system Update (2-3 days)](#phase-4-messaging_system-update-2-3-days)
+    - [Day 13-14](#day-13-14)
+    - [Day 15](#day-15)
+  - [Phase 5: Verification and Deployment (2-3 days)](#phase-5-verification-and-deployment-2-3-days)
+    - [Day 16-17](#day-16-17)
+    - [Day 18](#day-18)
+- [🛠️ Technical Implementation Details](#-technical-implementation-details)
+  - [1. Directory Structure Reorganization](#1-directory-structure-reorganization)
+    - [Target Structure](#target-structure)
+  - [2. CMake Build System](#2-cmake-build-system)
+    - [Main CMakeLists.txt](#main-cmakeliststxt)
+  - [3. Integration Interface Design](#3-integration-interface-design)
+    - [messaging_bridge.h](#messaging_bridgeh)
+  - [4. Dependency Management](#4-dependency-management)
+    - [vcpkg.json](#vcpkgjson)
+    - [dependency.sh](#dependencysh)
+- [🧪 Testing Strategy](#-testing-strategy)
+  - [1. Unit Tests](#1-unit-tests)
+  - [2. Integration Tests](#2-integration-tests)
+  - [3. Performance Tests](#3-performance-tests)
+  - [4. Stress Tests](#4-stress-tests)
+- [📊 Performance Requirements](#-performance-requirements)
+  - [Baseline (Before Separation)](#baseline-before-separation)
+  - [Target (After Separation)](#target-after-separation)
+- [🚨 Risk Factors and Mitigation](#-risk-factors-and-mitigation)
+  - [1. Major Risks](#1-major-risks)
+  - [2. Rollback Plan](#2-rollback-plan)
+- [📝 Documentation Plan](#-documentation-plan)
+  - [1. API Documentation](#1-api-documentation)
+  - [2. Architecture Documentation](#2-architecture-documentation)
+  - [3. Operations Documentation](#3-operations-documentation)
+- [✅ Completion Checklist](#-completion-checklist)
+  - [Phase 1: Preparation and Analysis](#phase-1-preparation-and-analysis)
+  - [Phase 2: Core System Separation](#phase-2-core-system-separation)
+  - [Phase 3: Integration Interface Implementation](#phase-3-integration-interface-implementation)
+  - [Phase 4: messaging_system Update](#phase-4-messaging_system-update)
+  - [Phase 5: Verification and Deployment](#phase-5-verification-and-deployment)
+- [📞 Contact and Support](#-contact-and-support)
+
 **Date**: 2025-09-19
 **Version**: 1.0.0
 **Owner**: kcenon
@@ -585,3 +649,6 @@ echo "Dependency setup completed successfully!"
 ---
 
 *This document is the master plan for network_system separation work. It will be continuously updated according to the progress of each phase.*
+---
+
+*Last Updated: 2025-10-20*

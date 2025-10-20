@@ -454,3 +454,6 @@ For build issues, please check:
 1. [GitHub Issues](https://github.com/kcenon/network_system/issues)
 2. [CHANGELOG.md](CHANGELOG.md) for known issues
 3. Contact: kcenon@naver.com
+---
+
+*Last Updated: 2025-10-20*
