@@ -1020,3 +1020,7 @@ int main() {
 
 운영 절차는 [운영 가이드](OPERATIONS_KO.md)를 참조하십시오.
 API 문서는 [API 참조](API_REFERENCE_KO.md)를 참조하십시오.
+
+---
+
+*Last Updated: 2025-10-20*

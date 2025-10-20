@@ -1020,3 +1020,6 @@ Remember to always:
 
 For operational procedures, see the [Operations Guide](OPERATIONS.md).
 For API documentation, see the [API Reference](API_REFERENCE.md).
+---
+
+*Last Updated: 2025-10-20*

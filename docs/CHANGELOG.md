@@ -2,6 +2,36 @@
 
 > **Language:** **English** | [한국어](CHANGELOG_KO.md)
 
+## Table of Contents
+
+- [[Unreleased]](#unreleased)
+  - [Added](#added)
+  - [To Be Implemented](#to-be-implemented)
+- [2025-09-20 - Phase 4 In Progress](#2025-09-20-phase-4-in-progress)
+  - [Added](#added)
+  - [Updated](#updated)
+  - [Performance Results](#performance-results)
+- [2025-09-20 - Phase 3 Complete](#2025-09-20-phase-3-complete)
+  - [Added](#added)
+  - [Fixed](#fixed)
+- [2025-09-19 - Phase 2 Complete](#2025-09-19-phase-2-complete)
+  - [Added](#added)
+  - [Updated](#updated)
+- [2025-09-19 - Phase 1 Complete](#2025-09-19-phase-1-complete)
+  - [Added](#added)
+  - [Fixed](#fixed)
+  - [Changed](#changed)
+  - [Security](#security)
+- [2025-09-18 - Initial Separation](#2025-09-18-initial-separation)
+  - [Added](#added)
+- [Development Timeline](#development-timeline)
+- [Migration Guide](#migration-guide)
+  - [From messaging_system to network_system](#from-messaging_system-to-network_system)
+    - [Namespace Changes](#namespace-changes)
+    - [CMake Integration](#cmake-integration)
+    - [Container Integration](#container-integration)
+- [Support](#support)
+
 All notable changes to the Network System project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
@@ -241,3 +271,6 @@ bridge->set_container(container);
 For issues, questions, or contributions, please visit:
 - GitHub: https://github.com/kcenon/network_system
 - Email: kcenon@naver.com
+---
+
+*Last Updated: 2025-10-20*

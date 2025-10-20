@@ -454,3 +454,7 @@ ctest -V
 1. [GitHub Issues](https://github.com/kcenon/network_system/issues)
 2. 알려진 문제에 대한 [CHANGELOG.md](CHANGELOG.md)
 3. 연락처: kcenon@naver.com
+
+---
+
+*Last Updated: 2025-10-20*

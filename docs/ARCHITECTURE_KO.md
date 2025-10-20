@@ -36,3 +36,7 @@ container_system ──► 직렬화 ◄── messaging_system/database_system
 
 빌드
 - C++20, CMake. 선택적 기능 플래그: BUILD_WITH_LOGGER_SYSTEM, USE_THREAD_SYSTEM.
+
+---
+
+*Last Updated: 2025-10-20*
