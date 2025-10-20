@@ -1,5 +1,7 @@
 # TLS/SSL Setup Guide for network_system
 
+> **Language:** **English** | [한국어](TLS_SETUP_GUIDE_KO.md)
+
 ## Overview
 
 This guide provides instructions for configuring and using TLS/SSL encryption in the network_system library. TLS (Transport Layer Security) is essential for securing network communications in production environments.

@@ -1,5 +1,7 @@
 # API Reference
 
+> **Language:** **English** | [한국어](API_REFERENCE_KO.md)
+
 Comprehensive API documentation for the Network System library.
 
 ## Table of Contents

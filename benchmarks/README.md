@@ -1,5 +1,7 @@
 # network_system Performance Benchmarks
 
+> **Language:** **English** | [한국어](README_KO.md)
+
 Phase 0, Task 0.2: Baseline Performance Benchmarking
 
 ## Overview

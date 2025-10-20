@@ -1,32 +1,32 @@
-# Operations Guide
+# 운영 가이드
 
-> **Language:** **English** | [한국어](OPERATIONS_KO.md)
+> **Language:** [English](OPERATIONS.md) | **한국어**
 
-This guide covers deployment, configuration, monitoring, and operational best practices for the Network System.
+이 가이드는 Network System의 배포, 구성, 모니터링 및 운영 모범 사례를 다룹니다.
 
-## Table of Contents
+## 목차
 
-- [Deployment Best Practices](#deployment-best-practices)
-- [Configuration Management](#configuration-management)
-- [Monitoring and Metrics](#monitoring-and-metrics)
-- [Performance Tuning](#performance-tuning)
-- [Backup and Recovery](#backup-and-recovery)
-- [Security Considerations](#security-considerations)
-- [Scaling Strategies](#scaling-strategies)
+- [배포 모범 사례](#배포-모범-사례)
+- [구성 관리](#구성-관리)
+- [모니터링 및 메트릭](#모니터링-및-메트릭)
+- [성능 튜닝](#성능-튜닝)
+- [백업 및 복구](#백업-및-복구)
+- [보안 고려사항](#보안-고려사항)
+- [확장 전략](#확장-전략)
 
-## Deployment Best Practices
+## 배포 모범 사례
 
-### Pre-deployment Checklist
+### 배포 전 체크리스트
 
-1. **Environment Verification**
-   - Verify target platform compatibility
-   - Check required dependencies are installed
-   - Ensure sufficient system resources
-   - Validate network connectivity
+1. **환경 검증**
+   - 대상 플랫폼 호환성 확인
+   - 필수 종속성 설치 확인
+   - 충분한 시스템 리소스 확인
+   - 네트워크 연결 검증
 
-2. **Build Configuration**
+2. **빌드 구성**
    ```bash
-   # Production build with optimizations
+   # 최적화된 프로덕션 빌드
    cmake -DCMAKE_BUILD_TYPE=Release \
          -DENABLE_TESTING=OFF \
          -DENABLE_PROFILING=OFF \
@@ -35,29 +35,29 @@ This guide covers deployment, configuration, monitoring, and operational best pr
    cmake --build build --config Release --parallel
    ```
 
-3. **Deployment Steps**
-   - Stop existing services gracefully
-   - Backup current configuration
-   - Deploy new binaries
-   - Update configuration files
-   - Start services with monitoring
-   - Verify service health
+3. **배포 단계**
+   - 기존 서비스 정상 종료
+   - 현재 구성 백업
+   - 새 바이너리 배포
+   - 구성 파일 업데이트
+   - 모니터링과 함께 서비스 시작
+   - 서비스 상태 확인
 
-### Platform-Specific Deployment
+### 플랫폼별 배포
 
-#### Linux Deployment
+#### Linux 배포
 ```bash
-# Create service user
+# 서비스 사용자 생성
 sudo useradd -r -s /bin/false network_service
 
-# Install systemd service
+# systemd 서비스 설치
 sudo cp network_service.service /etc/systemd/system/
 sudo systemctl daemon-reload
 sudo systemctl enable network_service
 sudo systemctl start network_service
 ```
 
-#### Docker Deployment
+#### Docker 배포
 ```dockerfile
 FROM ubuntu:22.04
 RUN apt-get update && apt-get install -y \
@@ -68,17 +68,17 @@ EXPOSE 8080
 CMD ["/usr/local/bin/network_server"]
 ```
 
-#### Windows Service
+#### Windows 서비스
 ```powershell
-# Install as Windows service
+# Windows 서비스로 설치
 sc create NetworkService binPath= "C:\Program Files\NetworkSystem\network_server.exe"
 sc config NetworkService start= auto
 sc start NetworkService
 ```
 
-## Configuration Management
+## 구성 관리
 
-### Configuration Structure
+### 구성 구조
 
 ```yaml
 # config.yaml
@@ -109,10 +109,10 @@ logging:
   format: json
 ```
 
-### Environment Variables
+### 환경 변수
 
 ```bash
-# Override configuration via environment
+# 환경 변수를 통한 구성 재정의
 export NETWORK_SERVER_HOST=0.0.0.0
 export NETWORK_SERVER_PORT=8080
 export NETWORK_LOG_LEVEL=DEBUG
@@ -120,10 +120,10 @@ export NETWORK_SSL_ENABLED=true
 export NETWORK_MAX_CONNECTIONS=5000
 ```
 
-### Configuration Validation
+### 구성 검증
 
 ```cpp
-// Validate configuration at startup
+// 시작 시 구성 검증
 bool validate_config(const Config& config) {
     if (config.port < 1 || config.port > 65535) {
         return false;
@@ -138,35 +138,35 @@ bool validate_config(const Config& config) {
 }
 ```
 
-## Monitoring and Metrics
+## 모니터링 및 메트릭
 
-### Key Metrics to Monitor
+### 모니터링할 주요 메트릭
 
-1. **System Metrics**
-   - CPU utilization per core
-   - Memory usage (RSS, heap, stack)
-   - Network I/O (bytes in/out, packets)
-   - Disk I/O (if logging/caching)
-   - File descriptor usage
+1. **시스템 메트릭**
+   - 코어당 CPU 사용률
+   - 메모리 사용량 (RSS, heap, stack)
+   - 네트워크 I/O (바이트 입출력, 패킷)
+   - 디스크 I/O (로깅/캐싱 시)
+   - 파일 디스크립터 사용량
 
-2. **Application Metrics**
-   - Active connections count
-   - Request rate (req/sec)
-   - Response time (p50, p95, p99)
-   - Error rate by type
-   - Connection pool utilization
-   - Message queue depth
+2. **애플리케이션 메트릭**
+   - 활성 연결 수
+   - 요청 속도 (req/sec)
+   - 응답 시간 (p50, p95, p99)
+   - 유형별 오류율
+   - 연결 풀 사용률
+   - 메시지 큐 깊이
 
-3. **Business Metrics**
-   - Transaction success rate
-   - Data transfer volume
-   - Client session duration
-   - Protocol-specific metrics
+3. **비즈니스 메트릭**
+   - 트랜잭션 성공률
+   - 데이터 전송량
+   - 클라이언트 세션 지속 시간
+   - 프로토콜별 메트릭
 
-### Prometheus Integration
+### Prometheus 통합
 
 ```cpp
-// Expose metrics endpoint
+// 메트릭 엔드포인트 노출
 class MetricsHandler {
 public:
     std::string get_metrics() {
@@ -188,10 +188,10 @@ public:
 };
 ```
 
-### Logging Configuration
+### 로깅 구성
 
 ```yaml
-# Structured logging configuration
+# 구조화된 로깅 구성
 logging:
   outputs:
     - type: console
@@ -209,10 +209,10 @@ logging:
       facility: local0
 ```
 
-### Health Checks
+### 상태 확인
 
 ```cpp
-// Health check endpoint implementation
+// 상태 확인 엔드포인트 구현
 class HealthCheck {
 public:
     struct Status {
@@ -240,14 +240,14 @@ public:
 };
 ```
 
-## Performance Tuning
+## 성능 튜닝
 
-### System-Level Optimization
+### 시스템 수준 최적화
 
-#### Linux Kernel Parameters
+#### Linux 커널 매개변수
 ```bash
 # /etc/sysctl.conf
-# Network stack tuning
+# 네트워크 스택 튜닝
 net.core.somaxconn = 65535
 net.core.netdev_max_backlog = 65535
 net.ipv4.tcp_max_syn_backlog = 65535
@@ -256,16 +256,16 @@ net.ipv4.tcp_keepalive_time = 300
 net.ipv4.tcp_tw_reuse = 1
 net.ipv4.ip_local_port_range = 10000 65000
 
-# File descriptor limits
+# 파일 디스크립터 제한
 fs.file-max = 2097152
 fs.nr_open = 2097152
 
-# Memory tuning
+# 메모리 튜닝
 vm.max_map_count = 262144
 vm.swappiness = 10
 ```
 
-#### Resource Limits
+#### 리소스 제한
 ```bash
 # /etc/security/limits.conf
 network_service soft nofile 1000000
@@ -274,9 +274,9 @@ network_service soft nproc 32768
 network_service hard nproc 32768
 ```
 
-### Application-Level Optimization
+### 애플리케이션 수준 최적화
 
-1. **Connection Pooling**
+1. **연결 풀링**
 ```cpp
 class ConnectionPool {
     size_t min_size = 10;
@@ -287,25 +287,25 @@ class ConnectionPool {
 };
 ```
 
-2. **Thread Pool Tuning**
+2. **스레드 풀 튜닝**
 ```cpp
-// Optimal thread count calculation
+// 최적 스레드 수 계산
 size_t calculate_thread_count() {
     size_t hw_threads = std::thread::hardware_concurrency();
     size_t min_threads = 4;
     size_t max_threads = 64;
 
-    // For I/O bound: 2 * CPU cores
-    // For CPU bound: CPU cores
+    // I/O 바운드: 2 * CPU 코어
+    // CPU 바운드: CPU 코어
     size_t optimal = hw_threads * 2;
 
     return std::clamp(optimal, min_threads, max_threads);
 }
 ```
 
-3. **Memory Management**
+3. **메모리 관리**
 ```cpp
-// Use memory pools for frequent allocations
+// 빈번한 할당을 위한 메모리 풀 사용
 template<typename T>
 class ObjectPool {
     std::queue<std::unique_ptr<T>> pool_;
@@ -333,28 +333,28 @@ public:
 };
 ```
 
-### Profiling and Benchmarking
+### 프로파일링 및 벤치마킹
 
 ```bash
-# CPU profiling with perf
+# perf를 사용한 CPU 프로파일링
 perf record -g ./network_server
 perf report
 
-# Memory profiling with valgrind
+# valgrind를 사용한 메모리 프로파일링
 valgrind --leak-check=full --track-origins=yes ./network_server
 
-# Network performance testing
+# 네트워크 성능 테스트
 iperf3 -c server_host -p 8080 -t 60
 
-# Load testing
+# 부하 테스트
 wrk -t12 -c400 -d30s --latency http://localhost:8080/
 ```
 
-## Backup and Recovery
+## 백업 및 복구
 
-### Backup Strategy
+### 백업 전략
 
-1. **Configuration Backup**
+1. **구성 백업**
 ```bash
 #!/bin/bash
 # backup_config.sh
@@ -366,11 +366,11 @@ tar -czf "$BACKUP_DIR/config_$DATE.tar.gz" \
     /etc/network_system/ \
     /var/lib/network_system/
 
-# Keep last 30 days of backups
+# 최근 30일 백업 유지
 find "$BACKUP_DIR" -name "config_*.tar.gz" -mtime +30 -delete
 ```
 
-2. **State Backup**
+2. **상태 백업**
 ```cpp
 class StateManager {
 public:
@@ -379,7 +379,7 @@ public:
         serialize_state(file);
         file.close();
 
-        // Atomic rename for consistency
+        // 일관성을 위한 원자적 이름 변경
         std::filesystem::rename(
             path + ".tmp",
             path
@@ -393,79 +393,79 @@ public:
 };
 ```
 
-### Disaster Recovery
+### 재해 복구
 
-1. **Recovery Time Objective (RTO)**
-   - Cold standby: < 4 hours
-   - Warm standby: < 30 minutes
-   - Hot standby: < 5 minutes
+1. **복구 시간 목표 (RTO)**
+   - Cold standby: < 4시간
+   - Warm standby: < 30분
+   - Hot standby: < 5분
 
-2. **Recovery Point Objective (RPO)**
-   - Configuration: Daily backups
-   - State data: Hourly snapshots
-   - Transaction logs: Real-time replication
+2. **복구 시점 목표 (RPO)**
+   - 구성: 일일 백업
+   - 상태 데이터: 시간별 스냅샷
+   - 트랜잭션 로그: 실시간 복제
 
-3. **Failover Procedures**
+3. **장애 조치 절차**
 ```bash
 #!/bin/bash
 # failover.sh
 PRIMARY_HOST="primary.example.com"
 SECONDARY_HOST="secondary.example.com"
 
-# Check primary health
+# 주 서버 상태 확인
 if ! curl -f http://$PRIMARY_HOST:8080/health; then
     echo "Primary is down, initiating failover"
 
-    # Update DNS or load balancer
+    # DNS 또는 로드 밸런서 업데이트
     update_dns_record $SECONDARY_HOST
 
-    # Promote secondary
+    # 보조 서버 승격
     ssh $SECONDARY_HOST "systemctl start network_service_primary"
 
-    # Notify operations team
+    # 운영 팀에 알림
     send_alert "Failover completed to $SECONDARY_HOST"
 fi
 ```
 
-## Security Considerations
+## 보안 고려사항
 
-### Network Security
+### 네트워크 보안
 
-1. **TLS Configuration**
+1. **TLS 구성**
 ```cpp
 SSL_CTX* create_ssl_context() {
     SSL_CTX* ctx = SSL_CTX_new(TLS_server_method());
 
-    // Use TLS 1.2 or higher
+    // TLS 1.2 이상 사용
     SSL_CTX_set_min_proto_version(ctx, TLS1_2_VERSION);
 
-    // Strong cipher suites
+    // 강력한 암호화 제품군
     SSL_CTX_set_cipher_list(ctx,
         "ECDHE+AESGCM:ECDHE+AES256:!aNULL:!MD5:!DSS");
 
-    // Enable OCSP stapling
+    // OCSP 스테이플링 활성화
     SSL_CTX_set_tlsext_status_type(ctx, TLSEXT_STATUSTYPE_ocsp);
 
     return ctx;
 }
 ```
 
-2. **Firewall Rules**
+2. **방화벽 규칙**
 ```bash
-# iptables configuration
+# iptables 구성
 iptables -A INPUT -p tcp --dport 8080 -m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT
 iptables -A INPUT -p tcp --dport 8443 -m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT
-iptables -A INPUT -p tcp --dport 9090 -s 10.0.0.0/8 -j ACCEPT  # Metrics from internal
+iptables -A INPUT -p tcp --dport 9090 -s 10.0.0.0/8 -j ACCEPT  # 내부에서 메트릭
 iptables -A INPUT -j DROP
 ```
 
-### Access Control
+### 접근 제어
 
-1. **Authentication**
+1. **인증**
 ```cpp
 class Authenticator {
     bool validate_token(const std::string& token) {
-        // Validate JWT token
+        // JWT 토큰 검증
         auto decoded = jwt::decode(token);
         auto verifier = jwt::verify()
             .allow_algorithm(jwt::algorithm::hs256{secret_})
@@ -478,7 +478,7 @@ class Authenticator {
 };
 ```
 
-2. **Rate Limiting**
+2. **속도 제한**
 ```cpp
 class RateLimiter {
     std::unordered_map<std::string, TokenBucket> buckets_;
@@ -491,7 +491,7 @@ public:
 };
 ```
 
-### Security Auditing
+### 보안 감사
 
 ```cpp
 class AuditLogger {
@@ -511,33 +511,33 @@ class AuditLogger {
 };
 ```
 
-## Scaling Strategies
+## 확장 전략
 
-### Vertical Scaling
+### 수직 확장
 
-1. **Resource Allocation**
-   - Increase CPU cores for compute-intensive workloads
-   - Add memory for caching and buffering
-   - Use faster storage (NVMe SSD) for I/O operations
-   - Upgrade network interfaces (10Gbps, 25Gbps)
+1. **리소스 할당**
+   - 계산 집약적 워크로드를 위한 CPU 코어 증가
+   - 캐싱 및 버퍼링을 위한 메모리 추가
+   - I/O 작업을 위한 더 빠른 스토리지 사용 (NVMe SSD)
+   - 네트워크 인터페이스 업그레이드 (10Gbps, 25Gbps)
 
-2. **Configuration Adjustments**
+2. **구성 조정**
 ```yaml
-# Scale up configuration
+# 확장 구성
 server:
-  worker_threads: 32  # Increased from 4
-  max_connections: 10000  # Increased from 1000
+  worker_threads: 32  # 4에서 증가
+  max_connections: 10000  # 1000에서 증가
 
 performance:
-  connection_pool_size: 1000  # Increased from 100
-  buffer_size: 1048576  # 1MB buffers
+  connection_pool_size: 1000  # 100에서 증가
+  buffer_size: 1048576  # 1MB 버퍼
 ```
 
-### Horizontal Scaling
+### 수평 확장
 
-1. **Load Balancing**
+1. **로드 밸런싱**
 ```nginx
-# nginx load balancer configuration
+# nginx 로드 밸런서 구성
 upstream network_backend {
     least_conn;
     server backend1.example.com:8080 weight=1;
@@ -557,9 +557,9 @@ server {
 }
 ```
 
-2. **Service Mesh Architecture**
+2. **서비스 메시 아키텍처**
 ```yaml
-# Kubernetes deployment
+# Kubernetes 배포
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -588,7 +588,7 @@ spec:
             cpu: "1000m"
 ```
 
-3. **Auto-scaling Rules**
+3. **자동 확장 규칙**
 ```yaml
 # Horizontal Pod Autoscaler
 apiVersion: autoscaling/v2
@@ -617,9 +617,9 @@ spec:
         averageUtilization: 80
 ```
 
-### Database Scaling
+### 데이터베이스 확장
 
-1. **Connection Pooling**
+1. **연결 풀링**
 ```cpp
 class DatabasePool {
     HikariConfig config;
@@ -631,14 +631,14 @@ class DatabasePool {
 };
 ```
 
-2. **Read Replicas**
+2. **읽기 복제본**
 ```cpp
 class DatabaseManager {
     std::vector<Database> read_replicas_;
     Database write_master_;
 
     Database& get_read_connection() {
-        // Round-robin selection
+        // 라운드 로빈 선택
         static std::atomic<size_t> index{0};
         return read_replicas_[index++ % read_replicas_.size()];
     }
@@ -649,7 +649,7 @@ class DatabaseManager {
 };
 ```
 
-### Caching Strategy
+### 캐싱 전략
 
 ```cpp
 class CacheManager {
@@ -668,41 +668,41 @@ class CacheManager {
 };
 ```
 
-## Maintenance Windows
+## 유지보수 창
 
-### Planned Maintenance
+### 계획된 유지보수
 
-1. **Announcement Timeline**
-   - 2 weeks before: Initial notification
-   - 1 week before: Detailed maintenance plan
-   - 1 day before: Final reminder
-   - 1 hour before: Last warning
+1. **알림 일정**
+   - 2주 전: 초기 알림
+   - 1주 전: 상세 유지보수 계획
+   - 1일 전: 최종 알림
+   - 1시간 전: 마지막 경고
 
-2. **Maintenance Procedure**
+2. **유지보수 절차**
 ```bash
 #!/bin/bash
 # maintenance.sh
 
-# Enable maintenance mode
+# 유지보수 모드 활성화
 echo "true" > /var/run/network_service/maintenance
 
-# Wait for active connections to drain
+# 활성 연결이 종료될 때까지 대기
 sleep 30
 
-# Perform maintenance tasks
+# 유지보수 작업 수행
 backup_configuration
 update_software
 run_migrations
 verify_configuration
 
-# Disable maintenance mode
+# 유지보수 모드 비활성화
 echo "false" > /var/run/network_service/maintenance
 
-# Verify service health
+# 서비스 상태 확인
 check_service_health
 ```
 
-### Rolling Updates
+### 롤링 업데이트
 
 ```bash
 #!/bin/bash
@@ -714,44 +714,44 @@ LOAD_BALANCER="lb.example.com"
 for server in "${SERVERS[@]}"; do
     echo "Updating $server"
 
-    # Remove from load balancer
+    # 로드 밸런서에서 제거
     remove_from_lb $LOAD_BALANCER $server
 
-    # Wait for connections to drain
+    # 연결이 종료될 때까지 대기
     sleep 60
 
-    # Update server
+    # 서버 업데이트
     ssh $server "sudo systemctl stop network_service"
     ssh $server "sudo apt-get update && sudo apt-get upgrade network-system"
     ssh $server "sudo systemctl start network_service"
 
-    # Health check
+    # 상태 확인
     wait_for_health $server
 
-    # Add back to load balancer
+    # 로드 밸런서에 다시 추가
     add_to_lb $LOAD_BALANCER $server
 
-    # Wait before next server
+    # 다음 서버 전 대기
     sleep 120
 done
 ```
 
-## Compliance and Auditing
+## 규정 준수 및 감사
 
-### Audit Requirements
+### 감사 요구사항
 
-1. **Security Audits**
-   - Authentication attempts
-   - Authorization failures
-   - Configuration changes
-   - Data access patterns
-   - Network connections
+1. **보안 감사**
+   - 인증 시도
+   - 권한 부여 실패
+   - 구성 변경
+   - 데이터 액세스 패턴
+   - 네트워크 연결
 
-2. **Compliance Logging**
+2. **규정 준수 로깅**
 ```cpp
 class ComplianceLogger {
     void log_data_access(const DataAccessEvent& event) {
-        // GDPR/CCPA compliance logging
+        // GDPR/CCPA 규정 준수 로깅
         json entry = {
             {"timestamp", event.timestamp},
             {"user_id", hash_user_id(event.user_id)},
@@ -766,10 +766,10 @@ class ComplianceLogger {
 };
 ```
 
-### Retention Policies
+### 보존 정책
 
 ```yaml
-# Log retention configuration
+# 로그 보존 구성
 retention:
   access_logs:
     duration: 90d
@@ -782,13 +782,13 @@ retention:
     compress_after: 30d
     archive_to: s3://backup/security/
   compliance_logs:
-    duration: 2555d  # 7 years
+    duration: 2555d  # 7년
     compress_after: 90d
     archive_to: s3://backup/compliance/
 ```
 
-## Conclusion
+## 결론
 
-This operations guide provides comprehensive coverage of deployment, monitoring, performance tuning, security, and scaling strategies for the Network System. Regular reviews and updates of these procedures ensure optimal system performance and reliability.
+이 운영 가이드는 Network System의 배포, 모니터링, 성능 튜닝, 보안 및 확장 전략에 대한 포괄적인 내용을 제공합니다. 이러한 절차를 정기적으로 검토하고 업데이트하면 최적의 시스템 성능과 안정성을 보장할 수 있습니다.
 
-For specific troubleshooting scenarios, refer to the [Troubleshooting Guide](TROUBLESHOOTING.md).
+특정 문제 해결 시나리오는 [문제 해결 가이드](TROUBLESHOOTING_KO.md)를 참조하십시오.

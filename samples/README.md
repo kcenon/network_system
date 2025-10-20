@@ -1,5 +1,7 @@
 # Network System Samples
 
+> **Language:** **English** | [한국어](README_KO.md)
+
 This directory contains example programs demonstrating the Network System's networking capabilities including TCP/UDP communications, HTTP client functionality, and modern Result<T> error handling patterns.
 
 ## Latest Updates (2025-10-10)

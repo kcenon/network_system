@@ -1,5 +1,7 @@
 # Network System Integration Tests
 
+> **Language:** **English** | [한국어](README_KO.md)
+
 This directory contains comprehensive integration tests for the network_system library. These tests verify the complete behavior of network components working together in realistic scenarios.
 
 ## Test Structure

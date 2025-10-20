@@ -1,5 +1,7 @@
 # Migration Guide: messaging_system to network_system
 
+> **Language:** **English** | [한국어](MIGRATION_GUIDE_KO.md)
+
 This guide provides step-by-step instructions for migrating from the legacy `messaging_system` network module to the new independent `network_system` library.
 
 ## Table of Contents
