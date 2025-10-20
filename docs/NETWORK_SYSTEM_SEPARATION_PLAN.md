@@ -1,6 +1,8 @@
 # Network System Separation Plan
 # Detailed Plan for Separating network_system from messaging_system
 
+> **Language:** **English** | [한국어](NETWORK_SYSTEM_SEPARATION_PLAN_KO.md)
+
 **Date**: 2025-09-19
 **Version**: 1.0.0
 **Owner**: kcenon

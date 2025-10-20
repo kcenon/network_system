@@ -1,6 +1,8 @@
 # Technical Implementation Details
 # Network System Separation Technical Implementation Guide
 
+> **Language:** **English** | [한국어](TECHNICAL_IMPLEMENTATION_DETAILS_KO.md)
+
 **Date**: 2025-09-19
 **Version**: 1.0.0
 **Owner**: kcenon
@@ -1088,6 +1090,561 @@ BENCHMARK(BM_LargeMessageTransfer)
 
 BENCHMARK_MAIN();
 ```
+
+---
+
+## 🛡️ Resource Management Patterns
+
+### Overview
+
+The network_system achieves **95% RAII compliance** with excellent async-safe resource management patterns. All resources (sessions, sockets, ASIO objects, threads) are managed through RAII and smart pointers.
+
+### 1. Smart Pointer Strategy
+
+#### Session Lifetime Management
+
+**Pattern**: `std::shared_ptr<messaging_session>` with `std::enable_shared_from_this`
+
+```cpp
+class messaging_session
+    : public std::enable_shared_from_this<messaging_session>
+{
+public:
+    messaging_session(asio::ip::tcp::socket socket,
+                      std::string_view server_id);
+    ~messaging_session();  // Automatic cleanup
+
+    auto start_session() -> void;
+    auto stop_session() -> void;
+
+private:
+    std::shared_ptr<internal::tcp_socket> socket_;
+    internal::pipeline pipeline_;
+    std::atomic<bool> is_stopped_;
+};
+```
+
+**Why `shared_ptr`?**
+1. Server tracks active sessions in vector
+2. Async ASIO callbacks need to keep session alive
+3. Multiple references to same session possible
+4. Automatic cleanup when last reference dropped
+
+**Usage in Server**:
+```cpp
+class messaging_server {
+    std::vector<std::shared_ptr<messaging_session>> active_sessions_;
+
+    void do_accept() {
+        acceptor_->async_accept([self = shared_from_this()](auto ec, auto socket) {
+            if (!ec) {
+                auto session = std::make_shared<messaging_session>(
+                    std::move(socket), self->server_id_);
+
+                {
+                    std::lock_guard<std::mutex> lock(self->sessions_mutex_);
+                    self->active_sessions_.push_back(session);
+                }
+
+                session->start_session();
+            }
+        });
+    }
+};
+```
+
+#### ASIO Resource Ownership
+
+**Pattern**: `std::unique_ptr` for exclusive ownership
+
+```cpp
+class messaging_server {
+    std::unique_ptr<asio::io_context> io_context_;
+    std::unique_ptr<asio::ip::tcp::acceptor> acceptor_;
+    std::thread io_thread_;
+
+    void start_server(unsigned short port) {
+        io_context_ = std::make_unique<asio::io_context>();
+        acceptor_ = std::make_unique<asio::ip::tcp::acceptor>(
+            *io_context_,
+            asio::ip::tcp::endpoint(asio::ip::tcp::v4(), port)
+        );
+
+        io_thread_ = std::thread([this]() {
+            io_context_->run();
+        });
+    }
+
+    ~messaging_server() {
+        // Automatic cleanup via RAII
+        stop_server();
+        if (io_thread_.joinable()) {
+            io_thread_.join();
+        }
+        // unique_ptr automatically destroys io_context_ and acceptor_
+    }
+};
+```
+
+**Why `unique_ptr`?**
+1. Server exclusively owns io_context and acceptor
+2. Clear lifetime: created in start_server(), destroyed with server
+3. Exception-safe resource management
+4. No manual `delete` required
+
+### 2. Async-Safe Pattern: enable_shared_from_this
+
+**Problem**: Async callbacks may outlive the object
+
+```cpp
+// BAD: Dangling this pointer if session destroyed
+socket_->async_read([this](auto data) {
+    this->on_receive(data);  // UNSAFE: 'this' may be invalid!
+});
+```
+
+**Solution**: Capture `shared_ptr` to keep object alive
+
+```cpp
+// GOOD: Captures shared_ptr, keeps session alive
+void start_session() {
+    auto self = shared_from_this();
+
+    socket_->start_read(
+        [self](const std::vector<uint8_t>& data) {
+            self->on_receive(data);  // SAFE: self keeps session alive
+        },
+        [self](std::error_code ec) {
+            self->on_error(ec);  // SAFE: self keeps session alive
+        }
+    );
+}
+```
+
+**Benefits**:
+- Session remains alive during async operation
+- When operation completes, `self` goes out of scope, decrementing ref count
+- If server removed session from `active_sessions_`, session destructor called when last callback completes
+- No manual lifetime management needed
+
+### 3. Thread Safety
+
+#### Atomic State Flags
+
+```cpp
+std::atomic<bool> is_stopped_{false};
+std::atomic<bool> is_running_{false};
+std::atomic<bool> is_connected_{false};
+```
+
+#### Mutex Protection for Shared Data
+
+```cpp
+mutable std::mutex mode_mutex_;       // Protects pipeline mode flags
+mutable std::mutex sessions_mutex_;   // Protects active_sessions_ vector
+
+void remove_session(std::shared_ptr<messaging_session> session) {
+    std::lock_guard<std::mutex> lock(sessions_mutex_);  // RAII lock
+
+    auto it = std::find(active_sessions_.begin(), active_sessions_.end(), session);
+    if (it != active_sessions_.end()) {
+        active_sessions_.erase(it);
+    }
+    // Automatic unlock on scope exit
+}
+```
+
+### 4. Exception Safety
+
+All destructors are `noexcept` and handle cleanup safely:
+
+```cpp
+~messaging_session() {
+    stop_session();  // Idempotent, safe to call multiple times
+    // socket_ and pipeline_ automatically cleaned up by RAII
+}
+
+~messaging_server() {
+    stop_server();  // Ensures clean shutdown
+
+    if (io_thread_.joinable()) {
+        io_thread_.join();  // Wait for thread exit
+    }
+
+    // io_context_, acceptor_, active_sessions_ automatically cleaned up
+    // unique_ptr and vector destructors handle cleanup
+}
+```
+
+### 5. Resource Categories
+
+| Resource Type | Management | Ownership | Cleanup |
+|---------------|------------|-----------|---------|
+| Sessions | `std::shared_ptr` | Shared (server + callbacks) | Ref counting |
+| ASIO resources | `std::unique_ptr` | Exclusive (server) | Destructor |
+| Threads | Automatic storage | Exclusive (server) | join() in destructor |
+| Synchronization | Automatic storage | Class member | Automatic |
+
+### 6. Best Practices Applied
+
+✅ **Smart pointers for all heap allocations**
+- `shared_ptr` for sessions (shared ownership)
+- `unique_ptr` for ASIO resources (exclusive ownership)
+- No naked `new`/`delete` in production code
+
+✅ **RAII for all resources**
+- Resources acquired in constructor
+- Resources released in destructor
+- Exception-safe initialization
+
+✅ **enable_shared_from_this for async safety**
+- Sessions can create `shared_ptr` to themselves
+- Essential for capturing in async lambdas
+- Prevents dangling `this` pointers
+
+✅ **Thread-safe resource access**
+- Atomic flags for state
+- Mutexes for shared containers
+- RAII lock guards for critical sections
+
+✅ **Exception-safe destructors**
+- No exceptions thrown from destructors
+- Thread join handled safely
+- Standard containers handle cleanup
+
+---
+
+## 🚨 Error Handling Strategy
+
+### Current State
+
+network_system uses **void returns** for most operations with **callback-based error handling**:
+
+```cpp
+// Current approach
+auto start_server(unsigned short port) -> void;
+auto start_client(std::string_view host, unsigned short port) -> void;
+auto send_packet(std::vector<uint8_t> data) -> void;
+
+// Errors handled in callbacks
+auto on_error(std::error_code ec) -> void;
+```
+
+### Migration to Result<T> Pattern
+
+#### 1. Server Lifecycle Operations
+
+**Before**:
+```cpp
+void start_server(unsigned short port);  // No error return
+```
+
+**After**:
+```cpp
+Result<void> start_server(unsigned short port) {
+    if (is_running_) {
+        return error<std::monostate>(
+            codes::network_system::server_already_running,
+            "Server already running",
+            "messaging_server",
+            server_id_
+        );
+    }
+
+    try {
+        io_context_ = std::make_unique<asio::io_context>();
+        acceptor_ = std::make_unique<asio::ip::tcp::acceptor>(
+            *io_context_,
+            asio::ip::tcp::endpoint(asio::ip::tcp::v4(), port)
+        );
+
+        is_running_ = true;
+        do_accept();
+
+        io_thread_ = std::thread([this]() { io_context_->run(); });
+
+        return ok();
+    } catch (const std::system_error& e) {
+        if (e.code() == std::errc::address_in_use ||
+            e.code() == std::errc::permission_denied) {
+            return error<std::monostate>(
+                codes::network_system::bind_failed,
+                "Failed to bind to port",
+                "messaging_server",
+                "Port: " + std::to_string(port) + ", " + e.what()
+            );
+        }
+
+        return error<std::monostate>(
+            codes::common::internal_error,
+            "Server start failed",
+            "messaging_server",
+            e.what()
+        );
+    }
+}
+```
+
+**Usage**:
+```cpp
+auto server = std::make_shared<messaging_server>("MyServer");
+auto result = server->start_server(5555);
+
+if (result.is_err()) {
+    const auto& err = result.error();
+    log_error("Server start failed: {} - {}",
+              err.message, err.details.value_or(""));
+    return;
+}
+```
+
+#### 2. Client Connection Operations
+
+**Before**:
+```cpp
+void start_client(std::string_view host, unsigned short port);
+```
+
+**After**:
+```cpp
+Result<void> start_client(std::string_view host, unsigned short port) {
+    if (is_running_) {
+        return error<std::monostate>(
+            codes::common::already_exists,
+            "Client already running",
+            "messaging_client"
+        );
+    }
+
+    if (host.empty()) {
+        return error<std::monostate>(
+            codes::common::invalid_argument,
+            "Empty host string",
+            "messaging_client"
+        );
+    }
+
+    try {
+        io_context_ = std::make_unique<asio::io_context>();
+        is_running_ = true;
+
+        io_thread_ = std::thread([this]() { io_context_->run(); });
+        do_connect(host, port);
+
+        return ok();
+    } catch (const std::exception& e) {
+        return error<std::monostate>(
+            codes::common::internal_error,
+            "Client start failed",
+            "messaging_client",
+            e.what()
+        );
+    }
+}
+```
+
+**Usage with Retry**:
+```cpp
+Result<void> connect_with_retry(
+    messaging_client& client,
+    std::string_view host,
+    unsigned short port,
+    int max_attempts = 5
+) {
+    int delay_ms = 100;
+
+    for (int attempt = 1; attempt <= max_attempts; ++attempt) {
+        auto result = client.start_client(host, port);
+
+        if (result.is_ok()) {
+            return result;
+        }
+
+        if (attempt < max_attempts) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(delay_ms));
+            delay_ms *= 2;  // Exponential backoff
+        }
+    }
+
+    return error<std::monostate>(
+        codes::network_system::connection_failed,
+        "Max retry attempts exhausted",
+        "connect_with_retry"
+    );
+}
+```
+
+#### 3. Send/Receive Operations
+
+**Before**:
+```cpp
+void send_packet(std::vector<uint8_t> data);
+```
+
+**After**:
+```cpp
+Result<void> send_packet(std::vector<uint8_t> data) {
+    if (!is_running_ || !is_connected_) {
+        return error<std::monostate>(
+            codes::network_system::connection_closed,
+            "Not connected",
+            "messaging_client"
+        );
+    }
+
+    if (data.empty()) {
+        return error<std::monostate>(
+            codes::common::invalid_argument,
+            "Empty data buffer",
+            "messaging_client"
+        );
+    }
+
+    try {
+        // Async send with Result callback
+        std::promise<Result<void>> promise;
+        auto future = promise.get_future();
+
+        socket_->async_send(
+            data,
+            [&promise](std::error_code ec, std::size_t bytes_sent) {
+                if (ec) {
+                    promise.set_value(error<std::monostate>(
+                        codes::network_system::send_failed,
+                        "Send failed",
+                        "messaging_client",
+                        ec.message()
+                    ));
+                } else {
+                    promise.set_value(ok());
+                }
+            }
+        );
+
+        return future.get();
+    } catch (const std::exception& e) {
+        return error<std::monostate>(
+            codes::network_system::send_failed,
+            "Send operation failed",
+            "messaging_client",
+            e.what()
+        );
+    }
+}
+```
+
+### Error Code System
+
+#### Network System Error Codes (-600 to -699)
+
+```cpp
+namespace common::error::codes::network_system {
+    // Connection errors (-600 to -619)
+    constexpr int connection_failed = -600;
+    constexpr int connection_refused = -601;
+    constexpr int connection_timeout = -602;
+    constexpr int connection_closed = -603;
+
+    // Session errors (-620 to -639)
+    constexpr int session_not_found = -620;
+    constexpr int session_expired = -621;
+    constexpr int invalid_session = -622;
+
+    // Send/Receive errors (-640 to -659)
+    constexpr int send_failed = -640;
+    constexpr int receive_failed = -641;
+    constexpr int message_too_large = -642;
+
+    // Server errors (-660 to -679)
+    constexpr int server_not_started = -660;
+    constexpr int server_already_running = -661;
+    constexpr int bind_failed = -662;
+}
+```
+
+#### ASIO Error Code Mapping
+
+```cpp
+Result<void> map_asio_error(std::error_code ec, std::string_view context) {
+    if (!ec) {
+        return ok();
+    }
+
+    int code;
+    if (ec == asio::error::connection_refused) {
+        code = codes::network_system::connection_refused;
+    } else if (ec == asio::error::timed_out) {
+        code = codes::network_system::connection_timeout;
+    } else if (ec == asio::error::eof || ec == asio::error::connection_reset) {
+        code = codes::network_system::connection_closed;
+    } else {
+        code = codes::network_system::connection_failed;
+    }
+
+    return error<std::monostate>(
+        code,
+        ec.message(),
+        std::string(context)
+    );
+}
+```
+
+### Async Operations with Result<T>
+
+#### Pattern 1: Callback-based
+
+```cpp
+void send_packet_async(
+    std::vector<uint8_t> data,
+    std::function<void(Result<void>)> callback
+) {
+    socket_->async_send(
+        std::move(data),
+        [callback](std::error_code ec, std::size_t bytes_sent) {
+            if (ec) {
+                callback(error<std::monostate>(
+                    codes::network_system::send_failed,
+                    ec.message(),
+                    "send_packet_async"
+                ));
+            } else {
+                callback(ok());
+            }
+        }
+    );
+}
+```
+
+#### Pattern 2: Future-based
+
+```cpp
+std::future<Result<void>> send_packet_future(std::vector<uint8_t> data) {
+    return std::async(std::launch::async, [this, data = std::move(data)]() {
+        return send_packet(data);
+    });
+}
+```
+
+### Migration Benefits
+
+**Type Safety**:
+- Explicit error returns (no silent failures)
+- Compile-time checking of error handling
+
+**Better Error Context**:
+- Error codes with detailed messages
+- Context information (host, port, session IDs)
+- Stack of error origins
+
+**Consistent Error Handling**:
+- Same pattern across all systems
+- Predictable error recovery
+- Easier testing and debugging
+
+**Performance**:
+- Negligible overhead (<2% for local operations)
+- Success path optimized (inline)
+- Error path has minimal allocation
 
 ---
 

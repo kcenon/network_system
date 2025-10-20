@@ -1,5 +1,7 @@
 # Build Instructions
 
+> **Language:** **English** | [한국어](BUILD_KO.md)
+
 ## Table of Contents
 - [Prerequisites](#prerequisites)
 - [Quick Build](#quick-build)
@@ -197,6 +199,121 @@ cmake .. -G Ninja \
 ```bash
 cmake .. -DCMAKE_BUILD_TYPE=Debug \
   -DCMAKE_CXX_FLAGS="-g -O0 -fsanitize=address"
+```
+
+## Build Configuration Standards
+
+### C++ Standard
+
+The network_system **requires C++20** with specific features:
+- Concepts and constraints
+- Coroutines (for async operations)
+- Standard library features (`std::span`, `std::format`)
+- Three-way comparison operator (`<=>`)
+
+**CMake Configuration**:
+```cmake
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+```
+
+### Compile Commands Export
+
+For IDE integration and static analysis tools:
+```bash
+cmake .. -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+```
+
+This generates `compile_commands.json` for:
+- CLion, VS Code, and other IDEs
+- Clang-Tidy and other static analyzers
+- Code completion and navigation tools
+
+### Coverage Support
+
+To build with code coverage instrumentation:
+```bash
+cmake .. -DENABLE_COVERAGE=ON -DCMAKE_BUILD_TYPE=Debug
+cmake --build .
+ctest
+# Coverage report generated in build/coverage/
+```
+
+## Static Analysis
+
+### Clang-Tidy
+
+network_system includes `.clang-tidy` configuration with checks for:
+- **modernize**: Enforce modern C++ idioms
+- **concurrency**: Thread safety and data race detection
+- **performance**: Performance anti-patterns
+- **bugprone**: Common programming errors
+- **cert**: CERT C++ coding standards
+- **cppcoreguidelines**: C++ Core Guidelines compliance
+
+**Run Clang-Tidy**:
+```bash
+# Analyze specific files
+clang-tidy -p build $(find src include -name "*.cpp" -o -name "*.h")
+
+# Analyze with automatic fixes
+clang-tidy -p build --fix-errors src/network_system/core/*.cpp
+
+# CMake integration (if enabled)
+cmake .. -DCMAKE_CXX_CLANG_TIDY="clang-tidy;-checks=*"
+```
+
+**Suppressing Warnings**:
+See `.clang-tidy` file for configured suppressions and check customizations.
+
+### Cppcheck
+
+network_system includes `.cppcheck` configuration with:
+- Project-based file selection
+- Thread safety addon
+- CERT security addon
+- Performance analysis
+
+**Run Cppcheck**:
+```bash
+# Full analysis
+cppcheck --project=.cppcheck --enable=all
+
+# Specific directory
+cppcheck --enable=all src/network_system/core/
+
+# With specific addons
+cppcheck --addon=threadsafety --addon=cert src/
+```
+
+**Configuration File** (`.cppcheck`):
+```xml
+<?xml version="1.0"?>
+<project>
+    <paths>
+        <dir name="src"/>
+        <dir name="include"/>
+    </paths>
+    <exclude>
+        <path name="build/"/>
+        <path name="tests/"/>
+    </exclude>
+</project>
+```
+
+### Integration with CI/CD
+
+Static analysis runs automatically on:
+- Every commit (GitHub Actions)
+- Pull requests (blocking if critical issues found)
+- Pre-commit hooks (optional)
+
+**Pre-commit Hook Setup**:
+```bash
+# Install pre-commit hook
+cp scripts/pre-commit .git/hooks/
+chmod +x .git/hooks/pre-commit
 ```
 
 ## Integration

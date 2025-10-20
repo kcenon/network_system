@@ -1,5 +1,7 @@
 # Network System Comprehensive Analysis Report
 
+> **Language:** **English** | [한국어](COMPREHENSIVE_ANALYSIS_2025-10-07_KO.md)
+
 **Analysis Date**: 2025-10-07
 **Project Path**: `/Users/dongcheolshin/Sources/network_system`
 **Analyst**: Claude Code (project-analyzer agent)

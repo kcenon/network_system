@@ -1,6 +1,8 @@
 # Network System Migration Checklist
 # Detailed Execution Checklist for network_system Separation from messaging_system
 
+> **Language:** **English** | [한국어](MIGRATION_CHECKLIST_KO.md)
+
 **Date**: 2025-09-19
 **Owner**: kcenon
 **Project**: Network System Separation

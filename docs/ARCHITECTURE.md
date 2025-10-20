@@ -1,6 +1,8 @@
 Architecture Overview
 =====================
 
+> **Language:** **English** | [한국어](ARCHITECTURE_KO.md)
+
 Purpose
 - network_system is an asynchronous networking library (ASIO‑based) extracted from messaging_system for reuse and modularity.
 - It provides connection/session management, a zero‑copy pipeline, and coroutine‑friendly APIs.
