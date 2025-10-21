@@ -41,6 +41,16 @@ option(ENABLE_COVERAGE "Enable code coverage" OFF)
 option(NETWORK_BUILD_BENCHMARKS "Build network system benchmarks" OFF)
 option(NETWORK_BUILD_INTEGRATION_TESTS "Build network system integration tests" ON)
 
+# Respect global BUILD_INTEGRATION_TESTS flag if set
+if(DEFINED BUILD_INTEGRATION_TESTS)
+    if(BUILD_INTEGRATION_TESTS)
+        set(_NETWORK_BUILD_IT_VALUE ON)
+    else()
+        set(_NETWORK_BUILD_IT_VALUE OFF)
+    endif()
+    set(NETWORK_BUILD_INTEGRATION_TESTS ${_NETWORK_BUILD_IT_VALUE} CACHE BOOL "Build network system integration tests" FORCE)
+endif()
+
 ##################################################
 # Global Configuration
 ##################################################
