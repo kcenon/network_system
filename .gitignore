@@ -80,3 +80,9 @@ Thumbs.db
 
 # Documentation
 documents/
+
+# Embedded system dependencies (use Sources/ directory instead)
+common_system/
+thread_system/
+logger_system/
+container_system/
