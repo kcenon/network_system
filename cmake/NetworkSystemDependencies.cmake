@@ -152,12 +152,34 @@ function(find_container_system)
         return()
     endif()
 
-    # Path-based detection
-    find_path(CONTAINER_SYSTEM_INCLUDE_DIR
-        NAMES container.h
-        PATHS
+    # Path-based detection - prioritize Sources/ directory
+    if(APPLE)
+        set(_container_search_paths
+            /Users/${USER}/Sources/container_system
             ../container_system
             ${CMAKE_CURRENT_SOURCE_DIR}/../container_system
+        )
+        set(_container_lib_paths
+            /Users/${USER}/Sources/container_system/build/lib
+            ../container_system/build/lib
+            ${CMAKE_CURRENT_SOURCE_DIR}/../container_system/build/lib
+        )
+    else()
+        set(_container_search_paths
+            /home/${USER}/Sources/container_system
+            ../container_system
+            ${CMAKE_CURRENT_SOURCE_DIR}/../container_system
+        )
+        set(_container_lib_paths
+            /home/${USER}/Sources/container_system/build/lib
+            ../container_system/build/lib
+            ${CMAKE_CURRENT_SOURCE_DIR}/../container_system/build/lib
+        )
+    endif()
+
+    find_path(CONTAINER_SYSTEM_INCLUDE_DIR
+        NAMES container.h
+        PATHS ${_container_search_paths}
         NO_DEFAULT_PATH
     )
 
@@ -166,9 +188,7 @@ function(find_container_system)
 
         find_library(CONTAINER_SYSTEM_LIBRARY
             NAMES container_system ContainerSystem
-            PATHS
-                ../container_system/build/lib
-                ${CMAKE_CURRENT_SOURCE_DIR}/../container_system/build/lib
+            PATHS ${_container_lib_paths}
             PATH_SUFFIXES Debug Release
             NO_DEFAULT_PATH
         )
@@ -197,11 +217,34 @@ function(find_thread_system)
 
     message(STATUS "Looking for thread_system...")
 
-    find_path(THREAD_SYSTEM_INCLUDE_DIR
-        NAMES kcenon/thread/core/thread_pool.h
-        PATHS
+    # Prioritize Sources/ directory
+    if(APPLE)
+        set(_thread_search_paths
+            /Users/${USER}/Sources/thread_system/include
             ../thread_system/include
             ${CMAKE_CURRENT_SOURCE_DIR}/../thread_system/include
+        )
+        set(_thread_lib_paths
+            /Users/${USER}/Sources/thread_system/build/lib
+            ../thread_system/build/lib
+            ${CMAKE_CURRENT_SOURCE_DIR}/../thread_system/build/lib
+        )
+    else()
+        set(_thread_search_paths
+            /home/${USER}/Sources/thread_system/include
+            ../thread_system/include
+            ${CMAKE_CURRENT_SOURCE_DIR}/../thread_system/include
+        )
+        set(_thread_lib_paths
+            /home/${USER}/Sources/thread_system/build/lib
+            ../thread_system/build/lib
+            ${CMAKE_CURRENT_SOURCE_DIR}/../thread_system/build/lib
+        )
+    endif()
+
+    find_path(THREAD_SYSTEM_INCLUDE_DIR
+        NAMES kcenon/thread/core/thread_pool.h
+        PATHS ${_thread_search_paths}
         NO_DEFAULT_PATH
     )
 
@@ -210,9 +253,7 @@ function(find_thread_system)
 
         find_library(THREAD_SYSTEM_LIBRARY
             NAMES thread_base
-            PATHS
-                ../thread_system/build/lib
-                ${CMAKE_CURRENT_SOURCE_DIR}/../thread_system/build/lib
+            PATHS ${_thread_lib_paths}
             NO_DEFAULT_PATH
         )
 
@@ -242,11 +283,34 @@ function(find_logger_system)
 
     message(STATUS "Looking for logger_system...")
 
-    find_path(LOGGER_SYSTEM_INCLUDE_DIR
-        NAMES kcenon/logger/core/logger.h
-        PATHS
+    # Prioritize Sources/ directory
+    if(APPLE)
+        set(_logger_search_paths
+            /Users/${USER}/Sources/logger_system/include
             ../logger_system/include
             ${CMAKE_CURRENT_SOURCE_DIR}/../logger_system/include
+        )
+        set(_logger_lib_paths
+            /Users/${USER}/Sources/logger_system/build/lib
+            ../logger_system/build/lib
+            ${CMAKE_CURRENT_SOURCE_DIR}/../logger_system/build/lib
+        )
+    else()
+        set(_logger_search_paths
+            /home/${USER}/Sources/logger_system/include
+            ../logger_system/include
+            ${CMAKE_CURRENT_SOURCE_DIR}/../logger_system/include
+        )
+        set(_logger_lib_paths
+            /home/${USER}/Sources/logger_system/build/lib
+            ../logger_system/build/lib
+            ${CMAKE_CURRENT_SOURCE_DIR}/../logger_system/build/lib
+        )
+    endif()
+
+    find_path(LOGGER_SYSTEM_INCLUDE_DIR
+        NAMES kcenon/logger/core/logger.h
+        PATHS ${_logger_search_paths}
         NO_DEFAULT_PATH
     )
 
@@ -255,9 +319,7 @@ function(find_logger_system)
 
         find_library(LOGGER_SYSTEM_LIBRARY
             NAMES LoggerSystem logger_system logger
-            PATHS
-                ../logger_system/build/lib
-                ${CMAKE_CURRENT_SOURCE_DIR}/../logger_system/build/lib
+            PATHS ${_logger_lib_paths}
             NO_DEFAULT_PATH
         )
 
@@ -287,11 +349,24 @@ function(find_common_system)
 
     message(STATUS "Looking for common_system...")
 
-    find_path(COMMON_SYSTEM_INCLUDE_DIR
-        NAMES kcenon/common/patterns/result.h
-        PATHS
+    # Prioritize Sources/ directory
+    if(APPLE)
+        set(_common_search_paths
+            /Users/${USER}/Sources/common_system/include
             ../common_system/include
             ${CMAKE_CURRENT_SOURCE_DIR}/../common_system/include
+        )
+    else()
+        set(_common_search_paths
+            /home/${USER}/Sources/common_system/include
+            ../common_system/include
+            ${CMAKE_CURRENT_SOURCE_DIR}/../common_system/include
+        )
+    endif()
+
+    find_path(COMMON_SYSTEM_INCLUDE_DIR
+        NAMES kcenon/common/patterns/result.h
+        PATHS ${_common_search_paths}
         NO_DEFAULT_PATH
     )
 
