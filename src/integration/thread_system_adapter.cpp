@@ -2,6 +2,10 @@
 
 #if defined(BUILD_WITH_THREAD_SYSTEM)
 
+// Suppress deprecation warnings from thread_system headers
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+
 #include <thread>
 #include <stdexcept>
 
@@ -113,6 +117,8 @@ bool bind_thread_system_pool_into_manager(const std::string& pool_name) {
 }
 
 } // namespace network_system::integration
+
+#pragma clang diagnostic pop
 
 #endif // BUILD_WITH_THREAD_SYSTEM
 

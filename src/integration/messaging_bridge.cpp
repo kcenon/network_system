@@ -38,6 +38,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * @date 2025-09-19
  */
 
+// Suppress deprecation warnings from thread_system headers
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+
 #include "network_system/integration/messaging_bridge.h"
 #include "network_system/integration/thread_integration.h"
 #include <atomic>
@@ -140,3 +144,5 @@ std::shared_ptr<thread_pool_interface> messaging_bridge::get_thread_pool_interfa
 }
 
 } // namespace network_system::integration
+
+#pragma clang diagnostic pop

@@ -15,6 +15,9 @@
 #include <string>
 
 #if defined(BUILD_WITH_THREAD_SYSTEM)
+// Suppress deprecation warnings from thread_system headers
+#  pragma clang diagnostic push
+#  pragma clang diagnostic ignored "-Wdeprecated-declarations"
 // Include fmt before thread_system headers since thread_system uses fmt formatters
 #  if defined(USE_FMT_LIBRARY)
 #    include <fmt/format.h>
@@ -24,6 +27,7 @@
 #  include <kcenon/thread/core/thread_pool.h>
 #  include <kcenon/thread/interfaces/thread_context.h>
 #  include <kcenon/thread/interfaces/service_container.h>
+#  pragma clang diagnostic pop
 #endif
 
 namespace network_system::integration {
