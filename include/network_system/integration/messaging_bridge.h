@@ -51,6 +51,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endif
 
 #ifdef BUILD_WITH_THREAD_SYSTEM
+// Suppress deprecation warnings from thread_system headers
+#  pragma clang diagnostic push
+#  pragma clang diagnostic ignored "-Wdeprecated-declarations"
 // Include fmt before thread_system headers since thread_system uses fmt formatters
 #  if defined(USE_FMT_LIBRARY)
 #    include <fmt/format.h>
@@ -58,6 +61,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #    include <format>
 #  endif
 #include <kcenon/thread/core/thread_pool.h>
+#  pragma clang diagnostic pop
 #endif
 
 #include "network_system/integration/thread_integration.h"
