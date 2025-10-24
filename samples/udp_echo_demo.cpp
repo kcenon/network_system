@@ -31,7 +31,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *****************************************************************************/
 
 /**
- * @file udp_example.cpp
+ * @file udp_echo_demo.cpp
  * @brief Simple example demonstrating UDP client and server usage
  *
  * This example shows:
@@ -41,10 +41,13 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 4. Graceful shutdown
  */
 
+#include <iostream>
+
+#ifdef NETWORK_ENABLE_UDP
+
 #include "network_system/core/messaging_udp_server.h"
 #include "network_system/core/messaging_udp_client.h"
 
-#include <iostream>
 #include <thread>
 #include <chrono>
 #include <string>
@@ -211,7 +214,7 @@ void run_client()
 
 int main()
 {
-    std::cout << "=== UDP Example ===\n";
+    std::cout << "=== UDP Echo Demo ===\n";
     std::cout << "This example demonstrates basic UDP client/server communication.\n\n";
 
     try
@@ -237,3 +240,13 @@ int main()
         return 1;
     }
 }
+
+#else // NETWORK_ENABLE_UDP
+
+int main()
+{
+    std::cout << "UDP support is not enabled. Rebuild with -DNETWORK_ENABLE_UDP=ON\n";
+    return 1;
+}
+
+#endif // NETWORK_ENABLE_UDP

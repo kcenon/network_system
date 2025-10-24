@@ -37,12 +37,8 @@ set(SAMPLE_PROGRAMS
     http_client_demo
     run_all_samples
     memory_profile_demo
+    udp_echo_demo
 )
-
-# Add UDP sample if UDP support is enabled
-if(NETWORK_ENABLE_UDP)
-    list(APPEND SAMPLE_PROGRAMS udp_echo_demo)
-endif()
 
 # Output directory
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
@@ -72,7 +68,7 @@ foreach(SAMPLE ${SAMPLE_PROGRAMS})
     )
 
     # Configure ASIO for samples that use it directly
-    if(SAMPLE STREQUAL "udp_echo_demo")
+    if(SAMPLE STREQUAL "udp_echo_demo" AND NETWORK_ENABLE_UDP)
         setup_asio_integration(${SAMPLE})
     endif()
     
@@ -147,13 +143,10 @@ set(SAMPLE_SOURCE_FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/http_client_demo.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/run_all_samples.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/memory_profile_demo.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/udp_echo_demo.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt
     ${CMAKE_CURRENT_SOURCE_DIR}/README.md
 )
-
-if(NETWORK_ENABLE_UDP)
-    list(APPEND SAMPLE_SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/udp_echo_demo.cpp)
-endif()
 
 install(FILES ${SAMPLE_SOURCE_FILES}
     DESTINATION share/network_system/samples
