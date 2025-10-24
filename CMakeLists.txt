@@ -40,7 +40,6 @@ option(BUILD_MESSAGING_BRIDGE "Build messaging_system bridge" ON)
 option(ENABLE_COVERAGE "Enable code coverage" OFF)
 option(NETWORK_BUILD_BENCHMARKS "Build network system benchmarks" OFF)
 option(NETWORK_BUILD_INTEGRATION_TESTS "Build network system integration tests" OFF)
-option(NETWORK_ENABLE_UDP "Enable UDP protocol support" ON)
 
 # Respect global BUILD_INTEGRATION_TESTS flag if set
 if(DEFINED BUILD_INTEGRATION_TESTS)
@@ -105,12 +104,15 @@ add_library(NetworkSystem
     # Core implementation
     src/core/messaging_client.cpp
     src/core/messaging_server.cpp
+    src/core/messaging_udp_client.cpp
+    src/core/messaging_udp_server.cpp
 
     # Session management
     src/session/messaging_session.cpp
 
     # Internal implementation
     src/internal/tcp_socket.cpp
+    src/internal/udp_socket.cpp
     src/internal/send_coroutine.cpp
     src/internal/pipeline.cpp
 
@@ -119,16 +121,6 @@ add_library(NetworkSystem
     src/integration/thread_integration.cpp
     src/integration/container_integration.cpp
 )
-
-# Add UDP support if enabled
-if(NETWORK_ENABLE_UDP)
-    target_sources(NetworkSystem PRIVATE
-        src/core/messaging_udp_client.cpp
-        src/core/messaging_udp_server.cpp
-        src/internal/udp_socket.cpp
-    )
-    target_compile_definitions(NetworkSystem PUBLIC NETWORK_ENABLE_UDP)
-endif()
 
 # Set target properties
 set_target_properties(NetworkSystem PROPERTIES
@@ -271,7 +263,6 @@ message(STATUS "  Shared libs: ${BUILD_SHARED_LIBS}")
 message(STATUS "  Tests: ${BUILD_TESTS}")
 message(STATUS "  Integration tests: ${NETWORK_BUILD_INTEGRATION_TESTS}")
 message(STATUS "  Samples: ${BUILD_SAMPLES}")
-message(STATUS "  UDP support: ${NETWORK_ENABLE_UDP}")
 message(STATUS "  Verify build: ${BUILD_VERIFY_BUILD}")
 message(STATUS "  container_system: ${BUILD_WITH_CONTAINER_SYSTEM}")
 message(STATUS "  thread_system: ${BUILD_WITH_THREAD_SYSTEM}")
