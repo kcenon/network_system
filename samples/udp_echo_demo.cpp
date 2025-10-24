@@ -103,7 +103,7 @@ void run_server()
 
     // Start server on port 5555
     auto result = server->start_server(5555);
-    if (!result)
+    if (result.is_err())
     {
         std::cerr << "[Server] Failed to start: " << result.error().message << "\n";
         return;
@@ -153,7 +153,7 @@ void run_client()
 
     // Start client targeting localhost:5555
     auto result = client->start_client("localhost", 5555);
-    if (!result)
+    if (result.is_err())
     {
         std::cerr << "[Client] Failed to start: " << result.error().message << "\n";
         return;
@@ -189,7 +189,7 @@ void run_client()
                 }
             });
 
-        if (!send_result)
+        if (send_result.is_err())
         {
             std::cerr << "[Client] Send failed: " << send_result.error().message << "\n";
         }
