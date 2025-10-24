@@ -17,6 +17,9 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+# Include integration module for ASIO setup
+include(NetworkSystemIntegration)
+
 # Find required packages
 find_package(Threads REQUIRED)
 
@@ -36,6 +39,11 @@ set(SAMPLE_PROGRAMS
     memory_profile_demo
 )
 
+# Add UDP sample if UDP support is enabled
+if(NETWORK_ENABLE_UDP)
+    list(APPEND SAMPLE_PROGRAMS udp_echo_demo)
+endif()
+
 # Output directory
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
@@ -53,11 +61,8 @@ foreach(SAMPLE ${SAMPLE_PROGRAMS})
         CXX_STANDARD_REQUIRED ON
         CXX_EXTENSIONS OFF
     )
-    
-    # Include directories (link to NetworkSystem target provides proper includes)
-    target_include_directories(${SAMPLE} PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}/..
-    )
+
+    # Include directories are provided by NetworkSystem target linkage
 
     # Link libraries
     target_link_libraries(${SAMPLE} PRIVATE
@@ -65,6 +70,11 @@ foreach(SAMPLE ${SAMPLE_PROGRAMS})
         fmt::fmt
         Threads::Threads
     )
+
+    # Configure ASIO for samples that use it directly
+    if(SAMPLE STREQUAL "udp_echo_demo")
+        setup_asio_integration(${SAMPLE})
+    endif()
     
     # Platform-specific libraries
     if(WIN32)
@@ -131,7 +141,7 @@ install(TARGETS ${SAMPLE_PROGRAMS}
 )
 
 # Install sample source files for reference
-install(FILES
+set(SAMPLE_SOURCE_FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/basic_usage.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/tcp_server_client.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/http_client_demo.cpp
@@ -139,6 +149,13 @@ install(FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/memory_profile_demo.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt
     ${CMAKE_CURRENT_SOURCE_DIR}/README.md
+)
+
+if(NETWORK_ENABLE_UDP)
+    list(APPEND SAMPLE_SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/udp_echo_demo.cpp)
+endif()
+
+install(FILES ${SAMPLE_SOURCE_FILES}
     DESTINATION share/network_system/samples
     COMPONENT samples
 )
