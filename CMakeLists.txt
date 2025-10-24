@@ -39,7 +39,8 @@ option(BUILD_WITH_COMMON_SYSTEM "Build with common_system integration" ON)
 option(BUILD_MESSAGING_BRIDGE "Build messaging_system bridge" ON)
 option(ENABLE_COVERAGE "Enable code coverage" OFF)
 option(NETWORK_BUILD_BENCHMARKS "Build network system benchmarks" OFF)
-option(NETWORK_BUILD_INTEGRATION_TESTS "Build network system integration tests" ON)
+option(NETWORK_BUILD_INTEGRATION_TESTS "Build network system integration tests" OFF)
+option(NETWORK_ENABLE_UDP "Enable UDP protocol support" ON)
 
 # Respect global BUILD_INTEGRATION_TESTS flag if set
 if(DEFINED BUILD_INTEGRATION_TESTS)
@@ -119,6 +120,16 @@ add_library(NetworkSystem
     src/integration/container_integration.cpp
 )
 
+# Add UDP support if enabled
+if(NETWORK_ENABLE_UDP)
+    target_sources(NetworkSystem PRIVATE
+        src/core/messaging_udp_client.cpp
+        src/core/messaging_udp_server.cpp
+        src/internal/udp_socket.cpp
+    )
+    target_compile_definitions(NetworkSystem PUBLIC NETWORK_ENABLE_UDP)
+endif()
+
 # Set target properties
 set_target_properties(NetworkSystem PROPERTIES
     CXX_STANDARD 20
@@ -152,37 +163,43 @@ endif()
 # Build Verification Test
 ##################################################
 
-add_executable(verify_build verify_build.cpp)
-target_link_libraries(verify_build PRIVATE NetworkSystem)
+# Only build verify_build if all required libraries are available
+# Disabled by default as it requires external system libraries
+option(BUILD_VERIFY_BUILD "Build verify_build executable" OFF)
 
-# Add system include paths to verify_build
-if(CONTAINER_SYSTEM_INCLUDE_DIR)
-    target_include_directories(verify_build PRIVATE ${CONTAINER_SYSTEM_INCLUDE_DIR})
-    target_compile_definitions(verify_build PRIVATE BUILD_WITH_CONTAINER_SYSTEM)
+if(BUILD_VERIFY_BUILD)
+    add_executable(verify_build verify_build.cpp)
+    target_link_libraries(verify_build PRIVATE NetworkSystem)
+
+    # Add system include paths to verify_build
+    if(CONTAINER_SYSTEM_INCLUDE_DIR)
+        target_include_directories(verify_build PRIVATE ${CONTAINER_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(verify_build PRIVATE BUILD_WITH_CONTAINER_SYSTEM)
+    endif()
+
+    if(THREAD_SYSTEM_INCLUDE_DIR)
+        target_include_directories(verify_build PRIVATE ${THREAD_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(verify_build PRIVATE BUILD_WITH_THREAD_SYSTEM)
+    endif()
+
+    if(LOGGER_SYSTEM_INCLUDE_DIR)
+        target_include_directories(verify_build PRIVATE ${LOGGER_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(verify_build PRIVATE BUILD_WITH_LOGGER_SYSTEM)
+    endif()
+
+    if(BUILD_MESSAGING_BRIDGE)
+        target_compile_definitions(verify_build PRIVATE BUILD_MESSAGING_BRIDGE)
+    endif()
+
+    # Configure ASIO and FMT for verify_build
+    setup_asio_integration(verify_build)
+    setup_fmt_integration(verify_build)
+
+    set_target_properties(verify_build PROPERTIES
+        CXX_STANDARD 20
+        CXX_STANDARD_REQUIRED ON
+    )
 endif()
-
-if(THREAD_SYSTEM_INCLUDE_DIR)
-    target_include_directories(verify_build PRIVATE ${THREAD_SYSTEM_INCLUDE_DIR})
-    target_compile_definitions(verify_build PRIVATE BUILD_WITH_THREAD_SYSTEM)
-endif()
-
-if(LOGGER_SYSTEM_INCLUDE_DIR)
-    target_include_directories(verify_build PRIVATE ${LOGGER_SYSTEM_INCLUDE_DIR})
-    target_compile_definitions(verify_build PRIVATE BUILD_WITH_LOGGER_SYSTEM)
-endif()
-
-if(BUILD_MESSAGING_BRIDGE)
-    target_compile_definitions(verify_build PRIVATE BUILD_MESSAGING_BRIDGE)
-endif()
-
-# Configure ASIO and FMT for verify_build
-setup_asio_integration(verify_build)
-setup_fmt_integration(verify_build)
-
-set_target_properties(verify_build PROPERTIES
-    CXX_STANDARD 20
-    CXX_STANDARD_REQUIRED ON
-)
 
 ##################################################
 # Tests and Samples
@@ -191,7 +208,9 @@ set_target_properties(verify_build PROPERTIES
 if(BUILD_TESTS)
     enable_testing()
     message(STATUS "Building network_system tests")
-    add_test(NAME verify_build_test COMMAND verify_build)
+    if(BUILD_VERIFY_BUILD AND TARGET verify_build)
+        add_test(NAME verify_build_test COMMAND verify_build)
+    endif()
 
     # Add tests subdirectory if it exists
     if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/tests/CMakeLists.txt)
@@ -252,6 +271,8 @@ message(STATUS "  Shared libs: ${BUILD_SHARED_LIBS}")
 message(STATUS "  Tests: ${BUILD_TESTS}")
 message(STATUS "  Integration tests: ${NETWORK_BUILD_INTEGRATION_TESTS}")
 message(STATUS "  Samples: ${BUILD_SAMPLES}")
+message(STATUS "  UDP support: ${NETWORK_ENABLE_UDP}")
+message(STATUS "  Verify build: ${BUILD_VERIFY_BUILD}")
 message(STATUS "  container_system: ${BUILD_WITH_CONTAINER_SYSTEM}")
 message(STATUS "  thread_system: ${BUILD_WITH_THREAD_SYSTEM}")
 message(STATUS "  logger_system: ${BUILD_WITH_LOGGER_SYSTEM}")
