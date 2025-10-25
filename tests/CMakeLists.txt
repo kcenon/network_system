@@ -169,6 +169,31 @@ if(GTest_FOUND OR GTEST_FOUND)
 
         gtest_discover_tests(network_websocket_frame_test)
         message(STATUS "WebSocket frame tests enabled")
+
+        # WebSocket handshake tests
+        add_executable(network_websocket_handshake_test
+            unit/websocket_handshake_test.cpp
+        )
+
+        target_link_libraries(network_websocket_handshake_test PRIVATE
+            NetworkSystem
+            GTest::gtest
+            GTest::gtest_main
+            Threads::Threads
+        )
+
+        # Setup ASIO and FMT integration
+        setup_asio_integration(network_websocket_handshake_test)
+        setup_fmt_integration(network_websocket_handshake_test)
+
+        set_target_properties(network_websocket_handshake_test PROPERTIES
+            CXX_STANDARD 20
+            CXX_STANDARD_REQUIRED ON
+            RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+        )
+
+        gtest_discover_tests(network_websocket_handshake_test)
+        message(STATUS "WebSocket handshake tests enabled")
     endif()
 else()
     message(WARNING "GTest not found - unit tests will not be built")
