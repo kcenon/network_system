@@ -6,7 +6,7 @@ All rights reserved.
 *****************************************************************************/
 
 #include <gtest/gtest.h>
-#include "websocket_frame.h"
+#include "network_system/internal/websocket_frame.h"
 
 using namespace network_system::internal;
 
