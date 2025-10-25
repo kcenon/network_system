@@ -33,7 +33,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "network_system/internal/websocket_protocol.h"
 
 #include <algorithm>
-#include <cstring>
 
 namespace network_system::internal
 {
