@@ -143,6 +143,33 @@ if(GTest_FOUND OR GTEST_FOUND)
     )
 
     gtest_discover_tests(network_tls_config_test)
+
+    # WebSocket frame tests
+    if(BUILD_WEBSOCKET_SUPPORT)
+        add_executable(network_websocket_frame_test
+            unit/websocket_frame_test.cpp
+        )
+
+        target_link_libraries(network_websocket_frame_test PRIVATE
+            NetworkSystem
+            GTest::gtest
+            GTest::gtest_main
+            Threads::Threads
+        )
+
+        # Setup ASIO and FMT integration
+        setup_asio_integration(network_websocket_frame_test)
+        setup_fmt_integration(network_websocket_frame_test)
+
+        set_target_properties(network_websocket_frame_test PROPERTIES
+            CXX_STANDARD 20
+            CXX_STANDARD_REQUIRED ON
+            RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+        )
+
+        gtest_discover_tests(network_websocket_frame_test)
+        message(STATUS "WebSocket frame tests enabled")
+    endif()
 else()
     message(WARNING "GTest not found - unit tests will not be built")
 endif()

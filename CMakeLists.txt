@@ -32,6 +32,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 option(BUILD_SHARED_LIBS "Build using shared libraries" OFF)
 option(BUILD_TESTS "Build tests" ON)
 option(BUILD_SAMPLES "Build samples" OFF)
+option(BUILD_WEBSOCKET_SUPPORT "Build WebSocket protocol support (RFC 6455)" ON)
 option(BUILD_WITH_CONTAINER_SYSTEM "Build with container_system integration" ON)
 option(BUILD_WITH_THREAD_SYSTEM "Build with thread_system integration" ON)
 option(BUILD_WITH_LOGGER_SYSTEM "Build with logger_system integration" ON)
@@ -121,6 +122,15 @@ add_library(NetworkSystem
     src/integration/thread_integration.cpp
     src/integration/container_integration.cpp
 )
+
+# WebSocket support (conditional)
+if(BUILD_WEBSOCKET_SUPPORT)
+    target_sources(NetworkSystem PRIVATE
+        src/internal/websocket_frame.cpp
+    )
+    target_compile_definitions(NetworkSystem PUBLIC BUILD_WEBSOCKET_SUPPORT)
+    message(STATUS "WebSocket support enabled")
+endif()
 
 # Set target properties
 set_target_properties(NetworkSystem PROPERTIES
@@ -264,6 +274,7 @@ message(STATUS "  Tests: ${BUILD_TESTS}")
 message(STATUS "  Integration tests: ${NETWORK_BUILD_INTEGRATION_TESTS}")
 message(STATUS "  Samples: ${BUILD_SAMPLES}")
 message(STATUS "  Verify build: ${BUILD_VERIFY_BUILD}")
+message(STATUS "  WebSocket support: ${BUILD_WEBSOCKET_SUPPORT}")
 message(STATUS "  container_system: ${BUILD_WITH_CONTAINER_SYSTEM}")
 message(STATUS "  thread_system: ${BUILD_WITH_THREAD_SYSTEM}")
 message(STATUS "  logger_system: ${BUILD_WITH_LOGGER_SYSTEM}")
