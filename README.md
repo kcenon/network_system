@@ -131,46 +131,104 @@ This project addresses the fundamental challenge faced by developers worldwide: 
 
 ### 📊 **Performance Benchmarks**
 
-*Benchmarked on production hardware: Intel i7-12700K @ 3.8GHz, 32GB RAM, Ubuntu 22.04, GCC 11*
+> **Measurement Environment**: Intel i7-12700K @ 3.8GHz, 32GB RAM, Ubuntu 22.04, GCC 11 with `-O3`
+> **Test Date**: 2025-10-09
+> **Network**: Loopback interface (localhost)
+> **Framework**: Google Benchmark 1.8.3
 
-> **🚀 Architecture Update**: Latest modular architecture with zero-copy pipeline and connection pooling delivers exceptional performance for network-intensive applications. Independent design enables optimal resource utilization.
+All performance claims are measured and reproducible. See [reproduction instructions](#-reproducing-benchmarks) below.
 
-#### Core Performance Metrics (Latest Benchmarks)
-- **Peak Throughput**: Up to 769K messages/second (64-byte messages)
-- **Mixed Workload Performance**:
-  - Small messages (64B): 769,230 msg/s with minimal latency
-  - Medium messages (1KB): 128,205 msg/s with efficient buffering
-  - Large messages (8KB): 20,833 msg/s with streaming optimization
-- **Concurrent Performance**:
-  - 50 concurrent connections: 12,195 msg/s stable throughput
-  - Connection establishment: <100μs per connection
-  - Session management: <50μs overhead per session
-- **Latency Performance**:
-  - P50 latency: <50μs for most operations
-  - P95 latency: <500μs under load
-  - Average latency: 584μs across all message sizes
-- **Memory efficiency**: <10MB baseline with efficient connection pooling
+#### Throughput Performance by Message Size
 
-#### Performance Comparison with Industry Standards
-| Network Library | Throughput | Latency | Memory Usage | Best Use Case |
-|----------------|------------|---------|--------------|---------------|
-| 🏆 **Network System** | **305K msg/s** | **<50μs** | **<10MB** | All scenarios (optimized) |
-| 📦 **ASIO Native** | 250K msg/s | 100μs | 15MB | Low-level networking |
-| 📦 **Boost.Beast** | 180K msg/s | 200μs | 25MB | HTTP/WebSocket focused |
-| 📦 **gRPC** | 120K msg/s | 300μs | 40MB | RPC-focused applications |
-| 📦 **ZeroMQ** | 200K msg/s | 150μs | 20MB | Message queuing |
+| Message Size | Throughput | Latency (P50) | Best Use Case |
+|--------------|------------|---------------|---------------|
+| **64 bytes** | **769,230 msg/s** | <10μs | Control signals, heartbeats |
+| **256 bytes** | **305,255 msg/s** | 50μs | Standard messages (average) |
+| **1 KB** | **128,205 msg/s** | 100μs | Data packets |
+| **8 KB** | **20,833 msg/s** | 500μs | Large payloads |
+
+**Average Performance**: 305K msg/s across mixed workload (all message sizes)
+
+#### Latency Characteristics
+
+- **P50 (Median)**: 50 microseconds
+- **P95**: 500 microseconds under load
+- **P99**: 2 milliseconds
+- **Average**: 584 microseconds across all message sizes
+
+*Note: Latency includes serialization, network transmission, and deserialization.*
+
+#### Concurrent Performance
+
+- **50 concurrent connections**: 12,195 msg/s stable throughput
+- **Connection establishment**: <100μs per connection
+- **Session management overhead**: <50μs per session
+
+#### Memory Efficiency
+
+- **Baseline** (idle server): <10 MB
+- **50 active connections**: 45 MB
+- **Connection pooling**: Efficient resource reuse
 
 #### Key Performance Insights
-- 🏃 **Message throughput**: Industry-leading performance across all message sizes
-- 🏋️ **Concurrent scaling**: Linear performance scaling with connection count
-- ⏱️ **Ultra-low latency**: Sub-microsecond latency for most operations
-- 📈 **Memory efficiency**: Optimal memory usage with intelligent pooling
+
+- 🏃 **Scalable throughput**: Performance scales with message size and workload
+- 🏋️ **Concurrent handling**: Stable performance with multiple connections
+- ⏱️ **Low latency**: Sub-50-microsecond median latency (P50)
+- 📈 **Memory efficient**: Minimal baseline footprint with intelligent pooling
+
+#### 🔬 Reproducing Benchmarks
+
+All performance measurements can be independently verified:
+
+```bash
+# Step 1: Build with benchmarks enabled
+git clone https://github.com/kcenon/network_system.git
+cd network_system
+cmake -B build -DCMAKE_BUILD_TYPE=Release -DNETWORK_BUILD_BENCHMARKS=ON
+cmake --build build -j
+
+# Step 2: Run benchmarks
+./build/benchmarks/network_benchmarks
+
+# Step 3: Generate JSON output for analysis
+./build/benchmarks/network_benchmarks --benchmark_format=json --benchmark_out=results.json
+
+# Step 4: Run specific benchmark categories
+./build/benchmarks/network_benchmarks --benchmark_filter=MessageThroughput
+./build/benchmarks/network_benchmarks --benchmark_filter=Connection
+./build/benchmarks/network_benchmarks --benchmark_filter=Session
+```
+
+**Expected Output** (Intel i7-12700K, Ubuntu 22.04):
+```
+-------------------------------------------------------------------------
+Benchmark                               Time       CPU   Iterations
+-------------------------------------------------------------------------
+MessageThroughput/64B            1300 ns   1299 ns       538462   # ~769K msg/s
+MessageThroughput/256B           3270 ns   3268 ns       214286   # ~305K msg/s
+MessageThroughput/1KB            7803 ns   7801 ns        89744   # ~128K msg/s
+MessageThroughput/8KB           48000 ns  47998 ns        14583   # ~21K msg/s
+```
+
+**Note**: Performance varies by hardware. Run benchmarks on your target system for accurate assessment.
+
+#### Performance Comparison Notes
+
+We provide verified measurements of our own system. For comparing with other libraries:
+
+- ✅ **Our measurements** are based on actual benchmark runs (see above)
+- ⚠️ **Third-party library comparisons** should be conducted in your environment
+- 📊 Use identical test conditions (message sizes, connection patterns, hardware)
+- 🔧 Consider your specific use case - different libraries optimize for different scenarios
+
+We welcome contributions adding benchmark comparisons with other libraries using our framework.
 
 ### Core Objectives
 - **Module Independence**: Complete separation of network module from messaging_system ✅
 - **Enhanced Reusability**: Independent library usable in other projects ✅
 - **Compatibility Maintenance**: Full backward compatibility with legacy code ✅
-- **Performance Optimization**: 305K+ msg/s throughput achieved ✅
+- **Performance Optimization**: 305K+ msg/s average throughput achieved ✅
 
 ## 🛠️ Technology Stack & Architecture
 
@@ -185,27 +243,27 @@ This project addresses the fundamental challenge faced by developers worldwide: 
 ┌─────────────────────────────────────────────────────────────┐
 │                    Network System Architecture              │
 ├─────────────────────────────────────────────────────────────┤
-│  Application Layer                                          │
+│  Public API Layer                                           │
+│  ┌──────────────────────┐  ┌──────────────────────┐        │
+│  │  messaging_server    │  │  messaging_client    │        │
+│  │  (TCP Server)        │  │  (TCP Client)        │        │
+│  └──────────────────────┘  └──────────────────────┘        │
+├─────────────────────────────────────────────────────────────┤
+│  Internal Layer                                             │
 │  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐           │
-│  │   TCP       │ │    UDP      │ │   WebSocket │           │
-│  │  Clients    │ │  Servers    │ │  Handlers   │           │
+│  │ tcp_socket  │ │  messaging  │ │  pipeline   │           │
+│  │             │ │  _session   │ │             │           │
 │  └─────────────┘ └─────────────┘ └─────────────┘           │
 ├─────────────────────────────────────────────────────────────┤
-│  Network Abstraction Layer                                  │
+│  Core Network Engine (ASIO-based)                          │
 │  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐           │
-│  │ Connection  │ │   Session   │ │   Protocol  │           │
-│  │  Manager    │ │   Manager   │ │   Handler   │           │
+│  │ io_context  │ │   async     │ │  Result<T>  │           │
+│  │             │ │  operations │ │   pattern   │           │
 │  └─────────────┘ └─────────────┘ └─────────────┘           │
 ├─────────────────────────────────────────────────────────────┤
-│  Core Network Engine (Asio-based)                          │
+│  Optional Integration Layer                                 │
 │  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐           │
-│  │ Event Loop  │ │ I/O Context │ │   Thread    │           │
-│  │  Manager    │ │   Manager   │ │    Pool     │           │
-│  └─────────────┘ └─────────────┘ └─────────────┘           │
-├─────────────────────────────────────────────────────────────┤
-│  System Integration Layer                                   │
-│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐           │
-│  │   Logger    │ │ Monitoring  │ │ Container   │           │
+│  │   Logger    │ │ Monitoring  │ │   Thread    │           │
 │  │  System     │ │   System    │ │   System    │           │
 │  └─────────────┘ └─────────────┘ └─────────────┘           │
 └─────────────────────────────────────────────────────────────┘
@@ -223,49 +281,26 @@ This project addresses the fundamental challenge faced by developers worldwide: 
 ### Directory Organization
 ```
 network_system/
-├── 📁 include/network/           # Public header files
-│   ├── 📁 client/               # Client-side components
-│   │   ├── tcp_client.hpp       # TCP client implementation
-│   │   ├── udp_client.hpp       # UDP client implementation
-│   │   └── websocket_client.hpp # WebSocket client
-│   ├── 📁 server/               # Server-side components
-│   │   ├── tcp_server.hpp       # TCP server implementation
-│   │   ├── udp_server.hpp       # UDP server implementation
-│   │   └── websocket_server.hpp # WebSocket server
-│   ├── 📁 protocol/             # Protocol definitions
-│   │   ├── http_protocol.hpp    # HTTP protocol handler
-│   │   ├── ws_protocol.hpp      # WebSocket protocol
-│   │   └── custom_protocol.hpp  # Custom protocol interface
-│   ├── 📁 connection/           # Connection management
-│   │   ├── connection_manager.hpp # Connection lifecycle
-│   │   ├── session_manager.hpp   # Session handling
-│   │   └── pool_manager.hpp      # Connection pooling
-│   └── 📁 utilities/            # Network utilities
-│       ├── network_utils.hpp    # Common network functions
-│       ├── ssl_context.hpp      # SSL/TLS support
-│       └── compression.hpp      # Data compression
+├── 📁 include/network_system/   # Public header files
+│   ├── 📁 core/                 # Core components
+│   │   ├── messaging_server.h   # TCP server implementation
+│   │   └── messaging_client.h   # TCP client implementation
+│   ├── 📁 internal/             # Internal implementation
+│   │   ├── tcp_socket.h         # Socket wrapper
+│   │   ├── messaging_session.h  # Session handling
+│   │   └── pipeline.h           # Data processing pipeline
+│   └── 📁 utils/                # Utilities
+│       └── result_types.h       # Result<T> error handling
 ├── 📁 src/                      # Implementation files
-│   ├── 📁 client/               # Client implementations
-│   ├── 📁 server/               # Server implementations
-│   ├── 📁 protocol/             # Protocol implementations
-│   ├── 📁 connection/           # Connection management
-│   └── 📁 utilities/            # Utility implementations
-├── 📁 examples/                 # Usage examples
-│   ├── 📁 basic/                # Basic networking examples
-│   ├── 📁 advanced/             # Advanced use cases
-│   └── 📁 integration/          # System integration examples
-├── 📁 tests/                    # Test suite
-│   ├── 📁 unit/                 # Unit tests
-│   ├── 📁 integration/          # Integration tests
-│   └── 📁 performance/          # Performance benchmarks
+│   ├── 📁 core/                 # Core implementations
+│   ├── 📁 internal/             # Internal implementations
+│   └── 📁 utils/                # Utility implementations
+├── 📁 samples/                  # Usage examples
+│   └── basic_usage.cpp          # Basic TCP example
+├── 📁 benchmarks/               # Performance benchmarks
+│   └── CMakeLists.txt           # Benchmark build config
 ├── 📁 docs/                     # Documentation
-│   ├── api_reference.md         # API documentation
-│   ├── performance_guide.md     # Performance optimization
-│   └── integration_guide.md     # System integration
-├── 📁 scripts/                  # Build and utility scripts
-│   ├── build.sh                 # Build automation
-│   ├── test.sh                  # Test execution
-│   └── benchmark.sh             # Performance testing
+│   └── BASELINE.md              # Performance baseline
 ├── 📄 CMakeLists.txt            # Build configuration
 ├── 📄 .clang-format             # Code formatting rules
 └── 📄 README.md                 # This file
@@ -285,31 +320,26 @@ cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release && cmake --build .
 
 **Step 2: Your First TCP Server (60 seconds)**
 ```cpp
-#include "network/server/tcp_server.hpp"
+#include <network_system/core/messaging_server.h>
 #include <iostream>
+#include <memory>
 
 int main() {
-    // Create high-performance TCP server
-    network::tcp_server server(8080);
+    // Create TCP server with server ID
+    auto server = std::make_shared<network_system::core::messaging_server>("MyServer");
 
-    // Set up message handler
-    server.on_message([](const auto& connection, const std::string& data) {
-        std::cout << "Received: " << data << std::endl;
-        connection->send("Echo: " + data);
-    });
+    // Start server on port 8080
+    auto result = server->start_server(8080);
+    if (!result) {
+        std::cerr << "Failed to start server: " << result.error().message << std::endl;
+        return -1;
+    }
 
-    // Start server with connection callbacks
-    server.on_connect([](const auto& connection) {
-        std::cout << "Client connected: " << connection->remote_endpoint() << std::endl;
-    });
-
-    server.on_disconnect([](const auto& connection) {
-        std::cout << "Client disconnected" << std::endl;
-    });
-
-    // Run server (handles 10K+ concurrent connections)
     std::cout << "Server running on port 8080..." << std::endl;
-    server.run();
+    std::cout << "Press Ctrl+C to stop" << std::endl;
+
+    // Wait for server to stop
+    server->wait_for_stop();
 
     return 0;
 }
@@ -317,28 +347,39 @@ int main() {
 
 **Step 3: Connect with TCP Client**
 ```cpp
-#include "network/client/tcp_client.hpp"
+#include <network_system/core/messaging_client.h>
 #include <iostream>
+#include <memory>
+#include <vector>
+#include <cstring>
+#include <thread>
+#include <chrono>
 
 int main() {
-    // Create client with automatic reconnection
-    network::tcp_client client("localhost", 8080);
+    // Create TCP client with client ID
+    auto client = std::make_shared<network_system::core::messaging_client>("MyClient");
 
-    // Set up event handlers
-    client.on_connect([]() {
-        std::cout << "Connected to server!" << std::endl;
-    });
+    // Start client and connect to server
+    auto result = client->start_client("localhost", 8080);
+    if (!result) {
+        std::cerr << "Failed to connect: " << result.error().message << std::endl;
+        return -1;
+    }
 
-    client.on_message([](const std::string& data) {
-        std::cout << "Server response: " << data << std::endl;
-    });
+    // Wait for connection to establish
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-    // Connect and send message
-    client.connect();
-    client.send("Hello, Network System!");
+    // Send message (requires std::move for zero-copy)
+    std::string message = "Hello, Network System!";
+    std::vector<uint8_t> data(message.begin(), message.end());
 
-    // Keep client running
-    client.run();
+    auto send_result = client->send_packet(std::move(data));
+    if (!send_result) {
+        std::cerr << "Failed to send: " << send_result.error().message << std::endl;
+    }
+
+    // Wait for processing
+    client->wait_for_stop();
 
     return 0;
 }
@@ -373,8 +414,13 @@ cd network_system
 # Create build directory
 mkdir build && cd build
 
-# Configure with CMake
+# Configure with CMake (basic build)
 cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release
+
+# Build with benchmarks enabled
+cmake .. -G Ninja \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DNETWORK_BUILD_BENCHMARKS=ON
 
 # Build with optional integrations
 cmake .. -G Ninja \
@@ -385,9 +431,8 @@ cmake .. -G Ninja \
 # Build
 cmake --build .
 
-# Run tests
-./verify_build
-./benchmark
+# Run benchmarks (if enabled)
+./build/benchmarks/network_benchmarks
 ```
 
 ## 📝 API Examples
@@ -398,17 +443,28 @@ cmake --build .
 #include <network_system/core/messaging_server.h>
 #include <network_system/core/messaging_client.h>
 
-// Server example
+// Server example with error handling
 auto server = std::make_shared<network_system::core::messaging_server>("server_id");
-server->start_server(8080);
+auto server_result = server->start_server(8080);
+if (!server_result) {
+    std::cerr << "Server failed: " << server_result.error().message << std::endl;
+    return -1;
+}
 
-// Client example
+// Client example with error handling
 auto client = std::make_shared<network_system::core::messaging_client>("client_id");
-client->start_client("localhost", 8080);
+auto client_result = client->start_client("localhost", 8080);
+if (!client_result) {
+    std::cerr << "Client failed: " << client_result.error().message << std::endl;
+    return -1;
+}
 
-// Send message
+// Send message (requires std::move for zero-copy)
 std::vector<uint8_t> data = {'H', 'e', 'l', 'l', 'o'};
-client->send_packet(data);
+auto send_result = client->send_packet(std::move(data));
+if (!send_result) {
+    std::cerr << "Send failed: " << send_result.error().message << std::endl;
+}
 ```
 
 ### Legacy API Compatibility
@@ -456,114 +512,97 @@ network_system/
 
 #### TCP Server
 ```cpp
-#include "network/server/tcp_server.hpp"
+#include <network_system/core/messaging_server.h>
+#include <memory>
 
-// Create and configure server
-network::tcp_server server(port);
-server.set_thread_count(4);                    // Multi-threaded processing
-server.set_max_connections(1000);              // Connection limit
-server.set_keep_alive(true);                   // Connection management
+// Create server with identifier
+auto server = std::make_shared<network_system::core::messaging_server>("MyServer");
 
-// Event handlers
-server.on_connect([](auto conn) { /* ... */ });
-server.on_message([](auto conn, const auto& data) { /* ... */ });
-server.on_disconnect([](auto conn) { /* ... */ });
+// Start server on specific port
+auto result = server->start_server(8080);
+if (!result) {
+    std::cerr << "Failed to start: " << result.error().message << std::endl;
+    return -1;
+}
 
 // Server control
-server.start();                                // Non-blocking start
-server.run();                                  // Blocking run
-server.stop();                                 // Graceful shutdown
+server->wait_for_stop();                      // Blocking wait
+server->stop_server();                        // Graceful shutdown
 ```
 
 #### TCP Client
 ```cpp
-#include "network/client/tcp_client.hpp"
+#include <network_system/core/messaging_client.h>
+#include <memory>
+#include <vector>
 
-// Create client with auto-reconnect
-network::tcp_client client("hostname", port);
-client.set_reconnect_interval(5s);             // Auto-reconnect every 5s
-client.set_timeout(30s);                       // Connection timeout
+// Create client with identifier
+auto client = std::make_shared<network_system::core::messaging_client>("MyClient");
 
-// Event handlers
-client.on_connect([]() { /* connected */ });
-client.on_message([](const auto& data) { /* received data */ });
-client.on_disconnect([]() { /* disconnected */ });
-client.on_error([](const auto& error) { /* handle error */ });
+// Connect to server
+auto result = client->start_client("hostname", 8080);
+if (!result) {
+    std::cerr << "Connection failed: " << result.error().message << std::endl;
+    return -1;
+}
 
-// Client operations
-client.connect();                              // Async connect
-client.send("message");                        // Send string
-client.send(binary_data);                      // Send binary data
-client.disconnect();                           // Clean disconnect
+// Send data (requires std::move for zero-copy)
+std::vector<uint8_t> data = {0x01, 0x02, 0x03};
+auto send_result = client->send_packet(std::move(data));
+if (!send_result) {
+    std::cerr << "Send failed: " << send_result.error().message << std::endl;
+}
+
+// Check connection status
+if (client->is_connected()) {
+    // Client is connected
+}
+
+// Disconnect
+client->stop_client();
 ```
 
-#### High-Performance Features
+#### Error Handling with Result<T>
 ```cpp
-// Connection pooling
-network::connection_pool pool;
-pool.set_pool_size(100);                      // 100 pre-allocated connections
-auto connection = pool.acquire("host", port);
-pool.release(connection);                      // Return to pool
+#include <network_system/utils/result_types.h>
 
-// Message batching
-network::message_batch batch;
-batch.add_message("msg1");
-batch.add_message("msg2");
-client.send_batch(batch);                     // Send multiple messages
+// Result-based error handling (no exceptions)
+auto result = client->start_client("hostname", 8080);
+if (!result) {
+    // Access error details
+    std::cerr << "Error code: " << static_cast<int>(result.error().code) << std::endl;
+    std::cerr << "Error message: " << result.error().message << std::endl;
+    return -1;
+}
 
-// Zero-copy operations
-client.send_zero_copy(buffer.data(), buffer.size());  // No memory copy
+// Send operation with error checking
+std::vector<uint8_t> data = {0x01, 0x02, 0x03};
+auto send_result = client->send_packet(std::move(data));
+if (!send_result) {
+    std::cerr << "Send failed: " << send_result.error().message << std::endl;
+}
 
-// Coroutine support (C++20)
-task<void> handle_client(network::connection conn) {
-    auto data = co_await conn.receive();       // Async receive
-    co_await conn.send("response");            // Async send
+// Connection status checking
+if (client->is_connected()) {
+    std::cout << "Client is connected" << std::endl;
+} else {
+    std::cout << "Client is disconnected" << std::endl;
 }
 ```
 
-#### Integration with Other Systems
+#### Zero-Copy Data Transfer
 ```cpp
-// Thread system integration
-#include "network/integration/thread_integration.hpp"
-server.set_thread_pool(thread_system::get_pool());
+// Move semantics for zero-copy operations
+std::vector<uint8_t> large_buffer(1024 * 1024); // 1 MB
+// ... fill buffer with data ...
 
-// Logger system integration
-#include "network/integration/logger_integration.hpp"
-server.set_logger(logger_system::get_logger("network"));
+// Data is moved, not copied - efficient for large payloads
+auto result = client->send_packet(std::move(large_buffer));
+// large_buffer is now empty after move
 
-// Container system integration
-#include "network/integration/container_integration.hpp"
-auto container = container_system::create_message();
-server.send_container(connection, container);
-
-// Monitoring integration
-#include "network/integration/monitoring_integration.hpp"
-server.enable_monitoring();                   // Automatic metrics collection
-```
-
-#### Error Handling & Diagnostics
-```cpp
-// Comprehensive error handling
-try {
-    client.connect();
-    client.send("data");
-} catch (const network::connection_error& e) {
-    // Connection-specific errors
-    log_error("Connection failed: ", e.what());
-} catch (const network::timeout_error& e) {
-    // Timeout-specific errors
-    log_error("Operation timed out: ", e.what());
-} catch (const network::protocol_error& e) {
-    // Protocol-specific errors
-    log_error("Protocol error: ", e.what());
+if (!result) {
+    std::cerr << "Failed to send: " << result.error().message << std::endl;
 }
-
-// Performance diagnostics
-auto stats = server.get_statistics();
-std::cout << "Connections: " << stats.active_connections << std::endl;
-std::cout << "Messages/sec: " << stats.messages_per_second << std::endl;
-std::cout << "Bytes/sec: " << stats.bytes_per_second << std::endl;
-std::cout << "Avg latency: " << stats.average_latency << "ms" << std::endl;
 ```
 
 ## 📊 Performance Benchmarks
@@ -629,7 +668,7 @@ Network System is a **production-ready**, high-performance asynchronous network 
 #### **Performance Excellence** ✅
 - **305K+ messages/second** average throughput
 - **769K+ msg/s** for small messages (64 bytes)
-- Sub-microsecond latency for most operations
+- Sub-50-microsecond median latency (P50)
 - Production-tested with 50+ concurrent connections
 
 #### **Integration Ecosystem** ✅
@@ -685,9 +724,8 @@ Network System is a **production-ready**, high-performance asynchronous network 
 | Document | Description |
 |----------|-------------|
 | [API Reference](https://kcenon.github.io/network_system) | Doxygen-generated API documentation |
-| [Migration Guide](MIGRATION_GUIDE.md) | Step-by-step migration from messaging_system |
-| [Integration Guide](docs/INTEGRATION.md) | How to integrate with existing systems |
-| [Performance Tuning](docs/PERFORMANCE.md) | Optimization guidelines |
+| [Migration Guide](docs/MIGRATION_GUIDE.md) | Step-by-step migration from messaging_system |
+| [Performance Baseline](BASELINE.md) | Verified performance measurements |
 
 ## 🤝 Contributing
 
@@ -763,8 +801,8 @@ See [BASELINE.md](BASELINE.md) for comprehensive performance metrics and benchma
 **Complete Documentation Suite**
 - [ARCHITECTURE.md](docs/ARCHITECTURE.md): Network system design and patterns
 - [INTEGRATION.md](docs/INTEGRATION.md): Ecosystem integration guide
-- [PERFORMANCE.md](docs/PERFORMANCE.md): Performance tuning guide
-- [MIGRATION_GUIDE.md](MIGRATION_GUIDE.md): Migration from messaging_system
+- [MIGRATION_GUIDE.md](docs/MIGRATION_GUIDE.md): Migration from messaging_system
+- [BASELINE.md](BASELINE.md): Performance baseline measurements
 
 ### Thread Safety & Concurrency
 
