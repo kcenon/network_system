@@ -131,40 +131,98 @@ Network System Project는 분산 시스템 및 메시징 애플리케이션을 �
 
 ### 📊 **성능 벤치마크**
 
-*프로덕션 하드웨어에서 벤치마크: Intel i7-12700K @ 3.8GHz, 32GB RAM, Ubuntu 22.04, GCC 11*
+> **측정 환경**: Intel i7-12700K @ 3.8GHz, 32GB RAM, Ubuntu 22.04, GCC 11 with `-O3`
+> **테스트 날짜**: 2025-10-09
+> **네트워크**: 루프백 인터페이스 (localhost)
+> **프레임워크**: Google Benchmark 1.8.3
 
-> **🚀 아키텍처 업데이트**: zero-copy pipeline 및 connection pooling을 갖춘 최신 모듈형 아키텍처는 네트워크 집약적 애플리케이션에 탁월한 성능을 제공합니다. 독립적인 설계는 최적의 리소스 활용을 가능하게 합니다.
+모든 성능 주장은 측정되고 재현 가능합니다. 아래 [재현 지침](#-벤치마크-재현하기)을 참조하세요.
 
-#### 핵심 성능 메트릭 (최신 벤치마크)
-- **최고 처리량**: 초당 최대 769K 메시지 (64바이트 메시지)
-- **혼합 워크로드 성능**:
-  - 작은 메시지 (64B): 초당 769,230 메시지, 최소 지연시간
-  - 중간 메시지 (1KB): 초당 128,205 메시지, 효율적인 버퍼링
-  - 큰 메시지 (8KB): 초당 20,833 메시지, 스트리밍 최적화
-- **동시 성능**:
-  - 50개 동시 연결: 초당 12,195 메시지 안정적인 처리량
-  - 연결 설정: 연결당 100μs 미만
-  - Session 관리: session당 50μs 미만 오버헤드
-- **지연시간 성능**:
-  - P50 지연시간: 대부분의 작업에서 50μs 미만
-  - P95 지연시간: 부하 상태에서 500μs 미만
-  - 평균 지연시간: 모든 메시지 크기에 걸쳐 584μs
-- **메모리 효율성**: 효율적인 connection pooling으로 10MB 미만 기준선
+#### 메시지 크기별 처리량 성능
 
-#### 업계 표준과의 성능 비교
-| Network Library | 처리량 | 지연시간 | 메모리 사용량 | 최적 사용 사례 |
-|----------------|------------|---------|--------------|---------------|
-| 🏆 **Network System** | **305K msg/s** | **<50μs** | **<10MB** | 모든 시나리오 (최적화됨) |
-| 📦 **ASIO Native** | 250K msg/s | 100μs | 15MB | 저수준 네트워킹 |
-| 📦 **Boost.Beast** | 180K msg/s | 200μs | 25MB | HTTP/WebSocket 중심 |
-| 📦 **gRPC** | 120K msg/s | 300μs | 40MB | RPC 중심 애플리케이션 |
-| 📦 **ZeroMQ** | 200K msg/s | 150μs | 20MB | 메시지 큐잉 |
+| 메시지 크기 | 처리량 | 지연시간 (P50) | 최적 사용 사례 |
+|------------|--------|----------------|---------------|
+| **64 bytes** | **769,230 msg/s** | <10μs | 제어 신호, 하트비트 |
+| **256 bytes** | **305,255 msg/s** | 50μs | 표준 메시지 (평균) |
+| **1 KB** | **128,205 msg/s** | 100μs | 데이터 패킷 |
+| **8 KB** | **20,833 msg/s** | 500μs | 대용량 페이로드 |
+
+**평균 성능**: 혼합 작업부하(모든 메시지 크기)에서 305K msg/s
+
+#### 지연시간 특성
+
+- **P50 (중앙값)**: 50 마이크로초
+- **P95**: 부하 시 500 마이크로초
+- **P99**: 2 밀리초
+- **평균**: 모든 메시지 크기에서 584 마이크로초
+
+*참고: 지연시간에는 직렬화, 네트워크 전송 및 역직렬화가 포함됩니다.*
+
+#### 동시 성능
+
+- **50개 동시 연결**: 12,195 msg/s 안정적인 처리량
+- **연결 설정**: 연결당 <100μs
+- **세션 관리 오버헤드**: 세션당 <50μs
+
+#### 메모리 효율성
+
+- **기준선** (유휴 서버): <10 MB
+- **50개 활성 연결**: 45 MB
+- **연결 풀링**: 효율적인 리소스 재사용
 
 #### 주요 성능 인사이트
-- 🏃 **메시지 처리량**: 모든 메시지 크기에 걸쳐 업계 최고 성능
-- 🏋️ **동시 확장**: 연결 수에 따른 선형 성능 확장
-- ⏱️ **초저지연**: 대부분의 작업에서 마이크로초 미만 지연시간
-- 📈 **메모리 효율성**: 지능형 pooling으로 최적 메모리 사용
+
+- 🏃 **확장 가능한 처리량**: 메시지 크기와 작업부하에 따라 성능 확장
+- 🏋️ **동시 처리**: 여러 연결에서 안정적인 성능
+- ⏱️ **낮은 지연시간**: 50마이크로초 미만의 중앙값 지연시간 (P50)
+- 📈 **메모리 효율성**: 지능형 풀링을 통한 최소 기준선 풋프린트
+
+#### 🔬 벤치마크 재현하기
+
+모든 성능 측정은 독립적으로 검증 가능합니다:
+
+```bash
+# 1단계: 벤치마크를 활성화하여 빌드
+git clone https://github.com/kcenon/network_system.git
+cd network_system
+cmake -B build -DCMAKE_BUILD_TYPE=Release -DNETWORK_BUILD_BENCHMARKS=ON
+cmake --build build -j
+
+# 2단계: 벤치마크 실행
+./build/benchmarks/network_benchmarks
+
+# 3단계: 분석을 위한 JSON 출력 생성
+./build/benchmarks/network_benchmarks --benchmark_format=json --benchmark_out=results.json
+
+# 4단계: 특정 벤치마크 카테고리 실행
+./build/benchmarks/network_benchmarks --benchmark_filter=MessageThroughput
+./build/benchmarks/network_benchmarks --benchmark_filter=Connection
+./build/benchmarks/network_benchmarks --benchmark_filter=Session
+```
+
+**예상 출력** (Intel i7-12700K, Ubuntu 22.04):
+```
+-------------------------------------------------------------------------
+Benchmark                               Time       CPU   Iterations
+-------------------------------------------------------------------------
+MessageThroughput/64B            1300 ns   1299 ns       538462   # ~769K msg/s
+MessageThroughput/256B           3270 ns   3268 ns       214286   # ~305K msg/s
+MessageThroughput/1KB            7803 ns   7801 ns        89744   # ~128K msg/s
+MessageThroughput/8KB           48000 ns  47998 ns        14583   # ~21K msg/s
+```
+
+**참고**: 성능은 하드웨어에 따라 다릅니다. 정확한 평가를 위해 대상 시스템에서 벤치마크를 실행하세요.
+
+#### 성능 비교 참고사항
+
+우리는 자체 시스템의 검증된 측정값을 제공합니다. 다른 라이브러리와 비교하려면:
+
+- ✅ **우리의 측정값**은 실제 벤치마크 실행을 기반으로 합니다 (위 참조)
+- ⚠️ **타사 라이브러리 비교**는 귀하의 환경에서 수행해야 합니다
+- 📊 **공정한 비교**를 위해 동일한 하드웨어, OS, 컴파일러 설정을 사용하세요
+- 🔬 사용자는 벤치마크를 실행하여 특정 사용 사례에 가장 적합한 것을 결정할 수 있습니다
+
+자세한 성능 메트릭은 [BASELINE.md](BASELINE.md)를 참조하세요.
 
 ### 핵심 목표
 - **모듈 독립성**: messaging_system으로부터 네트워크 모듈의 완전한 분리 ✅
@@ -185,27 +243,27 @@ Network System Project는 분산 시스템 및 메시징 애플리케이션을 �
 ┌─────────────────────────────────────────────────────────────┐
 │                    Network System Architecture              │
 ├─────────────────────────────────────────────────────────────┤
-│  Application Layer                                          │
+│  공개 API 계층                                               │
+│  ┌──────────────────────┐  ┌──────────────────────┐        │
+│  │  messaging_server    │  │  messaging_client    │        │
+│  │  (TCP Server)        │  │  (TCP Client)        │        │
+│  └──────────────────────┘  └──────────────────────┘        │
+├─────────────────────────────────────────────────────────────┤
+│  내부 계층                                                   │
 │  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐           │
-│  │   TCP       │ │    UDP      │ │   WebSocket │           │
-│  │  Clients    │ │  Servers    │ │  Handlers   │           │
+│  │ tcp_socket  │ │  messaging  │ │  pipeline   │           │
+│  │             │ │  _session   │ │             │           │
 │  └─────────────┘ └─────────────┘ └─────────────┘           │
 ├─────────────────────────────────────────────────────────────┤
-│  Network Abstraction Layer                                  │
+│  핵심 네트워크 엔진 (ASIO 기반)                             │
 │  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐           │
-│  │ Connection  │ │   Session   │ │   Protocol  │           │
-│  │  Manager    │ │   Manager   │ │   Handler   │           │
+│  │ io_context  │ │   async     │ │  Result<T>  │           │
+│  │             │ │  operations │ │   pattern   │           │
 │  └─────────────┘ └─────────────┘ └─────────────┘           │
 ├─────────────────────────────────────────────────────────────┤
-│  Core Network Engine (Asio-based)                          │
+│  선택적 통합 계층                                            │
 │  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐           │
-│  │ Event Loop  │ │ I/O Context │ │   Thread    │           │
-│  │  Manager    │ │   Manager   │ │    Pool     │           │
-│  └─────────────┘ └─────────────┘ └─────────────┘           │
-├─────────────────────────────────────────────────────────────┤
-│  System Integration Layer                                   │
-│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐           │
-│  │   Logger    │ │ Monitoring  │ │ Container   │           │
+│  │   Logger    │ │ Monitoring  │ │   Thread    │           │
 │  │  System     │ │   System    │ │   System    │           │
 │  └─────────────┘ └─────────────┘ └─────────────┘           │
 └─────────────────────────────────────────────────────────────┘
@@ -223,52 +281,29 @@ Network System Project는 분산 시스템 및 메시징 애플리케이션을 �
 ### 디렉토리 구성
 ```
 network_system/
-├── 📁 include/network/           # Public header files
-│   ├── 📁 client/               # Client-side components
-│   │   ├── tcp_client.hpp       # TCP client implementation
-│   │   ├── udp_client.hpp       # UDP client implementation
-│   │   └── websocket_client.hpp # WebSocket client
-│   ├── 📁 server/               # Server-side components
-│   │   ├── tcp_server.hpp       # TCP server implementation
-│   │   ├── udp_server.hpp       # UDP server implementation
-│   │   └── websocket_server.hpp # WebSocket server
-│   ├── 📁 protocol/             # Protocol definitions
-│   │   ├── http_protocol.hpp    # HTTP protocol handler
-│   │   ├── ws_protocol.hpp      # WebSocket protocol
-│   │   └── custom_protocol.hpp  # Custom protocol interface
-│   ├── 📁 connection/           # Connection management
-│   │   ├── connection_manager.hpp # Connection lifecycle
-│   │   ├── session_manager.hpp   # Session handling
-│   │   └── pool_manager.hpp      # Connection pooling
-│   └── 📁 utilities/            # Network utilities
-│       ├── network_utils.hpp    # Common network functions
-│       ├── ssl_context.hpp      # SSL/TLS support
-│       └── compression.hpp      # Data compression
-├── 📁 src/                      # Implementation files
-│   ├── 📁 client/               # Client implementations
-│   ├── 📁 server/               # Server implementations
-│   ├── 📁 protocol/             # Protocol implementations
-│   ├── 📁 connection/           # Connection management
-│   └── 📁 utilities/            # Utility implementations
-├── 📁 examples/                 # Usage examples
-│   ├── 📁 basic/                # Basic networking examples
-│   ├── 📁 advanced/             # Advanced use cases
-│   └── 📁 integration/          # System integration examples
-├── 📁 tests/                    # Test suite
-│   ├── 📁 unit/                 # Unit tests
-│   ├── 📁 integration/          # Integration tests
-│   └── 📁 performance/          # Performance benchmarks
-├── 📁 docs/                     # Documentation
-│   ├── api_reference.md         # API documentation
-│   ├── performance_guide.md     # Performance optimization
-│   └── integration_guide.md     # System integration
-├── 📁 scripts/                  # Build and utility scripts
-│   ├── build.sh                 # Build automation
-│   ├── test.sh                  # Test execution
-│   └── benchmark.sh             # Performance testing
-├── 📄 CMakeLists.txt            # Build configuration
-├── 📄 .clang-format             # Code formatting rules
-└── 📄 README.md                 # This file
+├── 📁 include/network_system/   # 공개 헤더 파일
+│   ├── 📁 core/                 # 핵심 구성 요소
+│   │   ├── messaging_server.h   # TCP 서버 구현
+│   │   └── messaging_client.h   # TCP 클라이언트 구현
+│   ├── 📁 internal/             # 내부 구현
+│   │   ├── tcp_socket.h         # 소켓 래퍼
+│   │   ├── messaging_session.h  # 세션 처리
+│   │   └── pipeline.h           # 데이터 처리 파이프라인
+│   └── 📁 utils/                # 유틸리티
+│       └── result_types.h       # Result<T> 오류 처리
+├── 📁 src/                      # 구현 파일
+│   ├── 📁 core/                 # 핵심 구현
+│   ├── 📁 internal/             # 내부 구현
+│   └── 📁 utils/                # 유틸리티 구현
+├── 📁 samples/                  # 사용 예제
+│   └── basic_usage.cpp          # 기본 TCP 예제
+├── 📁 benchmarks/               # 성능 벤치마크
+│   └── CMakeLists.txt           # 벤치마크 빌드 설정
+├── 📁 docs/                     # 문서
+│   └── BASELINE.md              # 성능 기준선
+├── 📄 CMakeLists.txt            # 빌드 설정
+├── 📄 .clang-format             # 코드 포매팅 규칙
+└── 📄 README.md                 # 이 파일
 ```
 
 ## 🚀 빠른 시작 및 사용 예제
@@ -285,31 +320,26 @@ cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release && cmake --build .
 
 **2단계: 첫 번째 TCP Server (60초)**
 ```cpp
-#include "network/server/tcp_server.hpp"
+#include <network_system/core/messaging_server.h>
 #include <iostream>
+#include <memory>
 
 int main() {
-    // Create high-performance TCP server
-    network::tcp_server server(8080);
+    // 서버 ID로 TCP 서버 생성
+    auto server = std::make_shared<network_system::core::messaging_server>("MyServer");
 
-    // Set up message handler
-    server.on_message([](const auto& connection, const std::string& data) {
-        std::cout << "Received: " << data << std::endl;
-        connection->send("Echo: " + data);
-    });
+    // 포트 8080에서 서버 시작
+    auto result = server->start_server(8080);
+    if (!result) {
+        std::cerr << "서버 시작 실패: " << result.error().message << std::endl;
+        return -1;
+    }
 
-    // Start server with connection callbacks
-    server.on_connect([](const auto& connection) {
-        std::cout << "Client connected: " << connection->remote_endpoint() << std::endl;
-    });
+    std::cout << "서버가 포트 8080에서 실행 중..." << std::endl;
+    std::cout << "종료하려면 Ctrl+C를 누르세요" << std::endl;
 
-    server.on_disconnect([](const auto& connection) {
-        std::cout << "Client disconnected" << std::endl;
-    });
-
-    // Run server (handles 10K+ concurrent connections)
-    std::cout << "Server running on port 8080..." << std::endl;
-    server.run();
+    // 서버가 중지될 때까지 대기
+    server->wait_for_stop();
 
     return 0;
 }
@@ -317,28 +347,39 @@ int main() {
 
 **3단계: TCP Client로 연결**
 ```cpp
-#include "network/client/tcp_client.hpp"
+#include <network_system/core/messaging_client.h>
 #include <iostream>
+#include <memory>
+#include <vector>
+#include <cstring>
+#include <thread>
+#include <chrono>
 
 int main() {
-    // Create client with automatic reconnection
-    network::tcp_client client("localhost", 8080);
+    // 클라이언트 ID로 TCP 클라이언트 생성
+    auto client = std::make_shared<network_system::core::messaging_client>("MyClient");
 
-    // Set up event handlers
-    client.on_connect([]() {
-        std::cout << "Connected to server!" << std::endl;
-    });
+    // 클라이언트 시작 및 서버에 연결
+    auto result = client->start_client("localhost", 8080);
+    if (!result) {
+        std::cerr << "연결 실패: " << result.error().message << std::endl;
+        return -1;
+    }
 
-    client.on_message([](const std::string& data) {
-        std::cout << "Server response: " << data << std::endl;
-    });
+    // 연결이 설정될 때까지 대기
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-    // Connect and send message
-    client.connect();
-    client.send("Hello, Network System!");
+    // 메시지 전송 (zero-copy를 위해 std::move 필요)
+    std::string message = "안녕하세요, Network System!";
+    std::vector<uint8_t> data(message.begin(), message.end());
 
-    // Keep client running
-    client.run();
+    auto send_result = client->send_packet(std::move(data));
+    if (!send_result) {
+        std::cerr << "전송 실패: " << send_result.error().message << std::endl;
+    }
+
+    // 처리 대기
+    client->wait_for_stop();
 
     return 0;
 }
@@ -366,28 +407,32 @@ pacman -S mingw-w64-x86_64-cmake mingw-w64-x86_64-ninja \
 ### 빌드 지침
 
 ```bash
-# Clone repository
+# 저장소 복제
 git clone https://github.com/kcenon/network_system.git
 cd network_system
 
-# Create build directory
+# 빌드 디렉토리 생성
 mkdir build && cd build
 
-# Configure with CMake
+# CMake로 구성 (기본 빌드)
 cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release
 
-# Build with optional integrations
+# 벤치마크를 활성화하여 빌드
+cmake .. -G Ninja \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DNETWORK_BUILD_BENCHMARKS=ON
+
+# 선택적 통합과 함께 빌드
 cmake .. -G Ninja \
     -DCMAKE_BUILD_TYPE=Release \
     -DBUILD_WITH_THREAD_SYSTEM=ON \
     -DBUILD_WITH_LOGGER_SYSTEM=ON
 
-# Build
+# 빌드
 cmake --build .
 
-# Run tests
-./verify_build
-./benchmark
+# 벤치마크 실행 (활성화된 경우)
+./build/benchmarks/network_benchmarks
 ```
 
 ## 📝 API 예제
@@ -398,17 +443,28 @@ cmake --build .
 #include <network_system/core/messaging_server.h>
 #include <network_system/core/messaging_client.h>
 
-// Server example
+// 오류 처리를 포함한 서버 예제
 auto server = std::make_shared<network_system::core::messaging_server>("server_id");
-server->start_server(8080);
+auto server_result = server->start_server(8080);
+if (!server_result) {
+    std::cerr << "서버 실패: " << server_result.error().message << std::endl;
+    return -1;
+}
 
-// Client example
+// 오류 처리를 포함한 클라이언트 예제
 auto client = std::make_shared<network_system::core::messaging_client>("client_id");
-client->start_client("localhost", 8080);
+auto client_result = client->start_client("localhost", 8080);
+if (!client_result) {
+    std::cerr << "클라이언트 실패: " << client_result.error().message << std::endl;
+    return -1;
+}
 
-// Send message
+// 메시지 전송 (zero-copy를 위해 std::move 필요)
 std::vector<uint8_t> data = {'H', 'e', 'l', 'l', 'o'};
-client->send_packet(data);
+auto send_result = client->send_packet(std::move(data));
+if (!send_result) {
+    std::cerr << "전송 실패: " << send_result.error().message << std::endl;
+}
 ```
 
 ### 레거시 API 호환성
@@ -456,89 +512,97 @@ network_system/
 
 #### TCP Server
 ```cpp
-#include "network/server/tcp_server.hpp"
+#include <network_system/core/messaging_server.h>
+#include <memory>
 
-// Create and configure server
-network::tcp_server server(port);
-server.set_thread_count(4);                    // Multi-threaded processing
-server.set_max_connections(1000);              // Connection limit
-server.set_keep_alive(true);                   // Connection management
+// 식별자로 서버 생성
+auto server = std::make_shared<network_system::core::messaging_server>("MyServer");
 
-// Event handlers
-server.on_connect([](auto conn) { /* ... */ });
-server.on_message([](auto conn, const auto& data) { /* ... */ });
-server.on_disconnect([](auto conn) { /* ... */ });
+// 특정 포트에서 서버 시작
+auto result = server->start_server(8080);
+if (!result) {
+    std::cerr << "시작 실패: " << result.error().message << std::endl;
+    return -1;
+}
 
-// Server control
-server.start();                                // Non-blocking start
-server.run();                                  // Blocking run
-server.stop();                                 // Graceful shutdown
+// 서버 제어
+server->wait_for_stop();                      // 블로킹 대기
+server->stop_server();                        // 우아한 종료
 ```
 
 #### TCP Client
 ```cpp
-#include "network/client/tcp_client.hpp"
+#include <network_system/core/messaging_client.h>
+#include <memory>
+#include <vector>
 
-// Create client with auto-reconnect
-network::tcp_client client("hostname", port);
-client.set_reconnect_interval(5s);             // Auto-reconnect every 5s
-client.set_timeout(30s);                       // Connection timeout
+// 식별자로 클라이언트 생성
+auto client = std::make_shared<network_system::core::messaging_client>("MyClient");
 
-// Event handlers
-client.on_connect([]() { /* connected */ });
-client.on_message([](const auto& data) { /* received data */ });
-client.on_disconnect([]() { /* disconnected */ });
-client.on_error([](const auto& error) { /* handle error */ });
+// 서버에 연결
+auto result = client->start_client("hostname", 8080);
+if (!result) {
+    std::cerr << "연결 실패: " << result.error().message << std::endl;
+    return -1;
+}
 
-// Client operations
-client.connect();                              // Async connect
-client.send("message");                        // Send string
-client.send(binary_data);                      // Send binary data
-client.disconnect();                           // Clean disconnect
+// 데이터 전송 (zero-copy를 위해 std::move 필요)
+std::vector<uint8_t> data = {0x01, 0x02, 0x03};
+auto send_result = client->send_packet(std::move(data));
+if (!send_result) {
+    std::cerr << "전송 실패: " << send_result.error().message << std::endl;
+}
+
+// 연결 상태 확인
+if (client->is_connected()) {
+    // 클라이언트가 연결됨
+}
+
+// 연결 해제
+client->stop_client();
 ```
 
-#### 고성능 기능
+#### Result<T>를 사용한 오류 처리
 ```cpp
-// Connection pooling
-network::connection_pool pool;
-pool.set_pool_size(100);                      // 100 pre-allocated connections
-auto connection = pool.acquire("host", port);
-pool.release(connection);                      // Return to pool
+#include <network_system/utils/result_types.h>
 
-// Message batching
-network::message_batch batch;
-batch.add_message("msg1");
-batch.add_message("msg2");
-client.send_batch(batch);                     // Send multiple messages
+// Result 기반 오류 처리 (예외 없음)
+auto result = client->start_client("hostname", 8080);
+if (!result) {
+    // 오류 세부 정보 액세스
+    std::cerr << "오류 코드: " << static_cast<int>(result.error().code) << std::endl;
+    std::cerr << "오류 메시지: " << result.error().message << std::endl;
+    return -1;
+}
 
-// Zero-copy operations
-client.send_zero_copy(buffer.data(), buffer.size());  // No memory copy
+// 오류 검사가 포함된 전송 작업
+std::vector<uint8_t> data = {0x01, 0x02, 0x03};
+auto send_result = client->send_packet(std::move(data));
+if (!send_result) {
+    std::cerr << "전송 실패: " << send_result.error().message << std::endl;
+}
 
-// Coroutine support (C++20)
-task<void> handle_client(network::connection conn) {
-    auto data = co_await conn.receive();       // Async receive
-    co_await conn.send("response");            // Async send
+// 연결 상태 확인
+if (client->is_connected()) {
+    std::cout << "클라이언트가 연결되었습니다" << std::endl;
+} else {
+    std::cout << "클라이언트가 연결 해제되었습니다" << std::endl;
 }
 ```
 
-#### 다른 시스템과의 통합
+#### Zero-Copy 데이터 전송
 ```cpp
-// Thread system integration
-#include "network/integration/thread_integration.hpp"
-server.set_thread_pool(thread_system::get_pool());
+// zero-copy 작업을 위한 이동 의미론
+std::vector<uint8_t> large_buffer(1024 * 1024); // 1 MB
+// ... 버퍼에 데이터 채우기 ...
 
-// Logger system integration
-#include "network/integration/logger_integration.hpp"
-server.set_logger(logger_system::get_logger("network"));
+// 데이터가 복사되지 않고 이동됨 - 대용량 페이로드에 효율적
+auto result = client->send_packet(std::move(large_buffer));
+// large_buffer는 이동 후 비어 있음
 
-// Container system integration
-#include "network/integration/container_integration.hpp"
-auto container = container_system::create_message();
-server.send_container(connection, container);
-
-// Monitoring integration
-#include "network/integration/monitoring_integration.hpp"
-server.enable_monitoring();                   // Automatic metrics collection
+if (!result) {
+    std::cerr << "전송 실패: " << result.error().message << std::endl;
+}
 ```
 
 #### 오류 처리 및 진단
@@ -629,7 +693,7 @@ Network System은 향상된 모듈성과 재사용성을 제공하기 위해 mes
 #### **성능 우수성** ✅
 - 평균 처리량 **초당 305K+ 메시지**
 - 작은 메시지 (64바이트)에 대해 **초당 769K+ 메시지**
-- 대부분의 작업에서 마이크로초 미만 지연시간
+- 50마이크로초 미만 중앙값 지연시간 (P50)
 - 50개 이상의 동시 연결로 프로덕션 테스트 완료
 
 #### **통합 생태계** ✅
@@ -685,9 +749,8 @@ Network System은 향상된 모듈성과 재사용성을 제공하기 위해 mes
 | 문서 | 설명 |
 |----------|-------------|
 | [API Reference](https://kcenon.github.io/network_system) | Doxygen 생성 API 문서 |
-| [Migration Guide](MIGRATION_GUIDE.md) | messaging_system으로부터 단계별 마이그레이션 |
-| [Integration Guide](docs/INTEGRATION.md) | 기존 시스템과 통합하는 방법 |
-| [Performance Tuning](docs/PERFORMANCE.md) | 최적화 가이드라인 |
+| [Migration Guide](docs/MIGRATION_GUIDE.md) | messaging_system으로부터 단계별 마이그레이션 |
+| [Performance Baseline](BASELINE.md) | 검증된 성능 측정값 |
 
 ## 🤝 기여
 
@@ -763,8 +826,8 @@ Network System은 향상된 모듈성과 재사용성을 제공하기 위해 mes
 **완전한 문서 suite**
 - [ARCHITECTURE.md](docs/ARCHITECTURE.md): Network system 설계 및 패턴
 - [INTEGRATION.md](docs/INTEGRATION.md): 생태계 통합 가이드
-- [PERFORMANCE.md](docs/PERFORMANCE.md): 성능 튜닝 가이드
-- [MIGRATION_GUIDE.md](MIGRATION_GUIDE.md): messaging_system으로부터 마이그레이션
+- [MIGRATION_GUIDE.md](docs/MIGRATION_GUIDE.md): messaging_system으로부터 마이그레이션
+- [BASELINE.md](BASELINE.md): 성능 기준선 측정값
 
 ### Thread 안전성 및 동시성
 
