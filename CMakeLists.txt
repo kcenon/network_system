@@ -127,9 +127,16 @@ add_library(NetworkSystem
 if(BUILD_WEBSOCKET_SUPPORT)
     target_sources(NetworkSystem PRIVATE
         src/internal/websocket_frame.cpp
+        src/internal/websocket_handshake.cpp
     )
     target_compile_definitions(NetworkSystem PUBLIC BUILD_WEBSOCKET_SUPPORT)
+
+    # Find OpenSSL for SHA-1 hashing in handshake
+    find_package(OpenSSL REQUIRED)
+    target_link_libraries(NetworkSystem PRIVATE OpenSSL::Crypto)
+
     message(STATUS "WebSocket support enabled")
+    message(STATUS "  OpenSSL version: ${OPENSSL_VERSION}")
 endif()
 
 # Set target properties
