@@ -32,10 +32,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "network_system/session/secure_session.h"
 
-#include <type_traits>
-
 #include "network_system/integration/logger_integration.h"
-#include "network_system/internal/send_coroutine.h"
 
 namespace network_system::session
 {
