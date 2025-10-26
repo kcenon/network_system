@@ -104,6 +104,14 @@ namespace network_system::session
 		auto stop_session() -> void;
 
 		/*!
+		 * \brief Checks if the session has been stopped.
+		 * \return true if the session is stopped, false otherwise.
+		 */
+		[[nodiscard]] auto is_stopped() const noexcept -> bool {
+			return is_stopped_.load(std::memory_order_relaxed);
+		}
+
+		/*!
 		 * \brief Sends data to the connected client, optionally using
 		 * compression/encryption.
 		 * \param data The raw bytes to transmit (moved for efficiency).
