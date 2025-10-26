@@ -129,6 +129,7 @@ if(BUILD_WEBSOCKET_SUPPORT)
         src/internal/websocket_frame.cpp
         src/internal/websocket_handshake.cpp
         src/internal/websocket_protocol.cpp
+        src/internal/websocket_socket.cpp
     )
     target_compile_definitions(NetworkSystem PUBLIC BUILD_WEBSOCKET_SUPPORT)
 
