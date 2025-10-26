@@ -108,17 +108,13 @@ add_library(NetworkSystem
     src/core/messaging_udp_client.cpp
     src/core/messaging_udp_server.cpp
     src/core/connection_pool.cpp
-    src/core/secure_messaging_server.cpp
-    src/core/secure_messaging_client.cpp
 
     # Session management
     src/session/messaging_session.cpp
-    src/session/secure_session.cpp
 
     # Internal implementation
     src/internal/tcp_socket.cpp
     src/internal/udp_socket.cpp
-    src/internal/secure_tcp_socket.cpp
     src/internal/send_coroutine.cpp
     src/internal/pipeline.cpp
 
@@ -127,6 +123,26 @@ add_library(NetworkSystem
     src/integration/thread_integration.cpp
     src/integration/container_integration.cpp
 )
+
+# TLS/SSL support (conditional)
+option(BUILD_TLS_SUPPORT "Build with TLS/SSL support for secure messaging" ON)
+
+if(BUILD_TLS_SUPPORT)
+    target_sources(NetworkSystem PRIVATE
+        src/internal/secure_tcp_socket.cpp
+        src/session/secure_session.cpp
+        src/core/secure_messaging_server.cpp
+        src/core/secure_messaging_client.cpp
+    )
+    target_compile_definitions(NetworkSystem PUBLIC BUILD_TLS_SUPPORT)
+
+    # Find OpenSSL for TLS/SSL
+    find_package(OpenSSL REQUIRED)
+    target_link_libraries(NetworkSystem PRIVATE OpenSSL::SSL OpenSSL::Crypto)
+
+    message(STATUS "TLS/SSL support enabled")
+    message(STATUS "  OpenSSL version: ${OPENSSL_VERSION}")
+endif()
 
 # WebSocket support (conditional)
 if(BUILD_WEBSOCKET_SUPPORT)
@@ -140,9 +156,11 @@ if(BUILD_WEBSOCKET_SUPPORT)
     )
     target_compile_definitions(NetworkSystem PUBLIC BUILD_WEBSOCKET_SUPPORT)
 
-    # Find OpenSSL for SHA-1 hashing in handshake
-    find_package(OpenSSL REQUIRED)
-    target_link_libraries(NetworkSystem PRIVATE OpenSSL::Crypto)
+    # Find OpenSSL for SHA-1 hashing in handshake (if not already found)
+    if(NOT BUILD_TLS_SUPPORT)
+        find_package(OpenSSL REQUIRED)
+        target_link_libraries(NetworkSystem PRIVATE OpenSSL::Crypto)
+    endif()
 
     message(STATUS "WebSocket support enabled")
     message(STATUS "  OpenSSL version: ${OPENSSL_VERSION}")
@@ -290,6 +308,7 @@ message(STATUS "  Tests: ${BUILD_TESTS}")
 message(STATUS "  Integration tests: ${NETWORK_BUILD_INTEGRATION_TESTS}")
 message(STATUS "  Samples: ${BUILD_SAMPLES}")
 message(STATUS "  Verify build: ${BUILD_VERIFY_BUILD}")
+message(STATUS "  TLS/SSL support: ${BUILD_TLS_SUPPORT}")
 message(STATUS "  WebSocket support: ${BUILD_WEBSOCKET_SUPPORT}")
 message(STATUS "  container_system: ${BUILD_WITH_CONTAINER_SYSTEM}")
 message(STATUS "  thread_system: ${BUILD_WITH_THREAD_SYSTEM}")
