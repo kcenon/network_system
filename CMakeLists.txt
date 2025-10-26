@@ -115,6 +115,7 @@ add_library(NetworkSystem
     # Internal implementation
     src/internal/tcp_socket.cpp
     src/internal/udp_socket.cpp
+    src/internal/secure_tcp_socket.cpp
     src/internal/send_coroutine.cpp
     src/internal/pipeline.cpp
 
