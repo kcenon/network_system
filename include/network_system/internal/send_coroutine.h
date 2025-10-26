@@ -51,7 +51,7 @@ namespace network_system::internal
 	 * \return A std::future that eventually yields the transformed data.
 	 */
 auto prepare_data_async(std::vector<uint8_t> input_data,
-                        pipeline pl,
+                        const pipeline& pl,
                         bool use_compress,
                         bool use_encrypt)
         -> std::future<std::vector<uint8_t>>;
@@ -82,7 +82,7 @@ auto prepare_data_async(std::vector<uint8_t> input_data,
 	 */
     auto async_send_with_pipeline_co(std::shared_ptr<tcp_socket> sock,
                                      std::vector<uint8_t> data,
-                                     pipeline pl,
+                                     const pipeline& pl,
                                      bool use_compress,
                                      bool use_encrypt)
         -> asio::awaitable<std::error_code>;
@@ -110,7 +110,7 @@ auto prepare_data_async(std::vector<uint8_t> input_data,
 	 */
     auto async_send_with_pipeline_no_co(std::shared_ptr<tcp_socket> sock,
                                         std::vector<uint8_t> data,
-                                        pipeline pl,
+                                        const pipeline& pl,
                                         bool use_compress,
                                         bool use_encrypt)
         -> std::future<std::error_code>;
