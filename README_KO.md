@@ -709,6 +709,8 @@ std::cout << "Avg latency: " << stats.average_latency << "ms" << std::endl;
 - ✅ 비동기 TCP server/client
 - ✅ 비동기 WebSocket server/client (RFC 6455)
 - ✅ 안전한 통신을 위한 TLS/SSL 암호화 (TLS 1.2/1.3)
+- ✅ 지수 백오프를 사용한 자동 재연결
+- ✅ 하트비트 메커니즘을 사용한 연결 상태 모니터링
 - ✅ 멀티스레드 메시지 처리
 - ✅ Session 수명 주기 관리
 - ✅ 버퍼링을 갖춘 메시지 pipeline

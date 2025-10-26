@@ -730,6 +730,8 @@ if (!result) {
 - ✅ Asynchronous TCP server/client
 - ✅ Asynchronous WebSocket server/client (RFC 6455)
 - ✅ TLS/SSL encryption for secure communication
+- ✅ Automatic reconnection with exponential backoff
+- ✅ Connection health monitoring with heartbeat mechanism
 - ✅ Multi-threaded message processing
 - ✅ Session lifecycle management
 - ✅ Message pipeline with buffering
