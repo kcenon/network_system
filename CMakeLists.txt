@@ -130,6 +130,8 @@ if(BUILD_WEBSOCKET_SUPPORT)
         src/internal/websocket_handshake.cpp
         src/internal/websocket_protocol.cpp
         src/internal/websocket_socket.cpp
+        src/core/messaging_ws_client.cpp
+        src/core/messaging_ws_server.cpp
     )
     target_compile_definitions(NetworkSystem PUBLIC BUILD_WEBSOCKET_SUPPORT)
 
