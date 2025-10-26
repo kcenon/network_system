@@ -122,6 +122,7 @@ add_library(NetworkSystem
     # Utility implementations
     src/utils/resilient_client.cpp
     src/utils/health_monitor.cpp
+    src/utils/buffer_pool.cpp
 
     # Basic integration layer (always built - no external dependencies)
     src/integration/logger_integration.cpp
