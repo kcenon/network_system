@@ -204,6 +204,12 @@ MessageThroughput/8KB           48000 ns  47998 ns        14583   # ~21K msg/s
 ### Protocol Support
 - **TCP**: Asynchronous TCP server/client with connection lifecycle management (connection pooling planned; tracked in IMPROVEMENTS.md)
 - **UDP**: Connectionless UDP communication for real-time applications
+- **TLS/SSL**: Secure TCP communication with OpenSSL:
+  - Server-side certificate and private key loading
+  - Optional client-side certificate verification
+  - SSL handshake with timeout management
+  - Encrypted data transmission
+  - Parallel class hierarchy (tcp_socket → secure_tcp_socket)
 - **WebSocket**: Full RFC 6455 WebSocket protocol support with:
   - Text and binary message framing
   - Fragmentation and reassembly
@@ -226,21 +232,26 @@ MessageThroughput/8KB           48000 ns  47998 ns        14583   # ~21K msg/s
 │  │ messaging    │ │ messaging    │                             │
 │  │ _udp_server  │ │ _udp_client  │                             │
 │  └──────────────┘ └──────────────┘                             │
+│  ┌──────────────────────┐ ┌─────────────────────────┐          │
+│  │ secure_messaging     │ │ secure_messaging        │          │
+│  │ _server (TLS/SSL)    │ │ _client (TLS/SSL)       │          │
+│  └──────────────────────┘ └─────────────────────────┘          │
 ├─────────────────────────────────────────────────────────────────┤
 │  Protocol Layer                                                 │
 │  ┌──────────────┐ ┌──────────────┐ ┌──────────────────────┐    │
 │  │ tcp_socket   │ │ udp_socket   │ │ websocket_socket     │    │
 │  └──────────────┘ └──────────────┘ └──────────────────────┘    │
-│  ┌──────────────┐ ┌──────────────────────────────────────┐     │
-│  │ messaging    │ │ websocket_protocol                   │     │
-│  │ _session     │ │ (frame/handshake/message handling)   │     │
-│  └──────────────┘ └──────────────────────────────────────┘     │
+│  ┌──────────────────────┐ ┌──────────────────────────────┐     │
+│  │ secure_tcp_socket    │ │ websocket_protocol           │     │
+│  │ (SSL stream wrapper) │ │ (frame/handshake/msg handle) │     │
+│  └──────────────────────┘ └──────────────────────────────┘     │
 ├─────────────────────────────────────────────────────────────────┤
 │  Session Management Layer                                       │
-│  ┌──────────────────┐ ┌────────────────────────────────────┐   │
-│  │ session_manager  │ │ ws_session_manager                 │   │
-│  │ (TCP)            │ │ (WebSocket connection management)  │   │
-│  └──────────────────┘ └────────────────────────────────────┘   │
+│  ┌──────────────┐ ┌──────────────┐ ┌────────────────────────┐  │
+│  │ messaging    │ │ secure       │ │ ws_session_manager     │  │
+│  │ _session     │ │ _session     │ │ (WebSocket mgmt)       │  │
+│  │ (TCP)        │ │ (TLS/SSL)    │ │                        │  │
+│  └──────────────┘ └──────────────┘ └────────────────────────┘  │
 ├─────────────────────────────────────────────────────────────────┤
 │  Core Network Engine (ASIO-based)                              │
 │  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐              │
@@ -372,23 +383,82 @@ int main() {
 }
 ```
 
+**Step 4: Secure Communication with TLS/SSL**
+```cpp
+#include <network_system/core/secure_messaging_server.h>
+#include <network_system/core/secure_messaging_client.h>
+#include <iostream>
+#include <memory>
+
+// Secure Server Example
+int main() {
+    // Create secure server with certificate and private key
+    auto server = std::make_shared<network_system::core::secure_messaging_server>(
+        "SecureServer",
+        "/path/to/server.crt",  // Certificate file
+        "/path/to/server.key"   // Private key file
+    );
+
+    // Start secure server on port 8443
+    auto result = server->start_server(8443);
+    if (!result) {
+        std::cerr << "Failed to start secure server: " << result.error().message << std::endl;
+        return -1;
+    }
+
+    std::cout << "Secure server running on port 8443..." << std::endl;
+    server->wait_for_stop();
+
+    return 0;
+}
+
+// Secure Client Example
+int main() {
+    // Create secure client with certificate verification enabled
+    auto client = std::make_shared<network_system::core::secure_messaging_client>(
+        "SecureClient",
+        true  // Enable certificate verification (default)
+    );
+
+    // Connect to secure server
+    auto result = client->start_client("localhost", 8443);
+    if (!result) {
+        std::cerr << "Failed to connect: " << result.error().message << std::endl;
+        return -1;
+    }
+
+    // Send encrypted message
+    std::string message = "Encrypted Hello!";
+    std::vector<uint8_t> data(message.begin(), message.end());
+
+    auto send_result = client->send_packet(std::move(data));
+    if (!send_result) {
+        std::cerr << "Failed to send: " << send_result.error().message << std::endl;
+    }
+
+    client->stop_client();
+    return 0;
+}
+```
+
 ### Prerequisites
 
 #### Ubuntu/Debian
 ```bash
 sudo apt update
-sudo apt install -y cmake ninja-build libasio-dev libfmt-dev
+sudo apt install -y cmake ninja-build libasio-dev libfmt-dev libssl-dev
 ```
 
 #### macOS
 ```bash
-brew install cmake ninja asio fmt
+brew install cmake ninja asio fmt openssl
 ```
 
 #### Windows (MSYS2)
 ```bash
 pacman -S mingw-w64-x86_64-cmake mingw-w64-x86_64-ninja \
-          mingw-w64-x86_64-asio mingw-w64-x86_64-fmt
+          mingw-w64-x86_64-asio mingw-w64-x86_64-fmt \
+          mingw-w64-x86_64-openssl
 ```
 
 ### Build Instructions
@@ -656,6 +726,7 @@ if (!result) {
 ### Core Features
 - ✅ Asynchronous TCP server/client
 - ✅ Asynchronous WebSocket server/client (RFC 6455)
+- ✅ TLS/SSL encryption for secure communication
 - ✅ Multi-threaded message processing
 - ✅ Session lifecycle management
 - ✅ Message pipeline with buffering
@@ -670,13 +741,12 @@ if (!result) {
 - ✅ Performance benchmarking suite
 
 ### Planned Features
-- 🚧 TLS/SSL encryption
 - 🚧 HTTP/2 client
 - 🚧 gRPC integration
 
 ## 🎯 Project Summary
 
-Network System is an actively maintained asynchronous network library that has been separated from messaging_system to provide enhanced modularity and reusability. The codebase already exposes TCP/UDP/WebSocket components, while several roadmap items (connection pooling, TLS, zero-copy pipelines, real-world benchmarking) remain in progress.
+Network System is an actively maintained asynchronous network library that has been separated from messaging_system to provide enhanced modularity and reusability. The codebase already exposes TCP/UDP/WebSocket/TLS components, while several roadmap items (connection pooling, zero-copy pipelines, real-world benchmarking) remain in progress.
 
 ### 🏆 Key Achievements
 
@@ -725,6 +795,7 @@ Network System is an actively maintained asynchronous network library that has b
 - **C++20** compatible compiler
 - **CMake** 3.16+
 - **ASIO** or **Boost.ASIO** 1.28+
+- **OpenSSL** 1.1.1+ (for TLS/SSL and WebSocket support)
 
 ### Optional
 - **fmt** 10.0+ (falls back to std::format)
