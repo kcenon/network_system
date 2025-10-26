@@ -9,11 +9,11 @@
 
 ## 개요
 
-Network System Project는 분산 시스템 및 메시징 애플리케이션을 위한 엔터프라이즈급 네트워킹 기능을 제공하도록 설계된 프로덕션 준비 완료 고성능 C++20 비동기 네트워크 라이브러리입니다. 향상된 모듈성을 위해 messaging_system에서 분리되었으며, 완전한 하위 호환성과 원활한 생태계 통합을 유지하면서 초당 305K+ 메시지의 뛰어난 성능을 제공합니다.
+Network System Project는 분산 시스템 및 메시징 애플리케이션을 위한 재사용 가능한 전송 프리미티브에 중점을 둔 활발히 개발 중인 C++20 비동기 네트워크 라이브러리입니다. messaging_system 내부에서 시작되어 더 나은 모듈성을 위해 추출되었으며, API는 현재 사용 가능하지만 성능 보장은 아직 특성화되고 있으며 기능 세트는 계속 발전하고 있습니다.
 
-> **🏗️ 모듈형 아키텍처**: zero-copy pipeline, connection pooling 및 C++20 coroutine 지원을 갖춘 고성능 비동기 네트워크 라이브러리.
+> **🏗️ 모듈형 아키텍처**: 플러그 가능한 프로토콜 스택을 갖춘 코루틴 친화적 비동기 네트워크 라이브러리; zero-copy 파이프라인 및 connection pooling과 같은 로드맵 항목은 IMPROVEMENTS.md에 추적되지만 아직 구현되지 않았습니다.
 
-> **✅ 최신 업데이트**: messaging_system으로부터 완전한 독립성, 향상된 성능 최적화, 포괄적인 통합 생태계 및 프로덕션 준비 완료 배포. 모든 플랫폼에서 CI/CD 파이프라인 정상 작동.
+> **✅ 최신 업데이트**: messaging_system으로부터 분리 완료 및 확장된 문서화와 통합 훅. 빌드, 코드 품질, 커버리지 및 문서에 대한 GitHub Actions 워크플로우가 정의됨—최신 상태는 저장소 대시보드를 확인하세요.
 
 ## 🔗 프로젝트 생태계 및 상호 의존성
 
@@ -69,11 +69,11 @@ Network System Project는 분산 시스템 및 메시징 애플리케이션을 �
 ```
 
 ### 통합 이점
-- **범용 전송 계층**: 모든 생태계 구성 요소를 위한 고성능 네트워킹
-- **제로 의존성 모듈형 설계**: 독립적으로 또는 더 큰 시스템의 일부로 사용 가능
-- **하위 호환성**: 레거시 messaging_system 통합으로부터 원활한 마이그레이션 경로
-- **성능 최적화**: 초당 305K+ 메시지 처리량과 마이크로초 미만 지연시간
-- **크로스 플랫폼 지원**: Windows, Linux, macOS에서 일관된 성능
+- **범용 전송 계층**: 모든 생태계 구성 요소를 위한 공유 네트워킹 기반
+- **제로 의존성 모듈형 설계**: 독립적으로 또는 다른 시스템과 함께 사용 가능
+- **하위 호환성**: 호환성 브리지를 통한 마이그레이션 경로 제공
+- **성능 계측**: 직렬화 및 세션 핫 패스를 위한 Google Benchmark 마이크로 제품군
+- **크로스 플랫폼 지원**: CI 워크플로우에서 검증된 Windows, Linux, macOS 빌드
 
 > 📖 **[완전한 아키텍처 가이드](docs/ARCHITECTURE.md)**: 전체 생태계 아키텍처, 의존성 관계 및 통합 패턴에 대한 포괄적인 문서.
 
@@ -82,18 +82,18 @@ Network System Project는 분산 시스템 및 메시징 애플리케이션을 �
 이 프로젝트는 전 세계 개발자들이 직면한 근본적인 과제를 해결합니다: **고성능 네트워크 프로그래밍을 접근 가능하고, 모듈화되고, 신뢰할 수 있게 만드는 것**. 전통적인 네트워크 라이브러리는 종종 특정 프레임워크와 긴밀하게 결합되고, 포괄적인 비동기 지원이 부족하며, 높은 처리량 애플리케이션에 대한 불충분한 성능을 제공합니다. 우리의 미션은 다음을 수행하는 포괄적인 솔루션을 제공하는 것입니다:
 
 - **긴밀한 결합 제거** - 프로젝트 전반에 걸쳐 독립적인 사용을 가능하게 하는 모듈형 설계를 통해
-- **성능 극대화** - zero-copy pipeline, connection pooling 및 비동기 I/O 최적화를 통해
+- **성능 극대화** - 직렬화, 세션 및 연결 핫 패스를 지속적으로 프로파일링하여; zero-copy 파이프라인 및 connection pooling은 로드맵에 유지
 - **신뢰성 보장** - 포괄적인 오류 처리, 연결 수명 주기 관리 및 내결함성을 통해
 - **재사용성 촉진** - 깨끗한 인터페이스 및 생태계 통합 기능을 통해
-- **개발 가속화** - 최소한의 설정으로 프로덕션 준비 완료 네트워킹을 제공하여
+- **개발 가속화** - 즉시 사용 가능한 비동기 프리미티브, 통합 헬퍼 및 광범위한 문서를 제공하여
 
 ## 핵심 장점 및 이점
 
-### 🚀 **성능 우수성**
-- **초고속 처리량**: 평균 초당 305K+ 메시지, 작은 메시지의 경우 초당 769K+ 메시지
-- **Zero-copy pipeline**: 최대 효율성을 위한 직접 메모리 매핑
-- **비동기 I/O 최적화**: C++20 coroutine을 갖춘 ASIO 기반 논블로킹 작업
-- **Connection pooling**: 지능적인 연결 재사용 및 수명 주기 관리
+### 🚀 **성능 중심**
+- **합성 프로파일링**: Google Benchmark 제품군(`benchmarks/`)이 직렬화, 모의 연결 및 세션 핫 패스를 캡처
+- **비동기 I/O 기반**: C++20 coroutine 지원 헬퍼를 갖춘 ASIO 기반 논블로킹 작업
+- **이동 인식 API**: `std::vector<uint8_t>` 버퍼가 파이프라인 변환 전 추가 복사를 피하기 위해 전송 경로로 이동됨
+- **로드맵 항목**: 진정한 zero-copy 파이프라인 및 connection pooling은 IMPROVEMENTS.md에서 추적됨
 
 ### 🛡️ **프로덕션급 신뢰성**
 - **모듈형 독립성**: 표준 라이브러리 이외의 외부 의존성 제로
@@ -103,7 +103,7 @@ Network System Project는 분산 시스템 및 메시징 애플리케이션을 �
 
 ### 🔧 **개발자 생산성**
 - **직관적인 API 설계**: 깨끗하고 자체 문서화된 인터페이스로 학습 곡선 감소
-- **하위 호환성**: 레거시 messaging_system 코드와 100% 호환
+- **하위 호환성**: 레거시 messaging_system 코드 마이그레이션을 위한 호환성 브리지 및 네임스페이스 별칭 (예: `include/network_system/integration/messaging_bridge.h` 참조)
 - **풍부한 통합**: thread, container 및 logger system과의 원활한 통합
 - **최신 C++ 기능**: C++20 coroutine, concept 및 range 지원
 
@@ -112,12 +112,6 @@ Network System Project는 분산 시스템 및 메시징 애플리케이션을 �
 - **아키텍처 최적화**: x86, x64 및 ARM64에 대한 성능 튜닝
 - **컴파일러 유연성**: GCC, Clang 및 MSVC와 호환
 - **Container 지원**: 자동화된 CI/CD를 갖춘 Docker 지원
-
-### 📈 **엔터프라이즈 준비 완료 기능**
-- **Session 관리**: 포괄적인 session 수명 주기 및 상태 관리
-- **Connection pooling**: 상태 모니터링을 갖춘 엔터프라이즈급 연결 관리
-- **성능 모니터링**: 실시간 메트릭 및 성능 분석
-- **마이그레이션 지원**: messaging_system 통합으로부터 완전한 마이그레이션 도구
 
 ## 실제 영향 및 사용 사례
 
@@ -131,55 +125,22 @@ Network System Project는 분산 시스템 및 메시징 애플리케이션을 �
 
 ### 📊 **성능 벤치마크**
 
-> **측정 환경**: Intel i7-12700K @ 3.8GHz, 32GB RAM, Ubuntu 22.04, GCC 11 with `-O3`
-> **테스트 날짜**: 2025-10-09
-> **네트워크**: 루프백 인터페이스 (localhost)
-> **프레임워크**: Google Benchmark 1.8.3
+`benchmarks/` 디렉토리의 현재 벤치마크 제품군은 메시지 할당/복사(`benchmarks/message_throughput_bench.cpp:12-183`), 모의 연결(`benchmarks/connection_bench.cpp:15-197`), 세션 기록(`benchmarks/session_bench.cpp:1-176`)과 같은 CPU 전용 워크플로우에 중점을 둡니다. 이 프로그램들은 소켓을 열거나 실제 네트워크 트래픽을 전송하지 않으므로, 처리량/지연시간 수치는 프로덕션 SLA가 아닌 합성 지표입니다.
 
-모든 성능 주장은 측정되고 재현 가능합니다. 아래 [재현 지침](#-벤치마크-재현하기)을 참조하세요.
+#### 합성 메시지 할당 결과 (Intel i7-12700K, Ubuntu 22.04, GCC 11, `-O3`)
 
-#### 메시지 크기별 처리량 성능
+| 벤치마크 | 페이로드 | CPU 시간/작업 (ns) | 근사 처리량 | 범위 |
+|---------|---------|-------------------|------------|------|
+| MessageThroughput/64B | 64 bytes | 1,300 | ~769,000 msg/s | 메모리 내 할당 + memcpy |
+| MessageThroughput/256B | 256 bytes | 3,270 | ~305,000 msg/s | 메모리 내 할당 + memcpy |
+| MessageThroughput/1KB | 1 KB | 7,803 | ~128,000 msg/s | 메모리 내 할당 + memcpy |
+| MessageThroughput/8KB | 8 KB | 48,000 | ~21,000 msg/s | 메모리 내 할당 + memcpy |
 
-| 메시지 크기 | 처리량 | 지연시간 (P50) | 최적 사용 사례 |
-|------------|--------|----------------|---------------|
-| **64 bytes** | **769,230 msg/s** | <10μs | 제어 신호, 하트비트 |
-| **256 bytes** | **305,255 msg/s** | 50μs | 표준 메시지 (평균) |
-| **1 KB** | **128,205 msg/s** | 100μs | 데이터 패킷 |
-| **8 KB** | **20,833 msg/s** | 500μs | 대용량 페이로드 |
+연결 및 세션 벤치마크는 모의 객체에 의존합니다(예: `mock_connection::connect()`는 10 µs 동안 sleep하여 작업을 시뮬레이션). 따라서 실제 네트워크 처리량, 동시 연결 용량 또는 메모리 사용률에 대한 이전 주장은 엔드투엔드 테스트가 캡처될 때까지 제거되었습니다.
 
-**평균 성능**: 혼합 작업부하(모든 메시지 크기)에서 305K msg/s
+#### 🔬 합성 벤치마크 재현하기
 
-#### 지연시간 특성
-
-- **P50 (중앙값)**: 50 마이크로초
-- **P95**: 부하 시 500 마이크로초
-- **P99**: 2 밀리초
-- **평균**: 모든 메시지 크기에서 584 마이크로초
-
-*참고: 지연시간에는 직렬화, 네트워크 전송 및 역직렬화가 포함됩니다.*
-
-#### 동시 성능
-
-- **50개 동시 연결**: 12,195 msg/s 안정적인 처리량
-- **연결 설정**: 연결당 <100μs
-- **세션 관리 오버헤드**: 세션당 <50μs
-
-#### 메모리 효율성
-
-- **기준선** (유휴 서버): <10 MB
-- **50개 활성 연결**: 45 MB
-- **연결 풀링**: 효율적인 리소스 재사용
-
-#### 주요 성능 인사이트
-
-- 🏃 **확장 가능한 처리량**: 메시지 크기와 작업부하에 따라 성능 확장
-- 🏋️ **동시 처리**: 여러 연결에서 안정적인 성능
-- ⏱️ **낮은 지연시간**: 50마이크로초 미만의 중앙값 지연시간 (P50)
-- 📈 **메모리 효율성**: 지능형 풀링을 통한 최소 기준선 풋프린트
-
-#### 🔬 벤치마크 재현하기
-
-모든 성능 측정은 독립적으로 검증 가능합니다:
+다음과 같이 CPU 전용 벤치마크를 재현할 수 있습니다:
 
 ```bash
 # 1단계: 벤치마크를 활성화하여 빌드
@@ -211,24 +172,20 @@ MessageThroughput/1KB            7803 ns   7801 ns        89744   # ~128K msg/s
 MessageThroughput/8KB           48000 ns  47998 ns        14583   # ~21K msg/s
 ```
 
-**참고**: 성능은 하드웨어에 따라 다릅니다. 정확한 평가를 위해 대상 시스템에서 벤치마크를 실행하세요.
+**참고**: 이 수치는 프로세스 내 CPU 작업만 측정합니다. 소켓 I/O 데이터가 필요한 경우 통합 또는 시스템 벤치마크를 실행하세요.
 
-#### 성능 비교 참고사항
+#### 실제 측정 대기 중
 
-우리는 자체 시스템의 검증된 측정값을 제공합니다. 다른 라이브러리와 비교하려면:
-
-- ✅ **우리의 측정값**은 실제 벤치마크 실행을 기반으로 합니다 (위 참조)
-- ⚠️ **타사 라이브러리 비교**는 귀하의 환경에서 수행해야 합니다
-- 📊 **공정한 비교**를 위해 동일한 하드웨어, OS, 컴파일러 설정을 사용하세요
-- 🔬 사용자는 벤치마크를 실행하여 특정 사용 사례에 가장 적합한 것을 결정할 수 있습니다
-
-자세한 성능 메트릭은 [BASELINE.md](BASELINE.md)를 참조하세요.
+- TCP, UDP, WebSocket 전송을 통한 엔드투엔드 처리량/지연시간
+- 장기 실행 세션 중 메모리 풋프린트 및 GC 동작
+- TLS 성능 및 연결 풀링 효율성 (기능 구현 대기 중)
+- 동일한 작업부하에서 다른 네트워킹 라이브러리와의 비교 벤치마크
 
 ### 핵심 목표
 - **모듈 독립성**: messaging_system으로부터 네트워크 모듈의 완전한 분리 ✅
 - **향상된 재사용성**: 다른 프로젝트에서 사용 가능한 독립적인 라이브러리 ✅
-- **호환성 유지**: 레거시 코드와의 완전한 하위 호환성 ✅
-- **성능 최적화**: 초당 305K+ 메시지 처리량 달성 ✅
+- **호환성 유지**: 레거시 messaging_system 소비자를 위한 호환성 브리지 및 네임스페이스 별칭; 추가 검증 진행 중
+- **성능 계측**: 합성 벤치마크 및 통합 테스트가 핫 패스를 다룸; 실제 네트워크 처리량/지연시간 측정은 아직 대기 중
 
 ## 🛠️ 기술 스택 및 아키텍처
 
@@ -238,35 +195,59 @@ MessageThroughput/8KB           48000 ns  47998 ns        14583   # ~21K msg/s
 - **CMake**: 포괄적인 의존성 관리를 갖춘 빌드 시스템
 - **크로스 플랫폼**: Windows, Linux 및 macOS에 대한 기본 지원
 
+### 프로토콜 지원
+- **TCP**: 연결 수명 주기 관리를 갖춘 비동기 TCP server/client (connection pooling 계획됨; IMPROVEMENTS.md에서 추적)
+- **UDP**: 실시간 애플리케이션을 위한 비연결형 UDP 통신
+- **WebSocket**: RFC 6455 WebSocket 프로토콜 완전 지원:
+  - Text 및 binary 메시지 framing
+  - Fragmentation 및 reassembly
+  - Ping/pong keepalive
+  - 우아한 연결 수명 주기
+  - Connection limit를 갖춘 session 관리
+
 ### 아키텍처 설계
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                    Network System Architecture              │
-├─────────────────────────────────────────────────────────────┤
-│  공개 API 계층                                               │
-│  ┌──────────────────────┐  ┌──────────────────────┐        │
-│  │  messaging_server    │  │  messaging_client    │        │
-│  │  (TCP Server)        │  │  (TCP Client)        │        │
-│  └──────────────────────┘  └──────────────────────┘        │
-├─────────────────────────────────────────────────────────────┤
-│  내부 계층                                                   │
-│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐           │
-│  │ tcp_socket  │ │  messaging  │ │  pipeline   │           │
-│  │             │ │  _session   │ │             │           │
-│  └─────────────┘ └─────────────┘ └─────────────┘           │
-├─────────────────────────────────────────────────────────────┤
-│  핵심 네트워크 엔진 (ASIO 기반)                             │
-│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐           │
-│  │ io_context  │ │   async     │ │  Result<T>  │           │
-│  │             │ │  operations │ │   pattern   │           │
-│  └─────────────┘ └─────────────┘ └─────────────┘           │
-├─────────────────────────────────────────────────────────────┤
-│  선택적 통합 계층                                            │
-│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐           │
-│  │   Logger    │ │ Monitoring  │ │   Thread    │           │
-│  │  System     │ │   System    │ │   System    │           │
-│  └─────────────┘ └─────────────┘ └─────────────┘           │
-└─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│                    Network System Architecture                  │
+├─────────────────────────────────────────────────────────────────┤
+│  공개 API 계층                                                   │
+│  ┌──────────────┐ ┌──────────────┐ ┌──────────────────────┐    │
+│  │ messaging    │ │ messaging    │ │  messaging_ws        │    │
+│  │ _server      │ │ _client      │ │  _server / _client   │    │
+│  │ (TCP)        │ │ (TCP)        │ │  (WebSocket)         │    │
+│  └──────────────┘ └──────────────┘ └──────────────────────┘    │
+│  ┌──────────────┐ ┌──────────────┐                             │
+│  │ messaging    │ │ messaging    │                             │
+│  │ _udp_server  │ │ _udp_client  │                             │
+│  └──────────────┘ └──────────────┘                             │
+├─────────────────────────────────────────────────────────────────┤
+│  프로토콜 계층                                                   │
+│  ┌──────────────┐ ┌──────────────┐ ┌──────────────────────┐    │
+│  │ tcp_socket   │ │ udp_socket   │ │ websocket_socket     │    │
+│  └──────────────┘ └──────────────┘ └──────────────────────┘    │
+│  ┌──────────────┐ ┌──────────────────────────────────────┐     │
+│  │ messaging    │ │ websocket_protocol                   │     │
+│  │ _session     │ │ (frame/handshake/message handling)   │     │
+│  └──────────────┘ └──────────────────────────────────────┘     │
+├─────────────────────────────────────────────────────────────────┤
+│  세션 관리 계층                                                  │
+│  ┌──────────────────┐ ┌────────────────────────────────────┐   │
+│  │ session_manager  │ │ ws_session_manager                 │   │
+│  │ (TCP)            │ │ (WebSocket 연결 관리)              │   │
+│  └──────────────────┘ └────────────────────────────────────┘   │
+├─────────────────────────────────────────────────────────────────┤
+│  핵심 네트워크 엔진 (ASIO 기반)                                 │
+│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐              │
+│  │ io_context  │ │   async     │ │  Result<T>  │              │
+│  │             │ │  operations │ │   pattern   │              │
+│  └─────────────┘ └─────────────┘ └─────────────┘              │
+├─────────────────────────────────────────────────────────────────┤
+│  선택적 통합 계층                                                │
+│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐              │
+│  │   Logger    │ │ Monitoring  │ │   Thread    │              │
+│  │  System     │ │   System    │ │   System    │              │
+│  └─────────────┘ └─────────────┘ └─────────────┘              │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
 ### 디자인 패턴
@@ -437,7 +418,7 @@ cmake --build .
 
 ## 📝 API 예제
 
-### 최신 API 사용법
+### TCP API 사용법
 
 ```cpp
 #include <network_system/core/messaging_server.h>
@@ -464,6 +445,65 @@ std::vector<uint8_t> data = {'H', 'e', 'l', 'l', 'o'};
 auto send_result = client->send_packet(std::move(data));
 if (!send_result) {
     std::cerr << "전송 실패: " << send_result.error().message << std::endl;
+}
+```
+
+### WebSocket API 사용법
+
+```cpp
+#include <network_system/core/messaging_ws_server.h>
+#include <network_system/core/messaging_ws_client.h>
+
+// WebSocket 서버
+using namespace network_system::core;
+
+auto server = std::make_shared<messaging_ws_server>("ws_server");
+
+// 서버 설정
+ws_server_config config;
+config.port = 8080;
+config.max_connections = 100;
+config.ping_interval = std::chrono::seconds(30);
+
+auto result = server->start_server(config);
+if (!result) {
+    std::cerr << "WebSocket 서버 실패: " << result.error().message << std::endl;
+    return -1;
+}
+
+// 연결된 모든 클라이언트에게 텍스트 메시지 브로드캐스트
+auto broadcast_result = server->broadcast_text("안녕하세요, WebSocket 클라이언트!");
+if (!broadcast_result) {
+    std::cerr << "브로드캐스트 실패: " << broadcast_result.error().message << std::endl;
+}
+
+// WebSocket 클라이언트
+auto client = std::make_shared<messaging_ws_client>("ws_client");
+
+// 클라이언트 설정
+ws_client_config client_config;
+client_config.host = "localhost";
+client_config.port = 8080;
+client_config.path = "/";
+client_config.auto_pong = true;  // ping 프레임에 자동으로 응답
+
+auto connect_result = client->start_client(client_config);
+if (!connect_result) {
+    std::cerr << "WebSocket 클라이언트 연결 실패: " << connect_result.error().message << std::endl;
+    return -1;
+}
+
+// 텍스트 메시지 전송
+auto send_result = client->send_text("WebSocket 클라이언트에서 안녕하세요!");
+if (!send_result) {
+    std::cerr << "전송 실패: " << send_result.error().message << std::endl;
+}
+
+// 바이너리 데이터 전송
+std::vector<uint8_t> binary_data = {0x01, 0x02, 0x03, 0x04};
+auto binary_result = client->send_binary(std::move(binary_data));
+if (!binary_result) {
+    std::cerr << "바이너리 전송 실패: " << binary_result.error().message << std::endl;
 }
 ```
 
@@ -655,6 +695,7 @@ std::cout << "Avg latency: " << stats.average_latency << "ms" << std::endl;
 
 ### 핵심 기능
 - ✅ 비동기 TCP server/client
+- ✅ 비동기 WebSocket server/client (RFC 6455)
 - ✅ 멀티스레드 메시지 처리
 - ✅ Session 수명 주기 관리
 - ✅ 버퍼링을 갖춘 메시지 pipeline
@@ -669,57 +710,54 @@ std::cout << "Avg latency: " << stats.average_latency << "ms" << std::endl;
 - ✅ 성능 벤치마킹 suite
 
 ### 계획된 기능
-- 🚧 WebSocket 지원
 - 🚧 TLS/SSL 암호화
 - 🚧 HTTP/2 client
 - 🚧 gRPC 통합
 
 ## 🎯 프로젝트 요약
 
-Network System은 향상된 모듈성과 재사용성을 제공하기 위해 messaging_system에서 성공적으로 분리된 **프로덕션 준비 완료** 고성능 비동기 네트워크 라이브러리입니다.
+Network System은 향상된 모듈성과 재사용성을 제공하기 위해 messaging_system에서 분리된 활발히 유지 관리되는 비동기 네트워크 라이브러리입니다. 코드베이스는 이미 TCP/UDP/WebSocket 컴포넌트를 노출하고 있으며, 여러 로드맵 항목(connection pooling, TLS, zero-copy 파이프라인, 실제 벤치마킹)은 진행 중입니다.
 
 ### 🏆 주요 성과
 
 #### **완전한 독립성** ✅
-- messaging_system으로부터 제로 의존성으로 완전히 분리
+- 빌드 타임 의존성 제로로 messaging_system으로부터 완전히 분리
 - 모든 C++ 프로젝트에 통합하기에 적합한 독립적인 라이브러리
 - 깨끗한 namespace 격리 (`network_system::`)
 
-#### **하위 호환성** ✅
-- 기존 messaging_system 코드와 100% 호환
-- 호환성 계층을 통한 원활한 마이그레이션 경로
-- 레거시 API 지원 유지 (`network_module::`)
+#### **하위 호환성** ♻️
+- 호환성 브리지(`include/network_system/integration/messaging_bridge.h`) 및 네임스페이스 별칭으로 레거시 messaging_system 코드 빌드 유지
+- 통합 테스트(예: `integration_tests/scenarios/connection_lifecycle_test.cpp`)가 마이그레이션 플로우 실행
+- 완전한 패리티를 선언하기 전 대규모 검증이 진행 중
 
-#### **성능 우수성** ✅
-- 평균 처리량 **초당 305K+ 메시지**
-- 작은 메시지 (64바이트)에 대해 **초당 769K+ 메시지**
-- 50마이크로초 미만 중앙값 지연시간 (P50)
-- 50개 이상의 동시 연결로 프로덕션 테스트 완료
+#### **진행 중인 성능 작업** ⚙️
+- 합성 Google Benchmark 제품군이 핫 패스를 다룸(`benchmarks/` 디렉토리)
+- 스트레스, 통합 및 성능 테스트가 존재하지만 여전히 주로 CPU 전용 메트릭만 수집
+- 실제 네트워크 처리량, 지연시간 및 메모리 기준선은 대기 중
 
 #### **통합 생태계** ✅
-- **Thread System 통합**: 원활한 thread pool 관리
-- **Logger System 통합**: 포괄적인 로깅 기능
-- **Container System 통합**: 고급 직렬화 지원
-- **크로스 플랫폼 지원**: Ubuntu, Windows, macOS 호환성
+- Thread, logger 및 container 통합이 제공됨(`src/integration/`)
+- 크로스 플랫폼 빌드(Windows, Linux, macOS)가 CMake 및 GitHub Actions를 통해 구성됨
+- 광범위한 문서(아키텍처, 마이그레이션, 운영)가 코드베이스와 함께 유지됨
 
 ### 🚀 마이그레이션 상태
 
 | 구성 요소 | 상태 | 비고 |
 |-----------|--------|-------|
-| **핵심 네트워크 라이브러리** | ✅ 완료 | 독립적, 프로덕션 준비 완료 |
-| **레거시 API 호환성** | ✅ 완료 | 제로 중단 변경 |
-| **성능 최적화** | ✅ 완료 | 초당 305K+ 메시지 달성 |
-| **통합 인터페이스** | ✅ 완료 | Thread, Logger, Container system |
-| **문서** | ✅ 완료 | API 문서, 가이드, 예제 |
-| **CI/CD Pipeline** | ✅ 완료 | 멀티 플랫폼 자동화 테스트 |
+| **핵심 네트워크 라이브러리** | ✅ 완료 | 독립 모듈이 독립적으로 빌드됨 |
+| **레거시 API 호환성** | ♻️ 사용 가능 | 브리지 + 별칭 제공; 추가 검증 권장 |
+| **성능 계측** | ⚙️ 진행 중 | 합성 마이크로벤치만; 실제 네트워크 메트릭 대기 중 |
+| **통합 인터페이스** | ✅ 완료 | Thread, Logger, Container 시스템 연결됨 |
+| **문서** | ✅ 완료 | 아키텍처, 마이그레이션 및 문제 해결 가이드 |
+| **CI/CD Pipeline** | ⚙️ 사용 가능 | 워크플로우 정의 존재; 현재 실행 상태는 GitHub 확인 |
 
 ### 📊 영향 및 이점
 
 - **모듈성**: 독립적인 라이브러리는 결합을 줄이고 유지보수성을 향상시킴
 - **재사용성**: messaging_system을 넘어 여러 프로젝트에 통합 가능
-- **성능**: 레거시 구현에 비해 상당한 처리량 개선
-- **호환성**: 기존 애플리케이션을 위한 제로 다운타임 마이그레이션 경로
-- **품질**: 포괄적인 테스트 커버리지 및 지속적인 통합
+- **성능**: 향후 최적화를 안내하는 프로파일링 인프라 구축
+- **호환성**: 마이그레이션 브리지가 기존 애플리케이션의 변경을 최소화
+- **품질**: 단위, 통합 및 스트레스 제품군과 CI 워크플로우가 회귀를 방지
 
 ## 🔧 의존성
 
@@ -750,7 +788,57 @@ Network System은 향상된 모듈성과 재사용성을 제공하기 위해 mes
 |----------|-------------|
 | [API Reference](https://kcenon.github.io/network_system) | Doxygen 생성 API 문서 |
 | [Migration Guide](docs/MIGRATION_GUIDE.md) | messaging_system으로부터 단계별 마이그레이션 |
-| [Performance Baseline](BASELINE.md) | 검증된 성능 측정값 |
+| [Performance Baseline](BASELINE.md) | 합성 벤치마크 및 실제 네트워크 성능 메트릭 |
+| [Load Test Guide](docs/LOAD_TEST_GUIDE.md) | 부하 테스트 실행 및 해석을 위한 종합 가이드 |
+
+## 🧪 성능 및 테스팅
+
+### 합성 벤치마크
+
+Google Benchmark를 사용한 CPU 전용 마이크로벤치마크:
+
+```bash
+# 벤치마크로 빌드
+cmake -B build -DCMAKE_BUILD_TYPE=Release -DNETWORK_BUILD_BENCHMARKS=ON
+cmake --build build -j
+
+# 벤치마크 실행
+./build/benchmarks/network_benchmarks
+```
+
+현재 결과는 [BASELINE.md](BASELINE.md)를 참조하세요.
+
+### 실제 네트워크 부하 테스트
+
+실제 소켓 I/O를 사용한 엔드투엔드 프로토콜 성능 테스트:
+
+```bash
+# 통합 테스트로 빌드
+cmake -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=ON
+cmake --build build -j
+
+# 부하 테스트 실행
+./build/bin/integration_tests/tcp_load_test
+./build/bin/integration_tests/udp_load_test
+./build/bin/integration_tests/websocket_load_test
+```
+
+**수집된 메트릭:**
+- **처리량**: 다양한 페이로드 크기에 대한 초당 메시지 수
+- **지연시간**: 엔드투엔드 작업의 P50/P95/P99 백분위수
+- **메모리**: 부하 시 RSS/heap/VM 소비
+- **동시성**: 여러 동시 연결 시 성능
+
+**자동 Baseline 수집:**
+
+부하 테스트는 GitHub Actions를 통해 매주 실행되며 수동으로 트리거할 수 있습니다:
+
+```bash
+# 부하 테스트 실행 및 baseline 업데이트
+gh workflow run network-load-tests.yml --field update_baseline=true
+```
+
+자세한 지침은 [LOAD_TEST_GUIDE.md](docs/LOAD_TEST_GUIDE.md)를 참조하세요.
 
 ## 🤝 기여
 
