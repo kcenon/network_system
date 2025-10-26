@@ -36,6 +36,7 @@ option(BUILD_WEBSOCKET_SUPPORT "Build WebSocket protocol support (RFC 6455)" ON)
 option(BUILD_WITH_CONTAINER_SYSTEM "Build with container_system integration" ON)
 option(BUILD_WITH_THREAD_SYSTEM "Build with thread_system integration" ON)
 option(BUILD_WITH_LOGGER_SYSTEM "Build with logger_system integration" ON)
+option(BUILD_WITH_MONITORING_SYSTEM "Build with monitoring_system integration" OFF)
 option(BUILD_WITH_COMMON_SYSTEM "Build with common_system integration" ON)
 option(BUILD_MESSAGING_BRIDGE "Build messaging_system bridge" ON)
 option(ENABLE_COVERAGE "Enable code coverage" OFF)
@@ -126,6 +127,7 @@ add_library(NetworkSystem
     src/integration/logger_integration.cpp
     src/integration/thread_integration.cpp
     src/integration/container_integration.cpp
+    src/integration/monitoring_integration.cpp
 )
 
 # TLS/SSL support (conditional)

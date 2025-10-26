@@ -33,6 +33,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "network_system/utils/health_monitor.h"
 
 #include "network_system/integration/logger_integration.h"
+#include "network_system/integration/monitoring_integration.h"
+
+#include <sstream>
 
 namespace network_system::utils
 {
@@ -293,6 +296,31 @@ namespace network_system::utils
 		if (total > 0)
 		{
 			health_.packet_loss_rate = static_cast<double>(failed) / static_cast<double>(total);
+		}
+
+		// Report metrics to monitoring system (optional)
+		try
+		{
+			auto& monitor_mgr = integration::monitoring_integration_manager::instance();
+			auto monitor = monitor_mgr.get_monitoring();
+			if (monitor && client_)
+			{
+				// Use client pointer address as connection identifier
+				std::ostringstream oss;
+				oss << "client_" << static_cast<const void*>(client_.get());
+
+				monitor->report_health(
+					oss.str(),
+					health_.is_alive,
+					static_cast<double>(health_.last_response_time.count()),
+					health_.missed_heartbeats,
+					health_.packet_loss_rate
+				);
+			}
+		}
+		catch (...)
+		{
+			// Monitoring failure is not critical, continue normal operation
 		}
 
 		// Invoke health callback if set

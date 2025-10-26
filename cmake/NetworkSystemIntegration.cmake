@@ -132,6 +132,24 @@ function(setup_logger_system_integration target)
 endfunction()
 
 ##################################################
+# Configure monitoring_system integration
+##################################################
+function(setup_monitoring_system_integration target)
+    if(NOT BUILD_WITH_MONITORING_SYSTEM)
+        return()
+    endif()
+
+    if(MONITORING_SYSTEM_INCLUDE_DIR)
+        target_include_directories(${target} PRIVATE ${MONITORING_SYSTEM_INCLUDE_DIR})
+        if(MONITORING_SYSTEM_LIBRARY)
+            target_link_libraries(${target} PUBLIC ${MONITORING_SYSTEM_LIBRARY})
+        endif()
+        target_compile_definitions(${target} PRIVATE BUILD_WITH_MONITORING_SYSTEM)
+        message(STATUS "Configured ${target} with monitoring_system integration")
+    endif()
+endfunction()
+
+##################################################
 # Configure common_system integration
 ##################################################
 function(setup_common_system_integration target)
@@ -159,6 +177,7 @@ function(setup_network_system_integrations target)
     setup_container_system_integration(${target})
     setup_thread_system_integration(${target})
     setup_logger_system_integration(${target})
+    setup_monitoring_system_integration(${target})
     setup_common_system_integration(${target})
 
     # Platform-specific libraries
