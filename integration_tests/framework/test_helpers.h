@@ -244,6 +244,38 @@ inline bool is_sanitizer_run() {
 }
 
 /**
+ * @brief Get platform identifier
+ * @return Platform name string (e.g., "ubuntu-22.04", "macos-13", "windows-2022")
+ */
+inline std::string get_platform_name() {
+#if defined(__linux__)
+    return "linux";
+#elif defined(__APPLE__)
+    return "macos";
+#elif defined(_WIN32)
+    return "windows";
+#else
+    return "unknown";
+#endif
+}
+
+/**
+ * @brief Get compiler identifier
+ * @return Compiler name and version string
+ */
+inline std::string get_compiler_name() {
+#if defined(__clang__)
+    return "clang-" + std::to_string(__clang_major__);
+#elif defined(__GNUC__)
+    return "gcc-" + std::to_string(__GNUC__);
+#elif defined(_MSC_VER)
+    return "msvc-" + std::to_string(_MSC_VER / 100);
+#else
+    return "unknown";
+#endif
+}
+
+/**
  * @brief Watchdog that aborts a test if it runs longer than the given timeout.
  */
 class ScopedTestTimeout {
