@@ -7,10 +7,11 @@ All rights reserved.
 
 #include "result_writer.h"
 
+#include <chrono>
+#include <ctime>
 #include <fstream>
 #include <iomanip>
 #include <sstream>
-#include <chrono>
 
 namespace network_system::integration_tests {
 

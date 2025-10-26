@@ -12,10 +12,11 @@ All rights reserved.
 #include "../framework/memory_profiler.h"
 #include "../framework/result_writer.h"
 
+#include <atomic>
 #include <chrono>
+#include <string>
 #include <thread>
 #include <vector>
-#include <atomic>
 
 using namespace network_system::core;
 using namespace network_system::integration_tests;
