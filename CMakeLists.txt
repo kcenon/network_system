@@ -108,9 +108,11 @@ add_library(NetworkSystem
     src/core/messaging_udp_client.cpp
     src/core/messaging_udp_server.cpp
     src/core/connection_pool.cpp
+    src/core/secure_messaging_server.cpp
 
     # Session management
     src/session/messaging_session.cpp
+    src/session/secure_session.cpp
 
     # Internal implementation
     src/internal/tcp_socket.cpp
