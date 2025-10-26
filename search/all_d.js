@@ -1,0 +1,25 @@
+var searchData=
+[
+  ['data_20transfer_0',['Zero-Copy Data Transfer',['../md_README.html#autotoc_md408',1,'']]],
+  ['debian_1',['debian',['../md_README__KO.html#autotoc_md480',1,'Ubuntu/Debian'],['../md_README.html#autotoc_md395',1,'Ubuntu/Debian']]],
+  ['debugging_20tips_2',['Debugging Tips',['../index.html#trouble_debugging',1,'']]],
+  ['dependencies_3',['dependencies',['../md_README.html#autotoc_md363',1,'🔗 Project Ecosystem &amp; Inter-Dependencies'],['../md_README.html#autotoc_md424',1,'🔧 Dependencies'],['../md_README.html#autotoc_md432',1,'Core Dependencies'],['../index.html#deps_optional',1,'Optional Dependencies'],['../index.html#deps_required',1,'Required Dependencies']]],
+  ['dependencies_20and_20requirements_4',['Dependencies and Requirements',['../index.html#dependencies_sec',1,'']]],
+  ['deployment_5',['Documentation &amp; Deployment',['../md_MIGRATION.html#autotoc_md275',1,'']]],
+  ['deprecated_6',['Deprecated',['../md_CHANGELOG.html#autotoc_md60',1,'']]],
+  ['design_7',['Architecture Design',['../md_README.html#autotoc_md388',1,'']]],
+  ['design_20patterns_8',['design patterns',['../md_README.html#autotoc_md389',1,'Design Patterns'],['../md_UDP__SUPPORT.html#autotoc_md569',1,'Design Patterns']]],
+  ['details_9',['details',['../md_UDP__SUPPORT.html#autotoc_md567',1,'Implementation Details'],['../md_IMPLEMENTATION__SUMMARY.html#autotoc_md116',1,'Implementation Details']]],
+  ['developer_20productivity_20strong_10',['🔧 &lt;strong&gt;Developer Productivity&lt;/strong&gt;',['../md_README.html#autotoc_md372',1,'']]],
+  ['development_20guidelines_11',['Development Guidelines',['../index.html#contrib_guidelines',1,'']]],
+  ['development_20hardware_20configuration_20secondary_12',['Development Hardware Configuration (Secondary)',['../md_BASELINE.html#autotoc_md6',1,'']]],
+  ['development_20timeline_13',['Development Timeline',['../md_README.html#autotoc_md437',1,'']]],
+  ['directory_20layout_14',['📁 Directory Layout',['../md_STRUCTURE.html#autotoc_md534',1,'']]],
+  ['directory_20organization_15',['Directory Organization',['../md_README.html#autotoc_md391',1,'']]],
+  ['distribution_16',['Test Distribution',['../md_IMPLEMENTATION__SUMMARY.html#autotoc_md129',1,'']]],
+  ['documentation_17',['documentation',['../md_README.html#autotoc_md403',1,'📚 API Documentation'],['../md_README.html#autotoc_md428',1,'📚 Documentation'],['../md_IMPLEMENTATION__SUMMARY.html#autotoc_md126',1,'Documentation'],['../md_IMPLEMENTATION__SUMMARY__KO.html#autotoc_md172',1,'Documentation'],['../md_MIGRATION.html#autotoc_md350',1,'Documentation'],['../index.html',1,'Network System Documentation'],['../md_UDP__SUPPORT.html#autotoc_md572',1,'Related Documentation']]],
+  ['documentation_202_20files_18',['documentation 2 files',['../md_IMPLEMENTATION__SUMMARY.html#autotoc_md150',1,'Documentation (2 files)'],['../md_IMPLEMENTATION__SUMMARY__KO.html#autotoc_md196',1,'Documentation (2 files)']]],
+  ['documentation_20deployment_19',['Documentation &amp; Deployment',['../md_MIGRATION.html#autotoc_md275',1,'']]],
+  ['during_20migration_20',['Testing During Migration',['../index.html#migration_testing',1,'']]],
+  ['dynamic_20port_20allocation_21',['dynamic port allocation',['../md_IMPLEMENTATION__SUMMARY.html#autotoc_md131',1,'1. Dynamic Port Allocation'],['../md_IMPLEMENTATION__SUMMARY__KO.html#autotoc_md177',1,'1. Dynamic Port Allocation']]]
+];

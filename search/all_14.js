@@ -1,0 +1,28 @@
+var searchData=
+[
+  ['last_20updated_3a_202025_2009_2028_0',['Last Updated: 2025-09-28',['../md_INTEGRATION__STATUS.html#autotoc_md238',1,'']]],
+  ['latency_1',['Issue 9: High Latency',['../md_MIGRATION.html#autotoc_md319',1,'']]],
+  ['latency_20benchmark_2',['Test 6: Latency Benchmark',['../md_MIGRATION.html#autotoc_md333',1,'']]],
+  ['latency_20benchmarks_3',['Latency Benchmarks',['../md_CHANGELOG.html#autotoc_md77',1,'']]],
+  ['latency_20characteristics_4',['latency characteristics',['../md_BASELINE.html#autotoc_md10',1,'Latency Characteristics'],['../md_README.html#autotoc_md379',1,'Latency Characteristics']]],
+  ['latency_20metrics_5',['Latency Metrics',['../md_MIGRATION.html#autotoc_md344',1,'']]],
+  ['latest_20results_6',['Latest Results',['../md_README.html#autotoc_md410',1,'']]],
+  ['layer_7',['layer',['../index.html#arch_core',1,'Core Layer'],['../index.html#arch_integration',1,'Integration Layer'],['../index.html#arch_internal',1,'Internal Layer'],['../index.html#arch_session',1,'Session Layer']]],
+  ['layer_20tt_20include_20network_5fsystem_20tt_8',['🎯 Public API Layer (&lt;tt&gt;include/network_system/&lt;/tt&gt;)',['../md_STRUCTURE.html#autotoc_md539',1,'']]],
+  ['layer_20tt_20src_20tt_9',['⚙️ Implementation Layer (&lt;tt&gt;src/&lt;/tt&gt;)',['../md_STRUCTURE.html#autotoc_md540',1,'']]],
+  ['layout_10',['📁 Directory Layout',['../md_STRUCTURE.html#autotoc_md534',1,'']]],
+  ['leak_11',['1. Session Vector Memory Leak',['../md_IMPROVEMENTS.html#autotoc_md209',1,'']]],
+  ['leak_20warnings_12',['Issue 7: Memory Leak Warnings',['../md_MIGRATION.html#autotoc_md316',1,'']]],
+  ['legacy_13',['Comparison with Legacy',['../md_MIGRATION.html#autotoc_md347',1,'']]],
+  ['legacy_20api_20compatibility_14',['Legacy API Compatibility',['../md_README.html#autotoc_md401',1,'']]],
+  ['legacy_20messaging_5fsystem_15',['From Legacy messaging_system',['../index.html#migration_from_legacy',1,'']]],
+  ['level_16',['1. UDP Socket (Low-level)',['../md_UDP__SUPPORT.html#autotoc_md557',1,'']]],
+  ['license_17',['license',['../md_README.html#autotoc_md430',1,'📄 License'],['../index.html#license_sec',1,'License']]],
+  ['lifecycle_20tests_2017_20tests_18',['lifecycle tests 17 tests',['../md_IMPLEMENTATION__SUMMARY__KO.html#autotoc_md164',1,'1. Connection Lifecycle Tests (17 tests)'],['../md_IMPLEMENTATION__SUMMARY.html#autotoc_md118',1,'1. Connection Lifecycle Tests (17 tests)']]],
+  ['localhost_20only_20testing_19',['localhost only testing',['../md_IMPLEMENTATION__SUMMARY__KO.html#autotoc_md178',1,'2. Localhost-Only Testing'],['../md_IMPLEMENTATION__SUMMARY.html#autotoc_md132',1,'2. Localhost-Only Testing']]],
+  ['logger_20integration_20',['Logger Integration',['../md_STRUCTURE.html#autotoc_md550',1,'']]],
+  ['logger_5fsystem_21',['logger_system',['../md_INTEGRATION__STATUS__KO.html#autotoc_md252',1,'logger_system'],['../md_INTEGRATION__STATUS.html#autotoc_md241',1,'logger_system']]],
+  ['logic_20for_20client_22',['5. Add Reconnection Logic for Client',['../md_IMPROVEMENTS.html#autotoc_md218',1,'']]],
+  ['low_20level_23',['1. UDP Socket (Low-level)',['../md_UDP__SUPPORT.html#autotoc_md557',1,'']]],
+  ['lower_20throughput_20than_20expected_24',['Issue 8: Lower Throughput Than Expected',['../md_MIGRATION.html#autotoc_md318',1,'']]]
+];

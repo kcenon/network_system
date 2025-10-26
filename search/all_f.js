@@ -1,0 +1,27 @@
+var searchData=
+[
+  ['failure_0',['failure',['../md_MIGRATION.html#autotoc_md321',1,'Issue 10: container_system Integration Failure'],['../md_MIGRATION.html#autotoc_md322',1,'Issue 11: thread_system Integration Failure']]],
+  ['fast_20senders_1',['2. No Backpressure on Fast Senders',['../md_IMPROVEMENTS.html#autotoc_md211',1,'']]],
+  ['fault_20on_20server_20start_2',['Issue 5: Segmentation Fault on Server Start',['../md_MIGRATION.html#autotoc_md314',1,'']]],
+  ['features_3',['features',['../md_README.html#autotoc_md412',1,'🔧 Features'],['../md_README.html#autotoc_md413',1,'Core Features'],['../md_README.html#autotoc_md414',1,'Integration Features'],['../index.html#features_sec',1,'Key Features'],['../md_README.html#autotoc_md411',1,'Key Performance Features'],['../md_README.html#autotoc_md415',1,'Planned Features'],['../index.html#feat_reliability',1,'Reliability Features']]],
+  ['features_20strong_4',['📈 &lt;strong&gt;Enterprise-Ready Features&lt;/strong&gt;',['../md_README.html#autotoc_md374',1,'']]],
+  ['files_5',['files',['../md_IMPLEMENTATION__SUMMARY.html#autotoc_md123',1,'1. Framework Files'],['../md_IMPLEMENTATION__SUMMARY__KO.html#autotoc_md169',1,'1. Framework Files'],['../md_IMPLEMENTATION__SUMMARY.html#autotoc_md149',1,'Build &amp; CI (3 files)'],['../md_IMPLEMENTATION__SUMMARY__KO.html#autotoc_md195',1,'Build &amp; CI (3 files)'],['../md_IMPLEMENTATION__SUMMARY.html#autotoc_md150',1,'Documentation (2 files)'],['../md_IMPLEMENTATION__SUMMARY__KO.html#autotoc_md196',1,'Documentation (2 files)'],['../md_IMPLEMENTATION__SUMMARY__KO.html#autotoc_md194',1,'Framework (2 files)'],['../md_IMPLEMENTATION__SUMMARY.html#autotoc_md148',1,'Framework (2 files)'],['../md_IMPLEMENTATION__SUMMARY.html#autotoc_md122',1,'Infrastructure Files'],['../md_IMPLEMENTATION__SUMMARY__KO.html#autotoc_md168',1,'Infrastructure Files'],['../md_IMPLEMENTATION__SUMMARY.html#autotoc_md147',1,'Test Implementation (4 files)'],['../md_IMPLEMENTATION__SUMMARY__KO.html#autotoc_md193',1,'Test Implementation (4 files)']]],
+  ['files_20created_6',['Files Created',['../md_IMPLEMENTATION__SUMMARY.html#autotoc_md146',1,'']]],
+  ['files_20to_20stage_7',['Files to Stage',['../md_IMPLEMENTATION__SUMMARY.html#autotoc_md156',1,'']]],
+  ['fixed_8',['Fixed',['../md_CHANGELOG.html#autotoc_md62',1,'']]],
+  ['flags에_20대한_20참고사항_9',['Flags에 대한 참고사항',['../md_INTEGRATION__STATUS__KO.html#autotoc_md254',1,'']]],
+  ['flags_10',['Notes on Flags',['../md_INTEGRATION__STATUS.html#autotoc_md243',1,'']]],
+  ['for_20client_11',['for client',['../md_IMPROVEMENTS.html#autotoc_md214',1,'3. Add Connection Pooling for Client'],['../md_IMPROVEMENTS.html#autotoc_md218',1,'5. Add Reconnection Logic for Client']]],
+  ['for_20gradual_20migration_12',['Option 1: Compatibility Mode (Recommended for Gradual Migration)',['../md_MIGRATION.html#autotoc_md267',1,'']]],
+  ['for_20new_20projects_13',['Option 2: Full Migration (Recommended for New Projects)',['../md_MIGRATION.html#autotoc_md268',1,'']]],
+  ['found_14',['found',['../md_MIGRATION.html#autotoc_md310',1,'Issue 2: namespace &apos;network_module&apos; Not Found'],['../md_MIGRATION.html#autotoc_md312',1,'Issue 4: ASIO Not Found']]],
+  ['framework_202_20files_15',['framework 2 files',['../md_IMPLEMENTATION__SUMMARY.html#autotoc_md148',1,'Framework (2 files)'],['../md_IMPLEMENTATION__SUMMARY__KO.html#autotoc_md194',1,'Framework (2 files)']]],
+  ['framework_20files_16',['framework files',['../md_IMPLEMENTATION__SUMMARY.html#autotoc_md123',1,'1. Framework Files'],['../md_IMPLEMENTATION__SUMMARY__KO.html#autotoc_md169',1,'1. Framework Files']]],
+  ['from_20legacy_20messaging_5fsystem_17',['From Legacy messaging_system',['../index.html#migration_from_legacy',1,'']]],
+  ['from_20messaging_5fsystem_18',['[0.9.0] - 2025-09-15 (Pre-separation from messaging_system)',['../md_CHANGELOG.html#autotoc_md65',1,'']]],
+  ['full_20migration_20recommended_20for_20new_20projects_19',['Option 2: Full Migration (Recommended for New Projects)',['../md_MIGRATION.html#autotoc_md268',1,'']]],
+  ['functional_20tests_20',['Functional Tests',['../md_MIGRATION.html#autotoc_md328',1,'']]],
+  ['functionality_21',['Step 4.3: Verify Functionality',['../md_MIGRATION.html#autotoc_md298',1,'']]],
+  ['functions_22',['Issue 1: Undefined Reference to network_system Functions',['../md_MIGRATION.html#autotoc_md309',1,'']]],
+  ['future_20enhancements_23',['Future Enhancements',['../md_UDP__SUPPORT.html#autotoc_md571',1,'']]]
+];

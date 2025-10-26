@@ -1,0 +1,25 @@
+var searchData=
+[
+  ['3_201_3a_20choose_20your_20migration_20strategy_0',['Step 3.1: Choose Your Migration Strategy',['../md_MIGRATION.html#autotoc_md289',1,'']]],
+  ['3_202_3a_20update_20includes_1',['Step 3.2: Update Includes',['../md_MIGRATION.html#autotoc_md290',1,'']]],
+  ['3_203_3a_20update_20namespace_20references_2',['Step 3.3: Update Namespace References',['../md_MIGRATION.html#autotoc_md291',1,'']]],
+  ['3_204_3a_20add_20initialization_20code_3',['Step 3.4: Add Initialization Code',['../md_MIGRATION.html#autotoc_md292',1,'']]],
+  ['3_205_3a_20update_20api_20calls_20if_20using_20modern_20api_4',['Step 3.5: Update API Calls (If Using Modern API)',['../md_MIGRATION.html#autotoc_md293',1,'']]],
+  ['3_20add_20connection_20pooling_20for_20client_5',['3. Add Connection Pooling for Client',['../md_IMPROVEMENTS.html#autotoc_md214',1,'']]],
+  ['3_20async_20operation_20handling_6',['3 async operation handling',['../md_IMPLEMENTATION__SUMMARY.html#autotoc_md133',1,'3. Async Operation Handling'],['../md_IMPLEMENTATION__SUMMARY__KO.html#autotoc_md179',1,'3. Async Operation Handling']]],
+  ['3_20ci_20cd_20pipeline_7',['3 ci cd pipeline',['../md_IMPLEMENTATION__SUMMARY.html#autotoc_md125',1,'3. CI/CD Pipeline'],['../md_IMPLEMENTATION__SUMMARY__KO.html#autotoc_md171',1,'3. CI/CD Pipeline']]],
+  ['3_20client용_20connection_20pooling_20추가_8',['3. Client용 Connection Pooling 추가',['../md_IMPROVEMENTS__KO.html#autotoc_md229',1,'']]],
+  ['3_20files_9',['3 files',['../md_IMPLEMENTATION__SUMMARY.html#autotoc_md149',1,'Build &amp; CI (3 files)'],['../md_IMPLEMENTATION__SUMMARY__KO.html#autotoc_md195',1,'Build &amp; CI (3 files)']]],
+  ['3_20network_20performance_20tests_2010_20tests_10',['3 network performance tests 10 tests',['../md_IMPLEMENTATION__SUMMARY.html#autotoc_md120',1,'3. Network Performance Tests (10 tests)'],['../md_IMPLEMENTATION__SUMMARY__KO.html#autotoc_md166',1,'3. Network Performance Tests (10 tests)']]],
+  ['3_20udp_20client_11',['3. UDP Client',['../md_UDP__SUPPORT.html#autotoc_md559',1,'']]],
+  ['3_3a_20오류_20처리_2075_2080_20완료_20핵심_20api_20마이그레이션_20완료_20✅_12',['Phase 3: 오류 처리 (75-80% 완료) - 핵심 API 마이그레이션 완료 ✅',['../md_README__KO.html#autotoc_md530',1,'']]],
+  ['3_3a_20basic_20connectivity_13',['Test 3: Basic Connectivity',['../md_MIGRATION.html#autotoc_md329',1,'']]],
+  ['3_3a_20c_2020_20compiler_20errors_14',['Issue 3: C++20 Compiler Errors',['../md_MIGRATION.html#autotoc_md311',1,'']]],
+  ['3_3a_20configure_20network_20system_20build_15',['Step 2.3: Configure Network System Build',['../md_MIGRATION.html#autotoc_md286',1,'']]],
+  ['3_3a_20error_20handling_2075_2080_20complete_20core_20api_20migration_20complete_20✅_16',['Phase 3: Error Handling (75-80% Complete) - Core API Migration Complete ✅',['../md_README.html#autotoc_md444',1,'']]],
+  ['3_3a_20update_20code_17',['Phase 3: Update Code',['../md_MIGRATION.html#autotoc_md288',1,'']]],
+  ['3_3a_20update_20namespace_20references_18',['Step 3.3: Update Namespace References',['../md_MIGRATION.html#autotoc_md291',1,'']]],
+  ['3_3a_20update_20namespace_20usage_19',['Step 3: Update Namespace Usage',['../md_STRUCTURE.html#autotoc_md546',1,'']]],
+  ['3_3a_20verify_20functionality_20',['Step 4.3: Verify Functionality',['../md_MIGRATION.html#autotoc_md298',1,'']]],
+  ['3_3a_20verify_20prerequisites_21',['Step 1.3: Verify Prerequisites',['../md_MIGRATION.html#autotoc_md281',1,'']]]
+];

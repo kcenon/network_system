@@ -1,0 +1,25 @@
+var searchData=
+[
+  ['ecosystem_20integration_0',['Ecosystem Integration',['../md_README.html#autotoc_md433',1,'']]],
+  ['ecosystem_20inter_20dependencies_1',['🔗 Project Ecosystem &amp; Inter-Dependencies',['../md_README.html#autotoc_md363',1,'']]],
+  ['ecosystem_20strong_20✅_2',['&lt;strong&gt;Integration Ecosystem&lt;/strong&gt; ✅',['../md_README.html#autotoc_md421',1,'']]],
+  ['efficiency_3',['efficiency',['../md_BASELINE.html#autotoc_md12',1,'Memory Efficiency'],['../md_README.html#autotoc_md381',1,'Memory Efficiency']]],
+  ['end_20to_20end_20scenario_4',['Test 8: End-to-End Scenario',['../md_MIGRATION.html#autotoc_md336',1,'']]],
+  ['enhancements_5',['Future Enhancements',['../md_UDP__SUPPORT.html#autotoc_md571',1,'']]],
+  ['enterprise_20ready_20features_20strong_6',['📈 &lt;strong&gt;Enterprise-Ready Features&lt;/strong&gt;',['../md_README.html#autotoc_md374',1,'']]],
+  ['error_20handling_7',['Error Handling',['../md_UDP__SUPPORT.html#autotoc_md566',1,'']]],
+  ['error_20handling_2075_2080_20complete_20core_20api_20migration_20complete_20✅_8',['Phase 3: Error Handling (75-80% Complete) - Core API Migration Complete ✅',['../md_README.html#autotoc_md444',1,'']]],
+  ['error_20handling_20core_20api_20migration_20complete_2075_2080_20complete_9',['Error Handling (Core API Migration Complete - 75-80% Complete)',['../md_README.html#autotoc_md442',1,'']]],
+  ['error_20handling_20tests_2018_20tests_10',['error handling tests 18 tests',['../md_IMPLEMENTATION__SUMMARY__KO.html#autotoc_md167',1,'4. Error Handling Tests (18 tests)'],['../md_IMPLEMENTATION__SUMMARY.html#autotoc_md121',1,'4. Error Handling Tests (18 tests)']]],
+  ['error_20handling_20with_20result_20t_11',['Error Handling with Result&lt;T&gt;',['../md_README.html#autotoc_md407',1,'']]],
+  ['errors_12',['Issue 3: C++20 Compiler Errors',['../md_MIGRATION.html#autotoc_md311',1,'']]],
+  ['examples_13',['examples',['../md_README.html#autotoc_md399',1,'📝 API Examples'],['../md_STRUCTURE.html#autotoc_md549',1,'🔗 Integration Examples'],['../md_README.html#autotoc_md392',1,'🚀 Quick Start &amp; Usage Examples'],['../md_MIGRATION.html#autotoc_md300',1,'Before and After Examples'],['../index.html#usage_sec',1,'Usage Examples']]],
+  ['excellence_20strong_14',['🚀 &lt;strong&gt;Performance Excellence&lt;/strong&gt;',['../md_README.html#autotoc_md370',1,'']]],
+  ['excellence_20strong_20✅_15',['&lt;strong&gt;Performance Excellence&lt;/strong&gt; ✅',['../md_README.html#autotoc_md420',1,'']]],
+  ['existing_20application_20tests_16',['Test 7: Existing Application Tests',['../md_MIGRATION.html#autotoc_md335',1,'']]],
+  ['existing_20tests_17',['Integration with Existing Tests',['../md_IMPLEMENTATION__SUMMARY.html#autotoc_md151',1,'']]],
+  ['expectations_18',['Performance Expectations',['../md_MIGRATION.html#autotoc_md342',1,'']]],
+  ['expected_19',['Issue 8: Lower Throughput Than Expected',['../md_MIGRATION.html#autotoc_md318',1,'']]],
+  ['expected_20output_20intel_20i7_2012700k_20',['Expected Output (Intel i7-12700K)',['../md_BASELINE.html#autotoc_md23',1,'']]],
+  ['external_20project_20integration_20status_21',['external project integration status',['../md_INTEGRATION__STATUS__KO.html',1,'External Project Integration Status'],['../md_INTEGRATION__STATUS.html',1,'External Project Integration Status']]]
+];
