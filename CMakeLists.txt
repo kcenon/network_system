@@ -123,6 +123,7 @@ add_library(NetworkSystem
     src/utils/resilient_client.cpp
     src/utils/health_monitor.cpp
     src/utils/buffer_pool.cpp
+    src/utils/compression_pipeline.cpp
 
     # Basic integration layer (always built - no external dependencies)
     src/integration/logger_integration.cpp
@@ -133,6 +134,7 @@ add_library(NetworkSystem
 
 # TLS/SSL support (conditional)
 option(BUILD_TLS_SUPPORT "Build with TLS/SSL support for secure messaging" ON)
+option(BUILD_LZ4_COMPRESSION "Build with LZ4 compression support" ON)
 
 if(BUILD_TLS_SUPPORT)
     target_sources(NetworkSystem PRIVATE
@@ -178,6 +180,37 @@ if(BUILD_WEBSOCKET_SUPPORT)
     endif()
 
     message(STATUS "WebSocket support enabled")
+endif()
+
+# LZ4 compression support (conditional)
+if(BUILD_LZ4_COMPRESSION)
+    find_package(PkgConfig QUIET)
+    if(PkgConfig_FOUND)
+        pkg_check_modules(LZ4 QUIET liblz4)
+    endif()
+
+    if(LZ4_FOUND)
+        target_compile_definitions(NetworkSystem PUBLIC BUILD_LZ4_COMPRESSION)
+        target_include_directories(NetworkSystem PRIVATE ${LZ4_INCLUDE_DIRS})
+        target_link_libraries(NetworkSystem PRIVATE ${LZ4_LIBRARIES})
+        message(STATUS "LZ4 compression enabled")
+        message(STATUS "  LZ4 version: ${LZ4_VERSION}")
+    else()
+        # Try to find lz4 library directly
+        find_library(LZ4_LIBRARY NAMES lz4)
+        find_path(LZ4_INCLUDE_DIR NAMES lz4.h)
+
+        if(LZ4_LIBRARY AND LZ4_INCLUDE_DIR)
+            target_compile_definitions(NetworkSystem PUBLIC BUILD_LZ4_COMPRESSION)
+            target_include_directories(NetworkSystem PRIVATE ${LZ4_INCLUDE_DIR})
+            target_link_libraries(NetworkSystem PRIVATE ${LZ4_LIBRARY})
+            message(STATUS "LZ4 compression enabled")
+            message(STATUS "  LZ4 library: ${LZ4_LIBRARY}")
+        else()
+            message(WARNING "LZ4 library not found. Compression support will be disabled.")
+            message(STATUS "Install LZ4: brew install lz4 (macOS) or apt-get install liblz4-dev (Linux)")
+        endif()
+    endif()
 endif()
 
 # Set target properties
