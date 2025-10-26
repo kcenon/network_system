@@ -295,6 +295,192 @@ set_target_properties(error_handling_test PROPERTIES
 gtest_discover_tests(error_handling_test)
 
 ##################################################
+# Test Framework Library
+##################################################
+
+add_library(integration_test_framework STATIC
+    framework/memory_profiler.cpp
+    framework/result_writer.cpp
+)
+
+target_include_directories(integration_test_framework PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/framework
+    ${CMAKE_SOURCE_DIR}/include
+)
+
+target_link_libraries(integration_test_framework PUBLIC
+    Threads::Threads
+)
+
+# Setup ASIO and FMT integration for framework library
+setup_asio_integration(integration_test_framework)
+setup_fmt_integration(integration_test_framework)
+
+set_target_properties(integration_test_framework PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON
+)
+
+##################################################
+# TCP Load Tests
+##################################################
+
+add_executable(tcp_load_test
+    performance/tcp_load_test.cpp
+)
+
+target_include_directories(tcp_load_test PRIVATE
+    ${INTEGRATION_TEST_INCLUDE_DIRS}
+)
+
+target_link_libraries(tcp_load_test PRIVATE
+    NetworkSystem
+    integration_test_framework
+    GTest::gtest
+    GTest::gtest_main
+    Threads::Threads
+)
+
+setup_asio_integration(tcp_load_test)
+setup_fmt_integration(tcp_load_test)
+
+if(CONTAINER_SYSTEM_INCLUDE_DIR)
+    target_include_directories(tcp_load_test PRIVATE ${CONTAINER_SYSTEM_INCLUDE_DIR})
+endif()
+
+if(THREAD_SYSTEM_INCLUDE_DIR)
+    target_include_directories(tcp_load_test PRIVATE ${THREAD_SYSTEM_INCLUDE_DIR})
+endif()
+
+if(LOGGER_SYSTEM_INCLUDE_DIR)
+    target_include_directories(tcp_load_test PRIVATE ${LOGGER_SYSTEM_INCLUDE_DIR})
+endif()
+
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(tcp_load_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+endif()
+
+if(INTEGRATION_TEST_DEFINITIONS)
+    target_compile_definitions(tcp_load_test PRIVATE
+        ${INTEGRATION_TEST_DEFINITIONS}
+    )
+endif()
+
+set_target_properties(tcp_load_test PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/integration_tests
+)
+
+gtest_discover_tests(tcp_load_test)
+
+##################################################
+# UDP Load Tests
+##################################################
+
+add_executable(udp_load_test
+    performance/udp_load_test.cpp
+)
+
+target_include_directories(udp_load_test PRIVATE
+    ${INTEGRATION_TEST_INCLUDE_DIRS}
+)
+
+target_link_libraries(udp_load_test PRIVATE
+    NetworkSystem
+    integration_test_framework
+    GTest::gtest
+    GTest::gtest_main
+    Threads::Threads
+)
+
+setup_asio_integration(udp_load_test)
+setup_fmt_integration(udp_load_test)
+
+if(CONTAINER_SYSTEM_INCLUDE_DIR)
+    target_include_directories(udp_load_test PRIVATE ${CONTAINER_SYSTEM_INCLUDE_DIR})
+endif()
+
+if(THREAD_SYSTEM_INCLUDE_DIR)
+    target_include_directories(udp_load_test PRIVATE ${THREAD_SYSTEM_INCLUDE_DIR})
+endif()
+
+if(LOGGER_SYSTEM_INCLUDE_DIR)
+    target_include_directories(udp_load_test PRIVATE ${LOGGER_SYSTEM_INCLUDE_DIR})
+endif()
+
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(udp_load_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+endif()
+
+if(INTEGRATION_TEST_DEFINITIONS)
+    target_compile_definitions(udp_load_test PRIVATE
+        ${INTEGRATION_TEST_DEFINITIONS}
+    )
+endif()
+
+set_target_properties(udp_load_test PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/integration_tests
+)
+
+gtest_discover_tests(udp_load_test)
+
+##################################################
+# WebSocket Load Tests
+##################################################
+
+add_executable(websocket_load_test
+    performance/websocket_load_test.cpp
+)
+
+target_include_directories(websocket_load_test PRIVATE
+    ${INTEGRATION_TEST_INCLUDE_DIRS}
+)
+
+target_link_libraries(websocket_load_test PRIVATE
+    NetworkSystem
+    integration_test_framework
+    GTest::gtest
+    GTest::gtest_main
+    Threads::Threads
+)
+
+setup_asio_integration(websocket_load_test)
+setup_fmt_integration(websocket_load_test)
+
+if(CONTAINER_SYSTEM_INCLUDE_DIR)
+    target_include_directories(websocket_load_test PRIVATE ${CONTAINER_SYSTEM_INCLUDE_DIR})
+endif()
+
+if(THREAD_SYSTEM_INCLUDE_DIR)
+    target_include_directories(websocket_load_test PRIVATE ${THREAD_SYSTEM_INCLUDE_DIR})
+endif()
+
+if(LOGGER_SYSTEM_INCLUDE_DIR)
+    target_include_directories(websocket_load_test PRIVATE ${LOGGER_SYSTEM_INCLUDE_DIR})
+endif()
+
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(websocket_load_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+endif()
+
+if(INTEGRATION_TEST_DEFINITIONS)
+    target_compile_definitions(websocket_load_test PRIVATE
+        ${INTEGRATION_TEST_DEFINITIONS}
+    )
+endif()
+
+set_target_properties(websocket_load_test PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/integration_tests
+)
+
+gtest_discover_tests(websocket_load_test)
+
+##################################################
 # Test Summary
 ##################################################
 
@@ -304,5 +490,8 @@ message(STATUS "  Connection Lifecycle Tests: Enabled")
 message(STATUS "  Protocol Integration Tests: Enabled")
 message(STATUS "  Network Performance Tests: Enabled")
 message(STATUS "  Error Handling Tests: Enabled")
-message(STATUS "  Total Test Suites: 4")
+message(STATUS "  TCP Load Tests: Enabled")
+message(STATUS "  UDP Load Tests: Enabled")
+message(STATUS "  WebSocket Load Tests: Enabled")
+message(STATUS "  Total Test Suites: 7")
 message(STATUS "========================================")

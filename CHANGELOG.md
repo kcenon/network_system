@@ -13,10 +13,146 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Planned
 - C++20 coroutine full integration
-- WebSocket protocol support
 - HTTP/2 and HTTP/3 support
 - TLS 1.3 support
 - Advanced load balancing algorithms
+
+---
+
+## [1.2.0] - 2025-10-26
+
+### Added
+- **Network Load Testing Framework**: Comprehensive infrastructure for real network performance measurement
+  - **Memory Profiler**: Cross-platform memory usage tracking
+    - `MemoryProfiler`: RSS/heap/VM measurement for Linux, macOS, and Windows
+    - Platform-specific implementations using /proc, task_info(), and GetProcessMemoryInfo()
+    - Memory delta calculation for before/after comparisons
+
+  - **Result Writer**: Performance metrics serialization
+    - JSON and CSV output formats for test results
+    - ISO 8601 timestamp generation
+    - Structured data for latency (P50/P95/P99), throughput, and memory metrics
+
+  - **TCP Load Tests**: End-to-end TCP performance testing
+    - Throughput tests for 64B, 1KB, and 64KB messages
+    - Concurrent connection tests (10 and 50 clients)
+    - Round-trip latency measurement
+    - Memory consumption tracking
+
+  - **UDP Load Tests**: UDP protocol performance validation
+    - Throughput tests for 64B, 512B, and 1KB datagrams
+    - Packet loss detection and success rate tracking
+    - Burst send performance (100 messages per burst)
+    - Concurrent client tests (10 and 50 clients)
+
+  - **WebSocket Load Tests**: WebSocket protocol benchmarking
+    - Text and binary message throughput tests
+    - Ping/pong latency measurement
+    - Concurrent connection handling (10 clients)
+    - Frame overhead analysis
+
+- **CI/CD Automation**:
+  - **GitHub Actions Workflow**: Automated load testing pipeline
+    - Weekly scheduled runs (Sunday 00:00 UTC)
+    - Manual trigger with baseline update option
+    - Multi-platform support (Ubuntu 22.04, macOS 13, Windows 2022)
+    - Automatic artifact upload with 90-day retention
+
+  - **Metrics Collection Script**: Python-based result aggregation
+    - `collect_metrics.py`: Parse and combine JSON results from all protocols
+    - Summary statistics generation
+    - Platform and compiler metadata tracking
+
+  - **Baseline Update Script**: Automated documentation updates
+    - `update_baseline.py`: Insert real network metrics into BASELINE.md
+    - Per-platform result tracking
+    - Dry-run mode for preview
+    - Automated PR creation for baseline changes
+
+- **Documentation**:
+  - **Load Test Guide**: Comprehensive 400+ line testing documentation
+    - Test structure and methodology
+    - Result interpretation guide
+    - Performance expectations per protocol
+    - Troubleshooting section
+    - Advanced profiling techniques
+
+  - **Baseline Updates**: Real network performance sections
+    - Added "Real Network Performance Metrics" to BASELINE.md and BASELINE_KO.md
+    - Load test infrastructure documentation
+    - Methodology and expected metrics sections
+
+  - **README Updates**: Performance and testing sections
+    - Synthetic benchmarks section
+    - Real network load tests section
+    - Automated baseline collection instructions
+    - Updated documentation table with Load Test Guide
+
+### Changed
+- Updated Phase 0 checklist in BASELINE.md to reflect completed load testing infrastructure
+- Reorganized integration test CMakeLists.txt with framework library
+- Updated test suite count from 4 to 7 (added TCP, UDP, WebSocket load tests)
+
+### Technical Details
+- All load tests use localhost loopback for consistent measurements
+- Tests automatically skip in CI environments to avoid timing-related flakiness
+- Memory profiling uses platform-native APIs for accurate measurements
+- Results include P50/P95/P99 latency percentiles for detailed analysis
+
+---
+
+## [1.1.0] - 2025-10-26
+
+### Added
+- **WebSocket Protocol Support (RFC 6455)**: Full-featured WebSocket client and server implementation
+  - **messaging_ws_client**: High-level WebSocket client API
+    - Text and binary message support
+    - Configurable connection parameters (host, port, path, headers)
+    - Automatic ping/pong keepalive mechanism
+    - Graceful close handshake
+    - Event callbacks for connection, disconnection, messages, and errors
+
+  - **messaging_ws_server**: High-level WebSocket server API
+    - Multi-client connection management
+    - Broadcast support for all connected clients
+    - Per-connection message handling
+    - Session management with connection limits
+    - Event callbacks for new connections, disconnections, and messages
+
+  - **websocket_socket**: Low-level WebSocket framing layer
+    - Built on top of existing tcp_socket infrastructure
+    - WebSocket handshake (HTTP/1.1 Upgrade)
+    - Frame encoding/decoding with masking support
+    - Message fragmentation and reassembly
+    - Control frame handling (ping, pong, close)
+
+  - **websocket_protocol**: Protocol state machine
+    - RFC 6455 compliant frame processing
+    - UTF-8 validation for text messages
+    - Automatic pong response to ping frames
+    - Close code handling with graceful shutdown
+
+  - **ws_session_manager**: WebSocket connection lifecycle management
+    - Thread-safe connection tracking with shared_mutex
+    - Connection limit enforcement
+    - Backpressure signaling when threshold exceeded
+    - Automatic connection ID generation
+    - Connection metrics (total accepted, total rejected, active count)
+
+- **Documentation**:
+  - README.md updated with WebSocket features and usage examples
+  - README_KO.md updated with Korean documentation
+  - Architecture diagrams updated to include WebSocket components
+  - API examples for both TCP and WebSocket protocols
+
+### Changed
+- Moved WebSocket support from "Planned Features" to "Core Features"
+- Updated architecture diagrams to show WebSocket layer integration
+
+### Security
+- Frame masking for client-to-server communication (RFC 6455 requirement)
+- UTF-8 validation for text frames to prevent malformed data
+- Connection limits via ws_session_manager to prevent resource exhaustion
 
 ---
 
@@ -115,7 +251,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 | Version | Release Date | C++ Standard | CMake Minimum | Status |
 |---------|--------------|--------------|---------------|---------|
-| 1.0.0   | 2025-10-22   | C++20        | 3.16          | Current |
+| 1.2.0   | 2025-10-26   | C++20        | 3.16          | Current |
+| 1.1.0   | 2025-10-26   | C++20        | 3.16          | Stable |
+| 1.0.0   | 2025-10-22   | C++20        | 3.16          | Stable |
 | 0.9.0   | 2025-09-15   | C++20        | 3.16          | Legacy (part of messaging_system) |
 
 ---
@@ -158,4 +296,4 @@ See [MIGRATION.md](MIGRATION.md) for detailed migration instructions.
 
 ---
 
-**Last Updated:** 2025-10-22
+**Last Updated:** 2025-10-26

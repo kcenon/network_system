@@ -1,0 +1,275 @@
+name: Network Load Tests
+
+on:
+  schedule:
+    # Run weekly on Sunday at 00:00 UTC (09:00 KST Monday)
+    - cron: '0 0 * * 0'
+  workflow_dispatch:
+    inputs:
+      update_baseline:
+        description: 'Update BASELINE.md with results'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+
+env:
+  BUILD_TYPE: Release
+
+jobs:
+  load-tests-ubuntu:
+    name: Load Tests (Ubuntu)
+    runs-on: ubuntu-22.04
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y cmake ninja-build g++-11
+
+    - name: Configure CMake
+      run: |
+        cmake -B build -G Ninja \
+          -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
+          -DCMAKE_CXX_COMPILER=g++-11 \
+          -DBUILD_TESTS=ON \
+          -DBUILD_BENCHMARKS=OFF \
+          -DBUILD_EXAMPLES=OFF
+
+    - name: Build
+      run: cmake --build build --config ${{ env.BUILD_TYPE }}
+
+    - name: Run TCP Load Tests
+      run: |
+        ./build/bin/integration_tests/tcp_load_test --gtest_output=json:tcp_load_results.json
+      continue-on-error: true
+
+    - name: Run UDP Load Tests
+      run: |
+        ./build/bin/integration_tests/udp_load_test --gtest_output=json:udp_load_results.json
+      continue-on-error: true
+
+    - name: Run WebSocket Load Tests
+      run: |
+        ./build/bin/integration_tests/websocket_load_test --gtest_output=json:websocket_load_results.json
+      continue-on-error: true
+
+    - name: Collect performance metrics
+      run: |
+        python3 scripts/collect_metrics.py \
+          --tcp-json tcp_64b_results.json \
+          --udp-json udp_64b_results.json \
+          --websocket-json websocket_text_64b_results.json \
+          --output metrics_ubuntu.json
+      continue-on-error: true
+
+    - name: Upload performance results
+      uses: actions/upload-artifact@v4
+      with:
+        name: performance-results-ubuntu
+        path: |
+          *_results.json
+          metrics_ubuntu.json
+        retention-days: 90
+
+    - name: Update baseline (if requested)
+      if: github.event.inputs.update_baseline == 'true'
+      run: |
+        python3 scripts/update_baseline.py \
+          --metrics metrics_ubuntu.json \
+          --baseline docs/BASELINE.md \
+          --platform ubuntu-22.04
+
+    - name: Create Pull Request (if baseline updated)
+      if: github.event.inputs.update_baseline == 'true'
+      uses: peter-evans/create-pull-request@v5
+      with:
+        commit-message: "perf: update network performance baseline (Ubuntu)"
+        title: "Update Network Performance Baseline (Ubuntu)"
+        body: |
+          ## Performance Baseline Update
+
+          This PR updates the network performance baseline with new load test results.
+
+          **Platform:** Ubuntu 22.04
+          **Test Date:** ${{ github.run_id }}
+
+          Please review the changes to ensure the performance metrics are acceptable.
+        branch: perf/update-baseline-ubuntu
+        delete-branch: true
+
+  load-tests-macos:
+    name: Load Tests (macOS)
+    runs-on: macos-13
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Install dependencies
+      run: |
+        brew install cmake ninja
+
+    - name: Configure CMake
+      run: |
+        cmake -B build -G Ninja \
+          -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
+          -DBUILD_TESTS=ON \
+          -DBUILD_BENCHMARKS=OFF \
+          -DBUILD_EXAMPLES=OFF
+
+    - name: Build
+      run: cmake --build build --config ${{ env.BUILD_TYPE }}
+
+    - name: Run TCP Load Tests
+      run: |
+        ./build/bin/integration_tests/tcp_load_test --gtest_output=json:tcp_load_results.json
+      continue-on-error: true
+
+    - name: Run UDP Load Tests
+      run: |
+        ./build/bin/integration_tests/udp_load_test --gtest_output=json:udp_load_results.json
+      continue-on-error: true
+
+    - name: Run WebSocket Load Tests
+      run: |
+        ./build/bin/integration_tests/websocket_load_test --gtest_output=json:websocket_load_results.json
+      continue-on-error: true
+
+    - name: Collect performance metrics
+      run: |
+        python3 scripts/collect_metrics.py \
+          --tcp-json tcp_64b_results.json \
+          --udp-json udp_64b_results.json \
+          --websocket-json websocket_text_64b_results.json \
+          --output metrics_macos.json
+      continue-on-error: true
+
+    - name: Upload performance results
+      uses: actions/upload-artifact@v4
+      with:
+        name: performance-results-macos
+        path: |
+          *_results.json
+          metrics_macos.json
+        retention-days: 90
+
+    - name: Update baseline (if requested)
+      if: github.event.inputs.update_baseline == 'true'
+      run: |
+        python3 scripts/update_baseline.py \
+          --metrics metrics_macos.json \
+          --baseline docs/BASELINE.md \
+          --platform macos-13
+
+    - name: Create Pull Request (if baseline updated)
+      if: github.event.inputs.update_baseline == 'true'
+      uses: peter-evans/create-pull-request@v5
+      with:
+        commit-message: "perf: update network performance baseline (macOS)"
+        title: "Update Network Performance Baseline (macOS)"
+        body: |
+          ## Performance Baseline Update
+
+          This PR updates the network performance baseline with new load test results.
+
+          **Platform:** macOS 13
+          **Test Date:** ${{ github.run_id }}
+
+          Please review the changes to ensure the performance metrics are acceptable.
+        branch: perf/update-baseline-macos
+        delete-branch: true
+
+  load-tests-windows:
+    name: Load Tests (Windows)
+    runs-on: windows-2022
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Configure CMake
+      run: |
+        cmake -B build `
+          -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} `
+          -DBUILD_TESTS=ON `
+          -DBUILD_BENCHMARKS=OFF `
+          -DBUILD_EXAMPLES=OFF
+
+    - name: Build
+      run: cmake --build build --config ${{ env.BUILD_TYPE }}
+
+    - name: Run TCP Load Tests
+      run: |
+        ./build/bin/integration_tests/${{ env.BUILD_TYPE }}/tcp_load_test.exe --gtest_output=json:tcp_load_results.json
+      continue-on-error: true
+      shell: pwsh
+
+    - name: Run UDP Load Tests
+      run: |
+        ./build/bin/integration_tests/${{ env.BUILD_TYPE }}/udp_load_test.exe --gtest_output=json:udp_load_results.json
+      continue-on-error: true
+      shell: pwsh
+
+    - name: Run WebSocket Load Tests
+      run: |
+        ./build/bin/integration_tests/${{ env.BUILD_TYPE }}/websocket_load_test.exe --gtest_output=json:websocket_load_results.json
+      continue-on-error: true
+      shell: pwsh
+
+    - name: Collect performance metrics
+      run: |
+        python scripts/collect_metrics.py `
+          --tcp-json tcp_64b_results.json `
+          --udp-json udp_64b_results.json `
+          --websocket-json websocket_text_64b_results.json `
+          --output metrics_windows.json
+      continue-on-error: true
+      shell: pwsh
+
+    - name: Upload performance results
+      uses: actions/upload-artifact@v4
+      with:
+        name: performance-results-windows
+        path: |
+          *_results.json
+          metrics_windows.json
+        retention-days: 90
+
+    - name: Update baseline (if requested)
+      if: github.event.inputs.update_baseline == 'true'
+      run: |
+        python scripts/update_baseline.py `
+          --metrics metrics_windows.json `
+          --baseline docs/BASELINE.md `
+          --platform windows-2022
+      shell: pwsh
+
+    - name: Create Pull Request (if baseline updated)
+      if: github.event.inputs.update_baseline == 'true'
+      uses: peter-evans/create-pull-request@v5
+      with:
+        commit-message: "perf: update network performance baseline (Windows)"
+        title: "Update Network Performance Baseline (Windows)"
+        body: |
+          ## Performance Baseline Update
+
+          This PR updates the network performance baseline with new load test results.
+
+          **Platform:** Windows 2022
+          **Test Date:** ${{ github.run_id }}
+
+          Please review the changes to ensure the performance metrics are acceptable.
+        branch: perf/update-baseline-windows
+        delete-branch: true

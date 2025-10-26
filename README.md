@@ -9,11 +9,11 @@
 
 ## Overview
 
-The Network System Project is a production-ready, high-performance C++20 asynchronous network library designed to provide enterprise-grade networking capabilities for distributed systems and messaging applications. Originally separated from messaging_system for enhanced modularity, it delivers exceptional performance with 305K+ messages/second throughput while maintaining full backward compatibility and seamless ecosystem integration.
+The Network System Project is an actively developed C++20 asynchronous network library that focuses on reusable transport primitives for distributed systems and messaging applications. It originated inside messaging_system and was extracted for better modularity; the API is usable today, but performance guarantees are still being characterized and the feature set continues to evolve.
 
-> **🏗️ Modular Architecture**: High-performance asynchronous network library with zero-copy pipeline, connection pooling, and C++20 coroutine support.
+> **🏗️ Modular Architecture**: Coroutine-friendly asynchronous network library with a pluggable protocol stack; roadmap items such as zero-copy pipelines and connection pooling are tracked in IMPROVEMENTS.md but are not implemented yet.
 
-> **✅ Latest Updates**: Complete independence from messaging_system, enhanced performance optimization, comprehensive integration ecosystem, and production-ready deployment. All CI/CD pipelines green across platforms.
+> **✅ Latest Updates**: Completed separation from messaging_system plus expanded documentation and integration hooks. GitHub Actions workflows for build, code quality, coverage, and docs are defined—check the repository dashboard for their latest statuses.
 
 ## 🔗 Project Ecosystem & Inter-Dependencies
 
@@ -69,11 +69,11 @@ This network system is a foundational component separated from messaging_system 
 ```
 
 ### Integration Benefits
-- **Universal transport layer**: High-performance networking for all ecosystem components
-- **Zero-dependency modular design**: Can be used independently or as part of larger systems
-- **Backward compatibility**: Seamless migration path from legacy messaging_system integration
-- **Performance-optimized**: 305K+ msg/s throughput with sub-microsecond latency
-- **Cross-platform support**: Windows, Linux, macOS with consistent performance
+- **Universal transport layer**: Shared networking foundation for all ecosystem components
+- **Zero-dependency modular design**: Can be used independently or alongside other systems
+- **Backward compatibility**: Migration path provided through the compatibility bridge
+- **Performance instrumentation**: Google Benchmark micro-suites for serialization and session hot paths
+- **Cross-platform support**: Windows, Linux, macOS builds validated in CI workflows
 
 > 📖 **[Complete Architecture Guide](docs/ARCHITECTURE.md)**: Comprehensive documentation of the entire ecosystem architecture, dependency relationships, and integration patterns.
 
@@ -82,18 +82,18 @@ This network system is a foundational component separated from messaging_system 
 This project addresses the fundamental challenge faced by developers worldwide: **making high-performance network programming accessible, modular, and reliable**. Traditional network libraries often tightly couple with specific frameworks, lack comprehensive async support, and provide insufficient performance for high-throughput applications. Our mission is to provide a comprehensive solution that:
 
 - **Eliminates tight coupling** through modular design enabling independent usage across projects
-- **Maximizes performance** through zero-copy pipelines, connection pooling, and async I/O optimization
+- **Maximizes performance** by continuously profiling serialization, session, and connection hot paths; zero-copy pipelines and connection pooling remain on the roadmap
 - **Ensures reliability** through comprehensive error handling, connection lifecycle management, and fault tolerance
 - **Promotes reusability** through clean interfaces and ecosystem integration capabilities
-- **Accelerates development** by providing production-ready networking with minimal setup
+- **Accelerates development** by providing ready-to-use async primitives, integration helpers, and extensive documentation
 
 ## Core Advantages & Benefits
 
-### 🚀 **Performance Excellence**
-- **Ultra-high throughput**: 305K+ messages/second average, 769K+ msg/s for small messages
-- **Zero-copy pipeline**: Direct memory mapping for maximum efficiency
-- **Async I/O optimization**: ASIO-based non-blocking operations with C++20 coroutines
-- **Connection pooling**: Intelligent connection reuse and lifecycle management
+### 🚀 **Performance Focus**
+- **Synthetic profiling**: Google Benchmark suites (`benchmarks/`) capture serialization, mock connection, and session hot paths
+- **Async I/O foundation**: ASIO-based non-blocking operations with C++20 coroutine-ready helpers
+- **Move-aware APIs**: `std::vector<uint8_t>` buffers are moved into the send path to avoid extra copies before pipeline transforms
+- **Roadmap items**: True zero-copy pipelines and connection pooling are tracked in IMPROVEMENTS.md
 
 ### 🛡️ **Production-Grade Reliability**
 - **Modular independence**: Zero external dependencies beyond standard libraries
@@ -103,7 +103,7 @@ This project addresses the fundamental challenge faced by developers worldwide: 
 
 ### 🔧 **Developer Productivity**
 - **Intuitive API design**: Clean, self-documenting interfaces reduce learning curve
-- **Backward compatibility**: 100% compatibility with legacy messaging_system code
+- **Backward compatibility**: Compatibility bridge and namespace aliases for migrating legacy messaging_system code (see `include/network_system/integration/messaging_bridge.h`)
 - **Rich integration**: Seamless integration with thread, container, and logger systems
 - **Modern C++ features**: C++20 coroutines, concepts, and ranges support
 
@@ -131,55 +131,22 @@ This project addresses the fundamental challenge faced by developers worldwide: 
 
 ### 📊 **Performance Benchmarks**
 
-> **Measurement Environment**: Intel i7-12700K @ 3.8GHz, 32GB RAM, Ubuntu 22.04, GCC 11 with `-O3`
-> **Test Date**: 2025-10-09
-> **Network**: Loopback interface (localhost)
-> **Framework**: Google Benchmark 1.8.3
+The current benchmark suite under `benchmarks/` focuses on CPU-only workflows such as message allocation/copy (`benchmarks/message_throughput_bench.cpp:12-183`), mocked connections (`benchmarks/connection_bench.cpp:15-197`), and session bookkeeping (`benchmarks/session_bench.cpp:1-176`). These programs do not open sockets or transfer real network traffic, so their throughput/latency numbers are synthetic indicators rather than production SLAs.
 
-All performance claims are measured and reproducible. See [reproduction instructions](#-reproducing-benchmarks) below.
+#### Synthetic Message Allocation Results (Intel i7-12700K, Ubuntu 22.04, GCC 11, `-O3`)
 
-#### Throughput Performance by Message Size
+| Benchmark | Payload | CPU time per op (ns) | Approx throughput | Scope |
+|-----------|---------|----------------------|-------------------|-------|
+| MessageThroughput/64B | 64 bytes | 1,300 | ~769,000 msg/s | In-memory allocation + memcpy |
+| MessageThroughput/256B | 256 bytes | 3,270 | ~305,000 msg/s | In-memory allocation + memcpy |
+| MessageThroughput/1KB | 1 KB | 7,803 | ~128,000 msg/s | In-memory allocation + memcpy |
+| MessageThroughput/8KB | 8 KB | 48,000 | ~21,000 msg/s | In-memory allocation + memcpy |
 
-| Message Size | Throughput | Latency (P50) | Best Use Case |
-|--------------|------------|---------------|---------------|
-| **64 bytes** | **769,230 msg/s** | <10μs | Control signals, heartbeats |
-| **256 bytes** | **305,255 msg/s** | 50μs | Standard messages (average) |
-| **1 KB** | **128,205 msg/s** | 100μs | Data packets |
-| **8 KB** | **20,833 msg/s** | 500μs | Large payloads |
+Connection and session benchmarks rely on mock objects (for example, `mock_connection::connect()` sleeps for 10 µs to simulate work), so previous claims about true network throughput, concurrent-connection capacity, or memory utilization have been removed until end-to-end tests are captured.
 
-**Average Performance**: 305K msg/s across mixed workload (all message sizes)
+#### 🔬 Reproducing the Synthetic Benchmarks
 
-#### Latency Characteristics
-
-- **P50 (Median)**: 50 microseconds
-- **P95**: 500 microseconds under load
-- **P99**: 2 milliseconds
-- **Average**: 584 microseconds across all message sizes
-
-*Note: Latency includes serialization, network transmission, and deserialization.*
-
-#### Concurrent Performance
-
-- **50 concurrent connections**: 12,195 msg/s stable throughput
-- **Connection establishment**: <100μs per connection
-- **Session management overhead**: <50μs per session
-
-#### Memory Efficiency
-
-- **Baseline** (idle server): <10 MB
-- **50 active connections**: 45 MB
-- **Connection pooling**: Efficient resource reuse
-
-#### Key Performance Insights
-
-- 🏃 **Scalable throughput**: Performance scales with message size and workload
-- 🏋️ **Concurrent handling**: Stable performance with multiple connections
-- ⏱️ **Low latency**: Sub-50-microsecond median latency (P50)
-- 📈 **Memory efficient**: Minimal baseline footprint with intelligent pooling
-
-#### 🔬 Reproducing Benchmarks
-
-All performance measurements can be independently verified:
+You can reproduce the CPU-only benchmarks as follows:
 
 ```bash
 # Step 1: Build with benchmarks enabled
@@ -211,24 +178,20 @@ MessageThroughput/1KB            7803 ns   7801 ns        89744   # ~128K msg/s
 MessageThroughput/8KB           48000 ns  47998 ns        14583   # ~21K msg/s
 ```
 
-**Note**: Performance varies by hardware. Run benchmarks on your target system for accurate assessment.
+**Note**: These numbers measure in-process CPU work only. Run integration or system benchmarks when you need socket I/O data.
 
-#### Performance Comparison Notes
+#### Pending Real-World Measurements
 
-We provide verified measurements of our own system. For comparing with other libraries:
-
-- ✅ **Our measurements** are based on actual benchmark runs (see above)
-- ⚠️ **Third-party library comparisons** should be conducted in your environment
-- 📊 Use identical test conditions (message sizes, connection patterns, hardware)
-- 🔧 Consider your specific use case - different libraries optimize for different scenarios
-
-We welcome contributions adding benchmark comparisons with other libraries using our framework.
+- End-to-end throughput/latency across TCP, UDP, and WebSocket transports
+- Memory footprint and GC behavior during long-lived sessions
+- TLS performance and connection pooling efficiency (features pending implementation)
+- Comparative benchmarks versus other networking libraries under identical workloads
 
 ### Core Objectives
 - **Module Independence**: Complete separation of network module from messaging_system ✅
 - **Enhanced Reusability**: Independent library usable in other projects ✅
-- **Compatibility Maintenance**: Full backward compatibility with legacy code ✅
-- **Performance Optimization**: 305K+ msg/s average throughput achieved ✅
+- **Compatibility Maintenance**: Compatibility bridge and namespace aliases for legacy messaging_system consumers; additional validation ongoing
+- **Performance Instrumentation**: Synthetic benchmarks and integration tests cover hot paths; real network throughput/latency measurements are still pending
 
 ## 🛠️ Technology Stack & Architecture
 
@@ -238,35 +201,59 @@ We welcome contributions adding benchmark comparisons with other libraries using
 - **CMake**: Build system with comprehensive dependency management
 - **Cross-Platform**: Native support for Windows, Linux, and macOS
 
+### Protocol Support
+- **TCP**: Asynchronous TCP server/client with connection lifecycle management (connection pooling planned; tracked in IMPROVEMENTS.md)
+- **UDP**: Connectionless UDP communication for real-time applications
+- **WebSocket**: Full RFC 6455 WebSocket protocol support with:
+  - Text and binary message framing
+  - Fragmentation and reassembly
+  - Ping/pong keepalive
+  - Graceful connection lifecycle
+  - Session management with connection limits
+
 ### Architecture Design
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                    Network System Architecture              │
-├─────────────────────────────────────────────────────────────┤
-│  Public API Layer                                           │
-│  ┌──────────────────────┐  ┌──────────────────────┐        │
-│  │  messaging_server    │  │  messaging_client    │        │
-│  │  (TCP Server)        │  │  (TCP Client)        │        │
-│  └──────────────────────┘  └──────────────────────┘        │
-├─────────────────────────────────────────────────────────────┤
-│  Internal Layer                                             │
-│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐           │
-│  │ tcp_socket  │ │  messaging  │ │  pipeline   │           │
-│  │             │ │  _session   │ │             │           │
-│  └─────────────┘ └─────────────┘ └─────────────┘           │
-├─────────────────────────────────────────────────────────────┤
-│  Core Network Engine (ASIO-based)                          │
-│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐           │
-│  │ io_context  │ │   async     │ │  Result<T>  │           │
-│  │             │ │  operations │ │   pattern   │           │
-│  └─────────────┘ └─────────────┘ └─────────────┘           │
-├─────────────────────────────────────────────────────────────┤
-│  Optional Integration Layer                                 │
-│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐           │
-│  │   Logger    │ │ Monitoring  │ │   Thread    │           │
-│  │  System     │ │   System    │ │   System    │           │
-│  └─────────────┘ └─────────────┘ └─────────────┘           │
-└─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│                    Network System Architecture                  │
+├─────────────────────────────────────────────────────────────────┤
+│  Public API Layer                                               │
+│  ┌──────────────┐ ┌──────────────┐ ┌──────────────────────┐    │
+│  │ messaging    │ │ messaging    │ │  messaging_ws        │    │
+│  │ _server      │ │ _client      │ │  _server / _client   │    │
+│  │ (TCP)        │ │ (TCP)        │ │  (WebSocket)         │    │
+│  └──────────────┘ └──────────────┘ └──────────────────────┘    │
+│  ┌──────────────┐ ┌──────────────┐                             │
+│  │ messaging    │ │ messaging    │                             │
+│  │ _udp_server  │ │ _udp_client  │                             │
+│  └──────────────┘ └──────────────┘                             │
+├─────────────────────────────────────────────────────────────────┤
+│  Protocol Layer                                                 │
+│  ┌──────────────┐ ┌──────────────┐ ┌──────────────────────┐    │
+│  │ tcp_socket   │ │ udp_socket   │ │ websocket_socket     │    │
+│  └──────────────┘ └──────────────┘ └──────────────────────┘    │
+│  ┌──────────────┐ ┌──────────────────────────────────────┐     │
+│  │ messaging    │ │ websocket_protocol                   │     │
+│  │ _session     │ │ (frame/handshake/message handling)   │     │
+│  └──────────────┘ └──────────────────────────────────────┘     │
+├─────────────────────────────────────────────────────────────────┤
+│  Session Management Layer                                       │
+│  ┌──────────────────┐ ┌────────────────────────────────────┐   │
+│  │ session_manager  │ │ ws_session_manager                 │   │
+│  │ (TCP)            │ │ (WebSocket connection management)  │   │
+│  └──────────────────┘ └────────────────────────────────────┘   │
+├─────────────────────────────────────────────────────────────────┤
+│  Core Network Engine (ASIO-based)                              │
+│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐              │
+│  │ io_context  │ │   async     │ │  Result<T>  │              │
+│  │             │ │  operations │ │   pattern   │              │
+│  └─────────────┘ └─────────────┘ └─────────────┘              │
+├─────────────────────────────────────────────────────────────────┤
+│  Optional Integration Layer                                     │
+│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐              │
+│  │   Logger    │ │ Monitoring  │ │   Thread    │              │
+│  │  System     │ │   System    │ │   System    │              │
+│  └─────────────┘ └─────────────┘ └─────────────┘              │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
 ### Design Patterns
@@ -369,7 +356,7 @@ int main() {
     // Wait for connection to establish
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-    // Send message (requires std::move for zero-copy)
+    // Send message (std::move avoids extra copies before the pipeline runs)
     std::string message = "Hello, Network System!";
     std::vector<uint8_t> data(message.begin(), message.end());
 
@@ -437,7 +424,7 @@ cmake --build .
 
 ## 📝 API Examples
 
-### Modern API Usage
+### TCP API Usage
 
 ```cpp
 #include <network_system/core/messaging_server.h>
@@ -459,11 +446,70 @@ if (!client_result) {
     return -1;
 }
 
-// Send message (requires std::move for zero-copy)
+// Send message (use std::move to avoid pre-pipeline copies)
 std::vector<uint8_t> data = {'H', 'e', 'l', 'l', 'o'};
 auto send_result = client->send_packet(std::move(data));
 if (!send_result) {
     std::cerr << "Send failed: " << send_result.error().message << std::endl;
+}
+```
+
+### WebSocket API Usage
+
+```cpp
+#include <network_system/core/messaging_ws_server.h>
+#include <network_system/core/messaging_ws_client.h>
+
+// WebSocket Server
+using namespace network_system::core;
+
+auto server = std::make_shared<messaging_ws_server>("ws_server");
+
+// Configure server
+ws_server_config config;
+config.port = 8080;
+config.max_connections = 100;
+config.ping_interval = std::chrono::seconds(30);
+
+auto result = server->start_server(config);
+if (!result) {
+    std::cerr << "WebSocket server failed: " << result.error().message << std::endl;
+    return -1;
+}
+
+// Broadcast text message to all connected clients
+auto broadcast_result = server->broadcast_text("Hello, WebSocket clients!");
+if (!broadcast_result) {
+    std::cerr << "Broadcast failed: " << broadcast_result.error().message << std::endl;
+}
+
+// WebSocket Client
+auto client = std::make_shared<messaging_ws_client>("ws_client");
+
+// Configure client
+ws_client_config client_config;
+client_config.host = "localhost";
+client_config.port = 8080;
+client_config.path = "/";
+client_config.auto_pong = true;  // Automatically respond to ping frames
+
+auto connect_result = client->start_client(client_config);
+if (!connect_result) {
+    std::cerr << "WebSocket client connection failed: " << connect_result.error().message << std::endl;
+    return -1;
+}
+
+// Send text message
+auto send_result = client->send_text("Hello from WebSocket client!");
+if (!send_result) {
+    std::cerr << "Send failed: " << send_result.error().message << std::endl;
+}
+
+// Send binary data
+std::vector<uint8_t> binary_data = {0x01, 0x02, 0x03, 0x04};
+auto binary_result = client->send_binary(std::move(binary_data));
+if (!binary_result) {
+    std::cerr << "Binary send failed: " << binary_result.error().message << std::endl;
 }
 ```
 
@@ -546,7 +592,7 @@ if (!result) {
     return -1;
 }
 
-// Send data (requires std::move for zero-copy)
+// Send data (std::move avoids extra copies before pipeline transforms)
 std::vector<uint8_t> data = {0x01, 0x02, 0x03};
 auto send_result = client->send_packet(std::move(data));
 if (!send_result) {
@@ -590,13 +636,13 @@ if (client->is_connected()) {
 }
 ```
 
-#### Zero-Copy Data Transfer
+#### Move-Based Data Transfer
 ```cpp
-// Move semantics for zero-copy operations
+// Move semantics avoid extra copies before the send pipeline runs
 std::vector<uint8_t> large_buffer(1024 * 1024); // 1 MB
 // ... fill buffer with data ...
 
-// Data is moved, not copied - efficient for large payloads
+// Data is moved into the send queue; pipeline transforms may still copy
 auto result = client->send_packet(std::move(large_buffer));
 // large_buffer is now empty after move
 
@@ -605,31 +651,11 @@ if (!result) {
 }
 ```
 
-## 📊 Performance Benchmarks
-
-### Latest Results
-
-| Metric | Result | Test Conditions |
-|--------|--------|-----------------|
-| **Average Throughput** | 305,255 msg/s | Mixed message sizes |
-| **Small Messages (64B)** | 769,230 msg/s | 10,000 messages |
-| **Medium Messages (1KB)** | 128,205 msg/s | 5,000 messages |
-| **Large Messages (8KB)** | 20,833 msg/s | 1,000 messages |
-| **Concurrent Connections** | 50 clients | 12,195 msg/s |
-| **Average Latency** | 584.22 μs | P50: < 50 μs |
-| **Performance Rating** | 🏆 EXCELLENT | Production ready! |
-
-### Key Performance Features
-- Zero-copy message pipeline
-- Lock-free data structures where possible
-- Connection pooling
-- Async I/O with ASIO
-- C++20 coroutine support
-
 ## 🔧 Features
 
 ### Core Features
 - ✅ Asynchronous TCP server/client
+- ✅ Asynchronous WebSocket server/client (RFC 6455)
 - ✅ Multi-threaded message processing
 - ✅ Session lifecycle management
 - ✅ Message pipeline with buffering
@@ -644,57 +670,54 @@ if (!result) {
 - ✅ Performance benchmarking suite
 
 ### Planned Features
-- 🚧 WebSocket support
 - 🚧 TLS/SSL encryption
 - 🚧 HTTP/2 client
 - 🚧 gRPC integration
 
 ## 🎯 Project Summary
 
-Network System is a **production-ready**, high-performance asynchronous network library that has been successfully separated from messaging_system to provide enhanced modularity and reusability.
+Network System is an actively maintained asynchronous network library that has been separated from messaging_system to provide enhanced modularity and reusability. The codebase already exposes TCP/UDP/WebSocket components, while several roadmap items (connection pooling, TLS, zero-copy pipelines, real-world benchmarking) remain in progress.
 
 ### 🏆 Key Achievements
 
 #### **Complete Independence** ✅
-- Fully separated from messaging_system with zero dependencies
+- Fully separated from messaging_system with zero build-time dependencies
 - Independent library suitable for integration into any C++ project
 - Clean namespace isolation (`network_system::`)
 
-#### **Backward Compatibility** ✅
-- 100% compatibility with existing messaging_system code
-- Seamless migration path through compatibility layer
-- Legacy API support maintained (`network_module::`)
+#### **Backward Compatibility** ♻️
+- Compatibility bridge (`include/network_system/integration/messaging_bridge.h`) and namespace aliases keep legacy messaging_system code building
+- Integration tests (for example, `integration_tests/scenarios/connection_lifecycle_test.cpp`) exercise migration flows
+- Additional large-scale validation is ongoing before declaring full parity
 
-#### **Performance Excellence** ✅
-- **305K+ messages/second** average throughput
-- **769K+ msg/s** for small messages (64 bytes)
-- Sub-50-microsecond median latency (P50)
-- Production-tested with 50+ concurrent connections
+#### **Performance Work in Progress** ⚙️
+- Synthetic Google Benchmark suites cover hot paths (`benchmarks/` directory)
+- Stress, integration, and performance tests exist but still collect primarily CPU-only metrics
+- Real network throughput, latency, and memory baselines are pending
 
 #### **Integration Ecosystem** ✅
-- **Thread System Integration**: Seamless thread pool management
-- **Logger System Integration**: Comprehensive logging capabilities
-- **Container System Integration**: Advanced serialization support
-- **Cross-Platform Support**: Ubuntu, Windows, macOS compatibility
+- Thread, logger, and container integrations are provided (`src/integration/`)
+- Cross-platform builds (Windows, Linux, macOS) are configured through CMake and GitHub Actions
+- Extensive documentation (architecture, migration, operations) kept alongside the codebase
 
 ### 🚀 Migration Status
 
 | Component | Status | Notes |
 |-----------|--------|-------|
-| **Core Network Library** | ✅ Complete | Independent, production-ready |
-| **Legacy API Compatibility** | ✅ Complete | Zero-breaking changes |
-| **Performance Optimization** | ✅ Complete | 305K+ msg/s achieved |
-| **Integration Interfaces** | ✅ Complete | Thread, Logger, Container systems |
-| **Documentation** | ✅ Complete | API docs, guides, examples |
-| **CI/CD Pipeline** | ✅ Complete | Multi-platform automated testing |
+| **Core Network Library** | ✅ Complete | Independent module builds standalone |
+| **Legacy API Compatibility** | ♻️ Available | Bridge + aliases provided; further validation encouraged |
+| **Performance Instrumentation** | ⚙️ In progress | Synthetic microbenchmarks only; real network metrics pending |
+| **Integration Interfaces** | ✅ Complete | Thread, Logger, Container systems wired in |
+| **Documentation** | ✅ Complete | Architecture, migration, and troubleshooting guides |
+| **CI/CD Pipeline** | ⚙️ Available | Workflow definitions exist; check GitHub for current run status |
 
 ### 📊 Impact & Benefits
 
 - **Modularity**: Independent library reduces coupling and improves maintainability
 - **Reusability**: Can be integrated into multiple projects beyond messaging_system
-- **Performance**: Significant throughput improvements over legacy implementation
-- **Compatibility**: Zero-downtime migration path for existing applications
-- **Quality**: Comprehensive test coverage and continuous integration
+- **Performance**: Profiling infrastructure in place to guide upcoming optimizations
+- **Compatibility**: Migration bridge minimizes churn for existing applications
+- **Quality**: Unit, integration, and stress suites plus CI workflows guard regressions
 
 ## 🔧 Dependencies
 
@@ -725,7 +748,57 @@ Network System is a **production-ready**, high-performance asynchronous network 
 |----------|-------------|
 | [API Reference](https://kcenon.github.io/network_system) | Doxygen-generated API documentation |
 | [Migration Guide](docs/MIGRATION_GUIDE.md) | Step-by-step migration from messaging_system |
-| [Performance Baseline](BASELINE.md) | Verified performance measurements |
+| [Performance Baseline](BASELINE.md) | Synthetic benchmarks & real network performance metrics |
+| [Load Test Guide](docs/LOAD_TEST_GUIDE.md) | Comprehensive guide for running and interpreting load tests |
+
+## 🧪 Performance & Testing
+
+### Synthetic Benchmarks
+
+CPU-only microbenchmarks using Google Benchmark:
+
+```bash
+# Build with benchmarks
+cmake -B build -DCMAKE_BUILD_TYPE=Release -DNETWORK_BUILD_BENCHMARKS=ON
+cmake --build build -j
+
+# Run benchmarks
+./build/benchmarks/network_benchmarks
+```
+
+See [BASELINE.md](BASELINE.md) for current results.
+
+### Real Network Load Tests
+
+End-to-end protocol performance testing with real socket I/O:
+
+```bash
+# Build with integration tests
+cmake -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=ON
+cmake --build build -j
+
+# Run load tests
+./build/bin/integration_tests/tcp_load_test
+./build/bin/integration_tests/udp_load_test
+./build/bin/integration_tests/websocket_load_test
+```
+
+**Metrics Collected:**
+- **Throughput**: Messages per second for various payload sizes
+- **Latency**: P50/P95/P99 percentiles for end-to-end operations
+- **Memory**: RSS/heap/VM consumption under load
+- **Concurrency**: Performance with multiple simultaneous connections
+
+**Automated Baseline Collection:**
+
+Load tests run weekly via GitHub Actions and can be triggered manually:
+
+```bash
+# Run load tests and update baseline
+gh workflow run network-load-tests.yml --field update_baseline=true
+```
+
+See [LOAD_TEST_GUIDE.md](docs/LOAD_TEST_GUIDE.md) for detailed instructions.
 
 ## 🤝 Contributing
 
@@ -789,14 +862,11 @@ This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICE
 - **Automated Testing**: Complete CI/CD pipeline with coverage reports
 
 **Performance Baselines**
-- **Average Throughput**: 305,255 messages/second (mixed workload)
-- **Peak Performance**: 769,230 msg/s for 64-byte messages
-- **Concurrent Performance**: 50 connections at 12,195 msg/s stable
-- **Latency**: P50 <50 μs, P95 <500 μs, average 584 μs
-- **Connection Establishment**: <100 μs per connection
-- **Memory Efficiency**: <10 MB baseline with linear scaling
+- **Synthetic serialization throughput**: MessageThroughput/64B reports ~1,300 ns/operation (~769K msg/s) on Intel i7-12700K
+- **Larger payloads**: MessageThroughput/8KB reports ~48,000 ns/operation (~21K msg/s) on the same hardware
+- **Connection/session metrics**: Currently rely on mock objects; real network measurements are TBD
 
-See [BASELINE.md](BASELINE.md) for comprehensive performance metrics and benchmarking details.
+See [BASELINE.md](BASELINE.md) for the latest synthetic benchmark details and the list of outstanding real-world measurements.
 
 **Complete Documentation Suite**
 - [ARCHITECTURE.md](docs/ARCHITECTURE.md): Network system design and patterns
@@ -806,39 +876,30 @@ See [BASELINE.md](BASELINE.md) for comprehensive performance metrics and benchma
 
 ### Thread Safety & Concurrency
 
-**Production-Grade Thread Safety (100% Complete)**
-- **Multi-Threaded Processing**: Thread-safe message processing with concurrent session handling
-- **ThreadSanitizer Compliance**: Zero data races detected across all test scenarios
-- **Session Management**: Concurrent session lifecycle handling with proper synchronization
-- **Lock-Free Pipeline**: Zero-copy message pipeline implementation for maximum throughput
+**Thread Safety Measures**
+- **Multi-Threaded Processing**: `messaging_server` and `messaging_client` guard shared state with atomics and mutexes (`src/core/messaging_client.cpp`)
+- **Sanitizer Workflows**: `.github/workflows/sanitizers.yml` provides TSAN/ASAN jobs, but their results depend on the latest CI runs
+- **Session Management**: `integration_tests/framework/system_fixture.h` enforces timeouts and orderly teardown for concurrent sessions
+- **Pipeline Status**: Current pipeline still copies buffers (`src/internal/pipeline.cpp`); lock-free/zero-copy implementations remain on the roadmap
 
-**Async I/O Excellence**
-- **ASIO-Based Architecture**: High-performance async I/O with proven ASIO library
-- **C++20 Coroutines**: Coroutine-based async operations for clean, efficient code
-- **Connection Pooling**: Intelligent connection reuse and lifecycle management
-- **Event-Driven**: Non-blocking event loop architecture for optimal resource utilization
+**Async I/O Architecture**
+- **ASIO-Based Design**: Async read/write loops implemented via `internal::tcp_socket` and coroutine-ready send helpers
+- **C++20 Coroutines**: Optional coroutine-based send path in `src/internal/send_coroutine.cpp`
+- **Connection Pooling**: Not yet implemented; tracked under "Add Connection Pooling for Client" in `IMPROVEMENTS.md`
+- **Event-Driven**: Non-blocking event loop architecture built on `asio::io_context`
 
 ### Resource Management (RAII - Grade A)
 
 **Comprehensive RAII Compliance**
 - **100% Smart Pointer Usage**: All resources managed through `std::shared_ptr` and `std::unique_ptr`
-- **AddressSanitizer Validation**: Zero memory leaks detected across all test scenarios
+- **Sanitizer Coverage**: Address/Leak Sanitizer jobs are included in `.github/workflows/sanitizers.yml`
 - **RAII Patterns**: Connection lifecycle wrappers, session management, socket RAII wrappers
 - **Automatic Cleanup**: Network connections, async operations, and buffer resources properly managed
 - **No Manual Memory Management**: Complete elimination of raw pointers in public interfaces
 
 **Memory Efficiency and Scalability**
-```bash
-# AddressSanitizer: Clean across all tests
-==12345==ERROR: LeakSanitizer: detected memory leaks
-# Total: 0 leaks
-
-# Memory scaling characteristics:
-Baseline: <10 MB
-Per-connection overhead: Linear scaling
-Zero-copy pipeline: Minimizes allocations
-Resource cleanup: All connections RAII-managed
-```
+- **Baseline capture pending**: Real-world memory footprints will be documented after end-to-end workload benchmarking
+- **Resource cleanup**: Connection/session objects release resources through RAII destructors (see `src/core/messaging_server.cpp`)
 
 ### Error Handling (Core API Migration Complete - 75-80% Complete)
 
