@@ -33,7 +33,7 @@ protected:
         // Initialize TCP server
         server_ = std::make_shared<messaging_server>("tcp_load_test_server");
 
-        auto result = server_->start_server(test_port_, 100);
+        auto result = server_->start_server(test_port_);
         ASSERT_TRUE(result.is_ok()) << "Failed to start server: " << result.error().message;
 
         // Wait for server to be ready
@@ -44,7 +44,7 @@ protected:
         // Stop all clients
         for (auto& client : clients_) {
             if (client) {
-                client->disconnect();
+                client->stop_client();
             }
         }
         clients_.clear();
@@ -65,7 +65,7 @@ protected:
     auto create_client(const std::string& client_id) -> std::shared_ptr<messaging_client> {
         auto client = std::make_shared<messaging_client>(client_id);
 
-        auto result = client->connect("localhost", test_port_);
+        auto result = client->start_client("localhost", test_port_);
         if (!result.is_ok()) {
             return nullptr;
         }
@@ -109,7 +109,8 @@ TEST_F(TCPLoadTest, Message_Throughput_64B) {
     for (size_t i = 0; i < num_messages; ++i) {
         auto msg_start = std::chrono::steady_clock::now();
 
-        auto result = client->send_message(std::string(message));
+        std::vector<uint8_t> data(message.begin(), message.end());
+        auto result = client->send_packet(std::move(data));
         ASSERT_TRUE(result.is_ok()) << "Send failed: " << result.error().message;
 
         auto msg_end = std::chrono::steady_clock::now();
@@ -143,7 +144,7 @@ TEST_F(TCPLoadTest, Message_Throughput_64B) {
     result.compiler = test_helpers::get_compiler_name();
 
     std::vector<PerformanceResult> results = {result};
-    writer_.write_json("tcp_64b_results.json", results);
+    [[maybe_unused]] auto write_result = writer_.write_json("tcp_64b_results.json", results);
 
     // Performance expectations (conservative for CI)
     EXPECT_GT(throughput, 1000.0) << "Throughput too low";
@@ -170,7 +171,8 @@ TEST_F(TCPLoadTest, Message_Throughput_1KB) {
 
     for (size_t i = 0; i < num_messages; ++i) {
         auto msg_start = std::chrono::steady_clock::now();
-        auto result = client->send_message(std::string(message));
+        std::vector<uint8_t> data(message.begin(), message.end());
+        auto result = client->send_packet(std::move(data));
         ASSERT_TRUE(result.is_ok());
         auto msg_end = std::chrono::steady_clock::now();
 
@@ -212,7 +214,8 @@ TEST_F(TCPLoadTest, Message_Throughput_64KB) {
 
     for (size_t i = 0; i < num_messages; ++i) {
         auto msg_start = std::chrono::steady_clock::now();
-        auto result = client->send_message(std::string(message));
+        std::vector<uint8_t> data(message.begin(), message.end());
+        auto result = client->send_packet(std::move(data));
         ASSERT_TRUE(result.is_ok());
         auto msg_end = std::chrono::steady_clock::now();
 
@@ -268,7 +271,8 @@ TEST_F(TCPLoadTest, Concurrent_Connections_10) {
     std::string test_message = "concurrent test message";
 
     for (auto& client : clients_) {
-        auto result = client->send_message(std::string(test_message));
+        std::vector<uint8_t> data(test_message.begin(), test_message.end());
+        auto result = client->send_packet(std::move(data));
         if (result.is_ok()) {
             success_count.fetch_add(1);
         }
@@ -331,7 +335,8 @@ TEST_F(TCPLoadTest, Round_Trip_Latency) {
 
     for (size_t i = 0; i < num_messages; ++i) {
         auto start = std::chrono::steady_clock::now();
-        auto result = client->send_message(std::string(test_message));
+        std::vector<uint8_t> data(test_message.begin(), test_message.end());
+        auto result = client->send_packet(std::move(data));
         auto end = std::chrono::steady_clock::now();
 
         if (result.is_ok()) {

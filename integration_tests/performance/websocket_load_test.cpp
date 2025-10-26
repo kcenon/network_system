@@ -50,7 +50,7 @@ protected:
         // Stop all clients
         for (auto& client : clients_) {
             if (client) {
-                client->disconnect();
+                client->stop_client();
             }
         }
         clients_.clear();
@@ -155,7 +155,7 @@ TEST_F(WebSocketLoadTest, Text_Message_Throughput_64B) {
     result.compiler = test_helpers::get_compiler_name();
 
     std::vector<PerformanceResult> results = {result};
-    writer_.write_json("websocket_text_64b_results.json", results);
+    [[maybe_unused]] auto write_result = writer_.write_json("websocket_text_64b_results.json", results);
 
     // Performance expectations (conservative for CI)
     EXPECT_GT(throughput, 1000.0) << "Throughput too low";

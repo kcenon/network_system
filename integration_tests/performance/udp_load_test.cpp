@@ -148,7 +148,7 @@ TEST_F(UDPLoadTest, Message_Throughput_64B) {
     result.compiler = test_helpers::get_compiler_name();
 
     std::vector<PerformanceResult> results = {result};
-    writer_.write_json("udp_64b_results.json", results);
+    [[maybe_unused]] auto write_result = writer_.write_json("udp_64b_results.json", results);
 
     // Performance expectations (UDP is typically faster than TCP)
     EXPECT_GT(throughput, 2000.0) << "Throughput too low";
