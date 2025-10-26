@@ -156,20 +156,20 @@ public:
 
 ## Medium Priority Features (P3)
 
-### 4. Zero-Copy Pipeline
+### ~~4. Zero-Copy Pipeline~~ ✅ COMPLETED
 
-**Status:** Partially Implemented
+**Status:** Implemented in v1.6.0
 **Priority:** P3
-**Estimated Effort:** 5-7 days
-**Target Version:** v1.6.0
+**Actual Effort:** 3 days
+**Completed:** 2025-01-26
 
 **Description:**
 Optimize the data pipeline to avoid unnecessary memory copies during send/receive operations.
 
-**Current Status:**
-- Move semantics are used for `send_packet()` calls
-- Pipeline still performs copies during transformations
-- No support for scatter-gather I/O
+**Implemented Features:**
+- Buffer pool for memory reuse (reduces allocations)
+- Move semantics throughout pipeline (eliminates copies)
+- In-place transformations where possible
 
 **Proposed Improvements:**
 ```cpp
@@ -251,20 +251,21 @@ public:
 
 ---
 
-### 6. Message Compression Support
+### ~~6. Message Compression Support~~ ✅ COMPLETED
 
-**Status:** Stub Implementation
+**Status:** Implemented in v1.6.0
 **Priority:** P3
-**Estimated Effort:** 4-5 days
-**Target Version:** v1.6.0
+**Actual Effort:** 2 days
+**Completed:** 2025-01-26
 
 **Description:**
-Implement actual compression in the pipeline (currently just a placeholder flag).
+Implement actual compression in the pipeline using LZ4 algorithm.
 
-**Current Status:**
-- `compress_mode_` flag exists but does nothing
-- Pipeline has compress/decompress stubs
-- No actual compression implementation
+**Implemented Features:**
+- LZ4 fast compression algorithm
+- Configurable compression threshold (default: 256 bytes)
+- Automatic fallback for small/incompressible data
+- Safe decompression with size validation
 
 **Proposed Implementation:**
 ```cpp
@@ -419,32 +420,32 @@ Built-in web dashboard for monitoring network system metrics in real-time.
 
 ### By Priority
 
-| Priority | Count | Total Effort |
-|----------|-------|--------------|
-| P2       | 3     | 19-27 days   |
-| P3       | 5     | 28-36 days   |
-| P4       | 3     | 32-43 days   |
-| **Total** | **11** | **79-106 days** |
+| Priority | Count | Completed | Remaining | Total Effort |
+|----------|-------|-----------|-----------|--------------|
+| P2       | 3     | 1         | 2         | 19-27 days   |
+| P3       | 5     | 4         | 1         | 28-36 days   |
+| P4       | 3     | 0         | 3         | 32-43 days   |
+| **Total** | **11** | **5**   | **6**     | **79-106 days** |
 
 ### By Target Version
 
-| Version | Features | Effort |
-|---------|----------|--------|
-| v1.5.0  | Reconnection Logic, Health Monitoring | 5-7 days |
-| v1.6.0  | Zero-Copy Pipeline, Compression | 9-12 days |
-| v1.7.0  | UDP Reliability Layer | 8-10 days |
-| v2.0.0  | HTTP/2, gRPC, Metrics Dashboard | 27-38 days |
-| v2.1.0+ | QUIC Protocol | 15-20 days |
+| Version | Features | Status | Effort |
+|---------|----------|--------|--------|
+| v1.5.0  | Reconnection Logic, Health Monitoring | ✅ Completed | 5 days |
+| v1.6.0  | Zero-Copy Pipeline, Compression | ✅ Completed | 5 days |
+| v1.7.0  | UDP Reliability Layer | Pending | 8-10 days |
+| v2.0.0  | HTTP/2, gRPC, Metrics Dashboard | Pending | 27-38 days |
+| v2.1.0+ | QUIC Protocol | Pending | 15-20 days |
 
 ### Implementation Roadmap
 
-**Phase 1 (v1.5.0):** Stability & Reliability
-- Reconnection logic
-- Health monitoring
+**Phase 1 (v1.5.0):** Stability & Reliability ✅ COMPLETED
+- ✅ Reconnection logic
+- ✅ Health monitoring
 
-**Phase 2 (v1.6.0):** Performance Optimization
-- Zero-copy pipeline
-- Message compression
+**Phase 2 (v1.6.0):** Performance Optimization ✅ COMPLETED
+- ✅ Zero-copy pipeline (buffer pool + move semantics)
+- ✅ Message compression (LZ4)
 
 **Phase 3 (v1.7.0):** Protocol Enhancements
 - UDP reliability layer
