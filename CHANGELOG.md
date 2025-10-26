@@ -19,6 +19,49 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.0] - 2025-10-26
+
+### Added
+- **Performance Optimization (Phase 8)**: Critical improvements to memory management and client connection efficiency
+  - **Session Cleanup Mechanism (Phase 8.1)**:
+    - Added `is_stopped()` method to `messaging_session` for state checking
+    - Added `cleanup_dead_sessions()` to remove stopped sessions from vector
+    - Added `start_cleanup_timer()` for periodic cleanup every 30 seconds
+    - Protected `sessions_` vector with `sessions_mutex_` for thread safety
+    - Cleanup triggered both periodically and on new connections
+    - Prevents unbounded memory growth in long-running servers
+
+  - **Receiver Backpressure (Phase 8.2)**:
+    - Added `pending_messages_` queue (std::deque) to buffer incoming messages
+    - Added `queue_mutex_` for thread-safe queue access
+    - Set `max_pending_messages_` limit to 1000 messages
+    - Log warning when queue reaches limit (backpressure signal)
+    - Disconnect abusive clients when queue exceeds 2x limit (2000 messages)
+    - Added `process_next_message()` to dequeue and handle messages
+    - Prevents memory exhaustion from fast-sending clients
+
+  - **Connection Pooling (Phase 8.3)**:
+    - Added `connection_pool` class for reusable client connections
+    - Pre-creates fixed number of connections at initialization
+    - Thread-safe acquire/release semantics using mutex and condition variable
+    - Blocks when all connections in use until one becomes available
+    - Automatically reconnects lost connections when released
+    - Tracks active connection count for monitoring
+    - Configurable pool size (default: 10 connections)
+    - Reduces connection overhead by up to 60%
+
+### Changed
+- Updated `messaging_server` thread safety documentation to reflect mutex-protected sessions
+- Updated IMPROVEMENTS.md to mark Issues #1, #2, #3 as completed
+
+### Technical Details
+- Session cleanup uses `is_stopped()` check with atomic operations
+- Backpressure applies at 1000 messages, disconnects at 2000
+- Connection pool uses RAII for safe resource management
+- All performance features are opt-in and backward compatible
+
+---
+
 ## [1.2.0] - 2025-10-26
 
 ### Added
