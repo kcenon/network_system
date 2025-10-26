@@ -118,6 +118,10 @@ add_library(NetworkSystem
     src/internal/send_coroutine.cpp
     src/internal/pipeline.cpp
 
+    # Utility implementations
+    src/utils/resilient_client.cpp
+    src/utils/health_monitor.cpp
+
     # Basic integration layer (always built - no external dependencies)
     src/integration/logger_integration.cpp
     src/integration/thread_integration.cpp

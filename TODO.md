@@ -13,12 +13,12 @@ This document tracks features that are planned but not yet implemented in the ne
 
 ## High Priority Features (P2)
 
-### 1. Reconnection Logic for Client
+### ~~1. Reconnection Logic for Client~~ ✅ COMPLETED
 
-**Status:** Not Implemented
+**Status:** Implemented in v1.5.0
 **Priority:** P2
-**Estimated Effort:** 2-3 days
-**Target Version:** v1.5.0
+**Actual Effort:** 2 days
+**Completed:** 2025-01-26
 
 **Description:**
 Add automatic reconnection logic with exponential backoff for `messaging_client` and `secure_messaging_client` to handle network interruptions gracefully.
@@ -203,12 +203,12 @@ public:
 
 ---
 
-### 5. Connection Health Monitoring
+### ~~5. Connection Health Monitoring~~ ✅ COMPLETED
 
-**Status:** Not Implemented
+**Status:** Implemented in v1.5.0
 **Priority:** P3
-**Estimated Effort:** 3-4 days
-**Target Version:** v1.5.0
+**Actual Effort:** 3 days
+**Completed:** 2025-01-26
 
 **Description:**
 Add connection health monitoring with heartbeat/keepalive mechanism to detect dead connections early.
