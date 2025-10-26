@@ -198,7 +198,8 @@ MessageThroughput/8KB           48000 ns  47998 ns        14583   # ~21K msg/s
 ### 프로토콜 지원
 - **TCP**: 연결 수명 주기 관리를 갖춘 비동기 TCP server/client (connection pooling 계획됨; IMPROVEMENTS.md에서 추적)
 - **UDP**: 실시간 애플리케이션을 위한 비연결형 UDP 통신
-- **TLS/SSL**: OpenSSL을 사용한 안전한 TCP 통신:
+- **TLS/SSL**: OpenSSL을 사용한 안전한 TCP 통신 (TLS 1.2/1.3):
+  - 최신 암호화 제품군을 갖춘 TLS 1.2 및 TLS 1.3 프로토콜 지원
   - 서버측 인증서 및 개인키 로딩
   - 선택적 클라이언트측 인증서 검증
   - 타임아웃 관리를 갖춘 SSL 핸드셰이크
@@ -707,7 +708,7 @@ std::cout << "Avg latency: " << stats.average_latency << "ms" << std::endl;
 ### 핵심 기능
 - ✅ 비동기 TCP server/client
 - ✅ 비동기 WebSocket server/client (RFC 6455)
-- ✅ 안전한 통신을 위한 TLS/SSL 암호화
+- ✅ 안전한 통신을 위한 TLS/SSL 암호화 (TLS 1.2/1.3)
 - ✅ 멀티스레드 메시지 처리
 - ✅ Session 수명 주기 관리
 - ✅ 버퍼링을 갖춘 메시지 pipeline

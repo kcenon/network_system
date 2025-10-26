@@ -43,14 +43,27 @@ namespace network_system::core
 													 bool verify_cert)
 		: client_id_(client_id), verify_cert_(verify_cert)
 	{
-		// Initialize SSL context
+		// Initialize SSL context with TLS 1.2/1.3 support
 		ssl_context_ = std::make_unique<asio::ssl::context>(
-			asio::ssl::context::sslv23);
+			asio::ssl::context::tls_client);
 
 		// Set SSL context options
 		ssl_context_->set_options(
 			asio::ssl::context::default_workarounds |
-			asio::ssl::context::no_sslv2);
+			asio::ssl::context::no_sslv2 |
+			asio::ssl::context::no_sslv3 |
+			asio::ssl::context::no_tlsv1 |
+			asio::ssl::context::no_tlsv1_1);
+
+		// Enable TLS 1.2 and TLS 1.3 by using native OpenSSL handle
+		SSL_CTX* native_ctx = ssl_context_->native_handle();
+		if (native_ctx)
+		{
+			// Set minimum protocol version to TLS 1.2 (allows TLS 1.2 and 1.3)
+			SSL_CTX_set_min_proto_version(native_ctx, TLS1_2_VERSION);
+			// Explicitly enable TLS 1.3 (though it's enabled by default in OpenSSL 3.x)
+			SSL_CTX_set_max_proto_version(native_ctx, TLS1_3_VERSION);
+		}
 
 		if (verify_cert_)
 		{
@@ -60,14 +73,14 @@ namespace network_system::core
 			// Load default certificate paths for verification
 			ssl_context_->set_default_verify_paths();
 
-			NETWORK_LOG_INFO("[secure_messaging_client] SSL context initialized with certificate verification");
+			NETWORK_LOG_INFO("[secure_messaging_client] SSL context initialized with TLS 1.2/1.3 and certificate verification");
 		}
 		else
 		{
 			// No certificate verification
 			ssl_context_->set_verify_mode(asio::ssl::verify_none);
 
-			NETWORK_LOG_WARN("[secure_messaging_client] SSL context initialized WITHOUT certificate verification");
+			NETWORK_LOG_WARN("[secure_messaging_client] SSL context initialized with TLS 1.2/1.3 WITHOUT certificate verification");
 		}
 
 		// Initialize pipeline
