@@ -139,11 +139,11 @@ namespace network_system::core
 		// Allow server to create connections
 		friend class messaging_ws_server;
 
-	private:
+	public:
 		class impl;
 		std::shared_ptr<impl> pimpl_;
 
-		// Private constructor - only server can create
+		// Constructor - used by server
 		ws_connection(std::shared_ptr<impl> impl);
 	};
 
