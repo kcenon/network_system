@@ -32,12 +32,13 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
+#include <atomic>
+#include <deque>
 #include <memory>
+#include <mutex>
 #include <string>
 #include <string_view>
 #include <vector>
-#include <atomic>
-#include <type_traits>
 
 #include <asio.hpp>
 
@@ -104,6 +105,14 @@ namespace network_system::session
 		auto stop_session() -> void;
 
 		/*!
+		 * \brief Checks if the session has been stopped.
+		 * \return true if the session is stopped, false otherwise.
+		 */
+		[[nodiscard]] auto is_stopped() const noexcept -> bool {
+			return is_stopped_.load(std::memory_order_relaxed);
+		}
+
+		/*!
 		 * \brief Sends data to the connected client, optionally using
 		 * compression/encryption.
 		 * \param data The raw bytes to transmit (moved for efficiency).
@@ -136,6 +145,14 @@ namespace network_system::session
 		 */
 		auto on_error(std::error_code ec) -> void;
 
+		/*!
+		 * \brief Processes pending messages from the queue.
+		 *
+		 * This method dequeues and processes messages one at a time.
+		 * Implement actual message handling logic here.
+		 */
+		auto process_next_message() -> void;
+
 	private:
 		std::string server_id_; /*!< Identifier for the server side. */
 
@@ -155,6 +172,24 @@ namespace network_system::session
 		std::atomic<bool> is_stopped_{
 			false
 		}; /*!< Indicates whether this session is stopped. */
+
+		/*!
+		 * \brief Queue of pending received messages awaiting processing.
+		 */
+		std::deque<std::vector<uint8_t>> pending_messages_;
+
+		/*!
+		 * \brief Mutex protecting access to pending_messages_ queue.
+		 */
+		mutable std::mutex queue_mutex_;
+
+		/*!
+		 * \brief Maximum number of pending messages before applying backpressure.
+		 *
+		 * When this limit is reached, a warning is logged.
+		 * If doubled, the session is disconnected.
+		 */
+		static constexpr size_t max_pending_messages_ = 1000;
 	};
 
 } // namespace network_system::session
