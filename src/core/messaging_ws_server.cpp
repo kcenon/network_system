@@ -32,6 +32,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "network_system/core/messaging_ws_server.h"
 
+#include "network_system/core/ws_session_manager.h"
 #include "network_system/internal/tcp_socket.h"
 #include "network_system/internal/websocket_socket.h"
 #include "network_system/integration/logger_integration.h"
@@ -201,6 +202,11 @@ namespace network_system::core
 			{
 				is_running_.store(true);
 
+				// Create session manager
+				session_config sess_config;
+				sess_config.max_sessions = config_.max_connections;
+				session_mgr_ = std::make_shared<ws_session_manager>(sess_config);
+
 				// Create io_context and work guard
 				io_context_ = std::make_unique<asio::io_context>();
 				work_guard_ = std::make_unique<
@@ -247,13 +253,14 @@ namespace network_system::core
 			try
 			{
 				// Close all connections
+				if (session_mgr_)
 				{
-					std::lock_guard<std::mutex> lock(connections_mutex_);
-					for (auto& [id, conn] : connections_)
+					auto conns = session_mgr_->get_all_connections();
+					for (auto& conn : conns)
 					{
 						conn->close();
 					}
-					connections_.clear();
+					session_mgr_->clear_all_connections();
 				}
 
 				// Stop acceptor
@@ -307,8 +314,13 @@ namespace network_system::core
 
 		auto broadcast_text(const std::string& message) -> void
 		{
-			std::lock_guard<std::mutex> lock(connections_mutex_);
-			for (auto& [id, conn] : connections_)
+			if (!session_mgr_)
+			{
+				return;
+			}
+
+			auto conns = session_mgr_->get_all_connections();
+			for (auto& conn : conns)
 			{
 				conn->send_text(std::string(message), nullptr);
 			}
@@ -316,8 +328,13 @@ namespace network_system::core
 
 		auto broadcast_binary(const std::vector<uint8_t>& data) -> void
 		{
-			std::lock_guard<std::mutex> lock(connections_mutex_);
-			for (auto& [id, conn] : connections_)
+			if (!session_mgr_)
+			{
+				return;
+			}
+
+			auto conns = session_mgr_->get_all_connections();
+			for (auto& conn : conns)
 			{
 				conn->send_binary(std::vector<uint8_t>(data), nullptr);
 			}
@@ -326,31 +343,29 @@ namespace network_system::core
 		auto get_connection(const std::string& connection_id)
 			-> std::shared_ptr<ws_connection>
 		{
-			std::lock_guard<std::mutex> lock(connections_mutex_);
-			auto it = connections_.find(connection_id);
-			if (it != connections_.end())
+			if (!session_mgr_)
 			{
-				return it->second;
+				return nullptr;
 			}
-			return nullptr;
+			return session_mgr_->get_connection(connection_id);
 		}
 
 		auto get_all_connections() -> std::vector<std::string>
 		{
-			std::lock_guard<std::mutex> lock(connections_mutex_);
-			std::vector<std::string> ids;
-			ids.reserve(connections_.size());
-			for (const auto& [id, conn] : connections_)
+			if (!session_mgr_)
 			{
-				ids.push_back(id);
+				return {};
 			}
-			return ids;
+			return session_mgr_->get_all_connection_ids();
 		}
 
 		auto connection_count() const -> size_t
 		{
-			std::lock_guard<std::mutex> lock(connections_mutex_);
-			return connections_.size();
+			if (!session_mgr_)
+			{
+				return 0;
+			}
+			return session_mgr_->get_connection_count();
 		}
 
 		auto set_connection_callback(
@@ -434,15 +449,11 @@ namespace network_system::core
 
 		auto handle_new_connection(std::shared_ptr<tcp::socket> socket) -> void
 		{
-			// Check connection limit
+			// Check connection limit using session manager
+			if (!session_mgr_ || !session_mgr_->can_accept_connection())
 			{
-				std::lock_guard<std::mutex> lock(connections_mutex_);
-				if (connections_.size() >= config_.max_connections)
-				{
-					NETWORK_LOG_WARN(
-						"[messaging_ws_server] Connection limit reached");
-					return;
-				}
+				NETWORK_LOG_WARN("[messaging_ws_server] Connection limit reached");
+				return;
 			}
 
 			// Generate connection ID
@@ -497,10 +508,13 @@ namespace network_system::core
 						return;
 					}
 
-					// Add to connections map
+					// Add to session manager
+					auto added_id = session_mgr_->add_connection(conn, conn_id);
+					if (added_id.empty())
 					{
-						std::lock_guard<std::mutex> lock(connections_mutex_);
-						connections_[conn_id] = conn;
+						NETWORK_LOG_WARN(
+							"[messaging_ws_server] Failed to add connection");
+						return;
 					}
 
 					NETWORK_LOG_INFO("[messaging_ws_server] Client connected: " +
@@ -543,15 +557,15 @@ namespace network_system::core
 		auto on_close(const std::string& conn_id, internal::ws_close_code code,
 					  const std::string& reason) -> void
 		{
-			// Remove from connections map
+			// Remove from session manager
+			if (session_mgr_)
 			{
-				std::lock_guard<std::mutex> lock(connections_mutex_);
-				auto it = connections_.find(conn_id);
-				if (it != connections_.end())
+				auto conn = session_mgr_->get_connection(conn_id);
+				if (conn)
 				{
-					it->second->pimpl_->invalidate();
-					connections_.erase(it);
+					conn->pimpl_->invalidate();
 				}
+				session_mgr_->remove_connection(conn_id);
 			}
 
 			NETWORK_LOG_INFO("[messaging_ws_server] Client disconnected: " +
@@ -607,8 +621,7 @@ namespace network_system::core
 		std::unique_ptr<tcp::acceptor> acceptor_;
 		std::unique_ptr<std::thread> io_thread_;
 
-		mutable std::mutex connections_mutex_;
-		std::map<std::string, std::shared_ptr<ws_connection>> connections_;
+		std::shared_ptr<ws_session_manager> session_mgr_;
 
 		std::atomic<bool> is_running_{false};
 
