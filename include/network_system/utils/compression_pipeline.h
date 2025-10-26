@@ -35,6 +35,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "network_system/utils/result_types.h"
 
 #include <cstdint>
+#include <functional>
 #include <memory>
 #include <span>
 #include <vector>
