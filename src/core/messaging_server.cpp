@@ -81,6 +81,9 @@ namespace network_system::core
 			acceptor_ = std::make_unique<tcp::acceptor>(
 				*io_context_, tcp::endpoint(tcp::v4(), port));
 
+			// Create cleanup timer
+			cleanup_timer_ = std::make_unique<asio::steady_timer>(*io_context_);
+
 			is_running_.store(true);
 
 			// Prepare promise/future for wait_for_stop()
@@ -89,6 +92,9 @@ namespace network_system::core
 
 			// Begin accepting connections
 			do_accept();
+
+			// Start periodic cleanup timer
+			start_cleanup_timer();
 
 			// Start thread to run the io_context
 			server_thread_ = std::make_unique<std::thread>(
@@ -180,15 +186,24 @@ namespace network_system::core
 				}
 			}
 
-			// Step 2: Stop all active sessions
-			for (auto& sess : sessions_)
+			// Cancel cleanup timer
+			if (cleanup_timer_)
 			{
-				if (sess)
-				{
-					sess->stop_session();
-				}
+				cleanup_timer_->cancel();
 			}
-			sessions_.clear();
+
+			// Step 2: Stop all active sessions
+			{
+				std::lock_guard<std::mutex> lock(sessions_mutex_);
+				for (auto& sess : sessions_)
+				{
+					if (sess)
+					{
+						sess->stop_session();
+					}
+				}
+				sessions_.clear();
+			}
 
 			// Step 3: Release work guard to allow io_context to finish
 			if (work_guard_)
@@ -210,6 +225,7 @@ namespace network_system::core
 
 			// Step 5: Release resources explicitly to ensure cleanup
 			acceptor_.reset();
+			cleanup_timer_.reset();
 			server_thread_.reset();
 			io_context_.reset();
 
@@ -277,25 +293,81 @@ namespace network_system::core
 			return;
 		}
 
+		// Cleanup dead sessions before adding new one
+		cleanup_dead_sessions();
+
 		// Create a new messaging_session
 		auto new_session = std::make_shared<network_system::session::messaging_session>(
 			std::move(socket), server_id_);
 
-		// Track it in our sessions_ vector
-		sessions_.push_back(new_session);
+		// Track it in our sessions_ vector (protected by mutex)
+		{
+			std::lock_guard<std::mutex> lock(sessions_mutex_);
+			sessions_.push_back(new_session);
+		}
 
 		// Start the session
 		new_session->start_session();
 
 #ifdef BUILD_WITH_COMMON_SYSTEM
 		// Record active connections metric
-		if (monitor_) {
-			monitor_->record_metric("active_connections", static_cast<double>(sessions_.size()));
+		{
+			std::lock_guard<std::mutex> lock(sessions_mutex_);
+			if (monitor_) {
+				monitor_->record_metric("active_connections", static_cast<double>(sessions_.size()));
+			}
 		}
 #endif
 
 		// Accept next connection
 		do_accept();
+	}
+
+	auto messaging_server::cleanup_dead_sessions() -> void
+	{
+		std::lock_guard<std::mutex> lock(sessions_mutex_);
+
+		// Remove sessions that have been stopped
+		sessions_.erase(
+			std::remove_if(sessions_.begin(), sessions_.end(),
+				[](const auto& session) {
+					return session && session->is_stopped();
+				}),
+			sessions_.end()
+		);
+
+		NETWORK_LOG_DEBUG("[messaging_server] Cleaned up dead sessions. Active: " +
+			std::to_string(sessions_.size()));
+
+#ifdef BUILD_WITH_COMMON_SYSTEM
+		// Update active connections metric after cleanup
+		if (monitor_) {
+			monitor_->record_metric("active_connections", static_cast<double>(sessions_.size()));
+		}
+#endif
+	}
+
+	auto messaging_server::start_cleanup_timer() -> void
+	{
+		if (!cleanup_timer_ || !is_running_.load())
+		{
+			return;
+		}
+
+		// Schedule cleanup every 30 seconds
+		cleanup_timer_->expires_after(std::chrono::seconds(30));
+
+		auto self = shared_from_this();
+		cleanup_timer_->async_wait(
+			[this, self](const std::error_code& ec)
+			{
+				if (!ec && is_running_.load())
+				{
+					cleanup_dead_sessions();
+					start_cleanup_timer(); // Reschedule
+				}
+			}
+		);
 	}
 
 #ifdef BUILD_WITH_COMMON_SYSTEM

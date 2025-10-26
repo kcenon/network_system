@@ -32,13 +32,14 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
-#include <memory>
-#include <vector>
-#include <optional>
-#include <future>
-#include <thread>
 #include <atomic>
+#include <future>
+#include <memory>
+#include <mutex>
+#include <optional>
 #include <string>
+#include <thread>
+#include <vector>
 
 #include <asio.hpp>
 
@@ -66,10 +67,10 @@ namespace network_system::core {
 	 *
 	 * ### Thread Safety
 	 * - All public methods are thread-safe.
-	 * - Internal state (is_running_, sessions_) is protected by atomics and ASIO's thread safety.
+	 * - Internal state (is_running_, sessions_) is protected by atomics and mutex.
 	 * - Background thread runs io_context.run() independently.
 	 * - Multiple sessions can be active concurrently without blocking each other.
-	 * - Sessions vector is NOT protected by mutex - only accessed in single-threaded ASIO context.
+	 * - Sessions vector is protected by sessions_mutex_ for thread-safe cleanup.
 	 *
 	 * ### Key Responsibilities
 	 * - Maintains an \c asio::io_context and \c tcp::acceptor to listen on a
@@ -225,6 +226,25 @@ namespace network_system::core {
 		auto on_accept(std::error_code ec, asio::ip::tcp::socket socket)
 			-> void;
 
+		/*!
+		 * \brief Removes stopped sessions from the sessions vector.
+		 *
+		 * This method iterates through all sessions and removes those that have
+		 * been stopped. Should be called periodically to prevent memory leaks
+		 * from accumulating dead sessions.
+		 *
+		 * Thread-safe: Protected by sessions_mutex_.
+		 */
+		auto cleanup_dead_sessions() -> void;
+
+		/*!
+		 * \brief Starts a periodic timer that triggers session cleanup.
+		 *
+		 * The cleanup timer runs every 30 seconds and calls cleanup_dead_sessions()
+		 * to remove stopped sessions from the vector.
+		 */
+		auto start_cleanup_timer() -> void;
+
 	private:
 		std::string
 			server_id_;		/*!< Name or identifier for this server instance. */
@@ -252,6 +272,16 @@ namespace network_system::core {
 		 * cleared.
 		 */
 		std::vector<std::shared_ptr<network_system::session::messaging_session>> sessions_;
+
+		/*!
+		 * \brief Mutex protecting access to sessions_ vector.
+		 */
+		std::mutex sessions_mutex_;
+
+		/*!
+		 * \brief Timer for periodic cleanup of stopped sessions.
+		 */
+		std::unique_ptr<asio::steady_timer> cleanup_timer_;
 
 #ifdef BUILD_WITH_COMMON_SYSTEM
 		/*!
