@@ -41,27 +41,27 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // Use nested namespace definition (C++17)
 namespace network_system::internal
 {
-    auto prepare_data_async(const std::vector<uint8_t>& input_data,
+    auto prepare_data_async(std::vector<uint8_t> input_data,
                             const pipeline& pl,
                             bool use_compress,
                             bool use_encrypt)
         -> std::future<std::vector<uint8_t>>
     {
-        return std::async(std::launch::async, [input_data = input_data, &pl, use_compress, use_encrypt]() {
-            std::vector<uint8_t> processed_data = input_data;
-            
+        return std::async(std::launch::async, [processed_data = std::move(input_data), &pl, use_compress, use_encrypt]() mutable {
+            // Apply compression in-place
             if constexpr (std::is_invocable_r_v<std::vector<uint8_t>, decltype(pl.compress), const std::vector<uint8_t>&>) {
-                if (use_compress) {
+                if (use_compress && pl.compress) {
                     processed_data = pl.compress(processed_data);
                 }
             }
-            
+
+            // Apply encryption in-place
             if constexpr (std::is_invocable_r_v<std::vector<uint8_t>, decltype(pl.encrypt), const std::vector<uint8_t>&>) {
-                if (use_encrypt) {
+                if (use_encrypt && pl.encrypt) {
                     processed_data = pl.encrypt(processed_data);
                 }
             }
-            
+
             return processed_data;
         });
     }
@@ -75,20 +75,20 @@ namespace network_system::internal
                                      bool use_encrypt)
         -> asio::awaitable<std::error_code>
     {
-        // Process data with pipeline (compress/encrypt as needed)
-        auto future_processed = prepare_data_async(data, pl, use_compress, use_encrypt);
+        // Process data with pipeline (compress/encrypt as needed) - move data to avoid copy
+        auto future_processed = prepare_data_async(std::move(data), pl, use_compress, use_encrypt);
         auto processed_data = future_processed.get(); // This blocks, but we're in a coroutine
-        
+
         // Using structured binding directly with co_await
         auto [ec, bytes_transferred] = co_await asio::async_write(
             sock->socket(),
             asio::buffer(processed_data),
             asio::experimental::as_tuple(asio::use_awaitable));
-        
+
         if (ec) {
             NETWORK_LOG_ERROR("[send_coroutine] Error sending data: " + ec.message());
         }
-        
+
         co_return ec;
     }
 

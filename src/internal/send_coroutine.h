@@ -50,7 +50,7 @@ namespace network_system::internal
 	 * \param use_encrypt   If true, calls \c pl.encrypt().
 	 * \return A std::future that eventually yields the transformed data.
 	 */
-	auto prepare_data_async(const std::vector<uint8_t>& input_data,
+	auto prepare_data_async(std::vector<uint8_t> input_data,
 							const pipeline& pl,
 							bool use_compress,
 							bool use_encrypt)
