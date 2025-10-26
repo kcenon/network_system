@@ -175,16 +175,76 @@ if constexpr (std::is_same_v<decltype(socket_->socket().get_executor()), asio::i
 		NETWORK_LOG_DEBUG("[messaging_session] Received " + std::to_string(data.size())
 				+ " bytes.");
 
-		// Potentially decompress + decrypt
-		// e.g. auto uncompressed = pipeline_.decompress(data);
-		//      auto decrypted    = pipeline_.decrypt(uncompressed);
-		// Then parse or handle the final data
+		// Check queue size before adding
+		{
+			std::lock_guard<std::mutex> lock(queue_mutex_);
+			size_t queue_size = pending_messages_.size();
+
+			// Apply backpressure if queue is getting full
+			if (queue_size >= max_pending_messages_)
+			{
+				NETWORK_LOG_WARN("[messaging_session] Queue size (" +
+					std::to_string(queue_size) + ") reached limit (" +
+					std::to_string(max_pending_messages_) + "). Applying backpressure.");
+
+				// If queue is severely overflowing, disconnect the session
+				if (queue_size >= max_pending_messages_ * 2)
+				{
+					NETWORK_LOG_ERROR("[messaging_session] Queue overflow (" +
+						std::to_string(queue_size) + "). Disconnecting abusive client.");
+					stop_session();
+					return;
+				}
+			}
+
+			// Add message to queue
+			pending_messages_.push_back(data);
+		}
+
+		// Process messages from queue
+		process_next_message();
 	}
 
 	auto messaging_session::on_error(std::error_code ec) -> void
 	{
 		NETWORK_LOG_ERROR("[messaging_session] Socket error: " + ec.message());
 		stop_session();
+	}
+
+	auto messaging_session::process_next_message() -> void
+	{
+		std::vector<uint8_t> message;
+
+		// Dequeue one message
+		{
+			std::lock_guard<std::mutex> lock(queue_mutex_);
+			if (pending_messages_.empty())
+			{
+				return;
+			}
+
+			message = std::move(pending_messages_.front());
+			pending_messages_.pop_front();
+		}
+
+		// Process the message
+		// For now, just log it. In a real implementation, you would:
+		// 1. Decompress + decrypt using pipeline_ if needed
+		// 2. Parse message format (length-prefixed, framed, etc.)
+		// 3. Dispatch to application-level handler
+		NETWORK_LOG_DEBUG("[messaging_session] Processing message of " +
+			std::to_string(message.size()) + " bytes. Queue remaining: " +
+			std::to_string(pending_messages_.size()));
+
+		// If there are more messages, process them asynchronously
+		// to avoid blocking the receive thread
+		std::lock_guard<std::mutex> lock(queue_mutex_);
+		if (!pending_messages_.empty())
+		{
+			// In a production system, you might want to post this to a thread pool
+			// or use a work queue to process messages asynchronously
+			// For now, we just process one message per call
+		}
 	}
 
 } // namespace network_system::session
