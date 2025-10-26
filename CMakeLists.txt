@@ -136,12 +136,19 @@ if(BUILD_TLS_SUPPORT)
     )
     target_compile_definitions(NetworkSystem PUBLIC BUILD_TLS_SUPPORT)
 
-    # Find OpenSSL for TLS/SSL
-    find_package(OpenSSL REQUIRED)
+    # Find OpenSSL for TLS/SSL (require 1.1.1+ for TLS 1.3 support)
+    find_package(OpenSSL 1.1.1 REQUIRED)
     target_link_libraries(NetworkSystem PRIVATE OpenSSL::SSL OpenSSL::Crypto)
 
-    message(STATUS "TLS/SSL support enabled")
+    message(STATUS "TLS/SSL support enabled (TLS 1.2/1.3)")
     message(STATUS "  OpenSSL version: ${OPENSSL_VERSION}")
+
+    # Verify TLS 1.3 support
+    if(OPENSSL_VERSION VERSION_LESS "1.1.1")
+        message(WARNING "OpenSSL ${OPENSSL_VERSION} detected. TLS 1.3 requires OpenSSL 1.1.1 or newer.")
+    else()
+        message(STATUS "  TLS 1.3 support: Available")
+    endif()
 endif()
 
 # WebSocket support (conditional)
@@ -158,12 +165,12 @@ if(BUILD_WEBSOCKET_SUPPORT)
 
     # Find OpenSSL for SHA-1 hashing in handshake (if not already found)
     if(NOT BUILD_TLS_SUPPORT)
-        find_package(OpenSSL REQUIRED)
+        find_package(OpenSSL 1.1.1 REQUIRED)
         target_link_libraries(NetworkSystem PRIVATE OpenSSL::Crypto)
+        message(STATUS "  OpenSSL version: ${OPENSSL_VERSION}")
     endif()
 
     message(STATUS "WebSocket support enabled")
-    message(STATUS "  OpenSSL version: ${OPENSSL_VERSION}")
 endif()
 
 # Set target properties

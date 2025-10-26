@@ -45,15 +45,28 @@ namespace network_system::core
 													 const std::string& key_file)
 		: server_id_(server_id)
 	{
-		// Initialize SSL context
+		// Initialize SSL context with TLS 1.2/1.3 support
 		ssl_context_ = std::make_unique<asio::ssl::context>(
-			asio::ssl::context::sslv23);
+			asio::ssl::context::tls_server);
 
 		// Set SSL context options
 		ssl_context_->set_options(
 			asio::ssl::context::default_workarounds |
 			asio::ssl::context::no_sslv2 |
+			asio::ssl::context::no_sslv3 |
+			asio::ssl::context::no_tlsv1 |
+			asio::ssl::context::no_tlsv1_1 |
 			asio::ssl::context::single_dh_use);
+
+		// Enable TLS 1.2 and TLS 1.3 by using native OpenSSL handle
+		SSL_CTX* native_ctx = ssl_context_->native_handle();
+		if (native_ctx)
+		{
+			// Set minimum protocol version to TLS 1.2 (allows TLS 1.2 and 1.3)
+			SSL_CTX_set_min_proto_version(native_ctx, TLS1_2_VERSION);
+			// Explicitly enable TLS 1.3 (though it's enabled by default in OpenSSL 3.x)
+			SSL_CTX_set_max_proto_version(native_ctx, TLS1_3_VERSION);
+		}
 
 		// Load certificate and private key
 		try
@@ -61,7 +74,7 @@ namespace network_system::core
 			ssl_context_->use_certificate_chain_file(cert_file);
 			ssl_context_->use_private_key_file(key_file, asio::ssl::context::pem);
 
-			NETWORK_LOG_INFO("[secure_messaging_server] SSL context initialized with cert: " +
+			NETWORK_LOG_INFO("[secure_messaging_server] SSL context initialized with TLS 1.2/1.3 support, cert: " +
 				cert_file + ", key: " + key_file);
 		}
 		catch (const std::exception& e)
