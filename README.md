@@ -204,7 +204,8 @@ MessageThroughput/8KB           48000 ns  47998 ns        14583   # ~21K msg/s
 ### Protocol Support
 - **TCP**: Asynchronous TCP server/client with connection lifecycle management (connection pooling planned; tracked in IMPROVEMENTS.md)
 - **UDP**: Connectionless UDP communication for real-time applications
-- **TLS/SSL**: Secure TCP communication with OpenSSL:
+- **TLS/SSL**: Secure TCP communication with OpenSSL (TLS 1.2/1.3):
+  - TLS 1.2 and TLS 1.3 protocol support with modern cipher suites
   - Server-side certificate and private key loading
   - Optional client-side certificate verification
   - SSL handshake with timeout management
@@ -383,7 +384,7 @@ int main() {
 }
 ```
 
-**Step 4: Secure Communication with TLS/SSL**
+**Step 4: Secure Communication with TLS/SSL (TLS 1.2/1.3)**
 ```cpp
 #include <network_system/core/secure_messaging_server.h>
 #include <network_system/core/secure_messaging_client.h>
@@ -393,20 +394,21 @@ int main() {
 // Secure Server Example
 int main() {
     // Create secure server with certificate and private key
+    // Supports TLS 1.2 and TLS 1.3 protocols
     auto server = std::make_shared<network_system::core::secure_messaging_server>(
         "SecureServer",
         "/path/to/server.crt",  // Certificate file
         "/path/to/server.key"   // Private key file
     );
 
-    // Start secure server on port 8443
+    // Start secure server on port 8443 (TLS 1.2/1.3 enabled)
     auto result = server->start_server(8443);
     if (!result) {
         std::cerr << "Failed to start secure server: " << result.error().message << std::endl;
         return -1;
     }
 
-    std::cout << "Secure server running on port 8443..." << std::endl;
+    std::cout << "Secure server running on port 8443 with TLS 1.2/1.3..." << std::endl;
     server->wait_for_stop();
 
     return 0;
@@ -415,12 +417,13 @@ int main() {
 // Secure Client Example
 int main() {
     // Create secure client with certificate verification enabled
+    // Supports TLS 1.2 and TLS 1.3 protocols
     auto client = std::make_shared<network_system::core::secure_messaging_client>(
         "SecureClient",
         true  // Enable certificate verification (default)
     );
 
-    // Connect to secure server
+    // Connect to secure server (TLS 1.2/1.3 enabled)
     auto result = client->start_client("localhost", 8443);
     if (!result) {
         std::cerr << "Failed to connect: " << result.error().message << std::endl;
