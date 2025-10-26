@@ -6,8 +6,8 @@ All rights reserved.
 *****************************************************************************/
 
 #include <gtest/gtest.h>
-#include "network_system/core/messaging_tcp_server.h"
-#include "network_system/core/messaging_tcp_client.h"
+#include "network_system/core/messaging_server.h"
+#include "network_system/core/messaging_client.h"
 #include "../framework/test_helpers.h"
 #include "../framework/memory_profiler.h"
 #include "../framework/result_writer.h"
@@ -31,14 +31,9 @@ protected:
         test_port_ = test_helpers::find_available_port(19000);
 
         // Initialize TCP server
-        server_ = std::make_shared<messaging_tcp_server>("tcp_load_test_server");
+        server_ = std::make_shared<messaging_server>("tcp_load_test_server");
 
-        // Configure server
-        tcp_server_config server_config;
-        server_config.port = test_port_;
-        server_config.max_connections = 100;
-
-        auto result = server_->start_server(server_config);
+        auto result = server_->start_server(test_port_, 100);
         ASSERT_TRUE(result.is_ok()) << "Failed to start server: " << result.error().message;
 
         // Wait for server to be ready
@@ -67,15 +62,10 @@ protected:
     /**
      * @brief Create and connect a TCP client
      */
-    auto create_client(const std::string& client_id) -> std::shared_ptr<messaging_tcp_client> {
-        auto client = std::make_shared<messaging_tcp_client>(client_id);
+    auto create_client(const std::string& client_id) -> std::shared_ptr<messaging_client> {
+        auto client = std::make_shared<messaging_client>(client_id);
 
-        tcp_client_config config;
-        config.host = "localhost";
-        config.port = test_port_;
-        config.reconnect_interval = std::chrono::seconds(1);
-
-        auto result = client->start_client(config);
+        auto result = client->connect("localhost", test_port_);
         if (!result.is_ok()) {
             return nullptr;
         }
@@ -85,8 +75,8 @@ protected:
         return client;
     }
 
-    std::shared_ptr<messaging_tcp_server> server_;
-    std::vector<std::shared_ptr<messaging_tcp_client>> clients_;
+    std::shared_ptr<messaging_server> server_;
+    std::vector<std::shared_ptr<messaging_client>> clients_;
     uint16_t test_port_;
     MemoryProfiler profiler_;
     ResultWriter writer_;

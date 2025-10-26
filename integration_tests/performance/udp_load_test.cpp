@@ -33,11 +33,7 @@ protected:
         // Initialize UDP server
         server_ = std::make_shared<messaging_udp_server>("udp_load_test_server");
 
-        // Configure server
-        udp_server_config server_config;
-        server_config.port = test_port_;
-
-        auto result = server_->start_server(server_config);
+        auto result = server_->start_server(test_port_);
         ASSERT_TRUE(result.is_ok()) << "Failed to start server: " << result.error().message;
 
         // Wait for server to be ready
@@ -48,7 +44,7 @@ protected:
         // Stop all clients
         for (auto& client : clients_) {
             if (client) {
-                client->disconnect();
+                client->stop_client();
             }
         }
         clients_.clear();
@@ -69,11 +65,7 @@ protected:
     auto create_client(const std::string& client_id) -> std::shared_ptr<messaging_udp_client> {
         auto client = std::make_shared<messaging_udp_client>(client_id);
 
-        udp_client_config config;
-        config.host = "localhost";
-        config.port = test_port_;
-
-        auto result = client->start_client(config);
+        auto result = client->start_client("localhost", test_port_);
         if (!result.is_ok()) {
             return nullptr;
         }
@@ -118,7 +110,8 @@ TEST_F(UDPLoadTest, Message_Throughput_64B) {
     for (size_t i = 0; i < num_messages; ++i) {
         auto msg_start = std::chrono::steady_clock::now();
 
-        auto result = client->send_message(std::string(message));
+        std::vector<uint8_t> data(message.begin(), message.end());
+        auto result = client->send_packet(std::move(data), [](auto, auto){});
         if (result.is_ok()) {
             sent_count++;
             auto msg_end = std::chrono::steady_clock::now();
@@ -184,7 +177,8 @@ TEST_F(UDPLoadTest, Message_Throughput_512B) {
     size_t sent_count = 0;
     for (size_t i = 0; i < num_messages; ++i) {
         auto msg_start = std::chrono::steady_clock::now();
-        auto result = client->send_message(std::string(message));
+        std::vector<uint8_t> data(message.begin(), message.end());
+        auto result = client->send_packet(std::move(data), [](auto, auto){});
         if (result.is_ok()) {
             sent_count++;
             auto msg_end = std::chrono::steady_clock::now();
@@ -231,7 +225,8 @@ TEST_F(UDPLoadTest, Message_Throughput_1KB) {
     size_t sent_count = 0;
     for (size_t i = 0; i < num_messages; ++i) {
         auto msg_start = std::chrono::steady_clock::now();
-        auto result = client->send_message(std::string(message));
+        std::vector<uint8_t> data(message.begin(), message.end());
+        auto result = client->send_packet(std::move(data), [](auto, auto){});
         if (result.is_ok()) {
             sent_count++;
             auto msg_end = std::chrono::steady_clock::now();
@@ -291,7 +286,8 @@ TEST_F(UDPLoadTest, Concurrent_Clients_10) {
     std::string test_message = "concurrent test message";
 
     for (auto& client : clients_) {
-        auto result = client->send_message(std::string(test_message));
+        std::vector<uint8_t> data(test_message.begin(), test_message.end());
+        auto result = client->send_packet(std::move(data), [](auto, auto){});
         if (result.is_ok()) {
             success_count.fetch_add(1);
         }
@@ -350,7 +346,8 @@ TEST_F(UDPLoadTest, Send_Latency) {
 
     for (size_t i = 0; i < num_messages; ++i) {
         auto start = std::chrono::steady_clock::now();
-        auto result = client->send_message(std::string(test_message));
+        std::vector<uint8_t> data(test_message.begin(), test_message.end());
+        auto result = client->send_packet(std::move(data), [](auto, auto){});
         auto end = std::chrono::steady_clock::now();
 
         if (result.is_ok()) {
@@ -396,7 +393,8 @@ TEST_F(UDPLoadTest, Burst_Send_Performance) {
 
         size_t sent_in_burst = 0;
         for (size_t i = 0; i < burst_size; ++i) {
-            auto result = client->send_message(std::string(message));
+            std::vector<uint8_t> data(message.begin(), message.end());
+        auto result = client->send_packet(std::move(data), [](auto, auto){});
             if (result.is_ok()) {
                 sent_in_burst++;
             }

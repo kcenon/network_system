@@ -312,6 +312,10 @@ target_link_libraries(integration_test_framework PUBLIC
     Threads::Threads
 )
 
+# Setup ASIO and FMT integration for framework library
+setup_asio_integration(integration_test_framework)
+setup_fmt_integration(integration_test_framework)
+
 set_target_properties(integration_test_framework PROPERTIES
     CXX_STANDARD 20
     CXX_STANDARD_REQUIRED ON
