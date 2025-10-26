@@ -31,10 +31,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *****************************************************************************/
 
 #include "network_system/session/messaging_session.h"
-#include "network_system/internal/send_coroutine.h" // for async_send_with_pipeline_co / no_co
-#include "network_system/integration/logger_integration.h"
-#include <string_view>
+
 #include <type_traits>
+
+#include "network_system/integration/logger_integration.h"
+#include "network_system/internal/send_coroutine.h"
 
 // Use nested namespace definition (C++17)
 namespace network_system::session
