@@ -61,13 +61,13 @@ namespace network_system::utils
 			{
 				NETWORK_LOG_TRACE("[compression_pipeline] Size below threshold, skipping compression");
 				std::vector<uint8_t> result(input.begin(), input.end());
-				return Result<std::vector<uint8_t>>::ok(std::move(result));
+				return ok<std::vector<uint8_t>>(std::move(result));
 			}
 
 			if (algorithm_ == compression_algorithm::none)
 			{
 				std::vector<uint8_t> result(input.begin(), input.end());
-				return Result<std::vector<uint8_t>>::ok(std::move(result));
+				return ok<std::vector<uint8_t>>(std::move(result));
 			}
 
 #ifdef BUILD_LZ4_COMPRESSION
@@ -80,14 +80,14 @@ namespace network_system::utils
 			// Fallback: return uncompressed if algorithm not available
 			NETWORK_LOG_WARN("[compression_pipeline] Compression algorithm not available, returning uncompressed");
 			std::vector<uint8_t> result(input.begin(), input.end());
-			return Result<std::vector<uint8_t>>::ok(std::move(result));
+			return ok<std::vector<uint8_t>>(std::move(result));
 		}
 
 		auto decompress(std::span<const uint8_t> input) -> Result<std::vector<uint8_t>>
 		{
 			if (input.empty())
 			{
-				return Result<std::vector<uint8_t>>::err(
+				return error<std::vector<uint8_t>>(
 					error_codes::common::invalid_argument,
 					"Input data is empty");
 			}
@@ -95,7 +95,7 @@ namespace network_system::utils
 			if (algorithm_ == compression_algorithm::none)
 			{
 				std::vector<uint8_t> result(input.begin(), input.end());
-				return Result<std::vector<uint8_t>>::ok(std::move(result));
+				return ok<std::vector<uint8_t>>(std::move(result));
 			}
 
 #ifdef BUILD_LZ4_COMPRESSION
@@ -108,7 +108,7 @@ namespace network_system::utils
 			// Fallback: assume uncompressed
 			NETWORK_LOG_WARN("[compression_pipeline] Decompression algorithm not available, returning as-is");
 			std::vector<uint8_t> result(input.begin(), input.end());
-			return Result<std::vector<uint8_t>>::ok(std::move(result));
+			return ok<std::vector<uint8_t>>(std::move(result));
 		}
 
 		auto set_compression_threshold(size_t bytes) -> void
@@ -129,7 +129,7 @@ namespace network_system::utils
 			int max_compressed_size = LZ4_compressBound(static_cast<int>(input.size()));
 			if (max_compressed_size <= 0)
 			{
-				return Result<std::vector<uint8_t>>::err(
+				return error<std::vector<uint8_t>>(
 					error_codes::common::internal_error,
 					"Failed to calculate LZ4 compressed size bound");
 			}
@@ -152,7 +152,7 @@ namespace network_system::utils
 			{
 				NETWORK_LOG_WARN("[compression_pipeline] LZ4 compression failed, returning uncompressed");
 				std::vector<uint8_t> result(input.begin(), input.end());
-				return Result<std::vector<uint8_t>>::ok(std::move(result));
+				return ok<std::vector<uint8_t>>(std::move(result));
 			}
 
 			// If compressed size is not smaller, return uncompressed
@@ -160,7 +160,7 @@ namespace network_system::utils
 			{
 				NETWORK_LOG_TRACE("[compression_pipeline] Compressed size not smaller, returning uncompressed");
 				std::vector<uint8_t> result(input.begin(), input.end());
-				return Result<std::vector<uint8_t>>::ok(std::move(result));
+				return ok<std::vector<uint8_t>>(std::move(result));
 			}
 
 			// Resize to actual compressed size
@@ -171,7 +171,7 @@ namespace network_system::utils
 							  std::to_string(compressed.size()) + " bytes (" +
 							  std::to_string(100 - (compressed.size() * 100 / input.size())) + "% reduction)");
 
-			return Result<std::vector<uint8_t>>::ok(std::move(compressed));
+			return ok<std::vector<uint8_t>>(std::move(compressed));
 		}
 
 		auto decompress_lz4(std::span<const uint8_t> input) -> Result<std::vector<uint8_t>>
@@ -179,7 +179,7 @@ namespace network_system::utils
 			// Need at least 4 bytes for size header
 			if (input.size() < 4)
 			{
-				return Result<std::vector<uint8_t>>::err(
+				return error<std::vector<uint8_t>>(
 					error_codes::common::invalid_argument,
 					"Compressed data too small");
 			}
@@ -191,7 +191,7 @@ namespace network_system::utils
 			// Sanity check on decompressed size (max 100MB)
 			if (original_size > 100 * 1024 * 1024)
 			{
-				return Result<std::vector<uint8_t>>::err(
+				return error<std::vector<uint8_t>>(
 					error_codes::common::invalid_argument,
 					"Decompressed size too large: " + std::to_string(original_size));
 			}
@@ -208,14 +208,14 @@ namespace network_system::utils
 
 			if (decompressed_size < 0)
 			{
-				return Result<std::vector<uint8_t>>::err(
+				return error<std::vector<uint8_t>>(
 					error_codes::common::internal_error,
 					"LZ4 decompression failed");
 			}
 
 			if (static_cast<size_t>(decompressed_size) != original_size)
 			{
-				return Result<std::vector<uint8_t>>::err(
+				return error<std::vector<uint8_t>>(
 					error_codes::common::internal_error,
 					"Decompressed size mismatch");
 			}
@@ -224,7 +224,7 @@ namespace network_system::utils
 							  std::to_string(input.size()) + " -> " +
 							  std::to_string(decompressed.size()) + " bytes");
 
-			return Result<std::vector<uint8_t>>::ok(std::move(decompressed));
+			return ok<std::vector<uint8_t>>(std::move(decompressed));
 		}
 #endif
 
