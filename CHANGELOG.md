@@ -19,6 +19,57 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.4.0] - 2025-10-26
+
+### Added
+- **TLS/SSL Support (Phase 9)**: Complete encrypted communication implementation
+  - **secure_tcp_socket (Phase 9.1)**:
+    - SSL/TLS wrapper for TCP socket using `asio::ssl::stream`
+    - Async SSL handshake support (client/server modes)
+    - Encrypted async read/write operations
+    - Follows same pattern as `tcp_socket` for consistency
+
+  - **secure_session (Phase 9.1)**:
+    - Manages single secure client session on server side
+    - Performs server-side SSL handshake before data exchange
+    - Inherits backpressure mechanism from Phase 8.2 (1000/2000 message limits)
+    - Thread-safe message queue with mutex protection
+
+  - **secure_messaging_server (Phase 9.2)**:
+    - Secure server accepting TLS/SSL encrypted connections
+    - Certificate chain and private key loading from files
+    - SSL context configuration (sslv23, no SSLv2, single DH use)
+    - Creates `secure_session` for each accepted connection
+    - Inherits session cleanup from Phase 8.1 (periodic + on-demand)
+    - Inherits monitoring support from common_system (optional)
+
+  - **secure_messaging_client (Phase 9.3)**:
+    - Secure client for TLS/SSL encrypted connections
+    - Optional certificate verification (default: enabled)
+    - Uses system certificate paths for verification when enabled
+    - Client-side SSL handshake with 10-second timeout
+    - Connection state management with atomic operations
+
+  - **Build System (Phase 9.4)**:
+    - Added `BUILD_TLS_SUPPORT` CMake option (default: ON)
+    - Conditional compilation of TLS/SSL components
+    - Automatic OpenSSL detection and linking
+    - Updated build configuration summary to show TLS/SSL status
+    - Compatible with existing WebSocket support (shared OpenSSL dependency)
+
+### Changed
+- Updated IMPROVEMENTS.md to mark Issue #4 (Add TLS/SSL Support) as completed
+- Reorganized CMakeLists.txt to separate TLS/SSL sources from base library
+
+### Technical Details
+- Uses OpenSSL 3.6.0 for cryptographic operations
+- Parallel class hierarchy maintains backward compatibility
+- SSL context lifetime managed by server/client instances
+- Handshake failures result in connection rejection with detailed error codes
+- All secure components are thread-safe with proper synchronization
+
+---
+
 ## [1.3.0] - 2025-10-26
 
 ### Added
@@ -294,7 +345,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 | Version | Release Date | C++ Standard | CMake Minimum | Status |
 |---------|--------------|--------------|---------------|---------|
-| 1.2.0   | 2025-10-26   | C++20        | 3.16          | Current |
+| 1.4.0   | 2025-10-26   | C++20        | 3.16          | Current |
+| 1.3.0   | 2025-10-26   | C++20        | 3.16          | Stable |
+| 1.2.0   | 2025-10-26   | C++20        | 3.16          | Stable |
 | 1.1.0   | 2025-10-26   | C++20        | 3.16          | Stable |
 | 1.0.0   | 2025-10-22   | C++20        | 3.16          | Stable |
 | 0.9.0   | 2025-09-15   | C++20        | 3.16          | Legacy (part of messaging_system) |

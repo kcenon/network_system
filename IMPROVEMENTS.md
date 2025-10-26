@@ -191,24 +191,64 @@ private:
 
 ---
 
-### 4. Add TLS/SSL Support
+## ~~4. Add TLS/SSL Support~~ ✅ COMPLETED
 
+**Status:** Implemented in v1.4.0 (Phase 9)
+
+**Solution:**
 ```cpp
-class secure_messaging_server : public messaging_server {
+// Secure socket wrapper with SSL stream
+class secure_tcp_socket {
+public:
+    using ssl_socket = asio::ssl::stream<asio::ip::tcp::socket>;
+
+    secure_tcp_socket(asio::ip::tcp::socket socket,
+                      asio::ssl::context& ssl_context);
+
+    auto async_handshake(
+        asio::ssl::stream_base::handshake_type type,
+        std::function<void(std::error_code)> handler) -> void;
+};
+
+// Secure session with SSL handshake
+class secure_session {
+public:
+    secure_session(asio::ip::tcp::socket socket,
+                   asio::ssl::context& ssl_context,
+                   std::string_view server_id);
+
+    auto start_session() -> void;  // Performs SSL handshake
+    auto send_packet(std::vector<uint8_t>&& data) -> void;
+};
+
+// Secure server with certificate loading
+class secure_messaging_server {
 public:
     secure_messaging_server(const std::string& server_id,
-                          const std::string& cert_file,
-                          const std::string& key_file)
-        : messaging_server(server_id)
-        , ssl_context_(asio::ssl::context::sslv23) {
-        ssl_context_.use_certificate_chain_file(cert_file);
-        ssl_context_.use_private_key_file(key_file, asio::ssl::context::pem);
-    }
+                           const std::string& cert_file,
+                           const std::string& key_file);
 
-private:
-    asio::ssl::context ssl_context_;
+    auto start_server(unsigned short port) -> VoidResult;
+};
+
+// Secure client with optional certificate verification
+class secure_messaging_client {
+public:
+    explicit secure_messaging_client(const std::string& client_id,
+                                     bool verify_cert = true);
+
+    auto start_client(const std::string& host, unsigned short port) -> VoidResult;
 };
 ```
+
+**Features:**
+- Full TLS/SSL encryption for TCP connections
+- Server-side certificate and private key loading
+- Optional client-side certificate verification
+- Parallel class hierarchy (tcp_socket → secure_tcp_socket)
+- Conditional compilation with `BUILD_TLS_SUPPORT` option (default ON)
+- Uses OpenSSL for cryptographic operations
+- Inherits session cleanup and backpressure from Phase 8
 
 **Priority:** P2
 **Effort:** 5-7 days
