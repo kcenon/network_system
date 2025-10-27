@@ -204,6 +204,84 @@ namespace network_system::core {
 		auto get_monitor() const -> common::interfaces::IMonitor*;
 #endif
 
+		/*!
+		 * \brief Sets the callback for new client connections.
+		 *
+		 * \param callback Function called when a client connects.
+		 *        Receives shared_ptr to the messaging_session.
+		 *
+		 * The callback is invoked on the I/O thread when a new connection
+		 * is accepted and the session is created.
+		 *
+		 * \code
+		 * server->set_connection_callback([](auto session) {
+		 *     std::cout << "New client connected\n";
+		 * });
+		 * \endcode
+		 */
+		auto set_connection_callback(
+			std::function<void(std::shared_ptr<network_system::session::messaging_session>)> callback)
+			-> void;
+
+		/*!
+		 * \brief Sets the callback for client disconnections.
+		 *
+		 * \param callback Function called when a client disconnects.
+		 *        Receives the session ID as a string.
+		 *
+		 * The callback is invoked when a session stops, either due to
+		 * client disconnect, error, or explicit stop.
+		 *
+		 * \code
+		 * server->set_disconnection_callback([](const std::string& session_id) {
+		 *     std::cout << "Client disconnected: " << session_id << "\n";
+		 * });
+		 * \endcode
+		 */
+		auto set_disconnection_callback(
+			std::function<void(const std::string&)> callback) -> void;
+
+		/*!
+		 * \brief Sets the callback for received messages.
+		 *
+		 * \param callback Function called when data is received from a client.
+		 *        First parameter is shared_ptr to the session.
+		 *        Second parameter is the received data.
+		 *
+		 * The callback is invoked on the I/O thread when data arrives.
+		 * Use the session pointer to identify the client and send responses.
+		 *
+		 * \code
+		 * server->set_receive_callback([](auto session, const auto& data) {
+		 *     std::cout << "Received " << data.size() << " bytes\n";
+		 *     // Echo back
+		 *     session->send_packet(std::vector<uint8_t>(data));
+		 * });
+		 * \endcode
+		 */
+		auto set_receive_callback(
+			std::function<void(std::shared_ptr<network_system::session::messaging_session>,
+			                   const std::vector<uint8_t>&)> callback) -> void;
+
+		/*!
+		 * \brief Sets the callback for session errors.
+		 *
+		 * \param callback Function called when an error occurs on a session.
+		 *        First parameter is shared_ptr to the session (may be null).
+		 *        Second parameter is the error code.
+		 *
+		 * The callback is invoked when errors occur during accept, read, or write.
+		 *
+		 * \code
+		 * server->set_error_callback([](auto session, std::error_code ec) {
+		 *     std::cerr << "Session error: " << ec.message() << "\n";
+		 * });
+		 * \endcode
+		 */
+		auto set_error_callback(
+			std::function<void(std::shared_ptr<network_system::session::messaging_session>,
+			                   std::error_code)> callback) -> void;
+
 	private:
 		/*!
 		 * \brief Initiates an asynchronous accept operation (\c async_accept).
@@ -296,6 +374,25 @@ namespace network_system::core {
 		std::atomic<uint64_t> messages_sent_{0};
 		std::atomic<uint64_t> connection_errors_{0};
 #endif
+
+		/*!
+		 * \brief Callbacks for server events
+		 */
+		std::function<void(std::shared_ptr<network_system::session::messaging_session>)>
+			connection_callback_;
+		std::function<void(const std::string&)>
+			disconnection_callback_;
+		std::function<void(std::shared_ptr<network_system::session::messaging_session>,
+		                   const std::vector<uint8_t>&)>
+			receive_callback_;
+		std::function<void(std::shared_ptr<network_system::session::messaging_session>,
+		                   std::error_code)>
+			error_callback_;
+
+		/*!
+		 * \brief Mutex protecting callback access
+		 */
+		mutable std::mutex callback_mutex_;
 	};
 
 } // namespace network_system::core
