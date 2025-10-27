@@ -342,6 +342,50 @@ namespace network_system::core
 		auto new_session = std::make_shared<network_system::session::secure_session>(
 			std::move(socket), *ssl_context_, server_id_);
 
+		// Set up session callbacks to forward to server callbacks
+		auto self = shared_from_this();
+		{
+			std::lock_guard<std::mutex> lock(callback_mutex_);
+			if (receive_callback_)
+			{
+				new_session->set_receive_callback(
+					[this, self, new_session](const std::vector<uint8_t>& data)
+					{
+						std::lock_guard<std::mutex> cb_lock(callback_mutex_);
+						if (receive_callback_)
+						{
+							receive_callback_(new_session, data);
+						}
+					});
+			}
+
+			if (disconnection_callback_)
+			{
+				new_session->set_disconnection_callback(
+					[this, self, new_session](const std::string& session_id)
+					{
+						std::lock_guard<std::mutex> cb_lock(callback_mutex_);
+						if (disconnection_callback_)
+						{
+							disconnection_callback_(session_id);
+						}
+					});
+			}
+
+			if (error_callback_)
+			{
+				new_session->set_error_callback(
+					[this, self, new_session](std::error_code ec)
+					{
+						std::lock_guard<std::mutex> cb_lock(callback_mutex_);
+						if (error_callback_)
+						{
+							error_callback_(new_session, ec);
+						}
+					});
+			}
+		}
+
 		// Track it in our sessions_ vector (protected by mutex)
 		{
 			std::lock_guard<std::mutex> lock(sessions_mutex_);
@@ -350,6 +394,23 @@ namespace network_system::core
 
 		// Start the session (this will trigger SSL handshake)
 		new_session->start_session();
+
+		// Invoke connection callback
+		{
+			std::lock_guard<std::mutex> lock(callback_mutex_);
+			if (connection_callback_)
+			{
+				try
+				{
+					connection_callback_(new_session);
+				}
+				catch (const std::exception& e)
+				{
+					NETWORK_LOG_ERROR("[secure_messaging_server] Exception in connection callback: "
+					                  + std::string(e.what()));
+				}
+			}
+		}
 
 #ifdef BUILD_WITH_COMMON_SYSTEM
 		// Record active connections metric
@@ -423,5 +484,36 @@ namespace network_system::core
 		return monitor_;
 	}
 #endif
+
+	auto secure_messaging_server::set_connection_callback(
+		std::function<void(std::shared_ptr<network_system::session::secure_session>)> callback)
+		-> void
+	{
+		std::lock_guard<std::mutex> lock(callback_mutex_);
+		connection_callback_ = std::move(callback);
+	}
+
+	auto secure_messaging_server::set_disconnection_callback(
+		std::function<void(const std::string&)> callback) -> void
+	{
+		std::lock_guard<std::mutex> lock(callback_mutex_);
+		disconnection_callback_ = std::move(callback);
+	}
+
+	auto secure_messaging_server::set_receive_callback(
+		std::function<void(std::shared_ptr<network_system::session::secure_session>,
+		                   const std::vector<uint8_t>&)> callback) -> void
+	{
+		std::lock_guard<std::mutex> lock(callback_mutex_);
+		receive_callback_ = std::move(callback);
+	}
+
+	auto secure_messaging_server::set_error_callback(
+		std::function<void(std::shared_ptr<network_system::session::secure_session>,
+		                   std::error_code)> callback) -> void
+	{
+		std::lock_guard<std::mutex> lock(callback_mutex_);
+		error_callback_ = std::move(callback);
+	}
 
 } // namespace network_system::core

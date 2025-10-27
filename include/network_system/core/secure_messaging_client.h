@@ -141,6 +141,31 @@ namespace network_system::core
 			return is_connected_.load(std::memory_order_relaxed);
 		}
 
+		/*!
+		 * \brief Sets the callback for received data.
+		 * \param callback Function called when data is received from the server.
+		 */
+		auto set_receive_callback(
+			std::function<void(const std::vector<uint8_t>&)> callback) -> void;
+
+		/*!
+		 * \brief Sets the callback for connection established.
+		 * \param callback Function called when connection and SSL handshake succeed.
+		 */
+		auto set_connected_callback(std::function<void()> callback) -> void;
+
+		/*!
+		 * \brief Sets the callback for disconnection.
+		 * \param callback Function called when disconnected from server.
+		 */
+		auto set_disconnected_callback(std::function<void()> callback) -> void;
+
+		/*!
+		 * \brief Sets the callback for errors.
+		 * \param callback Function called when an error occurs.
+		 */
+		auto set_error_callback(std::function<void(std::error_code)> callback) -> void;
+
 	private:
 		/*!
 		 * \brief Callback for when encrypted data arrives from the server.
@@ -179,6 +204,19 @@ namespace network_system::core
 
 		std::atomic<bool> is_connected_{false}; /*!< Connection state flag. */
 		bool verify_cert_{true};		/*!< Whether to verify server certificate. */
+
+		/*!
+		 * \brief Callbacks for client events
+		 */
+		std::function<void(const std::vector<uint8_t>&)> receive_callback_;
+		std::function<void()> connected_callback_;
+		std::function<void()> disconnected_callback_;
+		std::function<void(std::error_code)> error_callback_;
+
+		/*!
+		 * \brief Mutex protecting callback access
+		 */
+		mutable std::mutex callback_mutex_;
 	};
 
 } // namespace network_system::core

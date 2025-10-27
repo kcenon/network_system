@@ -160,6 +160,37 @@ namespace network_system::core
 		auto get_monitor() const -> common::interfaces::IMonitor*;
 #endif
 
+		/*!
+		 * \brief Sets the callback for new client connections.
+		 * \param callback Function called when a client connects.
+		 */
+		auto set_connection_callback(
+			std::function<void(std::shared_ptr<network_system::session::secure_session>)> callback)
+			-> void;
+
+		/*!
+		 * \brief Sets the callback for client disconnections.
+		 * \param callback Function called when a client disconnects.
+		 */
+		auto set_disconnection_callback(
+			std::function<void(const std::string&)> callback) -> void;
+
+		/*!
+		 * \brief Sets the callback for received messages.
+		 * \param callback Function called when data is received from a client.
+		 */
+		auto set_receive_callback(
+			std::function<void(std::shared_ptr<network_system::session::secure_session>,
+			                   const std::vector<uint8_t>&)> callback) -> void;
+
+		/*!
+		 * \brief Sets the callback for session errors.
+		 * \param callback Function called when an error occurs on a session.
+		 */
+		auto set_error_callback(
+			std::function<void(std::shared_ptr<network_system::session::secure_session>,
+			                   std::error_code)> callback) -> void;
+
 	private:
 		/*!
 		 * \brief Initiates an asynchronous accept operation (\c async_accept).
@@ -250,6 +281,25 @@ namespace network_system::core
 		std::atomic<uint64_t> messages_sent_{0};
 		std::atomic<uint64_t> connection_errors_{0};
 #endif
+
+		/*!
+		 * \brief Callbacks for server events
+		 */
+		std::function<void(std::shared_ptr<network_system::session::secure_session>)>
+			connection_callback_;
+		std::function<void(const std::string&)>
+			disconnection_callback_;
+		std::function<void(std::shared_ptr<network_system::session::secure_session>,
+		                   const std::vector<uint8_t>&)>
+			receive_callback_;
+		std::function<void(std::shared_ptr<network_system::session::secure_session>,
+		                   std::error_code)>
+			error_callback_;
+
+		/*!
+		 * \brief Mutex protecting callback access
+		 */
+		mutable std::mutex callback_mutex_;
 	};
 
 } // namespace network_system::core
