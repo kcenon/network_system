@@ -215,6 +215,24 @@ namespace network_system::core
 
 			NETWORK_LOG_INFO("[secure_messaging_client] Connected to " + host + ":" +
 				std::to_string(port) + " (TLS/SSL secured)");
+
+			// Invoke connected callback if set
+			{
+				std::lock_guard<std::mutex> lock(callback_mutex_);
+				if (connected_callback_)
+				{
+					try
+					{
+						connected_callback_();
+					}
+					catch (const std::exception& e)
+					{
+						NETWORK_LOG_ERROR("[secure_messaging_client] Exception in connected callback: "
+						                  + std::string(e.what()));
+					}
+				}
+			}
+
 			return ok();
 		}
 		catch (const std::system_error& e)
@@ -362,6 +380,23 @@ namespace network_system::core
 		NETWORK_LOG_DEBUG("[secure_messaging_client] Received " +
 			std::to_string(data.size()) + " bytes.");
 
+		// Invoke receive callback if set
+		{
+			std::lock_guard<std::mutex> lock(callback_mutex_);
+			if (receive_callback_)
+			{
+				try
+				{
+					receive_callback_(data);
+				}
+				catch (const std::exception& e)
+				{
+					NETWORK_LOG_ERROR("[secure_messaging_client] Exception in receive callback: "
+					                  + std::string(e.what()));
+				}
+			}
+		}
+
 		// Handle received data here
 		// In a real implementation, you might dispatch to a callback or queue
 	}
@@ -369,7 +404,68 @@ namespace network_system::core
 	auto secure_messaging_client::on_error(std::error_code ec) -> void
 	{
 		NETWORK_LOG_ERROR("[secure_messaging_client] Socket error: " + ec.message());
+
+		// Invoke error callback if set
+		{
+			std::lock_guard<std::mutex> lock(callback_mutex_);
+			if (error_callback_)
+			{
+				try
+				{
+					error_callback_(ec);
+				}
+				catch (const std::exception& e)
+				{
+					NETWORK_LOG_ERROR("[secure_messaging_client] Exception in error callback: "
+					                  + std::string(e.what()));
+				}
+			}
+		}
+
+		// Invoke disconnected callback if was connected
+		if (is_connected_.load())
+		{
+			std::lock_guard<std::mutex> lock(callback_mutex_);
+			if (disconnected_callback_)
+			{
+				try
+				{
+					disconnected_callback_();
+				}
+				catch (const std::exception& e)
+				{
+					NETWORK_LOG_ERROR("[secure_messaging_client] Exception in disconnected callback: "
+					                  + std::string(e.what()));
+				}
+			}
+		}
+
 		is_connected_.store(false);
+	}
+
+	auto secure_messaging_client::set_receive_callback(
+		std::function<void(const std::vector<uint8_t>&)> callback) -> void
+	{
+		std::lock_guard<std::mutex> lock(callback_mutex_);
+		receive_callback_ = std::move(callback);
+	}
+
+	auto secure_messaging_client::set_connected_callback(std::function<void()> callback) -> void
+	{
+		std::lock_guard<std::mutex> lock(callback_mutex_);
+		connected_callback_ = std::move(callback);
+	}
+
+	auto secure_messaging_client::set_disconnected_callback(std::function<void()> callback) -> void
+	{
+		std::lock_guard<std::mutex> lock(callback_mutex_);
+		disconnected_callback_ = std::move(callback);
+	}
+
+	auto secure_messaging_client::set_error_callback(std::function<void(std::error_code)> callback) -> void
+	{
+		std::lock_guard<std::mutex> lock(callback_mutex_);
+		error_callback_ = std::move(callback);
 	}
 
 } // namespace network_system::core

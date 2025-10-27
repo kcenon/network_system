@@ -32,15 +32,16 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
+#include <atomic>
+#include <functional>
+#include <future>
 #include <memory>
+#include <mutex>
+#include <optional>
 #include <string>
 #include <string_view>
-#include <atomic>
 #include <thread>
-#include <future>
-#include <optional>
 #include <type_traits>
-#include <mutex>
 
 #include <asio.hpp>
 
@@ -170,6 +171,58 @@ namespace network_system::core
 		 */
 		auto send_packet(std::vector<uint8_t>&& data) -> VoidResult;
 
+		/*!
+		 * \brief Sets the callback for received data.
+		 * \param callback Function called when data is received from the server.
+		 *
+		 * The callback receives a const reference to the received data.
+		 * It is invoked on the I/O thread.
+		 *
+		 * \code
+		 * client->set_receive_callback([](const auto& data) {
+		 *     std::cout << "Received " << data.size() << " bytes\n";
+		 * });
+		 * \endcode
+		 */
+		auto set_receive_callback(
+			std::function<void(const std::vector<uint8_t>&)> callback) -> void;
+
+		/*!
+		 * \brief Sets the callback for connection established.
+		 * \param callback Function called when connection succeeds.
+		 *
+		 * \code
+		 * client->set_connected_callback([]() {
+		 *     std::cout << "Connected to server\n";
+		 * });
+		 * \endcode
+		 */
+		auto set_connected_callback(std::function<void()> callback) -> void;
+
+		/*!
+		 * \brief Sets the callback for disconnection.
+		 * \param callback Function called when disconnected from server.
+		 *
+		 * \code
+		 * client->set_disconnected_callback([]() {
+		 *     std::cout << "Disconnected from server\n";
+		 * });
+		 * \endcode
+		 */
+		auto set_disconnected_callback(std::function<void()> callback) -> void;
+
+		/*!
+		 * \brief Sets the callback for errors.
+		 * \param callback Function called when an error occurs.
+		 *
+		 * \code
+		 * client->set_error_callback([](std::error_code ec) {
+		 *     std::cerr << "Error: " << ec.message() << "\n";
+		 * });
+		 * \endcode
+		 */
+		auto set_error_callback(std::function<void(std::error_code)> callback) -> void;
+
 	private:
 		/*!
 		 * \brief Internally attempts to resolve and connect to the remote \p
@@ -238,6 +291,19 @@ namespace network_system::core
 		bool encrypt_mode_{
 			false
 		}; /*!< If true, encrypt data before sending. */
+
+		/*!
+		 * \brief Callbacks for client events
+		 */
+		std::function<void(const std::vector<uint8_t>&)> receive_callback_;
+		std::function<void()> connected_callback_;
+		std::function<void()> disconnected_callback_;
+		std::function<void(std::error_code)> error_callback_;
+
+		/*!
+		 * \brief Mutex protecting callback access
+		 */
+		mutable std::mutex callback_mutex_;
 	};
 
 } // namespace network_system::core
