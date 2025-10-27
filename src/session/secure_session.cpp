@@ -124,6 +124,24 @@ namespace network_system::session
 				NETWORK_LOG_ERROR("[secure_session] Error closing socket: " + ec.message());
 			}
 		}
+
+		// Invoke disconnection callback if set
+		{
+			std::lock_guard<std::mutex> lock(callback_mutex_);
+			if (disconnection_callback_)
+			{
+				try
+				{
+					disconnection_callback_(server_id_);
+				}
+				catch (const std::exception& e)
+				{
+					NETWORK_LOG_ERROR("[secure_session] Exception in disconnection callback: "
+					                  + std::string(e.what()));
+				}
+			}
+		}
+
 		NETWORK_LOG_INFO("[secure_session] Stopped.");
 	}
 
@@ -203,6 +221,24 @@ namespace network_system::session
 	auto secure_session::on_error(std::error_code ec) -> void
 	{
 		NETWORK_LOG_ERROR("[secure_session] Socket error: " + ec.message());
+
+		// Invoke error callback if set
+		{
+			std::lock_guard<std::mutex> lock(callback_mutex_);
+			if (error_callback_)
+			{
+				try
+				{
+					error_callback_(ec);
+				}
+				catch (const std::exception& e)
+				{
+					NETWORK_LOG_ERROR("[secure_session] Exception in error callback: "
+					                  + std::string(e.what()));
+				}
+			}
+		}
+
 		stop_session();
 	}
 
@@ -227,6 +263,23 @@ namespace network_system::session
 			std::to_string(message.size()) + " bytes. Queue remaining: " +
 			std::to_string(pending_messages_.size()));
 
+		// Invoke receive callback if set
+		{
+			std::lock_guard<std::mutex> lock(callback_mutex_);
+			if (receive_callback_)
+			{
+				try
+				{
+					receive_callback_(message);
+				}
+				catch (const std::exception& e)
+				{
+					NETWORK_LOG_ERROR("[secure_session] Exception in receive callback: "
+					                  + std::string(e.what()));
+				}
+			}
+		}
+
 		// If there are more messages, process them asynchronously
 		// to avoid blocking the receive thread
 		std::lock_guard<std::mutex> lock(queue_mutex_);
@@ -236,6 +289,27 @@ namespace network_system::session
 			// or use a work queue to process messages asynchronously
 			// For now, we just process one message per call
 		}
+	}
+
+	auto secure_session::set_receive_callback(
+		std::function<void(const std::vector<uint8_t>&)> callback) -> void
+	{
+		std::lock_guard<std::mutex> lock(callback_mutex_);
+		receive_callback_ = std::move(callback);
+	}
+
+	auto secure_session::set_disconnection_callback(
+		std::function<void(const std::string&)> callback) -> void
+	{
+		std::lock_guard<std::mutex> lock(callback_mutex_);
+		disconnection_callback_ = std::move(callback);
+	}
+
+	auto secure_session::set_error_callback(
+		std::function<void(std::error_code)> callback) -> void
+	{
+		std::lock_guard<std::mutex> lock(callback_mutex_);
+		error_callback_ = std::move(callback);
 	}
 
 } // namespace network_system::session

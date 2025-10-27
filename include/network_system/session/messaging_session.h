@@ -34,6 +34,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <atomic>
 #include <deque>
+#include <functional>
 #include <memory>
 #include <mutex>
 #include <string>
@@ -126,6 +127,43 @@ namespace network_system::session
 		 */
 		auto send_packet(std::vector<uint8_t>&& data) -> void;
 
+		/*!
+		 * \brief Sets the callback for received data.
+		 * \param callback Function called when data is received.
+		 *
+		 * The callback receives a const reference to the received data.
+		 * It is invoked on the I/O thread, so keep processing minimal
+		 * or dispatch to a worker thread.
+		 */
+		auto set_receive_callback(
+			std::function<void(const std::vector<uint8_t>&)> callback) -> void;
+
+		/*!
+		 * \brief Sets the callback for disconnection.
+		 * \param callback Function called when the session stops.
+		 *
+		 * The callback receives the server_id as identification.
+		 */
+		auto set_disconnection_callback(
+			std::function<void(const std::string&)> callback) -> void;
+
+		/*!
+		 * \brief Sets the callback for errors.
+		 * \param callback Function called when an error occurs.
+		 *
+		 * The callback receives the error code.
+		 */
+		auto set_error_callback(
+			std::function<void(std::error_code)> callback) -> void;
+
+		/*!
+		 * \brief Gets the server identifier.
+		 * \return The server_id string.
+		 */
+		[[nodiscard]] auto server_id() const -> const std::string& {
+			return server_id_;
+		}
+
 	private:
 		/*!
 		 * \brief Callback for when data arrives from the client.
@@ -190,6 +228,18 @@ namespace network_system::session
 		 * If doubled, the session is disconnected.
 		 */
 		static constexpr size_t max_pending_messages_ = 1000;
+
+		/*!
+		 * \brief Callbacks for session events
+		 */
+		std::function<void(const std::vector<uint8_t>&)> receive_callback_;
+		std::function<void(const std::string&)> disconnection_callback_;
+		std::function<void(std::error_code)> error_callback_;
+
+		/*!
+		 * \brief Mutex protecting callback access
+		 */
+		mutable std::mutex callback_mutex_;
 	};
 
 } // namespace network_system::session

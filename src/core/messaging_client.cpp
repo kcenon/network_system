@@ -333,6 +333,23 @@ namespace network_system::core
 		NETWORK_LOG_INFO("[messaging_client] Connected successfully.");
 		is_connected_.store(true);
 
+		// Invoke connected callback if set
+		{
+			std::lock_guard<std::mutex> lock(callback_mutex_);
+			if (connected_callback_)
+			{
+				try
+				{
+					connected_callback_();
+				}
+				catch (const std::exception& e)
+				{
+					NETWORK_LOG_ERROR("[messaging_client] Exception in connected callback: "
+					                  + std::string(e.what()));
+				}
+			}
+		}
+
 	// set callbacks and start read loop with mutex protection
 	auto self = shared_from_this();
 	auto local_socket = get_socket();
@@ -427,6 +444,23 @@ if constexpr (std::is_same_v<decltype(local_socket->socket().get_executor()), as
 		NETWORK_LOG_DEBUG("[messaging_client] Received " + std::to_string(data.size())
 				+ " bytes");
 
+		// Invoke receive callback if set
+		{
+			std::lock_guard<std::mutex> lock(callback_mutex_);
+			if (receive_callback_)
+			{
+				try
+				{
+					receive_callback_(data);
+				}
+				catch (const std::exception& e)
+				{
+					NETWORK_LOG_ERROR("[messaging_client] Exception in receive callback: "
+					                  + std::string(e.what()));
+				}
+			}
+		}
+
 		// Decompress/Decrypt if needed?
 		// For demonstration, ignoring. In real usage:
 		//   auto uncompressed = pipeline_.decompress(...);
@@ -437,6 +471,42 @@ if constexpr (std::is_same_v<decltype(local_socket->socket().get_executor()), as
 auto messaging_client::on_error(std::error_code ec) -> void
 {
 	NETWORK_LOG_ERROR("[messaging_client] Socket error: " + ec.message());
+
+	// Invoke error callback if set
+	{
+		std::lock_guard<std::mutex> lock(callback_mutex_);
+		if (error_callback_)
+		{
+			try
+			{
+				error_callback_(ec);
+			}
+			catch (const std::exception& e)
+			{
+				NETWORK_LOG_ERROR("[messaging_client] Exception in error callback: "
+				                  + std::string(e.what()));
+			}
+		}
+	}
+
+	// Invoke disconnected callback if was connected
+	if (is_connected_.load())
+	{
+		std::lock_guard<std::mutex> lock(callback_mutex_);
+		if (disconnected_callback_)
+		{
+			try
+			{
+				disconnected_callback_();
+			}
+			catch (const std::exception& e)
+			{
+				NETWORK_LOG_ERROR("[messaging_client] Exception in disconnected callback: "
+				                  + std::string(e.what()));
+			}
+		}
+	}
+
 	// Mark connection as lost but don't call stop_client from callback thread
 	// to avoid race conditions with destructor or explicit stop_client calls
 	is_connected_.store(false);
@@ -447,6 +517,31 @@ auto messaging_client::get_socket() const -> std::shared_ptr<internal::tcp_socke
 {
 	std::lock_guard<std::mutex> lock(socket_mutex_);
 	return socket_;
+}
+
+auto messaging_client::set_receive_callback(
+	std::function<void(const std::vector<uint8_t>&)> callback) -> void
+{
+	std::lock_guard<std::mutex> lock(callback_mutex_);
+	receive_callback_ = std::move(callback);
+}
+
+auto messaging_client::set_connected_callback(std::function<void()> callback) -> void
+{
+	std::lock_guard<std::mutex> lock(callback_mutex_);
+	connected_callback_ = std::move(callback);
+}
+
+auto messaging_client::set_disconnected_callback(std::function<void()> callback) -> void
+{
+	std::lock_guard<std::mutex> lock(callback_mutex_);
+	disconnected_callback_ = std::move(callback);
+}
+
+auto messaging_client::set_error_callback(std::function<void(std::error_code)> callback) -> void
+{
+	std::lock_guard<std::mutex> lock(callback_mutex_);
+	error_callback_ = std::move(callback);
 }
 
 } // namespace network_system::core

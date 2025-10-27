@@ -112,6 +112,24 @@ namespace network_system::session
 				NETWORK_LOG_ERROR("[messaging_session] Error closing socket: " + ec.message());
 			}
 		}
+
+		// Invoke disconnection callback if set
+		{
+			std::lock_guard<std::mutex> lock(callback_mutex_);
+			if (disconnection_callback_)
+			{
+				try
+				{
+					disconnection_callback_(server_id_);
+				}
+				catch (const std::exception& e)
+				{
+					NETWORK_LOG_ERROR("[messaging_session] Exception in disconnection callback: "
+					                  + std::string(e.what()));
+				}
+			}
+		}
+
 		NETWORK_LOG_INFO("[messaging_session] Stopped.");
 	}
 
@@ -209,6 +227,24 @@ if constexpr (std::is_same_v<decltype(socket_->socket().get_executor()), asio::i
 	auto messaging_session::on_error(std::error_code ec) -> void
 	{
 		NETWORK_LOG_ERROR("[messaging_session] Socket error: " + ec.message());
+
+		// Invoke error callback if set
+		{
+			std::lock_guard<std::mutex> lock(callback_mutex_);
+			if (error_callback_)
+			{
+				try
+				{
+					error_callback_(ec);
+				}
+				catch (const std::exception& e)
+				{
+					NETWORK_LOG_ERROR("[messaging_session] Exception in error callback: "
+					                  + std::string(e.what()));
+				}
+			}
+		}
+
 		stop_session();
 	}
 
@@ -237,6 +273,23 @@ if constexpr (std::is_same_v<decltype(socket_->socket().get_executor()), asio::i
 			std::to_string(message.size()) + " bytes. Queue remaining: " +
 			std::to_string(pending_messages_.size()));
 
+		// Invoke receive callback if set
+		{
+			std::lock_guard<std::mutex> lock(callback_mutex_);
+			if (receive_callback_)
+			{
+				try
+				{
+					receive_callback_(message);
+				}
+				catch (const std::exception& e)
+				{
+					NETWORK_LOG_ERROR("[messaging_session] Exception in receive callback: "
+					                  + std::string(e.what()));
+				}
+			}
+		}
+
 		// If there are more messages, process them asynchronously
 		// to avoid blocking the receive thread
 		std::lock_guard<std::mutex> lock(queue_mutex_);
@@ -246,6 +299,27 @@ if constexpr (std::is_same_v<decltype(socket_->socket().get_executor()), asio::i
 			// or use a work queue to process messages asynchronously
 			// For now, we just process one message per call
 		}
+	}
+
+	auto messaging_session::set_receive_callback(
+		std::function<void(const std::vector<uint8_t>&)> callback) -> void
+	{
+		std::lock_guard<std::mutex> lock(callback_mutex_);
+		receive_callback_ = std::move(callback);
+	}
+
+	auto messaging_session::set_disconnection_callback(
+		std::function<void(const std::string&)> callback) -> void
+	{
+		std::lock_guard<std::mutex> lock(callback_mutex_);
+		disconnection_callback_ = std::move(callback);
+	}
+
+	auto messaging_session::set_error_callback(
+		std::function<void(std::error_code)> callback) -> void
+	{
+		std::lock_guard<std::mutex> lock(callback_mutex_);
+		error_callback_ = std::move(callback);
 	}
 
 } // namespace network_system::session
