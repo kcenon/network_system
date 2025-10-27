@@ -34,6 +34,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <atomic>
 #include <deque>
+#include <functional>
 #include <memory>
 #include <mutex>
 #include <string>
