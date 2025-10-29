@@ -31,7 +31,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 option(BUILD_SHARED_LIBS "Build using shared libraries" OFF)
 option(BUILD_TESTS "Build tests" ON)
-option(BUILD_SAMPLES "Build samples" OFF)
+option(BUILD_SAMPLES "Build samples" ON)
 option(BUILD_WEBSOCKET_SUPPORT "Build WebSocket protocol support (RFC 6455)" ON)
 option(BUILD_WITH_CONTAINER_SYSTEM "Build with container_system integration" ON)
 option(BUILD_WITH_THREAD_SYSTEM "Build with thread_system integration" ON)
@@ -41,7 +41,7 @@ option(BUILD_WITH_COMMON_SYSTEM "Build with common_system integration" ON)
 option(BUILD_MESSAGING_BRIDGE "Build messaging_system bridge" ON)
 option(ENABLE_COVERAGE "Enable code coverage" OFF)
 option(NETWORK_BUILD_BENCHMARKS "Build network system benchmarks" OFF)
-option(NETWORK_BUILD_INTEGRATION_TESTS "Build network system integration tests" OFF)
+option(NETWORK_BUILD_INTEGRATION_TESTS "Build network system integration tests" ON)
 
 # Respect global BUILD_INTEGRATION_TESTS flag if set
 if(DEFINED BUILD_INTEGRATION_TESTS)
