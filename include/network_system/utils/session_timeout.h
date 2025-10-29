@@ -16,14 +16,14 @@ public:
     bool is_timed_out() const {
         auto now = std::chrono::steady_clock::now();
         auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(
-            now - last_activity_);
+            now - last_activity_.load());
         return elapsed > timeout_;
     }
 
     auto get_idle_time() const {
         auto now = std::chrono::steady_clock::now();
         return std::chrono::duration_cast<std::chrono::seconds>(
-            now - last_activity_);
+            now - last_activity_.load());
     }
 
 private:
