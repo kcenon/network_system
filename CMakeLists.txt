@@ -133,6 +133,17 @@ add_library(NetworkSystem
     src/integration/monitoring_integration.cpp
 )
 
+# Suppress warnings inherited from parent project (especially from ASIO)
+target_compile_options(NetworkSystem PRIVATE
+    -Wno-sign-conversion
+    -Wno-conversion
+    -Wno-implicit-fallthrough
+    -Wno-shadow
+    -Wno-unused-parameter
+    -Wno-unused-but-set-variable
+    -Wno-unused-variable
+)
+
 # TLS/SSL support (conditional)
 option(BUILD_TLS_SUPPORT "Build with TLS/SSL support for secure messaging" ON)
 option(BUILD_LZ4_COMPRESSION "Build with LZ4 compression support" ON)
