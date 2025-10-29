@@ -133,6 +133,28 @@ add_library(NetworkSystem
     src/integration/monitoring_integration.cpp
 )
 
+# Suppress warnings inherited from parent project (especially from ASIO)
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    target_compile_options(NetworkSystem PRIVATE
+        -Wno-sign-conversion
+        -Wno-conversion
+        -Wno-implicit-fallthrough
+        -Wno-shadow
+        -Wno-unused-parameter
+        -Wno-unused-but-set-variable
+        -Wno-unused-variable
+    )
+elseif(MSVC)
+    target_compile_options(NetworkSystem PRIVATE
+        /wd4244  # conversion from 'type1' to 'type2', possible loss of data
+        /wd4267  # conversion from 'size_t' to 'type', possible loss of data
+        /wd4100  # unreferenced formal parameter
+        /wd4101  # unreferenced local variable
+        /wd4456  # declaration hides previous local declaration
+        /wd4457  # declaration hides function parameter
+    )
+endif()
+
 # TLS/SSL support (conditional)
 option(BUILD_TLS_SUPPORT "Build with TLS/SSL support for secure messaging" ON)
 option(BUILD_LZ4_COMPRESSION "Build with LZ4 compression support" ON)
