@@ -173,6 +173,28 @@ namespace network_system::internal
         static auto build_query_string(const std::map<std::string, std::string>& params)
             -> std::string;
 
+        /*!
+         * \brief Parse Cookie header from request
+         * \param cookie_header Cookie header value
+         * \return Map of cookie name to value
+         */
+        static auto parse_cookies(const std::string& cookie_header)
+            -> std::map<std::string, std::string>;
+
+        /*!
+         * \brief Parse multipart/form-data body
+         * \param body Request body bytes
+         * \param content_type Content-Type header value (contains boundary)
+         * \param form_data Output: parsed form fields
+         * \param files Output: parsed file uploads
+         * \return true if parsing succeeded, false otherwise
+         */
+        static auto parse_multipart_form_data(
+            const std::vector<uint8_t>& body,
+            const std::string& content_type,
+            std::map<std::string, std::string>& form_data,
+            std::map<std::string, multipart_file>& files) -> bool;
+
     private:
         // Helper functions for parsing
         static auto parse_request_line(std::string_view line) -> Result<http_request>;

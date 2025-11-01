@@ -354,6 +354,25 @@ namespace network_system::core
 
         auto http_request = std::move(request_result.value());
 
+        // Parse Cookie header if present
+        auto cookie_header = http_request.get_header("Cookie");
+        if (cookie_header)
+        {
+            http_request.cookies = internal::http_parser::parse_cookies(*cookie_header);
+        }
+
+        // Parse multipart/form-data if present
+        auto content_type = http_request.get_header("Content-Type");
+        if (content_type && content_type->find("multipart/form-data") != std::string::npos)
+        {
+            internal::http_parser::parse_multipart_form_data(
+                http_request.body,
+                *content_type,
+                http_request.form_data,
+                http_request.files
+            );
+        }
+
         // Create request context
         http_request_context ctx;
         ctx.request = std::move(http_request);
