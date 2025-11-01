@@ -34,6 +34,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <iostream> // for debugging/logging
 #include <type_traits>
+#include "network_system/integration/logger_integration.h"
 
 // Use nested namespace definition (C++17)
 namespace network_system::internal
@@ -81,6 +82,7 @@ namespace network_system::internal
 		}
 
 		auto self = shared_from_this();
+		NETWORK_LOG_DEBUG("[tcp_socket] Starting async_read_some");
 		socket_.async_read_some(
 			asio::buffer(read_buffer_),
 			[this, self](std::error_code ec, std::size_t length)
@@ -93,6 +95,7 @@ namespace network_system::internal
 
 				if (ec)
 				{
+					NETWORK_LOG_ERROR("[tcp_socket] Read error: " + ec.message());
 					// On error, invoke the error callback using if constexpr to check invocability
 					if constexpr (std::is_invocable_v<decltype(error_callback_), std::error_code>)
 					{
@@ -106,6 +109,7 @@ namespace network_system::internal
 				// On success, if length > 0, build a vector and call receive_callback_
 				if (length > 0)
 				{
+					NETWORK_LOG_INFO("[tcp_socket] Received " + std::to_string(length) + " bytes");
 					if constexpr (std::is_invocable_v<decltype(receive_callback_), const std::vector<uint8_t>&>)
 					{
 						std::vector<uint8_t> chunk(read_buffer_.begin(),
@@ -131,10 +135,19 @@ auto tcp_socket::async_send(
     auto self = shared_from_this();
     // Move data into shared_ptr for lifetime management
     auto buffer = std::make_shared<std::vector<uint8_t>>(std::move(data));
+    NETWORK_LOG_INFO("[tcp_socket] Starting async_write for " + std::to_string(buffer->size()) + " bytes");
     asio::async_write(
         socket_, asio::buffer(*buffer),
         [handler = std::move(handler), self, buffer](std::error_code ec, std::size_t bytes_transferred)
         {
+            if (ec)
+            {
+                NETWORK_LOG_ERROR("[tcp_socket] Write error: " + ec.message());
+            }
+            else
+            {
+                NETWORK_LOG_INFO("[tcp_socket] Write completed: " + std::to_string(bytes_transferred) + " bytes");
+            }
             if constexpr (std::is_invocable_v<decltype(handler), std::error_code, std::size_t>)
             {
                 if (handler)

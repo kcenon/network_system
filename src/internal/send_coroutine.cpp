@@ -101,21 +101,26 @@ namespace network_system::internal
                                         bool use_encrypt)
         -> std::future<std::error_code>
     {
+        NETWORK_LOG_INFO("[send_coroutine] async_send_with_pipeline_no_co called with " + std::to_string(data.size()) + " bytes");
         // Create a promise for the final result
         auto promise = std::make_shared<std::promise<std::error_code>>();
         auto future_result = promise->get_future();
-        
+
         // Process data in a separate thread
         auto future_processed = prepare_data_async(std::move(data), pl, use_compress, use_encrypt);
-        
+
+        NETWORK_LOG_INFO("[send_coroutine] Starting detached thread for send");
         // When processing is done, send the data
         std::thread([sock, promise, future = std::move(future_processed)]() mutable {
             try {
+                NETWORK_LOG_INFO("[send_coroutine] Thread started, waiting for processed data");
                 auto processed_data = future.get();
-                
+                NETWORK_LOG_INFO("[send_coroutine] Got processed data: " + std::to_string(processed_data.size()) + " bytes, calling async_send");
+
                 // Perform async write and capture result in the promise
                 sock->async_send(std::move(processed_data),
                     [promise](std::error_code ec, std::size_t /*bytes_transferred*/) {
+                        NETWORK_LOG_INFO("[send_coroutine] async_send callback invoked");
                         promise->set_value(ec);
                     });
             }
@@ -125,7 +130,8 @@ namespace network_system::internal
                 promise->set_value(std::make_error_code(std::errc::io_error));
             }
         }).detach();
-        
+
+        NETWORK_LOG_INFO("[send_coroutine] Returning future");
         return future_result;
     }
 

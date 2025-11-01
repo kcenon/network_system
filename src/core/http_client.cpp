@@ -31,6 +31,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *****************************************************************************/
 
 #include "network_system/core/http_client.h"
+#include "network_system/integration/logger_integration.h"
 #include <thread>
 #include <condition_variable>
 #include <mutex>
@@ -367,6 +368,7 @@ namespace network_system::core
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
         // Send request
+        NETWORK_LOG_INFO("[http_client] Sending " + std::to_string(request_bytes.size()) + " bytes");
         auto send_result = client->send_packet(std::move(request_bytes));
         if (send_result.is_err())
         {
@@ -374,6 +376,7 @@ namespace network_system::core
             return error<internal::http_response>(-1,
                 "Failed to send request: " + send_result.error().message);
         }
+        NETWORK_LOG_INFO("[http_client] send_packet returned OK");
 
         // Wait for response with timeout
         {

@@ -367,6 +367,7 @@ namespace network_system::core
 
 	auto messaging_client::send_packet(std::vector<uint8_t>&& data) -> VoidResult
 	{
+		NETWORK_LOG_INFO("[messaging_client] send_packet called with " + std::to_string(data.size()) + " bytes");
 		if (!is_running_.load())
 		{
 			return error_void(
@@ -400,11 +401,9 @@ namespace network_system::core
 			);
 		}
 
-// Using if constexpr for compile-time branching (C++17)
-if constexpr (std::is_same_v<decltype(local_socket->socket().get_executor()), asio::io_context::executor_type>)
-{
 #ifdef USE_STD_COROUTINE
 		// Coroutine approach
+		NETWORK_LOG_INFO("[messaging_client] Using coroutine approach");
 		asio::co_spawn(local_socket->socket().get_executor(),
 					   async_send_with_pipeline_co(local_socket, std::move(data),
 												   pipeline_, compress_mode_,
@@ -417,7 +416,8 @@ if constexpr (std::is_same_v<decltype(local_socket->socket().get_executor()), as
 						   }
 					   });
 #else
-		// Fallback approach
+		// Fallback approach without coroutines
+		NETWORK_LOG_INFO("[messaging_client] Using fallback approach");
 		auto fut = async_send_with_pipeline_no_co(
 			local_socket, std::move(data), pipeline_, compress_mode_, encrypt_mode_);
 		// Use structured binding with try/catch for better error handling (C++17)
@@ -431,7 +431,7 @@ if constexpr (std::is_same_v<decltype(local_socket->socket().get_executor()), as
 			NETWORK_LOG_ERROR("[messaging_client] Exception while waiting for send: " + std::string(e.what()));
 		}
 #endif
-}
+		NETWORK_LOG_INFO("[messaging_client] send_packet returning ok");
 		return ok();
 	}
 
