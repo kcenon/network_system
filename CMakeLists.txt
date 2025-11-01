@@ -110,6 +110,8 @@ add_library(NetworkSystem
     src/core/messaging_udp_server.cpp
     src/core/reliable_udp_client.cpp
     src/core/connection_pool.cpp
+    src/core/http_client.cpp
+    src/core/http_server.cpp
 
     # Session management
     src/session/messaging_session.cpp
@@ -119,6 +121,8 @@ add_library(NetworkSystem
     src/internal/udp_socket.cpp
     src/internal/send_coroutine.cpp
     src/internal/pipeline.cpp
+    src/internal/http_types.cpp
+    src/internal/http_parser.cpp
 
     # Utility implementations
     src/utils/resilient_client.cpp
