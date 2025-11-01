@@ -307,8 +307,9 @@ TEST_F(ErrorHandlingTest, PartialMessageRecovery) {
     auto result = client_->send_packet(std::move(invalid));
     EXPECT_FALSE(result.is_ok());
 
-    // Send another valid message
-    EXPECT_TRUE(SendMessage(std::move(valid_message)));
+    // Send another valid message (create new message, not reuse moved one)
+    auto second_valid_message = CreateTestMessage(512);
+    EXPECT_TRUE(SendMessage(std::move(second_valid_message)));
 }
 
 } // namespace network_system::integration_tests
