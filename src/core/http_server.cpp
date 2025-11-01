@@ -32,6 +32,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "network_system/core/http_server.h"
 #include "network_system/session/messaging_session.h"
+#include "network_system/integration/logger_integration.h"
 #include <sstream>
 
 namespace network_system::core
@@ -92,16 +93,17 @@ namespace network_system::core
 
     auto http_server::start(unsigned short port) -> VoidResult
     {
-        // Set up receive callback to handle HTTP requests
+        // Set up receive callback to handle HTTP requests with buffering
         tcp_server_->set_receive_callback([this](std::shared_ptr<network_system::session::messaging_session> session,
                                                   const std::vector<uint8_t>& data)
         {
-            auto response_data = handle_request(data);
-            if (session)
-            {
-                session->send_packet(std::move(response_data));
-            }
+            handle_request_data(session, data);
         });
+
+        // Note: We don't use disconnection_callback because it passes server_id (shared by all sessions)
+        // not a unique session ID. Since HTTP uses Connection: close, sessions are short-lived and
+        // buffers are automatically cleaned up when the session shared_ptr is destroyed after response.
+        // TODO: Consider using weak_ptr or periodic cleanup for long-lived connections
 
         // Start TCP server
         return tcp_server_->start_server(port);
@@ -200,7 +202,144 @@ namespace network_system::core
         return nullptr;
     }
 
-    auto http_server::handle_request(const std::vector<uint8_t>& request_data) -> std::vector<uint8_t>
+    auto http_server::handle_request_data(std::shared_ptr<network_system::session::messaging_session> session,
+                                          const std::vector<uint8_t>& chunk) -> void
+    {
+        if (!session)
+        {
+            return;
+        }
+
+        bool request_complete = false;
+        std::vector<uint8_t> complete_request_data;
+
+        // Scope for lock - we'll release it before calling send_packet
+        {
+            std::lock_guard<std::mutex> lock(buffers_mutex_);
+
+            // Get or create buffer for this session
+            auto& buffer = request_buffers_[session];
+
+        // Append new data to buffer
+        buffer.data.insert(buffer.data.end(), chunk.begin(), chunk.end());
+
+        // Debug logging
+        NETWORK_LOG_INFO("[http_server] Received " + std::to_string(chunk.size()) +
+                        " bytes, total buffer size: " + std::to_string(buffer.data.size()));
+
+        // Check if we've exceeded maximum request size
+        if (buffer.data.size() > http_request_buffer::MAX_REQUEST_SIZE)
+        {
+            request_buffers_.erase(session);
+            send_error_response(session, 413, "Request Entity Too Large");
+            return;
+        }
+
+        // If headers not yet complete, look for end of headers marker
+        if (!buffer.headers_complete)
+        {
+            // Look for "\r\n\r\n" marker
+            const char* marker = "\r\n\r\n";
+            auto it = std::search(buffer.data.begin(), buffer.data.end(),
+                                marker, marker + 4);
+
+            if (it != buffer.data.end())
+            {
+                buffer.headers_complete = true;
+                buffer.headers_end_pos = std::distance(buffer.data.begin(), it) + 4;
+
+                NETWORK_LOG_INFO("[http_server] Headers complete, headers_end_pos: " +
+                               std::to_string(buffer.headers_end_pos));
+
+                // Check if headers are too large
+                if (buffer.headers_end_pos > http_request_buffer::MAX_HEADER_SIZE)
+                {
+                    request_buffers_.erase(session);
+                    send_error_response(session, 431, "Request Header Fields Too Large");
+                    return;
+                }
+
+                // Parse Content-Length from headers
+                buffer.content_length = parse_content_length(buffer.data, buffer.headers_end_pos);
+
+                NETWORK_LOG_INFO("[http_server] Parsed Content-Length: " +
+                               std::to_string(buffer.content_length));
+
+                // Validate Content-Length
+                if (buffer.content_length > http_request_buffer::MAX_REQUEST_SIZE)
+                {
+                    request_buffers_.erase(session);
+                    send_error_response(session, 413, "Request Entity Too Large");
+                    return;
+                }
+            }
+            else
+            {
+                // Headers not yet complete, check if we've exceeded header size limit
+                if (buffer.data.size() > http_request_buffer::MAX_HEADER_SIZE)
+                {
+                    request_buffers_.erase(session);
+                    send_error_response(session, 431, "Request Header Fields Too Large");
+                    return;
+                }
+                // Wait for more data
+                return;
+            }
+        }
+
+            // Check if request is complete
+            if (is_request_complete(buffer))
+            {
+                NETWORK_LOG_INFO("[http_server] Request complete, processing...");
+
+                // Copy request data before erasing buffer
+                complete_request_data = buffer.data;
+                request_complete = true;
+
+                // Clean up buffer
+                request_buffers_.erase(session);
+            }
+            else
+            {
+                NETWORK_LOG_INFO("[http_server] Request incomplete, waiting for more data. " +
+                               std::string("Expected: ") + std::to_string(buffer.headers_end_pos + buffer.content_length) +
+                               ", Got: " + std::to_string(buffer.data.size()));
+            }
+        } // Lock released here
+
+        // Process and send response outside the lock
+        if (request_complete && session)
+        {
+            // Process complete request
+            auto response_data = process_complete_request(complete_request_data);
+
+            NETWORK_LOG_INFO("[http_server] Response generated, size: " +
+                           std::to_string(response_data.size()) + " bytes");
+
+            // Log first 200 bytes of response for debugging
+            std::string response_preview(response_data.begin(),
+                                        response_data.begin() + std::min(size_t(200), response_data.size()));
+            NETWORK_LOG_INFO("[http_server] Response preview: " + response_preview);
+
+            // Send response synchronously (no lock held)
+            auto send_ec = session->send_packet_sync(std::move(response_data));
+            if (send_ec)
+            {
+                NETWORK_LOG_ERROR("[http_server] Failed to send response: " + send_ec.message());
+            }
+            else
+            {
+                NETWORK_LOG_INFO("[http_server] Response sent successfully");
+            }
+
+            // For HTTP with Connection: close, close the session after sending
+            // No sleep needed since send_packet_sync is synchronous
+            session->stop_session();
+            NETWORK_LOG_INFO("[http_server] Session stopped after response");
+        }
+    }
+
+    auto http_server::process_complete_request(const std::vector<uint8_t>& request_data) -> std::vector<uint8_t>
     {
         // Parse HTTP request
         auto request_result = internal::http_parser::parse_request(request_data);
@@ -264,6 +403,107 @@ namespace network_system::core
 
         // Serialize and return response
         return internal::http_parser::serialize_response(response);
+    }
+
+    auto http_server::parse_content_length(const std::vector<uint8_t>& data, std::size_t headers_end_pos) -> std::size_t
+    {
+        // Convert to string view for parsing
+        std::string_view headers_str(reinterpret_cast<const char*>(data.data()), headers_end_pos);
+
+        // Find "Content-Length:" header (case-insensitive)
+        const char* content_length_header = "content-length:";
+        std::size_t pos = 0;
+
+        while (pos < headers_str.length())
+        {
+            auto line_end = headers_str.find("\r\n", pos);
+            if (line_end == std::string_view::npos)
+            {
+                break;
+            }
+
+            auto line = headers_str.substr(pos, line_end - pos);
+
+            // Check if this line starts with "Content-Length:" (case-insensitive)
+            if (line.length() > 15) // "content-length:" is 15 chars
+            {
+                std::string line_lower;
+                line_lower.reserve(15);
+                for (std::size_t i = 0; i < 15 && i < line.length(); ++i)
+                {
+                    line_lower += static_cast<char>(std::tolower(static_cast<unsigned char>(line[i])));
+                }
+
+                if (line_lower == content_length_header)
+                {
+                    // Extract value after colon
+                    auto value_start = line.find(':', 0);
+                    if (value_start != std::string_view::npos)
+                    {
+                        auto value = line.substr(value_start + 1);
+
+                        // Trim whitespace
+                        auto first = value.find_first_not_of(" \t");
+                        auto last = value.find_last_not_of(" \t");
+
+                        if (first != std::string_view::npos && last != std::string_view::npos)
+                        {
+                            value = value.substr(first, last - first + 1);
+
+                            try
+                            {
+                                // Use std::stoull for unsigned long long to handle large values
+                                auto length = std::stoull(std::string(value));
+
+                                // Check for overflow
+                                if (length > std::numeric_limits<std::size_t>::max())
+                                {
+                                    return 0;
+                                }
+
+                                return static_cast<std::size_t>(length);
+                            }
+                            catch (...)
+                            {
+                                // Invalid Content-Length value
+                                return 0;
+                            }
+                        }
+                    }
+                }
+            }
+
+            pos = line_end + 2; // Move past "\r\n"
+        }
+
+        return 0; // Content-Length not found
+    }
+
+    auto http_server::is_request_complete(const http_request_buffer& buffer) const -> bool
+    {
+        if (!buffer.headers_complete)
+        {
+            return false;
+        }
+
+        // Calculate expected total size
+        std::size_t expected_size = buffer.headers_end_pos + buffer.content_length;
+
+        // Check if we have all the data
+        return buffer.data.size() >= expected_size;
+    }
+
+    auto http_server::send_error_response(std::shared_ptr<network_system::session::messaging_session> session,
+                                         int status_code,
+                                         const std::string& message) -> void
+    {
+        auto error_response = create_error_response(status_code, message);
+        auto response_data = internal::http_parser::serialize_response(error_response);
+
+        if (session)
+        {
+            session->send_packet(std::move(response_data));
+        }
     }
 
     auto http_server::create_error_response(int status_code, const std::string& message)

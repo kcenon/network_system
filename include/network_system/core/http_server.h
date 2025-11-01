@@ -271,6 +271,23 @@ namespace network_system::core
 
     private:
         /*!
+         * \struct http_request_buffer
+         * \brief Buffer for assembling HTTP requests from multiple TCP chunks
+         */
+        struct http_request_buffer
+        {
+            std::vector<uint8_t> data;           // Accumulated request data
+            bool headers_complete = false;       // Whether headers have been fully received
+            std::size_t content_length = 0;      // Parsed Content-Length value
+            std::size_t headers_end_pos = 0;     // Position where headers end
+
+            // Maximum allowed request size (10 MB default)
+            static constexpr std::size_t MAX_REQUEST_SIZE = 10 * 1024 * 1024;
+            // Maximum allowed header size (64 KB)
+            static constexpr std::size_t MAX_HEADER_SIZE = 64 * 1024;
+        };
+
+        /*!
          * \brief Register route with method and pattern
          * \param method HTTP method
          * \param pattern Route pattern
@@ -293,11 +310,34 @@ namespace network_system::core
             -> const http_route*;
 
         /*!
-         * \brief Handle incoming HTTP request
-         * \param request_data Raw request data
+         * \brief Handle incoming HTTP request data chunk
+         * \param session Session that received the data
+         * \param chunk Raw request data chunk
+         */
+        auto handle_request_data(std::shared_ptr<network_system::session::messaging_session> session,
+                                const std::vector<uint8_t>& chunk) -> void;
+
+        /*!
+         * \brief Process complete HTTP request
+         * \param request_data Complete raw request data
          * \return HTTP response data
          */
-        auto handle_request(const std::vector<uint8_t>& request_data) -> std::vector<uint8_t>;
+        auto process_complete_request(const std::vector<uint8_t>& request_data) -> std::vector<uint8_t>;
+
+        /*!
+         * \brief Parse Content-Length from header buffer
+         * \param data Request data containing headers
+         * \param headers_end_pos Position where headers end
+         * \return Content-Length value, or 0 if not found
+         */
+        auto parse_content_length(const std::vector<uint8_t>& data, std::size_t headers_end_pos) -> std::size_t;
+
+        /*!
+         * \brief Check if request is complete
+         * \param buffer Request buffer
+         * \return true if request is complete and ready to process
+         */
+        auto is_request_complete(const http_request_buffer& buffer) const -> bool;
 
         /*!
          * \brief Create default error response
@@ -307,6 +347,16 @@ namespace network_system::core
          */
         auto create_error_response(int status_code, const std::string& message)
             -> internal::http_response;
+
+        /*!
+         * \brief Send error response to session
+         * \param session Session to send error to
+         * \param status_code HTTP status code
+         * \param message Error message
+         */
+        auto send_error_response(std::shared_ptr<network_system::session::messaging_session> session,
+                                int status_code,
+                                const std::string& message) -> void;
 
         /*!
          * \brief Convert route pattern to regex pattern
@@ -322,6 +372,10 @@ namespace network_system::core
         std::mutex routes_mutex_;
         http_handler not_found_handler_;
         http_handler error_handler_;
+
+        // Session-specific request buffers
+        std::map<std::shared_ptr<network_system::session::messaging_session>, http_request_buffer> request_buffers_;
+        std::mutex buffers_mutex_;
     };
 
 } // namespace network_system::core

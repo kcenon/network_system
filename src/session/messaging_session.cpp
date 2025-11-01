@@ -135,8 +135,11 @@ namespace network_system::session
 
 	auto messaging_session::send_packet(std::vector<uint8_t>&& data) -> void
 	{
+		NETWORK_LOG_INFO("[messaging_session] send_packet called with " + std::to_string(data.size()) + " bytes");
+
 		if (is_stopped_.load())
 		{
+			NETWORK_LOG_ERROR("[messaging_session] send_packet: session is stopped, not sending");
 			return;
 		}
 
@@ -148,6 +151,9 @@ namespace network_system::session
 			compress_mode = compress_mode_;
 			encrypt_mode = encrypt_mode_;
 		}
+
+		NETWORK_LOG_INFO("[messaging_session] send_packet: compress=" + std::to_string(compress_mode) +
+		                ", encrypt=" + std::to_string(encrypt_mode));
 
 // Using if constexpr for compile-time branching (C++17)
 if constexpr (std::is_same_v<decltype(socket_->socket().get_executor()), asio::io_context::executor_type>)
@@ -182,6 +188,45 @@ if constexpr (std::is_same_v<decltype(socket_->socket().get_executor()), asio::i
 		}
 #endif
 }
+	}
+
+	auto messaging_session::send_packet_sync(std::vector<uint8_t>&& data) -> std::error_code
+	{
+		NETWORK_LOG_INFO("[messaging_session] send_packet_sync called with " + std::to_string(data.size()) + " bytes");
+
+		if (is_stopped_.load())
+		{
+			NETWORK_LOG_ERROR("[messaging_session] send_packet_sync: session is stopped, not sending");
+			return std::make_error_code(std::errc::not_connected);
+		}
+
+		if (!socket_)
+		{
+			NETWORK_LOG_ERROR("[messaging_session] send_packet_sync: socket is null");
+			return std::make_error_code(std::errc::not_connected);
+		}
+
+		// Perform synchronous write
+		std::error_code ec;
+		try
+		{
+			asio::write(socket_->socket(), asio::buffer(data), ec);
+			if (ec)
+			{
+				NETWORK_LOG_ERROR("[messaging_session] send_packet_sync failed: " + ec.message());
+			}
+			else
+			{
+				NETWORK_LOG_INFO("[messaging_session] send_packet_sync completed: " + std::to_string(data.size()) + " bytes");
+			}
+		}
+		catch (const std::exception& e)
+		{
+			NETWORK_LOG_ERROR("[messaging_session] send_packet_sync exception: " + std::string(e.what()));
+			return std::make_error_code(std::errc::io_error);
+		}
+
+		return ec;
 	}
 
 	auto messaging_session::on_receive(const std::vector<uint8_t>& data) -> void

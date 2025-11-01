@@ -128,6 +128,21 @@ namespace network_system::session
 		auto send_packet(std::vector<uint8_t>&& data) -> void;
 
 		/*!
+		 * \brief Sends data synchronously to the connected client.
+		 * \param data The raw bytes to transmit (moved for efficiency).
+		 * \return error_code indicating success or failure.
+		 *
+		 * ### Notes
+		 * - This method performs a blocking synchronous write operation.
+		 * - Useful for request-response patterns like HTTP where immediate
+		 *   transmission is required before closing the connection.
+		 * - Unlike send_packet(), this method does not apply pipeline
+		 *   transformations.
+		 * - Data is moved (not copied) to avoid memory allocation overhead.
+		 */
+		auto send_packet_sync(std::vector<uint8_t>&& data) -> std::error_code;
+
+		/*!
 		 * \brief Sets the callback for received data.
 		 * \param callback Function called when data is received.
 		 *
