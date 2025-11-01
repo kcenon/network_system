@@ -143,16 +143,16 @@ namespace network_system::internal
     {
         switch (method)
         {
-            case http_method::GET:     return "GET";
-            case http_method::POST:    return "POST";
-            case http_method::PUT:     return "PUT";
-            case http_method::DELETE:  return "DELETE";
-            case http_method::HEAD:    return "HEAD";
-            case http_method::OPTIONS: return "OPTIONS";
-            case http_method::PATCH:   return "PATCH";
-            case http_method::CONNECT: return "CONNECT";
-            case http_method::TRACE:   return "TRACE";
-            default:                   return "GET";
+            case http_method::HTTP_GET:     return "GET";
+            case http_method::HTTP_POST:    return "POST";
+            case http_method::HTTP_PUT:     return "PUT";
+            case http_method::HTTP_DELETE:  return "DELETE";
+            case http_method::HTTP_HEAD:    return "HEAD";
+            case http_method::HTTP_OPTIONS: return "OPTIONS";
+            case http_method::HTTP_PATCH:   return "PATCH";
+            case http_method::HTTP_CONNECT: return "CONNECT";
+            case http_method::HTTP_TRACE:   return "TRACE";
+            default:                        return "GET";
         }
     }
 
@@ -162,15 +162,15 @@ namespace network_system::internal
         std::transform(upper_method.begin(), upper_method.end(), upper_method.begin(),
             [](unsigned char c) { return std::toupper(c); });
 
-        if (upper_method == "GET")     return http_method::GET;
-        if (upper_method == "POST")    return http_method::POST;
-        if (upper_method == "PUT")     return http_method::PUT;
-        if (upper_method == "DELETE")  return http_method::DELETE;
-        if (upper_method == "HEAD")    return http_method::HEAD;
-        if (upper_method == "OPTIONS") return http_method::OPTIONS;
-        if (upper_method == "PATCH")   return http_method::PATCH;
-        if (upper_method == "CONNECT") return http_method::CONNECT;
-        if (upper_method == "TRACE")   return http_method::TRACE;
+        if (upper_method == "GET")     return http_method::HTTP_GET;
+        if (upper_method == "POST")    return http_method::HTTP_POST;
+        if (upper_method == "PUT")     return http_method::HTTP_PUT;
+        if (upper_method == "DELETE")  return http_method::HTTP_DELETE;
+        if (upper_method == "HEAD")    return http_method::HTTP_HEAD;
+        if (upper_method == "OPTIONS") return http_method::HTTP_OPTIONS;
+        if (upper_method == "PATCH")   return http_method::HTTP_PATCH;
+        if (upper_method == "CONNECT") return http_method::HTTP_CONNECT;
+        if (upper_method == "TRACE")   return http_method::HTTP_TRACE;
 
         return std::nullopt;
     }

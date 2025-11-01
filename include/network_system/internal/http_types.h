@@ -43,18 +43,20 @@ namespace network_system::internal
     /*!
      * \enum http_method
      * \brief HTTP request methods (verbs)
+     *
+     * Note: Uses HTTP_ prefix to avoid conflicts with Windows macros (DELETE)
      */
     enum class http_method
     {
-        GET,
-        POST,
-        PUT,
-        DELETE,
-        HEAD,
-        OPTIONS,
-        PATCH,
-        CONNECT,
-        TRACE
+        HTTP_GET,
+        HTTP_POST,
+        HTTP_PUT,
+        HTTP_DELETE,
+        HTTP_HEAD,
+        HTTP_OPTIONS,
+        HTTP_PATCH,
+        HTTP_CONNECT,
+        HTTP_TRACE
     };
 
     /*!

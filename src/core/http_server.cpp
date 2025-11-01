@@ -119,37 +119,37 @@ namespace network_system::core
 
     auto http_server::get(const std::string& pattern, http_handler handler) -> void
     {
-        register_route(internal::http_method::GET, pattern, std::move(handler));
+        register_route(internal::http_method::HTTP_GET, pattern, std::move(handler));
     }
 
     auto http_server::post(const std::string& pattern, http_handler handler) -> void
     {
-        register_route(internal::http_method::POST, pattern, std::move(handler));
+        register_route(internal::http_method::HTTP_POST, pattern, std::move(handler));
     }
 
     auto http_server::put(const std::string& pattern, http_handler handler) -> void
     {
-        register_route(internal::http_method::PUT, pattern, std::move(handler));
+        register_route(internal::http_method::HTTP_PUT, pattern, std::move(handler));
     }
 
     auto http_server::del(const std::string& pattern, http_handler handler) -> void
     {
-        register_route(internal::http_method::DELETE, pattern, std::move(handler));
+        register_route(internal::http_method::HTTP_DELETE, pattern, std::move(handler));
     }
 
     auto http_server::patch(const std::string& pattern, http_handler handler) -> void
     {
-        register_route(internal::http_method::PATCH, pattern, std::move(handler));
+        register_route(internal::http_method::HTTP_PATCH, pattern, std::move(handler));
     }
 
     auto http_server::head(const std::string& pattern, http_handler handler) -> void
     {
-        register_route(internal::http_method::HEAD, pattern, std::move(handler));
+        register_route(internal::http_method::HTTP_HEAD, pattern, std::move(handler));
     }
 
     auto http_server::options(const std::string& pattern, http_handler handler) -> void
     {
-        register_route(internal::http_method::OPTIONS, pattern, std::move(handler));
+        register_route(internal::http_method::HTTP_OPTIONS, pattern, std::move(handler));
     }
 
     auto http_server::set_not_found_handler(http_handler handler) -> void

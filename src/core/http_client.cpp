@@ -124,7 +124,7 @@ namespace network_system::core
                           const std::map<std::string, std::string>& headers)
         -> Result<internal::http_response>
     {
-        return request(internal::http_method::GET, url, {}, headers, query);
+        return request(internal::http_method::HTTP_GET, url, {}, headers, query);
     }
 
     auto http_client::post(const std::string& url,
@@ -133,7 +133,7 @@ namespace network_system::core
         -> Result<internal::http_response>
     {
         std::vector<uint8_t> body_bytes(body.begin(), body.end());
-        return request(internal::http_method::POST, url, body_bytes, headers, {});
+        return request(internal::http_method::HTTP_POST, url, body_bytes, headers, {});
     }
 
     auto http_client::post(const std::string& url,
@@ -141,7 +141,7 @@ namespace network_system::core
                            const std::map<std::string, std::string>& headers)
         -> Result<internal::http_response>
     {
-        return request(internal::http_method::POST, url, body, headers, {});
+        return request(internal::http_method::HTTP_POST, url, body, headers, {});
     }
 
     auto http_client::put(const std::string& url,
@@ -150,21 +150,21 @@ namespace network_system::core
         -> Result<internal::http_response>
     {
         std::vector<uint8_t> body_bytes(body.begin(), body.end());
-        return request(internal::http_method::PUT, url, body_bytes, headers, {});
+        return request(internal::http_method::HTTP_PUT, url, body_bytes, headers, {});
     }
 
     auto http_client::del(const std::string& url,
                           const std::map<std::string, std::string>& headers)
         -> Result<internal::http_response>
     {
-        return request(internal::http_method::DELETE, url, {}, headers, {});
+        return request(internal::http_method::HTTP_DELETE, url, {}, headers, {});
     }
 
     auto http_client::head(const std::string& url,
                            const std::map<std::string, std::string>& headers)
         -> Result<internal::http_response>
     {
-        return request(internal::http_method::HEAD, url, {}, headers, {});
+        return request(internal::http_method::HTTP_HEAD, url, {}, headers, {});
     }
 
     auto http_client::patch(const std::string& url,
@@ -173,7 +173,7 @@ namespace network_system::core
         -> Result<internal::http_response>
     {
         std::vector<uint8_t> body_bytes(body.begin(), body.end());
-        return request(internal::http_method::PATCH, url, body_bytes, headers, {});
+        return request(internal::http_method::HTTP_PATCH, url, body_bytes, headers, {});
     }
 
     auto http_client::set_timeout(std::chrono::milliseconds timeout_ms) -> void
