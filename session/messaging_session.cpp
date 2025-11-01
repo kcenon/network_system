@@ -148,12 +148,58 @@ if constexpr (std::is_same_v<decltype(socket_->socket().get_executor()), asio::i
 		// e.g. auto uncompressed = pipeline_.decompress(data);
 		//      auto decrypted    = pipeline_.decrypt(uncompressed);
 		// Then parse or handle the final data
+
+		// Call user-provided receive callback if set
+		std::function<void(const std::vector<uint8_t>&)> callback_copy;
+		{
+			std::lock_guard<std::mutex> lock(callback_mutex_);
+			callback_copy = receive_callback_;
+		}
+
+		if (callback_copy)
+		{
+			callback_copy(data);
+		}
 	}
 
 	auto messaging_session::on_error(std::error_code ec) -> void
 	{
 		NETWORK_LOG_ERROR("[messaging_session] Socket error: " + ec.message());
+
+		// Call user-provided error callback if set
+		std::function<void(std::error_code)> callback_copy;
+		{
+			std::lock_guard<std::mutex> lock(callback_mutex_);
+			callback_copy = error_callback_;
+		}
+
+		if (callback_copy)
+		{
+			callback_copy(ec);
+		}
+
 		stop_session();
+	}
+
+	auto messaging_session::set_receive_callback(
+		std::function<void(const std::vector<uint8_t>&)> callback) -> void
+	{
+		std::lock_guard<std::mutex> lock(callback_mutex_);
+		receive_callback_ = std::move(callback);
+	}
+
+	auto messaging_session::set_disconnection_callback(
+		std::function<void(const std::string&)> callback) -> void
+	{
+		std::lock_guard<std::mutex> lock(callback_mutex_);
+		disconnection_callback_ = std::move(callback);
+	}
+
+	auto messaging_session::set_error_callback(
+		std::function<void(std::error_code)> callback) -> void
+	{
+		std::lock_guard<std::mutex> lock(callback_mutex_);
+		error_callback_ = std::move(callback);
 	}
 
 } // namespace network_system::session

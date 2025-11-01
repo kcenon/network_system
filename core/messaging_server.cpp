@@ -164,6 +164,26 @@ namespace network_system::core
 		auto new_session = std::make_shared<messaging_session>(
 			std::move(socket), server_id_);
 
+		// Set up receive callback for this session
+		if (receive_callback_)
+		{
+			new_session->set_receive_callback(
+				[this, new_session](const std::vector<uint8_t>& data)
+				{
+					receive_callback_(new_session, data);
+				});
+		}
+
+		// Set up error callback for this session
+		if (error_callback_)
+		{
+			new_session->set_error_callback(
+				[this, new_session](std::error_code ec)
+				{
+					error_callback_(new_session, ec);
+				});
+		}
+
 		// Track it in our sessions_ vector
 		sessions_.push_back(new_session);
 
@@ -172,6 +192,32 @@ namespace network_system::core
 
 		// Accept next connection
 		do_accept();
+	}
+
+	auto messaging_server::set_receive_callback(
+		std::function<void(std::shared_ptr<network_system::session::messaging_session>,
+		                   const std::vector<uint8_t>&)> callback) -> void
+	{
+		receive_callback_ = std::move(callback);
+	}
+
+	auto messaging_server::set_connection_callback(
+		std::function<void(const std::string&)> callback) -> void
+	{
+		connection_callback_ = std::move(callback);
+	}
+
+	auto messaging_server::set_disconnection_callback(
+		std::function<void(const std::string&)> callback) -> void
+	{
+		disconnection_callback_ = std::move(callback);
+	}
+
+	auto messaging_server::set_error_callback(
+		std::function<void(std::shared_ptr<network_system::session::messaging_session>,
+		                   std::error_code)> callback) -> void
+	{
+		error_callback_ = std::move(callback);
 	}
 
 } // namespace network_system::core

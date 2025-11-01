@@ -33,7 +33,7 @@ find_package(fmt CONFIG REQUIRED)
 # List of all sample programs
 set(SAMPLE_PROGRAMS
     basic_usage
-    tcp_server_client
+    # tcp_server_client  # Temporarily disabled - needs update to current API
     simple_http_server
     simple_http_client
     http_client_demo
