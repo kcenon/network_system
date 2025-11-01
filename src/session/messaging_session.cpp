@@ -77,13 +77,28 @@ namespace network_system::session
 			return;
 		}
 
-		// Set up callbacks
-		auto self = shared_from_this();
+		// Set up callbacks with weak_ptr to avoid circular reference
+		std::weak_ptr<messaging_session> weak_self = shared_from_this();
+
 		socket_->set_receive_callback(
-			[this, self](const std::vector<uint8_t>& data)
-			{ on_receive(data); });
-		socket_->set_error_callback([this, self](std::error_code ec)
-									{ on_error(ec); });
+			[this, weak_self](const std::vector<uint8_t>& data)
+			{
+				// Lock weak_ptr to ensure session is still alive
+				if (auto self = weak_self.lock())
+				{
+					on_receive(data);
+				}
+			});
+
+		socket_->set_error_callback(
+			[this, weak_self](std::error_code ec)
+			{
+				// Lock weak_ptr to ensure session is still alive
+				if (auto self = weak_self.lock())
+				{
+					on_error(ec);
+				}
+			});
 
 		// Begin reading
 		socket_->start_read();
