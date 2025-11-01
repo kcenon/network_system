@@ -37,6 +37,7 @@ set(SAMPLE_PROGRAMS
     simple_http_server
     simple_http_client
     http_client_demo
+    chunked_encoding_demo
     run_all_samples
     memory_profile_demo
 )

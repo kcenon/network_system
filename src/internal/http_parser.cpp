@@ -368,10 +368,45 @@ namespace network_system::internal
         // Empty line to separate headers from body
         oss << CRLF;
 
-        // Body
+        // Convert header section to bytes
         auto str = oss.str();
         std::vector<uint8_t> result(str.begin(), str.end());
-        result.insert(result.end(), response.body.begin(), response.body.end());
+
+        // Body - handle chunked encoding if enabled
+        if (response.use_chunked_encoding && !response.body.empty())
+        {
+            // Chunked transfer encoding format:
+            // [chunk-size in hex]\r\n
+            // [chunk-data]\r\n
+            // ...
+            // 0\r\n
+            // \r\n
+
+            // For simplicity, send entire body as single chunk
+            // In production, you might split into smaller chunks (e.g., 8KB)
+            std::ostringstream chunk_oss;
+
+            // Chunk size in hexadecimal
+            chunk_oss << std::hex << response.body.size() << CRLF;
+
+            auto chunk_header = chunk_oss.str();
+            result.insert(result.end(), chunk_header.begin(), chunk_header.end());
+
+            // Chunk data
+            result.insert(result.end(), response.body.begin(), response.body.end());
+
+            // CRLF after chunk data
+            result.insert(result.end(), CRLF, CRLF + 2);
+
+            // Final chunk (0-sized chunk)
+            std::string final_chunk = "0\r\n\r\n";
+            result.insert(result.end(), final_chunk.begin(), final_chunk.end());
+        }
+        else
+        {
+            // Normal body without chunking
+            result.insert(result.end(), response.body.begin(), response.body.end());
+        }
 
         return result;
     }

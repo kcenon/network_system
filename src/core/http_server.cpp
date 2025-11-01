@@ -385,10 +385,26 @@ namespace network_system::core
             response = error_handler_(ctx);
         }
 
-        // Add standard headers if not present
-        if (!response.get_header("Content-Length"))
+        // Enable chunked encoding for large responses (> 8KB)
+        constexpr size_t CHUNKED_THRESHOLD = 8 * 1024; // 8KB
+        if (response.body.size() > CHUNKED_THRESHOLD && response.version == internal::http_version::HTTP_1_1)
         {
-            response.set_header("Content-Length", std::to_string(response.body.size()));
+            response.use_chunked_encoding = true;
+        }
+
+        // Add standard headers if not present
+        if (response.use_chunked_encoding)
+        {
+            // Chunked encoding: use Transfer-Encoding header instead of Content-Length
+            response.set_header("Transfer-Encoding", "chunked");
+        }
+        else
+        {
+            // Normal response: use Content-Length
+            if (!response.get_header("Content-Length"))
+            {
+                response.set_header("Content-Length", std::to_string(response.body.size()));
+            }
         }
 
         if (!response.get_header("Server"))

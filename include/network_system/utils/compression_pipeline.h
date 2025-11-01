@@ -49,8 +49,10 @@ namespace network_system::utils
 	 */
 	enum class compression_algorithm
 	{
-		none, /*!< No compression */
-		lz4   /*!< LZ4 fast compression */
+		none,    /*!< No compression */
+		lz4,     /*!< LZ4 fast compression */
+		gzip,    /*!< Gzip compression (RFC 1952) */
+		deflate  /*!< Deflate compression (RFC 1951) */
 	};
 
 	/*!

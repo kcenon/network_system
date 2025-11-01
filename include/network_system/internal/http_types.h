@@ -128,6 +128,7 @@ namespace network_system::internal
      * - version: HTTP version (1.0, 1.1, 2.0)
      * - headers: Map of header name to value
      * - body: Response body as raw bytes
+     * - use_chunked_encoding: Enable chunked transfer encoding
      */
     struct http_response
     {
@@ -136,6 +137,7 @@ namespace network_system::internal
         http_version version = http_version::HTTP_1_1;
         std::map<std::string, std::string> headers;
         std::vector<uint8_t> body;
+        bool use_chunked_encoding = false;
 
         /*!
          * \brief Get the value of a header (case-insensitive)
