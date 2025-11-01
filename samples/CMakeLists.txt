@@ -34,6 +34,8 @@ find_package(fmt CONFIG REQUIRED)
 set(SAMPLE_PROGRAMS
     basic_usage
     tcp_server_client
+    simple_http_server
+    simple_http_client
     http_client_demo
     run_all_samples
     memory_profile_demo
@@ -71,10 +73,8 @@ foreach(SAMPLE ${SAMPLE_PROGRAMS})
         Threads::Threads
     )
 
-    # Configure ASIO for samples that use it directly
-    if(SAMPLE STREQUAL "udp_echo_demo")
-        setup_asio_integration(${SAMPLE})
-    endif()
+    # Configure ASIO for all samples
+    setup_asio_integration(${SAMPLE})
     
     # Platform-specific libraries
     if(WIN32)

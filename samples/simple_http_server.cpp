@@ -66,7 +66,7 @@ int main()
     // Start server on port 8080
     std::cout << "Starting HTTP server on port 8080..." << std::endl;
     auto result = server->start(8080);
-    if (!result)
+    if (result.is_err())
     {
         std::cerr << "Failed to start server: " << result.error().message << std::endl;
         return 1;

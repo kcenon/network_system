@@ -1093,6 +1093,114 @@ inline VoidResult error_void(int code, const std::string& message, ...);
 
 For detailed improvement plans and tracking, see the project's [NEED_TO_FIX.md](/Users/dongcheolshin/Sources/NEED_TO_FIX.md).
 
+### HTTP Server/Client - Current Status & Limitations
+
+#### Overview
+The network system includes basic HTTP/1.1 server and client functionality built on top of the messaging layer. These components are currently in **early development** and have known limitations that are being addressed in upcoming releases.
+
+#### ✅ Working Features
+- **HTTP/1.1 Protocol**: Basic GET, POST, PUT, DELETE, HEAD, PATCH methods
+- **Routing**: Pattern-based URL routing with path parameters (e.g., `/users/:id`)
+- **Query Parameters**: Full support for URL query string parsing
+- **Custom Headers**: Send and receive custom HTTP headers
+- **Request/Response Body**: Text and binary body handling
+- **Local Testing**: Samples compile and run locally
+
+#### ⚠️ Known Limitations
+
+**Critical Issues (Phase 2 - Immediate Remediation)**:
+1. **Request Buffering**: Server treats each TCP chunk as a complete request
+   - Multi-chunk requests may fail or timeout
+   - No validation of `Content-Length` vs actual received data
+   - Impact: Large payloads or slow connections may not work correctly
+
+2. **Security Gaps**:
+   - No validation of negative or overflow `Content-Length` values
+   - Header names/values copied without sanitization
+   - No upper bounds on request size (DoS vulnerability)
+
+**Protocol Limitations**:
+- ❌ **No HTTPS/TLS support**: HTTP only, HTTPS endpoints will fail
+- ❌ **No chunked transfer encoding**: Both server and client
+- ❌ **No persistent connections**: Uses `Connection: close` for all requests
+- ❌ **No automatic redirect following**: 3xx responses require manual handling
+- ❌ **No cookie management**: Cookies are not automatically handled
+- ❌ **No compression support**: gzip/deflate encoding not supported
+
+#### 🔬 Local Testing
+
+**Prerequisites**:
+```bash
+# Build the project
+cmake -B build
+cmake --build build -j8
+```
+
+**Running the HTTP Server**:
+```bash
+# Start the HTTP server on port 8080
+./build/bin/simple_http_server
+
+# The server will display:
+# ==> Simple HTTP Server Demo ===
+# Starting HTTP server on port 8080...
+# Server started successfully!
+```
+
+**Testing with curl**:
+```bash
+# Note: Due to current buffering limitations, responses may timeout
+# This is a known issue being addressed in Phase 2
+
+# Test root endpoint
+curl http://localhost:8080/
+
+# Test with query parameters
+curl 'http://localhost:8080/api/hello?name=John'
+
+# Test path parameters
+curl http://localhost:8080/users/123
+
+# Test POST request
+curl -X POST -d "test data" http://localhost:8080/api/echo
+```
+
+**Known Test Issues**:
+- Requests may timeout due to buffering limitations
+- This is expected behavior and is documented in DETAILED_DEVELOPMENT_PLAN.md
+- Full request/response cycle will be fixed in Phase 2.1 (Request Buffering)
+
+#### 📋 Development Roadmap
+
+See [docs/DETAILED_DEVELOPMENT_PLAN.md](docs/DETAILED_DEVELOPMENT_PLAN.md) for the complete HTTP improvement plan:
+
+**Phase 1 - Immediate Remediation** (1-2 days) ✅:
+- ✅ Convert demo endpoints to HTTP-only
+- ✅ Remove undefined API calls
+- ✅ Document limitations in README
+
+**Phase 2 - Core Fixes** (3-5 days) - In Progress:
+- 🔲 Implement incremental request buffering
+- 🔲 Add `Content-Length` validation
+- 🔲 Create parser unit tests
+- 🔲 Add integration tests for GET/POST/error cases
+- 🔲 Security hardening (header validation, size limits)
+
+**Phase 3 - Advanced Features** (1-2 weeks) - Planned:
+- 🔲 HTTPS/TLS support via OpenSSL
+- 🔲 Chunked transfer encoding
+- 🔲 Connection pooling and keep-alive
+- 🔲 Route optimization
+
+#### 📝 Sample Code
+
+HTTP server and client samples are available in `samples/`:
+- `simple_http_server.cpp` - Basic HTTP server with routing
+- `simple_http_client.cpp` - HTTP client with various request types
+- `http_client_demo.cpp` - Comprehensive client functionality demo
+
+For production use, wait for Phase 2 completion or use with awareness of current limitations.
+
 ### Architecture Improvement Phases
 
 **Phase Status Overview** (as of 2025-10-10):

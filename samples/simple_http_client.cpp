@@ -40,7 +40,7 @@ int main()
     std::cout << std::string(50, '-') << std::endl;
 
     auto response1 = client->get("http://localhost:8080/");
-    if (response1)
+    if (response1.is_ok())
     {
         print_response(response1.value());
     }
@@ -58,7 +58,7 @@ int main()
     };
 
     auto response2 = client->get("http://localhost:8080/api/hello", query_params);
-    if (response2)
+    if (response2.is_ok())
     {
         print_response(response2.value());
     }
@@ -72,7 +72,7 @@ int main()
     std::cout << std::string(50, '-') << std::endl;
 
     auto response3 = client->get("http://localhost:8080/users/42");
-    if (response3)
+    if (response3.is_ok())
     {
         print_response(response3.value());
     }
@@ -87,7 +87,7 @@ int main()
 
     std::string post_body = "Hello from HTTP client!";
     auto response4 = client->post("http://localhost:8080/api/echo", post_body);
-    if (response4)
+    if (response4.is_ok())
     {
         print_response(response4.value());
     }
@@ -101,7 +101,7 @@ int main()
     std::cout << std::string(50, '-') << std::endl;
 
     auto response5 = client->get("http://localhost:8080/nonexistent");
-    if (response5)
+    if (response5.is_ok())
     {
         print_response(response5.value());
     }
