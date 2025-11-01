@@ -302,17 +302,22 @@ namespace network_system::core
 
 		// Set up session callbacks to forward to server callbacks
 		auto self = shared_from_this();
+		// Use weak_ptr to avoid circular reference
+		std::weak_ptr<network_system::session::messaging_session> weak_session = new_session;
 		{
 			std::lock_guard<std::mutex> lock(callback_mutex_);
 			if (receive_callback_)
 			{
 				new_session->set_receive_callback(
-					[this, self, new_session](const std::vector<uint8_t>& data)
+					[this, self, weak_session](const std::vector<uint8_t>& data)
 					{
-						std::lock_guard<std::mutex> cb_lock(callback_mutex_);
-						if (receive_callback_)
+						if (auto session = weak_session.lock())
 						{
-							receive_callback_(new_session, data);
+							std::lock_guard<std::mutex> cb_lock(callback_mutex_);
+							if (receive_callback_)
+							{
+								receive_callback_(session, data);
+							}
 						}
 					});
 			}
@@ -320,7 +325,7 @@ namespace network_system::core
 			if (disconnection_callback_)
 			{
 				new_session->set_disconnection_callback(
-					[this, self, new_session](const std::string& session_id)
+					[this, self](const std::string& session_id)
 					{
 						std::lock_guard<std::mutex> cb_lock(callback_mutex_);
 						if (disconnection_callback_)
@@ -333,12 +338,15 @@ namespace network_system::core
 			if (error_callback_)
 			{
 				new_session->set_error_callback(
-					[this, self, new_session](std::error_code ec)
+					[this, self, weak_session](std::error_code ec)
 					{
-						std::lock_guard<std::mutex> cb_lock(callback_mutex_);
-						if (error_callback_)
+						if (auto session = weak_session.lock())
 						{
-							error_callback_(new_session, ec);
+							std::lock_guard<std::mutex> cb_lock(callback_mutex_);
+							if (error_callback_)
+							{
+								error_callback_(session, ec);
+							}
 						}
 					});
 			}
