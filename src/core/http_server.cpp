@@ -450,6 +450,13 @@ namespace network_system::core
                         {
                             value = value.substr(first, last - first + 1);
 
+                            // Security: Reject negative values explicitly
+                            if (!value.empty() && value[0] == '-')
+                            {
+                                NETWORK_LOG_INFO("[http_server] Rejected negative Content-Length: " + std::string(value));
+                                return 0;
+                            }
+
                             try
                             {
                                 // Use std::stoull for unsigned long long to handle large values
@@ -458,6 +465,7 @@ namespace network_system::core
                                 // Check for overflow
                                 if (length > std::numeric_limits<std::size_t>::max())
                                 {
+                                    NETWORK_LOG_INFO("[http_server] Content-Length overflow detected");
                                     return 0;
                                 }
 
@@ -466,6 +474,7 @@ namespace network_system::core
                             catch (...)
                             {
                                 // Invalid Content-Length value
+                                NETWORK_LOG_INFO("[http_server] Invalid Content-Length value: " + std::string(value));
                                 return 0;
                             }
                         }

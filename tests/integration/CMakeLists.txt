@@ -149,6 +149,55 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/test_compatibility.cpp)
     message(STATUS "Integration test configured: benchmark")
 endif()
 
+# HTTP Server-Client Integration Test
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/http_server_client_test.cpp)
+    add_executable(http_integration_test http_server_client_test.cpp)
+
+    target_link_libraries(http_integration_test PRIVATE
+        NetworkSystem
+        GTest::gtest
+        GTest::gtest_main
+        Threads::Threads
+    )
+
+    # Setup ASIO and FMT integration (required for network_system headers)
+    setup_asio_integration(http_integration_test)
+    setup_fmt_integration(http_integration_test)
+
+    # Add system integration paths
+    if(CONTAINER_SYSTEM_INCLUDE_DIR)
+        target_include_directories(http_integration_test PRIVATE ${CONTAINER_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(http_integration_test PRIVATE BUILD_WITH_CONTAINER_SYSTEM)
+    endif()
+
+    if(THREAD_SYSTEM_INCLUDE_DIR)
+        target_include_directories(http_integration_test PRIVATE ${THREAD_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(http_integration_test PRIVATE BUILD_WITH_THREAD_SYSTEM)
+    endif()
+
+    if(LOGGER_SYSTEM_INCLUDE_DIR)
+        target_include_directories(http_integration_test PRIVATE ${LOGGER_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(http_integration_test PRIVATE BUILD_WITH_LOGGER_SYSTEM)
+    endif()
+
+    if(COMMON_SYSTEM_INCLUDE_DIR)
+        target_include_directories(http_integration_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(http_integration_test PRIVATE BUILD_WITH_COMMON_SYSTEM)
+    endif()
+
+    set_target_properties(http_integration_test PROPERTIES
+        CXX_STANDARD 20
+        CXX_STANDARD_REQUIRED ON
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+    )
+
+    # Enable test discovery
+    include(GoogleTest)
+    gtest_discover_tests(http_integration_test)
+
+    message(STATUS "HTTP integration test configured: http_integration_test")
+endif()
+
 ##################################################
 # Test Data Setup
 ##################################################
