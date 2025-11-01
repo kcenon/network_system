@@ -94,19 +94,25 @@ int main()
         response.status_code = 200;
 
         std::string body = R"(
-=== Chunked Transfer Encoding Demo ===
+=== HTTP/1.1 Features Demo ===
 
 Test endpoints:
 1. GET /small - Small response (~100 bytes) - uses Content-Length
 2. GET /large - Large response (~10KB) - uses Transfer-Encoding: chunked
 3. GET /api/large-data - Very large JSON (~50KB) - uses Transfer-Encoding: chunked
 
-To test chunked encoding:
+Chunked Transfer Encoding:
   curl -v http://localhost:8080/large
 
-Look for the 'Transfer-Encoding: chunked' header in the response.
+Look for the 'Transfer-Encoding: chunked' header.
 
-For small responses:
+Response Compression (gzip/deflate):
+  curl -v -H "Accept-Encoding: gzip" http://localhost:8080/large
+  curl -v -H "Accept-Encoding: deflate" http://localhost:8080/large
+
+Look for the 'Content-Encoding' header in the response.
+
+Small responses (no chunking):
   curl -v http://localhost:8080/small
 
 Look for the 'Content-Length' header instead.

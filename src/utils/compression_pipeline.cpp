@@ -38,6 +38,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <lz4hc.h>
 #endif
 
+#include <zlib.h>
 #include <cstring>
 
 namespace network_system::utils
@@ -77,6 +78,16 @@ namespace network_system::utils
 			}
 #endif
 
+			if (algorithm_ == compression_algorithm::gzip)
+			{
+				return compress_gzip(input);
+			}
+
+			if (algorithm_ == compression_algorithm::deflate)
+			{
+				return compress_deflate(input);
+			}
+
 			// Fallback: return uncompressed if algorithm not available
 			NETWORK_LOG_WARN("[compression_pipeline] Compression algorithm not available, returning uncompressed");
 			std::vector<uint8_t> result(input.begin(), input.end());
@@ -104,6 +115,16 @@ namespace network_system::utils
 				return decompress_lz4(input);
 			}
 #endif
+
+			if (algorithm_ == compression_algorithm::gzip)
+			{
+				return decompress_gzip(input);
+			}
+
+			if (algorithm_ == compression_algorithm::deflate)
+			{
+				return decompress_deflate(input);
+			}
 
 			// Fallback: assume uncompressed
 			NETWORK_LOG_WARN("[compression_pipeline] Decompression algorithm not available, returning as-is");
@@ -227,6 +248,222 @@ namespace network_system::utils
 			return ok<std::vector<uint8_t>>(std::move(decompressed));
 		}
 #endif
+
+		// Gzip compression using zlib
+		auto compress_gzip(std::span<const uint8_t> input) -> Result<std::vector<uint8_t>>
+		{
+			z_stream stream{};
+			stream.zalloc = Z_NULL;
+			stream.zfree = Z_NULL;
+			stream.opaque = Z_NULL;
+
+			// Initialize for gzip format (windowBits = 15 + 16 for gzip)
+			int ret = deflateInit2(&stream, Z_DEFAULT_COMPRESSION, Z_DEFLATED,
+								   15 + 16, 8, Z_DEFAULT_STRATEGY);
+			if (ret != Z_OK)
+			{
+				return error<std::vector<uint8_t>>(
+					error_codes::common::internal_error,
+					"Failed to initialize gzip compression");
+			}
+
+			// Estimate output size (use deflateBound for accurate upper bound)
+			uLong max_size = deflateBound(&stream, input.size());
+			std::vector<uint8_t> compressed(max_size);
+
+			stream.avail_in = static_cast<uInt>(input.size());
+			stream.next_in = const_cast<Bytef*>(input.data());
+			stream.avail_out = static_cast<uInt>(compressed.size());
+			stream.next_out = compressed.data();
+
+			ret = deflate(&stream, Z_FINISH);
+			deflateEnd(&stream);
+
+			if (ret != Z_STREAM_END)
+			{
+				NETWORK_LOG_WARN("[compression_pipeline] Gzip compression failed, returning uncompressed");
+				std::vector<uint8_t> result(input.begin(), input.end());
+				return ok<std::vector<uint8_t>>(std::move(result));
+			}
+
+			// Resize to actual compressed size
+			compressed.resize(stream.total_out);
+
+			// If not beneficial, return uncompressed
+			if (compressed.size() >= input.size())
+			{
+				NETWORK_LOG_TRACE("[compression_pipeline] Gzip compression not beneficial, returning uncompressed");
+				std::vector<uint8_t> result(input.begin(), input.end());
+				return ok<std::vector<uint8_t>>(std::move(result));
+			}
+
+			NETWORK_LOG_TRACE("[compression_pipeline] Gzip compressed " +
+							  std::to_string(input.size()) + " -> " +
+							  std::to_string(compressed.size()) + " bytes (" +
+							  std::to_string(100 - (compressed.size() * 100 / input.size())) + "% reduction)");
+
+			return ok<std::vector<uint8_t>>(std::move(compressed));
+		}
+
+		auto decompress_gzip(std::span<const uint8_t> input) -> Result<std::vector<uint8_t>>
+		{
+			z_stream stream{};
+			stream.zalloc = Z_NULL;
+			stream.zfree = Z_NULL;
+			stream.opaque = Z_NULL;
+
+			// Initialize for gzip format (windowBits = 15 + 16 for gzip)
+			int ret = inflateInit2(&stream, 15 + 16);
+			if (ret != Z_OK)
+			{
+				return error<std::vector<uint8_t>>(
+					error_codes::common::internal_error,
+					"Failed to initialize gzip decompression");
+			}
+
+			// Start with reasonable buffer size, will grow if needed
+			std::vector<uint8_t> decompressed;
+			decompressed.reserve(input.size() * 4); // Assume 4x expansion
+
+			stream.avail_in = static_cast<uInt>(input.size());
+			stream.next_in = const_cast<Bytef*>(input.data());
+
+			const size_t CHUNK_SIZE = 32768; // 32KB chunks
+			std::vector<uint8_t> chunk(CHUNK_SIZE);
+
+			do
+			{
+				stream.avail_out = static_cast<uInt>(chunk.size());
+				stream.next_out = chunk.data();
+
+				ret = inflate(&stream, Z_NO_FLUSH);
+				if (ret != Z_OK && ret != Z_STREAM_END)
+				{
+					inflateEnd(&stream);
+					return error<std::vector<uint8_t>>(
+						error_codes::common::internal_error,
+						"Gzip decompression failed");
+				}
+
+				size_t have = chunk.size() - stream.avail_out;
+				decompressed.insert(decompressed.end(), chunk.begin(), chunk.begin() + have);
+
+			} while (stream.avail_out == 0);
+
+			inflateEnd(&stream);
+
+			NETWORK_LOG_TRACE("[compression_pipeline] Gzip decompressed " +
+							  std::to_string(input.size()) + " -> " +
+							  std::to_string(decompressed.size()) + " bytes");
+
+			return ok<std::vector<uint8_t>>(std::move(decompressed));
+		}
+
+		// Deflate compression using zlib
+		auto compress_deflate(std::span<const uint8_t> input) -> Result<std::vector<uint8_t>>
+		{
+			z_stream stream{};
+			stream.zalloc = Z_NULL;
+			stream.zfree = Z_NULL;
+			stream.opaque = Z_NULL;
+
+			// Initialize for deflate format (windowBits = 15 for deflate)
+			int ret = deflateInit2(&stream, Z_DEFAULT_COMPRESSION, Z_DEFLATED,
+								   15, 8, Z_DEFAULT_STRATEGY);
+			if (ret != Z_OK)
+			{
+				return error<std::vector<uint8_t>>(
+					error_codes::common::internal_error,
+					"Failed to initialize deflate compression");
+			}
+
+			uLong max_size = deflateBound(&stream, input.size());
+			std::vector<uint8_t> compressed(max_size);
+
+			stream.avail_in = static_cast<uInt>(input.size());
+			stream.next_in = const_cast<Bytef*>(input.data());
+			stream.avail_out = static_cast<uInt>(compressed.size());
+			stream.next_out = compressed.data();
+
+			ret = deflate(&stream, Z_FINISH);
+			deflateEnd(&stream);
+
+			if (ret != Z_STREAM_END)
+			{
+				NETWORK_LOG_WARN("[compression_pipeline] Deflate compression failed, returning uncompressed");
+				std::vector<uint8_t> result(input.begin(), input.end());
+				return ok<std::vector<uint8_t>>(std::move(result));
+			}
+
+			compressed.resize(stream.total_out);
+
+			if (compressed.size() >= input.size())
+			{
+				NETWORK_LOG_TRACE("[compression_pipeline] Deflate compression not beneficial, returning uncompressed");
+				std::vector<uint8_t> result(input.begin(), input.end());
+				return ok<std::vector<uint8_t>>(std::move(result));
+			}
+
+			NETWORK_LOG_TRACE("[compression_pipeline] Deflate compressed " +
+							  std::to_string(input.size()) + " -> " +
+							  std::to_string(compressed.size()) + " bytes (" +
+							  std::to_string(100 - (compressed.size() * 100 / input.size())) + "% reduction)");
+
+			return ok<std::vector<uint8_t>>(std::move(compressed));
+		}
+
+		auto decompress_deflate(std::span<const uint8_t> input) -> Result<std::vector<uint8_t>>
+		{
+			z_stream stream{};
+			stream.zalloc = Z_NULL;
+			stream.zfree = Z_NULL;
+			stream.opaque = Z_NULL;
+
+			// Initialize for deflate format
+			int ret = inflateInit2(&stream, 15);
+			if (ret != Z_OK)
+			{
+				return error<std::vector<uint8_t>>(
+					error_codes::common::internal_error,
+					"Failed to initialize deflate decompression");
+			}
+
+			std::vector<uint8_t> decompressed;
+			decompressed.reserve(input.size() * 4);
+
+			stream.avail_in = static_cast<uInt>(input.size());
+			stream.next_in = const_cast<Bytef*>(input.data());
+
+			const size_t CHUNK_SIZE = 32768;
+			std::vector<uint8_t> chunk(CHUNK_SIZE);
+
+			do
+			{
+				stream.avail_out = static_cast<uInt>(chunk.size());
+				stream.next_out = chunk.data();
+
+				ret = inflate(&stream, Z_NO_FLUSH);
+				if (ret != Z_OK && ret != Z_STREAM_END)
+				{
+					inflateEnd(&stream);
+					return error<std::vector<uint8_t>>(
+						error_codes::common::internal_error,
+						"Deflate decompression failed");
+				}
+
+				size_t have = chunk.size() - stream.avail_out;
+				decompressed.insert(decompressed.end(), chunk.begin(), chunk.begin() + have);
+
+			} while (stream.avail_out == 0);
+
+			inflateEnd(&stream);
+
+			NETWORK_LOG_TRACE("[compression_pipeline] Deflate decompressed " +
+							  std::to_string(input.size()) + " -> " +
+							  std::to_string(decompressed.size()) + " bytes");
+
+			return ok<std::vector<uint8_t>>(std::move(decompressed));
+		}
 
 	private:
 		compression_algorithm algorithm_;

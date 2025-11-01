@@ -33,7 +33,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "network_system/core/http_server.h"
 #include "network_system/session/messaging_session.h"
 #include "network_system/integration/logger_integration.h"
+#include "network_system/utils/compression_pipeline.h"
 #include <sstream>
+#include <algorithm>
 
 namespace network_system::core
 {
@@ -383,6 +385,51 @@ namespace network_system::core
         {
             // Unknown exception - send 500
             response = error_handler_(ctx);
+        }
+
+        // Check Accept-Encoding header and compress response if requested
+        constexpr size_t COMPRESSION_THRESHOLD = 1024; // 1KB - compress responses larger than this
+        auto accept_encoding = ctx.request.get_header("Accept-Encoding");
+
+        if (accept_encoding && response.body.size() > COMPRESSION_THRESHOLD)
+        {
+            std::string encoding = *accept_encoding;
+            std::transform(encoding.begin(), encoding.end(), encoding.begin(), ::tolower);
+
+            utils::compression_algorithm algo = utils::compression_algorithm::none;
+            std::string encoding_name;
+
+            // Check for gzip (preferred)
+            if (encoding.find("gzip") != std::string::npos)
+            {
+                algo = utils::compression_algorithm::gzip;
+                encoding_name = "gzip";
+            }
+            // Check for deflate
+            else if (encoding.find("deflate") != std::string::npos)
+            {
+                algo = utils::compression_algorithm::deflate;
+                encoding_name = "deflate";
+            }
+
+            // Apply compression if algorithm was selected
+            if (algo != utils::compression_algorithm::none)
+            {
+                auto compressor = std::make_shared<utils::compression_pipeline>(algo, 0);
+                auto compressed_result = compressor->compress(response.body);
+
+                if (!compressed_result.is_err())
+                {
+                    auto compressed = compressed_result.value();
+                    // Only use compression if it actually reduces size
+                    if (compressed.size() < response.body.size())
+                    {
+                        response.body = std::move(compressed);
+                        response.set_header("Content-Encoding", encoding_name);
+                        NETWORK_LOG_DEBUG("[http_server] Compressed response with " + encoding_name);
+                    }
+                }
+            }
         }
 
         // Enable chunked encoding for large responses (> 8KB)
