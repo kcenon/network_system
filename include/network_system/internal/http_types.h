@@ -84,7 +84,7 @@ namespace network_system::internal
      */
     struct http_request
     {
-        http_method method = http_method::GET;
+        http_method method = http_method::HTTP_GET;
         std::string uri;
         http_version version = http_version::HTTP_1_1;
         std::map<std::string, std::string> headers;
