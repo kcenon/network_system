@@ -137,6 +137,61 @@ namespace network_system::internal
         body.assign(content.begin(), content.end());
     }
 
+    auto http_response::set_cookie(const cookie& cookie_data) -> void
+    {
+        std::string cookie_header = cookie_data.name + "=" + cookie_data.value;
+
+        if (!cookie_data.path.empty())
+        {
+            cookie_header += "; Path=" + cookie_data.path;
+        }
+
+        if (!cookie_data.domain.empty())
+        {
+            cookie_header += "; Domain=" + cookie_data.domain;
+        }
+
+        if (cookie_data.max_age >= 0)
+        {
+            cookie_header += "; Max-Age=" + std::to_string(cookie_data.max_age);
+        }
+
+        if (!cookie_data.expires.empty())
+        {
+            cookie_header += "; Expires=" + cookie_data.expires;
+        }
+
+        if (cookie_data.secure)
+        {
+            cookie_header += "; Secure";
+        }
+
+        if (cookie_data.http_only)
+        {
+            cookie_header += "; HttpOnly";
+        }
+
+        if (!cookie_data.same_site.empty())
+        {
+            cookie_header += "; SameSite=" + cookie_data.same_site;
+        }
+
+        // Note: Set-Cookie header can appear multiple times (one per cookie)
+        // So we use headers.insert instead of set_header to allow multiple cookies
+        headers.insert({"Set-Cookie", cookie_header});
+    }
+
+    auto http_response::set_cookie(const std::string& name, const std::string& value,
+                                   const std::string& path, int max_age) -> void
+    {
+        cookie c;
+        c.name = name;
+        c.value = value;
+        c.path = path;
+        c.max_age = max_age;
+        set_cookie(c);
+    }
+
     // Helper functions
 
     auto http_method_to_string(http_method method) -> std::string

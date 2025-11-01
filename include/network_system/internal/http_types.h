@@ -41,6 +41,36 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace network_system::internal
 {
     /*!
+     * \struct multipart_file
+     * \brief Represents an uploaded file in multipart/form-data
+     */
+    struct multipart_file
+    {
+        std::string field_name;                  /*!< Form field name */
+        std::string filename;                    /*!< Original filename */
+        std::string content_type;                /*!< File content type (MIME type) */
+        std::vector<uint8_t> content;            /*!< File content */
+        std::map<std::string, std::string> headers; /*!< Additional headers */
+    };
+
+    /*!
+     * \struct cookie
+     * \brief Represents an HTTP cookie
+     */
+    struct cookie
+    {
+        std::string name;                        /*!< Cookie name */
+        std::string value;                       /*!< Cookie value */
+        std::string path;                        /*!< Cookie path */
+        std::string domain;                      /*!< Cookie domain */
+        std::string expires;                     /*!< Expiration date */
+        int max_age = -1;                        /*!< Max age in seconds (-1 = session) */
+        bool secure = false;                     /*!< Secure flag */
+        bool http_only = false;                  /*!< HttpOnly flag */
+        std::string same_site;                   /*!< SameSite attribute (Strict/Lax/None) */
+    };
+
+    /*!
      * \enum http_method
      * \brief HTTP request methods (verbs)
      *
@@ -81,6 +111,9 @@ namespace network_system::internal
      * - headers: Map of header name to value
      * - body: Request body as raw bytes
      * - query_params: Parsed query parameters from URI
+     * - form_data: Parsed form fields from multipart/form-data
+     * - files: Uploaded files from multipart/form-data
+     * - cookies: Parsed cookies from Cookie header
      */
     struct http_request
     {
@@ -90,6 +123,9 @@ namespace network_system::internal
         std::map<std::string, std::string> headers;
         std::vector<uint8_t> body;
         std::map<std::string, std::string> query_params;
+        std::map<std::string, std::string> form_data;  /*!< Form fields */
+        std::map<std::string, multipart_file> files;    /*!< Uploaded files */
+        std::map<std::string, std::string> cookies;     /*!< Request cookies */
 
         /*!
          * \brief Get the value of a header (case-insensitive)
@@ -164,6 +200,22 @@ namespace network_system::internal
          * \param content Body content as UTF-8 string
          */
         auto set_body_string(const std::string& content) -> void;
+
+        /*!
+         * \brief Set a cookie in the response
+         * \param cookie_data Cookie to set
+         */
+        auto set_cookie(const cookie& cookie_data) -> void;
+
+        /*!
+         * \brief Set a simple cookie (name=value)
+         * \param name Cookie name
+         * \param value Cookie value
+         * \param path Cookie path (default: "/")
+         * \param max_age Max age in seconds (default: -1 for session cookie)
+         */
+        auto set_cookie(const std::string& name, const std::string& value,
+                       const std::string& path = "/", int max_age = -1) -> void;
     };
 
     /*!
