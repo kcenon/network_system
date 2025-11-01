@@ -56,8 +56,9 @@ namespace network_system::core
 
         // Regular expression for URL parsing
         // Format: scheme://[user:pass@]host[:port][/path][?query]
-        std::regex url_regex(R"(^(https?):\/\/([^:\/\s]+)(?::(\d+))?(\/[^\?]*)?(?:\?(.*))?$)",
-                            std::regex::icase);
+        // Static to avoid recompilation and ensure thread-safety (C++11 magic statics)
+        static const std::regex url_regex(R"(^(https?):\/\/([^:\/\s]+)(?::(\d+))?(\/[^\?]*)?(?:\?(.*))?$)",
+                                          std::regex::icase);
 
         std::smatch matches;
         if (!std::regex_match(url, matches, url_regex))
