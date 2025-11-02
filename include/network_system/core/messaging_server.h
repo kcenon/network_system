@@ -45,6 +45,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <asio.hpp>
 
 #include "network_system/utils/result_types.h"
+#include "network_system/integration/thread_integration.h"
+
+#ifdef BUILD_WITH_THREAD_SYSTEM
+	#include "network_system/integration/thread_system_adapter.h"
+#endif
 
 // Optional monitoring support via common_system
 #ifdef BUILD_WITH_COMMON_SYSTEM
@@ -328,13 +333,16 @@ namespace network_system::core {
 		std::string
 			server_id_;		/*!< Name or identifier for this server instance. */
 
-		std::unique_ptr<asio::io_context>
+		std::shared_ptr<asio::io_context>
 			io_context_;	/*!< The I/O context for async ops. */
-	std::unique_ptr<asio::executor_work_guard<asio::io_context::executor_type>> work_guard_; /*!< Keeps io_context running. */
+	std::shared_ptr<asio::executor_work_guard<asio::io_context::executor_type>> work_guard_; /*!< Keeps io_context running. */
 		std::unique_ptr<asio::ip::tcp::acceptor>
 			acceptor_;		/*!< Acceptor to listen for new connections. */
-		std::unique_ptr<std::thread>
-			server_thread_; /*!< Thread that runs \c io_context_->run(). */
+
+		// Dedicated thread pool with single worker for blocking io_context->run()
+		// Safe to use blocking job because io_context->stop() is called from separate context
+		std::shared_ptr<integration::thread_pool_interface> io_thread_pool_;
+		std::future<void> io_run_future_;
 
 		std::optional<std::promise<void>>
 			stop_promise_;	/*!< Used to signal \c wait_for_stop(). */

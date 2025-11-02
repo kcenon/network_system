@@ -335,7 +335,6 @@ namespace network_system::core
             }
 
             // For HTTP with Connection: close, close the session after sending
-            // No sleep needed since send_packet_sync is synchronous
             session->stop_session();
             NETWORK_LOG_INFO("[http_server] Session stopped after response");
         }

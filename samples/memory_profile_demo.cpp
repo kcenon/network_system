@@ -1,5 +1,6 @@
 #include <network_system/utils/memory_profiler.h>
 #include <iostream>
+#include <iomanip>
 #include <vector>
 #include <thread>
 #include <chrono>
@@ -33,4 +34,3 @@ int main() {
     std::cout << "Memory profiler stopped" << std::endl;
     return 0;
 }
-

@@ -276,8 +276,10 @@ namespace network_system::core
         // Set up receive callback
         client->set_receive_callback([&](const std::vector<uint8_t>& data)
         {
+            NETWORK_LOG_INFO("[http_client] receive_callback called with " + std::to_string(data.size()) + " bytes");
             std::lock_guard<std::mutex> lock(response_mutex);
             response_data.insert(response_data.end(), data.begin(), data.end());
+            NETWORK_LOG_INFO("[http_client] Total response_data size: " + std::to_string(response_data.size()) + " bytes");
 
             // Check if we have received the complete response
             // For simplicity, we check for end of headers + Content-Length
@@ -288,6 +290,7 @@ namespace network_system::core
             auto headers_end = response_str.find("\r\n\r\n");
             if (headers_end != std::string_view::npos)
             {
+                NETWORK_LOG_INFO("[http_client] Headers complete at position " + std::to_string(headers_end));
                 // We have headers, check Content-Length
                 auto headers_section = response_str.substr(0, headers_end);
 
@@ -314,15 +317,25 @@ namespace network_system::core
                     {
                         std::size_t content_length = std::stoull(std::string(cl_str));
                         std::size_t body_start = headers_end + 4;
+                        NETWORK_LOG_INFO("[http_client] Content-Length: " + std::to_string(content_length) +
+                                       ", body_start: " + std::to_string(body_start) +
+                                       ", needed: " + std::to_string(body_start + content_length) +
+                                       ", have: " + std::to_string(response_data.size()));
 
                         if (response_data.size() >= body_start + content_length)
                         {
+                            NETWORK_LOG_INFO("[http_client] Response complete! Notifying condition variable");
                             response_complete = true;
                             response_cv.notify_one();
+                        }
+                        else
+                        {
+                            NETWORK_LOG_INFO("[http_client] Response incomplete, waiting for more data");
                         }
                     }
                     catch (...)
                     {
+                        NETWORK_LOG_WARN("[http_client] Invalid Content-Length, treating as complete");
                         // Invalid Content-Length, treat as complete
                         response_complete = true;
                         response_cv.notify_one();
@@ -330,8 +343,13 @@ namespace network_system::core
                 }
                 else
                 {
+                    NETWORK_LOG_INFO("[http_client] No Content-Length header, will rely on connection close");
                     // No Content-Length, will rely on connection close
                 }
+            }
+            else
+            {
+                NETWORK_LOG_INFO("[http_client] Headers not complete yet");
             }
         });
 
@@ -379,33 +397,45 @@ namespace network_system::core
         NETWORK_LOG_INFO("[http_client] send_packet returned OK");
 
         // Wait for response with timeout
+        NETWORK_LOG_INFO("[http_client] Entering wait_for with timeout " + std::to_string(timeout_.count()) + "ms");
         {
             std::unique_lock<std::mutex> lock(response_mutex);
+            NETWORK_LOG_INFO("[http_client] Locked response_mutex, response_complete=" +
+                           std::to_string(response_complete) + ", has_error=" + std::to_string(has_error));
             if (!response_cv.wait_for(lock, timeout_,
                 [&] { return response_complete || has_error; }))
             {
+                NETWORK_LOG_ERROR("[http_client] wait_for timed out!");
                 client->stop_client();
                 return error<internal::http_response>(-1, "Request timeout");
             }
+            NETWORK_LOG_INFO("[http_client] wait_for returned successfully, response_complete=" +
+                           std::to_string(response_complete) + ", has_error=" + std::to_string(has_error));
         }
 
+        NETWORK_LOG_INFO("[http_client] Stopping client after successful response");
         // Stop client
         client->stop_client();
 
         // Check for errors
         if (has_error)
         {
+            NETWORK_LOG_ERROR("[http_client] has_error is true: " + error_message);
             return error<internal::http_response>(-1, "Request failed: " + error_message);
         }
 
+        NETWORK_LOG_INFO("[http_client] Parsing response with " + std::to_string(response_data.size()) + " bytes");
         // Parse response
         auto response_result = internal::http_parser::parse_response(response_data);
+        NETWORK_LOG_INFO("[http_client] parse_response returned, is_err=" + std::to_string(response_result.is_err()));
         if (response_result.is_err())
         {
+            NETWORK_LOG_ERROR("[http_client] Parse error: " + response_result.error().message);
             return error<internal::http_response>(-1,
                 "Failed to parse response: " + response_result.error().message);
         }
 
+        NETWORK_LOG_INFO("[http_client] Returning successful response");
         return response_result;
     }
 

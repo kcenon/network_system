@@ -101,15 +101,15 @@ namespace network_system::internal
 		 *
 		 * If no callback is set, errors are not explicitly handled here (beyond
 		 * stopping reads).
-		 */
-		auto set_error_callback(std::function<void(std::error_code)> callback)
-			-> void;
+	 */
+	auto set_error_callback(std::function<void(std::error_code)> callback)
+		-> void;
 
-		/*!
-		 * \brief Begins the continuous asynchronous read loop.
-		 *
-		 * Once called, the class repeatedly calls \c async_read_some().
-		 * If an error occurs, \c on_error() is triggered, stopping further
+	/*!
+	 * \brief Begins the continuous asynchronous read loop.
+	 *
+	 * Once called, the class repeatedly calls \c async_read_some().
+	 * If an error occurs, \c on_error() is triggered, stopping further
 		 * reads.
 		 */
 		auto start_read() -> void;

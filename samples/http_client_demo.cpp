@@ -22,9 +22,13 @@
 #include <thread>
 #include <future>
 #include <iomanip>
+#include <algorithm>
 #include "network_system/network_system.h"
+#include "network_system/core/http_client.h"
 
-using namespace network_system;
+using network_system::core::http_client;
+using network_system::internal::http_response;
+using network_system::Result;
 
 class http_demo {
 public:
@@ -70,17 +74,17 @@ private:
         // Simple GET request
         std::cout << "Testing simple GET request..." << std::endl;
         auto response = http_client_->get(test_urls_["get"]);
-
-        if (response) {
+        if (const auto* http = get_response_ptr(response)) {
             std::cout << "✓ GET request successful" << std::endl;
-            std::cout << "Response size: " << response->body.size() << " bytes" << std::endl;
-            std::cout << "Status code: " << response->status_code << std::endl;
-            std::cout << "Content-Type: " << get_header_value(*response, "Content-Type") << std::endl;
+            std::cout << "Response size: " << http->body.size() << " bytes" << std::endl;
+            std::cout << "Status code: " << http->status_code << std::endl;
+            std::cout << "Content-Type: " << get_header_value(*http, "Content-Type") << std::endl;
 
             // Show response body
-            std::cout << "Response body: " << response->get_body_string() << std::endl;
+            std::cout << "Response body: " << http->get_body_string() << std::endl;
         } else {
-            std::cout << "✗ GET request failed: " << response.error().message << std::endl;
+            const auto& error = response.error();
+            std::cout << "✗ GET request failed: " << error.message << std::endl;
         }
 
         // GET with query parameters
@@ -90,22 +94,24 @@ private:
         };
 
         auto param_response = http_client_->get(test_urls_["hello"], query_params);
-        if (param_response) {
+        if (const auto* http = get_response_ptr(param_response)) {
             std::cout << "✓ GET with parameters successful" << std::endl;
-            std::cout << "Status code: " << param_response->status_code << std::endl;
-            std::cout << "Response: " << param_response->get_body_string() << std::endl;
+            std::cout << "Status code: " << http->status_code << std::endl;
+            std::cout << "Response: " << http->get_body_string() << std::endl;
         } else {
-            std::cout << "✗ GET with parameters failed: " << param_response.error().message << std::endl;
+            const auto& error = param_response.error();
+            std::cout << "✗ GET with parameters failed: " << error.message << std::endl;
         }
 
         // Path parameter test
         std::cout << "\nTesting path parameter..." << std::endl;
         auto path_response = http_client_->get(test_urls_["users"] + "/123");
-        if (path_response) {
+        if (const auto* http = get_response_ptr(path_response)) {
             std::cout << "✓ Path parameter request successful" << std::endl;
-            std::cout << "Response: " << path_response->get_body_string() << std::endl;
+            std::cout << "Response: " << http->get_body_string() << std::endl;
         } else {
-            std::cout << "✗ Path parameter request failed: " << path_response.error().message << std::endl;
+            const auto& error = path_response.error();
+            std::cout << "✗ Path parameter request failed: " << error.message << std::endl;
         }
     }
     
@@ -122,12 +128,13 @@ private:
         };
 
         auto post_response = http_client_->post(test_urls_["post"], text_data, text_headers);
-        if (post_response) {
+        if (const auto* http = get_response_ptr(post_response)) {
             std::cout << "✓ Text POST successful" << std::endl;
-            std::cout << "Status code: " << post_response->status_code << std::endl;
-            std::cout << "Response: " << post_response->get_body_string() << std::endl;
+            std::cout << "Status code: " << http->status_code << std::endl;
+            std::cout << "Response: " << http->get_body_string() << std::endl;
         } else {
-            std::cout << "✗ Text POST failed: " << post_response.error().message << std::endl;
+            const auto& error = post_response.error();
+            std::cout << "✗ Text POST failed: " << error.message << std::endl;
         }
 
         // JSON POST
@@ -139,12 +146,13 @@ private:
         };
 
         auto json_response = http_client_->post(test_urls_["post"], json_data, json_headers);
-        if (json_response) {
+        if (const auto* http = get_response_ptr(json_response)) {
             std::cout << "✓ JSON POST successful" << std::endl;
-            std::cout << "Status code: " << json_response->status_code << std::endl;
-            std::cout << "Response size: " << json_response->body.size() << " bytes" << std::endl;
+            std::cout << "Status code: " << http->status_code << std::endl;
+            std::cout << "Response size: " << http->body.size() << " bytes" << std::endl;
         } else {
-            std::cout << "✗ JSON POST failed: " << json_response.error().message << std::endl;
+            const auto& error = json_response.error();
+            std::cout << "✗ JSON POST failed: " << error.message << std::endl;
         }
 
         // Binary data POST
@@ -156,11 +164,12 @@ private:
         };
 
         auto binary_response = http_client_->post(test_urls_["post"], binary_data, binary_headers);
-        if (binary_response) {
+        if (const auto* http = get_response_ptr(binary_response)) {
             std::cout << "✓ Binary POST successful" << std::endl;
-            std::cout << "Status code: " << binary_response->status_code << std::endl;
+            std::cout << "Status code: " << http->status_code << std::endl;
         } else {
-            std::cout << "✗ Binary POST failed: " << binary_response.error().message << std::endl;
+            const auto& error = binary_response.error();
+            std::cout << "✗ Binary POST failed: " << error.message << std::endl;
         }
     }
     
@@ -177,11 +186,12 @@ private:
         };
 
         auto header_response = http_client_->get(test_urls_["get"], {}, custom_headers);
-        if (header_response) {
+        if (const auto* http = get_response_ptr(header_response)) {
             std::cout << "✓ Custom headers request successful" << std::endl;
-            std::cout << "Status code: " << header_response->status_code << std::endl;
+            std::cout << "Status code: " << http->status_code << std::endl;
         } else {
-            std::cout << "✗ Custom headers request failed: " << header_response.error().message << std::endl;
+            const auto& error = header_response.error();
+            std::cout << "✗ Custom headers request failed: " << error.message << std::endl;
         }
 
         // Test Accept header
@@ -191,11 +201,12 @@ private:
         };
 
         auto accept_response = http_client_->get(test_urls_["get"], {}, accept_headers);
-        if (accept_response) {
+        if (const auto* http = get_response_ptr(accept_response)) {
             std::cout << "✓ Accept header request successful" << std::endl;
-            std::cout << "Content-Type: " << get_header_value(*accept_response, "Content-Type") << std::endl;
+            std::cout << "Content-Type: " << get_header_value(*http, "Content-Type") << std::endl;
         } else {
-            std::cout << "✗ Accept header request failed: " << accept_response.error().message << std::endl;
+            const auto& error = accept_response.error();
+            std::cout << "✗ Accept header request failed: " << error.message << std::endl;
         }
     }
     
@@ -206,18 +217,23 @@ private:
         // Download data
         std::cout << "Testing data download..." << std::endl;
         auto download_response = http_client_->get(test_urls_["get"]);
-        if (download_response && download_response->status_code == 200) {
-            std::cout << "✓ Data download successful" << std::endl;
-            std::cout << "Downloaded " << download_response->body.size() << " bytes" << std::endl;
+        if (const auto* http = get_response_ptr(download_response)) {
+            if (http->status_code == 200) {
+                std::cout << "✓ Data download successful" << std::endl;
+                std::cout << "Downloaded " << http->body.size() << " bytes" << std::endl;
 
-            // Save to file (demo)
-            std::string filename = "downloaded_data.txt";
-            bool saved = save_response_to_file(*download_response, filename);
-            if (saved) {
-                std::cout << "✓ Data saved as " << filename << std::endl;
+                // Save to file (demo)
+                std::string filename = "downloaded_data.txt";
+                bool saved = save_response_to_file(*http, filename);
+                if (saved) {
+                    std::cout << "✓ Data saved as " << filename << std::endl;
+                }
+            } else {
+                std::cout << "✗ Unexpected status code: " << http->status_code << std::endl;
             }
         } else {
-            std::cout << "✗ Data download failed" << std::endl;
+            const auto& error = download_response.error();
+            std::cout << "✗ Data download failed: " << error.message << std::endl;
         }
 
         // File upload simulation
@@ -230,11 +246,12 @@ private:
         };
 
         auto upload_response = http_client_->post(test_urls_["post"], file_content, upload_headers);
-        if (upload_response) {
+        if (const auto* http = get_response_ptr(upload_response)) {
             std::cout << "✓ Data upload simulation successful" << std::endl;
-            std::cout << "Status code: " << upload_response->status_code << std::endl;
+            std::cout << "Status code: " << http->status_code << std::endl;
         } else {
-            std::cout << "✗ Data upload simulation failed: " << upload_response.error().message << std::endl;
+            const auto& error = upload_response.error();
+            std::cout << "✗ Data upload simulation failed: " << error.message << std::endl;
         }
     }
     
@@ -245,25 +262,27 @@ private:
         // Test 404 Not Found
         std::cout << "Testing 404 Not Found..." << std::endl;
         auto not_found_response = http_client_->get("http://localhost:8080/nonexistent");
-        if (not_found_response) {
-            std::cout << "✓ Received status " << not_found_response->status_code;
-            if (not_found_response->status_code == 404) {
+        if (const auto* http = get_response_ptr(not_found_response)) {
+            std::cout << "✓ Received status " << http->status_code;
+            if (http->status_code == 404) {
                 std::cout << " (correct 404)" << std::endl;
             } else {
                 std::cout << " (expected 404)" << std::endl;
             }
         } else {
-            std::cout << "✗ Request failed: " << not_found_response.error().message << std::endl;
+            const auto& error = not_found_response.error();
+            std::cout << "✗ Request failed: " << error.message << std::endl;
         }
 
         // Test timeout
         std::cout << "\nTesting timeout handling..." << std::endl;
         http_client_->set_timeout(std::chrono::milliseconds(5000));  // 5 second timeout
         auto timeout_response = http_client_->get(test_urls_["get"]);
-        if (timeout_response) {
+        if (timeout_response.is_ok()) {
             std::cout << "✓ Request completed within timeout" << std::endl;
         } else {
-            std::cout << "✗ Request timed out or failed: " << timeout_response.error().message << std::endl;
+            const auto& error = timeout_response.error();
+            std::cout << "✗ Request timed out or failed: " << error.message << std::endl;
         }
 
         // Reset timeout
@@ -272,8 +291,9 @@ private:
         // Test invalid URL
         std::cout << "\nTesting invalid URL handling..." << std::endl;
         auto invalid_response = http_client_->get("http://invalid-domain-that-should-not-exist.com");
-        if (!invalid_response) {
-            std::cout << "✓ Invalid URL handled correctly: " << invalid_response.error().message << std::endl;
+        if (invalid_response.is_err()) {
+            const auto& error = invalid_response.error();
+            std::cout << "✓ Invalid URL handled correctly: " << error.message << std::endl;
         } else {
             std::cout << "✗ Invalid URL should have failed" << std::endl;
         }
@@ -281,11 +301,12 @@ private:
         // Test connection to local server
         std::cout << "\nTesting local server connection..." << std::endl;
         auto local_response = http_client_->get(test_urls_["get"]);
-        if (local_response) {
+        if (const auto* http = get_response_ptr(local_response)) {
             std::cout << "✓ Local server connection successful" << std::endl;
-            std::cout << "Status: " << local_response->status_code << std::endl;
+            std::cout << "Status: " << http->status_code << std::endl;
         } else {
-            std::cout << "✗ Local server connection failed: " << local_response.error().message << std::endl;
+            const auto& error = local_response.error();
+            std::cout << "✗ Local server connection failed: " << error.message << std::endl;
             std::cout << "(Make sure simple_http_server is running on port 8080)" << std::endl;
         }
     }
@@ -308,11 +329,18 @@ private:
                 };
 
                 auto response = client->get(test_urls_["hello"], params);
-                if (response && response->status_code == 200) {
-                    std::cout << "  ✓ Concurrent request " << i << " completed" << std::endl;
-                    return true;
+                if (const auto* http = get_response_ptr(response)) {
+                    if (http->status_code == 200) {
+                        std::cout << "  ✓ Concurrent request " << i << " completed" << std::endl;
+                        return true;
+                    }
+                    std::cout << "  ✗ Concurrent request " << i << " returned status "
+                              << http->status_code << std::endl;
+                    return false;
                 } else {
-                    std::cout << "  ✗ Concurrent request " << i << " failed" << std::endl;
+                    const auto& error = response.error();
+                    std::cout << "  ✗ Concurrent request " << i << " failed: "
+                              << error.message << std::endl;
                     return false;
                 }
             }));
@@ -359,9 +387,11 @@ private:
             auto request_end = std::chrono::high_resolution_clock::now();
             auto request_time = std::chrono::duration_cast<std::chrono::milliseconds>(request_end - request_start);
 
-            if (response && response->status_code == 200) {
-                successful_requests++;
-                request_times.push_back(request_time);
+            if (const auto* http = get_response_ptr(response)) {
+                if (http->status_code == 200) {
+                    successful_requests++;
+                    request_times.push_back(request_time);
+                }
             }
 
             // Small delay between requests
@@ -398,6 +428,10 @@ private:
             std::cout << "No successful requests for performance analysis" << std::endl;
             std::cout << "(Make sure simple_http_server is running on port 8080)" << std::endl;
         }
+    }
+    
+    static const http_response* get_response_ptr(const Result<http_response>& result) {
+        return result.is_ok() ? &result.value() : nullptr;
     }
     
     std::string get_header_value(const http_response& response, const std::string& header_name) {

@@ -129,6 +129,7 @@ add_library(NetworkSystem
     src/utils/health_monitor.cpp
     src/utils/buffer_pool.cpp
     src/utils/compression_pipeline.cpp
+    src/utils/memory_profiler.cpp
 
     # Basic integration layer (always built - no external dependencies)
     src/integration/logger_integration.cpp

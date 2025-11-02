@@ -21,7 +21,7 @@ namespace network_system::integration {
 class basic_thread_pool::impl {
 public:
     impl(size_t num_threads)
-        : running_(true), completed_tasks_(0) {
+        : running_(true), stopped_(false), completed_tasks_(0) {
 
         if (num_threads == 0) {
             num_threads = std::thread::hardware_concurrency();
@@ -44,7 +44,19 @@ public:
 
         {
             std::unique_lock<std::mutex> lock(queue_mutex_);
-            if (!running_) {
+
+            // Check if pool has been explicitly stopped
+            // Use memory_order_acquire to ensure we see the stopped state set by stop()
+            if (stopped_.load(std::memory_order_acquire)) {
+                promise->set_exception(
+                    std::make_exception_ptr(
+                        std::runtime_error("Thread pool is stopped")
+                    )
+                );
+                return future;
+            }
+
+            if (!running_.load(std::memory_order_acquire)) {
                 promise->set_exception(
                     std::make_exception_ptr(
                         std::runtime_error("Thread pool is not running")
@@ -82,7 +94,9 @@ public:
     }
 
     bool is_running() const {
-        return running_.load();
+        // Use memory_order_acquire to ensure we see the latest state
+        // set by stop() with release semantics
+        return running_.load(std::memory_order_acquire);
     }
 
     size_t pending_tasks() const {
@@ -91,6 +105,20 @@ public:
     }
 
     void stop(bool wait_for_tasks) {
+        // Use compare_exchange_strong to atomically check and set state
+        // This prevents TOCTOU (Time-Of-Check-Time-Of-Use) race conditions
+        // where multiple threads might call stop() simultaneously
+        bool expected = false;
+        if (!stopped_.compare_exchange_strong(expected, true,
+                                             std::memory_order_acq_rel,
+                                             std::memory_order_acquire)) {
+            // Pool is already stopped or being stopped by another thread
+            return;
+        }
+
+        // At this point, we've atomically transitioned to stopped state
+        // and only this thread will execute the shutdown sequence
+
         {
             std::unique_lock<std::mutex> lock(queue_mutex_);
             if (!wait_for_tasks) {
@@ -98,7 +126,9 @@ public:
                     tasks_.pop();
                 }
             }
-            running_ = false;
+            // Use memory_order_release to ensure all previous writes are visible
+            // to threads that check running_ with acquire semantics
+            running_.store(false, std::memory_order_release);
         }
 
         condition_.notify_all();
@@ -124,10 +154,12 @@ private:
             {
                 std::unique_lock<std::mutex> lock(queue_mutex_);
                 condition_.wait(lock, [this] {
-                    return !running_ || !tasks_.empty();
+                    // Use memory_order_acquire to see latest state from stop()
+                    return !running_.load(std::memory_order_acquire) || !tasks_.empty();
                 });
 
-                if (!running_ && tasks_.empty()) {
+                // Use memory_order_acquire for consistent state checks
+                if (!running_.load(std::memory_order_acquire) && tasks_.empty()) {
                     return;
                 }
 
@@ -139,7 +171,8 @@ private:
 
             if (task) {
                 task();
-                completed_tasks_++;
+                // Use memory_order_relaxed for simple counter increment
+                completed_tasks_.fetch_add(1, std::memory_order_relaxed);
             }
         }
     }
@@ -149,6 +182,7 @@ private:
     mutable std::mutex queue_mutex_;
     std::condition_variable condition_;
     std::atomic<bool> running_;
+    std::atomic<bool> stopped_;  // Explicit stopped flag for TOCTOU prevention
     std::atomic<size_t> completed_tasks_;
 };
 

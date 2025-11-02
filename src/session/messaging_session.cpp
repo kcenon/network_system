@@ -90,18 +90,18 @@ namespace network_system::session
 				}
 			});
 
-		socket_->set_error_callback(
-			[this, weak_self](std::error_code ec)
+	socket_->set_error_callback(
+		[this, weak_self](std::error_code ec)
+		{
+			// Lock weak_ptr to ensure session is still alive
+			if (auto self = weak_self.lock())
 			{
-				// Lock weak_ptr to ensure session is still alive
-				if (auto self = weak_self.lock())
-				{
-					on_error(ec);
-				}
-			});
+				on_error(ec);
+			}
+		});
 
-		// Begin reading
-		socket_->start_read();
+	// Begin reading
+	socket_->start_read();
 
 		NETWORK_LOG_INFO("[messaging_session] Started session on server: " + server_id_);
 	}
@@ -121,6 +121,14 @@ namespace network_system::session
 		if (socket_)
 		{
 			std::error_code ec;
+		// Shutdown send to signal no more data (TCP FIN)
+		socket_->socket().shutdown(asio::ip::tcp::socket::shutdown_send, ec);
+		if (ec && ec != asio::error::not_connected)
+		{
+			NETWORK_LOG_ERROR("[messaging_session] Error shutting down socket: " + ec.message());
+		}
+
+
 			socket_->socket().close(ec);
 			if (ec)
 			{
@@ -284,14 +292,34 @@ if constexpr (std::is_same_v<decltype(socket_->socket().get_executor()), asio::i
 		process_next_message();
 	}
 
-	auto messaging_session::on_error(std::error_code ec) -> void
+auto messaging_session::on_error(std::error_code ec) -> void
+{
+	if (!ec)
 	{
-		NETWORK_LOG_ERROR("[messaging_session] Socket error: " + ec.message());
+		return;
+	}
 
-		// Invoke error callback if set
+	// Treat both operation_aborted and EOF as connection close events
+	if (ec == asio::error::operation_aborted || ec == asio::error::eof)
+	{
+		if (ec == asio::error::operation_aborted)
 		{
-			std::lock_guard<std::mutex> lock(callback_mutex_);
-			if (error_callback_)
+			NETWORK_LOG_DEBUG("[messaging_session] Socket operation aborted (connection closing)");
+		}
+		else
+		{
+			NETWORK_LOG_INFO("[messaging_session] Peer closed connection (EOF)");
+		}
+		on_remote_close(ec);
+		return;
+	}
+
+	NETWORK_LOG_ERROR("[messaging_session] Socket error: " + ec.message());
+
+	// Invoke error callback if set
+	{
+		std::lock_guard<std::mutex> lock(callback_mutex_);
+		if (error_callback_)
 			{
 				try
 				{
@@ -305,8 +333,21 @@ if constexpr (std::is_same_v<decltype(socket_->socket().get_executor()), asio::i
 			}
 		}
 
-		stop_session();
+	stop_session();
+}
+
+auto messaging_session::on_remote_close(std::error_code ec) -> void
+{
+	if (is_stopped_.load())
+	{
+		return;
 	}
+
+	const std::string message = ec ? ec.message() : "graceful shutdown";
+	NETWORK_LOG_INFO("[messaging_session] Remote closed connection: " + message);
+
+	stop_session();
+}
 
 	auto messaging_session::process_next_message() -> void
 	{

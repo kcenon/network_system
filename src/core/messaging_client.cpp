@@ -350,18 +350,23 @@ namespace network_system::core
 			}
 		}
 
-	// set callbacks and start read loop with mutex protection
-	auto self = shared_from_this();
-	auto local_socket = get_socket();
+		// set callbacks and start read loop with mutex protection
+		auto self = shared_from_this();
+		auto local_socket = get_socket();
 
 		if (local_socket)
 		{
+			NETWORK_LOG_INFO("[messaging_client] Setting up socket callbacks and starting read loop");
 			local_socket->set_receive_callback(
 				[this, self](const std::vector<uint8_t>& chunk)
 				{ on_receive(chunk); });
 			local_socket->set_error_callback([this, self](std::error_code err)
 										{ on_error(err); });
 			local_socket->start_read();
+		}
+		else
+		{
+			NETWORK_LOG_ERROR("[messaging_client] Socket is null in on_connect, cannot start reading");
 		}
 	}
 
@@ -437,11 +442,8 @@ namespace network_system::core
 
 	auto messaging_client::on_receive(const std::vector<uint8_t>& data) -> void
 	{
-		if (!is_connected_.load())
-		{
-			return;
-		}
-		NETWORK_LOG_DEBUG("[messaging_client] Received " + std::to_string(data.size())
+		// Allow receiving data even during disconnection to process final packets
+		NETWORK_LOG_INFO("[messaging_client] on_receive called with " + std::to_string(data.size())
 				+ " bytes");
 
 		// Invoke receive callback if set
@@ -449,15 +451,21 @@ namespace network_system::core
 			std::lock_guard<std::mutex> lock(callback_mutex_);
 			if (receive_callback_)
 			{
+				NETWORK_LOG_INFO("[messaging_client] Invoking receive_callback_");
 				try
 				{
 					receive_callback_(data);
+					NETWORK_LOG_INFO("[messaging_client] receive_callback_ completed successfully");
 				}
 				catch (const std::exception& e)
 				{
 					NETWORK_LOG_ERROR("[messaging_client] Exception in receive callback: "
 					                  + std::string(e.what()));
 				}
+			}
+			else
+			{
+				NETWORK_LOG_WARN("[messaging_client] receive_callback_ is not set!");
 			}
 		}
 

@@ -53,18 +53,18 @@ namespace network_system::internal
 		receive_callback_ = std::move(callback);
 	}
 
-	auto tcp_socket::set_error_callback(
-		std::function<void(std::error_code)> callback) -> void
-	{
-		std::lock_guard<std::mutex> lock(callback_mutex_);
-		error_callback_ = std::move(callback);
-	}
+auto tcp_socket::set_error_callback(
+	std::function<void(std::error_code)> callback) -> void
+{
+	std::lock_guard<std::mutex> lock(callback_mutex_);
+	error_callback_ = std::move(callback);
+}
 
-	auto tcp_socket::start_read() -> void
-	{
-		// Set reading flag and kick off the initial read loop
-		is_reading_.store(true);
-		do_read();
+auto tcp_socket::start_read() -> void
+{
+	// Set reading flag and kick off the initial read loop
+	is_reading_.store(true);
+	do_read();
 	}
 
 	auto tcp_socket::stop_read() -> void
@@ -87,26 +87,8 @@ namespace network_system::internal
 			asio::buffer(read_buffer_),
 			[this, self](std::error_code ec, std::size_t length)
 			{
-				// Check if reading has been stopped at callback time
-				if (!is_reading_.load())
-				{
-					return;
-				}
-
-				if (ec)
-				{
-					NETWORK_LOG_ERROR("[tcp_socket] Read error: " + ec.message());
-					// On error, invoke the error callback using if constexpr to check invocability
-					if constexpr (std::is_invocable_v<decltype(error_callback_), std::error_code>)
-					{
-						std::lock_guard<std::mutex> lock(callback_mutex_);
-						if (error_callback_) {
-							error_callback_(ec);
-						}
-					}
-					return;
-				}
-				// On success, if length > 0, build a vector and call receive_callback_
+				// IMPORTANT: Process received data FIRST, even if there's an error
+				// async_read_some can return both data and EOF in the same callback
 				if (length > 0)
 				{
 					NETWORK_LOG_INFO("[tcp_socket] Received " + std::to_string(length) + " bytes");
@@ -116,10 +98,54 @@ namespace network_system::internal
 											   read_buffer_.begin() + length);
 						std::lock_guard<std::mutex> lock(callback_mutex_);
 						if (receive_callback_) {
+							NETWORK_LOG_INFO("[tcp_socket] Calling receive_callback_ with " + std::to_string(chunk.size()) + " bytes");
 							receive_callback_(chunk);
+							NETWORK_LOG_INFO("[tcp_socket] receive_callback_ returned");
+						} else {
+							NETWORK_LOG_WARN("[tcp_socket] receive_callback_ is not set!");
 						}
 					}
 				}
+
+				// Now handle errors
+				if (ec)
+				{
+					// Treat operation_aborted and EOF as terminal events that require session cleanup
+					if (ec == asio::error::operation_aborted || ec == asio::error::eof)
+					{
+						if (ec == asio::error::operation_aborted)
+						{
+							NETWORK_LOG_DEBUG("[tcp_socket] Read operation aborted (connection closing)");
+						}
+						else
+						{
+							NETWORK_LOG_INFO("[tcp_socket] Connection closed by peer (EOF)");
+						}
+						is_reading_.store(false);
+						if constexpr (std::is_invocable_v<decltype(error_callback_), std::error_code>)
+						{
+							std::lock_guard<std::mutex> lock(callback_mutex_);
+							if (error_callback_)
+							{
+								error_callback_(ec);
+							}
+						}
+					}
+					else
+					{
+						NETWORK_LOG_ERROR("[tcp_socket] Read error: " + ec.message());
+						if constexpr (std::is_invocable_v<decltype(error_callback_), std::error_code>)
+						{
+							std::lock_guard<std::mutex> lock(callback_mutex_);
+							if (error_callback_)
+							{
+								error_callback_(ec);
+							}
+						}
+					}
+					return;
+				}
+
 				// Continue reading only if still active
 				if (is_reading_.load())
 				{

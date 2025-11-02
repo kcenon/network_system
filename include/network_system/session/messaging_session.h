@@ -190,13 +190,19 @@ namespace network_system::session
 		 */
 		auto on_receive(const std::vector<uint8_t>& data) -> void;
 
-		/*!
+	 /*!
 		 * \brief Callback for handling socket errors from \c tcp_socket.
 		 * \param ec The \c std::error_code describing the error.
 		 *
 		 * By default, logs the error and calls \c stop_session().
 		 */
 		auto on_error(std::error_code ec) -> void;
+
+		/*!
+		 * \brief Callback for handling graceful peer disconnects (e.g., EOF).
+		 * \param ec The \c std::error_code describing the close condition.
+		 */
+		auto on_remote_close(std::error_code ec) -> void;
 
 		/*!
 		 * \brief Processes pending messages from the queue.

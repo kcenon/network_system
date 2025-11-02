@@ -191,9 +191,12 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/http_server_client_test.cpp)
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
     )
 
-    # Enable test discovery
+    # Enable test discovery with timeout for each test
     include(GoogleTest)
-    gtest_discover_tests(http_integration_test)
+    gtest_discover_tests(http_integration_test
+        PROPERTIES
+            TIMEOUT 60  # 60 second timeout for each test
+    )
 
     message(STATUS "HTTP integration test configured: http_integration_test")
 endif()

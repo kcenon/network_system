@@ -42,6 +42,9 @@ namespace network_system::core
 	messaging_server::messaging_server(const std::string& server_id)
 		: server_id_(server_id)
 	{
+		// Create dedicated single-worker thread pool for blocking io_context->run()
+		// This is safe because io_context->stop() is called from a separate context (stop_server)
+		io_thread_pool_ = std::make_shared<integration::basic_thread_pool>(1);
 	}
 
 	messaging_server::~messaging_server() noexcept
@@ -73,9 +76,9 @@ namespace network_system::core
 		try
 		{
 			// Create io_context and acceptor
-			io_context_ = std::make_unique<asio::io_context>();
+			io_context_ = std::make_shared<asio::io_context>();
 			// Create work guard to keep io_context running
-			work_guard_ = std::make_unique<asio::executor_work_guard<asio::io_context::executor_type>>(
+			work_guard_ = std::make_shared<asio::executor_work_guard<asio::io_context::executor_type>>(
 				asio::make_work_guard(*io_context_)
 			);
 			acceptor_ = std::make_unique<tcp::acceptor>(
@@ -96,19 +99,30 @@ namespace network_system::core
 			// Start periodic cleanup timer
 			start_cleanup_timer();
 
-			// Start thread to run the io_context
-			server_thread_ = std::make_unique<std::thread>(
-				[this]()
+		// Submit io_context->run() as a blocking job to dedicated single-worker pool
+		// Safe because io_context->stop() is called from stop_server() (separate context)
+		// Capture shared_ptr directly - this keeps io_context alive even if server is destroyed
+		auto io_context_copy = io_context_;
+		io_run_future_ = io_thread_pool_->submit(
+			[io_context_copy]()
+			{
+				NETWORK_LOG_INFO("[messaging_server] io_context->run() starting in worker thread");
+				try
 				{
-					try
-					{
-						io_context_->run();
-					}
-					catch (...)
-					{
-						// Optionally handle any uncaught exceptions
-					}
-				});
+					io_context_copy->run();
+					NETWORK_LOG_INFO("[messaging_server] io_context->run() returned normally");
+				}
+				catch (const std::exception& e)
+				{
+					NETWORK_LOG_ERROR("[messaging_server] io_context exception: " + std::string(e.what()));
+				}
+				catch (...)
+				{
+					NETWORK_LOG_ERROR("[messaging_server] io_context unknown exception");
+				}
+				NETWORK_LOG_INFO("[messaging_server] io_context worker thread exiting");
+			});
+
 
 			NETWORK_LOG_INFO("[messaging_server] Started listening on port " + std::to_string(port));
 			return ok();
@@ -160,6 +174,7 @@ namespace network_system::core
 
 	auto messaging_server::stop_server() -> VoidResult
 	{
+		NETWORK_LOG_INFO("[messaging_server] stop_server called");
 		if (!is_running_.load())
 		{
 			return error_void(
@@ -173,10 +188,12 @@ namespace network_system::core
 		try
 		{
 			is_running_.store(false);
+			NETWORK_LOG_INFO("[messaging_server] Set is_running to false");
 
 			// Step 1: Cancel and close the acceptor to stop accepting new connections
 			if (acceptor_)
 			{
+				NETWORK_LOG_INFO("[messaging_server] Canceling and closing acceptor");
 				asio::error_code ec;
 				// Cancel pending async_accept operations to prevent memory leaks
 				acceptor_->cancel(ec);
@@ -184,50 +201,84 @@ namespace network_system::core
 				{
 					acceptor_->close(ec);
 				}
+				NETWORK_LOG_INFO("[messaging_server] Acceptor canceled and closed");
 			}
 
 			// Cancel cleanup timer
 			if (cleanup_timer_)
 			{
+				NETWORK_LOG_INFO("[messaging_server] Canceling cleanup timer");
 				cleanup_timer_->cancel();
 			}
 
 			// Step 2: Stop all active sessions
+			// Copy sessions to avoid holding mutex during potentially blocking stop_session() calls
+			std::vector<std::shared_ptr<session::messaging_session>> sessions_copy;
 			{
 				std::lock_guard<std::mutex> lock(sessions_mutex_);
-				for (auto& sess : sessions_)
-				{
-					if (sess)
-					{
-						sess->stop_session();
-					}
-				}
+				NETWORK_LOG_INFO("[messaging_server] Stopping " + std::to_string(sessions_.size()) + " active sessions");
+				sessions_copy = sessions_;
 				sessions_.clear();
 			}
+
+			// Stop sessions outside mutex to avoid blocking other operations
+			for (auto& sess : sessions_copy)
+			{
+				if (sess)
+				{
+					sess->stop_session();
+				}
+			}
+			sessions_copy.clear();
+			NETWORK_LOG_INFO("[messaging_server] All sessions stopped and cleared");
 
 			// Step 3: Release work guard to allow io_context to finish
 			if (work_guard_)
 			{
+				NETWORK_LOG_INFO("[messaging_server] Releasing work guard");
 				work_guard_.reset();
 			}
 
 			// Step 4: Stop io_context (this cancels all remaining pending operations)
 			if (io_context_)
 			{
+				NETWORK_LOG_INFO("[messaging_server] Stopping io_context");
 				io_context_->stop();
+				NETWORK_LOG_INFO("[messaging_server] io_context stopped");
 			}
 
-			// Step 4: Join the io_context thread
-			if (server_thread_ && server_thread_->joinable())
+
+			// Step 5: Wait for io_context worker to complete
+			// After io_context->stop() is called, run() will exit and the future will be ready
+			if (io_run_future_.valid())
 			{
-				server_thread_->join();
+				NETWORK_LOG_INFO("[messaging_server] Waiting for io_context worker to complete");
+				try
+				{
+					// Use wait_for() with timeout to prevent indefinite blocking
+					auto wait_result = io_run_future_.wait_for(std::chrono::seconds(5));
+					if (wait_result == std::future_status::ready)
+					{
+						NETWORK_LOG_INFO("[messaging_server] io_context worker completed successfully");
+					}
+					else if (wait_result == std::future_status::timeout)
+					{
+						NETWORK_LOG_WARN("[messaging_server] Timeout waiting for io_context worker (5s)");
+						NETWORK_LOG_WARN("[messaging_server] io_context->run() did not return after stop()");
+						NETWORK_LOG_WARN("[messaging_server] Proceeding with shutdown, worker thread may remain active");
+						// Do NOT call pool->stop() here - it will block again waiting for the worker
+						// The worker thread will remain active in background, but tests can continue
+					}
+				}
+				catch (const std::exception& e)
+				{
+					NETWORK_LOG_ERROR("[messaging_server] Exception waiting for io_context: " + std::string(e.what()));
+				}
 			}
 
-			// Step 5: Release resources explicitly to ensure cleanup
+			// Step 6: Release acceptor and timer
 			acceptor_.reset();
 			cleanup_timer_.reset();
-			server_thread_.reset();
-			io_context_.reset();
 
 			// Step 6: Signal the promise for wait_for_stop()
 			if (stop_promise_.has_value())
@@ -304,52 +355,62 @@ namespace network_system::core
 		auto self = shared_from_this();
 		// Use weak_ptr to avoid circular reference
 		std::weak_ptr<network_system::session::messaging_session> weak_session = new_session;
+
+		// Check which callbacks are set (without holding mutex during setter calls to avoid lock-order-inversion)
+		bool has_receive_callback = false;
+		bool has_disconnection_callback = false;
+		bool has_error_callback = false;
 		{
 			std::lock_guard<std::mutex> lock(callback_mutex_);
-			if (receive_callback_)
-			{
-				new_session->set_receive_callback(
-					[this, self, weak_session](const std::vector<uint8_t>& data)
-					{
-						if (auto session = weak_session.lock())
-						{
-							std::lock_guard<std::mutex> cb_lock(callback_mutex_);
-							if (receive_callback_)
-							{
-								receive_callback_(session, data);
-							}
-						}
-					});
-			}
+			has_receive_callback = static_cast<bool>(receive_callback_);
+			has_disconnection_callback = static_cast<bool>(disconnection_callback_);
+			has_error_callback = static_cast<bool>(error_callback_);
+		}
 
-			if (disconnection_callback_)
-			{
-				new_session->set_disconnection_callback(
-					[this, self](const std::string& session_id)
+		// Set callbacks outside the mutex to avoid lock-order-inversion
+		if (has_receive_callback)
+		{
+			new_session->set_receive_callback(
+				[this, self, weak_session](const std::vector<uint8_t>& data)
+				{
+					if (auto session = weak_session.lock())
 					{
 						std::lock_guard<std::mutex> cb_lock(callback_mutex_);
-						if (disconnection_callback_)
+						if (receive_callback_)
 						{
-							disconnection_callback_(session_id);
+							receive_callback_(session, data);
 						}
-					});
-			}
+					}
+				});
+		}
 
-			if (error_callback_)
-			{
-				new_session->set_error_callback(
-					[this, self, weak_session](std::error_code ec)
+		if (has_disconnection_callback)
+		{
+			new_session->set_disconnection_callback(
+				[this, self](const std::string& session_id)
+				{
+					std::lock_guard<std::mutex> cb_lock(callback_mutex_);
+					if (disconnection_callback_)
 					{
-						if (auto session = weak_session.lock())
+						disconnection_callback_(session_id);
+					}
+				});
+		}
+
+		if (has_error_callback)
+		{
+			new_session->set_error_callback(
+				[this, self, weak_session](std::error_code ec)
+				{
+					if (auto session = weak_session.lock())
+					{
+						std::lock_guard<std::mutex> cb_lock(callback_mutex_);
+						if (error_callback_)
 						{
-							std::lock_guard<std::mutex> cb_lock(callback_mutex_);
-							if (error_callback_)
-							{
-								error_callback_(session, ec);
-							}
+							error_callback_(session, ec);
 						}
-					});
-			}
+					}
+				});
 		}
 
 		// Track it in our sessions_ vector (protected by mutex)

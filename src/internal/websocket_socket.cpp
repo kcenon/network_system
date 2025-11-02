@@ -95,9 +95,12 @@ namespace network_system::internal
 		std::vector<uint8_t> request_data(handshake_request.begin(),
 										  handshake_request.end());
 
+		auto response_buffer = std::make_shared<std::string>();
+		auto handshake_completed = std::make_shared<bool>(false);
+
 		tcp_socket_->async_send(
 			std::move(request_data),
-			[this, client_key, handler](std::error_code ec, std::size_t)
+			[this, client_key, handler, response_buffer, handshake_completed](std::error_code ec, std::size_t)
 			{
 				if (ec)
 				{
@@ -107,10 +110,32 @@ namespace network_system::internal
 
 				// Set up temporary callback to receive handshake response
 				tcp_socket_->set_receive_callback(
-					[this, client_key, handler](const std::vector<uint8_t>& data)
+					[this, client_key, handler, response_buffer, handshake_completed](const std::vector<uint8_t>& data)
 					{
-						// Convert response to string
-						std::string response(data.begin(), data.end());
+						if (*handshake_completed)
+						{
+							return;
+						}
+
+						response_buffer->append(reinterpret_cast<const char*>(data.data()),
+												data.size());
+
+						// Ensure we have full HTTP response before parsing
+						const auto header_end = response_buffer->find("\r\n\r\n");
+						if (header_end == std::string::npos)
+						{
+							// Cap buffer growth to prevent abuse
+							if (response_buffer->size() > 16384)
+							{
+								*handshake_completed = true;
+								handler(std::make_error_code(std::errc::protocol_error));
+							}
+							return;
+						}
+
+						std::string response = response_buffer->substr(0, header_end + 4);
+						std::string leftover = response_buffer->substr(header_end + 4);
+						*handshake_completed = true;
 
 						// Validate server response
 						auto result = websocket_handshake::validate_server_response(
@@ -130,6 +155,13 @@ namespace network_system::internal
 							[this](const std::vector<uint8_t>& data)
 							{ on_tcp_receive(data); });
 
+						// Dispatch any leftover bytes (e.g., first WebSocket frame)
+						if (!leftover.empty())
+						{
+							std::vector<uint8_t> buffered(leftover.begin(), leftover.end());
+							on_tcp_receive(buffered);
+						}
+
 						handler(std::error_code{});
 					});
 
@@ -141,12 +173,35 @@ namespace network_system::internal
 	auto websocket_socket::async_accept(std::function<void(std::error_code)> handler)
 		-> void
 	{
+		auto request_buffer = std::make_shared<std::string>();
+		auto handshake_completed = std::make_shared<bool>(false);
+
 		// Set up temporary callback to receive handshake request
 		tcp_socket_->set_receive_callback(
-			[this, handler](const std::vector<uint8_t>& data)
+			[this, handler, request_buffer, handshake_completed](const std::vector<uint8_t>& data)
 			{
-				// Convert request to string
-				std::string request(data.begin(), data.end());
+				if (*handshake_completed)
+				{
+					return;
+				}
+
+				request_buffer->append(reinterpret_cast<const char*>(data.data()),
+									   data.size());
+
+				const auto header_end = request_buffer->find("\r\n\r\n");
+				if (header_end == std::string::npos)
+				{
+					if (request_buffer->size() > 16384)
+					{
+						*handshake_completed = true;
+						handler(std::make_error_code(std::errc::protocol_error));
+					}
+					return;
+				}
+
+				std::string request = request_buffer->substr(0, header_end + 4);
+				std::string leftover = request_buffer->substr(header_end + 4);
+				*handshake_completed = true;
 
 				// Parse client request
 				auto result = websocket_handshake::parse_client_request(request);
@@ -158,7 +213,7 @@ namespace network_system::internal
 				}
 
 				// Extract client key
-				auto it = result.headers.find("Sec-WebSocket-Key");
+				auto it = result.headers.find("sec-websocket-key");
 				if (it == result.headers.end())
 				{
 					handler(std::make_error_code(std::errc::protocol_error));
@@ -170,11 +225,13 @@ namespace network_system::internal
 				// Generate server response
 				auto response = websocket_handshake::create_server_response(client_key);
 				std::vector<uint8_t> response_data(response.begin(), response.end());
+				auto buffered_leftover =
+					std::make_shared<std::vector<uint8_t>>(leftover.begin(), leftover.end());
 
 				// Send response
 				tcp_socket_->async_send(
 					std::move(response_data),
-					[this, handler](std::error_code ec, std::size_t)
+					[this, handler, buffered_leftover](std::error_code ec, std::size_t)
 					{
 						if (ec)
 						{
@@ -189,6 +246,12 @@ namespace network_system::internal
 						tcp_socket_->set_receive_callback(
 							[this](const std::vector<uint8_t>& data)
 							{ on_tcp_receive(data); });
+
+						// Process any data that arrived alongside handshake
+						if (!buffered_leftover->empty())
+						{
+							on_tcp_receive(*buffered_leftover);
+						}
 
 						handler(std::error_code{});
 					});

@@ -263,23 +263,31 @@ namespace network_system::core
 					session_mgr_->clear_all_connections();
 				}
 
-				// Stop acceptor
+				// Cancel acceptor first to stop accepting new connections
 				if (acceptor_)
 				{
-					acceptor_->close();
+					asio::error_code ec;
+					acceptor_->cancel(ec);  // Cancel pending async operations
 				}
 
-				// Stop io_context
+				// Stop io_context to terminate all async operations
 				work_guard_.reset();
 				if (io_context_)
 				{
 					io_context_->stop();
 				}
 
-				// Wait for thread
+				// Wait for thread to finish all pending operations
 				if (io_thread_ && io_thread_->joinable())
 				{
 					io_thread_->join();
+				}
+
+				// Now safe to close acceptor after thread has finished
+				if (acceptor_)
+				{
+					asio::error_code ec;
+					acceptor_->close(ec);
 				}
 
 				is_running_.store(false);
