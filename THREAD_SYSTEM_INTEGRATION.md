@@ -2,1317 +2,464 @@
 
 **Status**: 🚧 In Progress
 **Created**: 2025-11-03
+**Branch**: `feature/thread-system-integration`
 **Target Completion**: TBD
-**Author**: Integration Team
 
 ---
 
 ## 📋 Overview
 
-This document outlines the comprehensive plan to replace all direct `std::thread` usage in network_system with thread_system's `thread_pool` and `typed_thread_pool` implementations.
+This document provides a high-level overview of the thread_system integration project. The goal is to replace all direct `std::thread` usage in network_system with thread_system's `thread_pool` and `typed_thread_pool` implementations.
 
-**Goal**: Eliminate direct thread management and leverage thread_system's advanced features for better resource management, monitoring, and priority-based task execution.
+**⚠️ This document and all files in `docs/integration/` will be removed after successful integration.**
 
 ---
 
-## 🎯 Integration Strategy
+## 🎯 Integration Goals
+
+### Primary Objectives
+
+1. **Eliminate Direct Thread Management**: Remove all `std::thread` usage from network_system
+2. **Leverage Thread System Features**: Use thread_pool for better resource management and monitoring
+3. **Priority-Based Processing**: Implement typed_thread_pool for data pipeline with priority support
+4. **Maintain Performance**: Keep or improve current performance metrics
+5. **Zero Regression**: All existing tests must pass without modification
+
+### Strategic Benefits
+
+| Benefit | Description |
+|---------|-------------|
+| **Resource Efficiency** | Thread reuse eliminates creation/destruction overhead |
+| **Better Monitoring** | Built-in metrics and statistics from thread_system |
+| **Priority Support** | Critical tasks processed before non-critical ones |
+| **Unified Management** | Centralized thread pool management across system |
+| **Future Ready** | Foundation for advanced scheduling and load balancing |
+
+---
+
+## 🏗️ Architecture Overview
+
+### Thread Pool Classification
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Network System                            │
+├─────────────────────────────────────────────────────────────┤
+│                                                               │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │  I/O Event Loop Pools (size=1 each)                  │  │
+│  │  Purpose: Execute io_context::run() for ASIO         │  │
+│  │  Type: thread_pool                                    │  │
+│  │  Components: All server/client components            │  │
+│  └──────────────────────────────────────────────────────┘  │
+│                                                               │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │  Data Pipeline Pool (typed, priority-based)          │  │
+│  │  Purpose: CPU-intensive data transformation          │  │
+│  │  Type: typed_thread_pool<pipeline_priority>         │  │
+│  │  Priorities: REALTIME > HIGH > NORMAL > LOW > BG    │  │
+│  └──────────────────────────────────────────────────────┘  │
+│                                                               │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │  Utility Pool (general-purpose)                       │  │
+│  │  Purpose: Blocking I/O, background tasks             │  │
+│  │  Type: thread_pool                                    │  │
+│  │  Components: memory_profiler, retransmission, etc.   │  │
+│  └──────────────────────────────────────────────────────┘  │
+│                                                               │
+└─────────────────────────────────────────────────────────────┘
+```
 
 ### Thread Pool Usage Policy
 
-| Use Case | Pool Type | Size | Components |
-|----------|-----------|------|------------|
-| **I/O Event Loop** | `thread_pool` | 1 per component | All server/client components |
-| **Data Pipeline** | `typed_thread_pool<pipeline_priority>` | Hardware cores | Encryption, compression, serialization |
-| **Utility Tasks** | `thread_pool` | Hardware cores / 2 | Blocking I/O, background tasks |
-
-### Architecture Diagram
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                        Network System                            │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                   │
-│  ┌───────────────────────────────────────────────────────────┐  │
-│  │  I/O Event Loop Thread Pools (size=1 each)                │  │
-│  │                                                             │  │
-│  │  messaging_server        → thread_pool (1 worker)          │  │
-│  │  messaging_client        → thread_pool (1 worker)          │  │
-│  │  messaging_udp_server    → thread_pool (1 worker)          │  │
-│  │  messaging_udp_client    → thread_pool (1 worker)          │  │
-│  │  messaging_ws_server     → thread_pool (1 worker)          │  │
-│  │  messaging_ws_client     → thread_pool (1 worker)          │  │
-│  │  secure_messaging_*      → thread_pool (1 worker)          │  │
-│  │  health_monitor          → thread_pool (1 worker)          │  │
-│  │                                                             │  │
-│  │  Purpose: Execute io_context::run() for ASIO event loop   │  │
-│  └───────────────────────────────────────────────────────────┘  │
-│                                                                   │
-│  ┌───────────────────────────────────────────────────────────┐  │
-│  │  Data Pipeline Thread Pool (typed, priority-based)        │  │
-│  │                                                             │  │
-│  │  REALTIME (0)   → Real-time encryption                    │  │
-│  │  HIGH (1)       → Important data processing               │  │
-│  │  NORMAL (2)     → General compression, serialization      │  │
-│  │  LOW (3)        → Background validation                   │  │
-│  │  BACKGROUND (4) → Logging, statistics collection          │  │
-│  │                                                             │  │
-│  │  Purpose: CPU-intensive data transformation with priority │  │
-│  └───────────────────────────────────────────────────────────┘  │
-│                                                                   │
-│  ┌───────────────────────────────────────────────────────────┐  │
-│  │  Utility Thread Pool (general-purpose)                    │  │
-│  │                                                             │  │
-│  │  - memory_profiler sampling                                │  │
-│  │  - reliable_udp_client retransmission                      │  │
-│  │  - send_coroutine async operations                         │  │
-│  │  - Blocking file I/O operations                            │  │
-│  │                                                             │  │
-│  │  Purpose: General async tasks not tied to I/O or pipeline │  │
-│  └───────────────────────────────────────────────────────────┘  │
-│                                                                   │
-└─────────────────────────────────────────────────────────────────┘
-                              ↓
-              Uses: kcenon::thread library
-```
+| Use Case | Pool Type | Size | Rationale |
+|----------|-----------|------|-----------|
+| **I/O Event Loop** | `thread_pool` | 1 per component | ASIO io_context requires dedicated thread |
+| **Data Pipeline** | `typed_thread_pool` | Hardware cores | CPU-intensive with priority support |
+| **Utility Tasks** | `thread_pool` | Cores / 2 | General async operations |
 
 ---
 
-## 📝 Implementation Plan
+## 📚 Phase Documentation
 
-### Phase 1: Foundation Infrastructure
+The integration is divided into 5 phases. Each phase has a detailed document in `docs/integration/`:
 
-#### 1.1 Thread Pool Manager
+### [Phase 1: Foundation Infrastructure](docs/integration/PHASE1_FOUNDATION.md)
+**Focus**: Create base infrastructure for thread pool management
 
-**File**: `include/network_system/integration/thread_pool_manager.h`
+**Deliverables**:
+- `thread_pool_manager`: Centralized pool management
+- `io_context_executor`: RAII wrapper for I/O execution
+- `pipeline_jobs`: Typed job definitions for pipeline
 
-**Purpose**: Centralized manager for all thread pools in network_system
-
-**Key Features**:
-- Singleton pattern for global access
-- Separate pools for I/O, pipeline, and utility tasks
-- Component-specific I/O pool creation
-- Resource monitoring and statistics
-
-**API Design**:
-```cpp
-namespace network_system::integration {
-
-enum class pipeline_priority : int {
-    REALTIME = 0,      // Real-time encryption, urgent transmission
-    HIGH = 1,          // Important data processing
-    NORMAL = 2,        // General compression, serialization
-    LOW = 3,           // Background validation
-    BACKGROUND = 4     // Logging, statistics
-};
-
-class thread_pool_manager {
-public:
-    static thread_pool_manager& instance();
-
-    void initialize(
-        size_t io_pool_count = 10,
-        size_t pipeline_workers = std::thread::hardware_concurrency(),
-        size_t utility_workers = std::thread::hardware_concurrency() / 2
-    );
-
-    void shutdown();
-
-    // Create dedicated I/O pool for each component (size=1)
-    std::shared_ptr<kcenon::thread::thread_pool>
-    create_io_pool(const std::string& component_name);
-
-    // Get shared typed pipeline pool
-    std::shared_ptr<kcenon::thread::typed_thread_pool_t<pipeline_priority>>
-    get_pipeline_pool();
-
-    // Get shared utility pool
-    std::shared_ptr<kcenon::thread::thread_pool>
-    get_utility_pool();
-
-    struct statistics {
-        size_t total_io_pools = 0;
-        size_t active_io_tasks = 0;
-        size_t pipeline_queue_size = 0;
-        size_t utility_queue_size = 0;
-    };
-
-    statistics get_statistics() const;
-};
-
-} // namespace network_system::integration
-```
-
-**Implementation File**: `src/integration/thread_pool_manager.cpp`
+**Estimated Time**: 1-2 days
 
 ---
 
-#### 1.2 I/O Context Executor Wrapper
+### [Phase 2: Core Component Refactoring](docs/integration/PHASE2_CORE_COMPONENTS.md)
+**Focus**: Refactor all server/client components to use thread pools
 
-**File**: `include/network_system/integration/io_context_executor.h`
+**Components** (11 total):
+- messaging_server/client
+- messaging_udp_server/client
+- messaging_ws_server/client
+- secure_messaging_server/client
+- health_monitor
+- memory_profiler
+- reliable_udp_client
 
-**Purpose**: RAII wrapper for executing `io_context::run()` in thread_pool
-
-**Key Features**:
-- Automatic submission of io_context::run() to thread pool
-- Clean shutdown handling
-- Exception safety
-- Lifecycle management
-
-**API Design**:
-```cpp
-namespace network_system::integration {
-
-class io_context_executor {
-public:
-    io_context_executor(
-        std::shared_ptr<kcenon::thread::thread_pool> pool,
-        asio::io_context& io_context,
-        const std::string& component_name
-    );
-
-    ~io_context_executor();
-
-    // No copy, only move
-    io_context_executor(const io_context_executor&) = delete;
-    io_context_executor& operator=(const io_context_executor&) = delete;
-    io_context_executor(io_context_executor&&) noexcept = default;
-    io_context_executor& operator=(io_context_executor&&) noexcept = default;
-
-    void start();
-    void stop();
-    bool is_running() const;
-
-    // Get the underlying thread pool
-    std::shared_ptr<kcenon::thread::thread_pool> get_pool() const;
-};
-
-} // namespace network_system::integration
-```
-
-**Implementation File**: `src/integration/io_context_executor.cpp`
+**Estimated Time**: 2-3 days
 
 ---
 
-#### 1.3 Pipeline Job Definitions
+### [Phase 3: Data Pipeline Integration](docs/integration/PHASE3_PIPELINE.md)
+**Focus**: Integrate typed_thread_pool for data processing pipeline
 
-**File**: `include/network_system/internal/pipeline_jobs.h`
+**Components**:
+- pipeline.cpp: Add priority-based processing
+- send_coroutine.cpp: Use utility pool
+- Pipeline jobs: Encryption, compression, serialization
 
-**Purpose**: Typed jobs for data pipeline with priority support
-
-**Key Features**:
-- Priority-based job classes
-- Type-safe job submission
-- Future-based async results
-- Helper utilities for common operations
-
-**API Design**:
-```cpp
-namespace network_system::internal {
-
-// Base interface
-class pipeline_job_base {
-public:
-    virtual ~pipeline_job_base() = default;
-    virtual void execute() = 0;
-    virtual integration::pipeline_priority get_priority() const = 0;
-};
-
-// Concrete job types
-class encryption_job : public pipeline_job_base {
-public:
-    encryption_job(
-        std::vector<uint8_t> data,
-        std::function<void(std::vector<uint8_t>)> callback
-    );
-
-    void execute() override;
-    integration::pipeline_priority get_priority() const override {
-        return integration::pipeline_priority::HIGH;
-    }
-};
-
-class compression_job : public pipeline_job_base {
-public:
-    compression_job(
-        std::vector<uint8_t> data,
-        std::function<void(std::vector<uint8_t>)> callback
-    );
-
-    void execute() override;
-    integration::pipeline_priority get_priority() const override {
-        return integration::pipeline_priority::NORMAL;
-    }
-};
-
-class serialization_job : public pipeline_job_base {
-public:
-    serialization_job(
-        std::any data,
-        std::function<void(std::vector<uint8_t>)> callback
-    );
-
-    void execute() override;
-    integration::pipeline_priority get_priority() const override {
-        return integration::pipeline_priority::LOW;
-    }
-};
-
-// Convenience submitter
-class pipeline_submitter {
-public:
-    static std::future<std::vector<uint8_t>>
-    submit_encryption(std::vector<uint8_t> data);
-
-    static std::future<std::vector<uint8_t>>
-    submit_compression(std::vector<uint8_t> data);
-
-    static std::future<std::vector<uint8_t>>
-    submit_serialization(std::any data);
-};
-
-} // namespace network_system::internal
-```
-
-**Implementation File**: `src/internal/pipeline_jobs.cpp`
+**Estimated Time**: 1-2 days
 
 ---
 
-### Phase 2: Core Component Refactoring
+### [Phase 4: Integration Layer Updates](docs/integration/PHASE4_INTEGRATION_LAYER.md)
+**Focus**: Update integration layer to remove fallback implementations
 
-#### 2.1 messaging_server
+**Components**:
+- thread_integration.cpp: Remove basic_thread_pool
+- thread_system_adapter.cpp: Direct delegation to thread_system
 
-**Current Implementation** (`src/core/messaging_server.cpp:100`):
-```cpp
-server_thread_ = std::make_unique<std::thread>(
-    [this]() {
-        try {
-            io_context_->run();
-        } catch (...) {
-            // Handle exception
-        }
-    }
-);
-```
-
-**New Implementation**:
-```cpp
-#include "network_system/integration/thread_pool_manager.h"
-#include "network_system/integration/io_context_executor.h"
-
-// In start_server()
-auto& pool_mgr = thread_pool_manager::instance();
-auto io_pool = pool_mgr.create_io_pool("messaging_server:" + server_id_);
-
-io_executor_ = std::make_unique<io_context_executor>(
-    io_pool,
-    *io_context_,
-    "messaging_server:" + server_id_
-);
-
-io_executor_->start();
-
-NETWORK_LOG_INFO("[messaging_server] Started with thread_pool execution");
-```
-
-**Header Changes** (`include/network_system/core/messaging_server.h`):
-```cpp
-// Remove:
-// std::unique_ptr<std::thread> server_thread_;
-
-// Add:
-#include "network_system/integration/io_context_executor.h"
-std::unique_ptr<integration::io_context_executor> io_executor_;
-```
-
-**Stop Logic**:
-```cpp
-auto messaging_server::stop_server() -> VoidResult {
-    if (!is_running_.load()) {
-        return ok();
-    }
-
-    // Stop io_executor (will stop io_context and wait for thread pool)
-    if (io_executor_) {
-        io_executor_->stop();
-        io_executor_.reset();
-    }
-
-    is_running_.store(false);
-    return ok();
-}
-```
+**Estimated Time**: 0.5-1 day
 
 ---
 
-#### 2.2 messaging_client
+### [Phase 5: Build System & Testing](docs/integration/PHASE5_BUILD_AND_TEST.md)
+**Focus**: Update build system and validate integration
 
-**Current Implementation** (`src/core/messaging_client.cpp:143`):
-```cpp
-client_thread_ = std::make_unique<std::thread>(
-    [this]() {
-        try {
-            io_context_->run();
-        } catch (...) {
-            // Handle exception
-        }
-    }
-);
-```
+**Tasks**:
+- CMake configuration updates
+- Integration test updates
+- Performance benchmarking
+- Documentation updates
 
-**New Implementation**:
-```cpp
-auto& pool_mgr = thread_pool_manager::instance();
-auto io_pool = pool_mgr.create_io_pool("messaging_client:" + client_id_);
-
-io_executor_ = std::make_unique<io_context_executor>(
-    io_pool,
-    *io_context_,
-    "messaging_client:" + client_id_
-);
-
-io_executor_->start();
-```
-
-**Header Changes** (`include/network_system/core/messaging_client.h:273`):
-```cpp
-// Remove:
-// std::unique_ptr<std::thread> client_thread_;
-
-// Add:
-std::unique_ptr<integration::io_context_executor> io_executor_;
-```
+**Estimated Time**: 1-2 days
 
 ---
 
-#### 2.3 messaging_udp_server
-
-**Current Implementation** (`src/core/messaging_udp_server.cpp:87`):
-```cpp
-worker_thread_ = std::thread(
-    [this]() {
-        try {
-            io_context_->run();
-        } catch (const std::exception& e) {
-            NETWORK_LOG_ERROR(std::string("Worker thread exception: ") + e.what());
-        }
-    }
-);
-```
-
-**New Implementation**:
-```cpp
-auto& pool_mgr = thread_pool_manager::instance();
-auto io_pool = pool_mgr.create_io_pool("messaging_udp_server:" + server_id_);
-
-io_executor_ = std::make_unique<io_context_executor>(
-    io_pool,
-    *io_context_,
-    "messaging_udp_server:" + server_id_
-);
-
-io_executor_->start();
-```
-
-**Header Changes** (`include/network_system/core/messaging_udp_server.h:191`):
-```cpp
-// Remove:
-// std::thread worker_thread_;
-
-// Add:
-std::unique_ptr<integration::io_context_executor> io_executor_;
-```
-
-**Stop Logic**:
-```cpp
-auto messaging_udp_server::stop_server() -> VoidResult {
-    if (!is_running_.load()) {
-        return ok();
-    }
-
-    // Stop socket operations first
-    if (socket_) {
-        socket_->close();
-    }
-
-    // Stop io_executor
-    if (io_executor_) {
-        io_executor_->stop();
-        io_executor_.reset();
-    }
-
-    is_running_.store(false);
-    return ok();
-}
-```
-
----
-
-#### 2.4 messaging_udp_client
-
-**Current Implementation** (`src/core/messaging_udp_client.cpp:116`):
-```cpp
-worker_thread_ = std::thread(
-    [this]() {
-        try {
-            io_context_->run();
-        } catch (...) {
-            // Handle exception
-        }
-    }
-);
-```
-
-**New Implementation**: Same pattern as messaging_udp_server
-
-**Header Changes** (`include/network_system/core/messaging_udp_client.h:197`):
-```cpp
-// Remove:
-// std::thread worker_thread_;
-
-// Add:
-std::unique_ptr<integration::io_context_executor> io_executor_;
-```
-
----
-
-#### 2.5 messaging_ws_client
-
-**Current Implementation** (`src/core/messaging_ws_client.cpp:103`):
-```cpp
-io_thread_ = std::make_unique<std::thread>([this]() {
-    io_context_->run();
-});
-```
-
-**New Implementation**:
-```cpp
-auto& pool_mgr = thread_pool_manager::instance();
-auto io_pool = pool_mgr.create_io_pool("messaging_ws_client:" + client_id_);
-
-io_executor_ = std::make_unique<io_context_executor>(
-    io_pool,
-    *io_context_,
-    "messaging_ws_client:" + client_id_
-);
-
-io_executor_->start();
-```
-
-**Header Changes** (in pimpl class):
-```cpp
-// Remove:
-// std::unique_ptr<std::thread> io_thread_;
-
-// Add:
-std::unique_ptr<integration::io_context_executor> io_executor_;
-```
-
----
-
-#### 2.6 messaging_ws_server
-
-**Current Implementation** (`src/core/messaging_ws_server.cpp:225`):
-```cpp
-io_thread_ = std::make_unique<std::thread>([this]() {
-    try {
-        io_context_->run();
-    } catch (...) {
-        // Handle exception
-    }
-});
-```
-
-**New Implementation**: Same pattern as messaging_ws_client
-
----
-
-#### 2.7 secure_messaging_server
-
-**Current Implementation** (`src/core/secure_messaging_server.cpp:141`):
-```cpp
-server_thread_ = std::make_unique<std::thread>(
-    [this]() { io_context_->run(); }
-);
-```
-
-**New Implementation**: Same pattern as messaging_server
-
----
-
-#### 2.8 secure_messaging_client
-
-**Current Implementation** (`src/core/secure_messaging_client.cpp:172`):
-```cpp
-client_thread_ = std::make_unique<std::thread>(
-    [this]() { io_context_->run(); }
-);
-```
-
-**New Implementation**: Same pattern as messaging_client
-
----
-
-#### 2.9 health_monitor
-
-**Current Implementation** (`src/utils/health_monitor.cpp:106`):
-```cpp
-monitor_thread_ = std::make_unique<std::thread>(
-    [this]() {
-        try {
-            io_context_->run();
-        } catch (const std::exception& e) {
-            NETWORK_LOG_ERROR("[health_monitor] Exception: " +
-                std::string(e.what()));
-        }
-    }
-);
-```
-
-**New Implementation**:
-```cpp
-auto& pool_mgr = thread_pool_manager::instance();
-auto io_pool = pool_mgr.create_io_pool(
-    "health_monitor:" + client_->get_client_id()
-);
-
-io_executor_ = std::make_unique<io_context_executor>(
-    io_pool,
-    *io_context_,
-    "health_monitor"
-);
-
-io_executor_->start();
-```
-
-**Header Changes** (`include/network_system/utils/health_monitor.h:184`):
-```cpp
-// Remove:
-// std::unique_ptr<std::thread> monitor_thread_;
-
-// Add:
-std::unique_ptr<integration::io_context_executor> io_executor_;
-```
-
----
-
-#### 2.10 memory_profiler
-
-**Current Implementation** (`src/utils/memory_profiler.cpp:32`):
-```cpp
-worker_ = std::thread(&memory_profiler::sampler_loop, this, interval);
-```
-
-**New Implementation** (uses utility pool):
-```cpp
-auto& pool_mgr = thread_pool_manager::instance();
-auto utility_pool = pool_mgr.get_utility_pool();
-
-sampling_future_ = utility_pool->submit([this, interval]() {
-    sampler_loop(interval);
-});
-```
-
-**Header Changes** (`include/network_system/utils/memory_profiler.h:63`):
-```cpp
-// Remove:
-// std::thread worker_{};
-
-// Add:
-std::future<void> sampling_future_;
-std::atomic<bool> stop_requested_{false};
-```
-
-**Sampler Loop Update**:
-```cpp
-void memory_profiler::sampler_loop(std::chrono::milliseconds interval) {
-    while (!stop_requested_.load()) {
-        // Sample memory
-        record_sample();
-
-        // Sleep (check stop flag periodically)
-        auto end_time = std::chrono::steady_clock::now() + interval;
-        while (std::chrono::steady_clock::now() < end_time) {
-            if (stop_requested_.load()) {
-                return;
-            }
-            std::this_thread::sleep_for(std::chrono::milliseconds(10));
-        }
-    }
-}
-```
-
----
-
-#### 2.11 reliable_udp_client
-
-**Current Implementation** (`src/core/reliable_udp_client.cpp:574`):
-```cpp
-retransmission_thread_ = std::thread([this]() {
-    // Retransmission loop
-});
-```
-
-**New Implementation** (uses utility pool):
-```cpp
-auto& pool_mgr = thread_pool_manager::instance();
-auto utility_pool = pool_mgr.get_utility_pool();
-
-retransmission_future_ = utility_pool->submit([this]() {
-    retransmission_loop();
-});
-```
-
-**Header Changes**:
-```cpp
-// Remove:
-// std::thread retransmission_thread_;
-
-// Add:
-std::future<void> retransmission_future_;
-std::atomic<bool> stop_retransmission_{false};
-```
-
----
-
-### Phase 3: Data Pipeline Integration
-
-#### 3.1 Pipeline Component
-
-**File**: `src/internal/pipeline.cpp`
-
-**Current**: Synchronous or std::async processing
-
-**New Implementation**:
-```cpp
-#include "network_system/internal/pipeline_jobs.h"
-
-auto pipeline::process(std::vector<uint8_t> data) -> std::future<std::vector<uint8_t>> {
-    // Create processing chain using typed_thread_pool
-
-    if (encrypt_mode_) {
-        auto encrypted = pipeline_submitter::submit_encryption(std::move(data));
-        data = encrypted.get();
-    }
-
-    if (compress_mode_) {
-        auto compressed = pipeline_submitter::submit_compression(std::move(data));
-        data = compressed.get();
-    }
-
-    // Return as future for async continuation
-    std::promise<std::vector<uint8_t>> promise;
-    promise.set_value(std::move(data));
-    return promise.get_future();
-}
-```
-
-**Async Version**:
-```cpp
-auto pipeline::process_async(std::vector<uint8_t> data)
-    -> std::future<std::vector<uint8_t>> {
-
-    return std::async(std::launch::async, [this, data = std::move(data)]() mutable {
-        if (encrypt_mode_) {
-            auto encrypted = pipeline_submitter::submit_encryption(std::move(data));
-            data = encrypted.get();
-        }
-
-        if (compress_mode_) {
-            auto compressed = pipeline_submitter::submit_compression(std::move(data));
-            data = compressed.get();
-        }
-
-        return data;
-    });
-}
-```
-
----
-
-#### 3.2 send_coroutine
-
-**Current Implementation** (`src/internal/send_coroutine.cpp:112`):
-```cpp
-std::thread([sock, promise, future = std::move(future_processed)]() mutable {
-    try {
-        // Wait for processing
-        auto processed_data = future.get();
-
-        // Send data
-        // ...
-
-        promise.set_value();
-    } catch (...) {
-        promise.set_exception(std::current_exception());
-    }
-}).detach();
-```
-
-**New Implementation**:
-```cpp
-auto& pool_mgr = thread_pool_manager::instance();
-auto utility_pool = pool_mgr.get_utility_pool();
-
-utility_pool->submit([sock, promise, future = std::move(future_processed)]() mutable {
-    try {
-        auto processed_data = future.get();
-        // Send data
-        // ...
-        promise.set_value();
-    } catch (...) {
-        promise.set_exception(std::current_exception());
-    }
-});
-```
-
----
-
-### Phase 4: Integration Layer Updates
-
-#### 4.1 thread_integration.cpp Refactoring
-
-**File**: `src/integration/thread_integration.cpp`
-
-**Current**: basic_thread_pool (custom implementation)
-
-**New**: Direct delegation to thread_system
-
-```cpp
-#include <kcenon/thread/core/thread_pool.h>
-
-namespace network_system::integration {
-
-// Remove basic_thread_pool::impl completely
-
-// Replace with adapter
-class thread_system_adapter : public thread_pool_interface {
-public:
-    explicit thread_system_adapter(
-        std::shared_ptr<kcenon::thread::thread_pool> pool
-    ) : pool_(std::move(pool)) {}
-
-    std::future<void> submit(std::function<void()> task) override {
-        return pool_->submit(std::move(task));
-    }
-
-    std::future<void> submit_delayed(
-        std::function<void()> task,
-        std::chrono::milliseconds delay
-    ) override {
-        // Use utility pool for delayed execution
-        return pool_->submit([task = std::move(task), delay]() {
-            std::this_thread::sleep_for(delay);
-            task();
-        });
-    }
-
-    size_t worker_count() const override {
-        return pool_->get_thread_count();
-    }
-
-    bool is_running() const override {
-        return pool_->is_started();
-    }
-
-    size_t pending_tasks() const override {
-        return pool_->get_pending_job_count();
-    }
-
-private:
-    std::shared_ptr<kcenon::thread::thread_pool> pool_;
-};
-
-// Update thread_integration_manager to use thread_pool_manager
-class thread_integration_manager::impl {
-public:
-    impl() {
-        // Get utility pool from thread_pool_manager
-        auto& mgr = thread_pool_manager::instance();
-        auto pool = mgr.get_utility_pool();
-        default_pool_ = std::make_shared<thread_system_adapter>(pool);
-    }
-
-    std::shared_ptr<thread_pool_interface> default_pool_;
-    std::shared_ptr<thread_pool_interface> custom_pool_;
-};
-
-} // namespace network_system::integration
-```
-
----
-
-#### 4.2 thread_system_adapter.cpp
-
-**File**: `src/integration/thread_system_adapter.cpp`
-
-**Purpose**: Provide direct integration with thread_system for advanced use cases
-
-```cpp
-#include "network_system/integration/thread_system_adapter.h"
-#include <kcenon/thread/core/thread_pool.h>
-
-namespace network_system::integration {
-
-#ifdef BUILD_WITH_THREAD_SYSTEM
-
-class thread_system_adapter::impl {
-public:
-    impl(std::shared_ptr<kcenon::thread::thread_pool> pool)
-        : pool_(std::move(pool)) {}
-
-    std::shared_ptr<kcenon::thread::thread_pool> pool_;
-};
-
-thread_system_adapter::thread_system_adapter(
-    std::shared_ptr<kcenon::thread::thread_pool> pool
-) : pimpl_(std::make_unique<impl>(std::move(pool))) {}
-
-thread_system_adapter::~thread_system_adapter() = default;
-
-std::future<void> thread_system_adapter::submit(std::function<void()> task) {
-    return pimpl_->pool_->submit(std::move(task));
-}
-
-// ... other implementations
-
-#endif // BUILD_WITH_THREAD_SYSTEM
-
-} // namespace network_system::integration
-```
-
----
-
-### Phase 5: Build System Updates
-
-#### 5.1 CMakeLists.txt Changes
-
-**Main CMakeLists.txt**:
-```cmake
-# Make thread_system a REQUIRED dependency
-option(BUILD_WITH_THREAD_SYSTEM "Build with thread_system integration" ON)
-
-if(NOT BUILD_WITH_THREAD_SYSTEM)
-    message(FATAL_ERROR
-        "thread_system is now REQUIRED for network_system. "
-        "Cannot build without thread_system.")
-endif()
-
-# Find thread_system package
-find_package(ThreadSystem REQUIRED)
-
-if(NOT ThreadSystem_FOUND)
-    message(FATAL_ERROR
-        "thread_system not found. Please ensure thread_system is built and installed.")
-endif()
-
-# Add new integration sources
-target_sources(NetworkSystem PRIVATE
-    src/integration/thread_pool_manager.cpp
-    src/integration/io_context_executor.cpp
-    src/internal/pipeline_jobs.cpp
-)
-
-# Link thread_system library
-target_link_libraries(NetworkSystem
-    PRIVATE
-        ThreadSystem::ThreadBase
-)
-
-# Add thread_system include directories
-target_include_directories(NetworkSystem
-    PRIVATE
-        ${THREAD_SYSTEM_INCLUDE_DIR}
-)
-
-message(STATUS "thread_system integration: REQUIRED")
-message(STATUS "  thread_system location: ${THREAD_SYSTEM_INCLUDE_DIR}")
-```
-
----
-
-#### 5.2 NetworkSystemIntegration.cmake Updates
-
-**File**: `cmake/NetworkSystemIntegration.cmake`
-
-```cmake
-##################################################
-# Configure mandatory thread_system integration
-##################################################
-function(setup_thread_system_integration target)
-    # thread_system is now mandatory
-    if(NOT THREAD_SYSTEM_INCLUDE_DIR)
-        message(FATAL_ERROR "thread_system include directory not found")
-    endif()
-
-    target_include_directories(${target} PRIVATE ${THREAD_SYSTEM_INCLUDE_DIR})
-
-    if(THREAD_SYSTEM_LIBRARY)
-        target_link_libraries(${target} PUBLIC ${THREAD_SYSTEM_LIBRARY})
-    endif()
-
-    target_compile_definitions(${target} PRIVATE BUILD_WITH_THREAD_SYSTEM)
-    message(STATUS "Configured ${target} with thread_system (MANDATORY)")
-endfunction()
-
-# Update setup_network_system_integrations
-function(setup_network_system_integrations target)
-    message(STATUS "Setting up integrations for ${target}...")
-
-    setup_asio_integration(${target})
-    setup_fmt_integration(${target})
-    setup_thread_system_integration(${target})  # Now called unconditionally
-    setup_container_system_integration(${target})
-    setup_logger_system_integration(${target})
-    setup_monitoring_system_integration(${target})
-    setup_common_system_integration(${target})
-
-    # Platform-specific libraries
-    if(WIN32)
-        target_link_libraries(${target} PRIVATE ws2_32 mswsock)
-    endif()
-
-    if(NOT WIN32)
-        target_link_libraries(${target} PUBLIC pthread)
-    endif()
-
-    message(STATUS "Integration setup complete for ${target}")
-endfunction()
-```
-
----
-
-#### 5.3 Integration Tests CMakeLists.txt
-
-**File**: `integration_tests/CMakeLists.txt`
-
-```cmake
-# Ensure thread_system is available for integration tests
-if(NOT BUILD_WITH_THREAD_SYSTEM)
-    message(WARNING "Integration tests require thread_system. Skipping.")
-    return()
-endif()
-
-# Add thread_system to all integration test targets
-foreach(test_target ${INTEGRATION_TEST_TARGETS})
-    target_include_directories(${test_target} PRIVATE ${THREAD_SYSTEM_INCLUDE_DIR})
-    target_link_libraries(${test_target} PRIVATE ${THREAD_SYSTEM_LIBRARY})
-    target_compile_definitions(${test_target} PRIVATE BUILD_WITH_THREAD_SYSTEM)
-endforeach()
-```
+## 📊 Current Status
+
+### Components Analysis
+
+**Total std::thread usage locations**: 60+ occurrences
+
+| Category | Count | Status |
+|----------|-------|--------|
+| Core Components | 8 files | 🔲 Not Started |
+| Utility Components | 3 files | 🔲 Not Started |
+| Integration Layer | 2 files | 🔲 Not Started |
+| Tests | 15+ files | 🔲 Not Started |
+
+### Phase Progress
+
+| Phase | Status | Progress | Notes |
+|-------|--------|----------|-------|
+| Phase 1 | 🔲 Not Started | 0% | Infrastructure foundation |
+| Phase 2 | 🔲 Not Started | 0% | Blocked by Phase 1 |
+| Phase 3 | 🔲 Not Started | 0% | Blocked by Phase 1 |
+| Phase 4 | 🔲 Not Started | 0% | Blocked by Phase 2,3 |
+| Phase 5 | 🔲 Not Started | 0% | Final validation |
 
 ---
 
 ## 🧪 Testing Strategy
 
-### Unit Tests
+### Test Levels
 
-**File**: `tests/thread_system_integration_tests.cpp`
+```
+Unit Tests
+    ├── thread_pool_manager tests
+    ├── io_context_executor tests
+    └── pipeline_jobs tests
 
-```cpp
-#include <gtest/gtest.h>
-#include "network_system/integration/thread_pool_manager.h"
-#include "network_system/integration/io_context_executor.h"
+Integration Tests
+    ├── Existing tests must pass
+    ├── New integration scenarios
+    └── Component interaction tests
 
-using namespace network_system::integration;
+Performance Tests
+    ├── Baseline vs new implementation
+    ├── Thread creation overhead
+    ├── Pipeline throughput
+    └── Memory usage
 
-TEST(ThreadPoolManager, Initialization) {
-    auto& mgr = thread_pool_manager::instance();
-
-    ASSERT_NO_THROW(mgr.initialize());
-
-    auto stats = mgr.get_statistics();
-    EXPECT_EQ(stats.total_io_pools, 0);
-
-    mgr.shutdown();
-}
-
-TEST(ThreadPoolManager, CreateIoPool) {
-    auto& mgr = thread_pool_manager::instance();
-    mgr.initialize();
-
-    auto pool = mgr.create_io_pool("test_server");
-    ASSERT_NE(pool, nullptr);
-
-    // Pool should have exactly 1 worker for I/O
-    EXPECT_EQ(pool->get_thread_count(), 1);
-
-    mgr.shutdown();
-}
-
-TEST(IoContextExecutor, BasicExecution) {
-    auto& mgr = thread_pool_manager::instance();
-    mgr.initialize();
-
-    asio::io_context io_ctx;
-    auto pool = mgr.create_io_pool("test");
-
-    io_context_executor executor(pool, io_ctx, "test");
-
-    std::atomic<bool> executed{false};
-    io_ctx.post([&executed]() {
-        executed.store(true);
-    });
-
-    executor.start();
-
-    // Wait a bit for execution
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-
-    executor.stop();
-
-    EXPECT_TRUE(executed.load());
-
-    mgr.shutdown();
-}
-
-TEST(PipelineJobs, PriorityOrdering) {
-    auto& mgr = thread_pool_manager::instance();
-    mgr.initialize();
-
-    auto pipeline_pool = mgr.get_pipeline_pool();
-    ASSERT_NE(pipeline_pool, nullptr);
-
-    std::vector<int> execution_order;
-    std::mutex order_mutex;
-
-    // Submit jobs with different priorities
-    // HIGH priority should execute before NORMAL
-
-    // ... test implementation
-
-    mgr.shutdown();
-}
+Stress Tests
+    ├── High load scenarios
+    ├── Concurrent connections
+    └── Memory leak detection
 ```
 
----
+### Success Criteria
 
-### Integration Tests
-
-**Verify Existing Tests Still Pass**:
-```bash
-cd build
-ctest -R integration_tests --output-on-failure
-```
-
-**Expected Results**:
-- ✅ connection_lifecycle_test: All tests pass
-- ✅ protocol_integration_test: All tests pass
-- ✅ network_performance_test: Performance similar or better
-- ✅ error_handling_test: All tests pass
-- ✅ tcp_load_test: Throughput maintained or improved
-- ✅ udp_load_test: Latency maintained or improved
-- ✅ websocket_load_test: All tests pass
-
----
-
-### Performance Benchmarks
-
-**File**: `benchmarks/thread_integration_bench.cpp`
-
-```cpp
-#include <benchmark/benchmark.h>
-#include "network_system/integration/thread_pool_manager.h"
-
-// Benchmark thread pool overhead vs std::thread
-static void BM_ThreadPoolSubmit(benchmark::State& state) {
-    auto& mgr = thread_pool_manager::instance();
-    mgr.initialize();
-    auto pool = mgr.get_utility_pool();
-
-    for (auto _ : state) {
-        auto future = pool->submit([]() { /* no-op */ });
-        future.get();
-    }
-
-    mgr.shutdown();
-}
-BENCHMARK(BM_ThreadPoolSubmit);
-
-static void BM_DirectThreadCreate(benchmark::State& state) {
-    for (auto _ : state) {
-        std::thread t([]() { /* no-op */ });
-        t.join();
-    }
-}
-BENCHMARK(BM_DirectThreadCreate);
-
-// Benchmark I/O context execution
-static void BM_IoContextWithThreadPool(benchmark::State& state) {
-    auto& mgr = thread_pool_manager::instance();
-    mgr.initialize();
-
-    for (auto _ : state) {
-        asio::io_context io_ctx;
-        auto pool = mgr.create_io_pool("bench");
-        io_context_executor executor(pool, io_ctx, "bench");
-
-        io_ctx.post([]() { /* no-op */ });
-
-        executor.start();
-        executor.stop();
-    }
-
-    mgr.shutdown();
-}
-BENCHMARK(BM_IoContextWithThreadPool);
-
-BENCHMARK_MAIN();
-```
-
-**Expected Performance**:
-| Metric | Before (std::thread) | After (thread_pool) | Change |
-|--------|---------------------|---------------------|--------|
-| Thread creation overhead | ~50-100μs | ~1-5μs | ✅ 10-50x faster |
-| Memory per thread | ~2-8MB | ~0 (reuse) | ✅ Reduced |
-| Context switches | High | Lower | ✅ Improved |
-| I/O latency | Baseline | ≈ Same | ≈ Neutral |
-| Pipeline throughput | Baseline | +10-20% | ✅ Improved |
-
----
-
-## 📊 Migration Checklist
-
-### Phase 1: Infrastructure ✅
-- [ ] Implement `thread_pool_manager.h`
-- [ ] Implement `thread_pool_manager.cpp`
-- [ ] Implement `io_context_executor.h`
-- [ ] Implement `io_context_executor.cpp`
-- [ ] Implement `pipeline_jobs.h`
-- [ ] Implement `pipeline_jobs.cpp`
-- [ ] Write unit tests for infrastructure
-
-### Phase 2: Core Components
-- [ ] Refactor `messaging_server`
-- [ ] Refactor `messaging_client`
-- [ ] Refactor `messaging_udp_server`
-- [ ] Refactor `messaging_udp_client`
-- [ ] Refactor `messaging_ws_server`
-- [ ] Refactor `messaging_ws_client`
-- [ ] Refactor `secure_messaging_server`
-- [ ] Refactor `secure_messaging_client`
-- [ ] Update `health_monitor`
-- [ ] Update `memory_profiler`
-- [ ] Update `reliable_udp_client`
-
-### Phase 3: Pipeline
-- [ ] Integrate `pipeline.cpp` with typed_thread_pool
-- [ ] Update `send_coroutine.cpp`
-- [ ] Implement encryption jobs
-- [ ] Implement compression jobs
-- [ ] Implement serialization jobs
-
-### Phase 4: Integration Layer
-- [ ] Remove `basic_thread_pool` implementation
-- [ ] Update `thread_integration.cpp`
-- [ ] Update `thread_system_adapter.cpp`
-
-### Phase 5: Build System
-- [ ] Update main CMakeLists.txt
-- [ ] Update NetworkSystemIntegration.cmake
-- [ ] Update integration tests CMakeLists.txt
-- [ ] Update samples CMakeLists.txt
-
-### Phase 6: Testing
-- [ ] Run all unit tests
-- [ ] Run all integration tests
-- [ ] Run performance benchmarks
-- [ ] Run stress tests
-- [ ] Memory leak detection
-- [ ] Thread safety validation
-
-### Phase 7: Documentation
-- [ ] Update README.md
-- [ ] Update API_REFERENCE.md
-- [ ] Update MIGRATION.md
-- [ ] Update BUILD.md
-- [ ] Create migration examples
-- [ ] Document performance improvements
-
----
-
-## 📈 Success Criteria
-
-### Functional Requirements
-- ✅ All existing tests pass without modification
-- ✅ No direct `std::thread` usage remains in src/ directory
+**Functional**:
+- ✅ All existing tests pass
+- ✅ No direct `std::thread` in src/
 - ✅ All components use thread_pool_manager
-- ✅ Data pipeline uses typed_thread_pool with priorities
 
-### Non-Functional Requirements
-- ✅ Performance: Within 5% of baseline (preferably better)
-- ✅ Memory: No memory leaks detected
-- ✅ Thread Safety: No race conditions in thread pool usage
-- ✅ Code Coverage: Maintain or improve coverage (>80%)
+**Performance**:
+- ✅ Within 5% of baseline (preferably better)
+- ✅ No memory leaks
+- ✅ No race conditions
 
-### Documentation Requirements
-- ✅ All new APIs documented
+**Documentation**:
+- ✅ All APIs documented
 - ✅ Migration guide complete
 - ✅ Examples provided
-- ✅ Integration document removed (this file)
 
 ---
 
-## 🚫 Removal Checklist
+## 📈 Migration Roadmap
 
-**This document will be removed after successful integration. Before removal, ensure:**
+### Recommended Approach: Bottom-Up
 
-- [ ] All code changes merged to main branch
-- [ ] All tests passing on CI
-- [ ] Documentation updated and reviewed
-- [ ] Performance benchmarks meet criteria
-- [ ] Migration guide published
-- [ ] Team training completed (if applicable)
+```
+Week 1:
+├── Day 1-2: Phase 1 - Foundation Infrastructure
+├── Day 3:   Phase 5 (partial) - CMake Setup
+└── Day 4-5: Phase 2 (partial) - Simple Components
 
-**Final Cleanup**:
-```bash
-# After successful integration
-git rm THREAD_SYSTEM_INTEGRATION.md
-git commit -m "chore: remove integration document after successful thread_system integration"
+Week 2:
+├── Day 1-2: Phase 2 (continued) - Complex Components
+├── Day 3:   Phase 3 - Pipeline Integration
+└── Day 4-5: Phase 4 + Phase 5 - Cleanup & Testing
+```
+
+### Alternative Approach: Prototype First
+
+```
+Step 1: Implement Phase 1 infrastructure
+Step 2: Prototype with memory_profiler (simplest component)
+Step 3: Validate pattern works
+Step 4: Apply pattern to all components
+Step 5: Pipeline and final integration
 ```
 
 ---
 
-## 📞 Support
+## 📋 Quick Start Checklist
 
-### Issues During Integration
+Before starting implementation:
 
-If you encounter issues during integration:
+- [x] Create feature branch: `feature/thread-system-integration`
+- [x] Document integration plan (this file)
+- [x] Create phase-specific documents
+- [ ] Review thread_system API documentation
+- [ ] Set up development environment
+- [ ] Run baseline performance benchmarks
+- [ ] Ensure all current tests pass
 
-1. **Check thread_system documentation**: `/Users/dongcheolshin/Sources/thread_system/README.md`
-2. **Review thread_system examples**: `/Users/dongcheolshin/Sources/thread_system/samples/`
-3. **Check thread_system tests**: `/Users/dongcheolshin/Sources/thread_system/tests/`
-4. **Consult logger_system integration** for reference patterns
+---
+
+## 🔗 Related Documents
+
+### Phase Documentation
+- [Phase 1: Foundation Infrastructure](docs/integration/PHASE1_FOUNDATION.md)
+- [Phase 2: Core Components](docs/integration/PHASE2_CORE_COMPONENTS.md)
+- [Phase 3: Pipeline Integration](docs/integration/PHASE3_PIPELINE.md)
+- [Phase 4: Integration Layer](docs/integration/PHASE4_INTEGRATION_LAYER.md)
+- [Phase 5: Build & Testing](docs/integration/PHASE5_BUILD_AND_TEST.md)
+
+### Supporting Documents
+- [Component Migration Matrix](docs/integration/COMPONENT_MATRIX.md)
+- [API Reference](docs/integration/API_REFERENCE.md)
+- [Performance Benchmarks](docs/integration/BENCHMARKS.md)
+- [Troubleshooting Guide](docs/integration/TROUBLESHOOTING.md)
+
+### External References
+- thread_system README: `/Users/dongcheolshin/Sources/thread_system/README.md`
+- thread_system samples: `/Users/dongcheolshin/Sources/thread_system/samples/`
+- thread_system tests: `/Users/dongcheolshin/Sources/thread_system/tests/`
+
+---
+
+## 💡 Implementation Tips
+
+### Key Principles
+
+1. **Incremental Changes**: One component at a time
+2. **Test Immediately**: Verify each change before moving on
+3. **Maintain Compatibility**: Don't break existing APIs
+4. **Document As You Go**: Update docs with learnings
+5. **Measure Performance**: Benchmark critical paths
+
+### Common Patterns
+
+**I/O Component Pattern**:
+```cpp
+// Old: std::thread for io_context
+server_thread_ = std::make_unique<std::thread>([this]() {
+    io_context_->run();
+});
+
+// New: io_context_executor
+auto& mgr = thread_pool_manager::instance();
+io_executor_ = std::make_unique<io_context_executor>(
+    mgr.create_io_pool(component_name),
+    *io_context_,
+    component_name
+);
+io_executor_->start();
+```
+
+**Utility Task Pattern**:
+```cpp
+// Old: Detached thread
+std::thread([task]() { task(); }).detach();
+
+// New: Utility pool
+auto& mgr = thread_pool_manager::instance();
+mgr.get_utility_pool()->submit([task]() { task(); });
+```
+
+**Pipeline Pattern**:
+```cpp
+// Old: Synchronous or std::async
+auto result = process_data(data);
+
+// New: Typed thread pool with priority
+auto future = pipeline_submitter::submit_encryption(data);
+auto result = future.get();
+```
+
+---
+
+## 🚧 Integration Workflow
+
+### For Each Component
+
+1. **Read Phase Documentation**: Understand requirements
+2. **Backup Current Code**: Create backup or commit
+3. **Implement Changes**: Follow patterns from docs
+4. **Update Tests**: Ensure component tests pass
+5. **Run Integration Tests**: Verify system integration
+6. **Benchmark**: Measure performance impact
+7. **Document**: Note any issues or learnings
+8. **Commit**: Small, incremental commits
+
+### Git Workflow
+
+```bash
+# Work on feature branch
+git checkout feature/thread-system-integration
+
+# Make changes for specific component
+git add <files>
+git commit -m "refactor(component): migrate to thread_pool"
+
+# Run tests before pushing
+./build.sh && ctest
+
+# Push to remote
+git push origin feature/thread-system-integration
+```
+
+---
+
+## 🆘 Support & Troubleshooting
+
+### Getting Help
+
+1. **Check Phase Documents**: Detailed guidance for each phase
+2. **Review Troubleshooting Guide**: `docs/integration/TROUBLESHOOTING.md`
+3. **Consult thread_system Examples**: Real working code samples
+4. **Check Integration Tests**: Reference test patterns
 
 ### Common Issues
 
-**Issue**: Thread pool not starting
-- **Solution**: Ensure `initialize()` called before use
-- **Check**: Thread pool has workers configured
-
-**Issue**: I/O context not running
-- **Solution**: Verify io_executor started properly
-- **Check**: io_context has work to do
-
-**Issue**: Pipeline jobs not executing
-- **Solution**: Check typed_thread_pool is started
-- **Check**: Jobs submitted with valid priority
-
-**Issue**: Performance degradation
-- **Solution**: Review thread pool sizes
-- **Check**: No excessive context switching
+See [Troubleshooting Guide](docs/integration/TROUBLESHOOTING.md) for:
+- Thread pool not starting
+- I/O context not running
+- Pipeline jobs not executing
+- Performance degradation
+- Memory leaks
+- Race conditions
 
 ---
 
-## 🎯 Next Steps
+## 🎯 Post-Integration Cleanup
 
-1. **Start with Phase 1**: Implement infrastructure components
-2. **Test incrementally**: Each component as it's refactored
-3. **Monitor performance**: Benchmark at each phase
-4. **Document learnings**: Update this doc with findings
-5. **Cleanup**: Remove this doc after completion
+After successful integration:
+
+1. **Verify All Tests Pass**: Run full test suite
+2. **Benchmark Performance**: Compare with baseline
+3. **Update Documentation**: README, API docs, etc.
+4. **Remove Integration Docs**: Delete this file and `docs/integration/`
+5. **Merge to Main**: Create PR and merge
+6. **Tag Release**: Version bump and release notes
+
+### Cleanup Commands
+
+```bash
+# After merge to main
+git checkout main
+git pull origin main
+
+# Remove integration documentation
+git rm THREAD_SYSTEM_INTEGRATION.md
+git rm -r docs/integration/
+
+# Commit cleanup
+git commit -m "chore: remove integration docs after successful thread_system migration"
+
+# Push
+git push origin main
+```
 
 ---
 
-**Document Version**: 1.0
+## 📞 Contacts & Resources
+
+### Project Resources
+- **Project Board**: (link to project management tool)
+- **CI/CD**: (link to CI pipeline)
+- **Code Review**: (link to review guidelines)
+
+### External Documentation
+- **thread_system**: `/Users/dongcheolshin/Sources/thread_system/`
+- **ASIO**: https://think-async.com/Asio/
+- **C++ Concurrency**: Reference materials
+
+---
+
+## 📅 Timeline
+
+**Start Date**: 2025-11-03
+**Target Completion**: TBD
+**Estimated Duration**: 6-10 working days
+
+### Milestones
+
+- [ ] **M1**: Phase 1 Complete (Foundation)
+- [ ] **M2**: Phase 2 Complete (Core Components)
+- [ ] **M3**: Phase 3 Complete (Pipeline)
+- [ ] **M4**: Phase 4 Complete (Integration Layer)
+- [ ] **M5**: Phase 5 Complete (Build & Test)
+- [ ] **M6**: Integration Complete (Merge to Main)
+
+---
+
+## 🏁 Next Steps
+
+1. **Read Phase 1 Documentation**: Start with infrastructure
+2. **Set Up Environment**: Ensure thread_system is available
+3. **Run Baseline Tests**: Establish performance baseline
+4. **Begin Implementation**: Follow Phase 1 guide
+
+**→ Start Here**: [Phase 1: Foundation Infrastructure](docs/integration/PHASE1_FOUNDATION.md)
+
+---
+
+**Document Version**: 2.0 (Modular)
 **Last Updated**: 2025-11-03
-**Status**: 🚧 Ready to Begin Implementation
+**Status**: 🚧 Ready for Implementation
