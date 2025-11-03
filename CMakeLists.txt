@@ -196,6 +196,10 @@ if(BUILD_TLS_SUPPORT)
     endif()
 endif()
 
+# C++20 std::format support (always enabled)
+target_compile_definitions(NetworkSystem PUBLIC USE_STD_FORMAT)
+message(STATUS "Using C++20 std::format for formatting")
+
 # WebSocket support (conditional)
 if(BUILD_WEBSOCKET_SUPPORT)
     target_sources(NetworkSystem PRIVATE

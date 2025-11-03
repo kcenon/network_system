@@ -37,7 +37,7 @@ jobs:
             ninja-build \
             libgtest-dev \
             libasio-dev \
-            libfmt-dev \
+            \
             lcov
 
       - name: Install dependencies (macOS)
@@ -48,7 +48,7 @@ jobs:
             ninja \
             googletest \
             asio \
-            fmt \
+            \
             lcov
 
       - name: Configure CMake
@@ -150,7 +150,7 @@ jobs:
             ninja-build \
             libgtest-dev \
             libasio-dev \
-            libfmt-dev
+           
 
       - name: Configure CMake
         run: |

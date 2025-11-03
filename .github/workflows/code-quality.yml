@@ -25,7 +25,7 @@ jobs:
     - name: Install Analysis Tools
       run: |
         sudo apt-get update
-        sudo apt-get install -y cppcheck clang-tidy clang-format python3-pip cmake ninja-build libasio-dev libfmt-dev
+        sudo apt-get install -y cppcheck clang-tidy clang-format python3-pip cmake ninja-build libasio-dev
         pip3 install cpplint
 
     - name: Run cppcheck
@@ -120,7 +120,7 @@ jobs:
     - name: Setup Environment
       run: |
         sudo apt-get update
-        sudo apt-get install -y cmake ninja-build libasio-dev libfmt-dev lcov gcovr
+        sudo apt-get install -y cmake ninja-build libasio-dev lcov gcovr
 
     - name: Configure with Coverage
       run: |
@@ -223,8 +223,8 @@ jobs:
         echo "## License Check" > license-report.md
         echo "### Direct Dependencies" >> license-report.md
         echo "- ASIO: Boost Software License 1.0 ✅" >> license-report.md
-        echo "- fmt: MIT License ✅" >> license-report.md
         echo "- container_system: BSD-3-Clause ✅" >> license-report.md
+        echo "- thread_system: BSD-3-Clause ✅" >> license-report.md
         echo "" >> license-report.md
         echo "All dependencies are compatible with BSD-3-Clause license" >> license-report.md
 

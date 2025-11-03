@@ -38,7 +38,7 @@ jobs:
           ./vcpkg/bootstrap-vcpkg.sh
         fi
         # Try to install dependencies for scanning
-        ./vcpkg/vcpkg install --triplet x64-linux asio fmt || echo "vcpkg install failed, continuing with scan"
+        ./vcpkg/vcpkg install --triplet x64-linux asio || echo "vcpkg install failed, continuing with scan"
 
     - name: Dependency vulnerability scan
       uses: aquasecurity/trivy-action@master
@@ -80,14 +80,15 @@ jobs:
         # Known licenses for our dependencies
         known_licenses = {
             'asio': 'BSL-1.0',  # Boost Software License
-            'fmt': 'MIT',
             'gtest': 'BSD-3-Clause',
-            'benchmark': 'Apache-2.0'
+            'benchmark': 'Apache-2.0',
+            'thread_system': 'BSD-3-Clause',
+            'container_system': 'BSD-3-Clause'
         }
 
         all_compatible = True
 
-        for dep_name in ['asio', 'fmt', 'gtest', 'benchmark']:
+        for dep_name in ['asio', 'gtest', 'benchmark', 'thread_system', 'container_system']:
             if dep_name in known_licenses:
                 license_name = known_licenses[dep_name]
                 compatible = license_name in COMPATIBLE_LICENSES

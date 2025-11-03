@@ -454,19 +454,18 @@ int main() {
 #### Ubuntu/Debian
 ```bash
 sudo apt update
-sudo apt install -y cmake ninja-build libasio-dev libfmt-dev libssl-dev
+sudo apt install -y cmake ninja-build libasio-dev libssl-dev
 ```
 
 #### macOS
 ```bash
-brew install cmake ninja asio fmt openssl
+brew install cmake ninja asio openssl
 ```
 
 #### Windows (MSYS2)
 ```bash
 pacman -S mingw-w64-x86_64-cmake mingw-w64-x86_64-ninja \
-          mingw-w64-x86_64-asio mingw-w64-x86_64-fmt \
-          mingw-w64-x86_64-openssl
+          mingw-w64-x86_64-asio mingw-w64-x86_64-openssl
 ```
 
 ### Build Instructions
@@ -802,15 +801,18 @@ Network System is an actively maintained asynchronous network library that has b
 ## 🔧 Dependencies
 
 ### Required
-- **C++20** compatible compiler
+- **C++20** compatible compiler (with std::format support)
+  - GCC 13+ (recommended) or GCC 10+ (partial support)
+  - Clang 14+ with libc++
+  - MSVC 19.29+ (Visual Studio 2019 16.10+)
+  - Apple Clang 15+ (Xcode 15+)
 - **CMake** 3.16+
 - **ASIO** or **Boost.ASIO** 1.28+
 - **OpenSSL** 1.1.1+ (for TLS/SSL and WebSocket support)
 
 ### Optional
-- **fmt** 10.0+ (falls back to std::format)
 - **container_system** (for advanced serialization)
-- **thread_system** (for thread pool integration)
+- **thread_system** (REQUIRED for thread pool integration - enabled by default)
 - **logger_system** (for structured logging)
 
 ## 🎯 Platform Support

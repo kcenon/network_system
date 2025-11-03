@@ -47,12 +47,12 @@ jobs:
       if: startsWith(matrix.os, 'ubuntu')
       run: |
         sudo apt-get update
-        sudo apt-get install -y cmake ninja-build libasio-dev libfmt-dev
+        sudo apt-get install -y cmake ninja-build libasio-dev
 
     - name: Setup Build Environment (macOS)
       if: startsWith(matrix.os, 'macos')
       run: |
-        brew install cmake ninja asio fmt
+        brew install cmake ninja asio
 
     - name: Setup Build Environment (Windows)
       if: startsWith(matrix.os, 'windows')
@@ -60,11 +60,11 @@ jobs:
       with:
         update: true
         install: >-
-          mingw-w64-x86_64-cmake
-          mingw-w64-x86_64-ninja
-          mingw-w64-x86_64-asio
-          mingw-w64-x86_64-fmt
-          mingw-w64-x86_64-gcc
+          cmake
+          ninja
+          asio
+          fmt
+          gcc
 
     - name: Configure CMake
       run: |

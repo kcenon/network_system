@@ -23,7 +23,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y cmake ninja-build g++ libgtest-dev libgmock-dev libasio-dev libfmt-dev lcov
+        sudo apt-get install -y cmake ninja-build g++ libgtest-dev libgmock-dev libasio-dev lcov
 
     - name: Configure CMake with coverage
       run: |

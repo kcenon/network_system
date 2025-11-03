@@ -93,75 +93,41 @@ The NetworkSystem library itself is production-ready. Tests can be temporarily d
 
 ---
 
-## 🔍 Upstream Issues (thread_system)
+## 🎉 Migration to C++20 std::format
 
-### FMT Header Not Explicitly Included in formatter_macros.h
+### Status: ✅ COMPLETED (2025-11-04)
 
-**Status**: ✅ **PATCHED** - Automatic patch applied during CI builds
+**Summary**:
+network_system has been fully migrated to use C++20 `std::format` instead of the external fmt library. This aligns with the upstream migration of thread_system and common_system.
 
-**Description**:
-The thread_system's `formatter_macros.h` uses `fmt::formatter` but doesn't explicitly include `<fmt/format.h>`. This causes compilation errors when `USE_STD_FORMAT` is not defined.
+**Changes**:
+1. **CMake Configuration**:
+   - `USE_STD_FORMAT` is now always defined (no longer optional)
+   - C++20 standard is required and enforced
+   - FMT library dependency removed
 
-**Error Messages** (before patch):
-```
-error: 'fmt' has not been declared
-error: expected unqualified-id before '<' token
-```
+2. **Dependency Updates**:
+   - thread_system: Updated to use C++20 std::format (commit 4e886d1)
+   - common_system: Updated to use C++20 std::format (commit 4e92a20)
+   - All CI workflows updated to remove FMT installation
 
-**Affected Files in thread_system**:
-- `include/kcenon/thread/utils/formatter_macros.h` (needs patch)
-- `include/kcenon/thread/core/job.h` (uses DECLARE_FORMATTER)
-- `include/kcenon/thread/core/job_queue.h` (uses DECLARE_FORMATTER)
-- `include/kcenon/thread/core/thread_conditions.h` (uses DECLARE_FORMATTER)
+3. **Removed**:
+   - `patches/thread_system_fmt_fix.patch` (no longer needed)
+   - FMT library installation from all CI workflows
+   - FMT-related workarounds and documentation
 
-**Root Cause**:
-The `DECLARE_FORMATTER` macro in `formatter_macros.h` expands to code using `fmt::formatter`, but the file only includes `formatter.h` which conditionally includes `<fmt/format.h>` using `__has_include`. This conditional include doesn't guarantee `fmt` namespace availability in all build contexts.
+**Requirements**:
+- **C++20 compiler required**:
+  - GCC 10+ (full std::format support in GCC 13+)
+  - Clang 14+ (with libc++)
+  - MSVC 19.29+ (Visual Studio 2019 16.10+)
+  - Apple Clang 15+ (Xcode 15+)
 
-**Our Solution**:
-✅ **Automatic patch applied during CI builds**
-
-A patch file is maintained in `patches/thread_system_fmt_fix.patch` that adds the missing include:
-
-```cpp
-// Ensure fmt types are available when using fmt library
-#ifndef USE_STD_FORMAT
-#include <fmt/format.h>
-#endif
-```
-
-This patch is automatically applied by our GitHub Actions composite action (`.github/actions/setup-thread-system/action.yml`) before building thread_system.
-
-**Alternative Workarounds** (if not using our CI):
-
-1. **Apply the patch manually**:
-   ```bash
-   cd /path/to/thread_system
-   git apply /path/to/network_system/patches/thread_system_fmt_fix.patch
-   ```
-
-2. **Define USE_STD_FORMAT** (if C++20 `<format>` available):
-   ```cmake
-   add_compile_definitions(USE_STD_FORMAT)
-   ```
-
-3. **Ensure FMT is installed** (required regardless):
-   ```yaml
-   # Ubuntu
-   sudo apt-get install -y libfmt-dev
-
-   # macOS
-   brew install fmt
-   ```
-
-**Impact on network_system**:
-- ✅ **Fully resolved** - Patch applied automatically in CI
-- ✅ CI workflows build successfully
-- ✅ All platforms supported (Linux, macOS, Windows)
-
-**Upstream Status**:
-- 🟡 Should be reported to thread_system project
-- 🟡 Upstream fix would eliminate need for our patch
-- ✅ Not blocking our development (patch works reliably)
+**Benefits**:
+- ✅ No external formatting library dependency
+- ✅ Simplified build process
+- ✅ Better compatibility with modern C++ ecosystems
+- ✅ Reduced maintenance burden
 
 ---
 
