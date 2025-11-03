@@ -220,6 +220,93 @@ if(GTest_FOUND OR GTEST_FOUND)
         gtest_discover_tests(network_websocket_protocol_test)
         message(STATUS "WebSocket protocol tests enabled")
     endif()
+
+    ##################################################
+    # Phase 5: Thread System Integration Tests
+    ##################################################
+
+    # Thread Pool Manager Unit Tests
+    add_executable(network_thread_pool_manager_test
+        thread_pool_manager_test.cpp
+    )
+
+    target_link_libraries(network_thread_pool_manager_test PRIVATE
+        NetworkSystem
+        GTest::gtest
+        GTest::gtest_main
+        Threads::Threads
+    )
+
+    # Setup ASIO and FMT integration
+    setup_asio_integration(network_thread_pool_manager_test)
+    setup_fmt_integration(network_thread_pool_manager_test)
+
+    # Add system integration paths
+    if(THREAD_SYSTEM_INCLUDE_DIR)
+        target_include_directories(network_thread_pool_manager_test PRIVATE ${THREAD_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(network_thread_pool_manager_test PRIVATE BUILD_WITH_THREAD_SYSTEM)
+    endif()
+
+    if(COMMON_SYSTEM_INCLUDE_DIR)
+        target_include_directories(network_thread_pool_manager_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(network_thread_pool_manager_test PRIVATE BUILD_WITH_COMMON_SYSTEM)
+    endif()
+
+    set_target_properties(network_thread_pool_manager_test PROPERTIES
+        CXX_STANDARD 20
+        CXX_STANDARD_REQUIRED ON
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+    )
+
+    gtest_discover_tests(network_thread_pool_manager_test)
+    message(STATUS "Thread pool manager tests enabled")
+
+    # Full System Integration Tests
+    add_executable(network_integration_test_full
+        integration_test_full.cpp
+    )
+
+    target_link_libraries(network_integration_test_full PRIVATE
+        NetworkSystem
+        GTest::gtest
+        GTest::gtest_main
+        Threads::Threads
+    )
+
+    # Setup ASIO and FMT integration
+    setup_asio_integration(network_integration_test_full)
+    setup_fmt_integration(network_integration_test_full)
+
+    # Add system integration paths
+    if(CONTAINER_SYSTEM_INCLUDE_DIR)
+        target_include_directories(network_integration_test_full PRIVATE ${CONTAINER_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(network_integration_test_full PRIVATE BUILD_WITH_CONTAINER_SYSTEM)
+    endif()
+
+    if(THREAD_SYSTEM_INCLUDE_DIR)
+        target_include_directories(network_integration_test_full PRIVATE ${THREAD_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(network_integration_test_full PRIVATE BUILD_WITH_THREAD_SYSTEM)
+    endif()
+
+    if(LOGGER_SYSTEM_INCLUDE_DIR)
+        target_include_directories(network_integration_test_full PRIVATE ${LOGGER_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(network_integration_test_full PRIVATE BUILD_WITH_LOGGER_SYSTEM)
+    endif()
+
+    if(COMMON_SYSTEM_INCLUDE_DIR)
+        target_include_directories(network_integration_test_full PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(network_integration_test_full PRIVATE BUILD_WITH_COMMON_SYSTEM)
+    endif()
+
+    set_target_properties(network_integration_test_full PROPERTIES
+        CXX_STANDARD 20
+        CXX_STANDARD_REQUIRED ON
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+    )
+
+    gtest_discover_tests(network_integration_test_full)
+    message(STATUS "Full system integration tests enabled")
+
 else()
     message(WARNING "GTest not found - unit tests will not be built")
 endif()
