@@ -93,7 +93,7 @@ function(setup_thread_system_integration target)
     if(NOT THREAD_SYSTEM_INCLUDE_DIR)
         message(FATAL_ERROR
             "thread_system is required for ${target}. "
-            "Please install thread_system from /Users/dongcheolshin/Sources/thread_system"
+            "Please set THREAD_SYSTEM_INCLUDE_DIR to the thread_system installation path."
         )
     endif()
 
