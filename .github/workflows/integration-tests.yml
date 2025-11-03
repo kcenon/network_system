@@ -24,6 +24,9 @@ jobs:
         with:
           submodules: recursive
 
+    - name: Setup thread_system
+      uses: ./.github/actions/setup-thread-system
+
       - name: Install dependencies (Ubuntu)
         if: runner.os == 'Linux'
         run: |
@@ -59,7 +62,7 @@ jobs:
             -DBUILD_SAMPLES=OFF \
             -DBUILD_WITH_COMMON_SYSTEM=OFF \
             -DBUILD_WITH_LOGGER_SYSTEM=OFF \
-            -DBUILD_WITH_THREAD_SYSTEM=OFF \
+            -DBUILD_WITH_THREAD_SYSTEM=ON \
             -DBUILD_WITH_CONTAINER_SYSTEM=OFF \
             -DBUILD_MESSAGING_BRIDGE=OFF
 
@@ -159,7 +162,7 @@ jobs:
             -DBUILD_SAMPLES=OFF \
             -DBUILD_WITH_COMMON_SYSTEM=OFF \
             -DBUILD_WITH_LOGGER_SYSTEM=OFF \
-            -DBUILD_WITH_THREAD_SYSTEM=OFF \
+            -DBUILD_WITH_THREAD_SYSTEM=ON \
             -DBUILD_WITH_CONTAINER_SYSTEM=OFF \
             -DBUILD_MESSAGING_BRIDGE=OFF
 
