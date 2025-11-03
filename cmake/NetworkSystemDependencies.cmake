@@ -217,44 +217,52 @@ function(find_thread_system)
 
     message(STATUS "Looking for thread_system...")
 
-    # Prioritize Sources/ directory
+    # Prioritize Sources/ directory, then system paths
     if(APPLE)
         set(_thread_search_paths
             /Users/${USER}/Sources/thread_system/include
             ../thread_system/include
             ${CMAKE_CURRENT_SOURCE_DIR}/../thread_system/include
+            /usr/local/include
+            /opt/homebrew/include
         )
         set(_thread_lib_paths
             /Users/${USER}/Sources/thread_system/build/lib
             ../thread_system/build/lib
             ${CMAKE_CURRENT_SOURCE_DIR}/../thread_system/build/lib
+            /usr/local/lib
+            /opt/homebrew/lib
         )
     else()
         set(_thread_search_paths
             /home/${USER}/Sources/thread_system/include
             ../thread_system/include
             ${CMAKE_CURRENT_SOURCE_DIR}/../thread_system/include
+            /usr/local/include
+            /usr/include
         )
         set(_thread_lib_paths
             /home/${USER}/Sources/thread_system/build/lib
             ../thread_system/build/lib
             ${CMAKE_CURRENT_SOURCE_DIR}/../thread_system/build/lib
+            /usr/local/lib
+            /usr/lib
+            /usr/lib/x86_64-linux-gnu
+            /usr/lib/aarch64-linux-gnu
         )
     endif()
 
     find_path(THREAD_SYSTEM_INCLUDE_DIR
         NAMES kcenon/thread/core/thread_pool.h
         PATHS ${_thread_search_paths}
-        NO_DEFAULT_PATH
     )
 
     if(THREAD_SYSTEM_INCLUDE_DIR)
         message(STATUS "Found thread_system at: ${THREAD_SYSTEM_INCLUDE_DIR}")
 
         find_library(THREAD_SYSTEM_LIBRARY
-            NAMES ThreadSystem thread_base
+            NAMES ThreadSystem thread_base thread_system
             PATHS ${_thread_lib_paths}
-            NO_DEFAULT_PATH
         )
 
         if(THREAD_SYSTEM_LIBRARY)

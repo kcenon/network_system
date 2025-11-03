@@ -1,9 +1,17 @@
 name: 'Setup thread_system'
 description: 'Install thread_system for network_system builds'
+outputs:
+  include_dir:
+    description: 'thread_system include directory'
+    value: ${{ steps.install-unix.outputs.include_dir || steps.install-windows.outputs.include_dir }}
+  library:
+    description: 'thread_system library path'
+    value: ${{ steps.install-unix.outputs.library || steps.install-windows.outputs.library }}
 runs:
   using: 'composite'
   steps:
     - name: Install thread_system (Unix)
+      id: install-unix
       if: runner.os != 'Windows'
       shell: bash
       run: |
@@ -12,10 +20,13 @@ runs:
         cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
         cmake --build build
         sudo cmake --install build --prefix /usr/local
+        echo "include_dir=/usr/local/include" >> $GITHUB_OUTPUT
+        echo "library=/usr/local/lib/libthread_system.a" >> $GITHUB_OUTPUT
         echo "THREAD_SYSTEM_INCLUDE_DIR=/usr/local/include" >> $GITHUB_ENV
         echo "THREAD_SYSTEM_LIBRARY=/usr/local/lib/libthread_system.a" >> $GITHUB_ENV
 
     - name: Install thread_system (Windows)
+      id: install-windows
       if: runner.os == 'Windows'
       shell: pwsh
       run: |
@@ -24,5 +35,7 @@ runs:
         cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
         cmake --build build
         cmake --install build --prefix C:\thread_system
+        echo "include_dir=C:\thread_system\include" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+        echo "library=C:\thread_system\lib\thread_system.lib" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
         echo "THREAD_SYSTEM_INCLUDE_DIR=C:\thread_system\include" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
         echo "THREAD_SYSTEM_LIBRARY=C:\thread_system\lib\thread_system.lib" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
