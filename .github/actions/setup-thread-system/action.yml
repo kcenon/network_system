@@ -15,6 +15,15 @@ runs:
       if: runner.os != 'Windows'
       shell: bash
       run: |
+        # Install Clang 15 on Linux for C++20 std::format support
+        if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+          wget -q https://apt.llvm.org/llvm.sh
+          chmod +x llvm.sh
+          sudo ./llvm.sh 15
+          export CC=clang-15
+          export CXX=clang++-15
+        fi
+
         git clone https://github.com/kcenon/thread_system.git /tmp/thread_system
         cd /tmp/thread_system
         cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
