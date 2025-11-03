@@ -86,26 +86,29 @@ function(setup_container_system_integration target)
 endfunction()
 
 ##################################################
-# Configure thread_system integration
+# Configure thread_system integration (REQUIRED)
 ##################################################
 function(setup_thread_system_integration target)
-    if(NOT BUILD_WITH_THREAD_SYSTEM)
-        return()
-    endif()
-
-    if(THREAD_SYSTEM_INCLUDE_DIR)
-        target_include_directories(${target} PRIVATE ${THREAD_SYSTEM_INCLUDE_DIR})
-        if(THREAD_SYSTEM_LIBRARY)
-            target_link_libraries(${target} PUBLIC ${THREAD_SYSTEM_LIBRARY})
-        endif()
-        target_compile_definitions(${target} PRIVATE BUILD_WITH_THREAD_SYSTEM)
-
-        # Add thread_system adapter source
-        target_sources(${target} PRIVATE
-            ${CMAKE_CURRENT_SOURCE_DIR}/src/integration/thread_system_adapter.cpp
+    # thread_system is now required - no option to disable
+    if(NOT THREAD_SYSTEM_INCLUDE_DIR)
+        message(FATAL_ERROR
+            "thread_system is required for ${target}. "
+            "Please install thread_system from /Users/dongcheolshin/Sources/thread_system"
         )
-        message(STATUS "Configured ${target} with thread_system integration")
     endif()
+
+    target_include_directories(${target} PRIVATE ${THREAD_SYSTEM_INCLUDE_DIR})
+
+    if(THREAD_SYSTEM_LIBRARY)
+        target_link_libraries(${target} PUBLIC ${THREAD_SYSTEM_LIBRARY})
+    endif()
+
+    # Add thread_system adapter source (minimal implementation)
+    target_sources(${target} PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/integration/thread_system_adapter.cpp
+    )
+
+    message(STATUS "Network system integrated with thread_system")
 endfunction()
 
 ##################################################

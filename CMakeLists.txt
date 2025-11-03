@@ -34,7 +34,7 @@ option(BUILD_TESTS "Build tests" ON)
 option(BUILD_SAMPLES "Build samples" ON)
 option(BUILD_WEBSOCKET_SUPPORT "Build WebSocket protocol support (RFC 6455)" ON)
 option(BUILD_WITH_CONTAINER_SYSTEM "Build with container_system integration" ON)
-option(BUILD_WITH_THREAD_SYSTEM "Build with thread_system integration" ON)
+# thread_system is now REQUIRED - no longer optional
 option(BUILD_WITH_LOGGER_SYSTEM "Build with logger_system integration" ON)
 option(BUILD_WITH_MONITORING_SYSTEM "Build with monitoring_system integration" OFF)
 option(BUILD_WITH_COMMON_SYSTEM "Build with common_system integration" ON)

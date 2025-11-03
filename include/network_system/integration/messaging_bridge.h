@@ -136,21 +136,13 @@ public:
     void set_thread_pool(
         std::shared_ptr<kcenon::thread::thread_pool> pool
     );
+
+    /**
+     * @brief Get the thread pool
+     * @return Current thread pool
+     */
+    std::shared_ptr<kcenon::thread::thread_pool> get_thread_pool() const;
 #endif
-
-    /**
-     * @brief Set thread pool using the integration interface
-     * @param pool Thread pool interface implementation
-     */
-    void set_thread_pool_interface(
-        std::shared_ptr<thread_pool_interface> pool
-    );
-
-    /**
-     * @brief Get the thread pool interface
-     * @return Current thread pool interface
-     */
-    std::shared_ptr<thread_pool_interface> get_thread_pool_interface() const;
 
     /**
      * @brief Performance metrics structure
