@@ -29,6 +29,9 @@ jobs:
       with:
         submodules: true
 
+    - name: Setup thread_system
+      uses: ./.github/actions/setup-thread-system
+
     - name: Setup vcpkg manually
       continue-on-error: true
       run: |

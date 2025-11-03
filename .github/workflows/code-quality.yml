@@ -22,6 +22,9 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
+    - name: Setup thread_system
+      uses: ./.github/actions/setup-thread-system
+
     - name: Install Analysis Tools
       run: |
         sudo apt-get update
@@ -95,6 +98,9 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
+    - name: Setup thread_system
+      uses: ./.github/actions/setup-thread-system
+
     - name: Run Trivy Security Scanner
       uses: aquasecurity/trivy-action@master
       with:
@@ -116,6 +122,9 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+
+    - name: Setup thread_system
+      uses: ./.github/actions/setup-thread-system
 
     - name: Setup Environment
       run: |

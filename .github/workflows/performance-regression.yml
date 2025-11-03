@@ -18,6 +18,9 @@ jobs:
       with:
         fetch-depth: 0
 
+    - name: Setup thread_system
+      uses: ./.github/actions/setup-thread-system
+
     - name: Checkout Base Branch
       run: |
         git checkout ${{ github.base_ref }}

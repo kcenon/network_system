@@ -27,6 +27,9 @@ jobs:
         fetch-depth: 0
         path: network_system
 
+    - name: Setup thread_system
+      uses: ./network_system/.github/actions/setup-thread-system
+
     - name: Checkout common_system
       uses: actions/checkout@v4
       with:

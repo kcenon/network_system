@@ -41,6 +41,9 @@ jobs:
       with:
         fetch-depth: 0  # Full history for comparison
 
+    - name: Setup thread_system
+      uses: ./.github/actions/setup-thread-system
+
     - name: Install dependencies (Ubuntu)
       if: runner.os == 'Linux'
       run: |
