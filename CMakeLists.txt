@@ -135,6 +135,10 @@ add_library(NetworkSystem
     src/integration/thread_integration.cpp
     src/integration/container_integration.cpp
     src/integration/monitoring_integration.cpp
+
+    # Phase 1: Thread system integration infrastructure
+    src/integration/thread_pool_manager.cpp
+    src/integration/io_context_executor.cpp
 )
 
 # Suppress warnings inherited from parent project (especially from ASIO)
