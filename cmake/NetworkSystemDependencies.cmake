@@ -217,65 +217,90 @@ function(find_thread_system)
 
     message(STATUS "Looking for thread_system...")
 
-    # Prioritize Sources/ directory, then system paths
+    # Strategy 1: Try to find thread_system via CONFIG mode first (installed package)
+    find_package(thread_system CONFIG QUIET)
+
+    if(thread_system_FOUND)
+        message(STATUS "Found thread_system via CONFIG mode")
+        set(THREAD_SYSTEM_FOUND TRUE PARENT_SCOPE)
+        return()
+    endif()
+
+    # Strategy 2: Search in prioritized paths (development environment)
+    # Priority order:
+    # 1. User's Sources directory (development environment - HIGHEST PRIORITY)
+    # 2. Sibling directory (workspace layout)
+    # 3. System installation paths (CI/production)
+
     if(APPLE)
         set(_thread_search_paths
-            /Users/${USER}/Sources/thread_system/include
-            ../thread_system/include
-            ${CMAKE_CURRENT_SOURCE_DIR}/../thread_system/include
-            /usr/local/include
-            /opt/homebrew/include
+            "/Users/$ENV{USER}/Sources/thread_system/include"     # macOS development
+            "${CMAKE_CURRENT_SOURCE_DIR}/../thread_system/include" # Sibling directory
+            "../thread_system/include"                             # Relative fallback
+            "/usr/local/include"                                   # Homebrew default
+            "/opt/homebrew/include"                                # Apple Silicon Homebrew
         )
         set(_thread_lib_paths
-            /Users/${USER}/Sources/thread_system/build/lib
-            ../thread_system/build/lib
-            ${CMAKE_CURRENT_SOURCE_DIR}/../thread_system/build/lib
-            /usr/local/lib
-            /opt/homebrew/lib
+            "/Users/$ENV{USER}/Sources/thread_system/build/lib"
+            "${CMAKE_CURRENT_SOURCE_DIR}/../thread_system/build/lib"
+            "../thread_system/build/lib"
+            "/usr/local/lib"
+            "/opt/homebrew/lib"
         )
     else()
         set(_thread_search_paths
-            /home/${USER}/Sources/thread_system/include
-            ../thread_system/include
-            ${CMAKE_CURRENT_SOURCE_DIR}/../thread_system/include
-            /usr/local/include
-            /usr/include
+            "/home/$ENV{USER}/Sources/thread_system/include"      # Linux development
+            "${CMAKE_CURRENT_SOURCE_DIR}/../thread_system/include" # Sibling directory
+            "../thread_system/include"                             # Relative fallback
+            "/usr/local/include"                                   # Standard Unix path
+            "/usr/include"                                         # System path
         )
         set(_thread_lib_paths
-            /home/${USER}/Sources/thread_system/build/lib
-            ../thread_system/build/lib
-            ${CMAKE_CURRENT_SOURCE_DIR}/../thread_system/build/lib
-            /usr/local/lib
-            /usr/lib
-            /usr/lib/x86_64-linux-gnu
-            /usr/lib/aarch64-linux-gnu
+            "/home/$ENV{USER}/Sources/thread_system/build/lib"
+            "${CMAKE_CURRENT_SOURCE_DIR}/../thread_system/build/lib"
+            "../thread_system/build/lib"
+            "/usr/local/lib"
+            "/usr/lib"
+            "/usr/lib/x86_64-linux-gnu"  # Ubuntu/Debian x86_64
+            "/usr/lib/aarch64-linux-gnu" # Ubuntu/Debian ARM64
         )
     endif()
 
     find_path(THREAD_SYSTEM_INCLUDE_DIR
         NAMES kcenon/thread/core/thread_pool.h
         PATHS ${_thread_search_paths}
+        DOC "thread_system include directory"
     )
 
     if(THREAD_SYSTEM_INCLUDE_DIR)
-        message(STATUS "Found thread_system at: ${THREAD_SYSTEM_INCLUDE_DIR}")
+        message(STATUS "Found thread_system headers at: ${THREAD_SYSTEM_INCLUDE_DIR}")
 
+        # Search for thread_system library with multiple possible names
         find_library(THREAD_SYSTEM_LIBRARY
-            NAMES ThreadSystem thread_base thread_system
+            NAMES
+                ThreadSystem      # Standard name (CMake target export)
+                thread_system     # Alternative name (lowercase)
+                thread_base       # Legacy name
             PATHS ${_thread_lib_paths}
+            DOC "thread_system library"
         )
 
         if(THREAD_SYSTEM_LIBRARY)
             message(STATUS "Found thread_system library: ${THREAD_SYSTEM_LIBRARY}")
+            set(THREAD_SYSTEM_FOUND TRUE PARENT_SCOPE)
+            set(THREAD_SYSTEM_INCLUDE_DIR ${THREAD_SYSTEM_INCLUDE_DIR} PARENT_SCOPE)
+            set(THREAD_SYSTEM_LIBRARY ${THREAD_SYSTEM_LIBRARY} PARENT_SCOPE)
         else()
-            message(WARNING "thread_system library not found")
+            message(WARNING "thread_system headers found but library not found")
+            message(WARNING "Searched in: ${_thread_lib_paths}")
+            set(THREAD_SYSTEM_FOUND FALSE PARENT_SCOPE)
+            set(BUILD_WITH_THREAD_SYSTEM OFF PARENT_SCOPE)
         endif()
-
-        set(THREAD_SYSTEM_FOUND TRUE PARENT_SCOPE)
-        set(THREAD_SYSTEM_INCLUDE_DIR ${THREAD_SYSTEM_INCLUDE_DIR} PARENT_SCOPE)
-        set(THREAD_SYSTEM_LIBRARY ${THREAD_SYSTEM_LIBRARY} PARENT_SCOPE)
     else()
-        message(WARNING "thread_system not found, integration disabled")
+        message(WARNING "thread_system headers not found")
+        message(WARNING "Searched in: ${_thread_search_paths}")
+        message(WARNING "thread_system integration will be disabled")
+        message(WARNING "To fix: Install thread_system or set THREAD_SYSTEM_INCLUDE_DIR manually")
         set(BUILD_WITH_THREAD_SYSTEM OFF PARENT_SCOPE)
         set(THREAD_SYSTEM_FOUND FALSE PARENT_SCOPE)
     endif()

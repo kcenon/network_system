@@ -92,8 +92,16 @@ function(setup_thread_system_integration target)
     # thread_system is now required - no option to disable
     if(NOT THREAD_SYSTEM_INCLUDE_DIR)
         message(FATAL_ERROR
-            "thread_system is required for ${target}. "
-            "Please set THREAD_SYSTEM_INCLUDE_DIR to the thread_system installation path."
+            "thread_system is REQUIRED for ${target} but was not found.\n"
+            "\n"
+            "Possible solutions:\n"
+            "  1. Install thread_system to a standard location (/usr/local)\n"
+            "  2. Clone thread_system to ~/Sources/thread_system\n"
+            "  3. Set THREAD_SYSTEM_INCLUDE_DIR and THREAD_SYSTEM_LIBRARY manually:\n"
+            "     cmake -DTHREAD_SYSTEM_INCLUDE_DIR=/path/to/include \\\n"
+            "           -DTHREAD_SYSTEM_LIBRARY=/path/to/libThreadSystem.a\n"
+            "\n"
+            "GitHub Actions: Ensure 'setup-thread-system' action is called before CMake configuration."
         )
     endif()
 
