@@ -97,32 +97,46 @@ The NetworkSystem library itself is production-ready. Tests can be temporarily d
 
 ### FMT Header Not Explicitly Included in formatter_macros.h
 
-**Status**: 🟡 **Upstream Issue** - Affects thread_system compilation in some environments
+**Status**: ✅ **PATCHED** - Automatic patch applied during CI builds
 
 **Description**:
-The thread_system's `formatter_macros.h` uses `fmt::formatter` but doesn't explicitly include `<fmt/format.h>`. This can cause compilation errors when `USE_STD_FORMAT` is not defined.
+The thread_system's `formatter_macros.h` uses `fmt::formatter` but doesn't explicitly include `<fmt/format.h>`. This causes compilation errors when `USE_STD_FORMAT` is not defined.
 
-**Error Messages**:
+**Error Messages** (before patch):
 ```
 error: 'fmt' has not been declared
 error: expected unqualified-id before '<' token
 ```
 
 **Affected Files in thread_system**:
-- `include/kcenon/thread/utils/formatter_macros.h`
+- `include/kcenon/thread/utils/formatter_macros.h` (needs patch)
 - `include/kcenon/thread/core/job.h` (uses DECLARE_FORMATTER)
 - `include/kcenon/thread/core/job_queue.h` (uses DECLARE_FORMATTER)
+- `include/kcenon/thread/core/thread_conditions.h` (uses DECLARE_FORMATTER)
 
 **Root Cause**:
-The `DECLARE_FORMATTER` macro in `formatter_macros.h` expands to code using `fmt::formatter`, but the file only includes `formatter.h` which conditionally includes `<fmt/format.h>`. This conditional include may not work in all build contexts.
+The `DECLARE_FORMATTER` macro in `formatter_macros.h` expands to code using `fmt::formatter`, but the file only includes `formatter.h` which conditionally includes `<fmt/format.h>` using `__has_include`. This conditional include doesn't guarantee `fmt` namespace availability in all build contexts.
 
-**Workarounds**:
+**Our Solution**:
+✅ **Automatic patch applied during CI builds**
 
-1. **Ensure FMT is installed** (Already done in our CI):
-   ```yaml
-   - name: Install dependencies (Ubuntu)
-     run: |
-       sudo apt-get install -y libfmt-dev
+A patch file is maintained in `patches/thread_system_fmt_fix.patch` that adds the missing include:
+
+```cpp
+// Ensure fmt types are available when using fmt library
+#ifndef USE_STD_FORMAT
+#include <fmt/format.h>
+#endif
+```
+
+This patch is automatically applied by our GitHub Actions composite action (`.github/actions/setup-thread-system/action.yml`) before building thread_system.
+
+**Alternative Workarounds** (if not using our CI):
+
+1. **Apply the patch manually**:
+   ```bash
+   cd /path/to/thread_system
+   git apply /path/to/network_system/patches/thread_system_fmt_fix.patch
    ```
 
 2. **Define USE_STD_FORMAT** (if C++20 `<format>` available):
@@ -130,29 +144,24 @@ The `DECLARE_FORMATTER` macro in `formatter_macros.h` expands to code using `fmt
    add_compile_definitions(USE_STD_FORMAT)
    ```
 
-3. **Patch thread_system locally** (if needed):
-   ```cpp
-   // Add to formatter_macros.h after includes
-   #ifndef USE_STD_FORMAT
-   #include <fmt/format.h>
-   #endif
+3. **Ensure FMT is installed** (required regardless):
+   ```yaml
+   # Ubuntu
+   sudo apt-get install -y libfmt-dev
+
+   # macOS
+   brew install fmt
    ```
 
-**Status in Our CI**:
-✅ Currently working - our CI installs FMT before building thread_system, which resolves the issue.
-
-**Recommended Fix for thread_system**:
-Add explicit FMT include in `formatter_macros.h` when not using std::format. This should be reported to thread_system project.
-
 **Impact on network_system**:
-- ✅ No impact when FMT is properly installed
-- ✅ CI configured to install FMT before thread_system
-- ⚠️ May cause issues in minimal environments without FMT
+- ✅ **Fully resolved** - Patch applied automatically in CI
+- ✅ CI workflows build successfully
+- ✅ All platforms supported (Linux, macOS, Windows)
 
-**Timeline**:
-- Non-blocking for current development ✅
-- Should be reported to thread_system upstream
-- Can be patched locally if needed
+**Upstream Status**:
+- 🟡 Should be reported to thread_system project
+- 🟡 Upstream fix would eliminate need for our patch
+- ✅ Not blocking our development (patch works reliably)
 
 ---
 

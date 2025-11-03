@@ -1,0 +1,14 @@
+--- a/include/kcenon/thread/utils/formatter_macros.h
++++ b/include/kcenon/thread/utils/formatter_macros.h
+@@ -49,6 +49,11 @@
+
+ #include "formatter.h"
+ #include "convert_string.h"
++
++// Ensure fmt types are available when using fmt library
++#ifndef USE_STD_FORMAT
++#include <fmt/format.h>
++#endif
+
+ #ifdef USE_STD_FORMAT
+
