@@ -252,7 +252,7 @@ function(find_thread_system)
         message(STATUS "Found thread_system at: ${THREAD_SYSTEM_INCLUDE_DIR}")
 
         find_library(THREAD_SYSTEM_LIBRARY
-            NAMES thread_base
+            NAMES ThreadSystem thread_base
             PATHS ${_thread_lib_paths}
             NO_DEFAULT_PATH
         )
