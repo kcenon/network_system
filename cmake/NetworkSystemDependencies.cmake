@@ -217,20 +217,71 @@ function(find_thread_system)
 
     message(STATUS "Looking for thread_system...")
 
-    # Strategy 1: Try to find thread_system via CONFIG mode first (installed package)
-    find_package(thread_system CONFIG QUIET)
+    # Strategy 1: Check for thread_system source directory first (development environment)
+    # Priority order:
+    # 1. User's Sources directory (HIGHEST PRIORITY)
+    # 2. Sibling directory (workspace layout)
+    # 3. CONFIG mode (installed package)
+
+    set(_thread_source_paths
+        "/Users/$ENV{USER}/Sources/thread_system"     # macOS development
+        "/home/$ENV{USER}/Sources/thread_system"      # Linux development
+        "${CMAKE_CURRENT_SOURCE_DIR}/../thread_system" # Sibling directory
+    )
+
+    set(_FOUND_THREAD_SOURCE FALSE)
+    set(_THREAD_BUILD_DIR "")
+    foreach(_path ${_thread_source_paths})
+        if(EXISTS "${_path}/CMakeLists.txt")
+            message(STATUS "Found thread_system source at: ${_path}")
+            set(_THREAD_BUILD_DIR "${_path}/build")
+            set(_FOUND_THREAD_SOURCE TRUE)
+            break()
+        endif()
+    endforeach()
+
+    # Strategy 2: Try CONFIG mode
+    # Only use thread_system_DIR if thread_system-targets.cmake exists (complete installation)
+    set(_try_config_mode FALSE)
+    if(_FOUND_THREAD_SOURCE AND EXISTS "${_THREAD_BUILD_DIR}/thread_system-targets.cmake")
+        message(STATUS "Found complete thread_system build at: ${_THREAD_BUILD_DIR}")
+        set(thread_system_DIR "${_THREAD_BUILD_DIR}" CACHE PATH "thread_system build directory")
+        set(_try_config_mode TRUE)
+    elseif(NOT _FOUND_THREAD_SOURCE)
+        # Try system-installed package (no thread_system_DIR set)
+        set(_try_config_mode TRUE)
+    else()
+        message(STATUS "thread_system build incomplete (missing targets file), skipping CONFIG mode")
+    endif()
+
+    if(_try_config_mode)
+        find_package(thread_system CONFIG QUIET)
+    endif()
 
     if(thread_system_FOUND)
         message(STATUS "Found thread_system via CONFIG mode")
-        set(THREAD_SYSTEM_FOUND TRUE PARENT_SCOPE)
-        return()
+
+        # Check if targets are actually available
+        set(_has_valid_target FALSE)
+        if(TARGET thread_system::thread_base)
+            get_target_property(_thread_includes thread_system::thread_base INTERFACE_INCLUDE_DIRECTORIES)
+            if(_thread_includes)
+                set(THREAD_SYSTEM_INCLUDE_DIR "${_thread_includes}" PARENT_SCOPE)
+                set(THREAD_SYSTEM_FOUND TRUE PARENT_SCOPE)
+                set(_has_valid_target TRUE)
+                message(STATUS "thread_system include from target: ${_thread_includes}")
+            endif()
+        endif()
+
+        # If CONFIG found but targets are incomplete, fall back to manual search
+        if(_has_valid_target)
+            return()
+        else()
+            message(WARNING "thread_system CONFIG found but targets incomplete, falling back to manual search")
+        endif()
     endif()
 
-    # Strategy 2: Search in prioritized paths (development environment)
-    # Priority order:
-    # 1. User's Sources directory (development environment - HIGHEST PRIORITY)
-    # 2. Sibling directory (workspace layout)
-    # 3. System installation paths (CI/production)
+    # Strategy 3: Manual search in prioritized paths as fallback
 
     if(APPLE)
         set(_thread_search_paths
