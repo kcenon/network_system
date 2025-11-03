@@ -93,6 +93,69 @@ The NetworkSystem library itself is production-ready. Tests can be temporarily d
 
 ---
 
+## 🔍 Upstream Issues (thread_system)
+
+### FMT Header Not Explicitly Included in formatter_macros.h
+
+**Status**: 🟡 **Upstream Issue** - Affects thread_system compilation in some environments
+
+**Description**:
+The thread_system's `formatter_macros.h` uses `fmt::formatter` but doesn't explicitly include `<fmt/format.h>`. This can cause compilation errors when `USE_STD_FORMAT` is not defined.
+
+**Error Messages**:
+```
+error: 'fmt' has not been declared
+error: expected unqualified-id before '<' token
+```
+
+**Affected Files in thread_system**:
+- `include/kcenon/thread/utils/formatter_macros.h`
+- `include/kcenon/thread/core/job.h` (uses DECLARE_FORMATTER)
+- `include/kcenon/thread/core/job_queue.h` (uses DECLARE_FORMATTER)
+
+**Root Cause**:
+The `DECLARE_FORMATTER` macro in `formatter_macros.h` expands to code using `fmt::formatter`, but the file only includes `formatter.h` which conditionally includes `<fmt/format.h>`. This conditional include may not work in all build contexts.
+
+**Workarounds**:
+
+1. **Ensure FMT is installed** (Already done in our CI):
+   ```yaml
+   - name: Install dependencies (Ubuntu)
+     run: |
+       sudo apt-get install -y libfmt-dev
+   ```
+
+2. **Define USE_STD_FORMAT** (if C++20 `<format>` available):
+   ```cmake
+   add_compile_definitions(USE_STD_FORMAT)
+   ```
+
+3. **Patch thread_system locally** (if needed):
+   ```cpp
+   // Add to formatter_macros.h after includes
+   #ifndef USE_STD_FORMAT
+   #include <fmt/format.h>
+   #endif
+   ```
+
+**Status in Our CI**:
+✅ Currently working - our CI installs FMT before building thread_system, which resolves the issue.
+
+**Recommended Fix for thread_system**:
+Add explicit FMT include in `formatter_macros.h` when not using std::format. This should be reported to thread_system project.
+
+**Impact on network_system**:
+- ✅ No impact when FMT is properly installed
+- ✅ CI configured to install FMT before thread_system
+- ⚠️ May cause issues in minimal environments without FMT
+
+**Timeline**:
+- Non-blocking for current development ✅
+- Should be reported to thread_system upstream
+- Can be patched locally if needed
+
+---
+
 ## 🔍 Investigation Needed
 
 None at this time.
