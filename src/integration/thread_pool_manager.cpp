@@ -62,24 +62,20 @@ namespace network_system::integration
 			{
 				kcenon::thread::thread_context ctx;
 
-				// Create pipeline pool (typed, priority-based)
-				pipeline_pool_ = std::make_shared<
-					kcenon::thread::typed_thread_pool_t<pipeline_priority>>("pipeline_pool",
-																			 ctx);
+				// NOTE: Phase 3 fallback implementation
+				// Using utility pool for both pipeline and utility tasks
+				// typed_thread_pool_t<pipeline_priority> requires explicit instantiation
+				// in thread_system library, which is not available yet.
+				// Priority is tracked via logging for now.
+
+				// Create pipeline pool as regular thread_pool
+				// (Future upgrade: typed_thread_pool when available)
+				pipeline_pool_ = std::make_shared<kcenon::thread::thread_pool>("pipeline_pool", ctx);
 
 				// Add workers to pipeline pool BEFORE starting
-				// Workers handle all priority levels by passing all enum values
-				std::vector<pipeline_priority> all_priorities = {pipeline_priority::REALTIME,
-																  pipeline_priority::HIGH,
-																  pipeline_priority::NORMAL,
-																  pipeline_priority::LOW,
-																  pipeline_priority::BACKGROUND};
-
 				for (size_t i = 0; i < pipeline_workers; ++i)
 				{
-					auto worker =
-						std::make_unique<kcenon::thread::typed_thread_worker_t<pipeline_priority>>(
-							all_priorities);
+					auto worker = std::make_unique<kcenon::thread::thread_worker>();
 					auto enqueue_result = pipeline_pool_->enqueue(std::move(worker));
 					if (enqueue_result.has_error())
 					{
@@ -123,9 +119,7 @@ namespace network_system::integration
 				// Reserve space for I/O pools
 				io_pools_.reserve(io_pool_count);
 
-				// Store worker counts
-				pipeline_workers_ = pipeline_workers;
-
+				// Initialization complete
 				initialized_ = true;
 
 				NETWORK_LOG_INFO(
@@ -202,8 +196,7 @@ namespace network_system::integration
 			return pool;
 		}
 
-		auto get_pipeline_pool()
-			-> std::shared_ptr<kcenon::thread::typed_thread_pool_t<pipeline_priority>>
+		auto get_pipeline_pool() -> std::shared_ptr<kcenon::thread::thread_pool>
 		{
 			std::lock_guard<std::mutex> lock(mutex_);
 
@@ -255,10 +248,8 @@ namespace network_system::integration
 			// Pipeline stats
 			if (pipeline_pool_)
 			{
-				// typed_thread_pool_t doesn't have get_pending_task_count or get_thread_count
-				// We'll leave queue size as 0 for now
-				stats.pipeline_queue_size = 0;
-				stats.pipeline_workers = pipeline_workers_;
+				stats.pipeline_queue_size = pipeline_pool_->get_pending_task_count();
+				stats.pipeline_workers = pipeline_pool_->get_thread_count();
 			}
 
 			// Utility stats
@@ -307,9 +298,9 @@ namespace network_system::integration
 
 		mutable std::mutex mutex_;
 		bool initialized_ = false;
-		size_t pipeline_workers_ = 0; // Store pipeline worker count for statistics
 
-		std::shared_ptr<kcenon::thread::typed_thread_pool_t<pipeline_priority>> pipeline_pool_;
+		// NOTE: Phase 3 fallback - using regular thread_pool instead of typed_thread_pool
+		std::shared_ptr<kcenon::thread::thread_pool> pipeline_pool_;
 		std::shared_ptr<kcenon::thread::thread_pool> utility_pool_;
 		std::unordered_map<std::string, std::shared_ptr<kcenon::thread::thread_pool>> io_pools_;
 	};
@@ -363,8 +354,7 @@ namespace network_system::integration
 		return pimpl_->create_io_pool(component_name);
 	}
 
-	auto thread_pool_manager::get_pipeline_pool()
-		-> std::shared_ptr<kcenon::thread::typed_thread_pool_t<pipeline_priority>>
+	auto thread_pool_manager::get_pipeline_pool() -> std::shared_ptr<kcenon::thread::thread_pool>
 	{
 		if (!pimpl_)
 		{

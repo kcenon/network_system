@@ -19,6 +19,7 @@
 #include "network_system/integration/messaging_bridge.h"
 #endif
 #include "network_system/integration/thread_integration.h"
+#include "network_system/integration/thread_pool_manager.h"
 #include "network_system/integration/container_integration.h"
 
 // Legacy namespace aliases for backward compatibility
@@ -35,10 +36,9 @@ namespace network_module {
     using messaging_bridge = ::network_system::integration::messaging_bridge;
 #endif
 
-    // Thread integration
-    using thread_pool_interface = ::network_system::integration::thread_pool_interface;
-    using basic_thread_pool = ::network_system::integration::basic_thread_pool;
-    using thread_integration_manager = ::network_system::integration::thread_integration_manager;
+    // Thread integration - Updated for Phase 4 integration
+    using thread_pool = ::network_system::integration::thread_pool;
+    using thread_pool_manager = ::network_system::integration::thread_pool_manager;
 
     // Container integration
     using container_interface = ::network_system::integration::container_interface;
@@ -132,12 +132,10 @@ namespace network_system::compat {
      * @brief Initialize network system with default settings
      */
     inline void initialize() {
-        // Initialize thread pool if not already set
-        auto& thread_mgr = integration::thread_integration_manager::instance();
-        if (!thread_mgr.get_thread_pool()) {
-            thread_mgr.set_thread_pool(
-                std::make_shared<integration::basic_thread_pool>()
-            );
+        // Initialize thread pool manager with default settings
+        auto& thread_mgr = integration::thread_pool_manager::instance();
+        if (!thread_mgr.is_initialized()) {
+            thread_mgr.initialize();
         }
 
         // Initialize container manager if not already set
@@ -153,12 +151,8 @@ namespace network_system::compat {
      * @brief Shutdown network system cleanly
      */
     inline void shutdown() {
-        // Clean shutdown of thread pool
-        auto& thread_mgr = integration::thread_integration_manager::instance();
-        if (auto pool = thread_mgr.get_thread_pool()) {
-            if (auto basic = std::dynamic_pointer_cast<integration::basic_thread_pool>(pool)) {
-                basic->stop(true);  // Wait for pending tasks
-            }
-        }
+        // Clean shutdown of thread pool manager
+        auto& thread_mgr = integration::thread_pool_manager::instance();
+        thread_mgr.shutdown();
     }
 }

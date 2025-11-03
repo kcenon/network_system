@@ -10,6 +10,15 @@ find_package(GTest QUIET)
 find_package(benchmark QUIET)
 
 ##################################################
+# Helper macro to add FMT library to test targets
+##################################################
+macro(link_fmt_library target_name)
+    if(FMT_LIBRARY)
+        target_link_libraries(${target_name} PRIVATE ${FMT_LIBRARY})
+    endif()
+endmacro()
+
+##################################################
 # Unit Tests
 ##################################################
 
@@ -30,6 +39,7 @@ if(GTest_FOUND OR GTEST_FOUND)
     # Setup ASIO and FMT integration (required for network_system headers)
     setup_asio_integration(network_unit_tests)
     setup_fmt_integration(network_unit_tests)
+    link_fmt_library(network_unit_tests)
 
     # Add system integration paths
     if(CONTAINER_SYSTEM_INCLUDE_DIR)
@@ -81,6 +91,7 @@ if(GTest_FOUND OR GTEST_FOUND)
     # Setup ASIO and FMT integration (required for network_system headers)
     setup_asio_integration(network_thread_safety_test)
     setup_fmt_integration(network_thread_safety_test)
+    link_fmt_library(network_thread_safety_test)
 
     # Add system integration paths
     if(CONTAINER_SYSTEM_INCLUDE_DIR)
@@ -129,6 +140,7 @@ if(GTest_FOUND OR GTEST_FOUND)
     # Setup ASIO and FMT integration
     setup_asio_integration(network_tls_config_test)
     setup_fmt_integration(network_tls_config_test)
+    link_fmt_library(network_tls_config_test)
 
     # Add system integration paths
     if(COMMON_SYSTEM_INCLUDE_DIR)
@@ -160,6 +172,7 @@ if(GTest_FOUND OR GTEST_FOUND)
         # Setup ASIO and FMT integration
         setup_asio_integration(network_websocket_frame_test)
         setup_fmt_integration(network_websocket_frame_test)
+    link_fmt_library(network_websocket_frame_test)
 
         set_target_properties(network_websocket_frame_test PROPERTIES
             CXX_STANDARD 20
@@ -185,6 +198,7 @@ if(GTest_FOUND OR GTEST_FOUND)
         # Setup ASIO and FMT integration
         setup_asio_integration(network_websocket_handshake_test)
         setup_fmt_integration(network_websocket_handshake_test)
+    link_fmt_library(network_websocket_handshake_test)
 
         set_target_properties(network_websocket_handshake_test PROPERTIES
             CXX_STANDARD 20
@@ -210,6 +224,7 @@ if(GTest_FOUND OR GTEST_FOUND)
         # Setup ASIO and FMT integration
         setup_asio_integration(network_websocket_protocol_test)
         setup_fmt_integration(network_websocket_protocol_test)
+    link_fmt_library(network_websocket_protocol_test)
 
         set_target_properties(network_websocket_protocol_test PROPERTIES
             CXX_STANDARD 20
@@ -240,6 +255,7 @@ if(GTest_FOUND OR GTEST_FOUND)
     # Setup ASIO and FMT integration
     setup_asio_integration(network_thread_pool_manager_test)
     setup_fmt_integration(network_thread_pool_manager_test)
+    link_fmt_library(network_thread_pool_manager_test)
 
     # Add system integration paths
     if(THREAD_SYSTEM_INCLUDE_DIR)
@@ -276,6 +292,7 @@ if(GTest_FOUND OR GTEST_FOUND)
     # Setup ASIO and FMT integration
     setup_asio_integration(network_integration_test_full)
     setup_fmt_integration(network_integration_test_full)
+    link_fmt_library(network_integration_test_full)
 
     # Add system integration paths
     if(CONTAINER_SYSTEM_INCLUDE_DIR)
@@ -334,6 +351,7 @@ if(FALSE AND benchmark_FOUND)
     # Setup ASIO and FMT integration (required for network_system headers)
     setup_asio_integration(network_benchmark_tests)
     setup_fmt_integration(network_benchmark_tests)
+    link_fmt_library(network_benchmark_tests)
 
     # Add system integration paths
     if(CONTAINER_SYSTEM_INCLUDE_DIR)

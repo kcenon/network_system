@@ -137,14 +137,16 @@ namespace network_system::integration
 		/**
 		 * @brief Get the shared data pipeline thread pool
 		 *
-		 * Returns the typed thread pool for data processing with priority support.
+		 * Returns the thread pool for data processing.
 		 * This pool is shared across all components for CPU-intensive tasks.
 		 *
-		 * @return Shared pointer to typed thread pool
+		 * NOTE: Phase 3 fallback - returns regular thread_pool instead of typed_thread_pool.
+		 * Priority information is tracked via logging. Clean API for future upgrade.
+		 *
+		 * @return Shared pointer to thread pool
 		 * @throws std::runtime_error if not initialized
 		 */
-		auto get_pipeline_pool()
-			-> std::shared_ptr<kcenon::thread::typed_thread_pool_t<pipeline_priority>>;
+		auto get_pipeline_pool() -> std::shared_ptr<kcenon::thread::thread_pool>;
 
 		/**
 		 * @brief Get the general-purpose utility thread pool
