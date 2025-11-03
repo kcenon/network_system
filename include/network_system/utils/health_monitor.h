@@ -37,11 +37,15 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <functional>
 #include <memory>
 #include <mutex>
-#include <thread>
 
 #include <asio.hpp>
 
 #include "network_system/core/messaging_client.h"
+
+namespace network_system::integration
+{
+	class io_context_executor;
+}
 
 namespace network_system::utils
 {
@@ -63,13 +67,18 @@ namespace network_system::utils
 	 * \class health_monitor
 	 * \brief Monitors connection health with heartbeat mechanism
 	 *
+	 * ### Thread Pool Integration
+	 * - Uses thread_pool_manager's I/O pool for ASIO io_context execution
+	 * - No dedicated thread creation, leverages thread pool resources
+	 * - Automatic resource cleanup via io_context_executor RAII
+	 *
 	 * ### Thread Safety
 	 * - All public methods are thread-safe
 	 * - Health metrics are protected by mutex
-	 * - Heartbeat thread runs independently
+	 * - Heartbeat execution managed by thread pool
 	 *
 	 * ### Key Features
-	 * - Periodic heartbeat messages
+	 * - Periodic heartbeat messages using ASIO timer
 	 * - Automatic dead connection detection
 	 * - Connection quality metrics (latency, packet loss)
 	 * - Health status callbacks
@@ -77,6 +86,10 @@ namespace network_system::utils
 	 *
 	 * ### Usage Example
 	 * \code
+	 * // Initialize thread pool manager first
+	 * auto& mgr = integration::thread_pool_manager::instance();
+	 * mgr.initialize();
+	 *
 	 * auto client = std::make_shared<messaging_client>("client_id");
 	 * client->start_client("localhost", 8080);
 	 *
@@ -120,8 +133,10 @@ namespace network_system::utils
 		 * \brief Starts monitoring the given client
 		 * \param client Client to monitor
 		 *
-		 * Begins periodic heartbeat checks. If client doesn't respond
-		 * within the timeout, increments missed_heartbeats counter.
+		 * Begins periodic heartbeat checks using thread pool's I/O executor.
+		 * If client doesn't respond within the timeout, increments missed_heartbeats counter.
+		 *
+		 * \throws std::runtime_error if thread_pool_manager is not initialized
 		 */
 		auto start_monitoring(std::shared_ptr<core::messaging_client> client) -> void;
 
@@ -181,7 +196,9 @@ namespace network_system::utils
 		std::unique_ptr<asio::executor_work_guard<asio::io_context::executor_type>>
 			work_guard_; /*!< Work guard to keep io_context running */
 		std::unique_ptr<asio::steady_timer> heartbeat_timer_; /*!< Heartbeat timer */
-		std::unique_ptr<std::thread> monitor_thread_; /*!< Monitoring thread */
+
+		// Thread pool integration: io_context_executor replaces manual std::thread
+		std::unique_ptr<integration::io_context_executor> io_executor_; /*!< IO context executor from thread pool */
 
 		std::chrono::seconds heartbeat_interval_; /*!< Heartbeat interval */
 		size_t max_missed_heartbeats_; /*!< Max missed heartbeats before dead */

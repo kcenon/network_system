@@ -33,9 +33,13 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "network_system/core/messaging_client.h"
 #include "network_system/internal/send_coroutine.h"
 #include "network_system/integration/logger_integration.h"
+#include "network_system/integration/thread_pool_manager.h"
+#include "network_system/integration/io_context_executor.h"
+
 #include <string_view>
 #include <type_traits>
 #include <optional>
+#include <stdexcept>
 
 // Use nested namespace definition (C++17)
 namespace network_system::core
@@ -129,40 +133,49 @@ namespace network_system::core
 				socket_.reset();
 			}
 
+			// Create io_context
 			io_context_ = std::make_unique<asio::io_context>();
-			// Create work guard to keep io_context running
-			work_guard_ = std::make_unique<asio::executor_work_guard<asio::io_context::executor_type>>(
-				asio::make_work_guard(*io_context_)
-			);
+
 			// For wait_for_stop()
 			stop_future_ = std::future<void>();
 			stop_promise_.emplace();
 			stop_future_ = stop_promise_->get_future();
 
-			// Launch the thread to run the io_context
-			client_thread_ = std::make_unique<std::thread>(
-				[this]()
-				{
-					try
-					{
-						io_context_->run();
-					}
-					catch (...)
-					{
-						// handle exceptions if needed
-					}
-				});
+			// Get thread pool from manager
+			auto& mgr = integration::thread_pool_manager::instance();
+			if (!mgr.is_initialized())
+			{
+				throw std::runtime_error("[messaging_client] thread_pool_manager not initialized");
+			}
+
+			auto pool = mgr.create_io_pool("tcp_client_" + client_id_);
+			if (!pool)
+			{
+				throw std::runtime_error("[messaging_client] Failed to create I/O pool");
+			}
+
+			// Create io_context executor
+			io_executor_ = std::make_unique<integration::io_context_executor>(
+				pool,
+				*io_context_,
+				"tcp_client_" + client_id_
+			);
+
+			// Start io_context execution in thread pool
+			io_executor_->start();
 
 			do_connect(host, port);
 
 			NETWORK_LOG_INFO("[messaging_client] started. ID=" + client_id_
-					+ " target=" + std::string(host) + ":" + std::to_string(port));
+					+ " target=" + std::string(host) + ":" + std::to_string(port) + " with thread pool");
 
 			return ok();
 		}
 		catch (const std::exception& e)
 		{
 			is_running_.store(false);
+			io_executor_.reset();
+			io_context_.reset();
 			return error_void(
 				error_codes::common::internal_error,
 				"Failed to start client: " + std::string(e.what()),
@@ -193,78 +206,61 @@ namespace network_system::core
 			is_running_.store(false);
 			is_connected_.store(false);
 
-		// Swap out socket with mutex protection and close outside lock
-		std::shared_ptr<internal::tcp_socket> local_socket;
-		{
-			std::lock_guard<std::mutex> lock(socket_mutex_);
-			local_socket = std::move(socket_);
-		}
-		if (local_socket)
-		{
-			// Stop reading first to prevent new async operations
-			local_socket->stop_read();
-			asio::error_code ec;
-			local_socket->socket().close(ec);
-		}
+			// Swap out socket with mutex protection and close outside lock
+			std::shared_ptr<internal::tcp_socket> local_socket;
+			{
+				std::lock_guard<std::mutex> lock(socket_mutex_);
+				local_socket = std::move(socket_);
+			}
+			if (local_socket)
+			{
+				// Stop reading first to prevent new async operations
+				local_socket->stop_read();
+				asio::error_code ec;
+				local_socket->socket().close(ec);
+			}
 
-		// Release work guard to allow io_context to finish
-		if (work_guard_)
-		{
-			work_guard_.reset();
-		}
-		// Stop io_context first to cancel all pending operations
-		if (io_context_)
-		{
-			io_context_->stop();
-		}
-		// Always join thread if joinable, even from callback context
-		// io_context->stop() above will cause io_context->run() to return
-		if (client_thread_ && client_thread_->joinable())
-		{
-			// Give io_context time to finish pending callbacks
-			if (std::this_thread::get_id() != client_thread_->get_id())
+			// Stop io_context
+			if (io_context_)
 			{
-				client_thread_->join();
+				io_context_->stop();
 			}
-			else
-			{
-				// Called from io_context thread - cannot join self
-				// This should be rare now that on_error doesn't call stop_client
-				NETWORK_LOG_WARN("[messaging_client] stop_client called from io_context thread, detaching");
-				client_thread_->detach();
-			}
-		}
-		client_thread_.reset();
-		io_context_.reset();
-		// Signal stop
-		if (stop_promise_.has_value())
-		{
-			try
-			{
-				stop_promise_->set_value();
-			}
-			catch (const std::future_error& e)
-			{
-				// Promise already satisfied, ignore
-				NETWORK_LOG_DEBUG("[messaging_client] Promise already satisfied");
-			}
-			stop_promise_.reset();
-		}
-		stop_future_ = std::future<void>();
 
-		NETWORK_LOG_INFO("[messaging_client] stopped.");
-		return ok();
-	}
-	catch (const std::exception& e)
-	{
-		stop_initiated_.store(false);
-		return error_void(
-			error_codes::common::internal_error,
-			"Failed to stop client: " + std::string(e.what()),
-			"messaging_client::stop_client",
-			"Client ID: " + client_id_
-		);
-	}
+			// Stop executor (RAII will handle thread pool cleanup)
+			io_executor_.reset();
+
+			// Clean up
+			io_context_.reset();
+
+			// Signal stop
+			if (stop_promise_.has_value())
+			{
+				try
+				{
+					stop_promise_->set_value();
+				}
+				catch (const std::future_error& e)
+				{
+					// Promise already satisfied, ignore
+					NETWORK_LOG_DEBUG("[messaging_client] Promise already satisfied");
+				}
+				stop_promise_.reset();
+			}
+			stop_future_ = std::future<void>();
+
+			NETWORK_LOG_INFO("[messaging_client] stopped.");
+			return ok();
+		}
+		catch (const std::exception& e)
+		{
+			stop_initiated_.store(false);
+			return error_void(
+				error_codes::common::internal_error,
+				"Failed to stop client: " + std::string(e.what()),
+				"messaging_client::stop_client",
+				"Client ID: " + client_id_
+			);
+		}
 	}
 
 	auto messaging_client::wait_for_stop() -> void

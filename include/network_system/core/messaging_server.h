@@ -39,7 +39,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <mutex>
 #include <optional>
 #include <string>
-#include <thread>
 #include <vector>
 
 #include <asio.hpp>
@@ -57,6 +56,10 @@ namespace network_system::core
 
 namespace network_system::session {
 	class messaging_session;
+}
+
+namespace network_system::integration {
+	class io_context_executor;
 }
 
 namespace network_system::core {
@@ -83,8 +86,7 @@ namespace network_system::core {
 	 * wait_for_stop().
 	 *
 	 * ### Thread Model
-	 * - A single background thread calls \c io_context.run() to process I/O
-	 * events.
+	 * - Uses thread_pool_manager's io_context_executor to run I/O operations.
 	 * - Each accepted connection runs asynchronously; thus multiple sessions
 	 * can be active concurrently without blocking each other.
 	 *
@@ -138,8 +140,8 @@ namespace network_system::core {
 		 * #### Behavior
 		 * - If the server is already running (\c is_running_ is \c true), returns error.
 		 * - Otherwise, an \c io_context and \c acceptor are created, \c
-		 * do_accept() is invoked, and a new thread is spawned to run \c
-		 * io_context->run().
+		 * do_accept() is invoked, and thread_pool_manager's io_context_executor
+		 * is used to run \c io_context.
 		 *
 		 * #### Example
 		 * \code
@@ -165,7 +167,7 @@ namespace network_system::core {
 		 * 2. Close the \c acceptor if open.
 		 * 3. Iterate through all active sessions, calling \c stop_session().
 		 * 4. \c io_context->stop() to halt asynchronous operations.
-		 * 5. Join the background thread if it's joinable.
+		 * 5. Release the io_context_executor (automatically stops and joins).
 		 * 6. Fulfill the \c stop_promise_ so that \c wait_for_stop() can
 		 * return.
 		 *
@@ -333,8 +335,8 @@ namespace network_system::core {
 	std::unique_ptr<asio::executor_work_guard<asio::io_context::executor_type>> work_guard_; /*!< Keeps io_context running. */
 		std::unique_ptr<asio::ip::tcp::acceptor>
 			acceptor_;		/*!< Acceptor to listen for new connections. */
-		std::unique_ptr<std::thread>
-			server_thread_; /*!< Thread that runs \c io_context_->run(). */
+		std::unique_ptr<integration::io_context_executor>
+			io_executor_;   /*!< Thread pool I/O executor. */
 
 		std::optional<std::promise<void>>
 			stop_promise_;	/*!< Used to signal \c wait_for_stop(). */

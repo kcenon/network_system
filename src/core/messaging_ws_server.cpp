@@ -36,6 +36,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "network_system/internal/tcp_socket.h"
 #include "network_system/internal/websocket_socket.h"
 #include "network_system/integration/logger_integration.h"
+#include "network_system/integration/thread_pool_manager.h"
+#include "network_system/integration/io_context_executor.h"
 
 #include <asio.hpp>
 
@@ -43,7 +45,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <future>
 #include <map>
 #include <mutex>
-#include <thread>
 
 namespace network_system::core
 {
@@ -200,7 +201,20 @@ namespace network_system::core
 
 			try
 			{
-				is_running_.store(true);
+				// Get thread pool from manager
+				auto& mgr = integration::thread_pool_manager::instance();
+				if (!mgr.is_initialized())
+				{
+					return error_void(error_codes::common::internal_error,
+									  "thread_pool_manager not initialized");
+				}
+
+				auto pool = mgr.create_io_pool("messaging_ws_server");
+				if (!pool)
+				{
+					return error_void(error_codes::common::internal_error,
+									  "Failed to create I/O pool");
+				}
 
 				// Create session manager
 				session_config sess_config;
@@ -221,12 +235,20 @@ namespace network_system::core
 				stop_promise_.emplace();
 				stop_future_ = stop_promise_->get_future();
 
-				// Start io_context thread
-				io_thread_ = std::make_unique<std::thread>([this]()
-															{ io_context_->run(); });
-
 				// Start accepting connections
 				do_accept();
+
+				// Create io_context executor
+				io_executor_ = std::make_unique<integration::io_context_executor>(
+					pool,
+					*io_context_,
+					"messaging_ws_server"
+				);
+
+				// Start io_context execution in thread pool
+				io_executor_->start();
+
+				is_running_.store(true);
 
 				NETWORK_LOG_INFO("[messaging_ws_server] Server started on port " +
 								 std::to_string(config_.port) + " (ID: " +
@@ -234,9 +256,32 @@ namespace network_system::core
 
 				return ok();
 			}
+			catch (const std::system_error& e)
+			{
+				is_running_.store(false);
+				io_executor_.reset();
+
+				// Check for specific error codes
+				if (e.code() == asio::error::address_in_use ||
+					e.code() == std::errc::address_in_use)
+				{
+					return error_void(error_codes::network_system::bind_failed,
+									  "Failed to bind to port: address already in use");
+				}
+				else if (e.code() == asio::error::access_denied ||
+						 e.code() == std::errc::permission_denied)
+				{
+					return error_void(error_codes::network_system::bind_failed,
+									  "Failed to bind to port: permission denied");
+				}
+
+				return error_void(error_codes::common::internal_error,
+								  std::string("Failed to start server: ") + e.what());
+			}
 			catch (const std::exception& e)
 			{
 				is_running_.store(false);
+				io_executor_.reset();
 				return error_void(error_codes::network_system::bind_failed,
 								  std::string("Failed to start server: ") + e.what());
 			}
@@ -252,6 +297,8 @@ namespace network_system::core
 
 			try
 			{
+				is_running_.store(false);
+
 				// Close all connections
 				if (session_mgr_)
 				{
@@ -266,23 +313,31 @@ namespace network_system::core
 				// Stop acceptor
 				if (acceptor_)
 				{
-					acceptor_->close();
+					asio::error_code ec;
+					acceptor_->cancel(ec);
+					if (acceptor_->is_open())
+					{
+						acceptor_->close(ec);
+					}
+				}
+
+				// Release work guard to allow io_context to finish
+				if (work_guard_)
+				{
+					work_guard_.reset();
 				}
 
 				// Stop io_context
-				work_guard_.reset();
 				if (io_context_)
 				{
 					io_context_->stop();
 				}
 
-				// Wait for thread
-				if (io_thread_ && io_thread_->joinable())
-				{
-					io_thread_->join();
-				}
+				// Release io_context executor (automatically stops and joins)
+				io_executor_.reset();
 
-				is_running_.store(false);
+				// Release resources explicitly
+				acceptor_.reset();
 
 				// Notify stop_future
 				if (stop_promise_)
@@ -619,7 +674,7 @@ namespace network_system::core
 		std::unique_ptr<asio::executor_work_guard<asio::io_context::executor_type>>
 			work_guard_;
 		std::unique_ptr<tcp::acceptor> acceptor_;
-		std::unique_ptr<std::thread> io_thread_;
+		std::unique_ptr<integration::io_context_executor> io_executor_;
 
 		std::shared_ptr<ws_session_manager> session_mgr_;
 

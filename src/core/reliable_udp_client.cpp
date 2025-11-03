@@ -33,14 +33,15 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "network_system/core/reliable_udp_client.h"
 #include "network_system/core/messaging_udp_client.h"
 #include "network_system/integration/logger_integration.h"
+#include "network_system/integration/thread_pool_manager.h"
 
 #include <algorithm>
 #include <atomic>
 #include <chrono>
 #include <cstring>
+#include <future>
 #include <map>
 #include <mutex>
-#include <thread>
 
 namespace network_system::core
 {
@@ -571,22 +572,132 @@ namespace network_system::core
 		// Start retransmission timer
 		auto start_retransmission_timer() -> void
 		{
-			retransmission_thread_ = std::thread([this]() {
-				while (is_running_.load())
+			try
+			{
+				// Get utility pool from thread pool manager
+				auto& mgr = integration::thread_pool_manager::instance();
+				if (!mgr.is_initialized())
 				{
-					std::this_thread::sleep_for(
-						std::chrono::milliseconds(retransmission_timeout_ms_));
-					check_and_retransmit();
+					throw std::runtime_error("[reliable_udp_client::" + client_id_ +
+											 "] thread_pool_manager not initialized");
 				}
-			});
+
+				auto utility_pool = mgr.get_utility_pool();
+				if (!utility_pool)
+				{
+					throw std::runtime_error("[reliable_udp_client::" + client_id_ +
+											 "] Failed to get utility pool");
+				}
+
+				// Submit initial retransmission task to utility pool
+				auto promise = std::make_shared<std::promise<void>>();
+				auto future = promise->get_future();
+
+				bool submitted = utility_pool->submit_task([this, promise]() {
+					try
+					{
+						retransmission_loop();
+						promise->set_value();
+					}
+					catch (...)
+					{
+						promise->set_exception(std::current_exception());
+					}
+				});
+
+				if (!submitted)
+				{
+					throw std::runtime_error("[reliable_udp_client::" + client_id_ +
+											 "] Failed to submit retransmission task");
+				}
+
+				// Store future for cleanup
+				retransmission_task_ = future.share();
+			}
+			catch (const std::exception& e)
+			{
+				throw std::runtime_error(std::string("[reliable_udp_client::" + client_id_ +
+													  "] Start retransmission timer failed: ") +
+										 e.what());
+			}
 		}
 
 		// Stop retransmission timer
 		auto stop_retransmission_timer() -> void
 		{
-			if (retransmission_thread_.joinable())
+			// Wait for retransmission task to complete (with timeout)
+			if (retransmission_task_.valid())
 			{
-				retransmission_thread_.join();
+				auto status = retransmission_task_.wait_for(std::chrono::seconds(2));
+				if (status == std::future_status::timeout)
+				{
+					// Task didn't complete in time, but that's okay
+					// Thread pool will clean up eventually
+					NETWORK_LOG_WARN("[reliable_udp_client::" + client_id_ +
+									 "] Retransmission task timed out during shutdown");
+				}
+			}
+		}
+
+		// Retransmission loop (runs in utility pool)
+		auto retransmission_loop() -> void
+		{
+			// Check if we should stop
+			if (!is_running_.load())
+			{
+				return;
+			}
+
+			// Perform retransmission check
+			check_and_retransmit();
+
+			// Sleep before next check
+			std::this_thread::sleep_for(std::chrono::milliseconds(retransmission_timeout_ms_));
+
+			// Check again after sleep
+			if (!is_running_.load())
+			{
+				return;
+			}
+
+			// Recursively submit next retransmission task to utility pool
+			try
+			{
+				auto& mgr = integration::thread_pool_manager::instance();
+				auto utility_pool = mgr.get_utility_pool();
+				if (utility_pool)
+				{
+					auto promise = std::make_shared<std::promise<void>>();
+					auto future = promise->get_future();
+
+					bool submitted = utility_pool->submit_task([this, promise]() {
+						try
+						{
+							retransmission_loop();
+							promise->set_value();
+						}
+						catch (...)
+						{
+							promise->set_exception(std::current_exception());
+						}
+					});
+
+					if (submitted)
+					{
+						retransmission_task_ = future.share();
+					}
+					else
+					{
+						NETWORK_LOG_WARN("[reliable_udp_client::" + client_id_ +
+										 "] Failed to submit next retransmission task");
+					}
+				}
+			}
+			catch (const std::exception&)
+			{
+				// Failed to submit next task, stop retransmission
+				NETWORK_LOG_ERROR("[reliable_udp_client::" + client_id_ +
+								  "] Failed to submit next retransmission task");
 			}
 		}
 
@@ -677,8 +788,8 @@ namespace network_system::core
 		mutable std::mutex stats_mutex_;
 		reliable_udp_stats stats_;
 
-		// Retransmission timer
-		std::thread retransmission_thread_;
+		// Retransmission task
+		std::shared_future<void> retransmission_task_;
 
 		// State mutex
 		std::mutex state_mutex_;

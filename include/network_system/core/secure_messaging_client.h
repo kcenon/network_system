@@ -37,7 +37,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <memory>
 #include <mutex>
 #include <string>
-#include <thread>
 #include <vector>
 
 #include <asio.hpp>
@@ -46,6 +45,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "network_system/internal/pipeline.h"
 #include "network_system/internal/secure_tcp_socket.h"
 #include "network_system/utils/result_types.h"
+
+namespace network_system::integration
+{
+	class io_context_executor;
+}
 
 namespace network_system::core
 {
@@ -187,8 +191,8 @@ namespace network_system::core
 			io_context_;	/*!< The I/O context for async ops. */
 		std::unique_ptr<asio::executor_work_guard<asio::io_context::executor_type>>
 			work_guard_;	/*!< Keeps io_context running. */
-		std::unique_ptr<std::thread>
-			client_thread_; /*!< Thread that runs \c io_context_->run(). */
+		std::unique_ptr<network_system::integration::io_context_executor>
+			io_executor_;   /*!< Thread pool I/O executor. */
 
 		std::unique_ptr<asio::ssl::context>
 			ssl_context_;	/*!< SSL context for encryption. */

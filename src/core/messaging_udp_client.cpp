@@ -33,6 +33,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "network_system/core/messaging_udp_client.h"
 #include "network_system/internal/udp_socket.h"
 #include "network_system/integration/logger_integration.h"
+#include "network_system/integration/thread_pool_manager.h"
+#include "network_system/integration/io_context_executor.h"
+
+#include <stdexcept>
 
 namespace network_system::core
 {
@@ -110,29 +114,43 @@ namespace network_system::core
 			// Start receiving
 			socket_->start_receive();
 
+			// Get thread pool from manager
+			auto& mgr = integration::thread_pool_manager::instance();
+			if (!mgr.is_initialized())
+			{
+				throw std::runtime_error("[messaging_udp_client] thread_pool_manager not initialized");
+			}
+
+			auto pool = mgr.create_io_pool("udp_client_" + client_id_);
+			if (!pool)
+			{
+				throw std::runtime_error("[messaging_udp_client] Failed to create I/O pool");
+			}
+
+			// Create io_context executor
+			io_executor_ = std::make_unique<integration::io_context_executor>(
+				pool,
+				*io_context_,
+				"udp_client_" + client_id_
+			);
+
 			is_running_.store(true);
 
-			// Start thread to run the io_context
-			worker_thread_ = std::thread(
-				[this]()
-				{
-					try
-					{
-						io_context_->run();
-					}
-					catch (const std::exception& e)
-					{
-						NETWORK_LOG_ERROR(std::string("Worker thread exception: ") + e.what());
-					}
-				});
+			// Start io_context execution in thread pool
+			io_executor_->start();
 
-			NETWORK_LOG_INFO("UDP client started targeting " + std::string(host) + ":" + std::to_string(port));
+			NETWORK_LOG_INFO("UDP client started targeting " + std::string(host) + ":" + std::to_string(port) + " with thread pool");
 
 			return ok();
 		}
 		catch (const std::system_error& e)
 		{
+			// Cleanup on failure
 			is_running_.store(false);
+			io_executor_.reset();
+			socket_.reset();
+			io_context_.reset();
+
 			return error_void(
 				error_codes::common::internal_error,
 				std::string("Failed to create UDP socket: ") + e.what(),
@@ -142,7 +160,12 @@ namespace network_system::core
 		}
 		catch (const std::exception& e)
 		{
+			// Cleanup on failure
 			is_running_.store(false);
+			io_executor_.reset();
+			socket_.reset();
+			io_context_.reset();
+
 			return error_void(
 				error_codes::common::internal_error,
 				std::string("Failed to start UDP client: ") + e.what(),
@@ -175,11 +198,8 @@ namespace network_system::core
 				io_context_->stop();
 			}
 
-			// Join worker thread
-			if (worker_thread_.joinable())
-			{
-				worker_thread_.join();
-			}
+			// Stop executor (RAII will handle thread pool cleanup)
+			io_executor_.reset();
 
 			// Clean up
 			socket_.reset();

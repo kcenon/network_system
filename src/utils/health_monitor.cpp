@@ -34,8 +34,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "network_system/integration/logger_integration.h"
 #include "network_system/integration/monitoring_integration.h"
+#include "network_system/integration/thread_pool_manager.h"
+#include "network_system/integration/io_context_executor.h"
 
 #include <sstream>
+#include <stdexcept>
 
 namespace network_system::utils
 {
@@ -78,50 +81,74 @@ namespace network_system::utils
 			return;
 		}
 
-		client_ = client;
-
-		// Create io_context and work guard
-		io_context_ = std::make_unique<asio::io_context>();
-		work_guard_ = std::make_unique<asio::executor_work_guard<asio::io_context::executor_type>>(
-			asio::make_work_guard(*io_context_)
-		);
-
-		// Create heartbeat timer
-		heartbeat_timer_ = std::make_unique<asio::steady_timer>(*io_context_);
-
-		is_monitoring_.store(true);
-
-		// Reset metrics
-		total_heartbeats_.store(0);
-		failed_heartbeats_.store(0);
+		try
 		{
-			std::lock_guard<std::mutex> lock(health_mutex_);
-			health_.is_alive = true;
-			health_.missed_heartbeats = 0;
-			health_.packet_loss_rate = 0.0;
-			health_.last_heartbeat = std::chrono::steady_clock::now();
-		}
+			client_ = client;
 
-		// Start monitoring thread
-		monitor_thread_ = std::make_unique<std::thread>(
-			[this]()
+			// Create io_context and work guard
+			io_context_ = std::make_unique<asio::io_context>();
+			work_guard_ = std::make_unique<asio::executor_work_guard<asio::io_context::executor_type>>(
+				asio::make_work_guard(*io_context_)
+			);
+
+			// Create heartbeat timer
+			heartbeat_timer_ = std::make_unique<asio::steady_timer>(*io_context_);
+
+			// Get thread pool from manager
+			auto& mgr = integration::thread_pool_manager::instance();
+			if (!mgr.is_initialized())
 			{
-				try
-				{
-					io_context_->run();
-				}
-				catch (const std::exception& e)
-				{
-					NETWORK_LOG_ERROR("[health_monitor] Exception in monitor thread: " +
-						std::string(e.what()));
-				}
+				throw std::runtime_error("[health_monitor] thread_pool_manager not initialized");
 			}
-		);
 
-		// Schedule first heartbeat
-		schedule_next_heartbeat();
+			auto pool = mgr.create_io_pool("health_monitor");
+			if (!pool)
+			{
+				throw std::runtime_error("[health_monitor] Failed to create I/O pool");
+			}
 
-		NETWORK_LOG_INFO("[health_monitor] Started monitoring");
+			// Create io_context executor
+			io_executor_ = std::make_unique<integration::io_context_executor>(
+				pool,
+				*io_context_,
+				"health_monitor"
+			);
+
+			is_monitoring_.store(true);
+
+			// Reset metrics
+			total_heartbeats_.store(0);
+			failed_heartbeats_.store(0);
+			{
+				std::lock_guard<std::mutex> lock(health_mutex_);
+				health_.is_alive = true;
+				health_.missed_heartbeats = 0;
+				health_.packet_loss_rate = 0.0;
+				health_.last_heartbeat = std::chrono::steady_clock::now();
+			}
+
+			// Schedule first heartbeat
+			schedule_next_heartbeat();
+
+			// Start io_context execution in thread pool
+			io_executor_->start();
+
+			NETWORK_LOG_INFO("[health_monitor] Started monitoring with thread pool");
+		}
+		catch (const std::exception& e)
+		{
+			NETWORK_LOG_ERROR("[health_monitor] Start failed: " + std::string(e.what()));
+
+			// Cleanup on failure
+			is_monitoring_.store(false);
+			heartbeat_timer_.reset();
+			work_guard_.reset();
+			io_context_.reset();
+			io_executor_.reset();
+			client_.reset();
+
+			throw;
+		}
 	}
 
 	auto health_monitor::stop_monitoring() -> void
@@ -131,37 +158,40 @@ namespace network_system::utils
 			return;
 		}
 
-		// Cancel timer
-		if (heartbeat_timer_)
+		try
 		{
-			heartbeat_timer_->cancel();
-		}
+			// Cancel timer
+			if (heartbeat_timer_)
+			{
+				heartbeat_timer_->cancel();
+			}
 
-		// Release work guard
-		if (work_guard_)
+			// Release work guard (allows io_context to complete)
+			if (work_guard_)
+			{
+				work_guard_.reset();
+			}
+
+			// Stop io_context
+			if (io_context_)
+			{
+				io_context_->stop();
+			}
+
+			// Stop executor (RAII will handle thread pool cleanup)
+			io_executor_.reset();
+
+			// Release resources
+			heartbeat_timer_.reset();
+			io_context_.reset();
+			client_.reset();
+
+			NETWORK_LOG_INFO("[health_monitor] Stopped monitoring");
+		}
+		catch (const std::exception& e)
 		{
-			work_guard_.reset();
+			NETWORK_LOG_ERROR("[health_monitor] Stop failed: " + std::string(e.what()));
 		}
-
-		// Stop io_context
-		if (io_context_)
-		{
-			io_context_->stop();
-		}
-
-		// Join thread
-		if (monitor_thread_ && monitor_thread_->joinable())
-		{
-			monitor_thread_->join();
-		}
-
-		// Release resources
-		heartbeat_timer_.reset();
-		monitor_thread_.reset();
-		io_context_.reset();
-		client_.reset();
-
-		NETWORK_LOG_INFO("[health_monitor] Stopped monitoring");
 	}
 
 	auto health_monitor::get_health() const -> connection_health

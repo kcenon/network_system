@@ -40,7 +40,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <optional>
 #include <string>
 #include <string_view>
-#include <thread>
 #include <type_traits>
 
 #include <asio.hpp>
@@ -48,6 +47,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "network_system/internal/tcp_socket.h"
 #include "network_system/internal/pipeline.h"
 #include "network_system/utils/result_types.h"
+
+// Forward declarations
+namespace network_system::integration
+{
+	class io_context_executor;
+}
 
 // Use nested namespace definition in C++17
 namespace network_system::core
@@ -59,6 +64,11 @@ namespace network_system::core
 	 * data using asynchronous operations, and can apply a pipeline for
 	 * transformations.
 	 *
+	 * ### Thread Pool Integration
+	 * - Uses thread_pool_manager's I/O pool for ASIO io_context execution
+	 * - No dedicated thread creation, leverages thread pool resources
+	 * - Automatic resource cleanup via io_context_executor RAII
+	 *
 	 * ### Thread Safety
 	 * - All public methods are thread-safe.
 	 * - Socket access is protected by socket_mutex_.
@@ -67,7 +77,7 @@ namespace network_system::core
 	 * - Connection state changes are serialized through ASIO's io_context.
 	 *
 	 * ### Key Features
-	 * - Uses \c asio::io_context in a dedicated thread to handle I/O events.
+	 * - Uses \c asio::io_context running on thread pool to handle I/O events.
 	 * - Connects via \c async_connect, then wraps the socket in a \c tcp_socket
 	 * for asynchronous reads and writes.
 	 * - Optionally compresses/encrypts data before sending, and can similarly
@@ -104,7 +114,7 @@ namespace network_system::core
 		 *
 		 * ### Steps:
 		 * 1. Create \c io_context_.
-		 * 2. Launch \c client_thread_ running \c io_context_->run().
+		 * 2. Get I/O pool from thread_pool_manager and run \c io_context_ on thread pool.
 		 * 3. Resolve & connect, on success calling \c on_connect().
 		 * 4. \c on_connect() sets up the \c tcp_socket and starts reading.
 		 *
@@ -118,12 +128,13 @@ namespace network_system::core
 		 * \endcode
 		 *
 		 * \note Connection result is async; check is_connected() or use callbacks
+		 * \throws std::runtime_error if thread_pool_manager is not initialized
 		 */
 		auto start_client(std::string_view host, unsigned short port) -> VoidResult;
 
 		/*!
 		 * \brief Stops the client: closes the socket, stops the \c io_context_,
-		 *        and joins the worker thread.
+		 *        and releases thread pool resources via io_executor_.
 		 * \return Result<void> - Success if client stopped, or error with code:
 		 *         - error_codes::common::internal_error for failures
 		 *
@@ -268,10 +279,8 @@ namespace network_system::core
 
 		std::unique_ptr<asio::io_context>
 			io_context_; /*!< I/O context for async operations. */
-		std::unique_ptr<asio::executor_work_guard<asio::io_context::executor_type>>
-			work_guard_; /*!< Keeps io_context running. */
-		std::unique_ptr<std::thread>
-			client_thread_; /*!< Thread running \c io_context->run(). */
+		std::unique_ptr<integration::io_context_executor>
+			io_executor_; /*!< IO context executor from thread pool. */
 
 		std::optional<std::promise<void>>
 			stop_promise_;	/*!< Signals \c wait_for_stop() when stopping. */

@@ -45,6 +45,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <system_error>
 #include <vector>
 
+namespace network_system::integration
+{
+	class io_context_executor;
+}
+
 namespace network_system::core
 {
 	/*!

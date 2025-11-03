@@ -36,7 +36,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <string>
 #include <string_view>
 #include <atomic>
-#include <thread>
 #include <functional>
 #include <mutex>
 
@@ -49,11 +48,21 @@ namespace network_system::internal
 	class udp_socket;
 }
 
+namespace network_system::integration
+{
+	class io_context_executor;
+}
+
 namespace network_system::core
 {
 	/*!
 	 * \class messaging_udp_client
 	 * \brief A UDP client that sends datagrams to a target endpoint and can receive responses.
+	 *
+	 * ### Thread Pool Integration
+	 * - Uses thread_pool_manager's I/O pool for ASIO io_context execution
+	 * - No dedicated thread creation, leverages thread pool resources
+	 * - Automatic resource cleanup via io_context_executor RAII
 	 *
 	 * ### Thread Safety
 	 * - All public methods are thread-safe.
@@ -69,6 +78,10 @@ namespace network_system::core
 	 *
 	 * ### Usage Example
 	 * \code
+	 * // Initialize thread pool manager first
+	 * auto& mgr = integration::thread_pool_manager::instance();
+	 * mgr.initialize();
+	 *
 	 * auto client = std::make_shared<messaging_udp_client>("UDPClient");
 	 *
 	 * // Set callback to handle received datagrams
@@ -114,7 +127,7 @@ namespace network_system::core
 
 		/*!
 		 * \brief Starts the client by resolving target host and port, creating socket,
-		 *        and spawning a thread to run io_context.
+		 *        and running io_context on thread pool.
 		 * \param host The target hostname or IP address.
 		 * \param port The target port number.
 		 * \return Result<void> - Success if client started, or error with code:
@@ -123,7 +136,9 @@ namespace network_system::core
 		 *         - error_codes::common::internal_error for other failures
 		 *
 		 * Creates an io_context, resolves the target endpoint, creates a UDP socket,
-		 * and spawns a background thread to run io_context.run().
+		 * and runs io_context on thread pool's I/O executor.
+		 *
+		 * \throws std::runtime_error if thread_pool_manager is not initialized
 		 */
 		auto start_client(std::string_view host, uint16_t port) -> VoidResult;
 
@@ -194,7 +209,9 @@ namespace network_system::core
 
 		std::unique_ptr<asio::io_context> io_context_;   /*!< ASIO I/O context. */
 		std::shared_ptr<internal::udp_socket> socket_;   /*!< UDP socket wrapper. */
-		std::thread worker_thread_;                      /*!< Background I/O thread. */
+
+		// Thread pool integration: io_context_executor replaces manual std::thread
+		std::unique_ptr<integration::io_context_executor> io_executor_; /*!< IO context executor from thread pool */
 
 		std::mutex endpoint_mutex_;                      /*!< Protects target_endpoint_. */
 		asio::ip::udp::endpoint target_endpoint_;        /*!< Target endpoint for sends. */

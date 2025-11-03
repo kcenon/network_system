@@ -33,6 +33,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "network_system/core/secure_messaging_client.h"
 
 #include "network_system/integration/logger_integration.h"
+#include "network_system/integration/thread_pool_manager.h"
+#include "network_system/integration/io_context_executor.h"
 
 namespace network_system::core
 {
@@ -116,6 +118,20 @@ namespace network_system::core
 
 		try
 		{
+			// Get thread pool manager and create I/O pool
+			auto& pool_mgr = integration::thread_pool_manager::instance();
+			if (!pool_mgr.is_initialized())
+			{
+				return error_void(
+					error_codes::common::internal_error,
+					"Thread pool manager not initialized",
+					"secure_messaging_client::start_client",
+					"Call thread_pool_manager::instance().initialize() first"
+				);
+			}
+
+			auto pool = pool_mgr.create_io_pool("secure_messaging_client_" + client_id_);
+
 			// Create io_context
 			io_context_ = std::make_unique<asio::io_context>();
 
@@ -168,19 +184,15 @@ namespace network_system::core
 					handshake_promise.set_value(ec);
 				});
 
-			// Start io_context thread for handshake to complete
-			client_thread_ = std::make_unique<std::thread>(
-				[this]()
-				{
-					try
-					{
-						io_context_->run();
-					}
-					catch (...)
-					{
-						// Optionally handle any uncaught exceptions
-					}
-				});
+			// Create io_context executor
+			io_executor_ = std::make_unique<integration::io_context_executor>(
+				pool,
+				*io_context_,
+				"secure_messaging_client_" + client_id_
+			);
+
+			// Start io_context execution in thread pool
+			io_executor_->start();
 
 			// Wait for handshake to complete (with timeout)
 			auto status = handshake_future.wait_for(std::chrono::seconds(10));
@@ -237,6 +249,7 @@ namespace network_system::core
 		}
 		catch (const std::system_error& e)
 		{
+			io_executor_.reset();
 			return error_void(
 				error_codes::network_system::connection_failed,
 				"Failed to connect: " + std::string(e.what()),
@@ -246,6 +259,7 @@ namespace network_system::core
 		}
 		catch (const std::exception& e)
 		{
+			io_executor_.reset();
 			return error_void(
 				error_codes::common::internal_error,
 				"Failed to connect: " + std::string(e.what()),
@@ -294,15 +308,11 @@ namespace network_system::core
 				io_context_->stop();
 			}
 
-			// Join thread
-			if (client_thread_ && client_thread_->joinable())
-			{
-				client_thread_->join();
-			}
+			// Stop executor (RAII will handle thread pool cleanup)
+			io_executor_.reset();
 
-			// Release resources
+			// Clean up
 			socket_.reset();
-			client_thread_.reset();
 			io_context_.reset();
 
 			NETWORK_LOG_INFO("[secure_messaging_client] Disconnected.");

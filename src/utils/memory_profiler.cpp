@@ -1,7 +1,9 @@
 #include "network_system/utils/memory_profiler.h"
+#include "network_system/integration/thread_pool_manager.h"
 
 #include <sstream>
 #include <iomanip>
+#include <stdexcept>
 
 #if defined(__APPLE__)
 #include <mach/mach.h>
@@ -28,15 +30,53 @@ void memory_profiler::start(std::chrono::milliseconds interval) {
     (void)interval;
     return; // profiling disabled
 #else
-    if (running_.exchange(true)) return;
-    worker_ = std::thread(&memory_profiler::sampler_loop, this, interval);
+    if (running_.exchange(true)) {
+        return; // already running
+    }
+
+    try {
+        // Get utility pool from thread pool manager
+        auto& mgr = integration::thread_pool_manager::instance();
+        if (!mgr.is_initialized()) {
+            running_ = false;
+            throw std::runtime_error("[memory_profiler] thread_pool_manager not initialized");
+        }
+
+        auto utility_pool = mgr.get_utility_pool();
+        if (!utility_pool) {
+            running_ = false;
+            throw std::runtime_error("[memory_profiler] Failed to get utility pool");
+        }
+
+        // Submit initial sampling task to utility pool
+        auto future = utility_pool->submit([this, interval]() {
+            sampler_loop(interval);
+        });
+
+        // Store future for potential cancellation support
+        sampling_task_ = future.share();
+    }
+    catch (const std::exception& e) {
+        running_ = false;
+        throw std::runtime_error(std::string("[memory_profiler] Start failed: ") + e.what());
+    }
 #endif
 }
 
 void memory_profiler::stop() {
 #ifdef NETWORK_ENABLE_MEMORY_PROFILER
-    if (!running_.exchange(false)) return;
-    if (worker_.joinable()) worker_.join();
+    if (!running_.exchange(false)) {
+        return; // not running
+    }
+
+    // Wait for sampling task to complete (with timeout)
+    if (sampling_task_.valid()) {
+        auto status = sampling_task_.wait_for(std::chrono::seconds(2));
+        if (status == std::future_status::timeout) {
+            // Task didn't complete in time, but that's okay
+            // Thread pool will clean up eventually
+        }
+    }
 #endif
 }
 
@@ -81,9 +121,36 @@ std::string memory_profiler::to_tsv() const {
 }
 
 void memory_profiler::sampler_loop(std::chrono::milliseconds interval) {
-    while (running_.load()) {
-        snapshot();
-        std::this_thread::sleep_for(interval);
+    // Take snapshot
+    snapshot();
+
+    // Check if should continue
+    if (!running_.load()) {
+        return; // stopped
+    }
+
+    // Sleep before next sample
+    std::this_thread::sleep_for(interval);
+
+    // Check again after sleep
+    if (!running_.load()) {
+        return; // stopped during sleep
+    }
+
+    // Recursively submit next sampling task to utility pool
+    try {
+        auto& mgr = integration::thread_pool_manager::instance();
+        auto utility_pool = mgr.get_utility_pool();
+        if (utility_pool) {
+            auto future = utility_pool->submit([this, interval]() {
+                sampler_loop(interval);
+            });
+            sampling_task_ = future.share();
+        }
+    }
+    catch (const std::exception&) {
+        // Failed to submit next task, stop sampling
+        running_ = false;
     }
 }
 

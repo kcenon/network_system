@@ -35,7 +35,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <memory>
 #include <vector>
 #include <functional>
-#include <thread>
 #include <atomic>
 #include <string>
 
@@ -48,6 +47,11 @@ namespace network_system::internal
 	class udp_socket;
 }
 
+namespace network_system::integration
+{
+	class io_context_executor;
+}
+
 namespace network_system::core
 {
 	/*!
@@ -57,14 +61,15 @@ namespace network_system::core
 	 * ### Thread Safety
 	 * - All public methods are thread-safe.
 	 * - Internal state (is_running_) is protected by atomics.
-	 * - Background thread runs io_context.run() independently.
-	 * - Callbacks are invoked on ASIO worker thread.
+	 * - Uses thread_pool_manager's io_context_executor for thread management.
+	 * - Callbacks are invoked on thread pool worker threads.
 	 *
 	 * ### Key Characteristics
 	 * - Connectionless: No persistent sessions, each datagram is independent.
 	 * - Endpoint-based routing: Each received datagram includes sender endpoint.
 	 * - No session management: Unlike TCP server, UDP server doesn't maintain sessions.
 	 * - Stateless: Application layer must handle state if needed.
+	 * - Thread pool integration: Uses centralized thread pool for resource efficiency.
 	 *
 	 * ### Usage Example
 	 * \code
@@ -120,7 +125,7 @@ namespace network_system::core
 		 *         - error_codes::common::internal_error for other failures
 		 *
 		 * Creates an io_context and UDP socket, binds to the specified port,
-		 * and spawns a background thread to run io_context.run().
+		 * and uses thread_pool_manager to run io_context in a dedicated I/O pool.
 		 */
 		auto start_server(uint16_t port) -> VoidResult;
 
@@ -128,7 +133,7 @@ namespace network_system::core
 		 * \brief Stops the server and releases resources.
 		 * \return Result<void> - Always returns success.
 		 *
-		 * Stops receiving datagrams, closes the socket, and joins the background thread.
+		 * Stops receiving datagrams, closes the socket, and releases the io_context_executor.
 		 */
 		auto stop_server() -> VoidResult;
 
@@ -183,12 +188,12 @@ namespace network_system::core
 		auto server_id() const -> const std::string& { return server_id_; }
 
 	private:
-		std::string server_id_;                          /*!< Server identifier. */
-		std::atomic<bool> is_running_{false};            /*!< Running state flag. */
+		std::string server_id_;                                      /*!< Server identifier. */
+		std::atomic<bool> is_running_{false};                        /*!< Running state flag. */
 
-		std::unique_ptr<asio::io_context> io_context_;   /*!< ASIO I/O context. */
-		std::shared_ptr<internal::udp_socket> socket_;   /*!< UDP socket wrapper. */
-		std::thread worker_thread_;                      /*!< Background I/O thread. */
+		std::unique_ptr<asio::io_context> io_context_;               /*!< ASIO I/O context. */
+		std::shared_ptr<internal::udp_socket> socket_;               /*!< UDP socket wrapper. */
+		std::unique_ptr<integration::io_context_executor> io_executor_; /*!< Thread pool I/O executor. */
 	};
 
 } // namespace network_system::core

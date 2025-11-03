@@ -32,9 +32,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "send_coroutine.h"
 #include "network_system/integration/logger_integration.h"
+#include "network_system/integration/thread_pool_manager.h"
 
 #include <future>
-#include <thread>
 #include <functional>
 #include <type_traits>
 
@@ -47,23 +47,38 @@ namespace network_system::internal
                             bool use_encrypt)
         -> std::future<std::vector<uint8_t>>
     {
-        return std::async(std::launch::async, [processed_data = std::move(input_data), &pl, use_compress, use_encrypt]() mutable {
-            // Apply compression in-place
-            if constexpr (std::is_invocable_r_v<std::vector<uint8_t>, decltype(pl.compress), const std::vector<uint8_t>&>) {
-                if (use_compress && pl.compress) {
-                    processed_data = pl.compress(processed_data);
-                }
-            }
+        // Get utility pool from thread_pool_manager
+        auto& mgr = integration::thread_pool_manager::instance();
+        auto utility_pool = mgr.get_utility_pool();
 
-            // Apply encryption in-place
-            if constexpr (std::is_invocable_r_v<std::vector<uint8_t>, decltype(pl.encrypt), const std::vector<uint8_t>&>) {
-                if (use_encrypt && pl.encrypt) {
-                    processed_data = pl.encrypt(processed_data);
-                }
-            }
+        // Create promise for result
+        auto promise = std::make_shared<std::promise<std::vector<uint8_t>>>();
+        auto future = promise->get_future();
 
-            return processed_data;
+        // Submit task to utility pool
+        utility_pool->submit_task([promise, processed_data = std::move(input_data), &pl, use_compress, use_encrypt]() mutable {
+            try {
+                // Apply compression in-place
+                if constexpr (std::is_invocable_r_v<std::vector<uint8_t>, decltype(pl.compress), const std::vector<uint8_t>&>) {
+                    if (use_compress && pl.compress) {
+                        processed_data = pl.compress(processed_data);
+                    }
+                }
+
+                // Apply encryption in-place
+                if constexpr (std::is_invocable_r_v<std::vector<uint8_t>, decltype(pl.encrypt), const std::vector<uint8_t>&>) {
+                    if (use_encrypt && pl.encrypt) {
+                        processed_data = pl.encrypt(processed_data);
+                    }
+                }
+
+                promise->set_value(std::move(processed_data));
+            } catch (...) {
+                promise->set_exception(std::current_exception());
+            }
         });
+
+        return future;
     }
 
 #ifdef USE_STD_COROUTINE
@@ -104,15 +119,22 @@ namespace network_system::internal
         // Create a promise for the final result
         auto promise = std::make_shared<std::promise<std::error_code>>();
         auto future_result = promise->get_future();
-        
-        // Process data in a separate thread
+
+        // Process data using thread pool
         auto future_processed = prepare_data_async(std::move(data), pl, use_compress, use_encrypt);
-        
-        // When processing is done, send the data
-        std::thread([sock, promise, future = std::move(future_processed)]() mutable {
+
+        // Submit continuation task to utility pool
+        // Note: We use submit() without capturing the future directly
+        auto& mgr = integration::thread_pool_manager::instance();
+        auto utility_pool = mgr.get_utility_pool();
+
+        // Create a shared future to allow copying in lambda
+        auto shared_future = std::make_shared<std::future<std::vector<uint8_t>>>(std::move(future_processed));
+
+        utility_pool->submit_task([sock, promise, shared_future]() {
             try {
-                auto processed_data = future.get();
-                
+                auto processed_data = shared_future->get();
+
                 // Perform async write and capture result in the promise
                 sock->async_send(std::move(processed_data),
                     [promise](std::error_code ec, std::size_t /*bytes_transferred*/) {
@@ -124,8 +146,8 @@ namespace network_system::internal
                           + std::string(e.what()));
                 promise->set_value(std::make_error_code(std::errc::io_error));
             }
-        }).detach();
-        
+        });
+
         return future_result;
     }
 

@@ -39,7 +39,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <mutex>
 #include <optional>
 #include <string>
-#include <thread>
 #include <vector>
 
 #include <asio.hpp>
@@ -51,6 +50,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifdef BUILD_WITH_COMMON_SYSTEM
 	#include <kcenon/common/interfaces/monitoring_interface.h>
 #endif
+
+namespace network_system::integration {
+	class io_context_executor;
+}
 
 namespace network_system::session {
 	class secure_session;
@@ -239,8 +242,8 @@ namespace network_system::core
 			work_guard_;	/*!< Keeps io_context running. */
 		std::unique_ptr<asio::ip::tcp::acceptor>
 			acceptor_;		/*!< Acceptor to listen for new connections. */
-		std::unique_ptr<std::thread>
-			server_thread_; /*!< Thread that runs \c io_context_->run(). */
+		std::unique_ptr<network_system::integration::io_context_executor>
+			io_executor_;   /*!< Thread pool I/O executor. */
 
 		std::unique_ptr<asio::ssl::context>
 			ssl_context_;	/*!< SSL context for encryption. */

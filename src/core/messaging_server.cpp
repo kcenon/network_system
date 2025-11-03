@@ -33,6 +33,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "network_system/core/messaging_server.h"
 #include "network_system/session/messaging_session.h"
 #include "network_system/integration/logger_integration.h"
+#include "network_system/integration/thread_pool_manager.h"
+#include "network_system/integration/io_context_executor.h"
 
 namespace network_system::core
 {
@@ -72,6 +74,29 @@ namespace network_system::core
 
 		try
 		{
+			// Get thread pool from manager
+			auto& mgr = integration::thread_pool_manager::instance();
+			if (!mgr.is_initialized())
+			{
+				return error_void(
+					error_codes::common::internal_error,
+					"thread_pool_manager not initialized",
+					"messaging_server::start_server",
+					"Server ID: " + server_id_
+				);
+			}
+
+			auto pool = mgr.create_io_pool("messaging_server");
+			if (!pool)
+			{
+				return error_void(
+					error_codes::common::internal_error,
+					"Failed to create I/O pool",
+					"messaging_server::start_server",
+					"Server ID: " + server_id_
+				);
+			}
+
 			// Create io_context and acceptor
 			io_context_ = std::make_unique<asio::io_context>();
 			// Create work guard to keep io_context running
@@ -84,8 +109,6 @@ namespace network_system::core
 			// Create cleanup timer
 			cleanup_timer_ = std::make_unique<asio::steady_timer>(*io_context_);
 
-			is_running_.store(true);
-
 			// Prepare promise/future for wait_for_stop()
 			stop_promise_.emplace();
 			stop_future_ = stop_promise_->get_future();
@@ -96,19 +119,17 @@ namespace network_system::core
 			// Start periodic cleanup timer
 			start_cleanup_timer();
 
-			// Start thread to run the io_context
-			server_thread_ = std::make_unique<std::thread>(
-				[this]()
-				{
-					try
-					{
-						io_context_->run();
-					}
-					catch (...)
-					{
-						// Optionally handle any uncaught exceptions
-					}
-				});
+			// Create io_context executor
+			io_executor_ = std::make_unique<integration::io_context_executor>(
+				pool,
+				*io_context_,
+				"messaging_server"
+			);
+
+			// Start io_context execution in thread pool
+			io_executor_->start();
+
+			is_running_.store(true);
 
 			NETWORK_LOG_INFO("[messaging_server] Started listening on port " + std::to_string(port));
 			return ok();
@@ -116,6 +137,7 @@ namespace network_system::core
 		catch (const std::system_error& e)
 		{
 			is_running_.store(false);
+			io_executor_.reset();
 
 			// Check for specific error codes (ASIO uses asio::error category)
 			if (e.code() == asio::error::address_in_use ||
@@ -149,6 +171,7 @@ namespace network_system::core
 		catch (const std::exception& e)
 		{
 			is_running_.store(false);
+			io_executor_.reset();
 			return error_void(
 				error_codes::common::internal_error,
 				"Failed to start server: " + std::string(e.what()),
@@ -217,19 +240,15 @@ namespace network_system::core
 				io_context_->stop();
 			}
 
-			// Step 4: Join the io_context thread
-			if (server_thread_ && server_thread_->joinable())
-			{
-				server_thread_->join();
-			}
+			// Step 5: Release io_context executor (automatically stops and joins)
+			io_executor_.reset();
 
-			// Step 5: Release resources explicitly to ensure cleanup
+			// Step 6: Release resources explicitly to ensure cleanup
 			acceptor_.reset();
 			cleanup_timer_.reset();
-			server_thread_.reset();
 			io_context_.reset();
 
-			// Step 6: Signal the promise for wait_for_stop()
+			// Step 7: Signal the promise for wait_for_stop()
 			if (stop_promise_.has_value())
 			{
 				try
