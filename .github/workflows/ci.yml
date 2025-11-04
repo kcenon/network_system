@@ -32,9 +32,6 @@ jobs:
       with:
         submodules: recursive
 
-    - name: Setup thread_system
-      uses: ./.github/actions/setup-thread-system
-
     - name: Install dependencies (Ubuntu)
       if: runner.os == 'Linux'
       run: |
@@ -56,6 +53,9 @@ jobs:
         echo "$(brew --prefix llvm@15)/bin" >> $GITHUB_PATH
         echo "CC=$(brew --prefix llvm@15)/bin/clang" >> $GITHUB_ENV
         echo "CXX=$(brew --prefix llvm@15)/bin/clang++" >> $GITHUB_ENV
+
+    - name: Setup thread_system
+      uses: ./.github/actions/setup-thread-system
 
     - name: Install dependencies (Windows)
       if: runner.os == 'Windows'
