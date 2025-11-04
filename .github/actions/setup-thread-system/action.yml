@@ -10,7 +10,7 @@ outputs:
 runs:
   using: 'composite'
   steps:
-    - name: Install thread_system (Unix)
+    - name: Build thread_system (Unix)
       id: install-unix
       if: runner.os != 'Windows'
       shell: bash
@@ -30,54 +30,61 @@ runs:
               echo "Auto-selected Clang-15 for Linux"
             fi
           elif [[ "$OSTYPE" == "darwin"* ]]; then
-            # macOS: use LLVM 15 from Homebrew if available
-            if [ -x "/usr/local/opt/llvm@15/bin/clang" ]; then
-              export CC=/usr/local/opt/llvm@15/bin/clang
-              export CXX=/usr/local/opt/llvm@15/bin/clang++
-              echo "Auto-selected LLVM 15 from /usr/local/opt for macOS"
-            elif [ -x "/opt/homebrew/opt/llvm@15/bin/clang" ]; then
-              export CC=/opt/homebrew/opt/llvm@15/bin/clang
-              export CXX=/opt/homebrew/opt/llvm@15/bin/clang++
-              echo "Auto-selected LLVM 15 from /opt/homebrew for macOS"
-            fi
+            # macOS: use system Clang (avoid LLVM libc++ conflicts with Xcode SDK)
+            export CC=clang
+            export CXX=clang++
+            echo "Using system Clang for macOS (Xcode compatibility)"
           fi
         else
           echo "Using pre-set compilers: CC=$CC, CXX=$CXX"
         fi
 
-        git clone https://github.com/kcenon/thread_system.git /tmp/thread_system
+        # Clone and build thread_system (no install - use build tree directly)
+        git clone --depth 1 https://github.com/kcenon/thread_system.git /tmp/thread_system
         cd /tmp/thread_system
 
         echo "Building thread_system with CC=$CC, CXX=$CXX"
-        cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+        cmake -B build -G Ninja \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DBUILD_TESTS=OFF \
+          -DBUILD_EXAMPLES=OFF
         cmake --build build
-        sudo cmake --install build --prefix /usr/local
-        echo "include_dir=/usr/local/include" >> $GITHUB_OUTPUT
-        echo "library=/usr/local/lib/libThreadSystem.a" >> $GITHUB_OUTPUT
-        echo "THREAD_SYSTEM_INCLUDE_DIR=/usr/local/include" >> $GITHUB_ENV
-        echo "THREAD_SYSTEM_LIBRARY=/usr/local/lib/libThreadSystem.a" >> $GITHUB_ENV
 
-    - name: Install thread_system (Windows)
+        # Export build tree paths (no install needed)
+        echo "source_dir=/tmp/thread_system" >> $GITHUB_OUTPUT
+        echo "include_dir=/tmp/thread_system/include" >> $GITHUB_OUTPUT
+        echo "build_dir=/tmp/thread_system/build" >> $GITHUB_OUTPUT
+        echo "library=/tmp/thread_system/build/lib/libThreadSystem.a" >> $GITHUB_OUTPUT
+
+        # Set environment variables for network_system CMake
+        echo "THREAD_SYSTEM_SOURCE_DIR=/tmp/thread_system" >> $GITHUB_ENV
+        echo "THREAD_SYSTEM_INCLUDE_DIR=/tmp/thread_system/include" >> $GITHUB_ENV
+        echo "THREAD_SYSTEM_BUILD_DIR=/tmp/thread_system/build" >> $GITHUB_ENV
+        echo "THREAD_SYSTEM_LIBRARY=/tmp/thread_system/build/lib/libThreadSystem.a" >> $GITHUB_ENV
+
+    - name: Build thread_system (Windows)
       id: install-windows
       if: runner.os == 'Windows'
       shell: pwsh
       run: |
-        git clone https://github.com/kcenon/thread_system.git C:\temp\thread_system
+        # Clone and build thread_system (no install - use build tree directly)
+        git clone --depth 1 https://github.com/kcenon/thread_system.git C:\temp\thread_system
         cd C:\temp\thread_system
-        cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+
+        Write-Host "Building thread_system..."
+        cmake -B build -G Ninja `
+          -DCMAKE_BUILD_TYPE=Release `
+          -DBUILD_TESTS=OFF `
+          -DBUILD_EXAMPLES=OFF
         cmake --build build
-        cmake --install build --prefix C:\thread_system
 
-        # Debug: Show installation directory structure
-        Write-Host "=== Installation directory structure ==="
-        Get-ChildItem C:\thread_system -Recurse | Select-Object FullName
-
-        # Find library file with flexible search
-        Write-Host "`n=== Searching for library files ==="
-        $libFiles = Get-ChildItem -Path C:\thread_system -Recurse -Include "*.lib","*.a" | Where-Object { $_.Name -match "thread" }
+        # Find library in build directory
+        Write-Host "`n=== Searching for library in build tree ==="
+        $libFiles = Get-ChildItem -Path "C:\temp\thread_system\build" -Recurse -Include "*.lib","*.a" | Where-Object { $_.Name -match "Thread" }
 
         if ($libFiles.Count -eq 0) {
-          Write-Error "No thread_system library files found!"
+          Write-Error "No thread_system library found in build directory!"
+          Get-ChildItem C:\temp\thread_system\build -Recurse | Select-Object FullName
           exit 1
         }
 
@@ -85,17 +92,20 @@ runs:
         $libPath = ($libFiles | Sort-Object { if ($_.Extension -eq ".lib") { 0 } else { 1 } })[0].FullName
         Write-Host "Found library: $libPath"
 
-        # Verify include directory exists
-        if (-not (Test-Path "C:\thread_system\include")) {
-          Write-Error "Include directory not found at C:\thread_system\include"
-          exit 1
-        }
-
-        echo "include_dir=C:\thread_system\include" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+        # Export build tree paths
+        echo "source_dir=C:\temp\thread_system" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+        echo "include_dir=C:\temp\thread_system\include" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+        echo "build_dir=C:\temp\thread_system\build" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
         echo "library=$libPath" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
-        echo "THREAD_SYSTEM_INCLUDE_DIR=C:\thread_system\include" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+        # Set environment variables for network_system CMake
+        echo "THREAD_SYSTEM_SOURCE_DIR=C:\temp\thread_system" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+        echo "THREAD_SYSTEM_INCLUDE_DIR=C:\temp\thread_system\include" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+        echo "THREAD_SYSTEM_BUILD_DIR=C:\temp\thread_system\build" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
         echo "THREAD_SYSTEM_LIBRARY=$libPath" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
         Write-Host "`n=== Environment variables set ==="
-        Write-Host "THREAD_SYSTEM_INCLUDE_DIR=C:\thread_system\include"
+        Write-Host "THREAD_SYSTEM_SOURCE_DIR=C:\temp\thread_system"
+        Write-Host "THREAD_SYSTEM_INCLUDE_DIR=C:\temp\thread_system\include"
+        Write-Host "THREAD_SYSTEM_BUILD_DIR=C:\temp\thread_system\build"
         Write-Host "THREAD_SYSTEM_LIBRARY=$libPath"
