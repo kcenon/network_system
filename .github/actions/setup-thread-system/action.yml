@@ -43,8 +43,15 @@ runs:
         echo "=== Cloning thread_system ==="
         # Use specific commit before PR #80 which has compilation issues
         # Commit 159e0a0: Sprint 2: Implement Hazard Pointers and Lock-free MPMC Queue
-        git clone https://github.com/kcenon/thread_system.git /tmp/thread_system
+        git clone --depth 50 https://github.com/kcenon/thread_system.git /tmp/thread_system
         cd /tmp/thread_system
+
+        # Fetch the specific commit if not already available
+        if ! git cat-file -e 159e0a0a7ea44e5fc10c91f1f8cd83aecd6e63f5 2>/dev/null; then
+          echo "Fetching specific commit..."
+          git fetch --depth 100 origin 159e0a0a7ea44e5fc10c91f1f8cd83aecd6e63f5
+        fi
+
         git checkout 159e0a0a7ea44e5fc10c91f1f8cd83aecd6e63f5
 
         # Show current commit info
@@ -90,8 +97,16 @@ runs:
         Write-Host "=== Cloning thread_system ==="
         # Use specific commit before PR #80 which has compilation issues
         # Commit 159e0a0: Sprint 2: Implement Hazard Pointers and Lock-free MPMC Queue
-        git clone https://github.com/kcenon/thread_system.git C:\temp\thread_system
+        git clone --depth 50 https://github.com/kcenon/thread_system.git C:\temp\thread_system
         cd C:\temp\thread_system
+
+        # Fetch the specific commit if not already available
+        $commitExists = git cat-file -e 159e0a0a7ea44e5fc10c91f1f8cd83aecd6e63f5 2>$null
+        if ($LASTEXITCODE -ne 0) {
+          Write-Host "Fetching specific commit..."
+          git fetch --depth 100 origin 159e0a0a7ea44e5fc10c91f1f8cd83aecd6e63f5
+        }
+
         git checkout 159e0a0a7ea44e5fc10c91f1f8cd83aecd6e63f5
 
         # Show current commit info
