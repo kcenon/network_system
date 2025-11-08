@@ -24,8 +24,8 @@ jobs:
         with:
           submodules: recursive
 
-    - name: Setup thread_system
-      uses: ./.github/actions/setup-thread-system
+      - name: Setup thread_system
+        uses: ./.github/actions/setup-thread-system
 
       - name: Install dependencies (Ubuntu)
         if: runner.os == 'Linux'
@@ -63,6 +63,8 @@ jobs:
             -DBUILD_WITH_COMMON_SYSTEM=OFF \
             -DBUILD_WITH_LOGGER_SYSTEM=OFF \
             -DBUILD_WITH_THREAD_SYSTEM=ON \
+            -DTHREAD_SYSTEM_INCLUDE_DIR=${THREAD_SYSTEM_INCLUDE_DIR} \
+            -DTHREAD_SYSTEM_LIBRARY=${THREAD_SYSTEM_LIBRARY} \
             -DBUILD_WITH_CONTAINER_SYSTEM=OFF \
             -DBUILD_MESSAGING_BRIDGE=OFF
 
@@ -140,6 +142,11 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup thread_system
+        uses: ./.github/actions/setup-thread-system
 
       - name: Install dependencies
         run: |
@@ -149,8 +156,7 @@ jobs:
             cmake \
             ninja-build \
             libgtest-dev \
-            libasio-dev \
-           
+            libasio-dev
 
       - name: Configure CMake
         run: |
@@ -163,6 +169,8 @@ jobs:
             -DBUILD_WITH_COMMON_SYSTEM=OFF \
             -DBUILD_WITH_LOGGER_SYSTEM=OFF \
             -DBUILD_WITH_THREAD_SYSTEM=ON \
+            -DTHREAD_SYSTEM_INCLUDE_DIR=${THREAD_SYSTEM_INCLUDE_DIR} \
+            -DTHREAD_SYSTEM_LIBRARY=${THREAD_SYSTEM_LIBRARY} \
             -DBUILD_WITH_CONTAINER_SYSTEM=OFF \
             -DBUILD_MESSAGING_BRIDGE=OFF
 
