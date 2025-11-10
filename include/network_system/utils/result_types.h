@@ -45,14 +45,14 @@ namespace network_system {
 #ifdef BUILD_WITH_COMMON_SYSTEM
 	// Use common_system Result<T> when available
 	template<typename T>
-	using Result = ::common::Result<T>;
+	using Result = ::kcenon::common::Result<T>;
 
-	using VoidResult = ::common::VoidResult;
+	using VoidResult = ::kcenon::common::VoidResult;
 
-	using error_info = ::common::error_info;
+	using error_info = ::kcenon::common::error_info;
 
-	// Error code namespace
-	namespace error_codes = ::common::error::codes;
+	// Error code namespace (includes common_errors and network_system)
+	namespace error_codes = ::kcenon::common::error::codes;
 
 	// Helper functions for creating Results
 	template<typename T>

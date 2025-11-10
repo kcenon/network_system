@@ -78,7 +78,7 @@ namespace network_system::core
 		{
 			if (is_running_.load())
 			{
-				return error_void(error_codes::common::already_exists,
+				return error_void(error_codes::common_errors::already_exists,
 								  "Client is already running");
 			}
 
@@ -123,7 +123,7 @@ namespace network_system::core
 		{
 			if (!is_running_.load())
 			{
-				return error_void(error_codes::common::not_initialized,
+				return error_void(error_codes::common_errors::not_initialized,
 								  "Client is not running");
 			}
 
@@ -169,7 +169,7 @@ namespace network_system::core
 			}
 			catch (const std::exception& e)
 			{
-				return error_void(error_codes::common::internal_error,
+				return error_void(error_codes::common_errors::internal_error,
 								  std::string("Failed to stop client: ") + e.what());
 			}
 		}

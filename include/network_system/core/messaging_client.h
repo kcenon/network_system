@@ -98,9 +98,9 @@ namespace network_system::core
 		 * \param host The remote hostname or IP address.
 		 * \param port The remote port number to connect.
 		 * \return Result<void> - Success if client started, or error with code:
-		 *         - error_codes::common::already_exists if already running
-		 *         - error_codes::common::invalid_argument if empty host
-		 *         - error_codes::common::internal_error for other failures
+		 *         - error_codes::common_errors::already_exists if already running
+		 *         - error_codes::common_errors::invalid_argument if empty host
+		 *         - error_codes::common_errors::internal_error for other failures
 		 *
 		 * ### Steps:
 		 * 1. Create \c io_context_.
@@ -125,7 +125,7 @@ namespace network_system::core
 		 * \brief Stops the client: closes the socket, stops the \c io_context_,
 		 *        and joins the worker thread.
 		 * \return Result<void> - Success if client stopped, or error with code:
-		 *         - error_codes::common::internal_error for failures
+		 *         - error_codes::common_errors::internal_error for failures
 		 *
 		 * ### Example
 		 * \code
@@ -156,7 +156,7 @@ namespace network_system::core
 		 * \param data The buffer to send (moved for efficiency).
 		 * \return Result<void> - Success if data queued for send, or error with code:
 		 *         - error_codes::network_system::connection_closed if not connected
-		 *         - error_codes::common::invalid_argument if empty data
+		 *         - error_codes::common_errors::invalid_argument if empty data
 		 *         - error_codes::network_system::send_failed for other failures
 		 *
 		 * ### Example
