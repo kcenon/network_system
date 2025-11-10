@@ -41,13 +41,13 @@ runs:
 
         # Clone and build thread_system (no install - use build tree directly)
         echo "=== Cloning thread_system ==="
-        # Use latest stable version from main branch
-        # This includes all stability fixes and improvements
-        git clone --depth 1 https://github.com/kcenon/thread_system.git /tmp/thread_system
+        # Use Sprint 2 commit - last stable version before PR #80 compilation issues
+        # Commit 159e0a0564: "Sprint 2: Implement Hazard Pointers and Lock-free MPMC Queue"
+        git clone --depth 100 https://github.com/kcenon/thread_system.git /tmp/thread_system
         cd /tmp/thread_system
 
-        # Use HEAD of main branch (latest stable)
-        echo "Using latest stable version from main branch"
+        # Checkout specific stable commit (Sprint 2)
+        git checkout 159e0a0564d145e919a29bed6a0676fb71e408d7
 
         # Show current commit info
         echo "thread_system commit: $(git rev-parse --short HEAD)"
@@ -90,13 +90,13 @@ runs:
       run: |
         # Clone and build thread_system (no install - use build tree directly)
         Write-Host "=== Cloning thread_system ==="
-        # Use latest stable version from main branch
-        # This includes all stability fixes and improvements
-        git clone --depth 1 https://github.com/kcenon/thread_system.git C:\temp\thread_system
+        # Use Sprint 2 commit - last stable version before PR #80 compilation issues
+        # Commit 159e0a0564: "Sprint 2: Implement Hazard Pointers and Lock-free MPMC Queue"
+        git clone --depth 100 https://github.com/kcenon/thread_system.git C:\temp\thread_system
         cd C:\temp\thread_system
 
-        # Use HEAD of main branch (latest stable)
-        Write-Host "Using latest stable version from main branch"
+        # Checkout specific stable commit (Sprint 2)
+        git checkout 159e0a0564d145e919a29bed6a0676fb71e408d7
 
         # Show current commit info
         $commitHash = git rev-parse --short HEAD
