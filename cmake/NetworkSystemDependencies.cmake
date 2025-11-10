@@ -152,29 +152,20 @@ function(find_container_system)
         return()
     endif()
 
-    # Path-based detection - prioritize Sources/ directory
-    if(APPLE)
-        set(_container_search_paths
-            /Users/${USER}/Sources/container_system
-            ../container_system
-            ${CMAKE_CURRENT_SOURCE_DIR}/../container_system
-        )
-        set(_container_lib_paths
-            /Users/${USER}/Sources/container_system/build/lib
-            ../container_system/build/lib
-            ${CMAKE_CURRENT_SOURCE_DIR}/../container_system/build/lib
-        )
-    else()
-        set(_container_search_paths
-            /home/${USER}/Sources/container_system
-            ../container_system
-            ${CMAKE_CURRENT_SOURCE_DIR}/../container_system
-        )
-        set(_container_lib_paths
-            /home/${USER}/Sources/container_system/build/lib
-            ../container_system/build/lib
-            ${CMAKE_CURRENT_SOURCE_DIR}/../container_system/build/lib
-        )
+    # Path-based detection - use environment variable or sibling directory
+    set(_container_search_paths
+        ../container_system
+        ${CMAKE_CURRENT_SOURCE_DIR}/../container_system
+    )
+    set(_container_lib_paths
+        ../container_system/build/lib
+        ${CMAKE_CURRENT_SOURCE_DIR}/../container_system/build/lib
+    )
+
+    # Prioritize environment variable if set
+    if(DEFINED ENV{CONTAINER_SYSTEM_ROOT})
+        list(INSERT _container_search_paths 0 "$ENV{CONTAINER_SYSTEM_ROOT}")
+        list(INSERT _container_lib_paths 0 "$ENV{CONTAINER_SYSTEM_ROOT}/build/lib")
     endif()
 
     find_path(CONTAINER_SYSTEM_INCLUDE_DIR
@@ -219,15 +210,18 @@ function(find_thread_system)
 
     # Strategy 1: Check for thread_system source directory first (development environment)
     # Priority order:
-    # 1. User's Sources directory (HIGHEST PRIORITY)
+    # 1. Environment variable (HIGHEST PRIORITY)
     # 2. Sibling directory (workspace layout)
     # 3. CONFIG mode (installed package)
 
     set(_thread_source_paths
-        "/Users/$ENV{USER}/Sources/thread_system"     # macOS development
-        "/home/$ENV{USER}/Sources/thread_system"      # Linux development
         "${CMAKE_CURRENT_SOURCE_DIR}/../thread_system" # Sibling directory
     )
+
+    # Prioritize environment variable if set
+    if(DEFINED ENV{THREAD_SYSTEM_ROOT})
+        list(INSERT _thread_source_paths 0 "$ENV{THREAD_SYSTEM_ROOT}")
+    endif()
 
     set(_FOUND_THREAD_SOURCE FALSE)
     set(_THREAD_BUILD_DIR "")
@@ -283,38 +277,42 @@ function(find_thread_system)
 
     # Strategy 3: Manual search in prioritized paths as fallback
 
+    set(_thread_search_paths
+        "${CMAKE_CURRENT_SOURCE_DIR}/../thread_system/include" # Sibling directory
+        "../thread_system/include"                              # Relative fallback
+    )
+    set(_thread_lib_paths
+        "${CMAKE_CURRENT_SOURCE_DIR}/../thread_system/build/lib"
+        "../thread_system/build/lib"
+    )
+
+    # Add platform-specific system paths
     if(APPLE)
-        set(_thread_search_paths
-            "/Users/$ENV{USER}/Sources/thread_system/include"     # macOS development
-            "${CMAKE_CURRENT_SOURCE_DIR}/../thread_system/include" # Sibling directory
-            "../thread_system/include"                             # Relative fallback
-            "/usr/local/include"                                   # Homebrew default
-            "/opt/homebrew/include"                                # Apple Silicon Homebrew
+        list(APPEND _thread_search_paths
+            "/usr/local/include"      # Homebrew default
+            "/opt/homebrew/include"   # Apple Silicon Homebrew
         )
-        set(_thread_lib_paths
-            "/Users/$ENV{USER}/Sources/thread_system/build/lib"
-            "${CMAKE_CURRENT_SOURCE_DIR}/../thread_system/build/lib"
-            "../thread_system/build/lib"
+        list(APPEND _thread_lib_paths
             "/usr/local/lib"
             "/opt/homebrew/lib"
         )
     else()
-        set(_thread_search_paths
-            "/home/$ENV{USER}/Sources/thread_system/include"      # Linux development
-            "${CMAKE_CURRENT_SOURCE_DIR}/../thread_system/include" # Sibling directory
-            "../thread_system/include"                             # Relative fallback
-            "/usr/local/include"                                   # Standard Unix path
-            "/usr/include"                                         # System path
+        list(APPEND _thread_search_paths
+            "/usr/local/include"      # Standard Unix path
+            "/usr/include"            # System path
         )
-        set(_thread_lib_paths
-            "/home/$ENV{USER}/Sources/thread_system/build/lib"
-            "${CMAKE_CURRENT_SOURCE_DIR}/../thread_system/build/lib"
-            "../thread_system/build/lib"
+        list(APPEND _thread_lib_paths
             "/usr/local/lib"
             "/usr/lib"
             "/usr/lib/x86_64-linux-gnu"  # Ubuntu/Debian x86_64
             "/usr/lib/aarch64-linux-gnu" # Ubuntu/Debian ARM64
         )
+    endif()
+
+    # Prioritize environment variable if set
+    if(DEFINED ENV{THREAD_SYSTEM_ROOT})
+        list(INSERT _thread_search_paths 0 "$ENV{THREAD_SYSTEM_ROOT}/include")
+        list(INSERT _thread_lib_paths 0 "$ENV{THREAD_SYSTEM_ROOT}/build/lib")
     endif()
 
     find_path(THREAD_SYSTEM_INCLUDE_DIR
@@ -367,29 +365,20 @@ function(find_logger_system)
 
     message(STATUS "Looking for logger_system...")
 
-    # Prioritize Sources/ directory
-    if(APPLE)
-        set(_logger_search_paths
-            /Users/${USER}/Sources/logger_system/include
-            ../logger_system/include
-            ${CMAKE_CURRENT_SOURCE_DIR}/../logger_system/include
-        )
-        set(_logger_lib_paths
-            /Users/${USER}/Sources/logger_system/build/lib
-            ../logger_system/build/lib
-            ${CMAKE_CURRENT_SOURCE_DIR}/../logger_system/build/lib
-        )
-    else()
-        set(_logger_search_paths
-            /home/${USER}/Sources/logger_system/include
-            ../logger_system/include
-            ${CMAKE_CURRENT_SOURCE_DIR}/../logger_system/include
-        )
-        set(_logger_lib_paths
-            /home/${USER}/Sources/logger_system/build/lib
-            ../logger_system/build/lib
-            ${CMAKE_CURRENT_SOURCE_DIR}/../logger_system/build/lib
-        )
+    # Use environment variable or sibling directory
+    set(_logger_search_paths
+        ../logger_system/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/../logger_system/include
+    )
+    set(_logger_lib_paths
+        ../logger_system/build/lib
+        ${CMAKE_CURRENT_SOURCE_DIR}/../logger_system/build/lib
+    )
+
+    # Prioritize environment variable if set
+    if(DEFINED ENV{LOGGER_SYSTEM_ROOT})
+        list(INSERT _logger_search_paths 0 "$ENV{LOGGER_SYSTEM_ROOT}/include")
+        list(INSERT _logger_lib_paths 0 "$ENV{LOGGER_SYSTEM_ROOT}/build/lib")
     endif()
 
     find_path(LOGGER_SYSTEM_INCLUDE_DIR
@@ -433,19 +422,15 @@ function(find_common_system)
 
     message(STATUS "Looking for common_system...")
 
-    # Prioritize Sources/ directory
-    if(APPLE)
-        set(_common_search_paths
-            /Users/${USER}/Sources/common_system/include
-            ../common_system/include
-            ${CMAKE_CURRENT_SOURCE_DIR}/../common_system/include
-        )
-    else()
-        set(_common_search_paths
-            /home/${USER}/Sources/common_system/include
-            ../common_system/include
-            ${CMAKE_CURRENT_SOURCE_DIR}/../common_system/include
-        )
+    # Use environment variable or sibling directory
+    set(_common_search_paths
+        ../common_system/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/../common_system/include
+    )
+
+    # Prioritize environment variable if set
+    if(DEFINED ENV{COMMON_SYSTEM_ROOT})
+        list(INSERT _common_search_paths 0 "$ENV{COMMON_SYSTEM_ROOT}/include")
     endif()
 
     find_path(COMMON_SYSTEM_INCLUDE_DIR
