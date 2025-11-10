@@ -247,7 +247,7 @@ namespace network_system::core
 		catch (const std::exception& e)
 		{
 			return error_void(
-				error_codes::common::internal_error,
+				error_codes::common_errors::internal_error,
 				"Failed to connect: " + std::string(e.what()),
 				"secure_messaging_client::start_client",
 				"Host: " + host + ", Port: " + std::to_string(port)
@@ -311,7 +311,7 @@ namespace network_system::core
 		catch (const std::exception& e)
 		{
 			return error_void(
-				error_codes::common::internal_error,
+				error_codes::common_errors::internal_error,
 				"Failed to stop client: " + std::string(e.what()),
 				"secure_messaging_client::stop_client",
 				"Client ID: " + client_id_

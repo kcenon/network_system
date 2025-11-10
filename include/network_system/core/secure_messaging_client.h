@@ -106,7 +106,7 @@ namespace network_system::core
 		 * \return Result<void> - Success if connected, or error with code:
 		 *         - error_codes::network_system::connection_failed
 		 *         - error_codes::network_system::connection_timeout
-		 *         - error_codes::common::internal_error
+		 *         - error_codes::common_errors::internal_error
 		 *
 		 * This method:
 		 * 1. Creates io_context and secure socket

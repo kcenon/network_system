@@ -115,7 +115,7 @@ namespace network_system::core
 		{
 			is_running_.store(false);
 			return error_void(
-				error_codes::common::internal_error,
+				error_codes::common_errors::internal_error,
 				std::string("Failed to start UDP server: ") + e.what(),
 				"messaging_udp_server::start_server",
 				"Port: " + std::to_string(port)
@@ -163,7 +163,7 @@ namespace network_system::core
 		catch (const std::exception& e)
 		{
 			return error_void(
-				error_codes::common::internal_error,
+				error_codes::common_errors::internal_error,
 				std::string("Failed to stop UDP server: ") + e.what(),
 				"messaging_udp_server::stop_server",
 				""
