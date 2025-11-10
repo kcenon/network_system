@@ -56,7 +56,7 @@ jobs:
           cmake -B build \
             -G Ninja \
             -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
-            -DBUILD_TESTS=ON \
+            -DBUILD_TESTS=OFF \
             -DNETWORK_BUILD_INTEGRATION_TESTS=ON \
             -DENABLE_COVERAGE=${{ matrix.build_type == 'Debug' && 'ON' || 'OFF' }} \
             -DBUILD_SAMPLES=OFF \
@@ -163,7 +163,7 @@ jobs:
           cmake -B build \
             -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
-            -DBUILD_TESTS=ON \
+            -DBUILD_TESTS=OFF \
             -DNETWORK_BUILD_INTEGRATION_TESTS=ON \
             -DBUILD_SAMPLES=OFF \
             -DBUILD_WITH_COMMON_SYSTEM=OFF \

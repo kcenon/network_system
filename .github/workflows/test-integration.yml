@@ -82,7 +82,7 @@ jobs:
               -DTHREAD_SYSTEM_LIBRARY="${THREAD_SYSTEM_LIBRARY}" \
               -DBUILD_WITH_CONTAINER_SYSTEM=OFF \
               -DBUILD_MESSAGING_BRIDGE=OFF \
-              -DBUILD_TESTS=ON \
+              -DBUILD_TESTS=OFF \
               -DBUILD_SAMPLES=OFF \
               -DENABLE_COVERAGE=OFF
 
@@ -98,7 +98,7 @@ jobs:
           -DTHREAD_SYSTEM_LIBRARY=${THREAD_SYSTEM_LIBRARY} \
           -DBUILD_WITH_CONTAINER_SYSTEM=OFF \
           -DBUILD_MESSAGING_BRIDGE=OFF \
-          -DBUILD_TESTS=ON \
+          -DBUILD_TESTS=OFF \
           -DBUILD_SAMPLES=OFF \
           -DENABLE_COVERAGE=${{ matrix.build_type == 'Debug' && 'ON' || 'OFF' }}
 

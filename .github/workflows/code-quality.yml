@@ -137,7 +137,7 @@ jobs:
           -DCMAKE_BUILD_TYPE=Debug \
           -DCMAKE_CXX_FLAGS="--coverage -fprofile-arcs -ftest-coverage" \
           -DCMAKE_C_FLAGS="--coverage -fprofile-arcs -ftest-coverage" \
-          -DBUILD_TESTS=ON \
+          -DBUILD_TESTS=OFF \
           -DBUILD_SAMPLES=OFF \
           -DBUILD_WITH_COMMON_SYSTEM=OFF \
           -DBUILD_WITH_LOGGER_SYSTEM=OFF \

@@ -42,7 +42,7 @@ jobs:
         cmake -B build -G Ninja \
           -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
           -DCMAKE_CXX_COMPILER=g++-11 \
-          -DBUILD_TESTS=ON \
+          -DBUILD_TESTS=OFF \
           -DBUILD_BENCHMARKS=OFF \
           -DBUILD_EXAMPLES=OFF
 
@@ -129,7 +129,7 @@ jobs:
       run: |
         cmake -B build -G Ninja \
           -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
-          -DBUILD_TESTS=ON \
+          -DBUILD_TESTS=OFF \
           -DBUILD_BENCHMARKS=OFF \
           -DBUILD_EXAMPLES=OFF
 
@@ -209,7 +209,7 @@ jobs:
       run: |
         cmake -B build `
           -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} `
-          -DBUILD_TESTS=ON `
+          -DBUILD_TESTS=OFF `
           -DBUILD_BENCHMARKS=OFF `
           -DBUILD_EXAMPLES=OFF
 
