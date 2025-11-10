@@ -64,7 +64,7 @@ namespace network_system::core
 		if (is_running_.load())
 		{
 			return error_void(
-				error_codes::common::already_exists,
+				error_codes::common_errors::already_exists,
 				"UDP client is already running",
 				"messaging_udp_client::start_client",
 				"Client ID: " + client_id_
@@ -74,7 +74,7 @@ namespace network_system::core
 		if (host.empty())
 		{
 			return error_void(
-				error_codes::common::invalid_argument,
+				error_codes::common_errors::invalid_argument,
 				"Host cannot be empty",
 				"messaging_udp_client::start_client",
 				""
@@ -93,7 +93,7 @@ namespace network_system::core
 			if (endpoints.empty())
 			{
 				return error_void(
-					error_codes::common::internal_error,
+					error_codes::common_errors::internal_error,
 					"Failed to resolve host",
 					"messaging_udp_client::start_client",
 					"Host: " + std::string(host)
@@ -152,7 +152,7 @@ namespace network_system::core
 			io_context_.reset();
 
 			return error_void(
-				error_codes::common::internal_error,
+				error_codes::common_errors::internal_error,
 				std::string("Failed to create UDP socket: ") + e.what(),
 				"messaging_udp_client::start_client",
 				"Host: " + std::string(host) + ":" + std::to_string(port)
@@ -167,7 +167,7 @@ namespace network_system::core
 			io_context_.reset();
 
 			return error_void(
-				error_codes::common::internal_error,
+				error_codes::common_errors::internal_error,
 				std::string("Failed to start UDP client: ") + e.what(),
 				"messaging_udp_client::start_client",
 				"Host: " + std::string(host) + ":" + std::to_string(port)
@@ -212,7 +212,7 @@ namespace network_system::core
 		catch (const std::exception& e)
 		{
 			return error_void(
-				error_codes::common::internal_error,
+				error_codes::common_errors::internal_error,
 				std::string("Failed to stop UDP client: ") + e.what(),
 				"messaging_udp_client::stop_client",
 				""
@@ -236,7 +236,7 @@ namespace network_system::core
 		if (!is_running_.load())
 		{
 			return error_void(
-				error_codes::common::internal_error,
+				error_codes::common_errors::internal_error,
 				"UDP client is not running",
 				"messaging_udp_client::send_packet",
 				""
@@ -247,7 +247,7 @@ namespace network_system::core
 		if (!socket_)
 		{
 			return error_void(
-				error_codes::common::internal_error,
+				error_codes::common_errors::internal_error,
 				"Socket not available",
 				"messaging_udp_client::send_packet",
 				""
@@ -284,7 +284,7 @@ namespace network_system::core
 		if (!is_running_.load())
 		{
 			return error_void(
-				error_codes::common::internal_error,
+				error_codes::common_errors::internal_error,
 				"UDP client is not running",
 				"messaging_udp_client::set_target",
 				""
@@ -300,7 +300,7 @@ namespace network_system::core
 			if (endpoints.empty())
 			{
 				return error_void(
-					error_codes::common::internal_error,
+					error_codes::common_errors::internal_error,
 					"Failed to resolve host",
 					"messaging_udp_client::set_target",
 					"Host: " + std::string(host)
@@ -317,7 +317,7 @@ namespace network_system::core
 		catch (const std::exception& e)
 		{
 			return error_void(
-				error_codes::common::internal_error,
+				error_codes::common_errors::internal_error,
 				std::string("Failed to set target: ") + e.what(),
 				"messaging_udp_client::set_target",
 				"Host: " + std::string(host) + ":" + std::to_string(port)

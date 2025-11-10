@@ -105,7 +105,7 @@ namespace network_system::core
 		if (is_running_.load())
 		{
 			return error_void(
-				error_codes::common::already_exists,
+				error_codes::common_errors::already_exists,
 				"Client is already running",
 				"messaging_client::start_client",
 				"Client ID: " + client_id_
@@ -115,7 +115,7 @@ namespace network_system::core
 		if (host.empty())
 		{
 			return error_void(
-				error_codes::common::invalid_argument,
+				error_codes::common_errors::invalid_argument,
 				"Host cannot be empty",
 				"messaging_client::start_client",
 				"Client ID: " + client_id_
@@ -177,7 +177,7 @@ namespace network_system::core
 			io_executor_.reset();
 			io_context_.reset();
 			return error_void(
-				error_codes::common::internal_error,
+				error_codes::common_errors::internal_error,
 				"Failed to start client: " + std::string(e.what()),
 				"messaging_client::start_client",
 				"Client ID: " + client_id_ + ", Host: " + std::string(host)
@@ -255,7 +255,7 @@ namespace network_system::core
 		{
 			stop_initiated_.store(false);
 			return error_void(
-				error_codes::common::internal_error,
+				error_codes::common_errors::internal_error,
 				"Failed to stop client: " + std::string(e.what()),
 				"messaging_client::stop_client",
 				"Client ID: " + client_id_
@@ -376,7 +376,7 @@ namespace network_system::core
 		if (data.empty())
 		{
 			return error_void(
-				error_codes::common::invalid_argument,
+				error_codes::common_errors::invalid_argument,
 				"Data cannot be empty",
 				"messaging_client::send_packet",
 				"Client ID: " + client_id_

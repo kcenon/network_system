@@ -120,7 +120,7 @@ namespace network_system::core
 			if (!pool_mgr.is_initialized())
 			{
 				return error_void(
-					error_codes::common::internal_error,
+					error_codes::common_errors::internal_error,
 					"Thread pool manager not initialized",
 					"secure_messaging_server::start_server",
 					"Call thread_pool_manager::instance().initialize() first"
@@ -195,7 +195,7 @@ namespace network_system::core
 			}
 
 			return error_void(
-				error_codes::common::internal_error,
+				error_codes::common_errors::internal_error,
 				"Failed to start secure server: " + std::string(e.what()),
 				"secure_messaging_server::start_server",
 				"Port: " + std::to_string(port)
@@ -206,7 +206,7 @@ namespace network_system::core
 			is_running_.store(false);
 			io_executor_.reset();
 			return error_void(
-				error_codes::common::internal_error,
+				error_codes::common_errors::internal_error,
 				"Failed to start secure server: " + std::string(e.what()),
 				"secure_messaging_server::start_server",
 				"Port: " + std::to_string(port)
@@ -301,7 +301,7 @@ namespace network_system::core
 		catch (const std::exception& e)
 		{
 			return error_void(
-				error_codes::common::internal_error,
+				error_codes::common_errors::internal_error,
 				"Failed to stop secure server: " + std::string(e.what()),
 				"secure_messaging_server::stop_server",
 				"Server ID: " + server_id_
@@ -484,12 +484,12 @@ namespace network_system::core
 	}
 
 #ifdef BUILD_WITH_COMMON_SYSTEM
-	auto secure_messaging_server::set_monitor(common::interfaces::IMonitor* monitor) -> void
+	auto secure_messaging_server::set_monitor(kcenon::common::interfaces::IMonitor* monitor) -> void
 	{
 		monitor_ = monitor;
 	}
 
-	auto secure_messaging_server::get_monitor() const -> common::interfaces::IMonitor*
+	auto secure_messaging_server::get_monitor() const -> kcenon::common::interfaces::IMonitor*
 	{
 		return monitor_;
 	}

@@ -109,7 +109,7 @@ namespace network_system::core
 
 			if (is_running_.load())
 			{
-				return error_void(error_codes::common::already_exists,
+				return error_void(error_codes::common_errors::already_exists,
 								  "Client is already running");
 			}
 
@@ -187,7 +187,7 @@ namespace network_system::core
 		{
 			if (!is_running_.load())
 			{
-				return error_void(error_codes::common::internal_error,
+				return error_void(error_codes::common_errors::internal_error,
 								  "Client is not running");
 			}
 
@@ -204,7 +204,7 @@ namespace network_system::core
 				return send_sequenced(std::move(data));
 			}
 
-			return error_void(error_codes::common::internal_error, "Invalid reliability mode");
+			return error_void(error_codes::common_errors::internal_error, "Invalid reliability mode");
 		}
 
 		auto wait_for_stop() -> void
@@ -288,7 +288,7 @@ namespace network_system::core
 			// Check congestion window
 			if (pending_packets_.size() >= congestion_window_)
 			{
-				return error_void(error_codes::common::internal_error,
+				return error_void(error_codes::common_errors::internal_error,
 								  "Congestion window full");
 			}
 

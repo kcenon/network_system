@@ -135,7 +135,7 @@ namespace network_system::core {
 		 * \return Result<void> - Success if server started, or error with code:
 		 *         - error_codes::network_system::server_already_running if already running
 		 *         - error_codes::network_system::bind_failed if port binding failed
-		 *         - error_codes::common::internal_error for other failures
+		 *         - error_codes::common_errors::internal_error for other failures
 		 *
 		 * #### Behavior
 		 * - If the server is already running (\c is_running_ is \c true), returns error.
@@ -160,7 +160,7 @@ namespace network_system::core {
 		 *
 		 * \return Result<void> - Success if server stopped, or error with code:
 		 *         - error_codes::network_system::server_not_started if not running
-		 *         - error_codes::common::internal_error for other failures
+		 *         - error_codes::common_errors::internal_error for other failures
 		 *
 		 * #### Steps:
 		 * 1. Set \c is_running_ to \c false.
@@ -198,13 +198,13 @@ namespace network_system::core {
 		 * - active_connections: Current number of active sessions
 		 * - connection_errors: Count of connection failures
 		 */
-		auto set_monitor(common::interfaces::IMonitor* monitor) -> void;
+		auto set_monitor(kcenon::common::interfaces::IMonitor* monitor) -> void;
 
 		/*!
 		 * \brief Get the current monitor
 		 * \return Pointer to monitor or nullptr if not set
 		 */
-		auto get_monitor() const -> common::interfaces::IMonitor*;
+		auto get_monitor() const -> kcenon::common::interfaces::IMonitor*;
 #endif
 
 		/*!
@@ -368,7 +368,7 @@ namespace network_system::core {
 		/*!
 		 * \brief Optional monitoring interface for metrics collection
 		 */
-		common::interfaces::IMonitor* monitor_ = nullptr;
+		kcenon::common::interfaces::IMonitor* monitor_ = nullptr;
 
 		/*!
 		 * \brief Atomic counters for metrics

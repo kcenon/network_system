@@ -193,7 +193,7 @@ namespace network_system::core
 		{
 			if (is_running_.load())
 			{
-				return error_void(error_codes::common::already_exists,
+				return error_void(error_codes::common_errors::already_exists,
 								  "Server is already running");
 			}
 
@@ -205,14 +205,14 @@ namespace network_system::core
 				auto& mgr = integration::thread_pool_manager::instance();
 				if (!mgr.is_initialized())
 				{
-					return error_void(error_codes::common::internal_error,
+					return error_void(error_codes::common_errors::internal_error,
 									  "thread_pool_manager not initialized");
 				}
 
 				auto pool = mgr.create_io_pool("messaging_ws_server");
 				if (!pool)
 				{
-					return error_void(error_codes::common::internal_error,
+					return error_void(error_codes::common_errors::internal_error,
 									  "Failed to create I/O pool");
 				}
 
@@ -275,7 +275,7 @@ namespace network_system::core
 									  "Failed to bind to port: permission denied");
 				}
 
-				return error_void(error_codes::common::internal_error,
+				return error_void(error_codes::common_errors::internal_error,
 								  std::string("Failed to start server: ") + e.what());
 			}
 			catch (const std::exception& e)
@@ -291,7 +291,7 @@ namespace network_system::core
 		{
 			if (!is_running_.load())
 			{
-				return error_void(error_codes::common::not_initialized,
+				return error_void(error_codes::common_errors::not_initialized,
 								  "Server is not running");
 			}
 
@@ -352,7 +352,7 @@ namespace network_system::core
 			}
 			catch (const std::exception& e)
 			{
-				return error_void(error_codes::common::internal_error,
+				return error_void(error_codes::common_errors::internal_error,
 								  std::string("Failed to stop server: ") + e.what());
 			}
 		}

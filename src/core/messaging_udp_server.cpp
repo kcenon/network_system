@@ -76,7 +76,7 @@ namespace network_system::core
 			if (!mgr.is_initialized())
 			{
 				return error_void(
-					error_codes::common::internal_error,
+					error_codes::common_errors::internal_error,
 					"thread_pool_manager not initialized",
 					"messaging_udp_server::start_server",
 					"Server ID: " + server_id_
@@ -87,7 +87,7 @@ namespace network_system::core
 			if (!pool)
 			{
 				return error_void(
-					error_codes::common::internal_error,
+					error_codes::common_errors::internal_error,
 					"Failed to create I/O pool",
 					"messaging_udp_server::start_server",
 					"Server ID: " + server_id_
@@ -138,7 +138,7 @@ namespace network_system::core
 			is_running_.store(false);
 			io_executor_.reset();
 			return error_void(
-				error_codes::common::internal_error,
+				error_codes::common_errors::internal_error,
 				std::string("Failed to start UDP server: ") + e.what(),
 				"messaging_udp_server::start_server",
 				"Port: " + std::to_string(port)
@@ -183,7 +183,7 @@ namespace network_system::core
 		catch (const std::exception& e)
 		{
 			return error_void(
-				error_codes::common::internal_error,
+				error_codes::common_errors::internal_error,
 				std::string("Failed to stop UDP server: ") + e.what(),
 				"messaging_udp_server::stop_server",
 				""

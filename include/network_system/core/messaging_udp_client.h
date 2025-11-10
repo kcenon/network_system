@@ -131,9 +131,9 @@ namespace network_system::core
 		 * \param host The target hostname or IP address.
 		 * \param port The target port number.
 		 * \return Result<void> - Success if client started, or error with code:
-		 *         - error_codes::common::already_exists if already running
-		 *         - error_codes::common::invalid_argument if empty host
-		 *         - error_codes::common::internal_error for other failures
+		 *         - error_codes::common_errors::already_exists if already running
+		 *         - error_codes::common_errors::invalid_argument if empty host
+		 *         - error_codes::common_errors::internal_error for other failures
 		 *
 		 * Creates an io_context, resolves the target endpoint, creates a UDP socket,
 		 * and runs io_context on thread pool's I/O executor.
@@ -145,7 +145,7 @@ namespace network_system::core
 		/*!
 		 * \brief Stops the client and releases resources.
 		 * \return Result<void> - Success if client stopped, or error with code:
-		 *         - error_codes::common::internal_error for failures
+		 *         - error_codes::common_errors::internal_error for failures
 		 *
 		 * Stops receiving datagrams, closes the socket, and joins the background thread.
 		 */
