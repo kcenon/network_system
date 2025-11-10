@@ -19,6 +19,8 @@ jobs:
         fetch-depth: 0
 
     - name: Setup thread_system
+      if: false
+
       uses: ./.github/actions/setup-thread-system
 
     - name: Checkout Base Branch

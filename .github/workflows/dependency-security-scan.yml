@@ -30,6 +30,8 @@ jobs:
         submodules: true
 
     - name: Setup thread_system
+      if: false
+
       uses: ./.github/actions/setup-thread-system
 
     - name: Setup vcpkg manually

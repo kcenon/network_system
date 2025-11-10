@@ -28,6 +28,8 @@ jobs:
         path: network_system
 
     - name: Setup thread_system
+      if: false
+
       uses: ./network_system/.github/actions/setup-thread-system
 
     - name: Checkout common_system

@@ -23,6 +23,8 @@ jobs:
     - uses: actions/checkout@v3
 
     - name: Setup thread_system
+      if: false
+
       uses: ./.github/actions/setup-thread-system
 
     - name: Install Analysis Tools
@@ -99,6 +101,8 @@ jobs:
     - uses: actions/checkout@v3
 
     - name: Setup thread_system
+      if: false
+
       uses: ./.github/actions/setup-thread-system
 
     - name: Run Trivy Security Scanner
@@ -124,6 +128,8 @@ jobs:
     - uses: actions/checkout@v3
 
     - name: Setup thread_system
+      if: false
+
       uses: ./.github/actions/setup-thread-system
 
     - name: Setup Environment

@@ -30,6 +30,8 @@ jobs:
         submodules: recursive
 
     - name: Setup thread_system
+      if: false
+
       uses: ./.github/actions/setup-thread-system
 
     - name: Install dependencies
@@ -119,6 +121,8 @@ jobs:
         submodules: recursive
 
     - name: Setup thread_system
+      if: false
+
       uses: ./.github/actions/setup-thread-system
 
     - name: Install dependencies
