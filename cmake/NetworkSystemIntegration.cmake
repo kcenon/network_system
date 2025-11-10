@@ -89,6 +89,11 @@ endfunction()
 # Configure thread_system integration (REQUIRED)
 ##################################################
 function(setup_thread_system_integration target)
+    # Check if thread_system integration is enabled
+    if(NOT BUILD_WITH_THREAD_SYSTEM)
+        return()
+    endif()
+
     # thread_system is now required - no option to disable
     if(NOT THREAD_SYSTEM_INCLUDE_DIR)
         message(FATAL_ERROR
