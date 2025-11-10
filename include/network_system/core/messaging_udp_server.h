@@ -117,7 +117,7 @@ namespace network_system::core
 		 * \return Result<void> - Success if server started, or error with code:
 		 *         - error_codes::network_system::server_already_running if already running
 		 *         - error_codes::network_system::bind_failed if port binding failed
-		 *         - error_codes::common::internal_error for other failures
+		 *         - error_codes::common_errors::internal_error for other failures
 		 *
 		 * Creates an io_context and UDP socket, binds to the specified port,
 		 * and spawns a background thread to run io_context.run().

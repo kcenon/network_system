@@ -45,14 +45,14 @@ namespace network_system {
 #ifdef BUILD_WITH_COMMON_SYSTEM
 	// Use common_system Result<T> when available
 	template<typename T>
-	using Result = ::common::Result<T>;
+	using Result = ::kcenon::common::Result<T>;
 
-	using VoidResult = ::common::VoidResult;
+	using VoidResult = ::kcenon::common::VoidResult;
 
-	using error_info = ::common::error_info;
+	using error_info = ::kcenon::common::error_info;
 
-	// Error code namespace
-	namespace error_codes = ::common::error::codes;
+	// Error code namespace (includes common_errors and network_system)
+	namespace error_codes = ::kcenon::common::error::codes;
 
 	// Helper functions for creating Results
 	template<typename T>
@@ -127,10 +127,25 @@ namespace network_system {
 			constexpr int server_already_running = -661;
 			constexpr int bind_failed = -662;
 		}
+		namespace common_errors {
+			constexpr int success = 0;
+			constexpr int invalid_argument = -1;
+			constexpr int not_found = -2;
+			constexpr int permission_denied = -3;
+			constexpr int timeout = -4;
+			constexpr int cancelled = -5;
+			constexpr int not_initialized = -6;
+			constexpr int already_exists = -7;
+			constexpr int out_of_memory = -8;
+			constexpr int io_error = -9;
+			constexpr int network_error = -10;
+			constexpr int internal_error = -99;
+		}
+		// Legacy compatibility
 		namespace common {
-			constexpr int invalid_argument = -10;
-			constexpr int not_initialized = -11;
-			constexpr int already_exists = -12;
+			constexpr int invalid_argument = common_errors::invalid_argument;
+			constexpr int not_initialized = common_errors::not_initialized;
+			constexpr int already_exists = common_errors::already_exists;
 			constexpr int internal_error = -99;
 		}
 	}

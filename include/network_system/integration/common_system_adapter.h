@@ -25,7 +25,7 @@ namespace integration {
 class common_executor_adapter {
 public:
     explicit common_executor_adapter(
-        std::shared_ptr<::common::interfaces::IExecutor> executor)
+        std::shared_ptr<::kcenon::common::interfaces::IExecutor> executor)
         : executor_(executor) {}
 
     /**
@@ -59,7 +59,7 @@ public:
     }
 
 private:
-    std::shared_ptr<::common::interfaces::IExecutor> executor_;
+    std::shared_ptr<::kcenon::common::interfaces::IExecutor> executor_;
 };
 
 /**

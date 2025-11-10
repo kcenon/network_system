@@ -140,7 +140,7 @@ namespace network_system::core
 			}
 
 			return error_void(
-				error_codes::common::internal_error,
+				error_codes::common_errors::internal_error,
 				"Failed to start server: " + std::string(e.what()),
 				"messaging_server::start_server",
 				"Port: " + std::to_string(port)
@@ -150,7 +150,7 @@ namespace network_system::core
 		{
 			is_running_.store(false);
 			return error_void(
-				error_codes::common::internal_error,
+				error_codes::common_errors::internal_error,
 				"Failed to start server: " + std::string(e.what()),
 				"messaging_server::start_server",
 				"Port: " + std::to_string(port)
@@ -249,7 +249,7 @@ namespace network_system::core
 		catch (const std::exception& e)
 		{
 			return error_void(
-				error_codes::common::internal_error,
+				error_codes::common_errors::internal_error,
 				"Failed to stop server: " + std::string(e.what()),
 				"messaging_server::stop_server",
 				"Server ID: " + server_id_
@@ -432,12 +432,12 @@ namespace network_system::core
 	}
 
 #ifdef BUILD_WITH_COMMON_SYSTEM
-	auto messaging_server::set_monitor(common::interfaces::IMonitor* monitor) -> void
+	auto messaging_server::set_monitor(kcenon::common::interfaces::IMonitor* monitor) -> void
 	{
 		monitor_ = monitor;
 	}
 
-	auto messaging_server::get_monitor() const -> common::interfaces::IMonitor*
+	auto messaging_server::get_monitor() const -> kcenon::common::interfaces::IMonitor*
 	{
 		return monitor_;
 	}
