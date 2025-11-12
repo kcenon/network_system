@@ -46,6 +46,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <asio/ssl.hpp>
 
 #include "network_system/utils/result_types.h"
+#include "network_system/integration/thread_integration.h"
 
 // Optional monitoring support via common_system
 #ifdef BUILD_WITH_COMMON_SYSTEM
@@ -239,8 +240,11 @@ namespace network_system::core
 			work_guard_;	/*!< Keeps io_context running. */
 		std::unique_ptr<asio::ip::tcp::acceptor>
 			acceptor_;		/*!< Acceptor to listen for new connections. */
-		std::unique_ptr<std::thread>
-			server_thread_; /*!< Thread that runs \c io_context_->run(). */
+
+		std::shared_ptr<integration::thread_pool_interface>
+			thread_pool_;	/*!< Thread pool for async operations. */
+		std::future<void>
+			io_context_future_; /*!< Future for io_context run task. */
 
 		std::unique_ptr<asio::ssl::context>
 			ssl_context_;	/*!< SSL context for encryption. */

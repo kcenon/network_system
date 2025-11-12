@@ -43,6 +43,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <asio.hpp>
 
 #include "network_system/utils/result_types.h"
+#include "network_system/integration/thread_integration.h"
 
 namespace network_system::internal
 {
@@ -194,7 +195,9 @@ namespace network_system::core
 
 		std::unique_ptr<asio::io_context> io_context_;   /*!< ASIO I/O context. */
 		std::shared_ptr<internal::udp_socket> socket_;   /*!< UDP socket wrapper. */
-		std::thread worker_thread_;                      /*!< Background I/O thread. */
+
+		std::shared_ptr<integration::thread_pool_interface> thread_pool_;   /*!< Thread pool for async operations. */
+		std::future<void> io_context_future_;            /*!< Future for io_context run task. */
 
 		std::mutex endpoint_mutex_;                      /*!< Protects target_endpoint_. */
 		asio::ip::udp::endpoint target_endpoint_;        /*!< Target endpoint for sends. */

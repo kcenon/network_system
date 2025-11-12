@@ -32,6 +32,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "network_system/core/secure_messaging_server.h"
 
+#include "network_system/core/network_context.h"
 #include "network_system/integration/logger_integration.h"
 #include "network_system/session/secure_session.h"
 
@@ -137,17 +138,28 @@ namespace network_system::core
 			// Start periodic cleanup timer
 			start_cleanup_timer();
 
-			// Start thread to run the io_context
-			server_thread_ = std::make_unique<std::thread>(
+			// Get thread pool from network context
+			thread_pool_ = network_context::instance().get_thread_pool();
+			if (!thread_pool_) {
+				// Fallback: create a temporary thread pool if network_context is not initialized
+				NETWORK_LOG_WARN("[secure_messaging_server] network_context not initialized, creating temporary thread pool");
+				thread_pool_ = std::make_shared<integration::basic_thread_pool>(std::thread::hardware_concurrency());
+			}
+
+			// Start io_context on thread pool
+			io_context_future_ = thread_pool_->submit(
 				[this]()
 				{
 					try
 					{
+						NETWORK_LOG_DEBUG("[secure_messaging_server] io_context started");
 						io_context_->run();
+						NETWORK_LOG_DEBUG("[secure_messaging_server] io_context stopped");
 					}
-					catch (...)
+					catch (const std::exception& e)
 					{
-						// Optionally handle any uncaught exceptions
+						NETWORK_LOG_ERROR("[secure_messaging_server] Exception in io_context: " +
+										  std::string(e.what()));
 					}
 				});
 
@@ -259,16 +271,21 @@ namespace network_system::core
 				io_context_->stop();
 			}
 
-			// Step 4: Join the io_context thread
-			if (server_thread_ && server_thread_->joinable())
+			// Step 4: Wait for io_context task to complete
+			if (io_context_future_.valid())
 			{
-				server_thread_->join();
+				try {
+					io_context_future_.wait();
+				} catch (const std::exception& e) {
+					NETWORK_LOG_ERROR("[secure_messaging_server] Exception while waiting for io_context: " +
+									  std::string(e.what()));
+				}
 			}
 
 			// Step 5: Release resources explicitly to ensure cleanup
 			acceptor_.reset();
 			cleanup_timer_.reset();
-			server_thread_.reset();
+			thread_pool_.reset();
 			io_context_.reset();
 
 			// Step 6: Signal the promise for wait_for_stop()

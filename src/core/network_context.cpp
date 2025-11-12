@@ -42,6 +42,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <thread>
 #include <mutex>
 
+#ifdef BUILD_WITH_THREAD_SYSTEM
+#include "network_system/integration/thread_system_adapter.h"
+#endif
+
 namespace network_system::core {
 
 class network_context::impl {
@@ -87,8 +91,28 @@ void network_context::initialize(size_t thread_count) {
             }
         }
 
+#ifdef BUILD_WITH_THREAD_SYSTEM
+        // Use thread_system's thread_pool via adapter
+        try {
+            auto adapter = integration::thread_system_pool_adapter::from_service_or_default("network_pool");
+            if (adapter && adapter->is_running()) {
+                pimpl_->thread_pool_ = adapter;
+                pimpl_->owns_thread_pool_ = false; // Managed by thread_system
+            } else {
+                // Fallback to basic pool if thread_system pool is not available
+                pimpl_->thread_pool_ = std::make_shared<integration::basic_thread_pool>(thread_count);
+                pimpl_->owns_thread_pool_ = true;
+            }
+        } catch (...) {
+            // If thread_system integration fails, use basic pool
+            pimpl_->thread_pool_ = std::make_shared<integration::basic_thread_pool>(thread_count);
+            pimpl_->owns_thread_pool_ = true;
+        }
+#else
+        // Use basic thread pool when thread_system is not available
         pimpl_->thread_pool_ = std::make_shared<integration::basic_thread_pool>(thread_count);
         pimpl_->owns_thread_pool_ = true;
+#endif
     }
 
     // Initialize logger if not already set
