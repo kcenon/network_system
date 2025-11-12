@@ -317,47 +317,51 @@ namespace network_system::core
 			std::move(socket), server_id_);
 
 		// Set up session callbacks to forward to server callbacks
+		// Copy callbacks to local variables to avoid holding mutex during callback setup
 		auto self = shared_from_this();
+
+		// Copy callbacks while holding lock, then release before calling set_*_callback
+		std::function<void(std::shared_ptr<network_system::session::messaging_session>, const std::vector<uint8_t>&)> local_receive_callback;
+		std::function<void(const std::string&)> local_disconnection_callback;
+		std::function<void(std::shared_ptr<network_system::session::messaging_session>, std::error_code)> local_error_callback;
+
 		{
 			std::lock_guard<std::mutex> lock(callback_mutex_);
-			if (receive_callback_)
-			{
-				new_session->set_receive_callback(
-					[this, self, new_session](const std::vector<uint8_t>& data)
-					{
-						std::lock_guard<std::mutex> cb_lock(callback_mutex_);
-						if (receive_callback_)
-						{
-							receive_callback_(new_session, data);
-						}
-					});
-			}
+			local_receive_callback = receive_callback_;
+			local_disconnection_callback = disconnection_callback_;
+			local_error_callback = error_callback_;
+		}
 
-			if (disconnection_callback_)
-			{
-				new_session->set_disconnection_callback(
-					[this, self, new_session](const std::string& session_id)
-					{
-						std::lock_guard<std::mutex> cb_lock(callback_mutex_);
-						if (disconnection_callback_)
-						{
-							disconnection_callback_(session_id);
-						}
-					});
-			}
+		// Set up callbacks without holding any locks to avoid lock-order-inversion
+		// Lambdas use captured local callbacks directly to avoid locking callback_mutex_
+		if (local_receive_callback)
+		{
+			new_session->set_receive_callback(
+				[self, new_session, local_receive_callback](const std::vector<uint8_t>& data)
+				{
+					// Call the captured callback directly without locking to prevent deadlock
+					local_receive_callback(new_session, data);
+				});
+		}
 
-			if (error_callback_)
-			{
-				new_session->set_error_callback(
-					[this, self, new_session](std::error_code ec)
-					{
-						std::lock_guard<std::mutex> cb_lock(callback_mutex_);
-						if (error_callback_)
-						{
-							error_callback_(new_session, ec);
-						}
-					});
-			}
+		if (local_disconnection_callback)
+		{
+			new_session->set_disconnection_callback(
+				[self, local_disconnection_callback](const std::string& session_id)
+				{
+					// Call the captured callback directly without locking to prevent deadlock
+					local_disconnection_callback(session_id);
+				});
+		}
+
+		if (local_error_callback)
+		{
+			new_session->set_error_callback(
+				[self, new_session, local_error_callback](std::error_code ec)
+				{
+					// Call the captured callback directly without locking to prevent deadlock
+					local_error_callback(new_session, ec);
+				});
 		}
 
 		// Track it in our sessions_ vector (protected by mutex)
