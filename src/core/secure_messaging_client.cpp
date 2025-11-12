@@ -172,9 +172,9 @@ namespace network_system::core
 			// Get thread pool from network context
 			thread_pool_ = network_context::instance().get_thread_pool();
 			if (!thread_pool_) {
-				NETWORK_LOG_ERROR("[secure_messaging_client::" + client_id_ + "] Failed to get thread pool");
-				return error_void(error_codes::common_errors::internal_error,
-								  "Failed to get thread pool");
+				// Fallback: create a temporary thread pool if network_context is not initialized
+				NETWORK_LOG_WARN("[secure_messaging_client::" + client_id_ + "] network_context not initialized, creating temporary thread pool");
+				thread_pool_ = std::make_shared<integration::basic_thread_pool>(std::thread::hardware_concurrency());
 			}
 
 			// Start io_context on thread pool for handshake to complete
