@@ -33,6 +33,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "network_system/core/messaging_server.h"
 #include "network_system/session/messaging_session.h"
 #include "network_system/integration/logger_integration.h"
+#include "network_system/metrics/network_metrics.h"
 
 namespace network_system::core
 {
@@ -300,8 +301,13 @@ namespace network_system::core
 				monitor_->record_metric("connection_errors", static_cast<double>(connection_errors_.load()));
 			}
 #endif
+			// Report metrics
+			metrics::metric_reporter::report_connection_failed(ec.message());
 			return;
 		}
+
+		// Report successful connection
+		metrics::metric_reporter::report_connection_accepted();
 
 		// Cleanup dead sessions before adding new one
 		cleanup_dead_sessions();
@@ -389,6 +395,12 @@ namespace network_system::core
 			}
 		}
 #endif
+
+		// Report active connections to metrics system
+		{
+			std::lock_guard<std::mutex> lock(sessions_mutex_);
+			metrics::metric_reporter::report_active_connections(sessions_.size());
+		}
 
 		// Accept next connection
 		do_accept();

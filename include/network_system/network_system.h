@@ -55,6 +55,10 @@
 // Compatibility layer
 #include "network_system/compatibility.h"
 
+// Configuration system
+#include "network_system/config/network_config.h"
+#include "network_system/core/network_context.h"
+
 /**
  * @namespace network_system
  * @brief Main namespace for all Network System components
@@ -62,14 +66,27 @@
 namespace network_system {
 
 /**
- * @brief Initialize the network system
+ * @brief Initialize the network system with default configuration
  * @return true if initialization successful, false otherwise
  */
 bool initialize();
 
 /**
+ * @brief Initialize the network system with custom configuration
+ * @param config Configuration settings for network system
+ * @return true if initialization successful, false otherwise
+ */
+bool initialize(const config::network_config& config);
+
+/**
  * @brief Shutdown the network system
  */
 void shutdown();
+
+/**
+ * @brief Check if network system is initialized
+ * @return true if initialized, false otherwise
+ */
+bool is_initialized();
 
 } // namespace network_system

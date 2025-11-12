@@ -103,6 +103,9 @@ check_network_system_features()
 ##################################################
 
 add_library(NetworkSystem
+    # Main API implementation
+    src/network_system.cpp
+
     # Core implementation
     src/core/network_context.cpp
     src/core/messaging_client.cpp
@@ -136,6 +139,9 @@ add_library(NetworkSystem
     src/integration/thread_integration.cpp
     src/integration/container_integration.cpp
     src/integration/monitoring_integration.cpp
+
+    # Metrics implementation
+    src/metrics/network_metrics.cpp
 )
 
 # Suppress warnings inherited from parent project (especially from ASIO)
