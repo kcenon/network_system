@@ -32,6 +32,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "network_system/core/secure_messaging_client.h"
 
+#include "network_system/core/network_context.h"
 #include "network_system/integration/logger_integration.h"
 
 namespace network_system::core
@@ -168,17 +169,28 @@ namespace network_system::core
 					handshake_promise.set_value(ec);
 				});
 
-			// Start io_context thread for handshake to complete
-			client_thread_ = std::make_unique<std::thread>(
+			// Get thread pool from network context
+			thread_pool_ = network_context::instance().get_thread_pool();
+			if (!thread_pool_) {
+				// Fallback: create a temporary thread pool if network_context is not initialized
+				NETWORK_LOG_WARN("[secure_messaging_client::" + client_id_ + "] network_context not initialized, creating temporary thread pool");
+				thread_pool_ = std::make_shared<integration::basic_thread_pool>(std::thread::hardware_concurrency());
+			}
+
+			// Start io_context on thread pool for handshake to complete
+			io_context_future_ = thread_pool_->submit(
 				[this]()
 				{
 					try
 					{
+						NETWORK_LOG_DEBUG("[secure_messaging_client::" + client_id_ + "] io_context started");
 						io_context_->run();
+						NETWORK_LOG_DEBUG("[secure_messaging_client::" + client_id_ + "] io_context stopped");
 					}
-					catch (...)
+					catch (const std::exception& e)
 					{
-						// Optionally handle any uncaught exceptions
+						NETWORK_LOG_ERROR("[secure_messaging_client::" + client_id_ +
+										  "] Exception in io_context: " + std::string(e.what()));
 					}
 				});
 
@@ -294,15 +306,20 @@ namespace network_system::core
 				io_context_->stop();
 			}
 
-			// Join thread
-			if (client_thread_ && client_thread_->joinable())
+			// Wait for io_context task to complete
+			if (io_context_future_.valid())
 			{
-				client_thread_->join();
+				try {
+					io_context_future_.wait();
+				} catch (const std::exception& e) {
+					NETWORK_LOG_ERROR("[secure_messaging_client::" + client_id_ +
+									  "] Exception while waiting for io_context: " + std::string(e.what()));
+				}
 			}
 
 			// Release resources
 			socket_.reset();
-			client_thread_.reset();
+			thread_pool_.reset();
 			io_context_.reset();
 
 			NETWORK_LOG_INFO("[secure_messaging_client] Disconnected.");
