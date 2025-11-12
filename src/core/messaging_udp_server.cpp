@@ -31,6 +31,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *****************************************************************************/
 
 #include "network_system/core/messaging_udp_server.h"
+#include "network_system/core/network_context.h"
 #include "network_system/internal/udp_socket.h"
 #include "network_system/integration/logger_integration.h"
 
@@ -83,13 +84,23 @@ namespace network_system::core
 
 			is_running_.store(true);
 
-			// Start thread to run the io_context
-			worker_thread_ = std::thread(
+			// Get thread pool from network context
+			thread_pool_ = network_context::instance().get_thread_pool();
+			if (!thread_pool_) {
+				NETWORK_LOG_ERROR("[messaging_udp_server] Failed to get thread pool");
+				return error_void(error_codes::common_errors::internal_error,
+								  "Failed to get thread pool");
+			}
+
+			// Start io_context on thread pool
+			io_context_future_ = thread_pool_->submit(
 				[this]()
 				{
 					try
 					{
+						NETWORK_LOG_DEBUG("[messaging_udp_server] io_context started");
 						io_context_->run();
+						NETWORK_LOG_DEBUG("[messaging_udp_server] io_context stopped");
 					}
 					catch (const std::exception& e)
 					{
@@ -147,9 +158,14 @@ namespace network_system::core
 			}
 
 			// Join worker thread
-			if (worker_thread_.joinable())
+			if (io_context_future_.valid())
 			{
-				worker_thread_.join();
+				try {
+					io_context_future_.wait();
+				} catch (const std::exception& e) {
+					NETWORK_LOG_ERROR("[messaging_udp_server] Exception while waiting for io_context: " +
+									  std::string(e.what()));
+				}
 			}
 
 			// Clean up

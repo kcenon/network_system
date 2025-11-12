@@ -32,6 +32,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "network_system/core/messaging_ws_server.h"
 
+#include "network_system/core/network_context.h"
 #include "network_system/core/ws_session_manager.h"
 #include "network_system/internal/tcp_socket.h"
 #include "network_system/internal/websocket_socket.h"
@@ -221,9 +222,25 @@ namespace network_system::core
 				stop_promise_.emplace();
 				stop_future_ = stop_promise_->get_future();
 
-				// Start io_context thread
-				io_thread_ = std::make_unique<std::thread>([this]()
-															{ io_context_->run(); });
+				// Get thread pool from network context
+				thread_pool_ = network_context::instance().get_thread_pool();
+				if (!thread_pool_) {
+					NETWORK_LOG_ERROR("[messaging_ws_server] Failed to get thread pool");
+					return error_void(error_codes::common_errors::internal_error,
+									  "Failed to get thread pool");
+				}
+
+				// Start io_context on thread pool
+				io_context_future_ = thread_pool_->submit([this]() {
+					try {
+						NETWORK_LOG_DEBUG("[messaging_ws_server] io_context started");
+						io_context_->run();
+						NETWORK_LOG_DEBUG("[messaging_ws_server] io_context stopped");
+					} catch (const std::exception& e) {
+						NETWORK_LOG_ERROR("[messaging_ws_server] Exception in io_context: " +
+										  std::string(e.what()));
+					}
+				});
 
 				// Start accepting connections
 				do_accept();
@@ -276,10 +293,15 @@ namespace network_system::core
 					io_context_->stop();
 				}
 
-				// Wait for thread
-				if (io_thread_ && io_thread_->joinable())
+				// Wait for io_context task to complete
+				if (io_context_future_.valid())
 				{
-					io_thread_->join();
+					try {
+						io_context_future_.wait();
+					} catch (const std::exception& e) {
+						NETWORK_LOG_ERROR("[messaging_ws_server] Exception while waiting for io_context: " +
+										  std::string(e.what()));
+					}
 				}
 
 				is_running_.store(false);
@@ -619,7 +641,9 @@ namespace network_system::core
 		std::unique_ptr<asio::executor_work_guard<asio::io_context::executor_type>>
 			work_guard_;
 		std::unique_ptr<tcp::acceptor> acceptor_;
-		std::unique_ptr<std::thread> io_thread_;
+
+		std::shared_ptr<integration::thread_pool_interface> thread_pool_;
+		std::future<void> io_context_future_;
 
 		std::shared_ptr<ws_session_manager> session_mgr_;
 
