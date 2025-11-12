@@ -104,6 +104,7 @@ check_network_system_features()
 
 add_library(NetworkSystem
     # Core implementation
+    src/core/network_context.cpp
     src/core/messaging_client.cpp
     src/core/messaging_server.cpp
     src/core/messaging_udp_client.cpp

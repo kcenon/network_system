@@ -9,9 +9,10 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
-# Script directory
+# Script directory and project root
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-cd "$SCRIPT_DIR"
+PROJECT_ROOT="$( cd "$SCRIPT_DIR/.." && pwd )"
+cd "$PROJECT_ROOT"
 
 # Default values
 BUILD_TYPE="Release"
@@ -115,9 +116,9 @@ cd build
 print_info "Configuring with CMake..."
 CMAKE_ARGS=(
     -DCMAKE_BUILD_TYPE="$BUILD_TYPE"
-    -DBUILD_NETWORK_TESTS="$BUILD_TESTS"
-    -DBUILD_NETWORK_SAMPLES="$BUILD_SAMPLES"
-    -DBUILD_NETWORK_DOCS="$BUILD_DOCS"
+    -DBUILD_TESTS="$BUILD_TESTS"
+    -DBUILD_SAMPLES="$BUILD_SAMPLES"
+    -DBUILD_WITH_CONTAINER_SYSTEM=OFF
 )
 
 if [ "$VERBOSE" = true ]; then
@@ -168,7 +169,7 @@ if [ "$BUILD_TESTS" = "ON" ]; then
 fi
 
 print_info "Build completed successfully!"
-print_info "Build artifacts are in: $SCRIPT_DIR/build"
+print_info "Build artifacts are in: $PROJECT_ROOT/build"
 
 # Print summary
 echo ""

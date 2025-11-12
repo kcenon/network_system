@@ -48,6 +48,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "network_system/internal/tcp_socket.h"
 #include "network_system/internal/pipeline.h"
 #include "network_system/utils/result_types.h"
+#include "network_system/core/network_context.h"
+#include "network_system/integration/thread_integration.h"
 
 // Use nested namespace definition in C++17
 namespace network_system::core
@@ -270,8 +272,10 @@ namespace network_system::core
 			io_context_; /*!< I/O context for async operations. */
 		std::unique_ptr<asio::executor_work_guard<asio::io_context::executor_type>>
 			work_guard_; /*!< Keeps io_context running. */
-		std::unique_ptr<std::thread>
-			client_thread_; /*!< Thread running \c io_context->run(). */
+		std::shared_ptr<integration::thread_pool_interface>
+			thread_pool_; /*!< Thread pool for async operations. */
+		std::future<void>
+			io_context_future_; /*!< Future for the io_context run task. */
 
 		std::optional<std::promise<void>>
 			stop_promise_;	/*!< Signals \c wait_for_stop() when stopping. */
