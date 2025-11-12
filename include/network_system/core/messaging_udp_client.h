@@ -43,6 +43,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <asio.hpp>
 
 #include "network_system/utils/result_types.h"
+#include "network_system/integration/thread_integration.h"
 
 namespace network_system::internal
 {
@@ -118,9 +119,9 @@ namespace network_system::core
 		 * \param host The target hostname or IP address.
 		 * \param port The target port number.
 		 * \return Result<void> - Success if client started, or error with code:
-		 *         - error_codes::common::already_exists if already running
-		 *         - error_codes::common::invalid_argument if empty host
-		 *         - error_codes::common::internal_error for other failures
+		 *         - error_codes::common_errors::already_exists if already running
+		 *         - error_codes::common_errors::invalid_argument if empty host
+		 *         - error_codes::common_errors::internal_error for other failures
 		 *
 		 * Creates an io_context, resolves the target endpoint, creates a UDP socket,
 		 * and spawns a background thread to run io_context.run().
@@ -130,7 +131,7 @@ namespace network_system::core
 		/*!
 		 * \brief Stops the client and releases resources.
 		 * \return Result<void> - Success if client stopped, or error with code:
-		 *         - error_codes::common::internal_error for failures
+		 *         - error_codes::common_errors::internal_error for failures
 		 *
 		 * Stops receiving datagrams, closes the socket, and joins the background thread.
 		 */
@@ -194,7 +195,9 @@ namespace network_system::core
 
 		std::unique_ptr<asio::io_context> io_context_;   /*!< ASIO I/O context. */
 		std::shared_ptr<internal::udp_socket> socket_;   /*!< UDP socket wrapper. */
-		std::thread worker_thread_;                      /*!< Background I/O thread. */
+
+		std::shared_ptr<integration::thread_pool_interface> thread_pool_;   /*!< Thread pool for async operations. */
+		std::future<void> io_context_future_;            /*!< Future for io_context run task. */
 
 		std::mutex endpoint_mutex_;                      /*!< Protects target_endpoint_. */
 		asio::ip::udp::endpoint target_endpoint_;        /*!< Target endpoint for sends. */

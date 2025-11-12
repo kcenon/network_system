@@ -42,6 +42,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <asio.hpp>
 
 #include "network_system/utils/result_types.h"
+#include "network_system/integration/thread_integration.h"
 
 namespace network_system::internal
 {
@@ -117,7 +118,7 @@ namespace network_system::core
 		 * \return Result<void> - Success if server started, or error with code:
 		 *         - error_codes::network_system::server_already_running if already running
 		 *         - error_codes::network_system::bind_failed if port binding failed
-		 *         - error_codes::common::internal_error for other failures
+		 *         - error_codes::common_errors::internal_error for other failures
 		 *
 		 * Creates an io_context and UDP socket, binds to the specified port,
 		 * and spawns a background thread to run io_context.run().
@@ -188,7 +189,9 @@ namespace network_system::core
 
 		std::unique_ptr<asio::io_context> io_context_;   /*!< ASIO I/O context. */
 		std::shared_ptr<internal::udp_socket> socket_;   /*!< UDP socket wrapper. */
-		std::thread worker_thread_;                      /*!< Background I/O thread. */
+
+		std::shared_ptr<integration::thread_pool_interface> thread_pool_;   /*!< Thread pool for async operations. */
+		std::future<void> io_context_future_;            /*!< Future for io_context run task. */
 	};
 
 } // namespace network_system::core

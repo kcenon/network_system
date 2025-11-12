@@ -99,7 +99,7 @@ namespace network_system::utils
 			if (input.empty())
 			{
 				return error<std::vector<uint8_t>>(
-					error_codes::common::invalid_argument,
+					error_codes::common_errors::invalid_argument,
 					"Input data is empty");
 			}
 
@@ -151,7 +151,7 @@ namespace network_system::utils
 			if (max_compressed_size <= 0)
 			{
 				return error<std::vector<uint8_t>>(
-					error_codes::common::internal_error,
+					error_codes::common_errors::internal_error,
 					"Failed to calculate LZ4 compressed size bound");
 			}
 
@@ -201,7 +201,7 @@ namespace network_system::utils
 			if (input.size() < 4)
 			{
 				return error<std::vector<uint8_t>>(
-					error_codes::common::invalid_argument,
+					error_codes::common_errors::invalid_argument,
 					"Compressed data too small");
 			}
 
@@ -213,7 +213,7 @@ namespace network_system::utils
 			if (original_size > 100 * 1024 * 1024)
 			{
 				return error<std::vector<uint8_t>>(
-					error_codes::common::invalid_argument,
+					error_codes::common_errors::invalid_argument,
 					"Decompressed size too large: " + std::to_string(original_size));
 			}
 
@@ -230,14 +230,14 @@ namespace network_system::utils
 			if (decompressed_size < 0)
 			{
 				return error<std::vector<uint8_t>>(
-					error_codes::common::internal_error,
+					error_codes::common_errors::internal_error,
 					"LZ4 decompression failed");
 			}
 
 			if (static_cast<size_t>(decompressed_size) != original_size)
 			{
 				return error<std::vector<uint8_t>>(
-					error_codes::common::internal_error,
+					error_codes::common_errors::internal_error,
 					"Decompressed size mismatch");
 			}
 
@@ -263,7 +263,7 @@ namespace network_system::utils
 			if (ret != Z_OK)
 			{
 				return error<std::vector<uint8_t>>(
-					error_codes::common::internal_error,
+					error_codes::common_errors::internal_error,
 					"Failed to initialize gzip compression");
 			}
 
@@ -317,7 +317,7 @@ namespace network_system::utils
 			if (ret != Z_OK)
 			{
 				return error<std::vector<uint8_t>>(
-					error_codes::common::internal_error,
+					error_codes::common_errors::internal_error,
 					"Failed to initialize gzip decompression");
 			}
 
@@ -341,7 +341,7 @@ namespace network_system::utils
 				{
 					inflateEnd(&stream);
 					return error<std::vector<uint8_t>>(
-						error_codes::common::internal_error,
+						error_codes::common_errors::internal_error,
 						"Gzip decompression failed");
 				}
 
@@ -373,7 +373,7 @@ namespace network_system::utils
 			if (ret != Z_OK)
 			{
 				return error<std::vector<uint8_t>>(
-					error_codes::common::internal_error,
+					error_codes::common_errors::internal_error,
 					"Failed to initialize deflate compression");
 			}
 
@@ -424,7 +424,7 @@ namespace network_system::utils
 			if (ret != Z_OK)
 			{
 				return error<std::vector<uint8_t>>(
-					error_codes::common::internal_error,
+					error_codes::common_errors::internal_error,
 					"Failed to initialize deflate decompression");
 			}
 
@@ -447,7 +447,7 @@ namespace network_system::utils
 				{
 					inflateEnd(&stream);
 					return error<std::vector<uint8_t>>(
-						error_codes::common::internal_error,
+						error_codes::common_errors::internal_error,
 						"Deflate decompression failed");
 				}
 

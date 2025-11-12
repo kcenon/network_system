@@ -32,6 +32,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "network_system/core/messaging_ws_client.h"
 
+#include "network_system/core/network_context.h"
 #include "network_system/internal/tcp_socket.h"
 #include "network_system/internal/websocket_socket.h"
 #include "network_system/integration/logger_integration.h"
@@ -78,7 +79,7 @@ namespace network_system::core
 		{
 			if (is_running_.load())
 			{
-				return error_void(error_codes::common::already_exists,
+				return error_void(error_codes::common_errors::already_exists,
 								  "Client is already running");
 			}
 
@@ -99,9 +100,25 @@ namespace network_system::core
 				stop_promise_.emplace();
 				stop_future_ = stop_promise_->get_future();
 
-				// Start io_context thread
-				io_thread_ = std::make_unique<std::thread>([this]()
-															{ io_context_->run(); });
+				// Get thread pool from network context
+				thread_pool_ = network_context::instance().get_thread_pool();
+				if (!thread_pool_) {
+					// Fallback: create a temporary thread pool if network_context is not initialized
+					NETWORK_LOG_WARN("[messaging_ws_client] network_context not initialized, creating temporary thread pool");
+					thread_pool_ = std::make_shared<integration::basic_thread_pool>(std::thread::hardware_concurrency());
+				}
+
+				// Start io_context on thread pool
+				io_context_future_ = thread_pool_->submit([this]() {
+					try {
+						NETWORK_LOG_DEBUG("[messaging_ws_client] io_context started");
+						io_context_->run();
+						NETWORK_LOG_DEBUG("[messaging_ws_client] io_context stopped");
+					} catch (const std::exception& e) {
+						NETWORK_LOG_ERROR("[messaging_ws_client] Exception in io_context: " +
+										  std::string(e.what()));
+					}
+				});
 
 				// Start async connection
 				do_connect();
@@ -123,7 +140,7 @@ namespace network_system::core
 		{
 			if (!is_running_.load())
 			{
-				return error_void(error_codes::common::not_initialized,
+				return error_void(error_codes::common_errors::not_initialized,
 								  "Client is not running");
 			}
 
@@ -147,10 +164,15 @@ namespace network_system::core
 					io_context_->stop();
 				}
 
-				// Wait for thread
-				if (io_thread_ && io_thread_->joinable())
+				// Wait for io_context task to complete
+				if (io_context_future_.valid())
 				{
-					io_thread_->join();
+					try {
+						io_context_future_.wait();
+					} catch (const std::exception& e) {
+						NETWORK_LOG_ERROR("[messaging_ws_client] Exception while waiting for io_context: " +
+										  std::string(e.what()));
+					}
 				}
 
 				is_running_.store(false);
@@ -169,7 +191,7 @@ namespace network_system::core
 			}
 			catch (const std::exception& e)
 			{
-				return error_void(error_codes::common::internal_error,
+				return error_void(error_codes::common_errors::internal_error,
 								  std::string("Failed to stop client: ") + e.what());
 			}
 		}
@@ -448,7 +470,9 @@ namespace network_system::core
 		std::unique_ptr<asio::io_context> io_context_;
 		std::unique_ptr<asio::executor_work_guard<asio::io_context::executor_type>>
 			work_guard_;
-		std::unique_ptr<std::thread> io_thread_;
+
+		std::shared_ptr<integration::thread_pool_interface> thread_pool_;
+		std::future<void> io_context_future_;
 
 		std::shared_ptr<internal::websocket_socket> ws_socket_;
 		std::mutex ws_socket_mutex_;

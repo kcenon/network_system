@@ -36,6 +36,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "network_system/integration/logger_integration.h"
 #include "network_system/internal/send_coroutine.h"
+#include "network_system/metrics/network_metrics.h"
 
 // Use nested namespace definition (C++17)
 namespace network_system::session
@@ -166,6 +167,9 @@ namespace network_system::session
 			return;
 		}
 
+		// Report bytes sent metric
+		metrics::metric_reporter::report_bytes_sent(data.size());
+
 		// Capture mode flags atomically
 		bool compress_mode;
 		bool encrypt_mode;
@@ -258,6 +262,9 @@ if constexpr (std::is_same_v<decltype(socket_->socket().get_executor()), asio::i
 		{
 			return;
 		}
+
+		// Report bytes received metric
+		metrics::metric_reporter::report_bytes_received(data.size());
 
 		NETWORK_LOG_DEBUG("[messaging_session] Received " + std::to_string(data.size())
 				+ " bytes.");

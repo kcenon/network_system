@@ -278,7 +278,7 @@ namespace network_system::internal
 
 		if (frame_data.empty())
 		{
-			return error_void(error_codes::common::invalid_argument,
+			return error_void(error_codes::common_errors::invalid_argument,
 							  "Invalid UTF-8 in text message");
 		}
 

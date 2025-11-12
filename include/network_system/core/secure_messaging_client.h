@@ -46,6 +46,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "network_system/internal/pipeline.h"
 #include "network_system/internal/secure_tcp_socket.h"
 #include "network_system/utils/result_types.h"
+#include "network_system/integration/thread_integration.h"
 
 namespace network_system::core
 {
@@ -106,7 +107,7 @@ namespace network_system::core
 		 * \return Result<void> - Success if connected, or error with code:
 		 *         - error_codes::network_system::connection_failed
 		 *         - error_codes::network_system::connection_timeout
-		 *         - error_codes::common::internal_error
+		 *         - error_codes::common_errors::internal_error
 		 *
 		 * This method:
 		 * 1. Creates io_context and secure socket
@@ -187,8 +188,11 @@ namespace network_system::core
 			io_context_;	/*!< The I/O context for async ops. */
 		std::unique_ptr<asio::executor_work_guard<asio::io_context::executor_type>>
 			work_guard_;	/*!< Keeps io_context running. */
-		std::unique_ptr<std::thread>
-			client_thread_; /*!< Thread that runs \c io_context_->run(). */
+
+		std::shared_ptr<integration::thread_pool_interface>
+			thread_pool_;	/*!< Thread pool for async operations. */
+		std::future<void>
+			io_context_future_; /*!< Future for io_context run task. */
 
 		std::unique_ptr<asio::ssl::context>
 			ssl_context_;	/*!< SSL context for encryption. */

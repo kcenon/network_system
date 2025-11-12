@@ -101,7 +101,7 @@ namespace network_system::core
 		if (is_running_.load())
 		{
 			return error_void(
-				error_codes::common::already_exists,
+				error_codes::common_errors::already_exists,
 				"Client is already running",
 				"messaging_client::start_client",
 				"Client ID: " + client_id_
@@ -111,7 +111,7 @@ namespace network_system::core
 		if (host.empty())
 		{
 			return error_void(
-				error_codes::common::invalid_argument,
+				error_codes::common_errors::invalid_argument,
 				"Host cannot be empty",
 				"messaging_client::start_client",
 				"Client ID: " + client_id_
@@ -139,17 +139,27 @@ namespace network_system::core
 			stop_promise_.emplace();
 			stop_future_ = stop_promise_->get_future();
 
-			// Launch the thread to run the io_context
-			client_thread_ = std::make_unique<std::thread>(
+			// Get thread pool from network context
+			thread_pool_ = network_context::instance().get_thread_pool();
+			if (!thread_pool_) {
+				// Fallback: create basic thread pool
+				thread_pool_ = std::make_shared<integration::basic_thread_pool>(2);
+			}
+
+			// Submit io_context run task to thread pool
+			io_context_future_ = thread_pool_->submit(
 				[this]()
 				{
 					try
 					{
+						NETWORK_LOG_INFO("[messaging_client] Starting io_context on thread pool");
 						io_context_->run();
+						NETWORK_LOG_INFO("[messaging_client] io_context stopped");
 					}
-					catch (...)
+					catch (const std::exception& e)
 					{
-						// handle exceptions if needed
+						NETWORK_LOG_ERROR("[messaging_client] Exception in io_context: " +
+						                 std::string(e.what()));
 					}
 				});
 
@@ -164,7 +174,7 @@ namespace network_system::core
 		{
 			is_running_.store(false);
 			return error_void(
-				error_codes::common::internal_error,
+				error_codes::common_errors::internal_error,
 				"Failed to start client: " + std::string(e.what()),
 				"messaging_client::start_client",
 				"Client ID: " + client_id_ + ", Host: " + std::string(host)
@@ -217,24 +227,12 @@ namespace network_system::core
 		{
 			io_context_->stop();
 		}
-		// Always join thread if joinable, even from callback context
-		// io_context->stop() above will cause io_context->run() to return
-		if (client_thread_ && client_thread_->joinable())
+		// Wait for io_context task to complete
+		if (io_context_future_.valid())
 		{
-			// Give io_context time to finish pending callbacks
-			if (std::this_thread::get_id() != client_thread_->get_id())
-			{
-				client_thread_->join();
-			}
-			else
-			{
-				// Called from io_context thread - cannot join self
-				// This should be rare now that on_error doesn't call stop_client
-				NETWORK_LOG_WARN("[messaging_client] stop_client called from io_context thread, detaching");
-				client_thread_->detach();
-			}
+			io_context_future_.wait();
 		}
-		client_thread_.reset();
+		thread_pool_.reset();
 		io_context_.reset();
 		// Signal stop
 		if (stop_promise_.has_value())
@@ -259,7 +257,7 @@ namespace network_system::core
 	{
 		stop_initiated_.store(false);
 		return error_void(
-			error_codes::common::internal_error,
+			error_codes::common_errors::internal_error,
 			"Failed to stop client: " + std::string(e.what()),
 			"messaging_client::stop_client",
 			"Client ID: " + client_id_
@@ -386,7 +384,7 @@ namespace network_system::core
 		if (data.empty())
 		{
 			return error_void(
-				error_codes::common::invalid_argument,
+				error_codes::common_errors::invalid_argument,
 				"Data cannot be empty",
 				"messaging_client::send_packet",
 				"Client ID: " + client_id_

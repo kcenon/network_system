@@ -48,6 +48,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "network_system/internal/tcp_socket.h"
 #include "network_system/internal/pipeline.h"
 #include "network_system/utils/result_types.h"
+#include "network_system/core/network_context.h"
+#include "network_system/integration/thread_integration.h"
 
 // Use nested namespace definition in C++17
 namespace network_system::core
@@ -98,9 +100,9 @@ namespace network_system::core
 		 * \param host The remote hostname or IP address.
 		 * \param port The remote port number to connect.
 		 * \return Result<void> - Success if client started, or error with code:
-		 *         - error_codes::common::already_exists if already running
-		 *         - error_codes::common::invalid_argument if empty host
-		 *         - error_codes::common::internal_error for other failures
+		 *         - error_codes::common_errors::already_exists if already running
+		 *         - error_codes::common_errors::invalid_argument if empty host
+		 *         - error_codes::common_errors::internal_error for other failures
 		 *
 		 * ### Steps:
 		 * 1. Create \c io_context_.
@@ -125,7 +127,7 @@ namespace network_system::core
 		 * \brief Stops the client: closes the socket, stops the \c io_context_,
 		 *        and joins the worker thread.
 		 * \return Result<void> - Success if client stopped, or error with code:
-		 *         - error_codes::common::internal_error for failures
+		 *         - error_codes::common_errors::internal_error for failures
 		 *
 		 * ### Example
 		 * \code
@@ -156,7 +158,7 @@ namespace network_system::core
 		 * \param data The buffer to send (moved for efficiency).
 		 * \return Result<void> - Success if data queued for send, or error with code:
 		 *         - error_codes::network_system::connection_closed if not connected
-		 *         - error_codes::common::invalid_argument if empty data
+		 *         - error_codes::common_errors::invalid_argument if empty data
 		 *         - error_codes::network_system::send_failed for other failures
 		 *
 		 * ### Example
@@ -270,8 +272,10 @@ namespace network_system::core
 			io_context_; /*!< I/O context for async operations. */
 		std::unique_ptr<asio::executor_work_guard<asio::io_context::executor_type>>
 			work_guard_; /*!< Keeps io_context running. */
-		std::unique_ptr<std::thread>
-			client_thread_; /*!< Thread running \c io_context->run(). */
+		std::shared_ptr<integration::thread_pool_interface>
+			thread_pool_; /*!< Thread pool for async operations. */
+		std::future<void>
+			io_context_future_; /*!< Future for the io_context run task. */
 
 		std::optional<std::promise<void>>
 			stop_promise_;	/*!< Signals \c wait_for_stop() when stopping. */

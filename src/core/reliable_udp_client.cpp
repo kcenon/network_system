@@ -32,12 +32,14 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "network_system/core/reliable_udp_client.h"
 #include "network_system/core/messaging_udp_client.h"
+#include "network_system/core/network_context.h"
 #include "network_system/integration/logger_integration.h"
 
 #include <algorithm>
 #include <atomic>
 #include <chrono>
 #include <cstring>
+#include <future>
 #include <map>
 #include <mutex>
 #include <thread>
@@ -108,7 +110,7 @@ namespace network_system::core
 
 			if (is_running_.load())
 			{
-				return error_void(error_codes::common::already_exists,
+				return error_void(error_codes::common_errors::already_exists,
 								  "Client is already running");
 			}
 
@@ -186,7 +188,7 @@ namespace network_system::core
 		{
 			if (!is_running_.load())
 			{
-				return error_void(error_codes::common::internal_error,
+				return error_void(error_codes::common_errors::internal_error,
 								  "Client is not running");
 			}
 
@@ -203,7 +205,7 @@ namespace network_system::core
 				return send_sequenced(std::move(data));
 			}
 
-			return error_void(error_codes::common::internal_error, "Invalid reliability mode");
+			return error_void(error_codes::common_errors::internal_error, "Invalid reliability mode");
 		}
 
 		auto wait_for_stop() -> void
@@ -287,7 +289,7 @@ namespace network_system::core
 			// Check congestion window
 			if (pending_packets_.size() >= congestion_window_)
 			{
-				return error_void(error_codes::common::internal_error,
+				return error_void(error_codes::common_errors::internal_error,
 								  "Congestion window full");
 			}
 
@@ -571,12 +573,22 @@ namespace network_system::core
 		// Start retransmission timer
 		auto start_retransmission_timer() -> void
 		{
-			retransmission_thread_ = std::thread([this]() {
-				while (is_running_.load())
+			thread_pool_ = network_context::instance().get_thread_pool();
+			if (!thread_pool_) {
+				NETWORK_LOG_ERROR("[reliable_udp_client::" + client_id_ +
+								  "] Failed to get thread pool for retransmission timer");
+				return;
+			}
+
+			stop_retransmission_.store(false);
+			retransmission_future_ = thread_pool_->submit([this]() {
+				while (is_running_.load() && !stop_retransmission_.load())
 				{
 					std::this_thread::sleep_for(
 						std::chrono::milliseconds(retransmission_timeout_ms_));
-					check_and_retransmit();
+					if (!stop_retransmission_.load()) {
+						check_and_retransmit();
+					}
 				}
 			});
 		}
@@ -584,10 +596,17 @@ namespace network_system::core
 		// Stop retransmission timer
 		auto stop_retransmission_timer() -> void
 		{
-			if (retransmission_thread_.joinable())
+			stop_retransmission_.store(true);
+			if (retransmission_future_.valid())
 			{
-				retransmission_thread_.join();
+				try {
+					retransmission_future_.wait();
+				} catch (...) {
+					NETWORK_LOG_ERROR("[reliable_udp_client::" + client_id_ +
+									  "] Exception while waiting for retransmission timer to stop");
+				}
 			}
+			thread_pool_.reset();
 		}
 
 		// Check for packets needing retransmission
@@ -678,7 +697,9 @@ namespace network_system::core
 		reliable_udp_stats stats_;
 
 		// Retransmission timer
-		std::thread retransmission_thread_;
+		std::shared_ptr<integration::thread_pool_interface> thread_pool_;
+		std::future<void> retransmission_future_;
+		std::atomic<bool> stop_retransmission_{false};
 
 		// State mutex
 		std::mutex state_mutex_;
