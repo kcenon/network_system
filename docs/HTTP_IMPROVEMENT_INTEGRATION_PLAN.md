@@ -1809,6 +1809,219 @@ BENCHMARK(BM_Compression)->Range(1024, 1024*1024);
 
 ---
 
+### Phase 7: container_system 통합 테스트 재작성
+
+**목표**: 신형 API를 사용하여 container_system 통합 테스트 복원
+
+**우선순위**: Medium 🟡
+
+**배경**:
+- 현재 container_system 통합 테스트는 구형 API를 사용하여 `#if 0`으로 비활성화됨
+- container_system이 추상 인터페이스 기반으로 재설계됨 (container_interface, container_manager)
+- 테스트 코드를 신형 API에 맞춰 재작성 필요
+
+#### Step 7.1: container_system API 분석
+
+**작업 항목**:
+
+1. **신형 API 구조 파악**
+   - `container_interface` 추상 인터페이스 분석
+   - `container_system_adapter` 구현체 분석
+   - `container_manager` 싱글톤 패턴 이해
+   - `basic_container` 대체 구현 검토
+
+2. **구형 API vs 신형 API 매핑**
+
+| 구형 API | 신형 API | 비고 |
+|---------|---------|------|
+| `value_container` 직접 사용 | `container_interface*` 추상화 | 의존성 분리 |
+| `add()` 메서드 | `serialize()/deserialize()` | 직렬화 중심 |
+| `string_value`, `int_value` | `std::any` | 타입 추상화 |
+| 직접 접근 | `container_manager::instance()` | 싱글톤 패턴 |
+
+**기간**: 1일
+
+**작업 항목**:
+- [ ] `include/network_system/integration/container_integration.h` 상세 분석
+- [ ] `src/integration/container_integration.cpp` 구현 확인
+- [ ] 신형 API 사용 예제 작성
+- [ ] 매핑 문서 작성
+
+#### Step 7.2: 테스트 코드 재작성
+
+**파일**: `tests/unit_tests.cpp`
+
+**변경 대상**:
+- Line 269: `TEST_F(NetworkTest, BasicMessageTransfer)`
+- Line 496: `TEST_F(NetworkTest, MultipleClients)`
+- Line 529: `TEST_F(NetworkTest, LargeMessage)`
+
+**재작성 방법**:
+
+```cpp
+// Before (구형 API - 컴파일 실패)
+#ifdef BUILD_WITH_CONTAINER_SYSTEM
+TEST_F(NetworkTest, BasicMessageTransfer) {
+    auto message = std::make_shared<value_container>();
+    message->add(std::make_shared<string_value>("type", "test_message"));
+    message->add(std::make_shared<int_value>("sequence", 1));
+
+    // 직렬화
+    auto bytes = message->serialize();
+    client->send(bytes);
+}
+#endif
+
+// After (신형 API - container_manager 사용)
+#ifdef BUILD_WITH_CONTAINER_SYSTEM
+TEST_F(NetworkTest, BasicMessageTransfer) {
+    // 데이터 준비
+    std::map<std::string, std::any> message_data = {
+        {"type", std::string("test_message")},
+        {"content", std::string("Hello, Server!")},
+        {"sequence", 1}
+    };
+
+    // container_manager를 통한 직렬화
+    auto& manager = integration::container_manager::instance();
+    auto bytes = manager.serialize(message_data);
+
+    // 메시지 전송
+    client->send(bytes);
+
+    // 응답 수신 및 역직렬화
+    auto response_bytes = receive_response();
+    auto response_data = manager.deserialize(response_bytes);
+
+    // 검증
+    auto response_map = std::any_cast<std::map<std::string, std::any>>(response_data);
+    EXPECT_EQ(std::any_cast<std::string>(response_map["status"]), "success");
+}
+#endif
+
+// Alternative (basic_container 사용 - container_system 없이도 동작)
+TEST_F(NetworkTest, BasicMessageTransferStandalone) {
+    // basic_container 사용 (container_system 불필요)
+    auto container = std::make_shared<integration::basic_container>();
+
+    // 커스텀 직렬화 설정
+    container->set_serializer([](const std::any& data) -> std::vector<uint8_t> {
+        auto map = std::any_cast<std::map<std::string, std::any>>(data);
+        // JSON/MessagePack 등으로 직렬화
+        return serialize_to_json(map);
+    });
+
+    std::map<std::string, std::any> message_data = {
+        {"type", std::string("test")},
+        {"value", 123}
+    };
+
+    auto bytes = container->serialize(message_data);
+    client->send(bytes);
+}
+```
+
+**기간**: 2일
+
+**작업 항목**:
+- [ ] `BasicMessageTransfer` 테스트 재작성
+- [ ] `MultipleClients` 테스트 재작성
+- [ ] `LargeMessage` 테스트 재작성
+- [ ] `#if 0` → `#ifdef BUILD_WITH_CONTAINER_SYSTEM` 복원
+- [ ] container_system 없는 대체 테스트 추가 (basic_container)
+
+#### Step 7.3: 빌드 및 검증
+
+**작업 항목**:
+
+```bash
+# BUILD_WITH_CONTAINER_SYSTEM 활성화 빌드
+cmake -DBUILD_WITH_CONTAINER_SYSTEM=ON ..
+make -j$(nproc)
+./bin/network_unit_tests --gtest_filter="NetworkTest.BasicMessageTransfer"
+
+# container_system 비활성화 빌드 (기본)
+cmake -DBUILD_WITH_CONTAINER_SYSTEM=OFF ..
+make -j$(nproc)
+./bin/network_unit_tests  # basic_container 대체 구현 사용
+```
+
+**검증 항목**:
+- ✅ container_system 있을 때 테스트 통과
+- ✅ container_system 없을 때도 테스트 통과 (basic_container)
+- ✅ 메모리 누수 없음 (AddressSanitizer)
+- ✅ 스레드 안전성 (ThreadSanitizer)
+
+**기간**: 2일
+
+**작업 항목**:
+- [ ] BUILD_WITH_CONTAINER_SYSTEM=ON 빌드 검증
+- [ ] BUILD_WITH_CONTAINER_SYSTEM=OFF 빌드 검증
+- [ ] 모든 테스트 통과 확인
+- [ ] Sanitizer 검증
+- [ ] 통합 테스트 실행
+
+#### Step 7.4: 문서화
+
+**작업 항목**:
+
+1. **API 마이그레이션 가이드** (`docs/migration/container_system_v2.md`):
+   ```markdown
+   # container_system v2 Migration Guide
+
+   ## Overview
+   container_system has been redesigned with an abstract interface pattern.
+
+   ## Migration Steps
+
+   ### Before (v1)
+   ```cpp
+   auto container = std::make_shared<value_container>();
+   container->add(std::make_shared<string_value>("key", "value"));
+   ```
+
+   ### After (v2)
+   ```cpp
+   auto& manager = container_manager::instance();
+   std::map<std::string, std::any> data = {{"key", "value"}};
+   auto bytes = manager.serialize(data);
+   ```
+   ```
+
+2. **테스트 작성 가이드** (`docs/testing/container_integration_tests.md`):
+   - container_manager 사용법
+   - basic_container 대체 구현 사용법
+   - 테스트 데이터 준비 방법
+
+**기간**: 1일
+
+**작업 항목**:
+- [ ] 마이그레이션 가이드 작성
+- [ ] 테스트 작성 가이드 작성
+- [ ] 예제 코드 추가
+- [ ] CHANGELOG.md 업데이트
+
+**Phase 7 완료 기준**:
+- ✅ 모든 container_system 통합 테스트 재작성 완료
+- ✅ `#if 0` 제거, `#ifdef BUILD_WITH_CONTAINER_SYSTEM` 복원
+- ✅ container_system 있을 때/없을 때 모두 빌드 성공
+- ✅ 모든 테스트 통과
+- ✅ 문서 작성 완료
+
+**Phase 7 총 기간**: 6일
+
+**의존성**:
+- Phase 0-6 완료 필수
+- container_system 라이브러리 최신 버전 필요
+- basic_container 구현 확인 필요
+
+**우선순위 노트**:
+- HTTP 개선 작업(Phase 0-6)보다 낮은 우선순위
+- container_system 통합은 선택적 기능
+- Phase 7은 독립적으로 진행 가능 (별도 브랜치/PR)
+
+---
+
 ## 시스템 통합 전략
 
 ### logger_system 통합 상세
@@ -2205,16 +2418,18 @@ namespace error_codes {
 ### 전체 일정
 
 ```
-Phase 0: 준비 단계              [1일]    ████
-Phase 1: 중요 버그 수정          [7일]    ████████████████████████
-Phase 2: HTTP 인프라 개선        [6일]    ████████████████████
-Phase 3: HTTP 파싱 기능 확장     [7일]    ████████████████████████
-Phase 4: HTTP 고급 기능 구현     [7일]    ████████████████████████
-Phase 5: 테스트 및 샘플 통합     [8일]    ████████████████████████████
-Phase 6: 최종 검증 및 정리       [7일]    ████████████████████████
-PR 리뷰 및 머지                  [3일]    ██████████
+Phase 0: 준비 단계                      [1일]    ████
+Phase 1: 중요 버그 수정                  [7일]    ████████████████████████
+Phase 2: HTTP 인프라 개선                [6일]    ████████████████████
+Phase 3: HTTP 파싱 기능 확장             [7일]    ████████████████████████
+Phase 4: HTTP 고급 기능 구현             [7일]    ████████████████████████
+Phase 5: 테스트 및 샘플 통합             [8일]    ████████████████████████████
+Phase 6: 최종 검증 및 정리               [7일]    ████████████████████████
+Phase 7: container_system 테스트 재작성  [6일]    ████████████████████ (선택)
+PR 리뷰 및 머지                          [3일]    ██████████
 
-총 소요 기간: 46일 (약 9주)
+총 소요 기간 (Phase 0-6): 46일 (약 9주)
+총 소요 기간 (Phase 0-7): 52일 (약 10주) - Phase 7 포함 시
 ```
 
 ### 마일스톤
@@ -2254,10 +2469,18 @@ PR 리뷰 및 머지                  [3일]    ██████████
 - ✅ 성능 벤치마크 통과
 - ✅ 문서 완성
 
-**Milestone 7: 머지** (Day 46)
+**Milestone 7: container_system 통합 완성** (Day 49, 선택)
+- ✅ Phase 7 완료
+- ✅ container_system 통합 테스트 재작성
+- ✅ `#if 0` 제거, `#ifdef BUILD_WITH_CONTAINER_SYSTEM` 복원
+- ✅ 신형 API 기반 테스트 통과
+- ✅ 마이그레이션 가이드 작성
+
+**Milestone 8: 머지** (Day 46 또는 Day 52)
 - ✅ PR 승인
 - ✅ main 브랜치 머지
 - ✅ 태그 생성 (v2.0.0)
+- 📝 Phase 7 포함 여부에 따라 Day 46 (Phase 0-6) 또는 Day 52 (Phase 0-7)
 
 ### 리소스 계획
 
