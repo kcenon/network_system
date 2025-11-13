@@ -343,6 +343,22 @@ namespace network_system::core
         auto handle_request(const std::vector<uint8_t>& request_data) -> std::vector<uint8_t>;
 
         /*!
+         * \brief Process HTTP request and generate response object
+         * \param request Parsed HTTP request
+         * \return HTTP response object
+         */
+        auto process_http_request(const internal::http_request& request) -> internal::http_response;
+
+        /*!
+         * \brief Determine if connection should be closed after response
+         * \param request HTTP request
+         * \param response HTTP response
+         * \return true if connection should be closed
+         */
+        auto should_close_connection(const internal::http_request& request,
+                                     const internal::http_response& response) const -> bool;
+
+        /*!
          * \brief Create default error response
          * \param status_code HTTP status code
          * \param message Error message

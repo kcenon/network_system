@@ -245,16 +245,44 @@ namespace network_system::core
             // Check if request is complete
             if (buffer.is_complete())
             {
-                // Process complete request
-                auto response_data = handle_request(buffer.data);
+                // Parse HTTP request
+                auto request_result = internal::http_parser::parse_request(buffer.data);
 
-                // Clean up buffer
+                // Clean up buffer first
                 lock.lock();
                 session_buffers_.erase(session);
                 lock.unlock();
 
-                // Send response
+                if (request_result.is_err())
+                {
+                    // Failed to parse - send 400 Bad Request
+                    auto error_response = create_error_response(400, "Bad Request");
+                    auto response_data = internal::http_parser::serialize_response(error_response);
+                    session->send_packet(std::move(response_data));
+                    // Close connection on parse error
+                    session->stop_session();
+                    return;
+                }
+
+                auto http_request = std::move(request_result.value());
+
+                // Process request and generate response
+                auto response = process_http_request(http_request);
+
+                // Determine if connection should be closed
+                bool close_conn = should_close_connection(http_request, response);
+
+                // Serialize and send response
+                auto response_data = internal::http_parser::serialize_response(response);
                 session->send_packet(std::move(response_data));
+
+                // Close connection if required
+                if (close_conn)
+                {
+                    // Give time for response to be sent before closing
+                    // In a production system, we would wait for send completion callback
+                    session->stop_session();
+                }
             }
             // Otherwise, wait for more data
         });
@@ -413,13 +441,127 @@ namespace network_system::core
             response.set_header("Server", "NetworkSystem-HTTP-Server/1.0");
         }
 
-        if (!response.get_header("Connection"))
-        {
-            response.set_header("Connection", "close");
-        }
-
         // Serialize and return response
         return internal::http_parser::serialize_response(response);
+    }
+
+    auto http_server::process_http_request(const internal::http_request& http_request) -> internal::http_response
+    {
+        // Create request context
+        http_request_context ctx;
+        ctx.request = http_request;
+
+        internal::http_response response;
+
+        try
+        {
+            // Find matching route
+            auto route = find_route(ctx.request.method, ctx.request.uri, ctx.path_params);
+
+            if (route)
+            {
+                // Execute handler
+                response = route->handler(ctx);
+            }
+            else
+            {
+                // No matching route - send 404
+                response = not_found_handler_(ctx);
+            }
+        }
+        catch (const std::exception& e)
+        {
+            // Handler threw exception - send 500
+            response = error_handler_(ctx);
+        }
+        catch (...)
+        {
+            // Unknown exception - send 500
+            response = error_handler_(ctx);
+        }
+
+        // Add standard headers if not present
+        if (!response.get_header("Content-Length"))
+        {
+            response.set_header("Content-Length", std::to_string(response.body.size()));
+        }
+
+        if (!response.get_header("Server"))
+        {
+            response.set_header("Server", "NetworkSystem-HTTP-Server/1.0");
+        }
+
+        // Add Connection header based on request if not already present
+        if (!response.get_header("Connection"))
+        {
+            // HTTP/1.1 defaults to keep-alive, HTTP/1.0 defaults to close
+            if (http_request.version == internal::http_version::HTTP_1_0)
+            {
+                auto conn = http_request.get_header("Connection");
+                if (conn && *conn == "keep-alive")
+                {
+                    response.set_header("Connection", "keep-alive");
+                }
+                else
+                {
+                    response.set_header("Connection", "close");
+                }
+            }
+            else  // HTTP/1.1
+            {
+                auto conn = http_request.get_header("Connection");
+                if (conn && *conn == "close")
+                {
+                    response.set_header("Connection", "close");
+                }
+                // else: keep-alive is default for HTTP/1.1
+            }
+        }
+
+        return response;
+    }
+
+    auto http_server::should_close_connection(const internal::http_request& request,
+                                              const internal::http_response& response) const -> bool
+    {
+        // Check response Connection header first
+        auto response_conn = response.get_header("Connection");
+        if (response_conn)
+        {
+            std::string conn_lower = *response_conn;
+            std::transform(conn_lower.begin(), conn_lower.end(), conn_lower.begin(),
+                         [](unsigned char c) { return std::tolower(c); });
+            if (conn_lower == "close")
+            {
+                return true;
+            }
+            if (conn_lower == "keep-alive")
+            {
+                return false;
+            }
+        }
+
+        // Check request Connection header
+        auto request_conn = request.get_header("Connection");
+        if (request_conn)
+        {
+            std::string conn_lower = *request_conn;
+            std::transform(conn_lower.begin(), conn_lower.end(), conn_lower.begin(),
+                         [](unsigned char c) { return std::tolower(c); });
+            if (conn_lower == "close")
+            {
+                return true;
+            }
+        }
+
+        // HTTP/1.0 defaults to close unless Connection: keep-alive
+        if (request.version == internal::http_version::HTTP_1_0)
+        {
+            return true;
+        }
+
+        // HTTP/1.1 defaults to keep-alive
+        return false;
     }
 
     auto http_server::create_error_response(int status_code, const std::string& message)
