@@ -192,6 +192,7 @@ namespace network_system::internal
         std::map<std::string, std::string> headers;
         std::vector<uint8_t> body;
         std::vector<cookie> set_cookies;  // Cookies to set in Set-Cookie headers
+        bool use_chunked_encoding = false;  // Use Transfer-Encoding: chunked
 
         /*!
          * \brief Get the value of a header (case-insensitive)

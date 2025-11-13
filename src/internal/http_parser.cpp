@@ -31,6 +31,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *****************************************************************************/
 
 #include "network_system/internal/http_parser.h"
+#include "network_system/integration/logger_integration.h"
 #include <sstream>
 #include <iomanip>
 #include <cctype>
@@ -352,6 +353,12 @@ namespace network_system::internal
 
     auto http_parser::serialize_response(const http_response& response) -> std::vector<uint8_t>
     {
+        // Use chunked encoding if requested
+        if (response.use_chunked_encoding && response.version == http_version::HTTP_1_1)
+        {
+            return serialize_chunked_response(response);
+        }
+
         std::ostringstream oss;
 
         // Status line: HTTP/VERSION STATUS_CODE STATUS_MESSAGE
@@ -365,6 +372,12 @@ namespace network_system::internal
             oss << name << HEADER_SEPARATOR << value << CRLF;
         }
 
+        // Set-Cookie headers
+        for (const auto& cookie : response.set_cookies)
+        {
+            oss << "Set-Cookie" << HEADER_SEPARATOR << cookie.to_header_value() << CRLF;
+        }
+
         // Empty line to separate headers from body
         oss << CRLF;
 
@@ -372,6 +385,80 @@ namespace network_system::internal
         auto str = oss.str();
         std::vector<uint8_t> result(str.begin(), str.end());
         result.insert(result.end(), response.body.begin(), response.body.end());
+
+        return result;
+    }
+
+    // Chunked encoding helper
+
+    auto http_parser::serialize_chunked_response(const http_response& response) -> std::vector<uint8_t>
+    {
+        std::ostringstream oss;
+
+        // Status line: HTTP/VERSION STATUS_CODE STATUS_MESSAGE
+        oss << http_version_to_string(response.version) << " ";
+        oss << response.status_code << " ";
+        oss << response.status_message << CRLF;
+
+        // Headers (excluding Content-Length, adding Transfer-Encoding)
+        for (const auto& [name, value] : response.headers)
+        {
+            // Skip Content-Length header for chunked encoding
+            if (name != "Content-Length" && name != "content-length")
+            {
+                oss << name << HEADER_SEPARATOR << value << CRLF;
+            }
+        }
+
+        // Add Transfer-Encoding: chunked header
+        oss << "Transfer-Encoding" << HEADER_SEPARATOR << "chunked" << CRLF;
+
+        // Set-Cookie headers
+        for (const auto& cookie : response.set_cookies)
+        {
+            oss << "Set-Cookie" << HEADER_SEPARATOR << cookie.to_header_value() << CRLF;
+        }
+
+        // Empty line to separate headers from body
+        oss << CRLF;
+
+        // Convert header to bytes
+        auto str = oss.str();
+        std::vector<uint8_t> result(str.begin(), str.end());
+
+        // Encode body as chunks
+        constexpr size_t CHUNK_SIZE = 8192;  // 8KB chunks
+        size_t offset = 0;
+
+        while (offset < response.body.size())
+        {
+            size_t chunk_size = std::min(CHUNK_SIZE, response.body.size() - offset);
+
+            // Chunk size in hexadecimal + CRLF
+            std::ostringstream chunk_header;
+            chunk_header << std::hex << chunk_size << CRLF;
+            std::string chunk_header_str = chunk_header.str();
+            result.insert(result.end(), chunk_header_str.begin(), chunk_header_str.end());
+
+            // Chunk data
+            result.insert(result.end(),
+                         response.body.begin() + offset,
+                         response.body.begin() + offset + chunk_size);
+
+            // CRLF after chunk data
+            result.push_back('\r');
+            result.push_back('\n');
+
+            offset += chunk_size;
+        }
+
+        // Last chunk: "0\r\n\r\n"
+        std::string last_chunk = "0\r\n\r\n";
+        result.insert(result.end(), last_chunk.begin(), last_chunk.end());
+
+        NETWORK_LOG_DEBUG("[http_parser] Serialized chunked response: " +
+                         std::to_string(response.body.size()) + " bytes in " +
+                         std::to_string((response.body.size() + CHUNK_SIZE - 1) / CHUNK_SIZE) + " chunks");
 
         return result;
     }
