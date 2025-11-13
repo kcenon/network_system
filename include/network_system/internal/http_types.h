@@ -71,6 +71,58 @@ namespace network_system::internal
     };
 
     /*!
+     * \struct cookie
+     * \brief Represents an HTTP cookie
+     *
+     * ### Structure
+     * - name: Cookie name
+     * - value: Cookie value
+     * - path: Path scope for the cookie
+     * - domain: Domain scope for the cookie
+     * - expires: Expiration date (HTTP date format)
+     * - max_age: Maximum age in seconds (-1 = session cookie)
+     * - secure: Secure flag (HTTPS only)
+     * - http_only: HttpOnly flag (not accessible via JavaScript)
+     * - same_site: SameSite attribute ("Strict", "Lax", "None")
+     */
+    struct cookie
+    {
+        std::string name;
+        std::string value;
+        std::string path;
+        std::string domain;
+        std::string expires;
+        int max_age = -1;  // -1 = session cookie
+        bool secure = false;
+        bool http_only = false;
+        std::string same_site;  // "Strict", "Lax", "None"
+
+        /*!
+         * \brief Convert cookie to Set-Cookie header value
+         * \return Cookie as Set-Cookie header string
+         */
+        auto to_header_value() const -> std::string;
+    };
+
+    /*!
+     * \struct multipart_file
+     * \brief Represents a file uploaded via multipart/form-data
+     *
+     * ### Structure
+     * - field_name: Form field name
+     * - filename: Original filename
+     * - content_type: MIME type of the file
+     * - content: File content as raw bytes
+     */
+    struct multipart_file
+    {
+        std::string field_name;
+        std::string filename;
+        std::string content_type;
+        std::vector<uint8_t> content;
+    };
+
+    /*!
      * \struct http_request
      * \brief Represents an HTTP request message
      *
@@ -90,6 +142,9 @@ namespace network_system::internal
         std::map<std::string, std::string> headers;
         std::vector<uint8_t> body;
         std::map<std::string, std::string> query_params;
+        std::map<std::string, std::string> cookies;  // Parsed cookies from Cookie header
+        std::map<std::string, std::string> form_data;  // Form fields from multipart/form-data
+        std::map<std::string, multipart_file> files;  // Uploaded files from multipart/form-data
 
         /*!
          * \brief Get the value of a header (case-insensitive)
@@ -136,6 +191,7 @@ namespace network_system::internal
         http_version version = http_version::HTTP_1_1;
         std::map<std::string, std::string> headers;
         std::vector<uint8_t> body;
+        std::vector<cookie> set_cookies;  // Cookies to set in Set-Cookie headers
 
         /*!
          * \brief Get the value of a header (case-insensitive)
@@ -162,6 +218,21 @@ namespace network_system::internal
          * \param content Body content as UTF-8 string
          */
         auto set_body_string(const std::string& content) -> void;
+
+        /*!
+         * \brief Set a cookie in the response
+         * \param name Cookie name
+         * \param value Cookie value
+         * \param path Cookie path (default: "/")
+         * \param max_age Maximum age in seconds (default: -1 for session cookie)
+         * \param http_only HttpOnly flag (default: true)
+         * \param secure Secure flag (default: false)
+         * \param same_site SameSite attribute (default: empty)
+         */
+        auto set_cookie(const std::string& name, const std::string& value,
+                       const std::string& path = "/", int max_age = -1,
+                       bool http_only = true, bool secure = false,
+                       const std::string& same_site = "") -> void;
     };
 
     /*!
