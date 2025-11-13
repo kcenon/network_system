@@ -33,6 +33,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "network_system/core/http_server.h"
 #include "network_system/session/messaging_session.h"
 #include <sstream>
+#include <algorithm>
+#include <cctype>
 
 namespace network_system::core
 {
@@ -64,6 +66,116 @@ namespace network_system::core
         return true;
     }
 
+    // http_request_buffer implementation
+
+    auto http_request_buffer::append(const std::vector<uint8_t>& chunk) -> bool
+    {
+        // Check size limits
+        if (data.size() + chunk.size() > MAX_REQUEST_SIZE)
+        {
+            return false;  // 413 Payload Too Large
+        }
+
+        // Append chunk to buffer
+        data.insert(data.end(), chunk.begin(), chunk.end());
+
+        // Find headers end if not yet found
+        if (!headers_complete)
+        {
+            auto marker_pos = find_header_end(data);
+            if (marker_pos != std::string::npos)
+            {
+                headers_complete = true;
+                headers_end_pos = marker_pos + 4;  // "\r\n\r\n" length
+                content_length = parse_content_length(data, headers_end_pos);
+            }
+            else if (data.size() > MAX_HEADER_SIZE)
+            {
+                return false;  // 431 Request Header Fields Too Large
+            }
+        }
+
+        return true;
+    }
+
+    auto http_request_buffer::is_complete() const -> bool
+    {
+        return headers_complete &&
+               data.size() >= (headers_end_pos + content_length);
+    }
+
+    auto http_request_buffer::find_header_end(const std::vector<uint8_t>& data) -> std::size_t
+    {
+        // Look for "\r\n\r\n" sequence
+        const char* pattern = "\r\n\r\n";
+        for (std::size_t i = 0; i + 3 < data.size(); ++i)
+        {
+            if (data[i] == '\r' && data[i+1] == '\n' &&
+                data[i+2] == '\r' && data[i+3] == '\n')
+            {
+                return i;
+            }
+        }
+        return std::string::npos;
+    }
+
+    auto http_request_buffer::parse_content_length(const std::vector<uint8_t>& data,
+                                                    std::size_t headers_end) -> std::size_t
+    {
+        // Convert headers to string for parsing
+        std::string headers_str(reinterpret_cast<const char*>(data.data()),
+                               std::min(headers_end, data.size()));
+
+        // Look for Content-Length header (case-insensitive)
+        const std::string content_length_key = "content-length:";
+        std::size_t pos = 0;
+
+        while (pos < headers_str.size())
+        {
+            // Find line start
+            std::size_t line_start = pos;
+            std::size_t line_end = headers_str.find("\r\n", pos);
+            if (line_end == std::string::npos)
+            {
+                break;
+            }
+
+            std::string line = headers_str.substr(line_start, line_end - line_start);
+
+            // Convert to lowercase for case-insensitive comparison
+            std::string line_lower = line;
+            std::transform(line_lower.begin(), line_lower.end(), line_lower.begin(),
+                         [](unsigned char c) { return std::tolower(c); });
+
+            // Check if this is Content-Length header
+            if (line_lower.find(content_length_key) == 0)
+            {
+                // Extract value after colon
+                std::size_t colon_pos = line.find(':');
+                if (colon_pos != std::string::npos)
+                {
+                    std::string value = line.substr(colon_pos + 1);
+                    // Trim whitespace
+                    value.erase(0, value.find_first_not_of(" \t"));
+                    value.erase(value.find_last_not_of(" \t\r\n") + 1);
+
+                    try
+                    {
+                        return std::stoull(value);
+                    }
+                    catch (...)
+                    {
+                        return 0;
+                    }
+                }
+            }
+
+            pos = line_end + 2;  // Skip "\r\n"
+        }
+
+        return 0;  // No Content-Length header found
+    }
+
     // http_server implementation
 
     http_server::http_server(const std::string& server_id)
@@ -92,15 +204,87 @@ namespace network_system::core
 
     auto http_server::start(unsigned short port) -> VoidResult
     {
-        // Set up receive callback to handle HTTP requests
+        // Set up receive callback to handle HTTP requests with buffering
         tcp_server_->set_receive_callback([this](std::shared_ptr<network_system::session::messaging_session> session,
                                                   const std::vector<uint8_t>& data)
         {
-            auto response_data = handle_request(data);
-            if (session)
+            if (!session)
             {
-                session->send_packet(std::move(response_data));
+                return;
             }
+
+            // Get or create buffer for this session
+            std::unique_lock<std::mutex> lock(buffers_mutex_);
+            auto& buffer = session_buffers_[session];
+            lock.unlock();
+
+            // Append new data to buffer
+            if (!buffer.append(data))
+            {
+                // Buffer size limit exceeded
+                lock.lock();
+                session_buffers_.erase(session);
+                lock.unlock();
+
+                // Send error response
+                if (buffer.data.size() > http_request_buffer::MAX_REQUEST_SIZE)
+                {
+                    auto error_response = create_error_response(413, "Payload Too Large");
+                    auto response_data = internal::http_parser::serialize_response(error_response);
+                    session->send_packet(std::move(response_data));
+                }
+                else
+                {
+                    auto error_response = create_error_response(431, "Request Header Fields Too Large");
+                    auto response_data = internal::http_parser::serialize_response(error_response);
+                    session->send_packet(std::move(response_data));
+                }
+                return;
+            }
+
+            // Check if request is complete
+            if (buffer.is_complete())
+            {
+                // Parse HTTP request
+                auto request_result = internal::http_parser::parse_request(buffer.data);
+
+                // Clean up buffer first
+                lock.lock();
+                session_buffers_.erase(session);
+                lock.unlock();
+
+                if (request_result.is_err())
+                {
+                    // Failed to parse - send 400 Bad Request
+                    auto error_response = create_error_response(400, "Bad Request");
+                    auto response_data = internal::http_parser::serialize_response(error_response);
+                    session->send_packet(std::move(response_data));
+                    // Close connection on parse error
+                    session->stop_session();
+                    return;
+                }
+
+                auto http_request = std::move(request_result.value());
+
+                // Process request and generate response
+                auto response = process_http_request(http_request);
+
+                // Determine if connection should be closed
+                bool close_conn = should_close_connection(http_request, response);
+
+                // Serialize and send response
+                auto response_data = internal::http_parser::serialize_response(response);
+                session->send_packet(std::move(response_data));
+
+                // Close connection if required
+                if (close_conn)
+                {
+                    // Give time for response to be sent before closing
+                    // In a production system, we would wait for send completion callback
+                    session->stop_session();
+                }
+            }
+            // Otherwise, wait for more data
         });
 
         // Start TCP server
@@ -257,13 +441,127 @@ namespace network_system::core
             response.set_header("Server", "NetworkSystem-HTTP-Server/1.0");
         }
 
-        if (!response.get_header("Connection"))
-        {
-            response.set_header("Connection", "close");
-        }
-
         // Serialize and return response
         return internal::http_parser::serialize_response(response);
+    }
+
+    auto http_server::process_http_request(const internal::http_request& http_request) -> internal::http_response
+    {
+        // Create request context
+        http_request_context ctx;
+        ctx.request = http_request;
+
+        internal::http_response response;
+
+        try
+        {
+            // Find matching route
+            auto route = find_route(ctx.request.method, ctx.request.uri, ctx.path_params);
+
+            if (route)
+            {
+                // Execute handler
+                response = route->handler(ctx);
+            }
+            else
+            {
+                // No matching route - send 404
+                response = not_found_handler_(ctx);
+            }
+        }
+        catch (const std::exception& e)
+        {
+            // Handler threw exception - send 500
+            response = error_handler_(ctx);
+        }
+        catch (...)
+        {
+            // Unknown exception - send 500
+            response = error_handler_(ctx);
+        }
+
+        // Add standard headers if not present
+        if (!response.get_header("Content-Length"))
+        {
+            response.set_header("Content-Length", std::to_string(response.body.size()));
+        }
+
+        if (!response.get_header("Server"))
+        {
+            response.set_header("Server", "NetworkSystem-HTTP-Server/1.0");
+        }
+
+        // Add Connection header based on request if not already present
+        if (!response.get_header("Connection"))
+        {
+            // HTTP/1.1 defaults to keep-alive, HTTP/1.0 defaults to close
+            if (http_request.version == internal::http_version::HTTP_1_0)
+            {
+                auto conn = http_request.get_header("Connection");
+                if (conn && *conn == "keep-alive")
+                {
+                    response.set_header("Connection", "keep-alive");
+                }
+                else
+                {
+                    response.set_header("Connection", "close");
+                }
+            }
+            else  // HTTP/1.1
+            {
+                auto conn = http_request.get_header("Connection");
+                if (conn && *conn == "close")
+                {
+                    response.set_header("Connection", "close");
+                }
+                // else: keep-alive is default for HTTP/1.1
+            }
+        }
+
+        return response;
+    }
+
+    auto http_server::should_close_connection(const internal::http_request& request,
+                                              const internal::http_response& response) const -> bool
+    {
+        // Check response Connection header first
+        auto response_conn = response.get_header("Connection");
+        if (response_conn)
+        {
+            std::string conn_lower = *response_conn;
+            std::transform(conn_lower.begin(), conn_lower.end(), conn_lower.begin(),
+                         [](unsigned char c) { return std::tolower(c); });
+            if (conn_lower == "close")
+            {
+                return true;
+            }
+            if (conn_lower == "keep-alive")
+            {
+                return false;
+            }
+        }
+
+        // Check request Connection header
+        auto request_conn = request.get_header("Connection");
+        if (request_conn)
+        {
+            std::string conn_lower = *request_conn;
+            std::transform(conn_lower.begin(), conn_lower.end(), conn_lower.begin(),
+                         [](unsigned char c) { return std::tolower(c); });
+            if (conn_lower == "close")
+            {
+                return true;
+            }
+        }
+
+        // HTTP/1.0 defaults to close unless Connection: keep-alive
+        if (request.version == internal::http_version::HTTP_1_0)
+        {
+            return true;
+        }
+
+        // HTTP/1.1 defaults to keep-alive
+        return false;
     }
 
     auto http_server::create_error_response(int status_code, const std::string& message)
