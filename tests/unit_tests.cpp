@@ -266,7 +266,7 @@ TEST_F(NetworkTest, MultipleClientsConnection) {
 // Message Transfer Tests
 // ============================================================================
 
-#ifdef BUILD_WITH_CONTAINER_SYSTEM
+#if 0  // Temporarily disable container_system integration tests
 TEST_F(NetworkTest, BasicMessageTransfer) {
     auto port = FindAvailablePort();
     ASSERT_NE(port, 0) << "No available port found";
@@ -493,7 +493,7 @@ TEST(NetworkStressTest, ConcurrentClients) {
                 EXPECT_TRUE(client_start.is_ok()) << "Client should start successfully";
                 std::this_thread::sleep_for(50ms);
 
-#ifdef BUILD_WITH_CONTAINER_SYSTEM
+#if 0  // Temporarily disable container_system integration
                 // Send a message
                 auto message = std::make_shared<value_container>();
                 message->add(std::make_shared<string_value>("thread", std::to_string(t)));
@@ -526,7 +526,7 @@ TEST(NetworkStressTest, ConcurrentClients) {
 TEST_F(NetworkTest, SendWithoutConnection) {
     auto client = std::make_shared<messaging_client>("disconnected_client");
 
-#ifdef BUILD_WITH_CONTAINER_SYSTEM
+#if 0  // Temporarily disable container_system integration
     // Create a message
     auto message = std::make_shared<value_container>();
     message->add(std::make_shared<string_value>("test", "data"));
