@@ -42,12 +42,13 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "network_system/compatibility.h"
 #include "network_system/utils/result_types.h"
 
-#ifdef BUILD_WITH_CONTAINER_SYSTEM
-#include <container.h>
-#include <values/string_value.h>
-#include <values/numeric_value.h>
-using namespace container_module;
-#endif
+// Note: container_system integration temporarily disabled due to missing headers
+// #ifdef BUILD_WITH_CONTAINER_SYSTEM
+// #include <container.h>
+// #include <values/string_value.h>
+// #include <values/numeric_value.h>
+// using namespace container_module;
+// #endif
 
 using namespace network_module;
 using namespace network_system;  // For error_codes and Result types

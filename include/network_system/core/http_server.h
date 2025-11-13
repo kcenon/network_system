@@ -46,6 +46,49 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace network_system::core
 {
     /*!
+     * \struct http_request_buffer
+     * \brief Buffer for accumulating HTTP request data received in chunks
+     */
+    struct http_request_buffer
+    {
+        std::vector<uint8_t> data;
+        bool headers_complete = false;
+        std::size_t headers_end_pos = 0;
+        std::size_t content_length = 0;
+
+        static constexpr std::size_t MAX_REQUEST_SIZE = 10 * 1024 * 1024;  // 10MB
+        static constexpr std::size_t MAX_HEADER_SIZE = 64 * 1024;          // 64KB
+
+        /*!
+         * \brief Append new data chunk to buffer
+         * \param chunk New data to append
+         * \return true if chunk was appended successfully, false if size limit exceeded
+         */
+        auto append(const std::vector<uint8_t>& chunk) -> bool;
+
+        /*!
+         * \brief Check if complete HTTP request has been received
+         * \return true if headers and body are complete
+         */
+        auto is_complete() const -> bool;
+
+        /*!
+         * \brief Find end of HTTP headers (\\r\\n\\r\\n marker)
+         * \return Position of headers end, or npos if not found
+         */
+        static auto find_header_end(const std::vector<uint8_t>& data) -> std::size_t;
+
+        /*!
+         * \brief Parse Content-Length from headers
+         * \param data Request data with headers
+         * \param headers_end Position where headers end
+         * \return Content-Length value, or 0 if not found
+         */
+        static auto parse_content_length(const std::vector<uint8_t>& data,
+                                         std::size_t headers_end) -> std::size_t;
+    };
+
+    /*!
      * \struct http_request_context
      * \brief Context for an HTTP request with parsed components
      */
@@ -300,6 +343,22 @@ namespace network_system::core
         auto handle_request(const std::vector<uint8_t>& request_data) -> std::vector<uint8_t>;
 
         /*!
+         * \brief Process HTTP request and generate response object
+         * \param request Parsed HTTP request
+         * \return HTTP response object
+         */
+        auto process_http_request(const internal::http_request& request) -> internal::http_response;
+
+        /*!
+         * \brief Determine if connection should be closed after response
+         * \param request HTTP request
+         * \param response HTTP response
+         * \return true if connection should be closed
+         */
+        auto should_close_connection(const internal::http_request& request,
+                                     const internal::http_response& response) const -> bool;
+
+        /*!
          * \brief Create default error response
          * \param status_code HTTP status code
          * \param message Error message
@@ -322,6 +381,10 @@ namespace network_system::core
         std::mutex routes_mutex_;
         http_handler not_found_handler_;
         http_handler error_handler_;
+
+        // Request buffering support
+        std::map<std::shared_ptr<session::messaging_session>, http_request_buffer> session_buffers_;
+        std::mutex buffers_mutex_;
     };
 
 } // namespace network_system::core
