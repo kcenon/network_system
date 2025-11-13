@@ -33,6 +33,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "network_system/core/http_server.h"
 #include "network_system/session/messaging_session.h"
 #include <sstream>
+#include <algorithm>
+#include <cctype>
 
 namespace network_system::core
 {
@@ -64,6 +66,116 @@ namespace network_system::core
         return true;
     }
 
+    // http_request_buffer implementation
+
+    auto http_request_buffer::append(const std::vector<uint8_t>& chunk) -> bool
+    {
+        // Check size limits
+        if (data.size() + chunk.size() > MAX_REQUEST_SIZE)
+        {
+            return false;  // 413 Payload Too Large
+        }
+
+        // Append chunk to buffer
+        data.insert(data.end(), chunk.begin(), chunk.end());
+
+        // Find headers end if not yet found
+        if (!headers_complete)
+        {
+            auto marker_pos = find_header_end(data);
+            if (marker_pos != std::string::npos)
+            {
+                headers_complete = true;
+                headers_end_pos = marker_pos + 4;  // "\r\n\r\n" length
+                content_length = parse_content_length(data, headers_end_pos);
+            }
+            else if (data.size() > MAX_HEADER_SIZE)
+            {
+                return false;  // 431 Request Header Fields Too Large
+            }
+        }
+
+        return true;
+    }
+
+    auto http_request_buffer::is_complete() const -> bool
+    {
+        return headers_complete &&
+               data.size() >= (headers_end_pos + content_length);
+    }
+
+    auto http_request_buffer::find_header_end(const std::vector<uint8_t>& data) -> std::size_t
+    {
+        // Look for "\r\n\r\n" sequence
+        const char* pattern = "\r\n\r\n";
+        for (std::size_t i = 0; i + 3 < data.size(); ++i)
+        {
+            if (data[i] == '\r' && data[i+1] == '\n' &&
+                data[i+2] == '\r' && data[i+3] == '\n')
+            {
+                return i;
+            }
+        }
+        return std::string::npos;
+    }
+
+    auto http_request_buffer::parse_content_length(const std::vector<uint8_t>& data,
+                                                    std::size_t headers_end) -> std::size_t
+    {
+        // Convert headers to string for parsing
+        std::string headers_str(reinterpret_cast<const char*>(data.data()),
+                               std::min(headers_end, data.size()));
+
+        // Look for Content-Length header (case-insensitive)
+        const std::string content_length_key = "content-length:";
+        std::size_t pos = 0;
+
+        while (pos < headers_str.size())
+        {
+            // Find line start
+            std::size_t line_start = pos;
+            std::size_t line_end = headers_str.find("\r\n", pos);
+            if (line_end == std::string::npos)
+            {
+                break;
+            }
+
+            std::string line = headers_str.substr(line_start, line_end - line_start);
+
+            // Convert to lowercase for case-insensitive comparison
+            std::string line_lower = line;
+            std::transform(line_lower.begin(), line_lower.end(), line_lower.begin(),
+                         [](unsigned char c) { return std::tolower(c); });
+
+            // Check if this is Content-Length header
+            if (line_lower.find(content_length_key) == 0)
+            {
+                // Extract value after colon
+                std::size_t colon_pos = line.find(':');
+                if (colon_pos != std::string::npos)
+                {
+                    std::string value = line.substr(colon_pos + 1);
+                    // Trim whitespace
+                    value.erase(0, value.find_first_not_of(" \t"));
+                    value.erase(value.find_last_not_of(" \t\r\n") + 1);
+
+                    try
+                    {
+                        return std::stoull(value);
+                    }
+                    catch (...)
+                    {
+                        return 0;
+                    }
+                }
+            }
+
+            pos = line_end + 2;  // Skip "\r\n"
+        }
+
+        return 0;  // No Content-Length header found
+    }
+
     // http_server implementation
 
     http_server::http_server(const std::string& server_id)
@@ -92,15 +204,59 @@ namespace network_system::core
 
     auto http_server::start(unsigned short port) -> VoidResult
     {
-        // Set up receive callback to handle HTTP requests
+        // Set up receive callback to handle HTTP requests with buffering
         tcp_server_->set_receive_callback([this](std::shared_ptr<network_system::session::messaging_session> session,
                                                   const std::vector<uint8_t>& data)
         {
-            auto response_data = handle_request(data);
-            if (session)
+            if (!session)
             {
+                return;
+            }
+
+            // Get or create buffer for this session
+            std::unique_lock<std::mutex> lock(buffers_mutex_);
+            auto& buffer = session_buffers_[session];
+            lock.unlock();
+
+            // Append new data to buffer
+            if (!buffer.append(data))
+            {
+                // Buffer size limit exceeded
+                lock.lock();
+                session_buffers_.erase(session);
+                lock.unlock();
+
+                // Send error response
+                if (buffer.data.size() > http_request_buffer::MAX_REQUEST_SIZE)
+                {
+                    auto error_response = create_error_response(413, "Payload Too Large");
+                    auto response_data = internal::http_parser::serialize_response(error_response);
+                    session->send_packet(std::move(response_data));
+                }
+                else
+                {
+                    auto error_response = create_error_response(431, "Request Header Fields Too Large");
+                    auto response_data = internal::http_parser::serialize_response(error_response);
+                    session->send_packet(std::move(response_data));
+                }
+                return;
+            }
+
+            // Check if request is complete
+            if (buffer.is_complete())
+            {
+                // Process complete request
+                auto response_data = handle_request(buffer.data);
+
+                // Clean up buffer
+                lock.lock();
+                session_buffers_.erase(session);
+                lock.unlock();
+
+                // Send response
                 session->send_packet(std::move(response_data));
             }
+            // Otherwise, wait for more data
         });
 
         // Start TCP server
