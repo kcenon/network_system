@@ -484,4 +484,210 @@ namespace network_system::internal
         return oss.str();
     }
 
+    auto http_parser::parse_cookies(http_request& request) -> void
+    {
+        auto cookie_header = request.get_header("Cookie");
+        if (!cookie_header) {
+            return;  // No Cookie header present
+        }
+
+        const std::string& cookie_str = *cookie_header;
+        size_t pos = 0;
+
+        while (pos < cookie_str.size()) {
+            // Skip whitespace
+            while (pos < cookie_str.size() && (cookie_str[pos] == ' ' || cookie_str[pos] == '\t')) {
+                pos++;
+            }
+
+            // Find the next semicolon or end of string
+            size_t semi_pos = cookie_str.find(';', pos);
+            if (semi_pos == std::string::npos) {
+                semi_pos = cookie_str.size();
+            }
+
+            // Extract and parse the name=value pair
+            std::string pair = cookie_str.substr(pos, semi_pos - pos);
+
+            // Find the '=' separator
+            size_t eq_pos = pair.find('=');
+            if (eq_pos != std::string::npos) {
+                std::string name = pair.substr(0, eq_pos);
+                std::string value = pair.substr(eq_pos + 1);
+
+                // Trim whitespace from name and value
+                auto trim = [](std::string& s) {
+                    // Trim leading whitespace
+                    size_t start = 0;
+                    while (start < s.size() && (s[start] == ' ' || s[start] == '\t')) {
+                        start++;
+                    }
+                    // Trim trailing whitespace
+                    size_t end = s.size();
+                    while (end > start && (s[end - 1] == ' ' || s[end - 1] == '\t')) {
+                        end--;
+                    }
+                    s = s.substr(start, end - start);
+                };
+
+                trim(name);
+                trim(value);
+
+                if (!name.empty()) {
+                    request.cookies[name] = value;
+                }
+            }
+
+            pos = semi_pos + 1;
+        }
+    }
+
+    auto http_parser::parse_multipart_form_data(http_request& request) -> VoidResult
+    {
+        // Get Content-Type header
+        auto content_type = request.get_header("Content-Type");
+        if (!content_type) {
+            return error<std::monostate>(-1, "Missing Content-Type header");
+        }
+
+        // Extract boundary from Content-Type header
+        // Format: "multipart/form-data; boundary=----WebKitFormBoundary..."
+        std::string boundary;
+        size_t boundary_pos = content_type->find("boundary=");
+        if (boundary_pos == std::string::npos) {
+            return error<std::monostate>(-1, "Missing boundary in Content-Type header");
+        }
+
+        boundary = "--" + content_type->substr(boundary_pos + 9);
+
+        // Remove quotes if present
+        if (!boundary.empty() && boundary.front() == '"') {
+            boundary = boundary.substr(1);
+        }
+        if (!boundary.empty() && boundary.back() == '"') {
+            boundary.pop_back();
+        }
+
+        // Parse multipart body
+        const std::vector<uint8_t>& body = request.body;
+        std::string body_str(body.begin(), body.end());
+
+        size_t pos = 0;
+        const std::string boundary_delimiter = boundary;
+        const std::string boundary_end = boundary + "--";
+
+        while (pos < body_str.size()) {
+            // Find the next boundary
+            size_t boundary_start = body_str.find(boundary_delimiter, pos);
+            if (boundary_start == std::string::npos) {
+                break;
+            }
+
+            // Move past the boundary and CRLF
+            pos = boundary_start + boundary_delimiter.size();
+            if (pos + 2 <= body_str.size() && body_str.substr(pos, 2) == "\r\n") {
+                pos += 2;
+            }
+
+            // Check if this is the final boundary
+            if (pos >= 2 && body_str.substr(pos - 2, 2) == "--") {
+                break;  // Final boundary found
+            }
+
+            // Parse part headers
+            std::map<std::string, std::string> part_headers;
+            size_t headers_end = body_str.find("\r\n\r\n", pos);
+            if (headers_end == std::string::npos) {
+                break;
+            }
+
+            std::string headers_section = body_str.substr(pos, headers_end - pos);
+            pos = headers_end + 4;  // Skip "\r\n\r\n"
+
+            // Parse Content-Disposition header
+            size_t disp_start = headers_section.find("Content-Disposition:");
+            if (disp_start == std::string::npos) {
+                continue;
+            }
+
+            size_t disp_end = headers_section.find("\r\n", disp_start);
+            std::string disposition = headers_section.substr(
+                disp_start + 20,  // Length of "Content-Disposition:"
+                disp_end == std::string::npos ? std::string::npos : disp_end - disp_start - 20
+            );
+
+            // Extract field name
+            std::string field_name;
+            size_t name_pos = disposition.find("name=\"");
+            if (name_pos != std::string::npos) {
+                size_t name_start = name_pos + 6;
+                size_t name_end = disposition.find('"', name_start);
+                if (name_end != std::string::npos) {
+                    field_name = disposition.substr(name_start, name_end - name_start);
+                }
+            }
+
+            // Check if this is a file upload
+            size_t filename_pos = disposition.find("filename=\"");
+            bool is_file = (filename_pos != std::string::npos);
+
+            // Find the part content (until next boundary)
+            size_t next_boundary = body_str.find(boundary_delimiter, pos);
+            if (next_boundary == std::string::npos) {
+                next_boundary = body_str.size();
+            }
+
+            // Extract content (remove trailing \r\n before boundary)
+            size_t content_end = next_boundary;
+            if (content_end >= 2 && body_str.substr(content_end - 2, 2) == "\r\n") {
+                content_end -= 2;
+            }
+
+            if (is_file) {
+                // Extract filename
+                std::string filename;
+                size_t filename_start = filename_pos + 10;
+                size_t filename_end = disposition.find('"', filename_start);
+                if (filename_end != std::string::npos) {
+                    filename = disposition.substr(filename_start, filename_end - filename_start);
+                }
+
+                // Extract Content-Type if present
+                std::string content_type_value = "application/octet-stream";
+                size_t ct_pos = headers_section.find("Content-Type:");
+                if (ct_pos != std::string::npos) {
+                    size_t ct_start = ct_pos + 13;
+                    size_t ct_end = headers_section.find("\r\n", ct_start);
+                    content_type_value = headers_section.substr(
+                        ct_start,
+                        ct_end == std::string::npos ? std::string::npos : ct_end - ct_start
+                    );
+                    // Trim whitespace
+                    size_t first = content_type_value.find_first_not_of(" \t");
+                    size_t last = content_type_value.find_last_not_of(" \t\r\n");
+                    if (first != std::string::npos) {
+                        content_type_value = content_type_value.substr(first, last - first + 1);
+                    }
+                }
+
+                // Create multipart_file
+                multipart_file file;
+                file.field_name = field_name;
+                file.filename = filename;
+                file.content_type = content_type_value;
+                file.content.assign(body_str.begin() + pos, body_str.begin() + content_end);
+
+                request.files[field_name] = std::move(file);
+            } else {
+                // Regular form field
+                std::string value = body_str.substr(pos, content_end - pos);
+                request.form_data[field_name] = value;
+            }
+
+            pos = next_boundary;
+        }
+
+        return ok(std::monostate{});
+    }
+
 } // namespace network_system::internal
