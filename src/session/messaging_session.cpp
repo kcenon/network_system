@@ -78,13 +78,23 @@ namespace network_system::session
 			return;
 		}
 
-		// Set up callbacks
-		auto self = shared_from_this();
+		// Set up callbacks with weak_ptr to avoid circular reference
+		auto weak_self = weak_from_this();
 		socket_->set_receive_callback(
-			[this, self](const std::vector<uint8_t>& data)
-			{ on_receive(data); });
-		socket_->set_error_callback([this, self](std::error_code ec)
-									{ on_error(ec); });
+			[weak_self](const std::vector<uint8_t>& data)
+			{
+				if (auto self = weak_self.lock())
+				{
+					self->on_receive(data);
+				}
+			});
+		socket_->set_error_callback([weak_self](std::error_code ec)
+			{
+				if (auto self = weak_self.lock())
+				{
+					self->on_error(ec);
+				}
+			});
 
 		// Begin reading
 		socket_->start_read();
@@ -233,7 +243,16 @@ if constexpr (std::is_same_v<decltype(socket_->socket().get_executor()), asio::i
 
 	auto messaging_session::on_error(std::error_code ec) -> void
 	{
-		NETWORK_LOG_ERROR("[messaging_session] Socket error: " + ec.message());
+		// Differentiate between graceful shutdown (EOF) and actual errors
+		if (ec == asio::error::eof || ec == asio::error::operation_aborted)
+		{
+			NETWORK_LOG_INFO("[messaging_session] Peer closed connection gracefully: "
+			                 + ec.message());
+		}
+		else
+		{
+			NETWORK_LOG_ERROR("[messaging_session] Socket error: " + ec.message());
+		}
 
 		// Invoke error callback if set
 		{
