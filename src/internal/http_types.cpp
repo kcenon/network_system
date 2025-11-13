@@ -255,4 +255,51 @@ namespace network_system::internal
         }
     }
 
+    // cookie methods
+    auto cookie::to_header_value() const -> std::string
+    {
+        std::string result = name + "=" + value;
+
+        if (!path.empty()) {
+            result += "; Path=" + path;
+        }
+        if (!domain.empty()) {
+            result += "; Domain=" + domain;
+        }
+        if (!expires.empty()) {
+            result += "; Expires=" + expires;
+        }
+        if (max_age >= 0) {
+            result += "; Max-Age=" + std::to_string(max_age);
+        }
+        if (http_only) {
+            result += "; HttpOnly";
+        }
+        if (secure) {
+            result += "; Secure";
+        }
+        if (!same_site.empty()) {
+            result += "; SameSite=" + same_site;
+        }
+
+        return result;
+    }
+
+    // http_response::set_cookie method
+    auto http_response::set_cookie(const std::string& name, const std::string& value,
+                                   const std::string& path, int max_age,
+                                   bool http_only, bool secure,
+                                   const std::string& same_site) -> void
+    {
+        cookie c;
+        c.name = name;
+        c.value = value;
+        c.path = path;
+        c.max_age = max_age;
+        c.http_only = http_only;
+        c.secure = secure;
+        c.same_site = same_site;
+        set_cookies.push_back(c);
+    }
+
 } // namespace network_system::internal
