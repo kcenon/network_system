@@ -6,7 +6,8 @@
         "asio",
         "fmt",
         "gtest",
-        "benchmark"
+        "benchmark",
+        "zlib"
     ],
     "features": {
         "tests": {
