@@ -317,47 +317,57 @@ namespace network_system::core
 			std::move(socket), server_id_);
 
 		// Set up session callbacks to forward to server callbacks
+		// Check if callbacks exist under lock, then set them without lock to avoid deadlock
 		auto self = shared_from_this();
+		bool has_receive_cb = false;
+		bool has_disconnection_cb = false;
+		bool has_error_cb = false;
+
 		{
 			std::lock_guard<std::mutex> lock(callback_mutex_);
-			if (receive_callback_)
-			{
-				new_session->set_receive_callback(
-					[this, self, new_session](const std::vector<uint8_t>& data)
-					{
-						std::lock_guard<std::mutex> cb_lock(callback_mutex_);
-						if (receive_callback_)
-						{
-							receive_callback_(new_session, data);
-						}
-					});
-			}
+			has_receive_cb = (receive_callback_ != nullptr);
+			has_disconnection_cb = (disconnection_callback_ != nullptr);
+			has_error_cb = (error_callback_ != nullptr);
+		}
 
-			if (disconnection_callback_)
-			{
-				new_session->set_disconnection_callback(
-					[this, self, new_session](const std::string& session_id)
+		// Set callbacks without holding callback_mutex_ to prevent lock-order-inversion
+		if (has_receive_cb)
+		{
+			new_session->set_receive_callback(
+				[this, self, new_session](const std::vector<uint8_t>& data)
+				{
+					std::lock_guard<std::mutex> cb_lock(callback_mutex_);
+					if (receive_callback_)
 					{
-						std::lock_guard<std::mutex> cb_lock(callback_mutex_);
-						if (disconnection_callback_)
-						{
-							disconnection_callback_(session_id);
-						}
-					});
-			}
+						receive_callback_(new_session, data);
+					}
+				});
+		}
 
-			if (error_callback_)
-			{
-				new_session->set_error_callback(
-					[this, self, new_session](std::error_code ec)
+		if (has_disconnection_cb)
+		{
+			new_session->set_disconnection_callback(
+				[this, self, new_session](const std::string& session_id)
+				{
+					std::lock_guard<std::mutex> cb_lock(callback_mutex_);
+					if (disconnection_callback_)
 					{
-						std::lock_guard<std::mutex> cb_lock(callback_mutex_);
-						if (error_callback_)
-						{
-							error_callback_(new_session, ec);
-						}
-					});
-			}
+						disconnection_callback_(session_id);
+					}
+				});
+		}
+
+		if (has_error_cb)
+		{
+			new_session->set_error_callback(
+				[this, self, new_session](std::error_code ec)
+				{
+					std::lock_guard<std::mutex> cb_lock(callback_mutex_);
+					if (error_callback_)
+					{
+						error_callback_(new_session, ec);
+					}
+				});
 		}
 
 		// Track it in our sessions_ vector (protected by mutex)

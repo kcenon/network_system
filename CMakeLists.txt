@@ -251,6 +251,23 @@ if(BUILD_LZ4_COMPRESSION)
     endif()
 endif()
 
+# ZLIB compression support (for gzip/deflate)
+option(BUILD_ZLIB_COMPRESSION "Build with ZLIB compression support (gzip/deflate)" ON)
+
+if(BUILD_ZLIB_COMPRESSION)
+    find_package(ZLIB QUIET)
+
+    if(ZLIB_FOUND)
+        target_compile_definitions(NetworkSystem PUBLIC BUILD_ZLIB_COMPRESSION)
+        target_link_libraries(NetworkSystem PRIVATE ZLIB::ZLIB)
+        message(STATUS "ZLIB compression enabled (gzip/deflate)")
+        message(STATUS "  ZLIB version: ${ZLIB_VERSION_STRING}")
+    else()
+        message(WARNING "ZLIB library not found. gzip/deflate compression will be disabled.")
+        message(STATUS "Install ZLIB: vcpkg install zlib or system package manager")
+    endif()
+endif()
+
 # Set target properties
 set_target_properties(NetworkSystem PROPERTIES
     CXX_STANDARD 20
