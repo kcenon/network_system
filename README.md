@@ -1093,39 +1093,65 @@ inline VoidResult error_void(int code, const std::string& message, ...);
 
 For detailed improvement plans and tracking, see the project's [NEED_TO_FIX.md](/Users/dongcheolshin/Sources/NEED_TO_FIX.md).
 
-### HTTP Server/Client - Current Status & Limitations
+### HTTP Server/Client - Enhanced Features
 
 #### Overview
-The network system includes basic HTTP/1.1 server and client functionality built on top of the messaging layer. These components are currently in **early development** and have known limitations that are being addressed in upcoming releases.
+The network system includes HTTP/1.1 server and client functionality with significantly improved features including request buffering, cookie management, multipart/form-data support, chunked encoding, and automatic compression. While core functionality is stable and tested, continued real-world validation is recommended.
 
-#### ✅ Working Features
-- **HTTP/1.1 Protocol**: Basic GET, POST, PUT, DELETE, HEAD, PATCH methods
+#### ✅ Core Features
+- **HTTP/1.1 Protocol**: Full support for GET, POST, PUT, DELETE, HEAD, PATCH methods
 - **Routing**: Pattern-based URL routing with path parameters (e.g., `/users/:id`)
-- **Query Parameters**: Full support for URL query string parsing
+- **Query Parameters**: Complete URL query string parsing
 - **Custom Headers**: Send and receive custom HTTP headers
 - **Request/Response Body**: Text and binary body handling
-- **Local Testing**: Samples compile and run locally
+- **Thread Safety**: Concurrent request handling with proper synchronization
 
-#### ⚠️ Known Limitations
+#### ✨ Advanced Features
 
-**Critical Issues (Phase 2 - Immediate Remediation)**:
-1. **Request Buffering**: Server treats each TCP chunk as a complete request
-   - Multi-chunk requests may fail or timeout
-   - No validation of `Content-Length` vs actual received data
-   - Impact: Large payloads or slow connections may not work correctly
+**Request Processing**:
+- ✅ **Request Buffering**: Complete request buffering with `Content-Length` validation
+  - Multi-chunk request support
+  - Proper header/body boundary detection
+  - Configurable maximum request size (10MB default)
+  - Memory-safe buffer management
 
-2. **Security Gaps**:
-   - No validation of negative or overflow `Content-Length` values
-   - Header names/values copied without sanitization
-   - No upper bounds on request size (DoS vulnerability)
+**Cookie Support**:
+- ✅ **Cookie Parsing**: Full HTTP cookie parsing and management
+  - Cookie attributes (expires, max-age, domain, path, secure, httponly, samesite)
+  - Multiple cookie handling
+  - RFC 6265 compliant
 
-**Protocol Limitations**:
-- ❌ **No HTTPS/TLS support**: HTTP only, HTTPS endpoints will fail
-- ❌ **No chunked transfer encoding**: Both server and client
-- ❌ **No persistent connections**: Uses `Connection: close` for all requests
-- ❌ **No automatic redirect following**: 3xx responses require manual handling
-- ❌ **No cookie management**: Cookies are not automatically handled
-- ❌ **No compression support**: gzip/deflate encoding not supported
+**File Upload**:
+- ✅ **Multipart/form-data**: Complete file upload support
+  - Boundary detection and parsing
+  - Multiple file handling
+  - Content-Type and Content-Disposition parsing
+  - Large file support
+
+**Transfer Encoding**:
+- ✅ **Chunked Encoding**: Both client and server support
+  - Automatic chunk encoding for large responses
+  - Proper chunk boundary handling
+  - Memory-efficient streaming
+
+**Compression**:
+- ✅ **Automatic Compression**: gzip/deflate support
+  - Content negotiation via Accept-Encoding
+  - Automatic compression for compressible content
+  - Configurable compression threshold
+  - ZLIB-based implementation
+
+**Concurrency & Reliability**:
+- ✅ **Memory Safety**: Resolved circular reference memory leaks
+- ✅ **Thread Safety**: Fixed lock-order-inversion deadlocks
+- ✅ **Connection Management**: Graceful TCP shutdown handling
+- ✅ **URL Parsing**: Thread-safe static regex compilation
+
+**Container Integration**:
+- ✅ **Flexible Serialization**: container_manager API for message serialization
+  - Works with or without container_system
+  - Automatic fallback to basic_container
+  - Thread-safe singleton pattern
 
 #### 🔬 Local Testing
 
@@ -1149,9 +1175,6 @@ cmake --build build -j8
 
 **Testing with curl**:
 ```bash
-# Note: Due to current buffering limitations, responses may timeout
-# This is a known issue being addressed in Phase 2
-
 # Test root endpoint
 curl http://localhost:8080/
 
@@ -1163,34 +1186,38 @@ curl http://localhost:8080/users/123
 
 # Test POST request
 curl -X POST -d "test data" http://localhost:8080/api/echo
+
+# Test file upload (multipart/form-data)
+curl -X POST -F "file=@image.jpg" http://localhost:8080/upload
+
+# Test with cookie
+curl -b "session=abc123" http://localhost:8080/api/protected
+
+# Test compression (gzip)
+curl -H "Accept-Encoding: gzip,deflate" http://localhost:8080/ --compressed
 ```
 
-**Known Test Issues**:
-- Requests may timeout due to buffering limitations
-- This is expected behavior and is documented in DETAILED_DEVELOPMENT_PLAN.md
-- Full request/response cycle will be fixed in Phase 2.1 (Request Buffering)
+#### 🚀 Performance Characteristics
 
-#### 📋 Development Roadmap
+**Reliability**:
+- ✅ Zero memory leaks (AddressSanitizer verified)
+- ✅ No data races (ThreadSanitizer verified)
+- ✅ No deadlocks (ThreadSanitizer verified)
+- ✅ Graceful connection handling
 
-See [docs/DETAILED_DEVELOPMENT_PLAN.md](docs/DETAILED_DEVELOPMENT_PLAN.md) for the complete HTTP improvement plan:
+**Scalability**:
+- Concurrent request handling via thread pool integration
+- Efficient memory management with move semantics
+- Configurable limits for security and resource management
 
-**Phase 1 - Immediate Remediation** (1-2 days) ✅:
-- ✅ Convert demo endpoints to HTTP-only
-- ✅ Remove undefined API calls
-- ✅ Document limitations in README
+#### 🔮 Future Enhancements
 
-**Phase 2 - Core Fixes** (3-5 days) - In Progress:
-- 🔲 Implement incremental request buffering
-- 🔲 Add `Content-Length` validation
-- 🔲 Create parser unit tests
-- 🔲 Add integration tests for GET/POST/error cases
-- 🔲 Security hardening (header validation, size limits)
-
-**Phase 3 - Advanced Features** (1-2 weeks) - Planned:
-- 🔲 HTTPS/TLS support via OpenSSL
-- 🔲 Chunked transfer encoding
-- 🔲 Connection pooling and keep-alive
-- 🔲 Route optimization
+**Planned Features**:
+- HTTPS/TLS support (OpenSSL integration ready)
+- HTTP/2 protocol support
+- Connection pooling and keep-alive optimization
+- WebSocket upgrade support
+- Advanced routing with middleware support
 
 #### 📝 Sample Code
 
