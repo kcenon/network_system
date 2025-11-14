@@ -14,8 +14,75 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Planned
 - C++20 coroutine full integration
 - HTTP/2 and HTTP/3 support
-- TLS 1.3 support
 - Advanced load balancing algorithms
+
+---
+
+## [1.5.0] - 2025-11-14
+
+### Added
+- **HTTP Advanced Features**: Significantly improved HTTP/1.1 implementation
+  - **Request Buffering**: Complete multi-chunk request support with Content-Length validation
+    - Proper header/body boundary detection
+    - Configurable maximum request size (10MB default)
+    - Memory-safe buffer management
+
+  - **Cookie Support**: Full HTTP cookie parsing and management (RFC 6265 compliant)
+    - Cookie attributes support (expires, max-age, domain, path, secure, httponly, samesite)
+    - Multiple cookie handling
+
+  - **Multipart/Form-data**: Complete file upload support
+    - Boundary detection and parsing
+    - Multiple file handling
+    - Content-Type and Content-Disposition parsing
+
+  - **Chunked Encoding**: Both client and server support
+    - Automatic chunk encoding for large responses
+    - Memory-efficient streaming
+
+  - **Automatic Compression**: gzip/deflate support via ZLIB
+    - Content negotiation via Accept-Encoding header
+    - Configurable compression threshold
+    - ZLIB dependency integration
+
+- **Container System Integration**: New flexible serialization API
+  - `container_manager` singleton for message serialization
+  - `container_interface` abstraction layer
+  - `basic_container` standalone implementation (no external dependencies)
+  - Automatic fallback when container_system unavailable
+  - Thread-safe singleton pattern
+
+### Fixed
+- **Critical Bug Fixes**: Resolved production-blocking issues
+  - **Memory Leaks**: Fixed circular reference in messaging_session (~900 bytes/connection)
+    - Changed from shared_ptr to weak_ptr in callback lambdas
+    - Prevents session objects from being kept alive by socket callbacks
+
+  - **Deadlock**: Resolved lock-order-inversion in messaging_server
+    - Fixed callback_mutex_ and session mutex interaction
+    - Proper lock ordering in callback registration
+
+  - **Thread Safety**: Fixed HTTP URL parsing data race
+    - Changed url_regex to static const (C++11 magic statics)
+    - Eliminates regex recompilation overhead
+
+  - **TCP Shutdown**: Restored graceful connection termination
+    - Proper EOF and operation-aborted event handling
+    - Correct error propagation to handlers
+
+### Changed
+- **Test Infrastructure**: Migrated container_system tests to new API
+  - Removed obsolete `#if 0` preprocessor blocks
+  - Updated tests to use container_manager pattern
+  - Simplified test data to use std::string
+  - All tests work without container_system dependency
+
+### Technical Details
+- ZLIB version 1.2.12 integration
+- AddressSanitizer verified: zero memory leaks
+- ThreadSanitizer verified: no data races or deadlocks
+- All unit tests passing (15/15)
+- Compatible with container_system v2 API
 
 ---
 

@@ -41,14 +41,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "network_system/compatibility.h"
 #include "network_system/utils/result_types.h"
-
-// Note: container_system integration temporarily disabled due to missing headers
-// #ifdef BUILD_WITH_CONTAINER_SYSTEM
-// #include <container.h>
-// #include <values/string_value.h>
-// #include <values/numeric_value.h>
-// using namespace container_module;
-// #endif
+#include "network_system/integration/container_integration.h"
 
 using namespace network_module;
 using namespace network_system;  // For error_codes and Result types
@@ -266,7 +259,7 @@ TEST_F(NetworkTest, MultipleClientsConnection) {
 // Message Transfer Tests
 // ============================================================================
 
-#if 0  // Temporarily disable container_system integration tests
+// Basic message transfer test using container_manager (new API)
 TEST_F(NetworkTest, BasicMessageTransfer) {
     auto port = FindAvailablePort();
     ASSERT_NE(port, 0) << "No available port found";
@@ -289,14 +282,12 @@ TEST_F(NetworkTest, BasicMessageTransfer) {
     // Give time to connect
     std::this_thread::sleep_for(100ms);
 
-    // Create a message
-    auto message = std::make_shared<value_container>();
-    message->add(std::make_shared<string_value>("type", "test_message"));
-    message->add(std::make_shared<string_value>("content", "Hello, Server!"));
-    message->add(std::make_shared<int_value>("sequence", 1));
+    // Create simple test message (basic_container supports std::string directly)
+    std::string test_message = "test_message:Hello, Server!:1";
 
-    // Serialize message to bytes
-    auto serialized = message->serialize_array();
+    // Get container manager and serialize
+    auto& manager = integration::container_manager::instance();
+    auto serialized = manager.serialize(test_message);
 
     // Send message
     auto send_result = client->send_packet(std::move(serialized));
@@ -313,6 +304,7 @@ TEST_F(NetworkTest, BasicMessageTransfer) {
     EXPECT_TRUE(server_stop.is_ok()) << "Server stop should succeed";
 }
 
+// Large message transfer test using container_manager (new API)
 TEST_F(NetworkTest, LargeMessageTransfer) {
     auto port = FindAvailablePort();
     ASSERT_NE(port, 0) << "No available port found";
@@ -333,16 +325,14 @@ TEST_F(NetworkTest, LargeMessageTransfer) {
 
     std::this_thread::sleep_for(100ms);
 
-    // Create a large message
-    auto message = std::make_shared<value_container>();
-    message->add(std::make_shared<string_value>("type", "large_message"));
+    // Create large message (1MB) as string
+    std::string large_message = "large_message:" + std::string(1024 * 1024, 'X');
 
-    // Add 1MB of data
-    std::string large_data(1024 * 1024, 'X');
-    message->add(std::make_shared<string_value>("data", large_data));
+    // Get container manager and serialize
+    auto& manager = integration::container_manager::instance();
+    auto serialized = manager.serialize(large_message);
 
-    // Serialize and send
-    auto serialized = message->serialize_array();
+    // Send message
     auto send_result = client->send_packet(std::move(serialized));
     EXPECT_TRUE(send_result.is_ok()) << "Large message send should succeed: "
                                       << (send_result.is_err() ? send_result.error().message : "");
@@ -356,6 +346,7 @@ TEST_F(NetworkTest, LargeMessageTransfer) {
     EXPECT_TRUE(server_stop.is_ok()) << "Server stop should succeed";
 }
 
+// Multiple message transfer test using container_manager (new API)
 TEST_F(NetworkTest, MultipleMessageTransfer) {
     auto port = FindAvailablePort();
     ASSERT_NE(port, 0) << "No available port found";
@@ -376,15 +367,16 @@ TEST_F(NetworkTest, MultipleMessageTransfer) {
 
     std::this_thread::sleep_for(100ms);
 
+    // Get container manager
+    auto& manager = integration::container_manager::instance();
+
     // Send multiple messages
     const int message_count = 10;
     for (int i = 0; i < message_count; ++i) {
-        auto message = std::make_shared<value_container>();
-        message->add(std::make_shared<string_value>("type", "sequence_message"));
-        message->add(std::make_shared<int_value>("sequence", i));
-        message->add(std::make_shared<string_value>("data", "Message " + std::to_string(i)));
+        // Create message as string
+        std::string message = "sequence_message:" + std::to_string(i) + ":Message " + std::to_string(i);
 
-        auto serialized = message->serialize_array();
+        auto serialized = manager.serialize(message);
         auto send_result = client->send_packet(std::move(serialized));
         EXPECT_TRUE(send_result.is_ok()) << "Message " << i << " send should succeed: "
                                           << (send_result.is_err() ? send_result.error().message : "");
@@ -400,7 +392,6 @@ TEST_F(NetworkTest, MultipleMessageTransfer) {
     auto server_stop = server->stop_server();
     EXPECT_TRUE(server_stop.is_ok()) << "Server stop should succeed";
 }
-#endif // BUILD_WITH_CONTAINER_SYSTEM
 
 // ============================================================================
 // Stress Tests
@@ -493,16 +484,12 @@ TEST(NetworkStressTest, ConcurrentClients) {
                 EXPECT_TRUE(client_start.is_ok()) << "Client should start successfully";
                 std::this_thread::sleep_for(50ms);
 
-#if 0  // Temporarily disable container_system integration
-                // Send a message
-                auto message = std::make_shared<value_container>();
-                message->add(std::make_shared<string_value>("thread", std::to_string(t)));
-                message->add(std::make_shared<string_value>("client", std::to_string(c)));
-
-                auto serialized = message->serialize_array();
+                // Send a message using container_manager
+                std::string message = "thread:" + std::to_string(t) + ":client:" + std::to_string(c);
+                auto& manager = integration::container_manager::instance();
+                auto serialized = manager.serialize(message);
                 auto send_result = client->send_packet(std::move(serialized));
                 EXPECT_TRUE(send_result.is_ok()) << "Message send should succeed";
-#endif
 
                 std::this_thread::sleep_for(50ms);
                 auto client_stop = client->stop_client();
@@ -526,12 +513,10 @@ TEST(NetworkStressTest, ConcurrentClients) {
 TEST_F(NetworkTest, SendWithoutConnection) {
     auto client = std::make_shared<messaging_client>("disconnected_client");
 
-#if 0  // Temporarily disable container_system integration
-    // Create a message
-    auto message = std::make_shared<value_container>();
-    message->add(std::make_shared<string_value>("test", "data"));
-
-    auto serialized = message->serialize_array();
+    // Create a message using container_manager
+    std::string test_data = "test:data";
+    auto& manager = integration::container_manager::instance();
+    auto serialized = manager.serialize(test_data);
 
     // Send should return error when not connected
     auto send_result = client->send_packet(std::move(serialized));
@@ -541,10 +526,6 @@ TEST_F(NetworkTest, SendWithoutConnection) {
         EXPECT_EQ(send_result.error().code, error_codes::network_system::connection_closed)
             << "Should return connection_closed error code";
     }
-#else
-    // Without container_system, just verify client can be created
-    EXPECT_NE(client, nullptr);
-#endif
 }
 
 TEST_F(NetworkTest, ServerStopWhileClientsConnected) {
