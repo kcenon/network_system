@@ -32,6 +32,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "network_system/core/http_server.h"
 #include "network_system/session/messaging_session.h"
+#include "network_system/utils/compression_pipeline.h"
 #include <sstream>
 #include <algorithm>
 #include <cctype>
@@ -518,6 +519,9 @@ namespace network_system::core
             }
         }
 
+        // Apply compression if enabled and appropriate
+        apply_compression(http_request, response);
+
         return response;
     }
 
@@ -657,6 +661,117 @@ namespace network_system::core
         regex_str << "$";
 
         return regex_str.str();
+    }
+
+    auto http_server::set_compression_enabled(bool enable) -> void
+    {
+        std::lock_guard<std::mutex> lock(compression_mutex_);
+        compression_enabled_ = enable;
+    }
+
+    auto http_server::set_compression_threshold(size_t threshold_bytes) -> void
+    {
+        std::lock_guard<std::mutex> lock(compression_mutex_);
+        compression_threshold_ = threshold_bytes;
+    }
+
+    auto http_server::choose_compression_algorithm(const std::string& accept_encoding) const
+        -> utils::compression_algorithm
+    {
+        // Parse Accept-Encoding header value (e.g., "gzip, deflate, br")
+        // Priority: gzip > deflate > none
+        // Note: We only support gzip and deflate (not br/brotli)
+
+        // Convert to lowercase for case-insensitive comparison
+        std::string accept_lower = accept_encoding;
+        std::transform(accept_lower.begin(), accept_lower.end(), accept_lower.begin(),
+                      [](unsigned char c) { return std::tolower(c); });
+
+        // Check for gzip first (highest priority)
+        if (accept_lower.find("gzip") != std::string::npos)
+        {
+            return utils::compression_algorithm::gzip;
+        }
+
+        // Check for deflate next
+        if (accept_lower.find("deflate") != std::string::npos)
+        {
+            return utils::compression_algorithm::deflate;
+        }
+
+        // No supported compression algorithm found
+        return utils::compression_algorithm::none;
+    }
+
+    auto http_server::apply_compression(const internal::http_request& request,
+                                        internal::http_response& response) -> void
+    {
+        // Check if compression is enabled and response size meets threshold
+        {
+            std::lock_guard<std::mutex> lock(compression_mutex_);
+            if (!compression_enabled_)
+            {
+                return;  // Compression disabled
+            }
+
+            if (response.body.size() < compression_threshold_)
+            {
+                return;  // Response too small to compress
+            }
+        }
+
+        // Get Accept-Encoding header from request
+        auto accept_encoding = request.get_header("Accept-Encoding");
+        if (!accept_encoding)
+        {
+            return;  // Client doesn't support compression
+        }
+
+        // Determine best compression algorithm
+        auto algorithm = choose_compression_algorithm(*accept_encoding);
+        if (algorithm == utils::compression_algorithm::none)
+        {
+            return;  // No supported compression algorithm
+        }
+
+        // Store original size for logging
+        const size_t original_size = response.body.size();
+
+        // Create compression pipeline for the selected algorithm
+        auto pipeline = std::make_shared<utils::compression_pipeline>(algorithm);
+
+        // Compress response body
+        auto compressed_result = pipeline->compress(response.body);
+
+        if (compressed_result.is_err())
+        {
+            // Compression failed - send uncompressed
+            // TODO: Add error logging when needed
+            return;
+        }
+
+        // Get compressed size before moving
+        const size_t compressed_size = compressed_result.value().size();
+
+        // Replace response body with compressed data
+        response.body = std::move(compressed_result.value());
+
+        // Set Content-Encoding header to indicate compression
+        if (algorithm == utils::compression_algorithm::gzip)
+        {
+            response.set_header("Content-Encoding", "gzip");
+        }
+        else if (algorithm == utils::compression_algorithm::deflate)
+        {
+            response.set_header("Content-Encoding", "deflate");
+        }
+
+        // Update Content-Length header with new compressed size
+        response.set_header("Content-Length", std::to_string(response.body.size()));
+
+        // Suppress unused variable warnings
+        (void)original_size;
+        (void)compressed_size;
     }
 
 } // namespace network_system::core

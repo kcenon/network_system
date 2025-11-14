@@ -200,6 +200,9 @@ namespace network_system::internal
                                    std::map<std::string, std::string>& headers) -> bool;
         static auto trim(std::string_view str) -> std::string_view;
         static auto split_line(std::string_view data) -> std::pair<std::string_view, std::string_view>;
+
+        // Helper function for chunked encoding
+        static auto serialize_chunked_response(const http_response& response) -> std::vector<uint8_t>;
     };
 
 } // namespace network_system::internal

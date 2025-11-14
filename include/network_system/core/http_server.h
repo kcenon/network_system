@@ -36,6 +36,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "network_system/internal/http_types.h"
 #include "network_system/internal/http_parser.h"
 #include "network_system/utils/result_types.h"
+#include "network_system/utils/compression_pipeline.h"
 #include <string>
 #include <map>
 #include <functional>
@@ -312,6 +313,18 @@ namespace network_system::core
          */
         auto set_error_handler(http_handler handler) -> void;
 
+        /*!
+         * \brief Enable automatic response compression
+         * \param enable True to enable compression, false to disable
+         */
+        auto set_compression_enabled(bool enable) -> void;
+
+        /*!
+         * \brief Set minimum response size for compression
+         * \param threshold_bytes Minimum size in bytes (default: 1024)
+         */
+        auto set_compression_threshold(size_t threshold_bytes) -> void;
+
     private:
         /*!
          * \brief Register route with method and pattern
@@ -376,6 +389,22 @@ namespace network_system::core
         static auto pattern_to_regex(const std::string& pattern,
                                       std::vector<std::string>& param_names) -> std::string;
 
+        /*!
+         * \brief Apply compression to response if appropriate
+         * \param request HTTP request (for Accept-Encoding header)
+         * \param response HTTP response to potentially compress
+         */
+        auto apply_compression(const internal::http_request& request,
+                              internal::http_response& response) -> void;
+
+        /*!
+         * \brief Determine compression algorithm from Accept-Encoding header
+         * \param accept_encoding Accept-Encoding header value
+         * \return Best supported compression algorithm
+         */
+        auto choose_compression_algorithm(const std::string& accept_encoding) const
+            -> utils::compression_algorithm;
+
         std::shared_ptr<messaging_server> tcp_server_;
         std::vector<http_route> routes_;
         std::mutex routes_mutex_;
@@ -385,6 +414,11 @@ namespace network_system::core
         // Request buffering support
         std::map<std::shared_ptr<session::messaging_session>, http_request_buffer> session_buffers_;
         std::mutex buffers_mutex_;
+
+        // Compression settings
+        bool compression_enabled_ = false;
+        size_t compression_threshold_ = 1024;  // 1KB default
+        std::mutex compression_mutex_;
     };
 
 } // namespace network_system::core
