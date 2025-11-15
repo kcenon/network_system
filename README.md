@@ -487,14 +487,14 @@ This project is licensed under the BSD 3-Clause License - see the [LICENSE](LICE
 
 ---
 
-<div align="center">
+## Acknowledgments
 
-**🚀 Network System - High-Performance Asynchronous Networking for Modern C++**
+- Inspired by modern asynchronous networking patterns and best practices
+- Built with C++20 features for maximum performance and safety
+- Maintained by kcenon@naver.com
 
-*Built with ❤️ for the C++20 ecosystem | Production-ready | Enterprise-grade*
+---
 
-[![Performance](https://img.shields.io/badge/Performance-769K%20msg%2Fs-brightgreen.svg)](#performance-highlights)
-[![C++20](https://img.shields.io/badge/C%2B%2B-20-blue.svg)](https://en.cppreference.com/w/cpp/20)
-[![Cross Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey.svg)](#platform-support)
-
-</div>
+<p align="center">
+  Made with ❤️ by 🍀☀🌕🌥 🌊
+</p>
