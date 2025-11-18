@@ -70,6 +70,7 @@ jobs:
 
     # Clone and build required system dependencies
     - name: Build system dependencies
+      shell: bash
       run: |
         mkdir -p deps
         cd deps
