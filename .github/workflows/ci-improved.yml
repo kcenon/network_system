@@ -32,7 +32,8 @@ jobs:
           -DBUILD_WITH_CONTAINER_SYSTEM=OFF \
           -DBUILD_WITH_MONITORING_SYSTEM=OFF \
           -DBUILD_TESTS=OFF \
-          -DBUILD_EXAMPLES=OFF
+          -DBUILD_EXAMPLES=OFF \
+          -DBUILD_SAMPLES=OFF
 
     - name: Build
       run: cmake --build build --parallel
@@ -213,7 +214,8 @@ jobs:
           -DBUILD_WITH_MONITORING_SYSTEM=ON \
           -DBUILD_TESTS=ON \
           -DBUILD_INTEGRATION_TESTS=ON \
-          -DBUILD_EXAMPLES=ON
+          -DBUILD_EXAMPLES=ON \
+          -DBUILD_SAMPLES=OFF
 
     - name: Configure WITH all dependencies (Windows)
       if: runner.os == 'Windows'
@@ -229,7 +231,8 @@ jobs:
           -DBUILD_WITH_MONITORING_SYSTEM=ON `
           -DBUILD_TESTS=ON `
           -DBUILD_INTEGRATION_TESTS=ON `
-          -DBUILD_EXAMPLES=ON
+          -DBUILD_EXAMPLES=ON `
+          -DBUILD_SAMPLES=OFF
 
     - name: Build
       run: cmake --build build --config Debug --parallel
