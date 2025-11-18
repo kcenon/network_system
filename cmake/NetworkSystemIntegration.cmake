@@ -20,13 +20,15 @@ function(setup_asio_integration target)
         message(STATUS "Configured ${target} with ASIO target: ${ASIO_TARGET}")
     elseif(ASIO_INCLUDE_DIR)
         # Standalone ASIO via include directory
-        # Use INTERFACE because NetworkSystem's public headers include <asio.hpp>
-        # Dependent systems (like database_system) need access to ASIO headers
+        # Use PUBLIC because:
+        # 1. NetworkSystem's source files (network_system.cpp) include headers that use <asio.hpp>
+        # 2. NetworkSystem's public headers include <asio.hpp>
+        # 3. Dependent systems (like database_system) need access to ASIO headers
         target_include_directories(${target}
-            INTERFACE
+            PUBLIC
                 $<BUILD_INTERFACE:${ASIO_INCLUDE_DIR}>
         )
-        target_compile_definitions(${target} INTERFACE ASIO_STANDALONE ASIO_NO_DEPRECATED)
+        target_compile_definitions(${target} PUBLIC ASIO_STANDALONE ASIO_NO_DEPRECATED)
         message(STATUS "Configured ${target} with standalone ASIO at: ${ASIO_INCLUDE_DIR}")
     else()
         message(FATAL_ERROR "${target}: Standalone ASIO not found - cannot compile without ASIO")
