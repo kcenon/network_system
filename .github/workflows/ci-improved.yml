@@ -269,7 +269,7 @@ jobs:
 
     - name: Upload test results
       if: always()
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: test-results-${{ matrix.os }}-${{ matrix.compiler }}
         path: build/Testing/
@@ -327,7 +327,7 @@ jobs:
         fi
 
     - name: Upload compatibility report
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: compatibility-report
         path: compatibility_report.md
