@@ -67,40 +67,6 @@ jobs:
       with:
         submodules: false  # We don't use submodules for dependencies
 
-    - name: Cache vcpkg packages
-      uses: actions/cache@v3
-      with:
-        path: |
-          ${{ github.workspace }}/vcpkg
-          ~/.cache/vcpkg
-        key: vcpkg-${{ matrix.vcpkg_triplet }}-${{ hashFiles('**/vcpkg.json') }}
-        restore-keys: |
-          vcpkg-${{ matrix.vcpkg_triplet }}-
-
-    - name: Setup vcpkg
-      uses: lukka/run-vcpkg@v11
-      with:
-        vcpkgGitCommitId: '2023.11.20'
-        vcpkgDirectory: '${{ github.workspace }}/vcpkg'
-
-    - name: Create vcpkg.json for dependencies
-      run: |
-        cat > vcpkg.json << 'EOF'
-        {
-          "name": "network-system",
-          "version": "3.0.0",
-          "dependencies": [
-            "fmt",
-            "asio",
-            "openssl",
-            "lz4",
-            "gtest"
-          ]
-        }
-        EOF
-
-    - name: Install dependencies via vcpkg
-      run: vcpkg install --triplet ${{ matrix.vcpkg_triplet }}
 
     # Clone and build required system dependencies
     - name: Build system dependencies
@@ -205,7 +171,6 @@ jobs:
       run: |
         cmake -B build -G Ninja \
           -DCMAKE_BUILD_TYPE=Debug \
-          -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake \
           -DCMAKE_PREFIX_PATH=${{ github.workspace }}/deps/install \
           -DBUILD_WITH_COMMON_SYSTEM=ON \
           -DBUILD_WITH_LOGGER_SYSTEM=ON \
@@ -222,7 +187,6 @@ jobs:
       run: |
         cmake -B build -G Ninja `
           -DCMAKE_BUILD_TYPE=Debug `
-          -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake `
           -DCMAKE_PREFIX_PATH=${{ github.workspace }}/deps/install `
           -DBUILD_WITH_COMMON_SYSTEM=ON `
           -DBUILD_WITH_LOGGER_SYSTEM=ON `
