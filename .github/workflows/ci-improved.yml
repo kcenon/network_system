@@ -285,6 +285,11 @@ jobs:
         path: database_system
       continue-on-error: true
 
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y cmake ninja-build g++ libssl-dev libfmt-dev libasio-dev
+
     - name: Build network_system
       working-directory: network_system
       run: |
