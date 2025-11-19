@@ -386,7 +386,12 @@ endif()
 # Installation
 ##################################################
 
-setup_network_system_install()
+# Skip installation in unified build to avoid export conflicts
+if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+    setup_network_system_install()
+else()
+    message(STATUS "Installation skipped in unified build mode")
+endif()
 
 ##################################################
 # CPack Configuration
