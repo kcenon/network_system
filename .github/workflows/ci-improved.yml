@@ -285,6 +285,11 @@ jobs:
         path: database_system
       continue-on-error: true
 
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y cmake ninja-build g++ libssl-dev libfmt-dev libasio-dev
+
     - name: Build network_system
       working-directory: network_system
       run: |
@@ -302,12 +307,12 @@ jobs:
     - name: Test database_system can use network_system
       if: success()
       working-directory: database_system
+      continue-on-error: true
       run: |
         cmake -B build -G Ninja \
           -DCMAKE_PREFIX_PATH=${{ github.workspace }}/install \
           -DUSE_NETWORK_SYSTEM=ON
         cmake --build build --parallel
-      continue-on-error: true
 
     - name: Report compatibility status
       run: |
