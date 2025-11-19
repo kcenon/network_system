@@ -307,7 +307,6 @@ jobs:
           -DCMAKE_PREFIX_PATH=${{ github.workspace }}/install \
           -DUSE_NETWORK_SYSTEM=ON
         cmake --build build --parallel
-      continue-on-error: true
 
     - name: Report compatibility status
       run: |
