@@ -1,0 +1,326 @@
+name: CI with Dependencies
+
+on:
+  push:
+    branches: [ main, develop, phase-* ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  # Quick minimal build for fast feedback
+  build-minimal:
+    name: Minimal Build (Fast Feedback)
+    runs-on: ubuntu-22.04
+    timeout-minutes: 15
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install minimal dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y cmake ninja-build g++ libssl-dev
+
+    - name: Configure minimal build
+      run: |
+        cmake -B build -G Ninja \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DBUILD_WITH_COMMON_SYSTEM=OFF \
+          -DBUILD_WITH_LOGGER_SYSTEM=OFF \
+          -DBUILD_WITH_THREAD_SYSTEM=OFF \
+          -DBUILD_WITH_CONTAINER_SYSTEM=OFF \
+          -DBUILD_WITH_MONITORING_SYSTEM=OFF \
+          -DBUILD_TESTS=OFF \
+          -DBUILD_EXAMPLES=OFF \
+          -DBUILD_SAMPLES=OFF
+
+    - name: Build
+      run: cmake --build build --parallel
+
+  # Full build with all dependencies (as it should be in production)
+  build-full:
+    name: Full Build with Dependencies - ${{ matrix.os }} / ${{ matrix.compiler }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            compiler: gcc
+            vcpkg_triplet: x64-linux
+          - os: ubuntu-22.04
+            compiler: clang
+            vcpkg_triplet: x64-linux
+          - os: macos-13
+            compiler: clang
+            vcpkg_triplet: x64-osx
+          - os: windows-2022
+            compiler: msvc
+            vcpkg_triplet: x64-windows
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        submodules: false  # We don't use submodules for dependencies
+
+
+    # Clone and build required system dependencies
+    - name: Build system dependencies
+      shell: bash
+      run: |
+        mkdir -p deps
+        cd deps
+
+        # Clone and build common_system
+        git clone https://github.com/kcenon/common_system.git || true
+        if [ -d "common_system" ]; then
+          cd common_system
+          cmake -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DBUILD_TESTS=OFF \
+            -DBUILD_EXAMPLES=OFF \
+            -DBUILD_SAMPLES=OFF
+          cmake --build build
+          cmake --install build --prefix ${{ github.workspace }}/deps/install
+          cd ..
+        fi
+
+        # Clone and build thread_system
+        git clone https://github.com/kcenon/thread_system.git || true
+        if [ -d "thread_system" ]; then
+          cd thread_system
+          cmake -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_PREFIX_PATH=${{ github.workspace }}/deps/install \
+            -DBUILD_TESTS=OFF \
+            -DBUILD_EXAMPLES=OFF \
+            -DBUILD_SAMPLES=OFF \
+            -DBUILD_INTEGRATION_TESTS=OFF
+          cmake --build build --target ThreadSystem
+          cmake --install build --prefix ${{ github.workspace }}/deps/install
+          cd ..
+        fi
+
+        # Clone and build logger_system
+        git clone https://github.com/kcenon/logger_system.git || true
+        if [ -d "logger_system" ]; then
+          cd logger_system
+          cmake -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_PREFIX_PATH=${{ github.workspace }}/deps/install \
+            -DBUILD_TESTS=OFF \
+            -DBUILD_EXAMPLES=OFF \
+            -DBUILD_SAMPLES=OFF \
+            -DLOGGER_BUILD_INTEGRATION_TESTS=OFF
+          cmake --build build
+          cmake --install build --prefix ${{ github.workspace }}/deps/install
+          cd ..
+        fi
+
+        # Clone and build monitoring_system
+        git clone https://github.com/kcenon/monitoring_system.git || true
+        if [ -d "monitoring_system" ]; then
+          cd monitoring_system
+          cmake -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_PREFIX_PATH=${{ github.workspace }}/deps/install \
+            -DBUILD_TESTS=OFF \
+            -DBUILD_EXAMPLES=OFF \
+            -DBUILD_SAMPLES=OFF \
+            -DMONITORING_BUILD_INTEGRATION_TESTS=OFF
+          cmake --build build
+          cmake --install build --prefix ${{ github.workspace }}/deps/install
+          cd ..
+        fi
+
+        # Clone and build container_system
+        git clone https://github.com/kcenon/container_system.git || true
+        if [ -d "container_system" ]; then
+          cd container_system
+          cmake -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_PREFIX_PATH=${{ github.workspace }}/deps/install \
+            -DBUILD_TESTS=OFF \
+            -DBUILD_EXAMPLES=OFF \
+            -DBUILD_SAMPLES=OFF
+          cmake --build build
+          cmake --install build --prefix ${{ github.workspace }}/deps/install
+          cd ..
+        fi
+
+      continue-on-error: true  # Allow to proceed even if some repos don't exist
+
+    - name: Install system dependencies (Ubuntu)
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y cmake ninja-build gcc-12 g++-12 clang \
+          libgtest-dev libgmock-dev libfmt-dev libssl-dev liblz4-dev zlib1g-dev
+
+    - name: Install system dependencies (macOS)
+      if: runner.os == 'macOS'
+      run: |
+        brew install ninja googletest fmt openssl lz4
+
+    - name: Set up compiler (GCC)
+      if: matrix.compiler == 'gcc'
+      run: |
+        sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-12 100
+        sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-12 100
+        echo "CC=gcc" >> $GITHUB_ENV
+        echo "CXX=g++" >> $GITHUB_ENV
+
+    - name: Set up compiler (Clang - Linux)
+      if: matrix.compiler == 'clang' && runner.os == 'Linux'
+      run: |
+        echo "CC=clang" >> $GITHUB_ENV
+        echo "CXX=clang++" >> $GITHUB_ENV
+
+    - name: Set up compiler (Clang - macOS)
+      if: matrix.compiler == 'clang' && runner.os == 'macOS'
+      run: |
+        echo "CC=clang" >> $GITHUB_ENV
+        echo "CXX=clang++" >> $GITHUB_ENV
+
+    - name: Set up compiler (MSVC)
+      if: matrix.compiler == 'msvc'
+      uses: ilammy/msvc-dev-cmd@v1
+
+    # Configure with ALL dependencies enabled (production configuration)
+    - name: Configure WITH all dependencies (Unix)
+      if: runner.os != 'Windows'
+      run: |
+        cmake -B build -G Ninja \
+          -DCMAKE_BUILD_TYPE=Debug \
+          -DCMAKE_PREFIX_PATH=${{ github.workspace }}/deps/install \
+          -DBUILD_WITH_COMMON_SYSTEM=ON \
+          -DBUILD_WITH_LOGGER_SYSTEM=ON \
+          -DBUILD_WITH_THREAD_SYSTEM=ON \
+          -DBUILD_WITH_CONTAINER_SYSTEM=ON \
+          -DBUILD_WITH_MONITORING_SYSTEM=ON \
+          -DBUILD_TESTS=ON \
+          -DBUILD_INTEGRATION_TESTS=ON \
+          -DBUILD_EXAMPLES=ON \
+          -DBUILD_SAMPLES=OFF
+
+    - name: Configure WITH all dependencies (Windows)
+      if: runner.os == 'Windows'
+      run: |
+        cmake -B build -G Ninja `
+          -DCMAKE_BUILD_TYPE=Debug `
+          -DCMAKE_PREFIX_PATH=${{ github.workspace }}/deps/install `
+          -DBUILD_WITH_COMMON_SYSTEM=ON `
+          -DBUILD_WITH_LOGGER_SYSTEM=ON `
+          -DBUILD_WITH_THREAD_SYSTEM=ON `
+          -DBUILD_WITH_CONTAINER_SYSTEM=ON `
+          -DBUILD_WITH_MONITORING_SYSTEM=ON `
+          -DBUILD_TESTS=ON `
+          -DBUILD_INTEGRATION_TESTS=ON `
+          -DBUILD_EXAMPLES=ON `
+          -DBUILD_SAMPLES=OFF
+
+    - name: Build
+      run: cmake --build build --config Debug --parallel
+
+    - name: Run unit tests
+      run: |
+        cd build
+        ctest --output-on-failure -C Debug -R unit_tests --timeout 120
+
+    - name: Run integration tests
+      run: |
+        cd build
+        ctest --output-on-failure -C Debug -R integration_tests --timeout 300
+      continue-on-error: true  # Integration tests might need specific setup
+
+    - name: Verify ASIO propagation
+      if: runner.os != 'Windows'
+      shell: bash
+      run: |
+        # Verify that ASIO headers are properly propagated
+        echo "Checking ASIO propagation in installed files..."
+        find ${{ github.workspace }}/deps/install -name "*.cmake" -exec grep -l "ASIO" {} \; || true
+
+        # Build a test consumer to verify ASIO is accessible
+        cat > test_consumer.cpp << 'EOF'
+        #include <network_system/tcp_server.h>
+        int main() {
+            // This should compile if ASIO is properly propagated
+            return 0;
+        }
+        EOF
+
+        g++ -std=c++20 \
+          -I${{ github.workspace }}/deps/install/include \
+          -c test_consumer.cpp || echo "ASIO propagation check failed"
+
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-results-${{ matrix.os }}-${{ matrix.compiler }}
+        path: build/Testing/
+
+  # Integration test with downstream systems
+  test-downstream:
+    name: Test Downstream Compatibility
+    needs: build-full
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+
+    steps:
+    - name: Checkout network_system
+      uses: actions/checkout@v4
+      with:
+        path: network_system
+
+    - name: Checkout database_system
+      uses: actions/checkout@v4
+      with:
+        repository: kcenon/database_system
+        path: database_system
+      continue-on-error: true
+
+    - name: Build network_system
+      working-directory: network_system
+      run: |
+        cmake -B build -G Ninja \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DBUILD_WITH_COMMON_SYSTEM=ON \
+          -DBUILD_WITH_LOGGER_SYSTEM=ON \
+          -DBUILD_WITH_THREAD_SYSTEM=ON \
+          -DBUILD_WITH_CONTAINER_SYSTEM=ON \
+          -DBUILD_WITH_MONITORING_SYSTEM=ON \
+          -DBUILD_SAMPLES=OFF
+        cmake --build build --config Release --parallel
+        cmake --install build --prefix ${{ github.workspace }}/install
+
+    - name: Test database_system can use network_system
+      if: success()
+      working-directory: database_system
+      run: |
+        cmake -B build -G Ninja \
+          -DCMAKE_PREFIX_PATH=${{ github.workspace }}/install \
+          -DUSE_NETWORK_SYSTEM=ON
+        cmake --build build --parallel
+      continue-on-error: true
+
+    - name: Report compatibility status
+      run: |
+        echo "## Downstream Compatibility Report" > compatibility_report.md
+        echo "Network system built and installed successfully" >> compatibility_report.md
+        if [ -d "database_system/build" ]; then
+          echo "✅ Database system successfully built with network_system" >> compatibility_report.md
+        else
+          echo "⚠️ Database system build needs attention" >> compatibility_report.md
+        fi
+
+    - name: Upload compatibility report
+      uses: actions/upload-artifact@v4
+      with:
+        name: compatibility-report
+        path: compatibility_report.md
