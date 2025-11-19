@@ -30,11 +30,11 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *****************************************************************************/
 
-#include "network_system/utils/resilient_client.h"
+#include "kcenon/network/utils/resilient_client.h"
 
 #include <thread>
 
-#include "network_system/integration/logger_integration.h"
+#include "kcenon/network/integration/logger_integration.h"
 
 namespace network_system::utils
 {

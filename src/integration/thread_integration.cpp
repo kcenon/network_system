@@ -36,7 +36,7 @@
 
  */
 
-#include "network_system/integration/thread_integration.h"
+#include "kcenon/network/integration/thread_integration.h"
 #include <thread>
 #include <queue>
 #include <mutex>

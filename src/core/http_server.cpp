@@ -30,9 +30,9 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *****************************************************************************/
 
-#include "network_system/core/http_server.h"
-#include "network_system/session/messaging_session.h"
-#include "network_system/utils/compression_pipeline.h"
+#include "kcenon/network/core/http_server.h"
+#include "kcenon/network/session/messaging_session.h"
+#include "kcenon/network/utils/compression_pipeline.h"
 #include <sstream>
 #include <algorithm>
 #include <cctype>

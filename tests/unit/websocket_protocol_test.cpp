@@ -6,7 +6,7 @@ All rights reserved.
 *****************************************************************************/
 
 #include <gtest/gtest.h>
-#include "network_system/internal/websocket_protocol.h"
+#include "kcenon/network/internal/websocket_protocol.h"
 
 using namespace network_system::internal;
 

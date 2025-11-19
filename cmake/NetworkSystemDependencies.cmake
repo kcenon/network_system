@@ -152,30 +152,36 @@ function(find_container_system)
         return()
     endif()
 
-    # Path-based detection - prioritize Sources/ directory
-    if(APPLE)
-        set(_container_search_paths
-            /Users/${USER}/Sources/container_system
-            ../container_system
-            ${CMAKE_CURRENT_SOURCE_DIR}/../container_system
-        )
-        set(_container_lib_paths
-            /Users/${USER}/Sources/container_system/build/lib
-            ../container_system/build/lib
-            ${CMAKE_CURRENT_SOURCE_DIR}/../container_system/build/lib
-        )
-    else()
-        set(_container_search_paths
-            /home/${USER}/Sources/container_system
-            ../container_system
-            ${CMAKE_CURRENT_SOURCE_DIR}/../container_system
-        )
-        set(_container_lib_paths
-            /home/${USER}/Sources/container_system/build/lib
-            ../container_system/build/lib
-            ${CMAKE_CURRENT_SOURCE_DIR}/../container_system/build/lib
-        )
+    # Path-based detection - prioritize environment variable, then standard paths
+    set(_container_search_paths)
+    set(_container_lib_paths)
+
+    # 1. Check environment variable
+    if(DEFINED ENV{CONTAINER_SYSTEM_ROOT})
+        list(APPEND _container_search_paths "$ENV{CONTAINER_SYSTEM_ROOT}")
+        list(APPEND _container_lib_paths "$ENV{CONTAINER_SYSTEM_ROOT}/build/lib")
     endif()
+
+    # 2. Check CMake variable
+    if(DEFINED CONTAINER_SYSTEM_ROOT)
+        list(APPEND _container_search_paths "${CONTAINER_SYSTEM_ROOT}")
+        list(APPEND _container_lib_paths "${CONTAINER_SYSTEM_ROOT}/build/lib")
+    endif()
+
+    # 3. Standard search paths
+    list(APPEND _container_search_paths
+        "${CMAKE_CURRENT_SOURCE_DIR}/../container_system"
+        "${CMAKE_SOURCE_DIR}/container_system"
+        "${CMAKE_SOURCE_DIR}/../container_system"
+        "../container_system"
+    )
+
+    list(APPEND _container_lib_paths
+        "${CMAKE_CURRENT_SOURCE_DIR}/../container_system/build/lib"
+        "${CMAKE_SOURCE_DIR}/container_system/build/lib"
+        "${CMAKE_SOURCE_DIR}/../container_system/build/lib"
+        "../container_system/build/lib"
+    )
 
     find_path(CONTAINER_SYSTEM_INCLUDE_DIR
         NAMES container.h
@@ -217,30 +223,36 @@ function(find_thread_system)
 
     message(STATUS "Looking for thread_system...")
 
-    # Prioritize Sources/ directory
-    if(APPLE)
-        set(_thread_search_paths
-            /Users/${USER}/Sources/thread_system/include
-            ../thread_system/include
-            ${CMAKE_CURRENT_SOURCE_DIR}/../thread_system/include
-        )
-        set(_thread_lib_paths
-            /Users/${USER}/Sources/thread_system/build/lib
-            ../thread_system/build/lib
-            ${CMAKE_CURRENT_SOURCE_DIR}/../thread_system/build/lib
-        )
-    else()
-        set(_thread_search_paths
-            /home/${USER}/Sources/thread_system/include
-            ../thread_system/include
-            ${CMAKE_CURRENT_SOURCE_DIR}/../thread_system/include
-        )
-        set(_thread_lib_paths
-            /home/${USER}/Sources/thread_system/build/lib
-            ../thread_system/build/lib
-            ${CMAKE_CURRENT_SOURCE_DIR}/../thread_system/build/lib
-        )
+    # Prioritize environment variable, then standard paths
+    set(_thread_search_paths)
+    set(_thread_lib_paths)
+
+    # 1. Check environment variable
+    if(DEFINED ENV{THREAD_SYSTEM_ROOT})
+        list(APPEND _thread_search_paths "$ENV{THREAD_SYSTEM_ROOT}/include")
+        list(APPEND _thread_lib_paths "$ENV{THREAD_SYSTEM_ROOT}/build/lib")
     endif()
+
+    # 2. Check CMake variable
+    if(DEFINED THREAD_SYSTEM_ROOT)
+        list(APPEND _thread_search_paths "${THREAD_SYSTEM_ROOT}/include")
+        list(APPEND _thread_lib_paths "${THREAD_SYSTEM_ROOT}/build/lib")
+    endif()
+
+    # 3. Standard search paths
+    list(APPEND _thread_search_paths
+        "${CMAKE_CURRENT_SOURCE_DIR}/../thread_system/include"
+        "${CMAKE_SOURCE_DIR}/thread_system/include"
+        "${CMAKE_SOURCE_DIR}/../thread_system/include"
+        "../thread_system/include"
+    )
+
+    list(APPEND _thread_lib_paths
+        "${CMAKE_CURRENT_SOURCE_DIR}/../thread_system/build/lib"
+        "${CMAKE_SOURCE_DIR}/thread_system/build/lib"
+        "${CMAKE_SOURCE_DIR}/../thread_system/build/lib"
+        "../thread_system/build/lib"
+    )
 
     find_path(THREAD_SYSTEM_INCLUDE_DIR
         NAMES kcenon/thread/core/thread_pool.h
@@ -283,30 +295,36 @@ function(find_logger_system)
 
     message(STATUS "Looking for logger_system...")
 
-    # Prioritize Sources/ directory
-    if(APPLE)
-        set(_logger_search_paths
-            /Users/${USER}/Sources/logger_system/include
-            ../logger_system/include
-            ${CMAKE_CURRENT_SOURCE_DIR}/../logger_system/include
-        )
-        set(_logger_lib_paths
-            /Users/${USER}/Sources/logger_system/build/lib
-            ../logger_system/build/lib
-            ${CMAKE_CURRENT_SOURCE_DIR}/../logger_system/build/lib
-        )
-    else()
-        set(_logger_search_paths
-            /home/${USER}/Sources/logger_system/include
-            ../logger_system/include
-            ${CMAKE_CURRENT_SOURCE_DIR}/../logger_system/include
-        )
-        set(_logger_lib_paths
-            /home/${USER}/Sources/logger_system/build/lib
-            ../logger_system/build/lib
-            ${CMAKE_CURRENT_SOURCE_DIR}/../logger_system/build/lib
-        )
+    # Prioritize environment variable, then standard paths
+    set(_logger_search_paths)
+    set(_logger_lib_paths)
+
+    # 1. Check environment variable
+    if(DEFINED ENV{LOGGER_SYSTEM_ROOT})
+        list(APPEND _logger_search_paths "$ENV{LOGGER_SYSTEM_ROOT}/include")
+        list(APPEND _logger_lib_paths "$ENV{LOGGER_SYSTEM_ROOT}/build/lib")
     endif()
+
+    # 2. Check CMake variable
+    if(DEFINED LOGGER_SYSTEM_ROOT)
+        list(APPEND _logger_search_paths "${LOGGER_SYSTEM_ROOT}/include")
+        list(APPEND _logger_lib_paths "${LOGGER_SYSTEM_ROOT}/build/lib")
+    endif()
+
+    # 3. Standard search paths
+    list(APPEND _logger_search_paths
+        "${CMAKE_CURRENT_SOURCE_DIR}/../logger_system/include"
+        "${CMAKE_SOURCE_DIR}/logger_system/include"
+        "${CMAKE_SOURCE_DIR}/../logger_system/include"
+        "../logger_system/include"
+    )
+
+    list(APPEND _logger_lib_paths
+        "${CMAKE_CURRENT_SOURCE_DIR}/../logger_system/build/lib"
+        "${CMAKE_SOURCE_DIR}/logger_system/build/lib"
+        "${CMAKE_SOURCE_DIR}/../logger_system/build/lib"
+        "../logger_system/build/lib"
+    )
 
     find_path(LOGGER_SYSTEM_INCLUDE_DIR
         NAMES kcenon/logger/core/logger.h
@@ -349,20 +367,26 @@ function(find_common_system)
 
     message(STATUS "Looking for common_system...")
 
-    # Prioritize Sources/ directory
-    if(APPLE)
-        set(_common_search_paths
-            /Users/${USER}/Sources/common_system/include
-            ../common_system/include
-            ${CMAKE_CURRENT_SOURCE_DIR}/../common_system/include
-        )
-    else()
-        set(_common_search_paths
-            /home/${USER}/Sources/common_system/include
-            ../common_system/include
-            ${CMAKE_CURRENT_SOURCE_DIR}/../common_system/include
-        )
+    # Prioritize environment variable, then standard paths
+    set(_common_search_paths)
+
+    # 1. Check environment variable
+    if(DEFINED ENV{COMMON_SYSTEM_ROOT})
+        list(APPEND _common_search_paths "$ENV{COMMON_SYSTEM_ROOT}/include")
     endif()
+
+    # 2. Check CMake variable
+    if(DEFINED COMMON_SYSTEM_ROOT)
+        list(APPEND _common_search_paths "${COMMON_SYSTEM_ROOT}/include")
+    endif()
+
+    # 3. Standard search paths
+    list(APPEND _common_search_paths
+        "${CMAKE_CURRENT_SOURCE_DIR}/../common_system/include"
+        "${CMAKE_SOURCE_DIR}/common_system/include"
+        "${CMAKE_SOURCE_DIR}/../common_system/include"
+        "../common_system/include"
+    )
 
     find_path(COMMON_SYSTEM_INCLUDE_DIR
         NAMES kcenon/common/patterns/result.h
@@ -382,6 +406,99 @@ function(find_common_system)
 endfunction()
 
 ##################################################
+# Find monitoring_system
+##################################################
+function(find_monitoring_system)
+    if(NOT BUILD_WITH_MONITORING_SYSTEM)
+        return()
+    endif()
+
+    message(STATUS "Looking for monitoring_system...")
+
+    # Check for existing CMake targets first
+    if(TARGET monitoring_system)
+        message(STATUS "Found monitoring_system as existing target")
+        set(MONITORING_SYSTEM_FOUND TRUE PARENT_SCOPE)
+        set(MONITORING_SYSTEM_TARGET monitoring_system PARENT_SCOPE)
+        return()
+    endif()
+
+    if(TARGET MonitoringSystem)
+        message(STATUS "Found MonitoringSystem as existing target")
+        set(MONITORING_SYSTEM_FOUND TRUE PARENT_SCOPE)
+        set(MONITORING_SYSTEM_TARGET MonitoringSystem PARENT_SCOPE)
+        return()
+    endif()
+
+    # Prioritize environment variable, then standard paths
+    set(_monitoring_search_paths)
+    set(_monitoring_lib_paths)
+
+    # 1. Check environment variable
+    if(DEFINED ENV{MONITORING_SYSTEM_ROOT})
+        list(APPEND _monitoring_search_paths "$ENV{MONITORING_SYSTEM_ROOT}/include" "$ENV{MONITORING_SYSTEM_ROOT}/sources")
+        list(APPEND _monitoring_lib_paths "$ENV{MONITORING_SYSTEM_ROOT}/build/lib")
+    endif()
+
+    # 2. Check CMake variable
+    if(DEFINED MONITORING_SYSTEM_ROOT)
+        list(APPEND _monitoring_search_paths "${MONITORING_SYSTEM_ROOT}/include" "${MONITORING_SYSTEM_ROOT}/sources")
+        list(APPEND _monitoring_lib_paths "${MONITORING_SYSTEM_ROOT}/build/lib")
+    endif()
+
+    # 3. Standard search paths
+    list(APPEND _monitoring_search_paths
+        "${CMAKE_CURRENT_SOURCE_DIR}/../monitoring_system/include"
+        "${CMAKE_CURRENT_SOURCE_DIR}/../monitoring_system/sources"
+        "${CMAKE_SOURCE_DIR}/monitoring_system/include"
+        "${CMAKE_SOURCE_DIR}/monitoring_system/sources"
+        "${CMAKE_SOURCE_DIR}/../monitoring_system/include"
+        "${CMAKE_SOURCE_DIR}/../monitoring_system/sources"
+        "../monitoring_system/include"
+        "../monitoring_system/sources"
+    )
+
+    list(APPEND _monitoring_lib_paths
+        "${CMAKE_CURRENT_SOURCE_DIR}/../monitoring_system/build/lib"
+        "${CMAKE_SOURCE_DIR}/monitoring_system/build/lib"
+        "${CMAKE_SOURCE_DIR}/../monitoring_system/build/lib"
+        "../monitoring_system/build/lib"
+    )
+
+    # Look for monitoring headers
+    find_path(MONITORING_SYSTEM_INCLUDE_DIR
+        NAMES kcenon/monitoring/core/performance_monitor.h monitoring/core/performance_monitor.h
+        PATHS ${_monitoring_search_paths}
+        NO_DEFAULT_PATH
+    )
+
+    if(MONITORING_SYSTEM_INCLUDE_DIR)
+        message(STATUS "Found monitoring_system at: ${MONITORING_SYSTEM_INCLUDE_DIR}")
+
+        find_library(MONITORING_SYSTEM_LIBRARY
+            NAMES monitoring_system MonitoringSystem
+            PATHS ${_monitoring_lib_paths}
+            PATH_SUFFIXES Debug Release
+            NO_DEFAULT_PATH
+        )
+
+        if(MONITORING_SYSTEM_LIBRARY)
+            message(STATUS "Found monitoring_system library: ${MONITORING_SYSTEM_LIBRARY}")
+        else()
+            message(WARNING "monitoring_system headers found but library not found")
+        endif()
+
+        set(MONITORING_SYSTEM_FOUND TRUE PARENT_SCOPE)
+        set(MONITORING_SYSTEM_INCLUDE_DIR ${MONITORING_SYSTEM_INCLUDE_DIR} PARENT_SCOPE)
+        set(MONITORING_SYSTEM_LIBRARY ${MONITORING_SYSTEM_LIBRARY} PARENT_SCOPE)
+    else()
+        message(WARNING "monitoring_system not found, integration disabled")
+        set(BUILD_WITH_MONITORING_SYSTEM OFF PARENT_SCOPE)
+        set(MONITORING_SYSTEM_FOUND FALSE PARENT_SCOPE)
+    endif()
+endfunction()
+
+##################################################
 # Main dependency finding function
 ##################################################
 function(find_network_system_dependencies)
@@ -392,6 +509,7 @@ function(find_network_system_dependencies)
     find_container_system()
     find_thread_system()
     find_logger_system()
+    find_monitoring_system()
     find_common_system()
 
     # Export all variables to parent scope
@@ -423,6 +541,11 @@ function(find_network_system_dependencies)
     set(LOGGER_SYSTEM_INCLUDE_DIR ${LOGGER_SYSTEM_INCLUDE_DIR} PARENT_SCOPE)
     set(LOGGER_SYSTEM_LIBRARY ${LOGGER_SYSTEM_LIBRARY} PARENT_SCOPE)
 
+    set(MONITORING_SYSTEM_FOUND ${MONITORING_SYSTEM_FOUND} PARENT_SCOPE)
+    set(MONITORING_SYSTEM_INCLUDE_DIR ${MONITORING_SYSTEM_INCLUDE_DIR} PARENT_SCOPE)
+    set(MONITORING_SYSTEM_LIBRARY ${MONITORING_SYSTEM_LIBRARY} PARENT_SCOPE)
+    set(MONITORING_SYSTEM_TARGET ${MONITORING_SYSTEM_TARGET} PARENT_SCOPE)
+
     set(COMMON_SYSTEM_FOUND ${COMMON_SYSTEM_FOUND} PARENT_SCOPE)
     set(COMMON_SYSTEM_INCLUDE_DIR ${COMMON_SYSTEM_INCLUDE_DIR} PARENT_SCOPE)
 
@@ -430,6 +553,7 @@ function(find_network_system_dependencies)
     set(BUILD_WITH_CONTAINER_SYSTEM ${BUILD_WITH_CONTAINER_SYSTEM} PARENT_SCOPE)
     set(BUILD_WITH_THREAD_SYSTEM ${BUILD_WITH_THREAD_SYSTEM} PARENT_SCOPE)
     set(BUILD_WITH_LOGGER_SYSTEM ${BUILD_WITH_LOGGER_SYSTEM} PARENT_SCOPE)
+    set(BUILD_WITH_MONITORING_SYSTEM ${BUILD_WITH_MONITORING_SYSTEM} PARENT_SCOPE)
     set(BUILD_WITH_COMMON_SYSTEM ${BUILD_WITH_COMMON_SYSTEM} PARENT_SCOPE)
 
     message(STATUS "Dependency detection complete")
