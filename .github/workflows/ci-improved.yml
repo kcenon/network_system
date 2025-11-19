@@ -98,7 +98,8 @@ jobs:
             -DCMAKE_PREFIX_PATH=${{ github.workspace }}/deps/install \
             -DBUILD_TESTS=OFF \
             -DBUILD_EXAMPLES=OFF \
-            -DBUILD_SAMPLES=OFF
+            -DBUILD_SAMPLES=OFF \
+            -DBUILD_INTEGRATION_TESTS=OFF
           cmake --build build --target ThreadSystem
           cmake --install build --prefix ${{ github.workspace }}/deps/install
           cd ..
@@ -113,7 +114,8 @@ jobs:
             -DCMAKE_PREFIX_PATH=${{ github.workspace }}/deps/install \
             -DBUILD_TESTS=OFF \
             -DBUILD_EXAMPLES=OFF \
-            -DBUILD_SAMPLES=OFF
+            -DBUILD_SAMPLES=OFF \
+            -DLOGGER_BUILD_INTEGRATION_TESTS=OFF
           cmake --build build
           cmake --install build --prefix ${{ github.workspace }}/deps/install
           cd ..
@@ -128,7 +130,8 @@ jobs:
             -DCMAKE_PREFIX_PATH=${{ github.workspace }}/deps/install \
             -DBUILD_TESTS=OFF \
             -DBUILD_EXAMPLES=OFF \
-            -DBUILD_SAMPLES=OFF
+            -DBUILD_SAMPLES=OFF \
+            -DMONITORING_BUILD_INTEGRATION_TESTS=OFF
           cmake --build build
           cmake --install build --prefix ${{ github.workspace }}/deps/install
           cd ..
@@ -235,6 +238,8 @@ jobs:
       continue-on-error: true  # Integration tests might need specific setup
 
     - name: Verify ASIO propagation
+      if: runner.os != 'Windows'
+      shell: bash
       run: |
         # Verify that ASIO headers are properly propagated
         echo "Checking ASIO propagation in installed files..."
