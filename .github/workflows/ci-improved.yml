@@ -294,7 +294,8 @@ jobs:
           -DBUILD_WITH_LOGGER_SYSTEM=ON \
           -DBUILD_WITH_THREAD_SYSTEM=ON \
           -DBUILD_WITH_CONTAINER_SYSTEM=ON \
-          -DBUILD_WITH_MONITORING_SYSTEM=ON
+          -DBUILD_WITH_MONITORING_SYSTEM=ON \
+          -DBUILD_SAMPLES=OFF
         cmake --build build --config Release --parallel
         cmake --install build --prefix ${{ github.workspace }}/install
 
