@@ -57,6 +57,7 @@
 
 // Configuration system
 #include "kcenon/network/config/network_config.h"
+#include "kcenon/network/config/network_system_config.h"
 #include "kcenon/network/core/network_context.h"
 
 /**
@@ -77,6 +78,8 @@ bool initialize();
  * @return true if initialization successful, false otherwise
  */
 bool initialize(const config::network_config& config);
+
+bool initialize(const config::network_system_config& config);
 
 /**
  * @brief Shutdown the network system

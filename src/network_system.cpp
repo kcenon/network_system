@@ -34,6 +34,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "kcenon/network/core/network_context.h"
 #include "kcenon/network/integration/logger_integration.h"
 #include "kcenon/network/integration/thread_integration.h"
+#include "kcenon/network/integration/common_system_adapter.h"
 
 #ifdef BUILD_WITH_MONITORING_SYSTEM
 #include "kcenon/network/integration/monitoring_integration.h"
@@ -107,6 +108,36 @@ bool initialize(const config::network_config& config) {
         NETWORK_LOG_ERROR("[network_system] Initialization failed: " + std::string(e.what()));
         return false;
     }
+}
+
+bool initialize(const config::network_system_config& config_with_dependencies) {
+#ifdef BUILD_WITH_COMMON_SYSTEM
+    auto& ctx = core::network_context::instance();
+
+    if (config_with_dependencies.executor) {
+        auto pool_adapter = std::make_shared<integration::common_thread_pool_adapter>(
+            config_with_dependencies.executor);
+        ctx.set_thread_pool(pool_adapter);
+    }
+
+    if (config_with_dependencies.logger) {
+        auto logger_adapter = std::make_shared<integration::common_logger_adapter>(
+            config_with_dependencies.logger);
+        ctx.set_logger(logger_adapter);
+    }
+
+#ifdef BUILD_WITH_MONITORING_SYSTEM
+    if (config_with_dependencies.monitor) {
+        auto monitoring_adapter = std::make_shared<integration::common_monitoring_adapter>(
+            config_with_dependencies.monitor);
+        ctx.set_monitoring(monitoring_adapter);
+    }
+#endif
+#else
+    (void)config_with_dependencies;
+#endif
+
+    return initialize(config_with_dependencies.runtime);
 }
 
 void shutdown() {
