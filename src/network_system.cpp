@@ -30,13 +30,13 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *****************************************************************************/
 
-#include "network_system/network_system.h"
-#include "network_system/core/network_context.h"
-#include "network_system/integration/logger_integration.h"
-#include "network_system/integration/thread_integration.h"
+#include "kcenon/network/network_system.h"
+#include "kcenon/network/core/network_context.h"
+#include "kcenon/network/integration/logger_integration.h"
+#include "kcenon/network/integration/thread_integration.h"
 
 #ifdef BUILD_WITH_MONITORING_SYSTEM
-#include "network_system/integration/monitoring_integration.h"
+#include "kcenon/network/integration/monitoring_integration.h"
 #endif
 
 #include <atomic>

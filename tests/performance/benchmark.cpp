@@ -49,7 +49,7 @@
 #include <algorithm>
 #include <sstream>
 
-#include "network_system/network_system.h"
+#include "kcenon/network/network_system.h"
 
 using namespace network_system;
 using namespace std::chrono_literals;

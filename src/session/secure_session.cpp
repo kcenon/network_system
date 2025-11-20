@@ -30,9 +30,9 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *****************************************************************************/
 
-#include "network_system/session/secure_session.h"
+#include "kcenon/network/session/secure_session.h"
 
-#include "network_system/integration/logger_integration.h"
+#include "kcenon/network/integration/logger_integration.h"
 
 namespace network_system::session
 {

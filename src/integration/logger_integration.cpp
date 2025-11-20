@@ -38,7 +38,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * @date 2025-09-20
  */
 
-#include "network_system/integration/logger_integration.h"
+#include "kcenon/network/integration/logger_integration.h"
 #include <atomic>
 #include <chrono>
 #include <cstdio>

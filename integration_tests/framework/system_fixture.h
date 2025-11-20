@@ -39,9 +39,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <vector>
 #include <string>
 
-#include "network_system/core/messaging_server.h"
-#include "network_system/core/messaging_client.h"
-#include "network_system/utils/result_types.h"
+#include "kcenon/network/core/messaging_server.h"
+#include "kcenon/network/core/messaging_client.h"
+#include "kcenon/network/utils/result_types.h"
 #include "test_helpers.h"
 
 namespace network_system::integration_tests {

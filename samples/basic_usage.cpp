@@ -3,8 +3,8 @@
  * Copyright (c) 2024, Network System Project
  */
 
-#include <network_system/core/messaging_server.h>
-#include <network_system/core/messaging_client.h>
+#include <kcenon/network/core/messaging_server.h>
+#include <kcenon/network/core/messaging_client.h>
 #include <iostream>
 #include <memory>
 #include <thread>

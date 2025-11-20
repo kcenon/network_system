@@ -38,12 +38,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * @date 2025-01-13
  */
 
-#include "network_system/core/network_context.h"
+#include "kcenon/network/core/network_context.h"
 #include <thread>
 #include <mutex>
 
 #ifdef BUILD_WITH_THREAD_SYSTEM
-#include "network_system/integration/thread_system_adapter.h"
+#include "kcenon/network/integration/thread_system_adapter.h"
 #endif
 
 namespace network_system::core {
@@ -132,7 +132,6 @@ void network_context::initialize(size_t thread_count) {
     // Initialize monitoring if not already set
     if (!pimpl_->monitoring_) {
         pimpl_->monitoring_ = std::make_shared<integration::monitoring_system_adapter>("network_system");
-        pimpl_->monitoring_->start();
     }
 #endif
 
@@ -159,7 +158,6 @@ void network_context::shutdown() {
 
 #ifdef BUILD_WITH_MONITORING_SYSTEM
     if (pimpl_->monitoring_) {
-        pimpl_->monitoring_->stop();
         pimpl_->monitoring_.reset();
     }
 #endif

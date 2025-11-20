@@ -27,7 +27,7 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "network_system/integration/thread_system_adapter.h"
+#include "kcenon/network/integration/thread_system_adapter.h"
 
 #if defined(BUILD_WITH_THREAD_SYSTEM)
 

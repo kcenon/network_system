@@ -47,7 +47,7 @@
 #include <thread>
 #include <chrono>
 
-#include "network_system/compatibility.h"
+#include "kcenon/network/compatibility.h"
 
 using namespace std::chrono_literals;
 

@@ -30,10 +30,10 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *****************************************************************************/
 
-#include "network_system/utils/health_monitor.h"
+#include "kcenon/network/utils/health_monitor.h"
 
-#include "network_system/integration/logger_integration.h"
-#include "network_system/integration/monitoring_integration.h"
+#include "kcenon/network/integration/logger_integration.h"
+#include "kcenon/network/integration/monitoring_integration.h"
 
 #include <sstream>
 
