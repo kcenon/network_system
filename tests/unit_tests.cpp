@@ -39,9 +39,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <future>
 #include <atomic>
 
-#include "network_system/compatibility.h"
-#include "network_system/utils/result_types.h"
-#include "network_system/integration/container_integration.h"
+#include "kcenon/network/compatibility.h"
+#include "kcenon/network/utils/result_types.h"
+#include "kcenon/network/integration/container_integration.h"
 
 using namespace network_module;
 using namespace network_system;  // For error_codes and Result types

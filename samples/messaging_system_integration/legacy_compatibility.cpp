@@ -45,7 +45,7 @@
 #include <string>
 
 // Include compatibility header for legacy support
-#include "network_system/compatibility.h"
+#include "kcenon/network/compatibility.h"
 
 // Legacy namespace usage (as in old messaging_system code)
 using namespace network_module;

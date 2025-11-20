@@ -39,7 +39,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <random>
 #include <sstream>
 
-#include "network_system/compatibility.h"
+#include "kcenon/network/compatibility.h"
 #include <container.h>
 
 using namespace network_module;

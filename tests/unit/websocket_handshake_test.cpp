@@ -6,7 +6,7 @@ All rights reserved.
 *****************************************************************************/
 
 #include <gtest/gtest.h>
-#include "network_system/internal/websocket_handshake.h"
+#include "kcenon/network/internal/websocket_handshake.h"
 
 using namespace network_system::internal;
 

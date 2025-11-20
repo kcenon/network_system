@@ -31,7 +31,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *****************************************************************************/
 
 #include "send_coroutine.h"
-#include "network_system/integration/logger_integration.h"
+#include "kcenon/network/integration/logger_integration.h"
 
 #include <future>
 #include <thread>

@@ -6,9 +6,9 @@ All rights reserved.
 *****************************************************************************/
 
 #include <gtest/gtest.h>
-#include "network_system/core/messaging_client.h"
-#include "network_system/core/messaging_server.h"
-#include "network_system/session/messaging_session.h"
+#include "kcenon/network/core/messaging_client.h"
+#include "kcenon/network/core/messaging_server.h"
+#include "kcenon/network/session/messaging_session.h"
 
 #include <thread>
 #include <vector>

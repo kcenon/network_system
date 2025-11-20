@@ -30,12 +30,12 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *****************************************************************************/
 
-#include "network_system/core/messaging_ws_client.h"
+#include "kcenon/network/core/messaging_ws_client.h"
 
-#include "network_system/core/network_context.h"
-#include "network_system/internal/tcp_socket.h"
-#include "network_system/internal/websocket_socket.h"
-#include "network_system/integration/logger_integration.h"
+#include "kcenon/network/core/network_context.h"
+#include "kcenon/network/internal/tcp_socket.h"
+#include "kcenon/network/internal/websocket_socket.h"
+#include "kcenon/network/integration/logger_integration.h"
 
 #include <asio.hpp>
 

@@ -30,8 +30,8 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *****************************************************************************/
 
-#include "network_system/utils/compression_pipeline.h"
-#include "network_system/integration/logger_integration.h"
+#include "kcenon/network/utils/compression_pipeline.h"
+#include "kcenon/network/integration/logger_integration.h"
 
 #ifdef BUILD_LZ4_COMPRESSION
 #include <lz4.h>

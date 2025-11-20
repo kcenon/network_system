@@ -298,25 +298,25 @@ gtest_discover_tests(error_handling_test)
 # Test Framework Library
 ##################################################
 
-add_library(integration_test_framework STATIC
+add_library(network_integration_test_framework STATIC
     framework/memory_profiler.cpp
     framework/result_writer.cpp
 )
 
-target_include_directories(integration_test_framework PUBLIC
+target_include_directories(network_integration_test_framework PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/framework
     ${CMAKE_SOURCE_DIR}/include
 )
 
-target_link_libraries(integration_test_framework PUBLIC
+target_link_libraries(network_integration_test_framework PUBLIC
     Threads::Threads
 )
 
 # Setup ASIO and FMT integration for framework library
-setup_asio_integration(integration_test_framework)
-setup_fmt_integration(integration_test_framework)
+setup_asio_integration(network_integration_test_framework)
+setup_fmt_integration(network_integration_test_framework)
 
-set_target_properties(integration_test_framework PROPERTIES
+set_target_properties(network_integration_test_framework PROPERTIES
     CXX_STANDARD 20
     CXX_STANDARD_REQUIRED ON
 )
@@ -335,7 +335,7 @@ target_include_directories(tcp_load_test PRIVATE
 
 target_link_libraries(tcp_load_test PRIVATE
     NetworkSystem
-    integration_test_framework
+    network_integration_test_framework
     GTest::gtest
     GTest::gtest_main
     Threads::Threads
@@ -388,7 +388,7 @@ target_include_directories(udp_load_test PRIVATE
 
 target_link_libraries(udp_load_test PRIVATE
     NetworkSystem
-    integration_test_framework
+    network_integration_test_framework
     GTest::gtest
     GTest::gtest_main
     Threads::Threads
@@ -441,7 +441,7 @@ target_include_directories(websocket_load_test PRIVATE
 
 target_link_libraries(websocket_load_test PRIVATE
     NetworkSystem
-    integration_test_framework
+    network_integration_test_framework
     GTest::gtest
     GTest::gtest_main
     Threads::Threads

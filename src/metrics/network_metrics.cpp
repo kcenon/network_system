@@ -30,11 +30,11 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *****************************************************************************/
 
-#include "network_system/metrics/network_metrics.h"
-#include "network_system/core/network_context.h"
+#include "kcenon/network/metrics/network_metrics.h"
+#include "kcenon/network/core/network_context.h"
 
 #ifdef BUILD_WITH_MONITORING_SYSTEM
-#include "network_system/integration/monitoring_integration.h"
+#include "kcenon/network/integration/monitoring_integration.h"
 #endif
 
 namespace network_system::metrics {
@@ -43,7 +43,7 @@ void metric_reporter::report_connection_accepted() {
 #ifdef BUILD_WITH_MONITORING_SYSTEM
     auto monitoring = core::network_context::instance().get_monitoring();
     if (monitoring) {
-        monitoring->increment_counter(metric_names::CONNECTIONS_TOTAL, 1);
+        monitoring->report_counter(metric_names::CONNECTIONS_TOTAL, 1);
     }
 #endif
 }
@@ -52,7 +52,7 @@ void metric_reporter::report_connection_failed(const std::string& reason) {
 #ifdef BUILD_WITH_MONITORING_SYSTEM
     auto monitoring = core::network_context::instance().get_monitoring();
     if (monitoring) {
-        monitoring->increment_counter(metric_names::CONNECTIONS_FAILED, 1);
+        monitoring->report_counter(metric_names::CONNECTIONS_FAILED, 1);
     }
 #else
     (void)reason; // Suppress unused parameter warning
@@ -63,8 +63,8 @@ void metric_reporter::report_bytes_sent(size_t bytes) {
 #ifdef BUILD_WITH_MONITORING_SYSTEM
     auto monitoring = core::network_context::instance().get_monitoring();
     if (monitoring) {
-        monitoring->increment_counter(metric_names::BYTES_SENT, bytes);
-        monitoring->increment_counter(metric_names::PACKETS_SENT, 1);
+        monitoring->report_counter(metric_names::BYTES_SENT, static_cast<double>(bytes));
+        monitoring->report_counter(metric_names::PACKETS_SENT, 1);
     }
 #else
     (void)bytes; // Suppress unused parameter warning
@@ -75,8 +75,8 @@ void metric_reporter::report_bytes_received(size_t bytes) {
 #ifdef BUILD_WITH_MONITORING_SYSTEM
     auto monitoring = core::network_context::instance().get_monitoring();
     if (monitoring) {
-        monitoring->increment_counter(metric_names::BYTES_RECEIVED, bytes);
-        monitoring->increment_counter(metric_names::PACKETS_RECEIVED, 1);
+        monitoring->report_counter(metric_names::BYTES_RECEIVED, static_cast<double>(bytes));
+        monitoring->report_counter(metric_names::PACKETS_RECEIVED, 1);
     }
 #else
     (void)bytes; // Suppress unused parameter warning
@@ -87,7 +87,7 @@ void metric_reporter::report_latency(double ms) {
 #ifdef BUILD_WITH_MONITORING_SYSTEM
     auto monitoring = core::network_context::instance().get_monitoring();
     if (monitoring) {
-        monitoring->record_value(metric_names::LATENCY_MS, ms);
+        monitoring->report_histogram(metric_names::LATENCY_MS, ms);
     }
 #else
     (void)ms; // Suppress unused parameter warning
@@ -98,8 +98,9 @@ void metric_reporter::report_error(const std::string& error_type) {
 #ifdef BUILD_WITH_MONITORING_SYSTEM
     auto monitoring = core::network_context::instance().get_monitoring();
     if (monitoring) {
-        monitoring->increment_counter(metric_names::ERRORS_TOTAL, 1);
+        monitoring->report_counter(metric_names::ERRORS_TOTAL, 1);
     }
+    (void)error_type; // Suppress unused parameter warning
 #else
     (void)error_type; // Suppress unused parameter warning
 #endif
@@ -109,7 +110,7 @@ void metric_reporter::report_timeout() {
 #ifdef BUILD_WITH_MONITORING_SYSTEM
     auto monitoring = core::network_context::instance().get_monitoring();
     if (monitoring) {
-        monitoring->increment_counter(metric_names::TIMEOUTS_TOTAL, 1);
+        monitoring->report_counter(metric_names::TIMEOUTS_TOTAL, 1);
     }
 #endif
 }
@@ -118,7 +119,7 @@ void metric_reporter::report_active_connections(size_t count) {
 #ifdef BUILD_WITH_MONITORING_SYSTEM
     auto monitoring = core::network_context::instance().get_monitoring();
     if (monitoring) {
-        monitoring->set_gauge(metric_names::CONNECTIONS_ACTIVE, static_cast<double>(count));
+        monitoring->report_gauge(metric_names::CONNECTIONS_ACTIVE, static_cast<double>(count));
     }
 #else
     (void)count; // Suppress unused parameter warning
@@ -129,7 +130,7 @@ void metric_reporter::report_session_duration(double ms) {
 #ifdef BUILD_WITH_MONITORING_SYSTEM
     auto monitoring = core::network_context::instance().get_monitoring();
     if (monitoring) {
-        monitoring->record_value(metric_names::SESSION_DURATION_MS, ms);
+        monitoring->report_histogram(metric_names::SESSION_DURATION_MS, ms);
     }
 #else
     (void)ms; // Suppress unused parameter warning

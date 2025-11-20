@@ -41,8 +41,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 4. Graceful shutdown
  */
 
-#include "network_system/core/messaging_udp_server.h"
-#include "network_system/core/messaging_udp_client.h"
+#include "kcenon/network/core/messaging_udp_server.h"
+#include "kcenon/network/core/messaging_udp_client.h"
 
 #include <iostream>
 #include <thread>
