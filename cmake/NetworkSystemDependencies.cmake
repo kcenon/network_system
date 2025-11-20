@@ -145,12 +145,14 @@ function(find_container_system)
     message(STATUS "Looking for container_system...")
 
     # Try CMake target first
-    if(TARGET ContainerSystem::container)
-        message(STATUS "Found container_system CMake target")
-        set(CONTAINER_SYSTEM_FOUND TRUE PARENT_SCOPE)
-        set(CONTAINER_SYSTEM_TARGET ContainerSystem::container PARENT_SCOPE)
-        return()
-    endif()
+    foreach(_candidate ContainerSystem::container container_system)
+        if(TARGET ${_candidate})
+            message(STATUS "Found container_system CMake target: ${_candidate}")
+            set(CONTAINER_SYSTEM_FOUND TRUE PARENT_SCOPE)
+            set(CONTAINER_SYSTEM_TARGET ${_candidate} PARENT_SCOPE)
+            return()
+        endif()
+    endforeach()
 
     # Path-based detection - prioritize environment variable, then standard paths
     set(_container_search_paths)
@@ -222,6 +224,15 @@ function(find_thread_system)
     endif()
 
     message(STATUS "Looking for thread_system...")
+
+    foreach(_candidate ThreadSystem utilities thread_system::thread_system)
+        if(TARGET ${_candidate})
+            message(STATUS "Found thread_system CMake target: ${_candidate}")
+            set(THREAD_SYSTEM_FOUND TRUE PARENT_SCOPE)
+            set(THREAD_SYSTEM_TARGET ${_candidate} PARENT_SCOPE)
+            return()
+        endif()
+    endforeach()
 
     # Prioritize environment variable, then standard paths
     set(_thread_search_paths)
@@ -295,6 +306,15 @@ function(find_logger_system)
 
     message(STATUS "Looking for logger_system...")
 
+    foreach(_candidate LoggerSystem logger logger_system::logger_system)
+        if(TARGET ${_candidate})
+            message(STATUS "Found logger_system CMake target: ${_candidate}")
+            set(LOGGER_SYSTEM_FOUND TRUE PARENT_SCOPE)
+            set(LOGGER_SYSTEM_TARGET ${_candidate} PARENT_SCOPE)
+            return()
+        endif()
+    endforeach()
+
     # Prioritize environment variable, then standard paths
     set(_logger_search_paths)
     set(_logger_lib_paths)
@@ -367,6 +387,15 @@ function(find_common_system)
 
     message(STATUS "Looking for common_system...")
 
+    foreach(_candidate common_system kcenon::common)
+        if(TARGET ${_candidate})
+            message(STATUS "Found common_system CMake target: ${_candidate}")
+            set(COMMON_SYSTEM_FOUND TRUE PARENT_SCOPE)
+            set(COMMON_SYSTEM_TARGET ${_candidate} PARENT_SCOPE)
+            return()
+        endif()
+    endforeach()
+
     # Prioritize environment variable, then standard paths
     set(_common_search_paths)
 
@@ -414,6 +443,15 @@ function(find_monitoring_system)
     endif()
 
     message(STATUS "Looking for monitoring_system...")
+
+    foreach(_candidate monitoring_system MonitoringSystem)
+        if(TARGET ${_candidate})
+            message(STATUS "Found monitoring_system CMake target: ${_candidate}")
+            set(MONITORING_SYSTEM_FOUND TRUE PARENT_SCOPE)
+            set(MONITORING_SYSTEM_TARGET ${_candidate} PARENT_SCOPE)
+            return()
+        endif()
+    endforeach()
 
     # Check for existing CMake targets first
     if(TARGET monitoring_system)

@@ -53,9 +53,12 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 # Build Each Sample Program
 ##################################################
 
+set(SAMPLE_TARGETS)
+
 foreach(SAMPLE ${SAMPLE_PROGRAMS})
     # Create executable for each sample with unique prefix
     add_executable(network_${SAMPLE} ${SAMPLE}.cpp)
+    list(APPEND SAMPLE_TARGETS network_${SAMPLE})
     
     # Set target properties
     set_target_properties(network_${SAMPLE} PROPERTIES
@@ -135,7 +138,7 @@ endif()
 ##################################################
 
 # Install sample binaries
-install(TARGETS ${SAMPLE_PROGRAMS}
+install(TARGETS ${SAMPLE_TARGETS}
     RUNTIME DESTINATION bin/samples
     COMPONENT samples
 )
