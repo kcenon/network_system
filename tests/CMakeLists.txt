@@ -64,7 +64,9 @@ if(GTest_FOUND OR GTEST_FOUND)
 
     # Enable test discovery
     include(GoogleTest)
-    gtest_discover_tests(network_unit_tests)
+    gtest_discover_tests(network_unit_tests
+        DISCOVERY_TIMEOUT 60
+    )
 
     # Thread safety tests (Phase 1 - Task 1.6)
     add_executable(network_thread_safety_test
@@ -112,7 +114,9 @@ if(GTest_FOUND OR GTEST_FOUND)
     # Don't add suite-level test to prevent port conflicts during parallel execution
     # add_test(NAME NetworkThreadSafetyTests COMMAND network_thread_safety_test)
 
-    gtest_discover_tests(network_thread_safety_test)
+    gtest_discover_tests(network_thread_safety_test
+        DISCOVERY_TIMEOUT 60
+    )
 
     # TLS configuration tests
     add_executable(network_tls_config_test
@@ -142,7 +146,9 @@ if(GTest_FOUND OR GTEST_FOUND)
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
     )
 
-    gtest_discover_tests(network_tls_config_test)
+    gtest_discover_tests(network_tls_config_test
+        DISCOVERY_TIMEOUT 60
+    )
 
     # WebSocket frame tests
     if(BUILD_WEBSOCKET_SUPPORT)
@@ -167,7 +173,9 @@ if(GTest_FOUND OR GTEST_FOUND)
             RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
         )
 
-        gtest_discover_tests(network_websocket_frame_test)
+        gtest_discover_tests(network_websocket_frame_test
+            DISCOVERY_TIMEOUT 60
+        )
         message(STATUS "WebSocket frame tests enabled")
 
         # WebSocket handshake tests
@@ -192,7 +200,9 @@ if(GTest_FOUND OR GTEST_FOUND)
             RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
         )
 
-        gtest_discover_tests(network_websocket_handshake_test)
+        gtest_discover_tests(network_websocket_handshake_test
+            DISCOVERY_TIMEOUT 60
+        )
         message(STATUS "WebSocket handshake tests enabled")
 
         # WebSocket protocol tests
@@ -217,7 +227,9 @@ if(GTest_FOUND OR GTEST_FOUND)
             RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
         )
 
-        gtest_discover_tests(network_websocket_protocol_test)
+        gtest_discover_tests(network_websocket_protocol_test
+            DISCOVERY_TIMEOUT 60
+        )
         message(STATUS "WebSocket protocol tests enabled")
     endif()
 else()
