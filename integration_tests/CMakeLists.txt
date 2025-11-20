@@ -115,7 +115,9 @@ set_target_properties(connection_lifecycle_test PROPERTIES
 # )
 
 include(GoogleTest)
-gtest_discover_tests(connection_lifecycle_test)
+gtest_discover_tests(connection_lifecycle_test
+    DISCOVERY_TIMEOUT 60
+)
 
 ##################################################
 # Protocol Integration Tests
@@ -174,7 +176,9 @@ set_target_properties(protocol_integration_test PROPERTIES
 #     COMMAND protocol_integration_test
 # )
 
-gtest_discover_tests(protocol_integration_test)
+gtest_discover_tests(protocol_integration_test
+    DISCOVERY_TIMEOUT 60
+)
 
 ##################################################
 # Network Performance Tests
@@ -233,7 +237,9 @@ set_target_properties(network_performance_test PROPERTIES
 #     COMMAND network_performance_test
 # )
 
-gtest_discover_tests(network_performance_test)
+gtest_discover_tests(network_performance_test
+    DISCOVERY_TIMEOUT 60
+)
 
 ##################################################
 # Error Handling Tests
@@ -292,7 +298,9 @@ set_target_properties(error_handling_test PROPERTIES
 #     COMMAND error_handling_test
 # )
 
-gtest_discover_tests(error_handling_test)
+gtest_discover_tests(error_handling_test
+    DISCOVERY_TIMEOUT 60
+)
 
 ##################################################
 # Test Framework Library
@@ -372,7 +380,9 @@ set_target_properties(tcp_load_test PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/integration_tests
 )
 
-gtest_discover_tests(tcp_load_test)
+gtest_discover_tests(tcp_load_test
+    DISCOVERY_TIMEOUT 60
+)
 
 ##################################################
 # UDP Load Tests
@@ -425,7 +435,9 @@ set_target_properties(udp_load_test PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/integration_tests
 )
 
-gtest_discover_tests(udp_load_test)
+gtest_discover_tests(udp_load_test
+    DISCOVERY_TIMEOUT 60
+)
 
 ##################################################
 # WebSocket Load Tests
@@ -478,7 +490,9 @@ set_target_properties(websocket_load_test PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/integration_tests
 )
 
-gtest_discover_tests(websocket_load_test)
+gtest_discover_tests(websocket_load_test
+    DISCOVERY_TIMEOUT 60
+)
 
 ##################################################
 # Test Summary
