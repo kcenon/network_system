@@ -63,8 +63,10 @@ int main() {
     auto server = std::make_shared<network_system::core::messaging_server>("MyServer");
 
     auto result = server->start_server(8080);
-    if (!result) {
-        std::cerr << "Failed to start: " << result.error().message << std::endl;
+    if (result.is_err()) {
+        const auto& err = result.error();
+        std::cerr << "Failed to start: " << err.message
+                  << " (code: " << err.code << ")" << std::endl;
         return -1;
     }
 
@@ -84,8 +86,10 @@ int main() {
     auto client = std::make_shared<network_system::core::messaging_client>("MyClient");
 
     auto result = client->start_client("localhost", 8080);
-    if (!result) {
-        std::cerr << "Failed to connect: " << result.error().message << std::endl;
+    if (result.is_err()) {
+        const auto& err = result.error();
+        std::cerr << "Failed to connect: " << err.message
+                  << " (code: " << err.code << ")" << std::endl;
         return -1;
     }
 
@@ -94,8 +98,10 @@ int main() {
     std::vector<uint8_t> data(message.begin(), message.end());
 
     auto send_result = client->send_packet(std::move(data));
-    if (!send_result) {
-        std::cerr << "Failed to send: " << send_result.error().message << std::endl;
+    if (send_result.is_err()) {
+        const auto& err = send_result.error();
+        std::cerr << "Failed to send: " << err.message
+                  << " (code: " << err.code << ")" << std::endl;
     }
 
     client->wait_for_stop();
@@ -137,14 +143,20 @@ int main() {
 - **Pipeline Architecture**: Message transformation with compression/encryption hooks
 - **Move Semantics**: Zero-copy friendly APIs (move-aware buffer handling)
 
+### Failure Handling
+- All server/client start helpers return `Result<void>`; check `result.is_err()` before continuing and log `result.error().message`.
+- For historical fixes (session cleanup, backpressure, TLS rollout), review `IMPROVEMENTS.md` to understand the safeguards already in place and how to react if regression symptoms reappear.
+- When building higher-level services, propagate `common::error_info` up the stack so monitoring and alerting pipelines can correlate failures across tiers.
+
 ### Error Handling
 
 **Result<T> Pattern** (75-80% migrated):
 ```cpp
 auto result = server->start_server(8080);
-if (!result) {
-    std::cerr << "Error: " << result.error().message
-              << " (code: " << result.error().code << ")\n";
+if (result.is_err()) {
+    const auto& err = result.error();
+    std::cerr << "Error: " << err.message
+              << " (code: " << err.code << ")\n";
     return -1;
 }
 ```

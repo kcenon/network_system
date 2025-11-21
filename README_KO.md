@@ -107,6 +107,22 @@ Network System Project는 분산 시스템 및 메시징 애플리케이션을 �
 - **풍부한 통합**: thread, container 및 logger system과의 원활한 통합
 - **최신 C++ 기능**: C++20 coroutine, concept 및 range 지원
 
+### ⚠️ **장애 대응 가이드**
+- 모든 서버/클라이언트 초기화 함수와 패킷 전송 함수는 `Result<void>`를 반환하므로 `result.is_err()` 검사 후 `result.error().message`/`result.error().code`를 로그에 남기세요.
+- 세션 누수, 백프레셔 부재, TLS 미적용 등 과거 취약점 관련 회귀 여부는 `IMPROVEMENTS_KO.md`의 완료 항목을 참조해 빠르게 판별할 수 있습니다.
+- 상위 서비스 또는 모니터링 시스템으로 오류를 전달할 때는 `common::error_info`를 그대로 넘겨 계층 간 상관 분석이 가능하도록 합니다.
+
+#### Result<T> 패턴 예시
+```cpp
+auto start_result = server->start_server(8080);
+if (start_result.is_err()) {
+    const auto& err = start_result.error();
+    log_error(fmt::format("server_start_failed module={} code={} message={}",
+                          err.module, err.code, err.message));
+    return Result<void>::err(err);
+}
+```
+
 ### 🌐 **크로스 플랫폼 호환성**
 - **범용 지원**: Windows, Linux 및 macOS에서 작동
 - **아키텍처 최적화**: x86, x64 및 ARM64에 대한 성능 튜닝
@@ -318,15 +334,17 @@ cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release && cmake --build .
 #include <memory>
 
 int main() {
-    // 서버 ID로 TCP 서버 생성
-    auto server = std::make_shared<network_system::core::messaging_server>("MyServer");
+// 서버 ID로 TCP 서버 생성
+auto server = std::make_shared<network_system::core::messaging_server>("MyServer");
 
-    // 포트 8080에서 서버 시작
-    auto result = server->start_server(8080);
-    if (!result) {
-        std::cerr << "서버 시작 실패: " << result.error().message << std::endl;
-        return -1;
-    }
+// 포트 8080에서 서버 시작
+auto result = server->start_server(8080);
+if (result.is_err()) {
+    const auto& err = result.error();
+    std::cerr << "서버 시작 실패: " << err.message
+              << " (code: " << err.code << ")" << std::endl;
+    return -1;
+}
 
     std::cout << "서버가 포트 8080에서 실행 중..." << std::endl;
     std::cout << "종료하려면 Ctrl+C를 누르세요" << std::endl;
@@ -352,12 +370,14 @@ int main() {
     // 클라이언트 ID로 TCP 클라이언트 생성
     auto client = std::make_shared<network_system::core::messaging_client>("MyClient");
 
-    // 클라이언트 시작 및 서버에 연결
-    auto result = client->start_client("localhost", 8080);
-    if (!result) {
-        std::cerr << "연결 실패: " << result.error().message << std::endl;
-        return -1;
-    }
+// 클라이언트 시작 및 서버에 연결
+auto result = client->start_client("localhost", 8080);
+if (result.is_err()) {
+    const auto& err = result.error();
+    std::cerr << "연결 실패: " << err.message
+              << " (code: " << err.code << ")" << std::endl;
+    return -1;
+}
 
     // 연결이 설정될 때까지 대기
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -455,8 +475,10 @@ if (!client_result) {
 // 메시지 전송 (zero-copy를 위해 std::move 필요)
 std::vector<uint8_t> data = {'H', 'e', 'l', 'l', 'o'};
 auto send_result = client->send_packet(std::move(data));
-if (!send_result) {
-    std::cerr << "전송 실패: " << send_result.error().message << std::endl;
+if (send_result.is_err()) {
+    const auto& err = send_result.error();
+    std::cerr << "전송 실패: " << err.message
+              << " (code: " << err.code << ")" << std::endl;
 }
 ```
 
