@@ -52,7 +52,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <kcenon/logger/writers/console_writer.h>
 #endif
 
-namespace network_system::integration {
+namespace kcenon::network::integration {
 
 // Helper function to convert log level to string
 static const char* level_to_string(log_level level) {
@@ -359,4 +359,4 @@ void logger_integration_manager::log(log_level level, const std::string& message
     pimpl_->log(level, message, file, line, function);
 }
 
-} // namespace network_system::integration
+} // namespace kcenon::network::integration

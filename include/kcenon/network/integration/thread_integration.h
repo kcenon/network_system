@@ -46,7 +46,7 @@
 #include <chrono>
 #include <vector>
 
-namespace network_system::integration {
+namespace kcenon::network::integration {
 
 /**
  * @class thread_pool_interface
@@ -209,4 +209,9 @@ private:
     std::unique_ptr<impl> pimpl_;
 };
 
-} // namespace network_system::integration
+} // namespace kcenon::network::integration
+
+// Backward compatibility
+namespace network_system {
+    namespace integration = kcenon::network::integration;
+}

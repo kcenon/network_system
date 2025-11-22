@@ -71,7 +71,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <functional>
 #include <chrono>
 
-namespace network_system::integration {
+namespace kcenon::network::integration {
 
 /**
  * @class messaging_bridge
@@ -97,7 +97,7 @@ public:
      * @param server_id Unique identifier for the server
      * @return Shared pointer to the created server
      */
-    std::shared_ptr<core::messaging_server> create_server(
+    std::shared_ptr<network_system::core::messaging_server> create_server(
         const std::string& server_id
     );
 
@@ -106,7 +106,7 @@ public:
      * @param client_id Unique identifier for the client
      * @return Shared pointer to the created client
      */
-    std::shared_ptr<core::messaging_client> create_client(
+    std::shared_ptr<network_system::core::messaging_client> create_client(
         const std::string& client_id
     );
 
@@ -190,7 +190,7 @@ private:
 // Namespace alias for backward compatibility
 namespace bridge = network_system::integration;
 
-} // namespace network_system::integration
+} // namespace kcenon::network::integration
 
 // Additional backward compatibility aliases
 namespace network_module {
