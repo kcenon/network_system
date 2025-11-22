@@ -47,7 +47,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <string>
 #include <string_view>
 
-namespace network_system::integration {
+namespace kcenon::network::integration {
 
 /**
  * @enum log_level
@@ -245,27 +245,27 @@ private:
 
 // Convenience macros for logging with automatic source location
 #define NETWORK_LOG_TRACE(msg) \
-    network_system::integration::logger_integration_manager::instance().log( \
-        network_system::integration::log_level::trace, msg, __FILE__, __LINE__, __FUNCTION__)
+    kcenon::network::integration::logger_integration_manager::instance().log( \
+        kcenon::network::integration::log_level::trace, msg, __FILE__, __LINE__, __FUNCTION__)
 
 #define NETWORK_LOG_DEBUG(msg) \
-    network_system::integration::logger_integration_manager::instance().log( \
-        network_system::integration::log_level::debug, msg, __FILE__, __LINE__, __FUNCTION__)
+    kcenon::network::integration::logger_integration_manager::instance().log( \
+        kcenon::network::integration::log_level::debug, msg, __FILE__, __LINE__, __FUNCTION__)
 
 #define NETWORK_LOG_INFO(msg) \
-    network_system::integration::logger_integration_manager::instance().log( \
-        network_system::integration::log_level::info, msg, __FILE__, __LINE__, __FUNCTION__)
+    kcenon::network::integration::logger_integration_manager::instance().log( \
+        kcenon::network::integration::log_level::info, msg, __FILE__, __LINE__, __FUNCTION__)
 
 #define NETWORK_LOG_WARN(msg) \
-    network_system::integration::logger_integration_manager::instance().log( \
-        network_system::integration::log_level::warn, msg, __FILE__, __LINE__, __FUNCTION__)
+    kcenon::network::integration::logger_integration_manager::instance().log( \
+        kcenon::network::integration::log_level::warn, msg, __FILE__, __LINE__, __FUNCTION__)
 
 #define NETWORK_LOG_ERROR(msg) \
-    network_system::integration::logger_integration_manager::instance().log( \
-        network_system::integration::log_level::error, msg, __FILE__, __LINE__, __FUNCTION__)
+    kcenon::network::integration::logger_integration_manager::instance().log( \
+        kcenon::network::integration::log_level::error, msg, __FILE__, __LINE__, __FUNCTION__)
 
 #define NETWORK_LOG_FATAL(msg) \
-    network_system::integration::logger_integration_manager::instance().log( \
-        network_system::integration::log_level::fatal, msg, __FILE__, __LINE__, __FUNCTION__)
+    kcenon::network::integration::logger_integration_manager::instance().log( \
+        kcenon::network::integration::log_level::fatal, msg, __FILE__, __LINE__, __FUNCTION__)
 
-} // namespace network_system::integration
+} // namespace kcenon::network::integration
