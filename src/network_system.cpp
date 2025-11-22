@@ -32,9 +32,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "kcenon/network/network_system.h"
 #include "kcenon/network/core/network_context.h"
+#include "kcenon/network/integration/common_system_adapter.h"
 #include "kcenon/network/integration/logger_integration.h"
 #include "kcenon/network/integration/thread_integration.h"
-#include "kcenon/network/integration/common_system_adapter.h"
 
 #ifdef BUILD_WITH_MONITORING_SYSTEM
 #include "kcenon/network/integration/monitoring_integration.h"
@@ -46,121 +46,118 @@ namespace network_system {
 
 static std::atomic<bool> g_initialized{false};
 
-bool initialize() {
-    return initialize(config::network_config::production());
-}
+bool initialize() { return initialize(config::network_config::production()); }
 
-bool initialize(const config::network_config& config) {
-    if (g_initialized.load()) {
-        NETWORK_LOG_WARN("[network_system] Already initialized");
-        return true; // Already initialized
+bool initialize(const config::network_config &config) {
+  if (g_initialized.load()) {
+    NETWORK_LOG_WARN("[network_system] Already initialized");
+    return true; // Already initialized
+  }
+
+  try {
+    auto &ctx = core::network_context::instance();
+
+    // Initialize thread pool
+    if (config.thread_pool.worker_count >= 0) {
+      auto thread_pool = std::make_shared<integration::basic_thread_pool>(
+          config.thread_pool.worker_count == 0
+              ? std::thread::hardware_concurrency()
+              : config.thread_pool.worker_count);
+      ctx.set_thread_pool(thread_pool);
+      ctx.initialize(config.thread_pool.worker_count);
     }
 
-    try {
-        auto& ctx = core::network_context::instance();
-
-        // Initialize thread pool
-        if (config.thread_pool.worker_count > 0 || config.thread_pool.worker_count == 0) {
-            auto thread_pool = std::make_shared<integration::basic_thread_pool>(
-                config.thread_pool.worker_count == 0
-                    ? std::thread::hardware_concurrency()
-                    : config.thread_pool.worker_count
-            );
-            ctx.set_thread_pool(thread_pool);
-            ctx.initialize(config.thread_pool.worker_count);
-        }
-
-        // Initialize logger
+    // Initialize logger
 #ifdef BUILD_WITH_LOGGER_SYSTEM
-        auto logger = std::make_shared<integration::logger_system_adapter>(
-            config.logger.async_logging,
-            config.logger.buffer_size);
-        // Note: logger_system_adapter needs start() method
-        // logger->start();
-        ctx.set_logger(logger);
-        integration::logger_integration_manager::instance().set_logger(logger);
+    auto logger = std::make_shared<integration::logger_system_adapter>(
+        config.logger.async_logging, config.logger.buffer_size);
+    // Note: logger_system_adapter needs start() method
+    // logger->start();
+    ctx.set_logger(logger);
+    integration::logger_integration_manager::instance().set_logger(logger);
 #else
-        auto logger = std::make_shared<integration::basic_logger>(
-            config.logger.min_level);
-        ctx.set_logger(logger);
-        integration::logger_integration_manager::instance().set_logger(logger);
+    auto logger =
+        std::make_shared<integration::basic_logger>(config.logger.min_level);
+    ctx.set_logger(logger);
+    integration::logger_integration_manager::instance().set_logger(logger);
 #endif
 
-        // Initialize monitoring
+    // Initialize monitoring
 #ifdef BUILD_WITH_MONITORING_SYSTEM
-        if (config.monitoring.enabled) {
-            auto monitoring = std::make_shared<integration::monitoring_system_adapter>(
-                config.monitoring.service_name);
-            // Note: monitoring_system_adapter needs start() method
-            // monitoring->start();
-            ctx.set_monitoring(monitoring);
-        }
+    if (config.monitoring.enabled) {
+      auto monitoring =
+          std::make_shared<integration::monitoring_system_adapter>(
+              config.monitoring.service_name);
+      // Note: monitoring_system_adapter needs start() method
+      // monitoring->start();
+      ctx.set_monitoring(monitoring);
+    }
 #else
-        (void)config.monitoring; // Suppress unused parameter warning
+    (void)config.monitoring; // Suppress unused parameter warning
 #endif
 
-        g_initialized.store(true);
-        NETWORK_LOG_INFO("[network_system] Initialized successfully");
+    g_initialized.store(true);
+    NETWORK_LOG_INFO("[network_system] Initialized successfully");
 
-        return true;
-    }
-    catch (const std::exception& e) {
-        NETWORK_LOG_ERROR("[network_system] Initialization failed: " + std::string(e.what()));
-        return false;
-    }
+    return true;
+  } catch (const std::exception &e) {
+    NETWORK_LOG_ERROR("[network_system] Initialization failed: " +
+                      std::string(e.what()));
+    return false;
+  }
 }
 
-bool initialize(const config::network_system_config& config_with_dependencies) {
+bool initialize(const config::network_system_config &config_with_dependencies) {
 #ifdef BUILD_WITH_COMMON_SYSTEM
-    auto& ctx = core::network_context::instance();
+  auto &ctx = core::network_context::instance();
 
-    if (config_with_dependencies.executor) {
-        auto pool_adapter = std::make_shared<integration::common_thread_pool_adapter>(
+  if (config_with_dependencies.executor) {
+    auto pool_adapter =
+        std::make_shared<integration::common_thread_pool_adapter>(
             config_with_dependencies.executor);
-        ctx.set_thread_pool(pool_adapter);
-    }
+    ctx.set_thread_pool(pool_adapter);
+  }
 
-    if (config_with_dependencies.logger) {
-        auto logger_adapter = std::make_shared<integration::common_logger_adapter>(
-            config_with_dependencies.logger);
-        ctx.set_logger(logger_adapter);
-    }
+  if (config_with_dependencies.logger) {
+    auto logger_adapter = std::make_shared<integration::common_logger_adapter>(
+        config_with_dependencies.logger);
+    ctx.set_logger(logger_adapter);
+  }
 
 #ifdef BUILD_WITH_MONITORING_SYSTEM
-    if (config_with_dependencies.monitor) {
-        auto monitoring_adapter = std::make_shared<integration::common_monitoring_adapter>(
+  if (config_with_dependencies.monitor) {
+    auto monitoring_adapter =
+        std::make_shared<integration::common_monitoring_adapter>(
             config_with_dependencies.monitor);
-        ctx.set_monitoring(monitoring_adapter);
-    }
+    ctx.set_monitoring(monitoring_adapter);
+  }
 #endif
 #else
-    (void)config_with_dependencies;
+  (void)config_with_dependencies;
 #endif
 
-    return initialize(config_with_dependencies.runtime);
+  return initialize(config_with_dependencies.runtime);
 }
 
 void shutdown() {
-    if (!g_initialized.load()) {
-        return;
-    }
+  if (!g_initialized.load()) {
+    return;
+  }
 
-    try {
-        NETWORK_LOG_INFO("[network_system] Shutting down...");
+  try {
+    NETWORK_LOG_INFO("[network_system] Shutting down...");
 
-        auto& ctx = core::network_context::instance();
-        ctx.shutdown();
+    auto &ctx = core::network_context::instance();
+    ctx.shutdown();
 
-        g_initialized.store(false);
-        NETWORK_LOG_INFO("[network_system] Shutdown complete");
-    }
-    catch (const std::exception& e) {
-        NETWORK_LOG_ERROR("[network_system] Shutdown error: " + std::string(e.what()));
-    }
+    g_initialized.store(false);
+    NETWORK_LOG_INFO("[network_system] Shutdown complete");
+  } catch (const std::exception &e) {
+    NETWORK_LOG_ERROR("[network_system] Shutdown error: " +
+                      std::string(e.what()));
+  }
 }
 
-bool is_initialized() {
-    return g_initialized.load();
-}
+bool is_initialized() { return g_initialized.load(); }
 
 } // namespace network_system
