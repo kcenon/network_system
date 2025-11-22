@@ -52,7 +52,7 @@ int main() {
 #ifdef BUILD_MESSAGING_BRIDGE
     // Test messaging bridge (basic instantiation)
     try {
-        auto bridge = std::make_unique<network_system::integration::messaging_bridge>();
+        auto bridge = std::make_unique<kcenon::network::integration::messaging_bridge>();
         std::cout << "✅ Messaging bridge can be created" << std::endl;
 
 #ifdef BUILD_WITH_CONTAINER_SYSTEM
