@@ -51,7 +51,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "container.h"
 #endif
 
-namespace network_system::integration {
+namespace kcenon::network::integration {
 
 class messaging_bridge::impl {
 public:
@@ -80,16 +80,16 @@ messaging_bridge::messaging_bridge() : pimpl_(std::make_unique<impl>()) {
 
 messaging_bridge::~messaging_bridge() = default;
 
-std::shared_ptr<core::messaging_server> messaging_bridge::create_server(
+std::shared_ptr<network_system::core::messaging_server> messaging_bridge::create_server(
     const std::string& server_id
 ) {
-    return std::make_shared<core::messaging_server>(server_id);
+    return std::make_shared<network_system::core::messaging_server>(server_id);
 }
 
-std::shared_ptr<core::messaging_client> messaging_bridge::create_client(
+std::shared_ptr<network_system::core::messaging_client> messaging_bridge::create_client(
     const std::string& client_id
 ) {
-    return std::make_shared<core::messaging_client>(client_id);
+    return std::make_shared<network_system::core::messaging_client>(client_id);
 }
 
 #ifdef BUILD_WITH_CONTAINER_SYSTEM
@@ -143,6 +143,6 @@ std::shared_ptr<thread_pool_interface> messaging_bridge::get_thread_pool_interfa
     return pimpl_->thread_pool_interface_;
 }
 
-} // namespace network_system::integration
+} // namespace kcenon::network::integration
 
 #pragma clang diagnostic pop
