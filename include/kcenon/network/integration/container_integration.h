@@ -50,7 +50,7 @@
 #include "container.h"
 #endif
 
-namespace network_system::integration {
+namespace kcenon::network::integration {
 
 /**
  * @class container_interface
@@ -240,4 +240,9 @@ private:
     std::unique_ptr<impl> pimpl_;
 };
 
-} // namespace network_system::integration
+} // namespace kcenon::network::integration
+
+// Backward compatibility: namespace alias for legacy code
+namespace network_system {
+    namespace integration = kcenon::network::integration;
+}

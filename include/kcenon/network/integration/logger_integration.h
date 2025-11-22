@@ -269,3 +269,8 @@ private:
         kcenon::network::integration::log_level::fatal, msg, __FILE__, __LINE__, __FUNCTION__)
 
 } // namespace kcenon::network::integration
+
+// Backward compatibility: namespace alias for legacy code
+namespace network_system {
+    namespace integration = kcenon::network::integration;
+}

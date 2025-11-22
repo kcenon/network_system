@@ -47,7 +47,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <memory>
 #include <string>
 
-namespace network_system::integration
+namespace kcenon::network::integration
 {
 
 	/**
@@ -287,4 +287,9 @@ namespace network_system::integration
 		std::unique_ptr<impl> pimpl_;
 	};
 
-} // namespace network_system::integration
+} // namespace kcenon::network::integration
+
+// Backward compatibility: namespace alias for legacy code
+namespace network_system {
+    namespace integration = kcenon::network::integration;
+}

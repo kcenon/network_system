@@ -257,6 +257,7 @@ private:
 
 } // namespace kcenon::network::integration
 
-// Backward compatibility: using declarations for legacy code
-// Note: namespace alias is defined in thread_integration.h as:
-//   namespace network_system { namespace integration = kcenon::network::integration; }
+// Backward compatibility: namespace alias for legacy code
+namespace network_system {
+    namespace integration = kcenon::network::integration;
+}
