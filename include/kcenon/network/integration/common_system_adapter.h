@@ -52,8 +52,7 @@
 #include <stdexcept>
 #include <unordered_map>
 
-namespace network_system {
-namespace integration {
+namespace kcenon::network::integration {
 
 #ifdef BUILD_WITH_COMMON_SYSTEM
 
@@ -256,5 +255,8 @@ private:
 
 #endif // BUILD_WITH_COMMON_SYSTEM
 
-} // namespace integration
-} // namespace network_system
+} // namespace kcenon::network::integration
+
+// Backward compatibility: using declarations for legacy code
+// Note: namespace alias is defined in thread_integration.h as:
+//   namespace network_system { namespace integration = kcenon::network::integration; }
