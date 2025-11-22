@@ -47,6 +47,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <memory>
 #include <string>
 
+#include "kcenon/network/integration/thread_integration.h"
+
 namespace kcenon::network::integration
 {
 
@@ -289,7 +291,4 @@ namespace kcenon::network::integration
 
 } // namespace kcenon::network::integration
 
-// Backward compatibility: namespace alias for legacy code
-namespace network_system {
-    namespace integration = kcenon::network::integration;
-}
+// Backward compatibility namespace alias is defined in thread_integration.h

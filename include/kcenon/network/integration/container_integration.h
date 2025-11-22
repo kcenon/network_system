@@ -46,6 +46,8 @@
 #include <functional>
 #include <any>
 
+#include "kcenon/network/integration/thread_integration.h"
+
 #ifdef BUILD_WITH_CONTAINER_SYSTEM
 #include "container.h"
 #endif
@@ -242,7 +244,4 @@ private:
 
 } // namespace kcenon::network::integration
 
-// Backward compatibility: namespace alias for legacy code
-namespace network_system {
-    namespace integration = kcenon::network::integration;
-}
+// Backward compatibility namespace alias is defined in thread_integration.h
