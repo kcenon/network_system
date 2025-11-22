@@ -69,38 +69,38 @@ public:
      * @brief Set custom thread pool
      * @param pool Thread pool implementation
      */
-    void set_thread_pool(std::shared_ptr<integration::thread_pool_interface> pool);
+    void set_thread_pool(std::shared_ptr<kcenon::network::integration::thread_pool_interface> pool);
 
     /**
      * @brief Get current thread pool
      * @return Shared pointer to thread pool interface
      */
-    std::shared_ptr<integration::thread_pool_interface> get_thread_pool();
+    std::shared_ptr<kcenon::network::integration::thread_pool_interface> get_thread_pool();
 
     /**
      * @brief Set custom logger
      * @param logger Logger implementation
      */
-    void set_logger(std::shared_ptr<integration::logger_interface> logger);
+    void set_logger(std::shared_ptr<kcenon::network::integration::logger_interface> logger);
 
     /**
      * @brief Get current logger
      * @return Shared pointer to logger interface
      */
-    std::shared_ptr<integration::logger_interface> get_logger();
+    std::shared_ptr<kcenon::network::integration::logger_interface> get_logger();
 
 #ifdef BUILD_WITH_MONITORING_SYSTEM
     /**
      * @brief Set custom monitoring system
      * @param monitoring Monitoring implementation
      */
-    void set_monitoring(std::shared_ptr<integration::monitoring_interface> monitoring);
+    void set_monitoring(std::shared_ptr<kcenon::network::integration::monitoring_interface> monitoring);
 
     /**
      * @brief Get current monitoring system
      * @return Shared pointer to monitoring interface
      */
-    std::shared_ptr<integration::monitoring_interface> get_monitoring();
+    std::shared_ptr<kcenon::network::integration::monitoring_interface> get_monitoring();
 #endif
 
     /**

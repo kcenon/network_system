@@ -36,7 +36,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <mutex>
 #include <sstream>
 
-namespace network_system::integration
+namespace kcenon::network::integration
 {
 
 	//===========================================================================
@@ -364,4 +364,4 @@ namespace network_system::integration
 										missed_heartbeats, packet_loss_rate);
 	}
 
-} // namespace network_system::integration
+} // namespace kcenon::network::integration

@@ -44,10 +44,19 @@
 #include <atomic>
 #include <algorithm>
 
-namespace network_system::integration {
+namespace kcenon::network::integration {
 
 // basic_thread_pool implementation
 class basic_thread_pool::impl {
+    struct DelayedTask {
+        std::chrono::steady_clock::time_point execute_at;
+        std::function<void()> task;
+
+        bool operator>(const DelayedTask& other) const {
+            return execute_at > other.execute_at;
+        }
+    };
+
 public:
     impl(size_t num_threads)
         : running_(true), completed_tasks_(0) {
@@ -61,6 +70,8 @@ public:
         for (size_t i = 0; i < num_threads; ++i) {
             workers_.emplace_back([this] { worker_loop(); });
         }
+
+        scheduler_thread_ = std::thread([this] { scheduler_loop(); });
     }
 
     ~impl() {
@@ -100,10 +111,36 @@ public:
         std::function<void()> task,
         std::chrono::milliseconds delay
     ) {
-        return submit([task, delay]() {
-            std::this_thread::sleep_for(delay);
-            task();
-        });
+        auto promise = std::make_shared<std::promise<void>>();
+        auto future = promise->get_future();
+
+        {
+            std::unique_lock<std::mutex> lock(scheduler_mutex_);
+            if (!running_) {
+                promise->set_exception(
+                    std::make_exception_ptr(
+                        std::runtime_error("Thread pool is not running")
+                    )
+                );
+                return future;
+            }
+
+            auto execute_time = std::chrono::steady_clock::now() + delay;
+            delayed_tasks_.push({execute_time, [this, task, promise]() {
+                // Submit to main pool when due
+                submit([task, promise]() {
+                    try {
+                        task();
+                        promise->set_value();
+                    } catch (...) {
+                        promise->set_exception(std::current_exception());
+                    }
+                });
+            }});
+        }
+        
+        scheduler_condition_.notify_one();
+        return future;
     }
 
     size_t worker_count() const {
@@ -129,16 +166,27 @@ public:
             }
             running_ = false;
         }
+        
+        {
+             std::unique_lock<std::mutex> lock(scheduler_mutex_);
+             // Clear delayed tasks if not waiting? 
+             // For consistency with existing stop(false), we might want to clear them.
+             // But let's stick to stopping the scheduler loop.
+        }
 
         condition_.notify_all();
+        scheduler_condition_.notify_all();
 
         for (auto& worker : workers_) {
             if (worker.joinable()) {
                 worker.join();
             }
         }
-
         workers_.clear();
+
+        if (scheduler_thread_.joinable()) {
+            scheduler_thread_.join();
+        }
     }
 
     size_t get_completed_tasks() const {
@@ -173,10 +221,44 @@ private:
         }
     }
 
+    void scheduler_loop() {
+        while (running_) {
+            std::unique_lock<std::mutex> lock(scheduler_mutex_);
+            
+            if (delayed_tasks_.empty()) {
+                scheduler_condition_.wait(lock, [this] {
+                    return !running_ || !delayed_tasks_.empty();
+                });
+            } else {
+                auto now = std::chrono::steady_clock::now();
+                auto& next_task = delayed_tasks_.top();
+                
+                if (now >= next_task.execute_at) {
+                    auto task = next_task.task;
+                    delayed_tasks_.pop();
+                    lock.unlock();
+                    task(); // Execute (which submits to main pool)
+                    continue;
+                } else {
+                    scheduler_condition_.wait_until(lock, next_task.execute_at, [this, &next_task] {
+                         return !running_ || delayed_tasks_.empty() || delayed_tasks_.top().execute_at < next_task.execute_at;
+                    });
+                }
+            }
+        }
+    }
+
     std::vector<std::thread> workers_;
+    std::thread scheduler_thread_;
+    
     std::queue<std::function<void()>> tasks_;
     mutable std::mutex queue_mutex_;
     std::condition_variable condition_;
+
+    std::priority_queue<DelayedTask, std::vector<DelayedTask>, std::greater<DelayedTask>> delayed_tasks_;
+    std::mutex scheduler_mutex_;
+    std::condition_variable scheduler_condition_;
+
     std::atomic<bool> running_;
     std::atomic<size_t> completed_tasks_;
 };
@@ -307,4 +389,4 @@ thread_integration_manager::metrics thread_integration_manager::get_metrics() co
     return pimpl_->get_metrics();
 }
 
-} // namespace network_system::integration
+} // namespace kcenon::network::integration

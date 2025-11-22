@@ -46,11 +46,13 @@
 #include <functional>
 #include <any>
 
+#include "kcenon/network/integration/thread_integration.h"
+
 #ifdef BUILD_WITH_CONTAINER_SYSTEM
 #include "container.h"
 #endif
 
-namespace network_system::integration {
+namespace kcenon::network::integration {
 
 /**
  * @class container_interface
@@ -240,4 +242,6 @@ private:
     std::unique_ptr<impl> pimpl_;
 };
 
-} // namespace network_system::integration
+} // namespace kcenon::network::integration
+
+// Backward compatibility namespace alias is defined in thread_integration.h

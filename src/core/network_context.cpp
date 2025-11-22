@@ -48,6 +48,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace network_system::core {
 
+// Use namespace alias for integration types
+namespace integration = kcenon::network::integration;
+
 class network_context::impl {
 public:
     impl() = default;

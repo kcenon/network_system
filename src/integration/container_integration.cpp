@@ -41,7 +41,7 @@
 #include <mutex>
 #include <cstring>
 
-namespace network_system::integration {
+namespace kcenon::network::integration {
 
 #ifdef BUILD_WITH_CONTAINER_SYSTEM
 // container_system_adapter implementation
@@ -305,4 +305,4 @@ std::vector<std::string> container_manager::list_containers() const {
     return pimpl_->list_containers();
 }
 
-} // namespace network_system::integration
+} // namespace kcenon::network::integration

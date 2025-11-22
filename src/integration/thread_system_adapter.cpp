@@ -38,7 +38,7 @@
 #include <thread>
 #include <stdexcept>
 
-namespace network_system::integration {
+namespace kcenon::network::integration {
 
 thread_system_pool_adapter::thread_system_pool_adapter(
     std::shared_ptr<kcenon::thread::thread_pool> pool)
@@ -145,7 +145,7 @@ bool bind_thread_system_pool_into_manager(const std::string& pool_name) {
     }
 }
 
-} // namespace network_system::integration
+} // namespace kcenon::network::integration
 
 #pragma clang diagnostic pop
 

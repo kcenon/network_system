@@ -59,7 +59,7 @@
 #  pragma clang diagnostic pop
 #endif
 
-namespace network_system::integration {
+namespace kcenon::network::integration {
 
 #if defined(BUILD_WITH_THREAD_SYSTEM)
 
@@ -100,5 +100,5 @@ struct thread_system_pool_adapter_unavailable final {
 
 #endif // BUILD_WITH_THREAD_SYSTEM
 
-} // namespace network_system::integration
+} // namespace kcenon::network::integration
 
