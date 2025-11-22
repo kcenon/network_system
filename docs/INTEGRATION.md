@@ -83,18 +83,18 @@ NETWORK_LOG_DEBUG("Received " + std::to_string(bytes) + " bytes");
 #### Advanced Configuration
 ```cpp
 // Get logger instance
-auto& logger_mgr = network_system::integration::logger_integration_manager::instance();
+auto& logger_mgr = kcenon::network::integration::logger_integration_manager::instance();
 auto logger = logger_mgr.get_logger();
 
 // Check if log level is enabled
-if (logger->is_enabled(network_system::integration::log_level::debug)) {
+if (logger->is_enabled(kcenon::network::integration::log_level::debug)) {
     // Perform expensive debug logging
     std::string detailed_state = generate_detailed_state();
     NETWORK_LOG_DEBUG(detailed_state);
 }
 
 // Direct logging without macros
-logger->log(network_system::integration::log_level::warn,
+logger->log(kcenon::network::integration::log_level::warn,
            "Custom warning message",
            __FILE__, __LINE__, __FUNCTION__);
 ```

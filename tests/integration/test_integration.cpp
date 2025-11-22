@@ -53,7 +53,7 @@ using namespace std::chrono_literals;
 bool test_thread_integration() {
     std::cout << "\n=== Testing Thread Integration ===" << std::endl;
 
-    auto& thread_mgr = network_system::integration::thread_integration_manager::instance();
+    auto& thread_mgr = kcenon::network::integration::thread_integration_manager::instance();
     auto pool = thread_mgr.get_thread_pool();
 
     // Test task submission
@@ -89,10 +89,10 @@ bool test_thread_integration() {
 bool test_container_integration() {
     std::cout << "\n=== Testing Container Integration ===" << std::endl;
 
-    auto& container_mgr = network_system::integration::container_manager::instance();
+    auto& container_mgr = kcenon::network::integration::container_manager::instance();
 
     // Register a custom container
-    auto basic = std::make_shared<network_system::integration::basic_container>();
+    auto basic = std::make_shared<kcenon::network::integration::basic_container>();
     container_mgr.register_container("test_container", basic);
 
     // Test serialization
@@ -160,7 +160,7 @@ bool test_messaging_bridge() {
 #ifdef BUILD_MESSAGING_BRIDGE
     std::cout << "\n=== Testing Messaging Bridge ===" << std::endl;
 
-    auto bridge = std::make_shared<network_system::integration::messaging_bridge>();
+    auto bridge = std::make_shared<kcenon::network::integration::messaging_bridge>();
 
     // Test initialization
     assert(bridge->is_initialized());

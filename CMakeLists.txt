@@ -145,25 +145,27 @@ add_library(NetworkSystem
 )
 
 # Suppress warnings inherited from parent project (especially from ASIO)
+# WARNING: Suppressions removed for strict code quality check. 
+# Fix the code instead of suppressing warnings!
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-    target_compile_options(NetworkSystem PRIVATE
-        -Wno-sign-conversion
-        -Wno-conversion
-        -Wno-implicit-fallthrough
-        -Wno-shadow
-        -Wno-unused-parameter
-        -Wno-unused-but-set-variable
-        -Wno-unused-variable
-    )
+    # target_compile_options(NetworkSystem PRIVATE
+    #     -Wno-sign-conversion
+    #     -Wno-conversion
+    #     -Wno-implicit-fallthrough
+    #     -Wno-shadow
+    #     -Wno-unused-parameter
+    #     -Wno-unused-but-set-variable
+    #     -Wno-unused-variable
+    # )
 elseif(MSVC)
-    target_compile_options(NetworkSystem PRIVATE
-        /wd4244  # conversion from 'type1' to 'type2', possible loss of data
-        /wd4267  # conversion from 'size_t' to 'type', possible loss of data
-        /wd4100  # unreferenced formal parameter
-        /wd4101  # unreferenced local variable
-        /wd4456  # declaration hides previous local declaration
-        /wd4457  # declaration hides function parameter
-    )
+    # target_compile_options(NetworkSystem PRIVATE
+    #     /wd4244  # conversion from 'type1' to 'type2', possible loss of data
+    #     /wd4267  # conversion from 'size_t' to 'type', possible loss of data
+    #     /wd4100  # unreferenced formal parameter
+    #     /wd4101  # unreferenced local variable
+    #     /wd4456  # declaration hides previous local declaration
+    #     /wd4457  # declaration hides function parameter
+    # )
 endif()
 
 # TLS/SSL support (conditional)

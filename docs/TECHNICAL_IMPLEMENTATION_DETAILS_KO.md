@@ -137,7 +137,7 @@ namespace network_system {
 #include "thread_system/thread_pool.h"
 #endif
 
-namespace network_system::integration {
+namespace kcenon::network::integration {
 
 class messaging_bridge {
 public:
@@ -274,7 +274,7 @@ private:
     std::unique_ptr<impl> pimpl_;
 };
 
-} // namespace network_system::integration
+} // namespace kcenon::network::integration
 ```
 
 ### 2. 핵심 API 설계
