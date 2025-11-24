@@ -143,6 +143,9 @@ add_library(NetworkSystem
 
     # Metrics implementation
     src/metrics/network_metrics.cpp
+
+    # HTTP/2 protocol implementation
+    src/protocols/http2/frame.cpp
 )
 
 # Suppress warnings inherited from parent project (especially from ASIO)
