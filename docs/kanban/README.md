@@ -14,10 +14,10 @@ This folder contains tickets for tracking improvement work on the Network System
 |----------|-------|------|-------------|---------|
 | CORE | 3 | 2 | 0 | 1 |
 | TEST | 3 | 2 | 0 | 1 |
-| DOC | 4 | 1 | 0 | 3 |
+| DOC | 4 | 2 | 0 | 2 |
 | REFACTOR | 2 | 0 | 0 | 2 |
 | FUTURE | 3 | 0 | 0 | 3 |
-| **Total** | **15** | **5** | **0** | **10** |
+| **Total** | **15** | **6** | **0** | **9** |
 
 ---
 
@@ -55,7 +55,7 @@ Document UDP reliability and HTTP advanced features.
 
 | ID | Title | Priority | Est. Duration | Dependencies | Status |
 |----|-------|----------|---------------|--------------|--------|
-| [NET-203](NET-203-udp-docs.md) | UDP Reliability Layer Documentation | MEDIUM | 2-3d | - | TODO |
+| [NET-203](NET-203-udp-docs.md) | UDP Reliability Layer Documentation | MEDIUM | 2-3d | - | DONE |
 | [NET-205](NET-205-http-docs.md) | HTTP Server Advanced Features Documentation | MEDIUM | 3d | - | DONE |
 | [NET-206](NET-206-memory-profiling.md) | Add Memory Profiling Tool Examples | MEDIUM | 2-3d | - | TODO |
 | [NET-303](NET-303-perf-tuning.md) | Write Performance Tuning Guide | LOW | 3-4d | - | TODO |
