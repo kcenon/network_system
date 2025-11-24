@@ -13,11 +13,11 @@ This folder contains tickets for tracking improvement work on the Network System
 | Category | Total | Done | In Progress | Pending |
 |----------|-------|------|-------------|---------|
 | CORE | 3 | 2 | 0 | 1 |
-| TEST | 3 | 0 | 0 | 3 |
+| TEST | 3 | 1 | 0 | 2 |
 | DOC | 4 | 0 | 0 | 4 |
 | REFACTOR | 2 | 0 | 0 | 2 |
 | FUTURE | 3 | 0 | 0 | 3 |
-| **Total** | **15** | **2** | **0** | **13** |
+| **Total** | **15** | **3** | **0** | **12** |
 
 ---
 
@@ -43,7 +43,7 @@ Strengthen failure scenario tests and benchmarks.
 
 | ID | Title | Priority | Est. Duration | Dependencies | Status |
 |----|-------|----------|---------------|--------------|--------|
-| [NET-103](NET-103-failure-tests.md) | Expand Test Coverage - Failure Scenarios | HIGH | 7-10d | - | TODO |
+| [NET-103](NET-103-failure-tests.md) | Expand Test Coverage - Failure Scenarios | HIGH | 7-10d | - | DONE |
 | [NET-202](NET-202-benchmark.md) | Reactivate HTTP Performance Benchmarks | MEDIUM | 3-4d | - | TODO |
 | [NET-305](NET-305-regression.md) | Automated Performance Regression Detection | LOW | 4-5d | NET-202 | TODO |
 
