@@ -12,12 +12,12 @@ This folder contains tickets for tracking improvement work on the Network System
 
 | Category | Total | Done | In Progress | Pending |
 |----------|-------|------|-------------|---------|
-| CORE | 3 | 1 | 0 | 2 |
+| CORE | 3 | 2 | 0 | 1 |
 | TEST | 3 | 0 | 0 | 3 |
 | DOC | 4 | 0 | 0 | 4 |
 | REFACTOR | 2 | 0 | 0 | 2 |
 | FUTURE | 3 | 0 | 0 | 3 |
-| **Total** | **15** | **1** | **0** | **14** |
+| **Total** | **15** | **2** | **0** | **13** |
 
 ---
 
@@ -30,7 +30,7 @@ Complete monitoring integration and HTTP error handling.
 | ID | Title | Priority | Est. Duration | Dependencies | Status |
 |----|-------|----------|---------------|--------------|--------|
 | [NET-101](NET-101-monitoring-integration.md) | Complete Monitoring Integration | HIGH | 5-7d | - | DONE |
-| [NET-102](NET-102-http-error-handling.md) | Enhance HTTP Server Error Handling | HIGH | 2-3d | - | TODO |
+| [NET-102](NET-102-http-error-handling.md) | Enhance HTTP Server Error Handling | HIGH | 2-3d | - | DONE |
 | [NET-201](NET-201-websocket-e2e.md) | WebSocket E2E Integration Tests | MEDIUM | 4-5d | - | TODO |
 
 **Recommended Execution Order**: NET-101 → NET-102 → NET-201

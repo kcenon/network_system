@@ -6,7 +6,7 @@
 | **Title** | Enhance HTTP Server Error Handling |
 | **Category** | CORE |
 | **Priority** | HIGH |
-| **Status** | TODO |
+| **Status** | DONE |
 | **Est. Duration** | 2-3 days |
 | **Dependencies** | None |
 | **Target Version** | v1.8.0 |
@@ -217,13 +217,13 @@ TEST(HttpServer, HandlesTimeout) {
 
 ## Acceptance Criteria
 
-- [ ] Generate appropriate responses for all HTTP error codes
-- [ ] Support JSON format error responses
-- [ ] Include detailed information for parsing errors
-- [ ] Enable custom error handler registration
-- [ ] Handle timeout errors appropriately
-- [ ] Error logging working
-- [ ] All tests passing
+- [x] Generate appropriate responses for all HTTP error codes
+- [x] Support JSON format error responses (RFC 7807)
+- [x] Include detailed information for parsing errors
+- [x] Enable custom error handler registration
+- [x] Handle timeout errors appropriately
+- [x] Error logging working
+- [x] All tests passing
 
 ---
 
