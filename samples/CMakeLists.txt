@@ -34,12 +34,12 @@ find_package(fmt CONFIG REQUIRED)
 # Note: Excluded samples:
 #   - tcp_server_client: uses deprecated API
 #   - http_client_demo: uses deprecated API
-#   - memory_profile_demo: memory_profiler not linked to library
 set(SAMPLE_PROGRAMS
     basic_usage
     simple_http_server
     simple_http_client
     run_all_samples
+    memory_profile_demo
 )
 
 # Add UDP sample if UDP support is enabled
@@ -133,6 +133,7 @@ install(TARGETS ${SAMPLE_TARGETS}
 set(SAMPLE_SOURCE_FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/basic_usage.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/run_all_samples.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/memory_profile_demo.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt
     ${CMAKE_CURRENT_SOURCE_DIR}/README.md
 )
