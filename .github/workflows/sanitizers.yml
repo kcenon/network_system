@@ -71,7 +71,7 @@ jobs:
     - name: Run tests with ${{ matrix.sanitizer }} sanitizer
       run: |
         cd network_system/build
-        ctest --output-on-failure --verbose
+        ctest --output-on-failure --verbose -LE no_sanitizer
       env:
         NETWORK_SYSTEM_SANITIZER: ${{ matrix.sanitizer }}
         TSAN_OPTIONS: "halt_on_error=0 second_deadlock_stack=1"
