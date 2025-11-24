@@ -2,7 +2,7 @@
 
 This folder contains tickets for tracking improvement work on the Network System.
 
-**Last Updated**: 2025-11-23
+**Last Updated**: 2025-11-24
 
 ---
 
@@ -16,8 +16,8 @@ This folder contains tickets for tracking improvement work on the Network System
 | TEST | 3 | 0 | 0 | 3 |
 | DOC | 4 | 0 | 0 | 4 |
 | REFACTOR | 2 | 0 | 0 | 2 |
-| FUTURE | 4 | 0 | 0 | 4 |
-| **Total** | **16** | **0** | **0** | **16** |
+| FUTURE | 3 | 0 | 0 | 3 |
+| **Total** | **15** | **0** | **0** | **15** |
 
 ---
 
