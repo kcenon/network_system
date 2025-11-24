@@ -318,6 +318,49 @@ auto http_server::set_error_handler(http_handler handler) -> void {
   error_handler_ = std::move(handler);
 }
 
+auto http_server::set_error_handler(internal::http_error_code code,
+                                    error_handler handler) -> void {
+  std::lock_guard<std::mutex> lock(error_handlers_mutex_);
+  error_handlers_[code] = std::move(handler);
+}
+
+auto http_server::set_default_error_handler(error_handler handler) -> void {
+  std::lock_guard<std::mutex> lock(error_handlers_mutex_);
+  default_error_handler_ = std::move(handler);
+}
+
+auto http_server::set_request_timeout(std::chrono::milliseconds timeout)
+    -> void {
+  request_timeout_ = timeout;
+}
+
+auto http_server::set_json_error_responses(bool enable) -> void {
+  use_json_errors_ = enable;
+}
+
+auto http_server::build_error_response(const internal::http_error &error)
+    -> internal::http_response {
+  // Check for specific error handler
+  {
+    std::lock_guard<std::mutex> lock(error_handlers_mutex_);
+    auto it = error_handlers_.find(error.code);
+    if (it != error_handlers_.end()) {
+      return it->second(error);
+    }
+
+    // Check for default error handler
+    if (default_error_handler_) {
+      return default_error_handler_(error);
+    }
+  }
+
+  // Use built-in error response builder
+  if (use_json_errors_) {
+    return internal::http_error_response::build_json_error(error);
+  }
+  return internal::http_error_response::build_html_error(error);
+}
+
 auto http_server::register_route(internal::http_method method,
                                  const std::string &pattern,
                                  http_handler handler) -> void {
@@ -506,27 +549,11 @@ auto http_server::should_close_connection(
 auto http_server::create_error_response(int status_code,
                                         const std::string &message)
     -> internal::http_response {
-  internal::http_response response;
-  response.status_code = status_code;
-  response.status_message = internal::get_status_message(status_code);
+  // Create http_error from status code
+  auto error = internal::http_error_response::make_error(
+      static_cast<internal::http_error_code>(status_code), message);
 
-  std::ostringstream html;
-  html << "<!DOCTYPE html>\n";
-  html << "<html>\n";
-  html << "<head><title>" << status_code << " " << response.status_message
-       << "</title></head>\n";
-  html << "<body>\n";
-  html << "<h1>" << status_code << " " << response.status_message << "</h1>\n";
-  html << "<p>" << message << "</p>\n";
-  html << "<hr>\n";
-  html << "<p><em>NetworkSystem HTTP Server</em></p>\n";
-  html << "</body>\n";
-  html << "</html>\n";
-
-  response.set_body_string(html.str());
-  response.set_header("Content-Type", "text/html; charset=utf-8");
-
-  return response;
+  return build_error_response(error);
 }
 
 auto http_server::pattern_to_regex(const std::string &pattern,

@@ -127,6 +127,7 @@ add_library(NetworkSystem
     src/internal/pipeline.cpp
     src/internal/http_types.cpp
     src/internal/http_parser.cpp
+    src/internal/http_error.cpp
 
     # Utility implementations
     src/utils/resilient_client.cpp

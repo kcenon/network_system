@@ -33,8 +33,16 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "kcenon/network/integration/monitoring_integration.h"
 #include "kcenon/network/integration/logger_integration.h"
 
+#include <atomic>
 #include <mutex>
 #include <sstream>
+#include <unordered_map>
+
+#ifdef BUILD_WITH_MONITORING_SYSTEM
+#include <kcenon/monitoring/core/performance_monitor.h>
+#include <kcenon/monitoring/health/health_monitor.h>
+#include <kcenon/monitoring/utils/metric_types.h>
+#endif
 
 namespace kcenon::network::integration
 {
@@ -191,55 +199,139 @@ namespace kcenon::network::integration
 	class monitoring_system_adapter::impl
 	{
 	public:
-		explicit impl(const std::string& service_name) : service_name_(service_name)
+		explicit impl(const std::string& service_name)
+			: service_name_(service_name)
+			, performance_monitor_(service_name)
+			, running_(false)
 		{
-			// TODO: Initialize monitoring_system when available
+			health_monitor_ = std::make_unique<kcenon::monitoring::health_monitor>();
 			NETWORK_LOG_INFO("[monitoring_system_adapter] Created for service: " + service_name);
 		}
 
 		void report_counter(const std::string& name, double value,
 							const std::map<std::string, std::string>& labels)
 		{
-			// TODO: Forward to monitoring_system
-			NETWORK_LOG_DEBUG("[monitoring_system_adapter] Counter: " + name);
+			// Record counter as performance sample with value as duration (nanoseconds)
+			auto duration = std::chrono::nanoseconds(static_cast<int64_t>(value));
+			performance_monitor_.get_profiler().record_sample(
+				build_metric_name(name, labels), duration, true);
+			NETWORK_LOG_DEBUG("[monitoring_system_adapter] Counter: " + name + " = "
+							  + std::to_string(value));
 		}
 
 		void report_gauge(const std::string& name, double value,
 						  const std::map<std::string, std::string>& labels)
 		{
-			// TODO: Forward to monitoring_system
-			NETWORK_LOG_DEBUG("[monitoring_system_adapter] Gauge: " + name);
+			// Store gauge value and record to profiler
+			{
+				std::lock_guard<std::mutex> lock(gauges_mutex_);
+				gauges_[build_metric_name(name, labels)] = value;
+			}
+			auto duration = std::chrono::nanoseconds(static_cast<int64_t>(value * 1000));
+			performance_monitor_.get_profiler().record_sample(
+				build_metric_name(name, labels), duration, true);
+			NETWORK_LOG_DEBUG("[monitoring_system_adapter] Gauge: " + name + " = "
+							  + std::to_string(value));
 		}
 
 		void report_histogram(const std::string& name, double value,
 							  const std::map<std::string, std::string>& labels)
 		{
-			// TODO: Forward to monitoring_system
-			NETWORK_LOG_DEBUG("[monitoring_system_adapter] Histogram: " + name);
+			// Record histogram value as duration sample
+			auto duration = std::chrono::nanoseconds(
+				static_cast<int64_t>(value * 1000000)); // Convert to ns
+			performance_monitor_.get_profiler().record_sample(
+				build_metric_name(name, labels), duration, true);
+			NETWORK_LOG_DEBUG("[monitoring_system_adapter] Histogram: " + name + " = "
+							  + std::to_string(value));
 		}
 
 		void report_health(const std::string& connection_id, bool is_alive,
 						   double response_time_ms, size_t missed_heartbeats,
 						   double packet_loss_rate)
 		{
-			// TODO: Forward to monitoring_system
-			NETWORK_LOG_DEBUG("[monitoring_system_adapter] Health: " + connection_id);
+			// Create health check for this connection
+			auto check = std::make_shared<kcenon::monitoring::functional_health_check>(
+				connection_id, kcenon::monitoring::health_check_type::liveness,
+				[is_alive, response_time_ms, missed_heartbeats,
+				 packet_loss_rate]() -> kcenon::monitoring::health_check_result {
+					kcenon::monitoring::health_check_result result;
+					if (!is_alive)
+					{
+						result.status = kcenon::monitoring::health_status::unhealthy;
+						result.message = "Connection is not alive";
+					}
+					else if (missed_heartbeats > 3 || packet_loss_rate > 0.1)
+					{
+						result.status = kcenon::monitoring::health_status::degraded;
+						result.message = "Connection degraded: missed_heartbeats="
+										 + std::to_string(missed_heartbeats) + ", packet_loss="
+										 + std::to_string(packet_loss_rate * 100) + "%";
+					}
+					else
+					{
+						result.status = kcenon::monitoring::health_status::healthy;
+						result.message = "Connection healthy, response_time="
+										 + std::to_string(response_time_ms) + "ms";
+					}
+					result.timestamp = std::chrono::system_clock::now();
+					return result;
+				});
+			health_monitor_->register_check(connection_id, check);
+			NETWORK_LOG_DEBUG("[monitoring_system_adapter] Health: " + connection_id
+							  + " alive=" + (is_alive ? "true" : "false"));
 		}
 
 		void start()
 		{
-			// TODO: Start monitoring_system
+			if (running_.exchange(true))
+			{
+				return; // Already running
+			}
+			performance_monitor_.initialize();
+			health_monitor_->start();
 			NETWORK_LOG_INFO("[monitoring_system_adapter] Started");
 		}
 
 		void stop()
 		{
-			// TODO: Stop monitoring_system
+			if (!running_.exchange(false))
+			{
+				return; // Already stopped
+			}
+			health_monitor_->stop();
+			performance_monitor_.cleanup();
 			NETWORK_LOG_INFO("[monitoring_system_adapter] Stopped");
 		}
 
 	private:
+		std::string build_metric_name(const std::string& name,
+									  const std::map<std::string, std::string>& labels) const
+		{
+			if (labels.empty())
+			{
+				return service_name_ + "." + name;
+			}
+			std::ostringstream oss;
+			oss << service_name_ << "." << name << "{";
+			bool first = true;
+			for (const auto& [key, val] : labels)
+			{
+				if (!first)
+					oss << ",";
+				oss << key << "=" << val;
+				first = false;
+			}
+			oss << "}";
+			return oss.str();
+		}
+
 		std::string service_name_;
+		kcenon::monitoring::performance_monitor performance_monitor_;
+		std::unique_ptr<kcenon::monitoring::health_monitor> health_monitor_;
+		std::atomic<bool> running_;
+		std::mutex gauges_mutex_;
+		std::unordered_map<std::string, double> gauges_;
 	};
 
 	monitoring_system_adapter::monitoring_system_adapter(const std::string& service_name)

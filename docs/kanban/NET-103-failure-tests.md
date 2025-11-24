@@ -6,7 +6,7 @@
 | **Title** | Expand Test Coverage - Failure Scenarios |
 | **Category** | TEST |
 | **Priority** | HIGH |
-| **Status** | TODO |
+| **Status** | DONE |
 | **Est. Duration** | 7-10 days |
 | **Dependencies** | None |
 | **Target Version** | v1.8.0 |

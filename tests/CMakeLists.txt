@@ -313,6 +313,12 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/integration/CMakeLists.txt)
     message(STATUS "Integration tests enabled")
 endif()
 
+# Add failure scenario tests subdirectory if it exists
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/failure/CMakeLists.txt)
+    add_subdirectory(failure)
+    message(STATUS "Failure scenario tests enabled")
+endif()
+
 ##################################################
 # Test Data Setup
 ##################################################
