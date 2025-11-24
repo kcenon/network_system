@@ -31,12 +31,13 @@ find_package(fmt CONFIG REQUIRED)
 ##################################################
 
 # List of all sample programs
+# Note: Excluded samples:
+#   - tcp_server_client: uses deprecated API
+#   - http_client_demo: uses deprecated API
 set(SAMPLE_PROGRAMS
     basic_usage
-    tcp_server_client
     simple_http_server
     simple_http_client
-    http_client_demo
     run_all_samples
     memory_profile_demo
 )
@@ -119,21 +120,6 @@ foreach(SAMPLE ${SAMPLE_PROGRAMS})
 endforeach()
 
 ##################################################
-# HTTP Client Dependencies (Optional)
-##################################################
-
-# If HTTP functionality requires additional libraries (e.g., curl)
-find_package(CURL QUIET)
-if(CURL_FOUND)
-    target_link_libraries(network_http_client_demo PRIVATE ${CURL_LIBRARIES})
-    target_include_directories(network_http_client_demo PRIVATE ${CURL_INCLUDE_DIRS})
-    target_compile_definitions(network_http_client_demo PRIVATE HAVE_CURL)
-    message(STATUS "HTTP client demo will use libcurl")
-else()
-    message(STATUS "HTTP client demo will use built-in HTTP implementation")
-endif()
-
-##################################################
 # Installation (Optional)
 ##################################################
 
@@ -146,8 +132,6 @@ install(TARGETS ${SAMPLE_TARGETS}
 # Install sample source files for reference
 set(SAMPLE_SOURCE_FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/basic_usage.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/tcp_server_client.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/http_client_demo.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/run_all_samples.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/memory_profile_demo.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt
@@ -171,8 +155,3 @@ message(STATUS "Network System Samples configured:")
 message(STATUS "  Sample programs: ${SAMPLE_PROGRAMS}")
 message(STATUS "  Output directory: ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
 message(STATUS "  Dependencies: network_system, fmt, Threads")
-if(CURL_FOUND)
-    message(STATUS "  HTTP library: libcurl")
-else()
-    message(STATUS "  HTTP library: built-in")
-endif()
