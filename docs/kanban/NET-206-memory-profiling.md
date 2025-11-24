@@ -6,7 +6,7 @@
 | **Title** | Add Memory Profiling Tool Examples |
 | **Category** | DOC |
 | **Priority** | MEDIUM |
-| **Status** | TODO |
+| **Status** | DONE |
 | **Est. Duration** | 2-3 days |
 | **Dependencies** | None |
 | **Target Version** | v1.8.0 |

@@ -6,7 +6,7 @@
 | **Title** | Automate Static Analysis |
 | **Category** | REFACTOR |
 | **Priority** | LOW |
-| **Status** | TODO |
+| **Status** | DONE |
 | **Est. Duration** | 2-3 days |
 | **Dependencies** | None |
 | **Target Version** | v1.9.0 |
