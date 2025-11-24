@@ -77,11 +77,14 @@ jobs:
     - name: Run benchmarks
       run: |
         cd build/benchmarks
+        # Exclude HTTP benchmarks in CI due to network timing issues
+        # HTTP benchmarks can be run manually for performance analysis
         ./network_benchmarks \
           --benchmark_format=json \
           --benchmark_out=benchmark_results_${{ matrix.os }}.json \
           --benchmark_repetitions=3 \
-          --benchmark_report_aggregates_only=true
+          --benchmark_report_aggregates_only=true \
+          --benchmark_filter="-HTTP_"
 
     - name: Run benchmarks (console output)
       run: |

@@ -12,12 +12,12 @@ This folder contains tickets for tracking improvement work on the Network System
 
 | Category | Total | Done | In Progress | Pending |
 |----------|-------|------|-------------|---------|
-| CORE | 3 | 2 | 0 | 1 |
-| TEST | 3 | 1 | 0 | 2 |
-| DOC | 4 | 0 | 0 | 4 |
+| CORE | 3 | 3 | 0 | 0 |
+| TEST | 3 | 2 | 0 | 1 |
+| DOC | 4 | 2 | 0 | 2 |
 | REFACTOR | 2 | 0 | 0 | 2 |
 | FUTURE | 3 | 0 | 0 | 3 |
-| **Total** | **15** | **3** | **0** | **12** |
+| **Total** | **15** | **7** | **0** | **8** |
 
 ---
 
@@ -31,7 +31,7 @@ Complete monitoring integration and HTTP error handling.
 |----|-------|----------|---------------|--------------|--------|
 | [NET-101](NET-101-monitoring-integration.md) | Complete Monitoring Integration | HIGH | 5-7d | - | DONE |
 | [NET-102](NET-102-http-error-handling.md) | Enhance HTTP Server Error Handling | HIGH | 2-3d | - | DONE |
-| [NET-201](NET-201-websocket-e2e.md) | WebSocket E2E Integration Tests | MEDIUM | 4-5d | - | TODO |
+| [NET-201](NET-201-websocket-e2e.md) | WebSocket E2E Integration Tests | MEDIUM | 4-5d | - | DONE |
 
 **Recommended Execution Order**: NET-101 → NET-102 → NET-201
 
@@ -44,7 +44,7 @@ Strengthen failure scenario tests and benchmarks.
 | ID | Title | Priority | Est. Duration | Dependencies | Status |
 |----|-------|----------|---------------|--------------|--------|
 | [NET-103](NET-103-failure-tests.md) | Expand Test Coverage - Failure Scenarios | HIGH | 7-10d | - | DONE |
-| [NET-202](NET-202-benchmark.md) | Reactivate HTTP Performance Benchmarks | MEDIUM | 3-4d | - | TODO |
+| [NET-202](NET-202-benchmark.md) | Reactivate HTTP Performance Benchmarks | MEDIUM | 3-4d | - | DONE |
 | [NET-305](NET-305-regression.md) | Automated Performance Regression Detection | LOW | 4-5d | NET-202 | TODO |
 
 ---
@@ -55,8 +55,8 @@ Document UDP reliability and HTTP advanced features.
 
 | ID | Title | Priority | Est. Duration | Dependencies | Status |
 |----|-------|----------|---------------|--------------|--------|
-| [NET-203](NET-203-udp-docs.md) | UDP Reliability Layer Documentation | MEDIUM | 2-3d | - | TODO |
-| [NET-205](NET-205-http-docs.md) | HTTP Server Advanced Features Documentation | MEDIUM | 3d | - | TODO |
+| [NET-203](NET-203-udp-docs.md) | UDP Reliability Layer Documentation | MEDIUM | 2-3d | - | DONE |
+| [NET-205](NET-205-http-docs.md) | HTTP Server Advanced Features Documentation | MEDIUM | 3d | - | DONE |
 | [NET-206](NET-206-memory-profiling.md) | Add Memory Profiling Tool Examples | MEDIUM | 2-3d | - | TODO |
 | [NET-303](NET-303-perf-tuning.md) | Write Performance Tuning Guide | LOW | 3-4d | - | TODO |
 

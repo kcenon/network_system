@@ -19,6 +19,7 @@ if(benchmark_FOUND OR BENCHMARK_FOUND)
         message_throughput_bench.cpp
         connection_bench.cpp
         session_bench.cpp
+        http_bench.cpp
         main_bench.cpp
     )
 
