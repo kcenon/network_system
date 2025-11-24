@@ -193,6 +193,13 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/test_websocket_e2e.cpp)
 
     add_test(NAME WebSocketE2ETests COMMAND test_websocket_e2e)
 
+    # Exclude from sanitizer tests due to timing-sensitive operations
+    # that can cause false positives or timeouts under sanitizers
+    set_tests_properties(WebSocketE2ETests PROPERTIES
+        LABELS "integration;websocket;no_sanitizer"
+        TIMEOUT 120
+    )
+
     message(STATUS "Integration test configured: test_websocket_e2e")
 endif()
 

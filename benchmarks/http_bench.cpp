@@ -474,6 +474,10 @@ BENCHMARK_REGISTER_F(HttpBenchmarkFixture, HTTP_SequentialRequests)
     ->Arg(25)
     ->Unit(benchmark::kMillisecond);
 
+// NOTE: HTTP_ThroughputStress benchmark is disabled in CI because it requires
+// a running HTTP server and can cause timeouts. Run manually for stress testing.
+// To enable, define ENABLE_HTTP_STRESS_BENCHMARK before including this file.
+#ifdef ENABLE_HTTP_STRESS_BENCHMARK
 // Benchmark: HTTP throughput stress test
 BENCHMARK_DEFINE_F(HttpBenchmarkFixture, HTTP_ThroughputStress)(benchmark::State& state)
 {
@@ -534,6 +538,7 @@ BENCHMARK_REGISTER_F(HttpBenchmarkFixture, HTTP_ThroughputStress)
     ->Arg(2)
     ->Arg(4)
     ->Unit(benchmark::kMillisecond);
+#endif  // ENABLE_HTTP_STRESS_BENCHMARK
 
 // Cleanup function for main
 void http_benchmark_cleanup()
