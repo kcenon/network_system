@@ -35,6 +35,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "kcenon/network/core/messaging_server.h"
 #include "kcenon/network/internal/http_types.h"
 #include "kcenon/network/internal/http_parser.h"
+#include "kcenon/network/internal/http_error.h"
 #include "kcenon/network/utils/result_types.h"
 #include "kcenon/network/utils/compression_pipeline.h"
 #include <string>
@@ -43,6 +44,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <memory>
 #include <regex>
 #include <vector>
+#include <chrono>
 
 namespace network_system::core
 {
@@ -137,6 +139,15 @@ namespace network_system::core
      * \return HTTP response to send back to client
      */
     using http_handler = std::function<internal::http_response(const http_request_context& ctx)>;
+
+    /*!
+     * \typedef error_handler
+     * \brief Handler function for HTTP errors
+     *
+     * \param error Error details
+     * \return HTTP response to send back to client
+     */
+    using error_handler = std::function<internal::http_response(const internal::http_error& error)>;
 
     /*!
      * \struct http_route
@@ -314,6 +325,31 @@ namespace network_system::core
         auto set_error_handler(http_handler handler) -> void;
 
         /*!
+         * \brief Set custom error handler for specific HTTP error code
+         * \param code HTTP error code to handle
+         * \param handler Error handler function
+         */
+        auto set_error_handler(internal::http_error_code code, error_handler handler) -> void;
+
+        /*!
+         * \brief Set default error handler for all unhandled error codes
+         * \param handler Default error handler function
+         */
+        auto set_default_error_handler(error_handler handler) -> void;
+
+        /*!
+         * \brief Set request timeout duration
+         * \param timeout Timeout duration
+         */
+        auto set_request_timeout(std::chrono::milliseconds timeout) -> void;
+
+        /*!
+         * \brief Enable JSON format for error responses
+         * \param enable True to use JSON, false for HTML
+         */
+        auto set_json_error_responses(bool enable) -> void;
+
+        /*!
          * \brief Enable automatic response compression
          * \param enable True to enable compression, false to disable
          */
@@ -405,6 +441,13 @@ namespace network_system::core
         auto choose_compression_algorithm(const std::string& accept_encoding) const
             -> utils::compression_algorithm;
 
+        /*!
+         * \brief Build error response using registered handlers
+         * \param error Error details
+         * \return HTTP response
+         */
+        auto build_error_response(const internal::http_error& error) -> internal::http_response;
+
         std::shared_ptr<messaging_server> tcp_server_;
         std::vector<http_route> routes_;
         std::mutex routes_mutex_;
@@ -419,6 +462,13 @@ namespace network_system::core
         bool compression_enabled_ = false;
         size_t compression_threshold_ = 1024;  // 1KB default
         std::mutex compression_mutex_;
+
+        // Error handling settings
+        std::map<internal::http_error_code, error_handler> error_handlers_;
+        std::mutex error_handlers_mutex_;
+        error_handler default_error_handler_;
+        bool use_json_errors_ = false;
+        std::chrono::milliseconds request_timeout_{30000};  // 30 seconds default
     };
 
 } // namespace network_system::core
