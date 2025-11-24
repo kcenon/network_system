@@ -195,6 +195,79 @@ This document records baseline performance metrics for the network_system. These
 
 ---
 
+## HTTP Performance
+
+### 9. HTTP Server/Client Performance
+**Test File**: `http_bench.cpp`
+
+#### 9.1 HTTP Request Throughput
+**Metric**: Requests per second (RPS)
+
+| Request Type | RPS | Latency (μs) | Notes |
+|--------------|-----|--------------|-------|
+| Simple GET | TBD | TBD | 13-byte response |
+| GET with headers | TBD | TBD | 4 custom headers |
+| POST 64B | TBD | TBD | Echo endpoint |
+| POST 1KB | TBD | TBD | |
+| POST 64KB | TBD | TBD | |
+
+**Target**: >10,000 RPS for simple GET on localhost
+**Status**: ⏳ Awaiting initial benchmark run
+
+#### 9.2 HTTP Latency Distribution
+**Metric**: Request-response latency percentiles
+
+| Percentile | Latency (μs) | Notes |
+|------------|--------------|-------|
+| P50 | TBD | Median |
+| P95 | TBD | |
+| P99 | TBD | Tail latency |
+| P999 | TBD | Extreme tail |
+| Average | TBD | |
+| Min | TBD | Best case |
+| Max | TBD | Worst case |
+
+**Target**: P99 <1ms for simple GET on localhost
+**Status**: ⏳ Awaiting initial benchmark run
+
+#### 9.3 HTTP Concurrent Connections
+**Metric**: Performance under concurrent load
+
+| Concurrent Clients | Total RPS | Per-Client RPS | Success Rate | Notes |
+|--------------------|-----------|----------------|--------------|-------|
+| 1 | TBD | TBD | TBD | Baseline |
+| 5 | TBD | TBD | TBD | |
+| 10 | TBD | TBD | TBD | |
+| 25 | TBD | TBD | TBD | |
+| 50 | TBD | TBD | TBD | High concurrency |
+
+**Target**: >90% success rate at 50 concurrent clients
+**Status**: ⏳ Awaiting initial benchmark run
+
+#### 9.4 HTTP Response Size Performance
+**Metric**: Throughput by response size
+
+| Response Size | Throughput (MB/s) | Latency (μs) | Notes |
+|---------------|-------------------|--------------|-------|
+| 256 bytes | TBD | TBD | Small |
+| 1 KB | TBD | TBD | |
+| 4 KB | TBD | TBD | |
+| 16 KB | TBD | TBD | |
+| 64 KB | TBD | TBD | Large |
+
+**Status**: ⏳ Awaiting initial benchmark run
+
+#### 9.5 HTTP Client Creation Overhead
+**Metric**: Time to create http_client instance
+
+| Operation | Time (ns) | Notes |
+|-----------|-----------|-------|
+| Client creation | TBD | Shared pointer allocation |
+
+**Status**: ⏳ Awaiting initial benchmark run
+
+---
+
 ## Async I/O Performance
 
 ### 6. Event Loop Performance
