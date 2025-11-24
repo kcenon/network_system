@@ -15,9 +15,9 @@ This folder contains tickets for tracking improvement work on the Network System
 | CORE | 3 | 3 | 0 | 0 |
 | TEST | 3 | 2 | 0 | 1 |
 | DOC | 4 | 2 | 0 | 2 |
-| REFACTOR | 2 | 0 | 0 | 2 |
+| REFACTOR | 2 | 1 | 0 | 1 |
 | FUTURE | 3 | 0 | 0 | 3 |
-| **Total** | **15** | **7** | **0** | **8** |
+| **Total** | **15** | **8** | **0** | **7** |
 
 ---
 
@@ -68,7 +68,7 @@ Unify namespaces and automate static analysis.
 
 | ID | Title | Priority | Est. Duration | Dependencies | Status |
 |----|-------|----------|---------------|--------------|--------|
-| [NET-204](NET-204-namespace.md) | Remove Namespace Duplication | MEDIUM | 3-4d | - | TODO |
+| [NET-204](NET-204-namespace.md) | Remove Namespace Duplication | MEDIUM | 3-4d | - | DONE |
 | [NET-302](NET-302-static-analysis.md) | Automate Static Analysis | LOW | 2-3d | - | TODO |
 
 ---

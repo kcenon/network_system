@@ -26,7 +26,7 @@ int main() {
     const unsigned short port = 8080;
     auto server_result = server->start_server(port);
 
-    if (!server_result) {
+    if (server_result.is_err()) {
         std::cerr << "✗ Failed to start server: " << server_result.error().message << std::endl;
         return -1;
     }
@@ -45,7 +45,7 @@ int main() {
     // Connect to server
     auto client_result = client->start_client("localhost", port);
 
-    if (!client_result) {
+    if (client_result.is_err()) {
         std::cerr << "✗ Failed to connect client: " << client_result.error().message << std::endl;
         server->stop_server();
         return -1;
@@ -68,7 +68,7 @@ int main() {
     // Use std::move for zero-copy efficiency
     auto send_result = client->send_packet(std::move(data));
 
-    if (!send_result) {
+    if (send_result.is_err()) {
         std::cerr << "✗ Failed to send message: " << send_result.error().message << std::endl;
     } else {
         std::cout << "✓ Message sent successfully" << std::endl;
@@ -91,7 +91,7 @@ int main() {
 
     auto binary_result = client->send_packet(std::move(binary_data));
 
-    if (!binary_result) {
+    if (binary_result.is_err()) {
         std::cerr << "✗ Failed to send binary data: " << binary_result.error().message << std::endl;
     } else {
         std::cout << "✓ Binary data sent successfully" << std::endl;
@@ -102,7 +102,7 @@ int main() {
 
     // Stop client
     auto client_stop_result = client->stop_client();
-    if (!client_stop_result) {
+    if (client_stop_result.is_err()) {
         std::cerr << "✗ Failed to stop client: " << client_stop_result.error().message << std::endl;
     } else {
         std::cout << "✓ Client stopped" << std::endl;
@@ -110,7 +110,7 @@ int main() {
 
     // Stop server
     auto server_stop_result = server->stop_server();
-    if (!server_stop_result) {
+    if (server_stop_result.is_err()) {
         std::cerr << "✗ Failed to stop server: " << server_stop_result.error().message << std::endl;
     } else {
         std::cout << "✓ Server stopped" << std::endl;

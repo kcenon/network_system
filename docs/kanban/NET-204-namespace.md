@@ -6,7 +6,7 @@
 | **Title** | Remove Namespace Duplication |
 | **Category** | REFACTOR |
 | **Priority** | MEDIUM |
-| **Status** | TODO |
+| **Status** | DONE |
 | **Est. Duration** | 3-4 days |
 | **Dependencies** | None |
 | **Target Version** | v1.8.0 |
