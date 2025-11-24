@@ -6,7 +6,7 @@
 | **Title** | Write Performance Tuning Guide |
 | **Category** | DOC |
 | **Priority** | LOW |
-| **Status** | TODO |
+| **Status** | DONE |
 | **Est. Duration** | 3-4 days |
 | **Dependencies** | None |
 | **Target Version** | v1.9.0 |

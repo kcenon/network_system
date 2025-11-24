@@ -6,7 +6,7 @@
 | **Title** | Automated Performance Regression Detection |
 | **Category** | TEST |
 | **Priority** | LOW |
-| **Status** | TODO |
+| **Status** | DONE |
 | **Est. Duration** | 4-5 days |
 | **Dependencies** | NET-202 (Benchmark Reactivation) |
 | **Target Version** | v1.9.0 |

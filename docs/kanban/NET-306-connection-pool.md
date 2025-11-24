@@ -6,7 +6,7 @@
 | **Title** | Write Connection Pool Usage Guide |
 | **Category** | DOC |
 | **Priority** | LOW |
-| **Status** | TODO |
+| **Status** | DONE |
 | **Est. Duration** | 2 days |
 | **Dependencies** | None |
 | **Target Version** | v1.8.0 |
