@@ -660,7 +660,7 @@ namespace network_system::protocols::http2
             auto header = static_table::get(index);
             if (header.has_value())
             {
-                return header.value();
+                return std::move(header.value());
             }
             return error_info(106, "Invalid static table index", "hpack");
         }
@@ -670,7 +670,7 @@ namespace network_system::protocols::http2
         auto header = table_.get(dynamic_index);
         if (header.has_value())
         {
-            return header.value();
+            return std::move(header.value());
         }
 
         return error_info(107, "Invalid dynamic table index", "hpack");
