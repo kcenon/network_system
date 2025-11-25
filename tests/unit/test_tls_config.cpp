@@ -55,9 +55,9 @@ TEST(CertificateVerificationTest, EnumValues) {
 TEST(TLSConfigTest, DefaultConstruction) {
     tls_config config;
 
-    // Default values
+    // Default values (TLS 1.3 enforced by default - TICKET-009)
     EXPECT_FALSE(config.enabled);
-    EXPECT_EQ(config.min_version, tls_version::tls_1_2);
+    EXPECT_EQ(config.min_version, tls_version::tls_1_3);
     EXPECT_EQ(config.verify_mode, certificate_verification::verify_peer);
     EXPECT_TRUE(config.enable_session_resumption);
     EXPECT_EQ(config.handshake_timeout_ms, 10000);
@@ -134,9 +134,9 @@ TEST(TLSConfigTest, ValidationWithBothCAFileAndPath) {
 TEST(TLSConfigTest, SecureDefaults) {
     auto config = tls_config::secure_defaults();
 
-    // Should have secure defaults
+    // Should have secure defaults (TLS 1.3 enforced by default - TICKET-009)
     EXPECT_TRUE(config.enabled);
-    EXPECT_EQ(config.min_version, tls_version::tls_1_2);
+    EXPECT_EQ(config.min_version, tls_version::tls_1_3);
     EXPECT_EQ(config.verify_mode, certificate_verification::verify_peer);
     EXPECT_TRUE(config.enable_session_resumption);
 
@@ -146,6 +146,16 @@ TEST(TLSConfigTest, SecureDefaults) {
     // Should become valid with CA
     config.ca_file = "/path/to/ca.crt";
     EXPECT_TRUE(config.is_valid());
+}
+
+TEST(TLSConfigTest, LegacyCompatible) {
+    auto config = tls_config::legacy_compatible();
+
+    // Should allow TLS 1.2 for backwards compatibility
+    EXPECT_TRUE(config.enabled);
+    EXPECT_EQ(config.min_version, tls_version::tls_1_2);
+    EXPECT_EQ(config.verify_mode, certificate_verification::verify_peer);
+    EXPECT_TRUE(config.enable_session_resumption);
 }
 
 TEST(TLSConfigTest, InsecureForTesting) {
