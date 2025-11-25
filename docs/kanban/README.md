@@ -16,8 +16,8 @@ This folder contains tickets for tracking improvement work on the Network System
 | TEST | 3 | 3 | 0 | 0 |
 | DOC | 4 | 4 | 0 | 0 |
 | REFACTOR | 2 | 2 | 0 | 0 |
-| FUTURE | 3 | 2 | 0 | 1 |
-| **Total** | **15** | **14** | **0** | **1** |
+| FUTURE | 3 | 3 | 0 | 0 |
+| **Total** | **15** | **15** | **0** | **0** |
 
 ---
 
@@ -80,7 +80,7 @@ Support advanced protocols like HTTP/2 and gRPC.
 | ID | Title | Priority | Est. Duration | Dependencies | Status |
 |----|-------|----------|---------------|--------------|--------|
 | [NET-301](NET-301-http2.md) | HTTP/2 Protocol Support Design | LOW | 10-14d | - | DONE |
-| [NET-304](NET-304-grpc.md) | gRPC Integration Prototype | LOW | 7-10d | NET-301 | TODO |
+| [NET-304](NET-304-grpc.md) | gRPC Integration Prototype | LOW | 7-10d | NET-301 | DONE |
 | [NET-306](NET-306-connection-pool.md) | Write Connection Pool Usage Guide | LOW | 2d | - | DONE |
 
 ---
