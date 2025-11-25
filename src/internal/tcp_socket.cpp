@@ -61,8 +61,13 @@ namespace network_system::internal
 
 	auto tcp_socket::start_read() -> void
 	{
-		// Set reading flag and kick off the initial read loop
-		is_reading_.store(true);
+		// Prevent duplicate read operations - only start if not already reading
+		bool expected = false;
+		if (!is_reading_.compare_exchange_strong(expected, true))
+		{
+			// Already reading, don't start another async operation
+			return;
+		}
 		do_read();
 	}
 
@@ -93,27 +98,31 @@ namespace network_system::internal
 
 				if (ec)
 				{
-					// On error, invoke the error callback using if constexpr to check invocability
-					if constexpr (std::is_invocable_v<decltype(error_callback_), std::error_code>)
+					// On error, invoke the error callback
+					// Copy callback under lock, then invoke outside lock to prevent deadlock
+					std::function<void(std::error_code)> error_cb;
 					{
 						std::lock_guard<std::mutex> lock(callback_mutex_);
-						if (error_callback_) {
-							error_callback_(ec);
-						}
+						error_cb = error_callback_;
+					}
+					if (error_cb) {
+						error_cb(ec);
 					}
 					return;
 				}
 				// On success, if length > 0, build a vector and call receive_callback_
 				if (length > 0)
 				{
-					if constexpr (std::is_invocable_v<decltype(receive_callback_), const std::vector<uint8_t>&>)
+					std::vector<uint8_t> chunk(read_buffer_.begin(),
+										   read_buffer_.begin() + length);
+					// Copy callback under lock, then invoke outside lock to prevent deadlock
+					std::function<void(const std::vector<uint8_t>&)> recv_cb;
 					{
-						std::vector<uint8_t> chunk(read_buffer_.begin(),
-											   read_buffer_.begin() + length);
 						std::lock_guard<std::mutex> lock(callback_mutex_);
-						if (receive_callback_) {
-							receive_callback_(chunk);
-						}
+						recv_cb = receive_callback_;
+					}
+					if (recv_cb) {
+						recv_cb(chunk);
 					}
 				}
 				// Continue reading only if still active
