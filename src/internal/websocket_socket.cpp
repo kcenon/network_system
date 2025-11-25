@@ -51,7 +51,16 @@ namespace network_system::internal
 			[this](const ws_message& msg) { handle_protocol_message(msg); });
 
 		protocol_.set_ping_callback([this](const std::vector<uint8_t>& payload)
-									{ handle_protocol_ping(payload); });
+									{
+										// RFC 6455: Automatically respond to Ping with Pong
+										auto pong_frame = protocol_.create_pong(
+											std::vector<uint8_t>(payload));
+										tcp_socket_->async_send(
+											std::move(pong_frame),
+											[](std::error_code, std::size_t) {});
+
+										handle_protocol_ping(payload);
+									});
 
 		protocol_.set_pong_callback([this](const std::vector<uint8_t>& payload)
 									{ handle_protocol_pong(payload); });
@@ -157,8 +166,8 @@ namespace network_system::internal
 					return;
 				}
 
-				// Extract client key
-				auto it = result.headers.find("Sec-WebSocket-Key");
+				// Extract client key (headers are stored lowercase by parse_headers)
+				auto it = result.headers.find("sec-websocket-key");
 				if (it == result.headers.end())
 				{
 					handler(std::make_error_code(std::errc::protocol_error));
