@@ -147,6 +147,11 @@ add_library(NetworkSystem
     # HTTP/2 protocol implementation
     src/protocols/http2/frame.cpp
     src/protocols/http2/hpack.cpp
+
+    # gRPC protocol implementation (prototype)
+    src/protocols/grpc/frame.cpp
+    src/protocols/grpc/client.cpp
+    src/protocols/grpc/server.cpp
 )
 
 # Suppress warnings inherited from parent project (especially from ASIO)
