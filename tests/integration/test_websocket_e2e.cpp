@@ -224,6 +224,9 @@ public:
             socket_ = std::make_shared<tcp_socket>(std::move(*raw_socket));
             ws_ = std::make_shared<websocket_socket>(socket_, true /* is_client */);
 
+            // Create work guard to prevent io_context from returning early
+            work_guard_ = std::make_unique<work_guard_type>(asio::make_work_guard(*io_context_));
+
             io_thread_ = std::thread([this]() {
                 io_context_->run();
             });
@@ -257,6 +260,8 @@ public:
     void disconnect()
     {
         connected_ = false;
+        // Reset work guard to allow io_context to exit
+        work_guard_.reset();
         if (io_context_)
         {
             io_context_->stop();
@@ -382,8 +387,11 @@ public:
     std::shared_ptr<websocket_socket> socket() { return ws_; }
 
 private:
+    using work_guard_type = asio::executor_work_guard<asio::io_context::executor_type>;
+
     std::atomic<bool> connected_;
     std::unique_ptr<asio::io_context> io_context_;
+    std::unique_ptr<work_guard_type> work_guard_;
     std::shared_ptr<tcp_socket> socket_;
     std::shared_ptr<websocket_socket> ws_;
     std::thread io_thread_;
