@@ -270,6 +270,39 @@ if(GTest_FOUND OR GTEST_FOUND)
     )
     message(STATUS "HTTP/2 frame tests enabled")
 
+    # HTTP/2 HPACK tests
+    add_executable(network_http2_hpack_test
+        test_http2_hpack.cpp
+    )
+
+    target_link_libraries(network_http2_hpack_test PRIVATE
+        NetworkSystem
+        GTest::gtest
+        GTest::gtest_main
+        Threads::Threads
+    )
+
+    # Setup ASIO and FMT integration
+    setup_asio_integration(network_http2_hpack_test)
+    setup_fmt_integration(network_http2_hpack_test)
+
+    # Add system integration paths
+    if(COMMON_SYSTEM_INCLUDE_DIR)
+        target_include_directories(network_http2_hpack_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(network_http2_hpack_test PRIVATE BUILD_WITH_COMMON_SYSTEM)
+    endif()
+
+    set_target_properties(network_http2_hpack_test PROPERTIES
+        CXX_STANDARD 20
+        CXX_STANDARD_REQUIRED ON
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+    )
+
+    gtest_discover_tests(network_http2_hpack_test
+        DISCOVERY_TIMEOUT 60
+    )
+    message(STATUS "HTTP/2 HPACK tests enabled")
+
 else()
     message(WARNING "GTest not found - unit tests will not be built")
 endif()

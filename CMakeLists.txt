@@ -146,6 +146,7 @@ add_library(NetworkSystem
 
     # HTTP/2 protocol implementation
     src/protocols/http2/frame.cpp
+    src/protocols/http2/hpack.cpp
 )
 
 # Suppress warnings inherited from parent project (especially from ASIO)
