@@ -31,7 +31,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04, macos-13]
+        os: [ubuntu-22.04, macos-15]
         compiler: [clang]
         build_type: [Release]
 
@@ -111,8 +111,11 @@ jobs:
       if: hashFiles('benchmarks/baselines/baseline_${{ matrix.os }}_*.json') != ''
       run: |
         echo "Comparing with baseline..."
-        # Install compare.py from Google Benchmark tools
-        pip3 install --user scipy
+
+        # Create virtual environment for Python dependencies (PEP 668 compliance)
+        python3 -m venv .venv
+        source .venv/bin/activate
+        pip install scipy
 
         # Find latest baseline
         BASELINE=$(ls -t benchmarks/baselines/baseline_${{ matrix.os }}_*.json | head -1)
@@ -130,6 +133,8 @@ jobs:
             "$BASELINE" \
             build/benchmarks/benchmark_results_${{ matrix.os }}.json
         fi
+
+        deactivate
 
     - name: Check for performance regression
       run: |

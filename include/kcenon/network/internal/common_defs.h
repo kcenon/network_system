@@ -116,8 +116,9 @@ namespace network_system::internal
 		/// Enable TLS/SSL for this connection (default: false)
 		bool enabled = false;
 
-		/// Minimum TLS version to accept (default: TLS 1.2)
-		tls_version min_version = tls_version::tls_1_2;
+		/// Minimum TLS version to accept (default: TLS 1.3)
+		/// Note: TLS 1.3 is enforced by default to prevent downgrade attacks (TICKET-009)
+		tls_version min_version = tls_version::tls_1_3;
 
 		/// Certificate verification mode (default: verify_peer)
 		certificate_verification verify_mode = certificate_verification::verify_peer;
@@ -196,11 +197,28 @@ namespace network_system::internal
 
 		/*!
 		 * \brief Creates a secure default configuration
-		 * \return TLS config with secure defaults
+		 * \return TLS config with secure defaults (TLS 1.3 minimum)
 		 *
 		 * You must still set certificate/key files and CA certificates.
+		 * Uses TLS 1.3 by default to prevent protocol downgrade attacks.
 		 */
 		[[nodiscard]] static auto secure_defaults() -> tls_config {
+			tls_config config;
+			config.enabled = true;
+			config.min_version = tls_version::tls_1_3;
+			config.verify_mode = certificate_verification::verify_peer;
+			config.enable_session_resumption = true;
+			return config;
+		}
+
+		/*!
+		 * \brief Creates a backwards-compatible configuration (TLS 1.2+)
+		 * \return TLS config allowing TLS 1.2 for legacy client compatibility
+		 *
+		 * WARNING: This allows TLS 1.2 which may be vulnerable to downgrade attacks.
+		 * Use only when TLS 1.3 is not supported by all clients.
+		 */
+		[[nodiscard]] static auto legacy_compatible() -> tls_config {
 			tls_config config;
 			config.enabled = true;
 			config.min_version = tls_version::tls_1_2;

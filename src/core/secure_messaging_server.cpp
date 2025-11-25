@@ -46,11 +46,11 @@ namespace network_system::core
 													 const std::string& key_file)
 		: server_id_(server_id)
 	{
-		// Initialize SSL context with TLS 1.2/1.3 support
+		// Initialize SSL context with TLS 1.3 support (TICKET-009: TLS 1.3 only by default)
 		ssl_context_ = std::make_unique<asio::ssl::context>(
 			asio::ssl::context::tls_server);
 
-		// Set SSL context options
+		// Set SSL context options - disable all legacy protocols
 		ssl_context_->set_options(
 			asio::ssl::context::default_workarounds |
 			asio::ssl::context::no_sslv2 |
@@ -59,14 +59,20 @@ namespace network_system::core
 			asio::ssl::context::no_tlsv1_1 |
 			asio::ssl::context::single_dh_use);
 
-		// Enable TLS 1.2 and TLS 1.3 by using native OpenSSL handle
+		// Enforce TLS 1.3 minimum version using native OpenSSL handle
+		// This prevents protocol downgrade attacks (CVSS 7.5)
 		SSL_CTX* native_ctx = ssl_context_->native_handle();
 		if (native_ctx)
 		{
-			// Set minimum protocol version to TLS 1.2 (allows TLS 1.2 and 1.3)
-			SSL_CTX_set_min_proto_version(native_ctx, TLS1_2_VERSION);
-			// Explicitly enable TLS 1.3 (though it's enabled by default in OpenSSL 3.x)
+			// Set minimum protocol version to TLS 1.3 (security hardening)
+			SSL_CTX_set_min_proto_version(native_ctx, TLS1_3_VERSION);
 			SSL_CTX_set_max_proto_version(native_ctx, TLS1_3_VERSION);
+
+			// Set strong cipher suites for TLS 1.3
+			SSL_CTX_set_ciphersuites(native_ctx,
+				"TLS_AES_256_GCM_SHA384:"
+				"TLS_CHACHA20_POLY1305_SHA256:"
+				"TLS_AES_128_GCM_SHA256");
 		}
 
 		// Load certificate and private key
@@ -75,7 +81,7 @@ namespace network_system::core
 			ssl_context_->use_certificate_chain_file(cert_file);
 			ssl_context_->use_private_key_file(key_file, asio::ssl::context::pem);
 
-			NETWORK_LOG_INFO("[secure_messaging_server] SSL context initialized with TLS 1.2/1.3 support, cert: " +
+			NETWORK_LOG_INFO("[secure_messaging_server] SSL context initialized with TLS 1.3 only, cert: " +
 				cert_file + ", key: " + key_file);
 		}
 		catch (const std::exception& e)

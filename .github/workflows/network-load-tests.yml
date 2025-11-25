@@ -107,7 +107,7 @@ jobs:
 
   load-tests-macos:
     name: Load Tests (macOS)
-    runs-on: macos-13
+    runs-on: macos-15
 
     steps:
     - name: Checkout repository
@@ -169,7 +169,7 @@ jobs:
         python3 scripts/update_baseline.py \
           --metrics metrics_macos.json \
           --baseline docs/BASELINE.md \
-          --platform macos-13
+          --platform macos-15
 
     - name: Create Pull Request (if baseline updated)
       if: github.event.inputs.update_baseline == 'true'
