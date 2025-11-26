@@ -185,9 +185,12 @@ option(BUILD_LZ4_COMPRESSION "Build with LZ4 compression support" ON)
 if(BUILD_TLS_SUPPORT)
     target_sources(NetworkSystem PRIVATE
         src/internal/secure_tcp_socket.cpp
+        src/internal/dtls_socket.cpp
         src/session/secure_session.cpp
         src/core/secure_messaging_server.cpp
         src/core/secure_messaging_client.cpp
+        src/core/secure_messaging_udp_client.cpp
+        src/core/secure_messaging_udp_server.cpp
     )
     target_compile_definitions(NetworkSystem PUBLIC BUILD_TLS_SUPPORT)
 
