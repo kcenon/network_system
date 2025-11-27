@@ -105,7 +105,7 @@ public:
         {
             const auto& err = result.error();
             return error_void(err.code, err.message, "grpc::client",
-                              err.details.value_or(""));
+                              get_error_details(err));
         }
 
         connected_.store(true);
@@ -222,7 +222,7 @@ public:
         {
             const auto& err = response_result.error();
             return error<grpc_message>(err.code, err.message, "grpc::client",
-                                       err.details.value_or(""));
+                                       get_error_details(err));
         }
 
         const auto& response = response_result.value();
@@ -282,7 +282,7 @@ public:
         {
             const auto& err = parse_result.error();
             return error<grpc_message>(err.code, err.message, "grpc::client",
-                                       err.details.value_or(""));
+                                       get_error_details(err));
         }
 
         return ok(std::move(parse_result.value()));

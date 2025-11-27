@@ -77,6 +77,11 @@ namespace network_system {
 		return VoidResult(error_info(code, message, source, details));
 	}
 
+	// Helper to extract details string from error_info (handles optional<string>)
+	inline std::string get_error_details(const error_info& err) {
+		return err.details.value_or("");
+	}
+
 #else
 	// Fallback: Simple Result<T> implementation when common_system is not available
 	// This maintains API compatibility but with minimal error information
@@ -171,6 +176,11 @@ namespace network_system {
 	                            const std::string& source = "network_system",
 	                            const std::string& details = "") {
 		return VoidResult(simple_error(code, message, source, details));
+	}
+
+	// Helper to extract details string from simple_error (string type)
+	inline std::string get_error_details(const simple_error& err) {
+		return err.details;
 	}
 
 #endif

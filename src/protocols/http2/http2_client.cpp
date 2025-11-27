@@ -412,7 +412,7 @@ namespace network_system::protocols::http2
                 const auto& err = header_result.error();
                 return error<std::unique_ptr<frame>>(err.code, err.message,
                                                      "http2_client::read_frame",
-                                                     err.details.value_or(""));
+                                                     get_error_details(err));
             }
 
             const auto& header = header_result.value();
@@ -581,7 +581,7 @@ namespace network_system::protocols::http2
             const auto& err = send_result.error();
             return error<http2_response>(err.code, err.message,
                                          "http2_client::send_request",
-                                         err.details.value_or(""));
+                                         get_error_details(err));
         }
 
         // Send DATA frame if body exists
@@ -595,7 +595,7 @@ namespace network_system::protocols::http2
                 const auto& err = send_result.error();
                 return error<http2_response>(err.code, err.message,
                                              "http2_client::send_request",
-                                             err.details.value_or(""));
+                                             get_error_details(err));
             }
             stream.state = stream_state::half_closed_local;
         }
@@ -667,7 +667,7 @@ namespace network_system::protocols::http2
             const auto& err = decode_result.error();
             return error_void(err.code, err.message,
                               "http2_client::handle_headers_frame",
-                              err.details.value_or(""));
+                              get_error_details(err));
         }
 
         auto& decoded_headers = decode_result.value();
