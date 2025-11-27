@@ -410,7 +410,9 @@ namespace network_system::protocols::http2
             if (header_result.is_err())
             {
                 const auto& err = header_result.error();
-                return error<std::unique_ptr<frame>>(err.code, err.message, err.source, err.details);
+                return error<std::unique_ptr<frame>>(err.code, err.message,
+                                                     "http2_client::read_frame",
+                                                     get_error_details(err));
             }
 
             const auto& header = header_result.value();
@@ -577,7 +579,9 @@ namespace network_system::protocols::http2
         {
             close_stream(stream.stream_id);
             const auto& err = send_result.error();
-            return error<http2_response>(err.code, err.message, err.source, err.details);
+            return error<http2_response>(err.code, err.message,
+                                         "http2_client::send_request",
+                                         get_error_details(err));
         }
 
         // Send DATA frame if body exists
@@ -589,7 +593,9 @@ namespace network_system::protocols::http2
             {
                 close_stream(stream.stream_id);
                 const auto& err = send_result.error();
-                return error<http2_response>(err.code, err.message, err.source, err.details);
+                return error<http2_response>(err.code, err.message,
+                                             "http2_client::send_request",
+                                             get_error_details(err));
             }
             stream.state = stream_state::half_closed_local;
         }
@@ -659,7 +665,9 @@ namespace network_system::protocols::http2
         if (decode_result.is_err())
         {
             const auto& err = decode_result.error();
-            return error_void(err.code, err.message, err.source, err.details);
+            return error_void(err.code, err.message,
+                              "http2_client::handle_headers_frame",
+                              get_error_details(err));
         }
 
         auto& decoded_headers = decode_result.value();
