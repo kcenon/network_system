@@ -97,51 +97,58 @@ public:
 
 ---
 
-### 4. gRPC Integration
+### ~~4. gRPC Integration~~ ✅ Completed (Unary RPC)
 
-**Status:** Not Implemented
+**Status:** Partially Implemented in v1.10.0
 **Priority:** P2
-**Estimated Effort:** 7-10 days
-**Target Version:** v2.0.0
+**Actual Effort:** 1 day
+**Completed:** 2025-11-27
 
 **Description:**
 Add gRPC protocol support for high-performance RPC communication using Protocol Buffers.
 
-**Key Features:**
-- gRPC over HTTP/2 transport
-- Unary RPC calls
+**Implemented Features:**
+- gRPC over HTTP/2 transport (using http2_client)
+- Unary RPC calls with `call_raw()` method
+- gRPC framing (length-prefixed messages)
+- Deadline/timeout support via `call_options`
+- Metadata handling via custom headers
+- gRPC status code parsing from trailers
+- Async unary calls with callback
+
+**Pending Features (Future):**
 - Server streaming
 - Client streaming
 - Bidirectional streaming
-- Deadline/timeout support
-- Metadata handling
 
-**Proposed API:**
+**API:**
 ```cpp
 class grpc_client {
 public:
-    grpc_client(const std::string& host, unsigned short port,
-               const grpc_channel_config& config = {});
+    explicit grpc_client(const std::string& target,
+                         const grpc_channel_config& config = {});
 
-    template<typename Request, typename Response>
-    auto call(const std::string& method,
-             const Request& request) -> Result<Response>;
+    auto connect() -> VoidResult;
+    auto disconnect() -> void;
+    auto is_connected() const -> bool;
 
-    template<typename Request, typename Response>
-    auto call_async(const std::string& method,
-                   const Request& request,
-                   std::function<void(Result<Response>)> callback) -> void;
+    auto call_raw(const std::string& method,
+                  const std::vector<uint8_t>& request,
+                  const call_options& options = {}) -> Result<grpc_message>;
+
+    auto call_raw_async(const std::string& method,
+                        const std::vector<uint8_t>& request,
+                        std::function<void(Result<grpc_message>)> callback,
+                        const call_options& options = {}) -> void;
 };
 ```
 
-**Dependencies:**
-- HTTP/2 support (needs to be implemented first)
-- Protocol Buffers library (protobuf)
-- gRPC library (optional, can use HTTP/2 + protobuf directly)
-
 **Related Files:**
-- New: `include/network_system/protocols/grpc_client.h`
-- New: `src/protocols/grpc_client.cpp`
+- `include/kcenon/network/protocols/grpc/client.h`
+- `src/protocols/grpc/client.cpp`
+- `include/kcenon/network/protocols/grpc/frame.h`
+- `include/kcenon/network/protocols/grpc/status.h`
+- `tests/test_grpc_client_server.cpp`
 
 ---
 
@@ -341,10 +348,10 @@ Built-in web dashboard for monitoring network system metrics in real-time.
 
 | Priority | Count | Completed | Remaining | Total Effort |
 |----------|-------|-----------|-----------|--------------|
-| P2       | 3     | 2         | 1         | 7-10 days    |
+| P2       | 3     | 3         | 0         | 0 days       |
 | P3       | 4     | 4         | 0         | 0 days       |
 | P4       | 3     | 1         | 2         | 25-34 days   |
-| **Total** | **10** | **7**    | **3**     | **32-44 days** |
+| **Total** | **10** | **8**    | **2**     | **25-34 days** |
 
 ### By Target Version
 
@@ -355,7 +362,8 @@ Built-in web dashboard for monitoring network system metrics in real-time.
 | v1.7.0  | UDP Reliability Layer | ✅ Completed | 3 days |
 | v1.8.0  | DTLS Support | ✅ Completed | 1 day |
 | v1.9.0  | HTTP/2 Client Support | ✅ Completed | 1 day |
-| v2.0.0  | gRPC, Metrics Dashboard | Pending | 17-24 days |
+| v1.10.0 | gRPC Unary RPC Support | ✅ Completed | 1 day |
+| v2.0.0  | Metrics Dashboard, gRPC Streaming | Pending | 10-14 days |
 | v2.1.0+ | QUIC Protocol | Pending | 15-20 days |
 
 ### Implementation Roadmap
@@ -379,8 +387,13 @@ Built-in web dashboard for monitoring network system metrics in real-time.
 - ✅ HPACK header compression
 - ✅ Stream multiplexing and flow control
 
-**Phase 5 (v2.0.0):** Modern Protocols
-- gRPC integration
+**Phase 4.5 (v1.10.0):** gRPC Support ✅ Completed
+- ✅ gRPC client with HTTP/2 transport
+- ✅ Unary RPC calls
+- ✅ gRPC framing and status handling
+
+**Phase 5 (v2.0.0):** Advanced Protocols
+- gRPC streaming (server/client/bidirectional)
 - Monitoring dashboard
 
 **Phase 6 (v2.1.0+):** Advanced Features
