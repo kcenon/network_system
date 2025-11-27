@@ -60,31 +60,55 @@
 #include "kcenon/network/config/network_system_config.h"
 #include "kcenon/network/core/network_context.h"
 
+// Result type for error handling
+#include <kcenon/common/patterns/result.h>
+
 /**
  * @namespace network_system
  * @brief Main namespace for all Network System components
  */
 namespace network_system {
 
+using kcenon::common::VoidResult;
+
 /**
  * @brief Initialize the network system with default configuration
- * @return true if initialization successful, false otherwise
+ * @return VoidResult - ok() on success, error on failure
+ *
+ * Possible errors:
+ * - already_exists: Network system already initialized
+ * - internal_error: System initialization failed
  */
-bool initialize();
+VoidResult initialize();
 
 /**
  * @brief Initialize the network system with custom configuration
  * @param config Configuration settings for network system
- * @return true if initialization successful, false otherwise
+ * @return VoidResult - ok() on success, error on failure
+ *
+ * Possible errors:
+ * - already_exists: Network system already initialized
+ * - invalid_argument: Invalid configuration values
+ * - internal_error: System initialization failed
  */
-bool initialize(const config::network_config& config);
+VoidResult initialize(const config::network_config& config);
 
-bool initialize(const config::network_system_config& config);
+/**
+ * @brief Initialize the network system with dependencies
+ * @param config Configuration with external dependencies
+ * @return VoidResult - ok() on success, error on failure
+ */
+VoidResult initialize(const config::network_system_config& config);
 
 /**
  * @brief Shutdown the network system
+ * @return VoidResult - ok() on success, error on failure
+ *
+ * Possible errors:
+ * - not_initialized: Network system not initialized
+ * - internal_error: Shutdown failed
  */
-void shutdown();
+VoidResult shutdown();
 
 /**
  * @brief Check if network system is initialized
