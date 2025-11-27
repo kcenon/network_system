@@ -144,7 +144,7 @@ add_library(NetworkSystem
     # Metrics implementation
     src/metrics/network_metrics.cpp
 
-    # HTTP/2 protocol implementation
+    # HTTP/2 protocol implementation (frame and hpack are TLS-independent)
     src/protocols/http2/frame.cpp
     src/protocols/http2/hpack.cpp
 
@@ -191,6 +191,8 @@ if(BUILD_TLS_SUPPORT)
         src/core/secure_messaging_client.cpp
         src/core/secure_messaging_udp_client.cpp
         src/core/secure_messaging_udp_server.cpp
+        # HTTP/2 client requires TLS (ALPN negotiation)
+        src/protocols/http2/http2_client.cpp
     )
     target_compile_definitions(NetworkSystem PUBLIC BUILD_TLS_SUPPORT)
 
