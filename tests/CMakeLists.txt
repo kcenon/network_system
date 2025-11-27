@@ -314,6 +314,8 @@ if(GTest_FOUND OR GTEST_FOUND)
             GTest::gtest
             GTest::gtest_main
             Threads::Threads
+            OpenSSL::SSL
+            OpenSSL::Crypto
         )
 
         # Setup ASIO and FMT integration
