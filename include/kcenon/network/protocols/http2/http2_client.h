@@ -108,6 +108,12 @@ namespace network_system::protocols::http2
         bool headers_complete = false;        //!< Headers fully received
         bool body_complete = false;           //!< Body fully received
 
+        //! Streaming support
+        bool is_streaming = false;            //!< Whether this is a streaming request
+        std::function<void(std::vector<uint8_t>)> on_data;  //!< Callback for streaming data
+        std::function<void(std::vector<http_header>)> on_headers;  //!< Callback for headers
+        std::function<void(int)> on_complete; //!< Callback when stream ends (status code)
+
         http2_stream() = default;
         http2_stream(http2_stream&&) = default;
         http2_stream& operator=(http2_stream&&) = default;
@@ -287,6 +293,49 @@ namespace network_system::protocols::http2
          * \return Timeout duration
          */
         auto get_timeout() const -> std::chrono::milliseconds;
+
+        /*!
+         * \brief Start a streaming POST request
+         * \param path Request path
+         * \param headers Additional headers
+         * \param on_data Callback for each data chunk received
+         * \param on_headers Callback when headers are received
+         * \param on_complete Callback when stream completes (with status code)
+         * \return Stream ID on success, or error
+         *
+         * Use write_stream() to send data and close_stream_writer() when done.
+         */
+        auto start_stream(const std::string& path,
+                          const std::vector<http_header>& headers,
+                          std::function<void(std::vector<uint8_t>)> on_data,
+                          std::function<void(std::vector<http_header>)> on_headers,
+                          std::function<void(int)> on_complete)
+            -> Result<uint32_t>;
+
+        /*!
+         * \brief Write data to an open stream
+         * \param stream_id Stream identifier
+         * \param data Data to write
+         * \param end_stream Set to true to signal end of client data
+         * \return Success or error
+         */
+        auto write_stream(uint32_t stream_id,
+                          const std::vector<uint8_t>& data,
+                          bool end_stream = false) -> VoidResult;
+
+        /*!
+         * \brief Close the write side of a stream
+         * \param stream_id Stream identifier
+         * \return Success or error
+         */
+        auto close_stream_writer(uint32_t stream_id) -> VoidResult;
+
+        /*!
+         * \brief Cancel a stream
+         * \param stream_id Stream identifier
+         * \return Success or error
+         */
+        auto cancel_stream(uint32_t stream_id) -> VoidResult;
 
         /*!
          * \brief Get local settings

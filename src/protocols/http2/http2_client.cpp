@@ -286,6 +286,164 @@ namespace network_system::protocols::http2
         decoder_.set_max_table_size(settings.header_table_size);
     }
 
+    auto http2_client::start_stream(const std::string& path,
+                                    const std::vector<http_header>& headers,
+                                    std::function<void(std::vector<uint8_t>)> on_data,
+                                    std::function<void(std::vector<http_header>)> on_headers,
+                                    std::function<void(int)> on_complete)
+        -> Result<uint32_t>
+    {
+        if (!is_connected())
+        {
+            return error<uint32_t>(error_codes::network_system::connection_closed,
+                                   "Not connected",
+                                   "http2_client::start_stream");
+        }
+
+        // Create stream with callbacks
+        http2_stream& stream = create_stream();
+        stream.state = stream_state::open;
+        stream.is_streaming = true;
+        stream.on_data = std::move(on_data);
+        stream.on_headers = std::move(on_headers);
+        stream.on_complete = std::move(on_complete);
+
+        // Build headers for POST (streaming requests use POST)
+        auto request_headers = build_headers("POST", path, headers);
+        stream.request_headers = request_headers;
+
+        // Encode headers with HPACK
+        auto encoded_headers = encoder_.encode(request_headers);
+
+        // Send HEADERS frame (not end_stream since we might send more data)
+        headers_frame hf(stream.stream_id, std::move(encoded_headers), false, true);
+
+        auto send_result = send_frame(hf);
+        if (send_result.is_err())
+        {
+            close_stream(stream.stream_id);
+            const auto& err = send_result.error();
+            return error<uint32_t>(err.code, err.message,
+                                   "http2_client::start_stream",
+                                   get_error_details(err));
+        }
+
+        uint32_t result_id = stream.stream_id;
+        return ok(std::move(result_id));
+    }
+
+    auto http2_client::write_stream(uint32_t stream_id,
+                                    const std::vector<uint8_t>& data,
+                                    bool end_stream) -> VoidResult
+    {
+        if (!is_connected())
+        {
+            return error_void(error_codes::network_system::connection_closed,
+                              "Not connected",
+                              "http2_client::write_stream");
+        }
+
+        auto* stream = get_stream(stream_id);
+        if (!stream)
+        {
+            return error_void(error_codes::common_errors::not_found,
+                              "Stream not found",
+                              "http2_client::write_stream");
+        }
+
+        if (stream->state == stream_state::closed ||
+            stream->state == stream_state::half_closed_local)
+        {
+            return error_void(error_codes::common_errors::internal_error,
+                              "Stream not writable",
+                              "http2_client::write_stream");
+        }
+
+        // Send DATA frame
+        data_frame df(stream_id, std::vector<uint8_t>(data), end_stream);
+        auto send_result = send_frame(df);
+        if (send_result.is_err())
+        {
+            return send_result;
+        }
+
+        if (end_stream)
+        {
+            stream->state = stream_state::half_closed_local;
+        }
+
+        return ok();
+    }
+
+    auto http2_client::close_stream_writer(uint32_t stream_id) -> VoidResult
+    {
+        if (!is_connected())
+        {
+            return error_void(error_codes::network_system::connection_closed,
+                              "Not connected",
+                              "http2_client::close_stream_writer");
+        }
+
+        auto* stream = get_stream(stream_id);
+        if (!stream)
+        {
+            return error_void(error_codes::common_errors::not_found,
+                              "Stream not found",
+                              "http2_client::close_stream_writer");
+        }
+
+        if (stream->state == stream_state::closed ||
+            stream->state == stream_state::half_closed_local)
+        {
+            return ok();  // Already closed
+        }
+
+        // Send empty DATA frame with END_STREAM
+        data_frame df(stream_id, {}, true);
+        auto send_result = send_frame(df);
+        if (send_result.is_err())
+        {
+            return send_result;
+        }
+
+        stream->state = stream_state::half_closed_local;
+        return ok();
+    }
+
+    auto http2_client::cancel_stream(uint32_t stream_id) -> VoidResult
+    {
+        if (!is_connected())
+        {
+            return error_void(error_codes::network_system::connection_closed,
+                              "Not connected",
+                              "http2_client::cancel_stream");
+        }
+
+        auto* stream = get_stream(stream_id);
+        if (!stream)
+        {
+            return error_void(error_codes::common_errors::not_found,
+                              "Stream not found",
+                              "http2_client::cancel_stream");
+        }
+
+        if (stream->state == stream_state::closed)
+        {
+            return ok();  // Already closed
+        }
+
+        // Send RST_STREAM frame
+        rst_stream_frame rsf(stream_id, static_cast<uint32_t>(error_code::cancel));
+        auto send_result = send_frame(rsf);
+        if (send_result.is_err())
+        {
+            return send_result;
+        }
+
+        stream->state = stream_state::closed;
+        return ok();
+    }
+
     // Private methods
 
     auto http2_client::send_connection_preface() -> VoidResult
@@ -680,6 +838,12 @@ namespace network_system::protocols::http2
         if (f.is_end_headers())
         {
             stream->headers_complete = true;
+
+            // Call streaming callback if set
+            if (stream->is_streaming && stream->on_headers)
+            {
+                stream->on_headers(stream->response_headers);
+            }
         }
 
         if (f.is_end_stream())
@@ -687,29 +851,41 @@ namespace network_system::protocols::http2
             stream->body_complete = true;
             stream->state = stream_state::closed;
 
-            // Build response
-            http2_response response;
-            response.headers = stream->response_headers;
-            response.body = stream->response_body;
-
-            // Extract status code from :status header
-            for (const auto& h : response.headers)
+            // Extract status code
+            int status_code = 0;
+            for (const auto& h : stream->response_headers)
             {
                 if (h.name == ":status")
                 {
                     try
                     {
-                        response.status_code = std::stoi(h.value);
+                        status_code = std::stoi(h.value);
                     }
                     catch (...)
                     {
-                        response.status_code = 0;
+                        status_code = 0;
                     }
                     break;
                 }
             }
 
-            stream->promise.set_value(std::move(response));
+            // Handle streaming vs non-streaming
+            if (stream->is_streaming)
+            {
+                if (stream->on_complete)
+                {
+                    stream->on_complete(status_code);
+                }
+            }
+            else
+            {
+                // Build response for non-streaming
+                http2_response response;
+                response.headers = stream->response_headers;
+                response.body = stream->response_body;
+                response.status_code = status_code;
+                stream->promise.set_value(std::move(response));
+            }
         }
 
         return ok();
@@ -727,10 +903,19 @@ namespace network_system::protocols::http2
                               "http2_client::handle_data_frame");
         }
 
-        // Append data to response body
+        // Get data
         auto data = f.data();
-        stream->response_body.insert(stream->response_body.end(),
-                                     data.begin(), data.end());
+
+        // For streaming, call callback immediately; otherwise buffer
+        if (stream->is_streaming && stream->on_data)
+        {
+            stream->on_data(std::vector<uint8_t>(data.begin(), data.end()));
+        }
+        else
+        {
+            stream->response_body.insert(stream->response_body.end(),
+                                         data.begin(), data.end());
+        }
 
         // Update flow control window
         stream->window_size -= static_cast<int32_t>(data.size());
@@ -758,29 +943,40 @@ namespace network_system::protocols::http2
             stream->body_complete = true;
             stream->state = stream_state::closed;
 
-            // Build response
-            http2_response response;
-            response.headers = stream->response_headers;
-            response.body = stream->response_body;
-
             // Extract status code
-            for (const auto& h : response.headers)
+            int status_code = 0;
+            for (const auto& h : stream->response_headers)
             {
                 if (h.name == ":status")
                 {
                     try
                     {
-                        response.status_code = std::stoi(h.value);
+                        status_code = std::stoi(h.value);
                     }
                     catch (...)
                     {
-                        response.status_code = 0;
+                        status_code = 0;
                     }
                     break;
                 }
             }
 
-            stream->promise.set_value(std::move(response));
+            // Handle streaming vs non-streaming
+            if (stream->is_streaming)
+            {
+                if (stream->on_complete)
+                {
+                    stream->on_complete(status_code);
+                }
+            }
+            else
+            {
+                http2_response response;
+                response.headers = stream->response_headers;
+                response.body = stream->response_body;
+                response.status_code = status_code;
+                stream->promise.set_value(std::move(response));
+            }
         }
 
         return ok();
