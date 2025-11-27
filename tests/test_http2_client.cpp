@@ -37,6 +37,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <vector>
 
 using namespace network_system::protocols::http2;
+namespace err = network_system::error_codes;
 
 class Http2ClientTest : public ::testing::Test
 {
@@ -157,7 +158,7 @@ TEST_F(Http2ClientTest, ConnectFailsWithEmptyHost)
     auto result = client_->connect("", 443);
 
     EXPECT_TRUE(result.is_err());
-    EXPECT_EQ(result.error().code, error_codes::common_errors::invalid_argument);
+    EXPECT_EQ(result.error().code, err::common_errors::invalid_argument);
 }
 
 TEST_F(Http2ClientTest, ConnectFailsWithInvalidHost)
@@ -165,7 +166,7 @@ TEST_F(Http2ClientTest, ConnectFailsWithInvalidHost)
     auto result = client_->connect("invalid.host.that.does.not.exist.example", 443);
 
     EXPECT_TRUE(result.is_err());
-    EXPECT_EQ(result.error().code, error_codes::network_system::connection_failed);
+    EXPECT_EQ(result.error().code, err::network_system::connection_failed);
 }
 
 TEST_F(Http2ClientTest, DisconnectSucceedsWhenNotConnected)
@@ -180,7 +181,7 @@ TEST_F(Http2ClientTest, GetFailsWhenNotConnected)
     auto result = client_->get("/api/test");
 
     EXPECT_TRUE(result.is_err());
-    EXPECT_EQ(result.error().code, error_codes::network_system::connection_closed);
+    EXPECT_EQ(result.error().code, err::network_system::connection_closed);
 }
 
 TEST_F(Http2ClientTest, PostFailsWhenNotConnected)
@@ -188,7 +189,7 @@ TEST_F(Http2ClientTest, PostFailsWhenNotConnected)
     auto result = client_->post("/api/test", "body");
 
     EXPECT_TRUE(result.is_err());
-    EXPECT_EQ(result.error().code, error_codes::network_system::connection_closed);
+    EXPECT_EQ(result.error().code, err::network_system::connection_closed);
 }
 
 TEST_F(Http2ClientTest, PutFailsWhenNotConnected)
@@ -196,7 +197,7 @@ TEST_F(Http2ClientTest, PutFailsWhenNotConnected)
     auto result = client_->put("/api/test", "body");
 
     EXPECT_TRUE(result.is_err());
-    EXPECT_EQ(result.error().code, error_codes::network_system::connection_closed);
+    EXPECT_EQ(result.error().code, err::network_system::connection_closed);
 }
 
 TEST_F(Http2ClientTest, DeleteFailsWhenNotConnected)
@@ -204,7 +205,7 @@ TEST_F(Http2ClientTest, DeleteFailsWhenNotConnected)
     auto result = client_->del("/api/test");
 
     EXPECT_TRUE(result.is_err());
-    EXPECT_EQ(result.error().code, error_codes::network_system::connection_closed);
+    EXPECT_EQ(result.error().code, err::network_system::connection_closed);
 }
 
 // Stream state tests
@@ -293,8 +294,8 @@ TEST_F(Http2ClientIntegrationTest, DISABLED_ConnectToHttpbin)
         auto response = client_->get("/");
         if (response.is_ok())
         {
-            EXPECT_GE(response->status_code, 200);
-            EXPECT_LT(response->status_code, 400);
+            EXPECT_GE(response.value().status_code, 200);
+            EXPECT_LT(response.value().status_code, 400);
         }
 
         client_->disconnect();
