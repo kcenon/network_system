@@ -111,51 +111,58 @@ public:
 
 ---
 
-### 3. gRPC 통합
+### ~~3. gRPC 통합~~ ✅ 완료 (Unary RPC)
 
-**상태:** 미구현
+**상태:** v1.10.0에서 부분 구현됨
 **우선순위:** P2
-**예상 소요:** 7-10일
-**목표 버전:** v2.0.0
+**실제 소요:** 1일
+**완료일:** 2025-11-27
 
 **설명:**
 Protocol Buffers를 사용한 고성능 RPC 통신을 위한 gRPC 프로토콜 지원을 추가합니다.
 
-**주요 기능:**
-- HTTP/2 전송을 통한 gRPC
-- 단일 RPC 호출
+**구현된 기능:**
+- HTTP/2 전송을 통한 gRPC (http2_client 사용)
+- `call_raw()` 메서드를 통한 Unary RPC 호출
+- gRPC 프레이밍 (길이 접두 메시지)
+- `call_options`를 통한 데드라인/타임아웃 지원
+- 커스텀 헤더를 통한 메타데이터 처리
+- 트레일러에서 gRPC 상태 코드 파싱
+- 콜백을 통한 비동기 Unary 호출
+
+**미구현 기능 (향후):**
 - 서버 스트리밍
 - 클라이언트 스트리밍
 - 양방향 스트리밍
-- 데드라인/타임아웃 지원
-- 메타데이터 처리
 
-**제안된 API:**
+**API:**
 ```cpp
 class grpc_client {
 public:
-    grpc_client(const std::string& host, unsigned short port,
-               const grpc_channel_config& config = {});
+    explicit grpc_client(const std::string& target,
+                         const grpc_channel_config& config = {});
 
-    template<typename Request, typename Response>
-    auto call(const std::string& method,
-             const Request& request) -> Result<Response>;
+    auto connect() -> VoidResult;
+    auto disconnect() -> void;
+    auto is_connected() const -> bool;
 
-    template<typename Request, typename Response>
-    auto call_async(const std::string& method,
-                   const Request& request,
-                   std::function<void(Result<Response>)> callback) -> void;
+    auto call_raw(const std::string& method,
+                  const std::vector<uint8_t>& request,
+                  const call_options& options = {}) -> Result<grpc_message>;
+
+    auto call_raw_async(const std::string& method,
+                        const std::vector<uint8_t>& request,
+                        std::function<void(Result<grpc_message>)> callback,
+                        const call_options& options = {}) -> void;
 };
 ```
 
-**의존성:**
-- HTTP/2 지원 (먼저 구현 필요)
-- Protocol Buffers 라이브러리 (protobuf)
-- gRPC 라이브러리 (선택 사항, HTTP/2 + protobuf를 직접 사용 가능)
-
 **관련 파일:**
-- 신규: `include/network_system/protocols/grpc_client.h`
-- 신규: `src/protocols/grpc_client.cpp`
+- `include/kcenon/network/protocols/grpc/client.h`
+- `src/protocols/grpc/client.cpp`
+- `include/kcenon/network/protocols/grpc/frame.h`
+- `include/kcenon/network/protocols/grpc/status.h`
+- `tests/test_grpc_client_server.cpp`
 
 ---
 
@@ -442,10 +449,10 @@ public:
 
 | 우선순위 | 개수 | 완료 | 남은 | 총 소요 시간 |
 |----------|------|------|------|-------------|
-| P2       | 3    | 2    | 1    | 7-10일      |
+| P2       | 3    | 3    | 0    | 0일         |
 | P3       | 4    | 4    | 0    | 0일         |
 | P4       | 3    | 1    | 2    | 25-34일     |
-| **총계**  | **10** | **7** | **3** | **32-44일** |
+| **총계**  | **10** | **8** | **2** | **25-34일** |
 
 ### 목표 버전별
 
@@ -456,7 +463,8 @@ public:
 | v1.7.0  | UDP 신뢰성 계층                         | ✅ 완료 | 3일     |
 | v1.8.0  | DTLS 지원                               | ✅ 완료 | 1일     |
 | v1.9.0  | HTTP/2 클라이언트 지원                  | ✅ 완료 | 1일     |
-| v2.0.0  | gRPC, 메트릭 대시보드                   | 대기 중 | 17-24일    |
+| v1.10.0 | gRPC Unary RPC 지원                     | ✅ 완료 | 1일     |
+| v2.0.0  | 메트릭 대시보드, gRPC 스트리밍          | 대기 중 | 10-14일    |
 | v2.1.0+ | QUIC 프로토콜                           | 대기 중 | 15-20일    |
 
 ### 구현 로드맵
@@ -480,8 +488,13 @@ public:
 - ✅ HPACK 헤더 압축
 - ✅ 스트림 멀티플렉싱 및 흐름 제어
 
-**Phase 5 (v2.0.0):** 현대적인 프로토콜
-- gRPC 통합
+**Phase 4.5 (v1.10.0):** gRPC 지원 ✅ 완료
+- ✅ HTTP/2 전송을 사용한 gRPC 클라이언트
+- ✅ Unary RPC 호출
+- ✅ gRPC 프레이밍 및 상태 처리
+
+**Phase 5 (v2.0.0):** 고급 프로토콜
+- gRPC 스트리밍 (서버/클라이언트/양방향)
 - 모니터링 대시보드
 
 **Phase 6 (v2.1.0+):** 고급 기능
