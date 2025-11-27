@@ -409,7 +409,8 @@ namespace network_system::protocols::http2
             auto header_result = frame_header::parse(header_buf);
             if (header_result.is_err())
             {
-                return error<std::unique_ptr<frame>>(header_result.error());
+                const auto& err = header_result.error();
+                return error<std::unique_ptr<frame>>(err.code, err.message, err.source, err.details);
             }
 
             const auto& header = header_result.value();
@@ -575,7 +576,8 @@ namespace network_system::protocols::http2
         if (send_result.is_err())
         {
             close_stream(stream.stream_id);
-            return error<http2_response>(send_result.error());
+            const auto& err = send_result.error();
+            return error<http2_response>(err.code, err.message, err.source, err.details);
         }
 
         // Send DATA frame if body exists
@@ -586,7 +588,8 @@ namespace network_system::protocols::http2
             if (send_result.is_err())
             {
                 close_stream(stream.stream_id);
-                return error<http2_response>(send_result.error());
+                const auto& err = send_result.error();
+                return error<http2_response>(err.code, err.message, err.source, err.details);
             }
             stream.state = stream_state::half_closed_local;
         }
@@ -655,7 +658,8 @@ namespace network_system::protocols::http2
         auto decode_result = decoder_.decode(f.header_block());
         if (decode_result.is_err())
         {
-            return error_void(decode_result.error());
+            const auto& err = decode_result.error();
+            return error_void(err.code, err.message, err.source, err.details);
         }
 
         auto& decoded_headers = decode_result.value();
