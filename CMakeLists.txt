@@ -147,6 +147,7 @@ add_library(NetworkSystem
     # HTTP/2 protocol implementation
     src/protocols/http2/frame.cpp
     src/protocols/http2/hpack.cpp
+    src/protocols/http2/http2_client.cpp
 
     # gRPC protocol implementation (prototype)
     src/protocols/grpc/frame.cpp
