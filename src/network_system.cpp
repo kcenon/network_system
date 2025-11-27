@@ -44,10 +44,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace network_system {
 
-using kcenon::common::error_info;
-using kcenon::common::error_codes::already_exists;
-using kcenon::common::error_codes::internal_error;
-using kcenon::common::error_codes::not_initialized;
+using error_codes::common_errors::already_exists;
+using error_codes::common_errors::internal_error;
+using error_codes::common_errors::not_initialized;
 
 static std::atomic<bool> g_initialized{false};
 
@@ -56,8 +55,7 @@ VoidResult initialize() { return initialize(config::network_config::production()
 VoidResult initialize(const config::network_config &config) {
   if (g_initialized.load()) {
     NETWORK_LOG_WARN("[network_system] Already initialized");
-    return VoidResult::err(
-        error_info{already_exists, "Network system already initialized", "network_system"});
+    return error_void(already_exists, "Network system already initialized", "network_system");
   }
 
   try {
@@ -105,12 +103,11 @@ VoidResult initialize(const config::network_config &config) {
     g_initialized.store(true);
     NETWORK_LOG_INFO("[network_system] Initialized successfully");
 
-    return kcenon::common::ok();
+    return ok();
   } catch (const std::exception &e) {
     NETWORK_LOG_ERROR("[network_system] Initialization failed: " +
                       std::string(e.what()));
-    return VoidResult::err(
-        error_info{internal_error, std::string("Initialization failed: ") + e.what(), "network_system"});
+    return error_void(internal_error, std::string("Initialization failed: ") + e.what(), "network_system");
   }
 }
 
@@ -148,8 +145,7 @@ VoidResult initialize(const config::network_system_config &config_with_dependenc
 
 VoidResult shutdown() {
   if (!g_initialized.load()) {
-    return VoidResult::err(
-        error_info{not_initialized, "Network system not initialized", "network_system"});
+    return error_void(not_initialized, "Network system not initialized", "network_system");
   }
 
   try {
@@ -161,12 +157,11 @@ VoidResult shutdown() {
     g_initialized.store(false);
     NETWORK_LOG_INFO("[network_system] Shutdown complete");
 
-    return kcenon::common::ok();
+    return ok();
   } catch (const std::exception &e) {
     NETWORK_LOG_ERROR("[network_system] Shutdown error: " +
                       std::string(e.what()));
-    return VoidResult::err(
-        error_info{internal_error, std::string("Shutdown failed: ") + e.what(), "network_system"});
+    return error_void(internal_error, std::string("Shutdown failed: ") + e.what(), "network_system");
   }
 }
 

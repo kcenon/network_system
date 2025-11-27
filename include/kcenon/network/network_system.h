@@ -61,15 +61,13 @@
 #include "kcenon/network/core/network_context.h"
 
 // Result type for error handling
-#include <kcenon/common/patterns/result.h>
+#include "kcenon/network/utils/result_types.h"
 
 /**
  * @namespace network_system
  * @brief Main namespace for all Network System components
  */
 namespace network_system {
-
-using kcenon::common::VoidResult;
 
 /**
  * @brief Initialize the network system with default configuration
