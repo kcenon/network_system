@@ -81,12 +81,12 @@ namespace network_system::internal
         }
 
         auto method_str = std::string(line.substr(0, first_space));
-        auto method_opt = string_to_http_method(method_str);
-        if (!method_opt)
+        auto method_result = string_to_http_method(method_str);
+        if (method_result.is_err())
         {
-            return error<http_request>(-1, "Invalid HTTP method: " + method_str);
+            return error<http_request>(method_result.error().code, method_result.error().message);
         }
-        request.method = *method_opt;
+        request.method = method_result.value();
 
         line = line.substr(first_space + 1);
         auto second_space = line.find(' ');
@@ -111,12 +111,12 @@ namespace network_system::internal
         }
 
         auto version_str = std::string(line.substr(second_space + 1));
-        auto version_opt = string_to_http_version(version_str);
-        if (!version_opt)
+        auto version_result = string_to_http_version(version_str);
+        if (version_result.is_err())
         {
-            return error<http_request>(-1, "Invalid HTTP version: " + version_str);
+            return error<http_request>(version_result.error().code, version_result.error().message);
         }
-        request.version = *version_opt;
+        request.version = version_result.value();
 
         return ok(std::move(request));
     }
@@ -133,12 +133,12 @@ namespace network_system::internal
         }
 
         auto version_str = std::string(line.substr(0, first_space));
-        auto version_opt = string_to_http_version(version_str);
-        if (!version_opt)
+        auto version_result = string_to_http_version(version_str);
+        if (version_result.is_err())
         {
-            return error<http_response>(-1, "Invalid HTTP version: " + version_str);
+            return error<http_response>(version_result.error().code, version_result.error().message);
         }
-        response.version = *version_opt;
+        response.version = version_result.value();
 
         line = line.substr(first_space + 1);
         auto second_space = line.find(' ');

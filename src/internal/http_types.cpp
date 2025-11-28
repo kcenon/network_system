@@ -156,23 +156,26 @@ namespace network_system::internal
         }
     }
 
-    auto string_to_http_method(const std::string& method_str) -> std::optional<http_method>
+    auto string_to_http_method(const std::string& method_str) -> ::network_system::Result<http_method>
     {
         auto upper_method = method_str;
         std::transform(upper_method.begin(), upper_method.end(), upper_method.begin(),
             [](unsigned char c) { return std::toupper(c); });
 
-        if (upper_method == "GET")     return http_method::HTTP_GET;
-        if (upper_method == "POST")    return http_method::HTTP_POST;
-        if (upper_method == "PUT")     return http_method::HTTP_PUT;
-        if (upper_method == "DELETE")  return http_method::HTTP_DELETE;
-        if (upper_method == "HEAD")    return http_method::HTTP_HEAD;
-        if (upper_method == "OPTIONS") return http_method::HTTP_OPTIONS;
-        if (upper_method == "PATCH")   return http_method::HTTP_PATCH;
-        if (upper_method == "CONNECT") return http_method::HTTP_CONNECT;
-        if (upper_method == "TRACE")   return http_method::HTTP_TRACE;
+        if (upper_method == "GET")     return ::network_system::ok(http_method::HTTP_GET);
+        if (upper_method == "POST")    return ::network_system::ok(http_method::HTTP_POST);
+        if (upper_method == "PUT")     return ::network_system::ok(http_method::HTTP_PUT);
+        if (upper_method == "DELETE")  return ::network_system::ok(http_method::HTTP_DELETE);
+        if (upper_method == "HEAD")    return ::network_system::ok(http_method::HTTP_HEAD);
+        if (upper_method == "OPTIONS") return ::network_system::ok(http_method::HTTP_OPTIONS);
+        if (upper_method == "PATCH")   return ::network_system::ok(http_method::HTTP_PATCH);
+        if (upper_method == "CONNECT") return ::network_system::ok(http_method::HTTP_CONNECT);
+        if (upper_method == "TRACE")   return ::network_system::ok(http_method::HTTP_TRACE);
 
-        return std::nullopt;
+        return ::network_system::error<http_method>(
+            ::network_system::error_codes::common_errors::invalid_argument,
+            "Unknown HTTP method: " + method_str,
+            "http_types");
     }
 
     auto http_version_to_string(http_version version) -> std::string
@@ -186,14 +189,17 @@ namespace network_system::internal
         }
     }
 
-    auto string_to_http_version(const std::string& version_str) -> std::optional<http_version>
+    auto string_to_http_version(const std::string& version_str) -> ::network_system::Result<http_version>
     {
-        if (version_str == "HTTP/1.0") return http_version::HTTP_1_0;
-        if (version_str == "HTTP/1.1") return http_version::HTTP_1_1;
-        if (version_str == "HTTP/2.0") return http_version::HTTP_2_0;
-        if (version_str == "HTTP/2")   return http_version::HTTP_2_0;
+        if (version_str == "HTTP/1.0") return ::network_system::ok(http_version::HTTP_1_0);
+        if (version_str == "HTTP/1.1") return ::network_system::ok(http_version::HTTP_1_1);
+        if (version_str == "HTTP/2.0") return ::network_system::ok(http_version::HTTP_2_0);
+        if (version_str == "HTTP/2")   return ::network_system::ok(http_version::HTTP_2_0);
 
-        return std::nullopt;
+        return ::network_system::error<http_version>(
+            ::network_system::error_codes::common_errors::invalid_argument,
+            "Unknown HTTP version: " + version_str,
+            "http_types");
     }
 
     auto get_status_message(int status_code) -> std::string

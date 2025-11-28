@@ -38,6 +38,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <cstdint>
 #include <optional>
 
+#include "kcenon/network/utils/result_types.h"
+
 namespace network_system::internal
 {
     /*!
@@ -246,9 +248,12 @@ namespace network_system::internal
     /*!
      * \brief Convert string to HTTP method enum
      * \param method_str Method string (e.g., "GET", "POST")
-     * \return HTTP method enum value
+     * \return Result containing HTTP method enum value, or error if invalid
+     *
+     * Possible errors:
+     * - invalid_argument: Unknown HTTP method string
      */
-    auto string_to_http_method(const std::string& method_str) -> std::optional<http_method>;
+    auto string_to_http_method(const std::string& method_str) -> ::network_system::Result<http_method>;
 
     /*!
      * \brief Convert HTTP version enum to string
@@ -260,9 +265,12 @@ namespace network_system::internal
     /*!
      * \brief Convert string to HTTP version enum
      * \param version_str Version string (e.g., "HTTP/1.1")
-     * \return HTTP version enum value
+     * \return Result containing HTTP version enum value, or error if invalid
+     *
+     * Possible errors:
+     * - invalid_argument: Unknown HTTP version string
      */
-    auto string_to_http_version(const std::string& version_str) -> std::optional<http_version>;
+    auto string_to_http_version(const std::string& version_str) -> ::network_system::Result<http_version>;
 
     /*!
      * \brief Get HTTP status message for a status code
