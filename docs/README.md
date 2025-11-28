@@ -14,12 +14,12 @@ Welcome to the network_system documentation! This is a high-performance C++20 as
 
 | I want to... | Document |
 |--------------|----------|
-| Get started quickly | [Build Guide](BUILD.md) |
+| Get started quickly | [Build Guide](guides/BUILD.md) |
 | Understand the architecture | [Architecture](ARCHITECTURE.md) |
 | Learn the API | [API Reference](API_REFERENCE.md) |
-| Configure TLS/SSL | [TLS Setup Guide](TLS_SETUP_GUIDE.md) |
-| Troubleshoot an issue | [Troubleshooting](TROUBLESHOOTING.md) |
-| Tune performance | [Performance Tuning](PERFORMANCE_TUNING.md) |
+| Configure TLS/SSL | [TLS Setup Guide](guides/TLS_SETUP_GUIDE.md) |
+| Troubleshoot an issue | [Troubleshooting](guides/TROUBLESHOOTING.md) |
+| Tune performance | [Performance Tuning](advanced/PERFORMANCE_TUNING.md) |
 | Integrate with other systems | [Integration Guide](INTEGRATION.md) |
 
 ---
@@ -55,11 +55,12 @@ Step-by-step guides for users:
 
 | Document | Description | Korean |
 |----------|-------------|--------|
-| [BUILD.md](BUILD.md) | Build instructions for all platforms | [KO](BUILD_KO.md) |
-| [TLS_SETUP_GUIDE.md](TLS_SETUP_GUIDE.md) | TLS/SSL configuration and certificates | [KO](TLS_SETUP_GUIDE_KO.md) |
-| [TROUBLESHOOTING.md](TROUBLESHOOTING.md) | Common problems and solutions | [KO](TROUBLESHOOTING_KO.md) |
+| [guides/BUILD.md](guides/BUILD.md) | Build instructions for all platforms | [KO](guides/BUILD_KO.md) |
+| [guides/TLS_SETUP_GUIDE.md](guides/TLS_SETUP_GUIDE.md) | TLS/SSL configuration and certificates | [KO](guides/TLS_SETUP_GUIDE_KO.md) |
+| [guides/TROUBLESHOOTING.md](guides/TROUBLESHOOTING.md) | Common problems and solutions | [KO](guides/TROUBLESHOOTING_KO.md) |
 | [INTEGRATION.md](INTEGRATION.md) | Integration with ecosystem systems | [KO](INTEGRATION_KO.md) |
-| [OPERATIONS.md](OPERATIONS.md) | Operational guidelines and deployment | [KO](OPERATIONS_KO.md) |
+| [advanced/OPERATIONS.md](advanced/OPERATIONS.md) | Operational guidelines and deployment | [KO](advanced/OPERATIONS_KO.md) |
+| [guides/LOAD_TEST_GUIDE.md](guides/LOAD_TEST_GUIDE.md) | Load testing methodology and tools | - |
 
 ### Advanced Topics
 
@@ -67,13 +68,18 @@ For experienced users and performance optimization:
 
 | Document | Description |
 |----------|-------------|
-| [PERFORMANCE_TUNING.md](PERFORMANCE_TUNING.md) | Performance optimization techniques |
-| [CONNECTION_POOLING.md](CONNECTION_POOLING.md) | Connection pool architecture and usage |
-| [UDP_RELIABILITY.md](UDP_RELIABILITY.md) | UDP reliability patterns and implementation |
-| [HTTP_ADVANCED.md](HTTP_ADVANCED.md) | Advanced HTTP features and configuration |
-| [MEMORY_PROFILING.md](MEMORY_PROFILING.md) | Memory analysis and optimization |
-| [STATIC_ANALYSIS.md](STATIC_ANALYSIS.md) | Static analysis configuration and results |
-| [LOAD_TEST_GUIDE.md](LOAD_TEST_GUIDE.md) | Load testing methodology and tools |
+| [advanced/PERFORMANCE_TUNING.md](advanced/PERFORMANCE_TUNING.md) | Performance optimization techniques |
+| [advanced/CONNECTION_POOLING.md](advanced/CONNECTION_POOLING.md) | Connection pool architecture and usage |
+| [advanced/UDP_RELIABILITY.md](advanced/UDP_RELIABILITY.md) | UDP reliability patterns and implementation |
+| [advanced/HTTP_ADVANCED.md](advanced/HTTP_ADVANCED.md) | Advanced HTTP features and configuration |
+| [advanced/MEMORY_PROFILING.md](advanced/MEMORY_PROFILING.md) | Memory analysis and optimization |
+| [advanced/STATIC_ANALYSIS.md](advanced/STATIC_ANALYSIS.md) | Static analysis configuration and results |
+
+### Contributing
+
+| Document | Description |
+|----------|-------------|
+| [contributing/CONTRIBUTING.md](contributing/CONTRIBUTING.md) | Contribution guidelines |
 
 ### Implementation Details
 
@@ -104,28 +110,28 @@ System integration documentation:
 ### For New Users
 
 **Getting Started Path**:
-1. **Build** - [Build Guide](BUILD.md) to compile the library
+1. **Build** - [Build Guide](guides/BUILD.md) to compile the library
 2. **Architecture** - [Architecture](ARCHITECTURE.md) for system overview
 3. **API** - [API Reference](API_REFERENCE.md) for basic usage
 4. **Examples** - Check `samples/` directory for working examples
 
 **When You Have Issues**:
-- Check [Troubleshooting](TROUBLESHOOTING.md) first
-- Review [TLS Setup Guide](TLS_SETUP_GUIDE.md) for SSL issues
+- Check [Troubleshooting](guides/TROUBLESHOOTING.md) first
+- Review [TLS Setup Guide](guides/TLS_SETUP_GUIDE.md) for SSL issues
 - Search [GitHub Issues](https://github.com/kcenon/network_system/issues)
 
 ### For Experienced Developers
 
 **Advanced Usage Path**:
 1. **Architecture** - Deep dive into [Architecture](ARCHITECTURE.md)
-2. **Performance** - Learn [Performance Tuning](PERFORMANCE_TUNING.md)
+2. **Performance** - Learn [Performance Tuning](advanced/PERFORMANCE_TUNING.md)
 3. **Protocols** - Study protocol-specific docs (HTTP, WebSocket, UDP)
 4. **Integration** - Review [Integration Guide](INTEGRATION.md)
 
 **Deep Dive Topics**:
-- [Connection Pooling](CONNECTION_POOLING.md) - Pool architecture
-- [UDP Reliability](UDP_RELIABILITY.md) - Reliable UDP patterns
-- [Memory Profiling](MEMORY_PROFILING.md) - Memory optimization
+- [Connection Pooling](advanced/CONNECTION_POOLING.md) - Pool architecture
+- [UDP Reliability](advanced/UDP_RELIABILITY.md) - Reliable UDP patterns
+- [Memory Profiling](advanced/MEMORY_PROFILING.md) - Memory optimization
 
 ### For System Integrators
 
@@ -133,7 +139,7 @@ System integration documentation:
 1. **Integration Guide** - [System integration](INTEGRATION.md)
 2. **Common System** - [Common system integration](integration/with-common-system.md)
 3. **Logger** - [Logger integration](integration/with-logger.md)
-4. **Operations** - [Deployment guide](OPERATIONS.md)
+4. **Operations** - [Deployment guide](advanced/OPERATIONS.md)
 
 ---
 
@@ -145,22 +151,22 @@ System integration documentation:
 |-------|----------|
 | Architecture | [Architecture](ARCHITECTURE.md) |
 | API | [API Reference](API_REFERENCE.md) |
-| UDP Reliability | [UDP Reliability](UDP_RELIABILITY.md) |
+| UDP Reliability | [UDP Reliability](advanced/UDP_RELIABILITY.md) |
 
 ### TLS/SSL Security
 
 | Topic | Document |
 |-------|----------|
-| Setup | [TLS Setup Guide](TLS_SETUP_GUIDE.md) |
+| Setup | [TLS Setup Guide](guides/TLS_SETUP_GUIDE.md) |
 | Configuration | [Architecture](ARCHITECTURE.md#tls-configuration) |
-| Troubleshooting | [Troubleshooting](TROUBLESHOOTING.md#tls-issues) |
+| Troubleshooting | [Troubleshooting](guides/TROUBLESHOOTING.md#tls-issues) |
 
 ### HTTP Protocol
 
 | Topic | Document |
 |-------|----------|
 | Basic Usage | [API Reference](API_REFERENCE.md#http) |
-| Advanced | [HTTP Advanced](HTTP_ADVANCED.md) |
+| Advanced | [HTTP Advanced](advanced/HTTP_ADVANCED.md) |
 | Performance | [Benchmarks](BENCHMARKS.md#http-performance) |
 
 ### WebSocket Protocol
@@ -176,9 +182,9 @@ System integration documentation:
 | Topic | Document |
 |-------|----------|
 | Benchmarks | [Benchmarks](BENCHMARKS.md) |
-| Tuning | [Performance Tuning](PERFORMANCE_TUNING.md) |
-| Profiling | [Memory Profiling](MEMORY_PROFILING.md) |
-| Load Testing | [Load Test Guide](LOAD_TEST_GUIDE.md) |
+| Tuning | [Performance Tuning](advanced/PERFORMANCE_TUNING.md) |
+| Profiling | [Memory Profiling](advanced/MEMORY_PROFILING.md) |
+| Load Testing | [Load Test Guide](guides/LOAD_TEST_GUIDE.md) |
 
 ---
 
@@ -239,7 +245,7 @@ System integration documentation:
 - **Unclear instructions**: Suggest improvements
 
 ### Technical Support
-1. Check [Troubleshooting](TROUBLESHOOTING.md)
+1. Check [Troubleshooting](guides/TROUBLESHOOTING.md)
 2. Search [GitHub Issues](https://github.com/kcenon/network_system/issues)
 3. Ask on GitHub Discussions
 
