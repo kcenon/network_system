@@ -44,14 +44,18 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace network_system {
 
+using error_codes::common_errors::already_exists;
+using error_codes::common_errors::internal_error;
+using error_codes::common_errors::not_initialized;
+
 static std::atomic<bool> g_initialized{false};
 
-bool initialize() { return initialize(config::network_config::production()); }
+VoidResult initialize() { return initialize(config::network_config::production()); }
 
-bool initialize(const config::network_config &config) {
+VoidResult initialize(const config::network_config &config) {
   if (g_initialized.load()) {
     NETWORK_LOG_WARN("[network_system] Already initialized");
-    return true; // Already initialized
+    return error_void(already_exists, "Network system already initialized", "network_system");
   }
 
   try {
@@ -99,15 +103,15 @@ bool initialize(const config::network_config &config) {
     g_initialized.store(true);
     NETWORK_LOG_INFO("[network_system] Initialized successfully");
 
-    return true;
+    return ok();
   } catch (const std::exception &e) {
     NETWORK_LOG_ERROR("[network_system] Initialization failed: " +
                       std::string(e.what()));
-    return false;
+    return error_void(internal_error, std::string("Initialization failed: ") + e.what(), "network_system");
   }
 }
 
-bool initialize(const config::network_system_config &config_with_dependencies) {
+VoidResult initialize(const config::network_system_config &config_with_dependencies) {
 #ifdef BUILD_WITH_COMMON_SYSTEM
   auto &ctx = core::network_context::instance();
 
@@ -139,9 +143,9 @@ bool initialize(const config::network_system_config &config_with_dependencies) {
   return initialize(config_with_dependencies.runtime);
 }
 
-void shutdown() {
+VoidResult shutdown() {
   if (!g_initialized.load()) {
-    return;
+    return error_void(not_initialized, "Network system not initialized", "network_system");
   }
 
   try {
@@ -152,9 +156,12 @@ void shutdown() {
 
     g_initialized.store(false);
     NETWORK_LOG_INFO("[network_system] Shutdown complete");
+
+    return ok();
   } catch (const std::exception &e) {
     NETWORK_LOG_ERROR("[network_system] Shutdown error: " +
                       std::string(e.what()));
+    return error_void(internal_error, std::string("Shutdown failed: ") + e.what(), "network_system");
   }
 }
 
