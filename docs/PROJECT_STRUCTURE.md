@@ -568,4 +568,4 @@ class messaging_server {
 ---
 
 **Last Updated**: 2025-11-15
-**Maintained by**: network_system development team
+**Maintained by**: kcenon@naver.com

@@ -774,4 +774,4 @@ TEST_F(NetworkFixture, ConnectionLifecycle) {
 ---
 
 **Last Updated**: 2025-11-15
-**Maintained by**: network_system QA team
+**Maintained by**: kcenon@naver.com
