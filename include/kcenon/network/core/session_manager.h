@@ -207,9 +207,9 @@ public:
         }
 
         // Stop sessions without holding lock
-        for (auto& session : sessions) {
+        for ([[maybe_unused]] auto& session : sessions) {
             try {
-                // Assuming session has stop() method
+                // TODO: Assuming session has stop() method
                 // session->stop();
             } catch (...) {
                 // Ignore errors during shutdown
@@ -227,14 +227,14 @@ public:
      * @return Number of sessions cleaned up
      */
     size_t cleanup_idle_sessions() {
-        auto now = std::chrono::steady_clock::now();
+        [[maybe_unused]] auto now = std::chrono::steady_clock::now();  // TODO: Use for idle check
         std::vector<std::string> to_remove;
 
         {
             std::shared_lock<std::shared_mutex> lock(sessions_mutex_);
 
-            for (const auto& [id, session] : active_sessions_) {
-                // Check if session is idle
+            for ([[maybe_unused]] const auto& [id, session] : active_sessions_) {
+                // TODO: Check if session is idle
                 // This requires session to track last activity time
                 // For now, we'll skip implementation details
             }

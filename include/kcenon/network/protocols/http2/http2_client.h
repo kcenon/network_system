@@ -197,9 +197,9 @@ namespace network_system::protocols::http2
         http2_client(const http2_client&) = delete;
         http2_client& operator=(const http2_client&) = delete;
 
-        // Movable
-        http2_client(http2_client&&) = default;
-        http2_client& operator=(http2_client&&) = default;
+        // Non-movable (contains std::atomic members)
+        http2_client(http2_client&&) = delete;
+        http2_client& operator=(http2_client&&) = delete;
 
         /*!
          * \brief Connect to HTTP/2 server
@@ -412,13 +412,13 @@ namespace network_system::protocols::http2
         std::atomic<uint32_t> next_stream_id_{1};        //!< Client streams are odd
         int32_t connection_window_size_ = 65535;
 
-        // HPACK
-        hpack_encoder encoder_;
-        hpack_decoder decoder_;
-
-        // Settings
+        // Settings (must be declared before encoder_/decoder_ for initialization order)
         http2_settings local_settings_;
         http2_settings remote_settings_;
+
+        // HPACK (uses local_settings_.header_table_size in constructor)
+        hpack_encoder encoder_;
+        hpack_decoder decoder_;
 
         // Timeout
         std::chrono::milliseconds timeout_{30000};

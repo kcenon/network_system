@@ -298,7 +298,7 @@ auto secure_messaging_udp_server::do_receive() -> void
 }
 
 auto secure_messaging_udp_server::process_session_data(
-	const std::vector<uint8_t>& data,
+	[[maybe_unused]] const std::vector<uint8_t>& data,  // TODO: Use when DTLS handling is implemented
 	const asio::ip::udp::endpoint& sender) -> void
 {
 	std::shared_ptr<dtls_session> session;
