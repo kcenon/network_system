@@ -316,11 +316,11 @@ server->start_server(8080);
 
 | Platform | Compiler | Architecture | Support Level |
 |----------|----------|--------------|---------------|
-| Ubuntu 22.04+ | GCC 11+ | x86_64 | ✅ Full Support |
-| Ubuntu 22.04+ | Clang 14+ | x86_64 | ✅ Full Support |
+| Ubuntu 22.04+ | GCC 11+ | x86_64, ARM64 | ✅ Full Support |
+| Ubuntu 22.04+ | Clang 14+ | x86_64, ARM64 | ✅ Full Support |
 | Windows 2022+ | MSVC 2022+ | x86_64 | ✅ Full Support |
 | Windows 2022+ | MinGW64 | x86_64 | ✅ Full Support |
-| macOS 12+ | Apple Clang 14+ | x86_64/ARM64 | 🚧 Experimental |
+| macOS 12+ | Apple Clang 14+ | x86_64, ARM64 | ✅ Full Support |
 
 ---
 
@@ -369,8 +369,8 @@ server->start_server(8080);
 ## Dependencies
 
 ### Required
-- **C++20** compatible compiler
-- **CMake** 3.16+
+- **C++20** compatible compiler (GCC 11+, Clang 14+, MSVC 2022+, Apple Clang 14+)
+- **CMake** 3.20+
 - **ASIO** or **Boost.ASIO** 1.28+
 - **OpenSSL** 1.1.1+ (for TLS/SSL and WebSocket)
 
