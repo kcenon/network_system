@@ -8,6 +8,7 @@ This guide explains how to integrate network_system with external systems and li
 - [Thread System Integration](#thread-system-integration)
 - [Container System Integration](#container-system-integration)
 - [Logger System Integration](#logger-system-integration)
+- [Monitoring System Integration](#monitoring-system-integration)
 - [Build Configuration](#build-configuration)
 
 ## Thread System Integration
@@ -119,6 +120,73 @@ The logger integration provides two implementations:
   - Headers should be available at `../logger_system/include`
 - C++17 or later for string_view support
 
+## Monitoring System Integration
+
+Provides metrics collection and observability capabilities.
+
+**Important**: This integration is **OPTIONAL** (OFF by default) to prevent circular dependencies with monitoring_system.
+
+### Configuration
+```cmake
+cmake .. -DBUILD_WITH_MONITORING_SYSTEM=ON
+```
+
+### Why Optional?
+
+monitoring_system (Tier 3) can optionally depend on network_system (Tier 4) for HTTP metrics export. Making monitoring_system a required dependency would create a circular dependency. Both integrations are optional and use adapter patterns to avoid compile-time cycles.
+
+### Features
+- **Counter metrics**: Track connection counts, bytes transferred
+- **Gauge metrics**: Monitor active connections, buffer usage
+- **Histogram metrics**: Measure latency distributions
+- **Health reporting**: Track connection health status
+
+### Usage
+
+#### Basic Metrics Reporting
+```cpp
+#include <kcenon/network/integration/monitoring_integration.h>
+
+using namespace kcenon::network::integration;
+
+auto& monitor = monitoring_integration_manager::instance();
+
+// Report metrics
+monitor.report_counter("network.connections.total", 1, {{"type", "tcp"}});
+monitor.report_gauge("network.connections.active", 42);
+monitor.report_histogram("network.latency_ms", 12.5);
+```
+
+#### Health Reporting
+```cpp
+monitor.report_health("connection_1",
+    true,   // is_alive
+    15.3,   // response_time_ms
+    0,      // missed_heartbeats
+    0.0);   // packet_loss_rate
+```
+
+### Implementation Details
+
+Two implementations are provided:
+
+1. **basic_monitoring**: Standalone mode (default)
+   - Used when BUILD_WITH_MONITORING_SYSTEM is OFF
+   - Logs metrics to console via logger_system
+   - No external dependencies
+
+2. **monitoring_system_adapter**: Integration mode
+   - Used when BUILD_WITH_MONITORING_SYSTEM is ON
+   - Full monitoring_system integration
+   - Uses performance_monitor and health_monitor
+
+### Requirements
+- When BUILD_WITH_MONITORING_SYSTEM=ON:
+  - monitoring_system must be built first (Tier 3)
+  - Headers at `../monitoring_system/include`
+
+For detailed documentation, see [integration/with-monitoring.md](integration/with-monitoring.md).
+
 ## Build Configuration
 
 ### Complete Build with All Integrations
@@ -127,7 +195,8 @@ cmake .. -G Ninja \
     -DCMAKE_BUILD_TYPE=Release \
     -DBUILD_WITH_THREAD_SYSTEM=ON \
     -DBUILD_WITH_CONTAINER_SYSTEM=ON \
-    -DBUILD_WITH_LOGGER_SYSTEM=ON
+    -DBUILD_WITH_LOGGER_SYSTEM=ON \
+    -DBUILD_WITH_MONITORING_SYSTEM=ON  # Optional
 ```
 
 ### Minimal Build (No External Dependencies)
@@ -161,6 +230,16 @@ The system provides macros to check which integrations are available:
     // Fallback to basic logging
     use_console_logging();
 #endif
+
+#ifdef BUILD_WITH_MONITORING_SYSTEM
+    // Monitoring system is available
+    auto adapter = std::make_shared<monitoring_system_adapter>("my_service");
+    monitoring_integration_manager::instance().set_monitoring(adapter);
+#else
+    // Fallback to basic monitoring (logs to console)
+    auto basic = std::make_shared<basic_monitoring>(true);
+    monitoring_integration_manager::instance().set_monitoring(basic);
+#endif
 ```
 
 ## Common Flags Summary
@@ -168,6 +247,7 @@ The system provides macros to check which integrations are available:
 - `BUILD_WITH_THREAD_SYSTEM` — enable thread pool integration via `thread_integration_manager`.
 - `BUILD_WITH_CONTAINER_SYSTEM` — enable container adapters via `container_manager`.
 - `BUILD_WITH_LOGGER_SYSTEM` — use `logger_system_adapter`; otherwise falls back to `basic_logger`.
+- `BUILD_WITH_MONITORING_SYSTEM` — use `monitoring_system_adapter`; otherwise falls back to `basic_monitoring` (OFF by default).
 
 ## Versioning & Dependencies
 
@@ -191,6 +271,11 @@ The system provides macros to check which integrations are available:
 - **Benefit**: Structured logging with filtering reduces I/O overhead
 - **Trade-off**: Minimal performance impact (~1-2%)
 
+### With Monitoring System
+- **Benefit**: Full observability with metrics collection and health monitoring
+- **Trade-off**: Slightly higher overhead than basic_monitoring (~3-5%)
+- **Note**: basic_monitoring (default) has minimal overhead as it only logs when enabled
+
 ## Troubleshooting
 
 ### Integration Not Found
@@ -211,4 +296,4 @@ If CMake cannot find an integration system:
 
 ---
 
-*Last Updated: 2025-10-20*
+*Last Updated: 2025-11-30*
