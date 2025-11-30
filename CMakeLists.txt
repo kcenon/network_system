@@ -67,19 +67,23 @@ option(BUILD_WITH_CONTAINER_SYSTEM "Build with container_system integration" ON)
 option(BUILD_WITH_MONITORING_SYSTEM "Build with monitoring_system integration (OPTIONAL - prevents circular dep)" OFF)
 
 ##################################################
-# Required Dependency Validation
+# Dependency Validation (Advisory)
+#
+# Note: These dependencies are RECOMMENDED for full functionality.
+#       Disabling them may result in reduced features but allows
+#       standalone builds for testing and CI purposes.
 ##################################################
 
 if(NOT BUILD_WITH_COMMON_SYSTEM)
-    message(FATAL_ERROR "network_system requires common_system (Tier 0)")
+    message(WARNING "common_system (Tier 0) is disabled - some features may be unavailable")
 endif()
 
 if(NOT BUILD_WITH_THREAD_SYSTEM)
-    message(FATAL_ERROR "network_system requires thread_system (Tier 1)")
+    message(WARNING "thread_system (Tier 1) is disabled - some features may be unavailable")
 endif()
 
 if(NOT BUILD_WITH_LOGGER_SYSTEM)
-    message(FATAL_ERROR "network_system requires logger_system (Tier 2)")
+    message(WARNING "logger_system (Tier 2) is disabled - some features may be unavailable")
 endif()
 
 # Optional integration status message
