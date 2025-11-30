@@ -34,15 +34,77 @@ option(BUILD_SHARED_LIBS "Build using shared libraries" OFF)
 option(BUILD_TESTS "Build tests" ON)
 option(BUILD_SAMPLES "Build samples" ON)
 option(BUILD_WEBSOCKET_SUPPORT "Build WebSocket protocol support (RFC 6455)" ON)
-option(BUILD_WITH_CONTAINER_SYSTEM "Build with container_system integration" ON)
-option(BUILD_WITH_THREAD_SYSTEM "Build with thread_system integration" ON)
-option(BUILD_WITH_LOGGER_SYSTEM "Build with logger_system integration" ON)
-option(BUILD_WITH_MONITORING_SYSTEM "Build with monitoring_system integration" OFF)
-option(BUILD_WITH_COMMON_SYSTEM "Build with common_system integration" ON)
 option(BUILD_MESSAGING_BRIDGE "Build messaging_system bridge" ON)
 option(ENABLE_COVERAGE "Enable code coverage" OFF)
 option(NETWORK_BUILD_BENCHMARKS "Build network system benchmarks" OFF)
 option(NETWORK_BUILD_INTEGRATION_TESTS "Build network system integration tests" ON)
+
+##################################################
+# Dependency Configuration (Option A Structure)
+#
+# Tier 4: network_system
+#   Required:
+#     - common_system (Tier 0)
+#     - thread_system (Tier 1)
+#     - logger_system (Tier 2)
+#   Optional:
+#     - container_system (Tier 1) - serialization
+#     - monitoring_system (Tier 3) - metrics collection
+#
+# Note: monitoring_system is OPTIONAL to prevent circular dependency.
+#       network_system provides basic_monitoring for standalone operation.
+##################################################
+
+# Required dependencies (Tier 0-2)
+option(BUILD_WITH_COMMON_SYSTEM "Build with common_system integration (REQUIRED)" ON)
+option(BUILD_WITH_THREAD_SYSTEM "Build with thread_system integration (REQUIRED)" ON)
+option(BUILD_WITH_LOGGER_SYSTEM "Build with logger_system integration (REQUIRED)" ON)
+
+# Optional dependencies
+option(BUILD_WITH_CONTAINER_SYSTEM "Build with container_system integration" ON)
+
+# Optional integration (Tier 3 - prevents circular dependency)
+option(BUILD_WITH_MONITORING_SYSTEM "Build with monitoring_system integration (OPTIONAL - prevents circular dep)" OFF)
+
+##################################################
+# Dependency Validation (Advisory)
+#
+# Note: These dependencies are RECOMMENDED for full functionality.
+#       Disabling them may result in reduced features but allows
+#       standalone builds for testing and CI purposes.
+##################################################
+
+if(NOT BUILD_WITH_COMMON_SYSTEM)
+    message(WARNING "common_system (Tier 0) is disabled - some features may be unavailable")
+endif()
+
+if(NOT BUILD_WITH_THREAD_SYSTEM)
+    message(WARNING "thread_system (Tier 1) is disabled - some features may be unavailable")
+endif()
+
+if(NOT BUILD_WITH_LOGGER_SYSTEM)
+    message(WARNING "logger_system (Tier 2) is disabled - some features may be unavailable")
+endif()
+
+# Optional integration status message
+if(BUILD_WITH_MONITORING_SYSTEM)
+    message(STATUS "")
+    message(STATUS "========================================")
+    message(STATUS "BUILD_WITH_MONITORING_SYSTEM is ENABLED")
+    message(STATUS "")
+    message(STATUS "This creates an optional dependency on Tier 3.")
+    message(STATUS "network_system will use monitoring_system_adapter")
+    message(STATUS "for metrics collection if monitoring_system is available.")
+    message(STATUS "")
+    message(STATUS "Note: If monitoring_system also has MONITORING_WITH_NETWORK_SYSTEM=ON,")
+    message(STATUS "      this creates a bidirectional optional dependency.")
+    message(STATUS "      Both systems use adapter patterns to avoid compile-time cycles.")
+    message(STATUS "========================================")
+    message(STATUS "")
+else()
+    message(STATUS "BUILD_WITH_MONITORING_SYSTEM is OFF (default)")
+    message(STATUS "network_system will use basic_monitoring (standalone mode)")
+endif()
 
 # Respect global BUILD_INTEGRATION_TESTS flag if set
 if(DEFINED BUILD_INTEGRATION_TESTS)
@@ -426,6 +488,23 @@ endif()
 
 message(STATUS "========================================")
 message(STATUS "NetworkSystem Build Configuration:")
+message(STATUS "========================================")
+message(STATUS "")
+message(STATUS "Dependency Chain (Tier 4):")
+message(STATUS "  network_system")
+message(STATUS "    ├── common_system (Tier 0): ${BUILD_WITH_COMMON_SYSTEM} [REQUIRED]")
+message(STATUS "    ├── thread_system (Tier 1): ${BUILD_WITH_THREAD_SYSTEM} [REQUIRED]")
+message(STATUS "    ├── logger_system (Tier 2): ${BUILD_WITH_LOGGER_SYSTEM} [REQUIRED]")
+message(STATUS "    ├── container_system (Tier 1): ${BUILD_WITH_CONTAINER_SYSTEM}")
+message(STATUS "    └── monitoring_system (Tier 3): ${BUILD_WITH_MONITORING_SYSTEM} [OPTIONAL]")
+message(STATUS "")
+if(NOT BUILD_WITH_MONITORING_SYSTEM)
+    message(STATUS "Standalone Mode: ENABLED (basic_monitoring)")
+else()
+    message(STATUS "Standalone Mode: DISABLED (using monitoring_system_adapter)")
+endif()
+message(STATUS "")
+message(STATUS "Build Options:")
 message(STATUS "  Build type: ${CMAKE_BUILD_TYPE}")
 message(STATUS "  C++ standard: ${CMAKE_CXX_STANDARD}")
 message(STATUS "  Shared libs: ${BUILD_SHARED_LIBS}")
@@ -435,10 +514,6 @@ message(STATUS "  Samples: ${BUILD_SAMPLES}")
 message(STATUS "  Verify build: ${BUILD_VERIFY_BUILD}")
 message(STATUS "  TLS/SSL support: ${BUILD_TLS_SUPPORT}")
 message(STATUS "  WebSocket support: ${BUILD_WEBSOCKET_SUPPORT}")
-message(STATUS "  container_system: ${BUILD_WITH_CONTAINER_SYSTEM}")
-message(STATUS "  thread_system: ${BUILD_WITH_THREAD_SYSTEM}")
-message(STATUS "  logger_system: ${BUILD_WITH_LOGGER_SYSTEM}")
-message(STATUS "  common_system: ${BUILD_WITH_COMMON_SYSTEM}")
 message(STATUS "  Messaging bridge: ${BUILD_MESSAGING_BRIDGE}")
 message(STATUS "  Benchmarks: ${NETWORK_BUILD_BENCHMARKS}")
 message(STATUS "========================================")
