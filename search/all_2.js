@@ -1,0 +1,26 @@
+var searchData=
+[
+  ['2_200_202025_2010_2026_0',['2 0 2025 10 26',['../md_CHANGELOG__KO.html#autotoc_md128',1,'[1.2.0] - 2025-10-26'],['../md_CHANGELOG.html#autotoc_md77',1,'[1.2.0] - 2025-10-26']]],
+  ['2_201_3a_20update_20cmakelists_20txt_1',['Step 2.1: Update CMakeLists.txt',['../md_MIGRATION.html#autotoc_md189',1,'']]],
+  ['2_202_3a_20update_20package_20configuration_20optional_2',['Step 2.2: Update Package Configuration (Optional)',['../md_MIGRATION.html#autotoc_md190',1,'']]],
+  ['2_203_3a_20configure_20network_20system_20build_3',['Step 2.3: Configure Network System Build',['../md_MIGRATION.html#autotoc_md191',1,'']]],
+  ['2_20udp_20server_4',['2. UDP Server',['../md_UDP__SUPPORT.html#autotoc_md447',1,'']]],
+  ['20_20compiler_20errors_5',['Issue 3: C++20 Compiler Errors',['../md_MIGRATION.html#autotoc_md216',1,'']]],
+  ['2025_2009_2015_20messaging_5fsystem으로부터_20분리_20이전_6',['[0.9.0] - 2025-09-15 (messaging_system으로부터 분리 이전)',['../md_CHANGELOG__KO.html#autotoc_md146',1,'']]],
+  ['2025_2009_2015_20pre_20separation_20from_20messaging_5fsystem_7',['[0.9.0] - 2025-09-15 (Pre-separation from messaging_system)',['../md_CHANGELOG.html#autotoc_md95',1,'']]],
+  ['2025_2010_2022_8',['2025 10 22',['../md_CHANGELOG.html#autotoc_md87',1,'[1.0.0] - 2025-10-22'],['../md_CHANGELOG__KO.html#autotoc_md138',1,'[1.0.0] - 2025-10-22']]],
+  ['2025_2010_2026_9',['2025 10 26',['../md_CHANGELOG.html#autotoc_md82',1,'[1.1.0] - 2025-10-26'],['../md_CHANGELOG__KO.html#autotoc_md133',1,'[1.1.0] - 2025-10-26'],['../md_CHANGELOG.html#autotoc_md77',1,'[1.2.0] - 2025-10-26'],['../md_CHANGELOG__KO.html#autotoc_md128',1,'[1.2.0] - 2025-10-26'],['../md_CHANGELOG.html#autotoc_md72',1,'[1.3.0] - 2025-10-26'],['../md_CHANGELOG__KO.html#autotoc_md123',1,'[1.3.0] - 2025-10-26'],['../md_CHANGELOG.html#autotoc_md67',1,'[1.4.0] - 2025-10-26'],['../md_CHANGELOG__KO.html#autotoc_md118',1,'[1.4.0] - 2025-10-26']]],
+  ['2025_2011_2014_10',['[1.5.0] - 2025-11-14',['../md_CHANGELOG.html#autotoc_md61',1,'']]],
+  ['22_11',['22',['../md_CHANGELOG.html#autotoc_md87',1,'[1.0.0] - 2025-10-22'],['../md_CHANGELOG__KO.html#autotoc_md138',1,'[1.0.0] - 2025-10-22']]],
+  ['22_2004_20gcc_2011_20tt_20o3_20tt_12',['22 04 gcc 11 tt o3 tt',['../md_BASELINE__KO.html#autotoc_md36',1,'성능 메트릭 (Intel i7-12700K, Ubuntu 22.04, GCC 11 &lt;tt&gt;-O3&lt;/tt&gt;)'],['../md_README__KO.html#autotoc_md344',1,'합성 메시지 할당 결과 (Intel i7-12700K, Ubuntu 22.04, GCC 11, &lt;tt&gt;-O3&lt;/tt&gt;)'],['../md_BASELINE.html#autotoc_md8',1,'Performance Metrics (Intel i7-12700K, Ubuntu 22.04, GCC 11 &lt;tt&gt;-O3&lt;/tt&gt;)'],['../md_README.html#autotoc_md283',1,'Synthetic Benchmarks (Intel i7-12700K, Ubuntu 22.04, GCC 11, &lt;tt&gt;-O3&lt;/tt&gt;)']]],
+  ['26_13',['26',['../md_CHANGELOG__KO.html#autotoc_md133',1,'[1.1.0] - 2025-10-26'],['../md_CHANGELOG.html#autotoc_md82',1,'[1.1.0] - 2025-10-26'],['../md_CHANGELOG__KO.html#autotoc_md128',1,'[1.2.0] - 2025-10-26'],['../md_CHANGELOG.html#autotoc_md77',1,'[1.2.0] - 2025-10-26'],['../md_CHANGELOG.html#autotoc_md72',1,'[1.3.0] - 2025-10-26'],['../md_CHANGELOG__KO.html#autotoc_md123',1,'[1.3.0] - 2025-10-26'],['../md_CHANGELOG.html#autotoc_md67',1,'[1.4.0] - 2025-10-26'],['../md_CHANGELOG__KO.html#autotoc_md118',1,'[1.4.0] - 2025-10-26']]],
+  ['2_3a_20audit_20current_20network_20usage_14',['Step 1.2: Audit Current Network Usage',['../md_MIGRATION.html#autotoc_md185',1,'']]],
+  ['2_3a_20full_20migration_20recommended_20for_20new_20projects_15',['Option 2: Full Migration (Recommended for New Projects)',['../md_MIGRATION.html#autotoc_md173',1,'']]],
+  ['2_3a_20multiple_20configurations_16',['Test 2: Multiple Configurations',['../md_MIGRATION.html#autotoc_md232',1,'']]],
+  ['2_3a_20namespace_20network_5fmodule_20not_20found_17',['Issue 2: namespace &apos;network_module&apos; Not Found',['../md_MIGRATION.html#autotoc_md215',1,'']]],
+  ['2_3a_20run_20unit_20tests_18',['Step 4.2: Run Unit Tests',['../md_MIGRATION.html#autotoc_md202',1,'']]],
+  ['2_3a_20update_20build_20configuration_19',['Phase 2: Update Build Configuration',['../md_MIGRATION.html#autotoc_md188',1,'']]],
+  ['2_3a_20update_20include_20paths_20',['Step 2: Update Include Paths',['../md_STRUCTURE.html#autotoc_md434',1,'']]],
+  ['2_3a_20update_20includes_21',['Step 3.2: Update Includes',['../md_MIGRATION.html#autotoc_md195',1,'']]],
+  ['2_3a_20update_20package_20configuration_20optional_22',['Step 2.2: Update Package Configuration (Optional)',['../md_MIGRATION.html#autotoc_md190',1,'']]]
+];
