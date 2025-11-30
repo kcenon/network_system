@@ -204,8 +204,8 @@ namespace network_system::core
 			pipeline_;		/*!< Pipeline for compress/encrypt transformations. */
 
 		mutable std::mutex mode_mutex_; /*!< Protects pipeline mode flags. */
-		bool compress_mode_{false};		/*!< If true, compress data before sending. */
-		bool encrypt_mode_{false};		/*!< If true, encrypt data before sending. */
+		[[maybe_unused]] bool compress_mode_{false};  /*!< Reserved for compression support. */
+		[[maybe_unused]] bool encrypt_mode_{false};   /*!< Reserved for encryption support. */
 
 		std::atomic<bool> is_connected_{false}; /*!< Connection state flag. */
 		bool verify_cert_{true};		/*!< Whether to verify server certificate. */

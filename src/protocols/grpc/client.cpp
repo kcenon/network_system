@@ -142,7 +142,7 @@ public:
 
 private:
     std::shared_ptr<http2::http2_client> http2_client_;
-    uint32_t stream_id_;
+    [[maybe_unused]] uint32_t stream_id_;  // Reserved for future stream operations
     mutable std::mutex mutex_;
     std::condition_variable cv_;
     std::vector<uint8_t> buffer_;
