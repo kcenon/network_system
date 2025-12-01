@@ -261,7 +261,7 @@ if(BUILD_TLS_SUPPORT)
 
     # Find OpenSSL for TLS/SSL (require 1.1.1+ for TLS 1.3 support)
     find_package(OpenSSL 1.1.1 REQUIRED)
-    target_link_libraries(NetworkSystem PRIVATE OpenSSL::SSL OpenSSL::Crypto)
+    target_link_libraries(NetworkSystem PUBLIC OpenSSL::SSL OpenSSL::Crypto)
 
     message(STATUS "TLS/SSL support enabled (TLS 1.2/1.3)")
     message(STATUS "  OpenSSL version: ${OPENSSL_VERSION}")
