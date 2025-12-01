@@ -27,7 +27,7 @@ jobs:
         build_type: [Debug, Release]
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         submodules: recursive
 
@@ -82,7 +82,7 @@ jobs:
               -DENABLE_COVERAGE=OFF
 
     - name: Configure CMake (Unix)
-      if: "!startsWith(matrix.os, 'windows')"
+      if: ${{ !startsWith(matrix.os, 'windows') }}
       run: |
         cmake -B build -G Ninja \
           -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
@@ -101,7 +101,7 @@ jobs:
       run: cmake --build build --config ${{ matrix.build_type }}
 
     - name: Build (Unix)
-      if: "!startsWith(matrix.os, 'windows')"
+      if: ${{ !startsWith(matrix.os, 'windows') }}
       run: cmake --build build --config ${{ matrix.build_type }}
 
     - name: Run Unit Tests
@@ -111,7 +111,7 @@ jobs:
       continue-on-error: true
 
     - name: Run E2E Tests
-      if: "!startsWith(matrix.os, 'windows')"
+      if: ${{ !startsWith(matrix.os, 'windows') }}
       run: |
         cd build
         if [ -f ./test_e2e ]; then
