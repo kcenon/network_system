@@ -76,9 +76,8 @@ target_link_libraries(connection_lifecycle_test PRIVATE
     Threads::Threads
 )
 
-# Setup ASIO and FMT integration (required for network_system headers)
+# Setup ASIO integration (required for network_system headers)
 setup_asio_integration(connection_lifecycle_test)
-setup_fmt_integration(connection_lifecycle_test)
 
 # Add system integration paths
 if(CONTAINER_SYSTEM_INCLUDE_DIR)
@@ -138,9 +137,8 @@ target_link_libraries(protocol_integration_test PRIVATE
     Threads::Threads
 )
 
-# Setup ASIO and FMT integration (required for network_system headers)
+# Setup ASIO integration (required for network_system headers)
 setup_asio_integration(protocol_integration_test)
-setup_fmt_integration(protocol_integration_test)
 
 # Add system integration paths
 if(CONTAINER_SYSTEM_INCLUDE_DIR)
@@ -199,9 +197,8 @@ target_link_libraries(network_performance_test PRIVATE
     Threads::Threads
 )
 
-# Setup ASIO and FMT integration (required for network_system headers)
+# Setup ASIO integration (required for network_system headers)
 setup_asio_integration(network_performance_test)
-setup_fmt_integration(network_performance_test)
 
 # Add system integration paths
 if(CONTAINER_SYSTEM_INCLUDE_DIR)
@@ -260,9 +257,8 @@ target_link_libraries(error_handling_test PRIVATE
     Threads::Threads
 )
 
-# Setup ASIO and FMT integration (required for network_system headers)
+# Setup ASIO integration (required for network_system headers)
 setup_asio_integration(error_handling_test)
-setup_fmt_integration(error_handling_test)
 
 # Add system integration paths
 if(CONTAINER_SYSTEM_INCLUDE_DIR)
@@ -320,9 +316,8 @@ target_link_libraries(network_integration_test_framework PUBLIC
     Threads::Threads
 )
 
-# Setup ASIO and FMT integration for framework library
+# Setup ASIO integration for framework library
 setup_asio_integration(network_integration_test_framework)
-setup_fmt_integration(network_integration_test_framework)
 
 set_target_properties(network_integration_test_framework PROPERTIES
     CXX_STANDARD 20
@@ -350,7 +345,6 @@ target_link_libraries(tcp_load_test PRIVATE
 )
 
 setup_asio_integration(tcp_load_test)
-setup_fmt_integration(tcp_load_test)
 
 if(CONTAINER_SYSTEM_INCLUDE_DIR)
     target_include_directories(tcp_load_test PRIVATE ${CONTAINER_SYSTEM_INCLUDE_DIR})
@@ -405,7 +399,6 @@ target_link_libraries(udp_load_test PRIVATE
 )
 
 setup_asio_integration(udp_load_test)
-setup_fmt_integration(udp_load_test)
 
 if(CONTAINER_SYSTEM_INCLUDE_DIR)
     target_include_directories(udp_load_test PRIVATE ${CONTAINER_SYSTEM_INCLUDE_DIR})
@@ -460,7 +453,6 @@ target_link_libraries(websocket_load_test PRIVATE
 )
 
 setup_asio_integration(websocket_load_test)
-setup_fmt_integration(websocket_load_test)
 
 if(CONTAINER_SYSTEM_INCLUDE_DIR)
     target_include_directories(websocket_load_test PRIVATE ${CONTAINER_SYSTEM_INCLUDE_DIR})
