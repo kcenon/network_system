@@ -17,9 +17,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-22.04
+          - os: ubuntu-24.04
             compiler: gcc
-          - os: ubuntu-22.04
+          - os: ubuntu-24.04
             compiler: clang
           - os: macos-15
             compiler: clang
@@ -138,7 +138,7 @@ jobs:
   # Phase 0: Allow failures, just collect data
   sanitizers:
     name: Sanitizers (${{ matrix.sanitizer }})
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     continue-on-error: true
     timeout-minutes: 60
 

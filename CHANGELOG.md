@@ -12,6 +12,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **QUIC Protocol Support (Phase 1.2)**: Frame types and parsing (RFC 9000 Section 12, 19)
+  - `frame_types.h` with all QUIC frame type definitions and structures
+  - `frame_parser` class for parsing frames from raw bytes
+  - `frame_builder` class for serializing frames to bytes
+  - Support for all RFC 9000 frame types:
+    - PADDING, PING (connection management)
+    - ACK, ACK_ECN (acknowledgment with ECN support)
+    - CRYPTO (handshake data)
+    - STREAM (data transfer with FIN/LEN/OFF flags)
+    - MAX_DATA, MAX_STREAM_DATA, MAX_STREAMS (flow control)
+    - DATA_BLOCKED, STREAM_DATA_BLOCKED, STREAMS_BLOCKED
+    - NEW_CONNECTION_ID, RETIRE_CONNECTION_ID
+    - PATH_CHALLENGE, PATH_RESPONSE
+    - CONNECTION_CLOSE (transport and application)
+    - HANDSHAKE_DONE, NEW_TOKEN
+  - Comprehensive test suite with 37 test cases
+
 - **QUIC Protocol Support (Phase 1.1)**: Variable-length integer encoding (RFC 9000 Section 16)
   - `varint` class with encode/decode methods
   - Support for 1, 2, 4, and 8 byte encodings based on value range
