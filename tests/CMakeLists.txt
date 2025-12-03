@@ -27,9 +27,8 @@ if(GTest_FOUND OR GTEST_FOUND)
         Threads::Threads
     )
 
-    # Setup ASIO and FMT integration (required for network_system headers)
+    # Setup ASIO integration (required for network_system headers)
     setup_asio_integration(network_unit_tests)
-    setup_fmt_integration(network_unit_tests)
 
     # Add system integration paths
     if(CONTAINER_SYSTEM_INCLUDE_DIR)
@@ -80,9 +79,8 @@ if(GTest_FOUND OR GTEST_FOUND)
         Threads::Threads
     )
 
-    # Setup ASIO and FMT integration (required for network_system headers)
+    # Setup ASIO integration (required for network_system headers)
     setup_asio_integration(network_thread_safety_test)
-    setup_fmt_integration(network_thread_safety_test)
 
     # Add system integration paths
     if(CONTAINER_SYSTEM_INCLUDE_DIR)
@@ -130,9 +128,8 @@ if(GTest_FOUND OR GTEST_FOUND)
         Threads::Threads
     )
 
-    # Setup ASIO and FMT integration
+    # Setup ASIO integration
     setup_asio_integration(network_tls_config_test)
-    setup_fmt_integration(network_tls_config_test)
 
     # Add system integration paths
     if(COMMON_SYSTEM_INCLUDE_DIR)
@@ -163,9 +160,8 @@ if(GTest_FOUND OR GTEST_FOUND)
             Threads::Threads
         )
 
-        # Setup ASIO and FMT integration
+        # Setup ASIO integration
         setup_asio_integration(network_websocket_frame_test)
-        setup_fmt_integration(network_websocket_frame_test)
 
         set_target_properties(network_websocket_frame_test PROPERTIES
             CXX_STANDARD 20
@@ -190,9 +186,8 @@ if(GTest_FOUND OR GTEST_FOUND)
             Threads::Threads
         )
 
-        # Setup ASIO and FMT integration
+        # Setup ASIO integration
         setup_asio_integration(network_websocket_handshake_test)
-        setup_fmt_integration(network_websocket_handshake_test)
 
         set_target_properties(network_websocket_handshake_test PROPERTIES
             CXX_STANDARD 20
@@ -217,9 +212,8 @@ if(GTest_FOUND OR GTEST_FOUND)
             Threads::Threads
         )
 
-        # Setup ASIO and FMT integration
+        # Setup ASIO integration
         setup_asio_integration(network_websocket_protocol_test)
-        setup_fmt_integration(network_websocket_protocol_test)
 
         set_target_properties(network_websocket_protocol_test PROPERTIES
             CXX_STANDARD 20
@@ -249,9 +243,8 @@ if(GTest_FOUND OR GTEST_FOUND)
         Threads::Threads
     )
 
-    # Setup ASIO and FMT integration
+    # Setup ASIO integration
     setup_asio_integration(network_http2_frame_test)
-    setup_fmt_integration(network_http2_frame_test)
 
     # Add system integration paths
     if(COMMON_SYSTEM_INCLUDE_DIR)
@@ -282,9 +275,8 @@ if(GTest_FOUND OR GTEST_FOUND)
         Threads::Threads
     )
 
-    # Setup ASIO and FMT integration
+    # Setup ASIO integration
     setup_asio_integration(network_http2_hpack_test)
-    setup_fmt_integration(network_http2_hpack_test)
 
     # Add system integration paths
     if(COMMON_SYSTEM_INCLUDE_DIR)
@@ -318,9 +310,8 @@ if(GTest_FOUND OR GTEST_FOUND)
             OpenSSL::Crypto
         )
 
-        # Setup ASIO and FMT integration
+        # Setup ASIO integration
         setup_asio_integration(network_http2_client_test)
-        setup_fmt_integration(network_http2_client_test)
 
         # Add system integration paths
         if(COMMON_SYSTEM_INCLUDE_DIR)
@@ -356,9 +347,8 @@ if(GTest_FOUND OR GTEST_FOUND)
         Threads::Threads
     )
 
-    # Setup ASIO and FMT integration
+    # Setup ASIO integration
     setup_asio_integration(network_grpc_frame_test)
-    setup_fmt_integration(network_grpc_frame_test)
 
     # Add system integration paths
     if(COMMON_SYSTEM_INCLUDE_DIR)
@@ -389,9 +379,8 @@ if(GTest_FOUND OR GTEST_FOUND)
         Threads::Threads
     )
 
-    # Setup ASIO and FMT integration
+    # Setup ASIO integration
     setup_asio_integration(network_grpc_client_server_test)
-    setup_fmt_integration(network_grpc_client_server_test)
 
     # Add system integration paths
     if(COMMON_SYSTEM_INCLUDE_DIR)
@@ -434,9 +423,8 @@ if(FALSE AND benchmark_FOUND)
         Threads::Threads
     )
 
-    # Setup ASIO and FMT integration (required for network_system headers)
+    # Setup ASIO integration (required for network_system headers)
     setup_asio_integration(network_benchmark_tests)
-    setup_fmt_integration(network_benchmark_tests)
 
     # Add system integration paths
     if(CONTAINER_SYSTEM_INCLUDE_DIR)

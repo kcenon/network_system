@@ -16,7 +16,6 @@ if(GTest_FOUND OR GTEST_FOUND)
     )
 
     setup_asio_integration(network_failure_test)
-    setup_fmt_integration(network_failure_test)
 
     if(CONTAINER_SYSTEM_INCLUDE_DIR)
         target_include_directories(network_failure_test PRIVATE ${CONTAINER_SYSTEM_INCLUDE_DIR})
@@ -61,7 +60,6 @@ if(GTest_FOUND OR GTEST_FOUND)
     )
 
     setup_asio_integration(network_boundary_test)
-    setup_fmt_integration(network_boundary_test)
 
     if(CONTAINER_SYSTEM_INCLUDE_DIR)
         target_include_directories(network_boundary_test PRIVATE ${CONTAINER_SYSTEM_INCLUDE_DIR})
