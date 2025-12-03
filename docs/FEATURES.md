@@ -606,7 +606,13 @@ The following features are tracked in [IMPROVEMENTS.md](../IMPROVEMENTS.md):
 
 ### Long-term
 
-- 🚧 **QUIC Protocol**: UDP-based secure transport
+- 🚧 **QUIC Protocol**: UDP-based secure transport (RFC 9000)
+  - ✅ Variable-length integer encoding (Phase 1.1)
+  - 🚧 Frame types and parsing (Phase 1.2)
+  - 🚧 Packet header encoding (Phase 1.3)
+  - 🚧 QUIC-TLS integration (Phase 2)
+  - 🚧 Connection management (Phase 3)
+  - 🚧 Messaging client/server (Phase 4)
 - 🚧 **WebRTC Support**: Peer-to-peer communication
 - 🚧 **Custom Protocol Support**: Plugin architecture for custom protocols
 
@@ -622,5 +628,5 @@ The following features are tracked in [IMPROVEMENTS.md](../IMPROVEMENTS.md):
 
 ---
 
-**Last Updated**: 2025-11-15
+**Last Updated**: 2025-12-03
 **Maintained by**: kcenon@naver.com
