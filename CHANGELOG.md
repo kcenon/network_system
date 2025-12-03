@@ -11,6 +11,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **QUIC Protocol Support (Phase 1.1)**: Variable-length integer encoding (RFC 9000 Section 16)
+  - `varint` class with encode/decode methods
+  - Support for 1, 2, 4, and 8 byte encodings based on value range
+  - `encode_with_length` for minimum length requirements
+  - Constexpr helper functions for length calculation
+  - Comprehensive test suite with RFC 9000 example values
+
 ### Planned
 - C++20 coroutine full integration
 - HTTP/2 and HTTP/3 support
