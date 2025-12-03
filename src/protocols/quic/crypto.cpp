@@ -676,7 +676,7 @@ auto packet_protection::generate_hp_mask(std::span<const uint8_t> hp_key,
     std::array<uint8_t, 5> mask{};
     std::copy(mask_full.begin(), mask_full.begin() + 5, mask.begin());
 
-    return Result<std::array<uint8_t, 5>>::ok(std::move(mask));
+    return ok(std::move(mask));
 }
 
 auto packet_protection::protect_header(const quic_keys& keys,
