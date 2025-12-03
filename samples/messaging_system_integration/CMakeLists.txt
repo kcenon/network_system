@@ -46,12 +46,6 @@ endif()
 # Platform-specific settings
 if(APPLE)
     # macOS specific settings
-    find_package(PkgConfig REQUIRED)
-    pkg_check_modules(FMT REQUIRED IMPORTED_TARGET fmt)
-
-    target_link_libraries(legacy_compatibility PRIVATE PkgConfig::FMT)
-    target_link_libraries(modern_usage PRIVATE PkgConfig::FMT)
-
     # Add ASIO include path
     target_include_directories(legacy_compatibility PRIVATE /opt/homebrew/include)
     target_include_directories(modern_usage PRIVATE /opt/homebrew/include)

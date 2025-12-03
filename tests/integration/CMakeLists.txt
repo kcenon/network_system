@@ -27,9 +27,8 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/test_e2e.cpp)
         Threads::Threads
     )
 
-    # Setup ASIO and FMT integration (required for network_system headers)
+    # Setup ASIO integration (required for network_system headers)
     setup_asio_integration(test_e2e)
-    setup_fmt_integration(test_e2e)
 
     # Add system integration paths
     if(CONTAINER_SYSTEM_INCLUDE_DIR)
@@ -72,9 +71,8 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/test_integration.cpp)
         Threads::Threads
     )
 
-    # Setup ASIO and FMT integration (required for network_system headers)
+    # Setup ASIO integration (required for network_system headers)
     setup_asio_integration(stress_test)
-    setup_fmt_integration(stress_test)
 
     # Add system integration paths
     if(CONTAINER_SYSTEM_INCLUDE_DIR)
@@ -115,9 +113,8 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/test_compatibility.cpp)
         Threads::Threads
     )
 
-    # Setup ASIO and FMT integration (required for network_system headers)
+    # Setup ASIO integration (required for network_system headers)
     setup_asio_integration(benchmark)
-    setup_fmt_integration(benchmark)
 
     # Add system integration paths
     if(CONTAINER_SYSTEM_INCLUDE_DIR)
@@ -160,9 +157,8 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/test_websocket_e2e.cpp)
         Threads::Threads
     )
 
-    # Setup ASIO and FMT integration (required for network_system headers)
+    # Setup ASIO integration (required for network_system headers)
     setup_asio_integration(test_websocket_e2e)
-    setup_fmt_integration(test_websocket_e2e)
 
     # Add system integration paths
     if(CONTAINER_SYSTEM_INCLUDE_DIR)

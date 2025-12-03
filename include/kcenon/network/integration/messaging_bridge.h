@@ -54,12 +54,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // Suppress deprecation warnings from thread_system headers
 #  pragma clang diagnostic push
 #  pragma clang diagnostic ignored "-Wdeprecated-declarations"
-// Include fmt before thread_system headers since thread_system uses fmt formatters
-#  if defined(USE_FMT_LIBRARY)
-#    include <fmt/format.h>
-#  elif defined(USE_STD_FORMAT)
-#    include <format>
-#  endif
+// Include format for thread_system headers that use std::format
+#  include <format>
 #include <kcenon/thread/core/thread_pool.h>
 #  pragma clang diagnostic pop
 #endif

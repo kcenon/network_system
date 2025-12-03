@@ -23,9 +23,6 @@ include(NetworkSystemIntegration)
 # Find required packages
 find_package(Threads REQUIRED)
 
-# vcpkg integration for fmt
-find_package(fmt CONFIG REQUIRED)
-
 ##################################################
 # Sample Programs Configuration
 ##################################################
@@ -74,7 +71,6 @@ foreach(SAMPLE ${SAMPLE_PROGRAMS})
     # Link libraries
     target_link_libraries(network_${SAMPLE} PRIVATE
         NetworkSystem
-        fmt::fmt
         Threads::Threads
     )
 
@@ -156,4 +152,4 @@ install(FILES ${SAMPLE_SOURCE_FILES}
 message(STATUS "Network System Samples configured:")
 message(STATUS "  Sample programs: ${SAMPLE_PROGRAMS}")
 message(STATUS "  Output directory: ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
-message(STATUS "  Dependencies: network_system, fmt, Threads")
+message(STATUS "  Dependencies: network_system, Threads")

@@ -409,9 +409,8 @@ if(BUILD_VERIFY_BUILD)
         target_compile_definitions(verify_build PRIVATE BUILD_MESSAGING_BRIDGE)
     endif()
 
-    # Configure ASIO and FMT for verify_build
+    # Configure ASIO for verify_build
     setup_asio_integration(verify_build)
-    setup_fmt_integration(verify_build)
 
     set_target_properties(verify_build PROPERTIES
         CXX_STANDARD 20

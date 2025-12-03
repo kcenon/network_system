@@ -103,7 +103,7 @@ Use this checklist for a high-level overview of migration tasks:
 ### Pre-Migration
 - [ ] **Backup your current codebase** (create git branch or backup directory)
 - [ ] **Review current network usage** (identify all files using network module)
-- [ ] **Check dependencies** (verify ASIO, fmt, C++20 compiler availability)
+- [ ] **Check dependencies** (verify ASIO, OpenSSL, C++20 compiler availability)
 - [ ] **Choose migration path** (compatibility mode vs. full migration)
 
 ### Build System Migration
@@ -199,14 +199,14 @@ Install missing dependencies:
 ```bash
 # Ubuntu/Debian
 sudo apt update
-sudo apt install -y cmake ninja-build libasio-dev libfmt-dev
+sudo apt install -y cmake ninja-build libasio-dev libssl-dev
 
 # macOS
-brew install cmake ninja asio fmt
+brew install cmake ninja asio openssl
 
 # Windows (MSYS2)
 pacman -S mingw-w64-x86_64-cmake mingw-w64-x86_64-ninja \
-          mingw-w64-x86_64-asio mingw-w64-x86_64-fmt
+          mingw-w64-x86_64-asio mingw-w64-x86_64-openssl
 ```
 
 ---
@@ -285,7 +285,7 @@ If using vcpkg or other package managers:
   "version": "1.0.0",
   "dependencies": [
     "asio",
-    "fmt"
+    "openssl"
   ],
   "builtin-baseline": "latest"
 }

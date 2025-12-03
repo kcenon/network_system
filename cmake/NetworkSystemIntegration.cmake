@@ -40,33 +40,6 @@ function(setup_asio_integration target)
     endif()
 endfunction()
 
-##################################################
-# Configure FMT integration
-##################################################
-function(setup_fmt_integration target)
-    if(FMT_FOUND AND TARGET PkgConfig::FMT)
-        target_link_libraries(${target} PUBLIC PkgConfig::FMT)
-        target_compile_definitions(${target} PUBLIC USE_FMT_LIBRARY)
-        message(STATUS "Configured ${target} with fmt library (pkgconfig)")
-    elseif(FMT_INCLUDE_DIR)
-        target_include_directories(${target}
-            PUBLIC
-                $<BUILD_INTERFACE:${FMT_INCLUDE_DIR}>
-                $<INSTALL_INTERFACE:include>
-        )
-        if(FMT_LIBRARY)
-            target_link_libraries(${target} PUBLIC ${FMT_LIBRARY})
-            target_compile_definitions(${target} PUBLIC USE_FMT_LIBRARY)
-            message(STATUS "Configured ${target} with fmt library")
-        else()
-            target_compile_definitions(${target} PUBLIC FMT_HEADER_ONLY)
-            message(STATUS "Configured ${target} with fmt header-only")
-        endif()
-    elseif(USE_STD_FORMAT)
-        target_compile_definitions(${target} PUBLIC USE_STD_FORMAT)
-        message(STATUS "Configured ${target} with std::format")
-    endif()
-endfunction()
 
 ##################################################
 # Configure container_system integration
@@ -202,7 +175,6 @@ function(setup_network_system_integrations target)
     message(STATUS "Setting up integrations for ${target}...")
 
     setup_asio_integration(${target})
-    setup_fmt_integration(${target})
     setup_container_system_integration(${target})
     setup_thread_system_integration(${target})
     setup_logger_system_integration(${target})

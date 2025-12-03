@@ -29,19 +29,18 @@ A production-ready C++20 asynchronous network library providing reusable transpo
 **Ubuntu/Debian**:
 ```bash
 sudo apt update
-sudo apt install -y cmake ninja-build libasio-dev libfmt-dev libssl-dev
+sudo apt install -y cmake ninja-build libasio-dev libssl-dev
 ```
 
 **macOS**:
 ```bash
-brew install cmake ninja asio fmt openssl
+brew install cmake ninja asio openssl
 ```
 
 **Windows (MSYS2)**:
 ```bash
 pacman -S mingw-w64-x86_64-cmake mingw-w64-x86_64-ninja \
-          mingw-w64-x86_64-asio mingw-w64-x86_64-fmt \
-          mingw-w64-x86_64-openssl
+          mingw-w64-x86_64-asio mingw-w64-x86_64-openssl
 ```
 
 ### Build
@@ -375,7 +374,6 @@ server->start_server(8080);
 - **OpenSSL** 1.1.1+ (for TLS/SSL and WebSocket)
 
 ### Optional
-- **fmt** 10.0+ (formatting, falls back to std::format)
 - **container_system** (advanced serialization)
 - **thread_system** (thread pool integration)
 - **logger_system** (structured logging)
@@ -487,7 +485,6 @@ This project is licensed under the BSD 3-Clause License - see the [LICENSE](LICE
 
 ### Core Dependencies
 - **ASIO Library Team**: Foundation of asynchronous network programming
-- **fmt Library Contributors**: Modern, safe, and fast formatting
 - **C++ Standards Committee**: C++20 features enabling modern networking
 
 ### Ecosystem Integration

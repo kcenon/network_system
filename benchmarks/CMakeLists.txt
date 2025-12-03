@@ -38,7 +38,6 @@ if(benchmark_FOUND OR BENCHMARK_FOUND)
 
     # Setup integrations for benchmarks (same as NetworkSystem target)
     setup_asio_integration(network_benchmarks)
-    setup_fmt_integration(network_benchmarks)
 
     # Add system integration paths and definitions
     if(CONTAINER_SYSTEM_INCLUDE_DIR)
