@@ -691,7 +691,7 @@ auto packet_protection::protect_header(const quic_keys& keys,
     {
         return error_void(mask_result.error().code,
                          mask_result.error().message,
-                         mask_result.error().module);
+                         get_error_source(mask_result.error()));
     }
 
     auto& mask = mask_result.value();
@@ -729,7 +729,7 @@ auto packet_protection::unprotect_header(const quic_keys& keys,
         return error<std::pair<uint8_t, size_t>>(
             mask_result.error().code,
             mask_result.error().message,
-            mask_result.error().module);
+            get_error_source(mask_result.error()));
     }
 
     auto& mask = mask_result.value();
@@ -913,7 +913,7 @@ auto quic_crypto::derive_initial_secrets(const connection_id& dest_cid)
     {
         return error_void(keys_result.error().code,
                          keys_result.error().message,
-                         keys_result.error().module);
+                         get_error_source(keys_result.error()));
     }
 
     auto& keys = keys_result.value();
@@ -1095,7 +1095,7 @@ auto quic_crypto::update_keys() -> VoidResult
     {
         return error_void(new_secret_result.error().code,
                          new_secret_result.error().message,
-                         new_secret_result.error().module);
+                         get_error_source(new_secret_result.error()));
     }
 
     // Derive new keys from new secret
@@ -1105,7 +1105,7 @@ auto quic_crypto::update_keys() -> VoidResult
     {
         return error_void(new_keys_result.error().code,
                          new_keys_result.error().message,
-                         new_keys_result.error().module);
+                         get_error_source(new_keys_result.error()));
     }
 
     auto& new_keys = new_keys_result.value();
