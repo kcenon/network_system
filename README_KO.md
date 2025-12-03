@@ -403,18 +403,18 @@ if (result.is_err()) {
 #### Ubuntu/Debian
 ```bash
 sudo apt update
-sudo apt install -y cmake ninja-build libasio-dev libfmt-dev
+sudo apt install -y cmake ninja-build libasio-dev libssl-dev
 ```
 
 #### macOS
 ```bash
-brew install cmake ninja asio fmt
+brew install cmake ninja asio openssl
 ```
 
 #### Windows (MSYS2)
 ```bash
 pacman -S mingw-w64-x86_64-cmake mingw-w64-x86_64-ninja \
-          mingw-w64-x86_64-asio mingw-w64-x86_64-fmt
+          mingw-w64-x86_64-asio mingw-w64-x86_64-openssl
 ```
 
 ### 빌드 지침
@@ -804,7 +804,6 @@ Network System은 향상된 모듈성과 재사용성을 제공하기 위해 mes
 - **OpenSSL** 1.1.1+ (TLS/SSL 및 WebSocket 지원용)
 
 ### 선택 사항
-- **fmt** 10.0+ (std::format으로 대체 가능)
 - **container_system** (고급 직렬화용)
 - **thread_system** (thread pool 통합용)
 - **logger_system** (구조화된 로깅용)
@@ -895,7 +894,6 @@ gh workflow run network-load-tests.yml --field update_baseline=true
 
 ### 핵심 의존성
 - **ASIO Library Team**: C++에서 비동기 네트워크 프로그래밍의 기초 제공
-- **fmt Library Contributors**: 최신의 안전하고 빠른 포맷팅 기능 제공
 - **C++ Standards Committee**: 최신 네트워킹을 가능하게 하는 C++20 기능 제공
 
 ### 생태계 통합
