@@ -31,7 +31,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04, macos-15]
+        os: [ubuntu-24.04, macos-15]
         compiler: [clang]
         build_type: [Release]
 
@@ -144,7 +144,7 @@ jobs:
   report:
     name: Generate Benchmark Report
     needs: benchmark
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     if: always()
 
     steps:

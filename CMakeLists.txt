@@ -218,6 +218,7 @@ add_library(NetworkSystem
 
     # QUIC protocol implementation (RFC 9000)
     src/protocols/quic/varint.cpp
+    src/protocols/quic/frame.cpp
 )
 
 # Suppress warnings inherited from parent project (especially from ASIO)

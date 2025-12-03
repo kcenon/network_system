@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04]
+        os: [ubuntu-24.04]
         sanitizer: [thread, address, undefined]
         build_type: [Debug]
 
@@ -91,7 +91,7 @@ jobs:
   sanitizer-summary:
     name: Sanitizer Test Summary
     needs: sanitizer-tests
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     if: always()
 
     steps:
