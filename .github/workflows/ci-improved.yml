@@ -10,7 +10,7 @@ jobs:
   # Quick minimal build for fast feedback
   build-minimal:
     name: Minimal Build (Fast Feedback)
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
 
     steps:
@@ -48,10 +48,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-22.04
+          - os: ubuntu-24.04
             compiler: gcc
             vcpkg_triplet: x64-linux
-          - os: ubuntu-22.04
+          - os: ubuntu-24.04
             compiler: clang
             vcpkg_triplet: x64-linux
           - os: macos-15
@@ -158,7 +158,7 @@ jobs:
       if: runner.os == 'Linux'
       run: |
         sudo apt-get update
-        sudo apt-get install -y cmake ninja-build gcc-12 g++-12 clang \
+        sudo apt-get install -y cmake ninja-build gcc-14 g++-14 clang \
           libgtest-dev libgmock-dev libfmt-dev libssl-dev liblz4-dev zlib1g-dev
 
     - name: Install system dependencies (macOS)
@@ -169,8 +169,8 @@ jobs:
     - name: Set up compiler (GCC)
       if: matrix.compiler == 'gcc'
       run: |
-        sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-12 100
-        sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-12 100
+        sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-14 100
+        sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-14 100
         echo "CC=gcc" >> $GITHUB_ENV
         echo "CXX=g++" >> $GITHUB_ENV
 
@@ -269,7 +269,7 @@ jobs:
   test-downstream:
     name: Test Downstream Compatibility
     needs: build-full
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
 
     steps:
