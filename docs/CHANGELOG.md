@@ -39,6 +39,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [Unreleased]
 
 ### Added
+- **QUIC Protocol - Packet Header Implementation** (2025-12-03)
+  - `connection_id` class for managing QUIC connection IDs (0-20 bytes)
+  - Packet header structures: `long_header` and `short_header` variants
+  - `packet_parser` for parsing Initial, Handshake, 0-RTT, Retry, and 1-RTT packets
+  - `packet_builder` for constructing packet headers
+  - `packet_number` utilities for variable-length packet number encoding/decoding
+  - Support for QUIC v1 (RFC 9000) and v2 (RFC 9369)
+  - Version negotiation packet detection
+  - Comprehensive unit tests (34 test cases)
+  - Part of QUIC Phase 1.3 implementation (#248)
+
 - **Logger System Integration** (2025-09-20)
   - New logger_integration interface for structured logging
   - Support for external logger_system when available

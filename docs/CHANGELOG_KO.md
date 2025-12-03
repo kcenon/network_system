@@ -39,6 +39,17 @@ Network System 프로젝트의 모든 주목할 만한 변경 사항은 이 파�
 ## [Unreleased]
 
 ### 추가됨
+- **QUIC 프로토콜 - 패킷 헤더 구현** (2025-12-03)
+  - QUIC 연결 ID 관리를 위한 `connection_id` 클래스 (0-20 바이트)
+  - 패킷 헤더 구조체: `long_header` 및 `short_header` 변형
+  - Initial, Handshake, 0-RTT, Retry, 1-RTT 패킷 파싱을 위한 `packet_parser`
+  - 패킷 헤더 구축을 위한 `packet_builder`
+  - 가변 길이 패킷 번호 인코딩/디코딩을 위한 `packet_number` 유틸리티
+  - QUIC v1 (RFC 9000) 및 v2 (RFC 9369) 지원
+  - 버전 협상 패킷 감지
+  - 종합 단위 테스트 (34개 테스트 케이스)
+  - QUIC Phase 1.3 구현의 일부 (#248)
+
 - **Logger System 통합** (2025-09-20)
   - 구조화된 로깅을 위한 새로운 logger_integration 인터페이스
   - 사용 가능한 경우 외부 logger_system 지원
