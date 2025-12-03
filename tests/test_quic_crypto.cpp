@@ -32,6 +32,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <gtest/gtest.h>
 
+#include <algorithm>
+
 #include "kcenon/network/protocols/quic/connection_id.h"
 #include "kcenon/network/protocols/quic/crypto.h"
 #include "kcenon/network/protocols/quic/keys.h"
