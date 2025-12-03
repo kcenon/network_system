@@ -608,7 +608,7 @@ The following features are tracked in [IMPROVEMENTS.md](../IMPROVEMENTS.md):
 
 - 🚧 **QUIC Protocol**: UDP-based secure transport (RFC 9000)
   - ✅ Variable-length integer encoding (Phase 1.1)
-  - 🚧 Frame types and parsing (Phase 1.2)
+  - ✅ Frame types and parsing (Phase 1.2)
   - 🚧 Packet header encoding (Phase 1.3)
   - 🚧 QUIC-TLS integration (Phase 2)
   - 🚧 Connection management (Phase 3)
