@@ -250,6 +250,69 @@ auto post_response = client->post(
 
 See `samples/simple_http_server.cpp` and `samples/simple_http_client.cpp` for complete examples.
 
+### QUIC Protocol (RFC 9000)
+
+**Implementation**: Native QUIC protocol with direct RFC implementation (RFC 9000, 9001, 9002)
+
+**Features**:
+- **Transport Protocol**:
+  - UDP-based multiplexed secure transport
+  - Stream multiplexing without head-of-line blocking
+  - Connection migration support
+  - 0-RTT connection resumption
+- **Security**:
+  - TLS 1.3 built-in (mandatory encryption)
+  - Modern cipher suites (AES-GCM, ChaCha20-Poly1305)
+  - Forward secrecy
+- **Flow Control**:
+  - Connection-level flow control
+  - Stream-level flow control
+  - Configurable buffer sizes
+- **Loss Recovery**:
+  - RACK-TLP loss detection algorithm
+  - NewReno congestion control
+  - RTT estimation
+
+**Classes**:
+- `messaging_quic_server` - QUIC server implementation
+- `messaging_quic_client` - QUIC client implementation
+- `quic_session` - Session handling
+- `quic_socket` - Low-level QUIC socket wrapper
+
+**Example**:
+```cpp
+// QUIC Server
+auto server = std::make_shared<messaging_quic_server>("quic_server");
+server->set_receive_callback([](auto session, const auto& data) {
+    session->send(std::vector<uint8_t>(data));  // Echo back
+});
+server->start_server(4433);
+
+// QUIC Client
+auto client = std::make_shared<messaging_quic_client>("quic_client");
+client->set_receive_callback([](const auto& data) {
+    std::cout << "Received: " << data.size() << " bytes\n";
+});
+
+quic_client_config config;
+config.verify_server = false;  // For testing
+client->start_client("127.0.0.1", 4433, config);
+client->send_packet("Hello, QUIC!");
+
+// Multi-stream support
+auto stream_id = client->create_stream();
+if (stream_id) {
+    client->send_on_stream(*stream_id, {'d', 'a', 't', 'a'});
+}
+```
+
+**Build Configuration**:
+```bash
+cmake -DBUILD_QUIC_SUPPORT=ON ..
+```
+
+See [QUIC Documentation](protocols/quic/README.md) for detailed configuration and examples.
+
 ---
 
 ## Asynchronous I/O Model
@@ -606,13 +669,15 @@ The following features are tracked in [IMPROVEMENTS.md](../IMPROVEMENTS.md):
 
 ### Long-term
 
-- 🚧 **QUIC Protocol**: UDP-based secure transport (RFC 9000)
+- ✅ **QUIC Protocol**: UDP-based secure transport (RFC 9000) - **COMPLETE**
   - ✅ Variable-length integer encoding (Phase 1.1)
   - ✅ Frame types and parsing (Phase 1.2)
-  - 🚧 Packet header encoding (Phase 1.3)
-  - 🚧 QUIC-TLS integration (Phase 2)
-  - 🚧 Connection management (Phase 3)
-  - 🚧 Messaging client/server (Phase 4)
+  - ✅ Packet header encoding (Phase 1.3)
+  - ✅ QUIC-TLS integration (Phase 2)
+  - ✅ Connection management (Phase 3)
+  - ✅ Messaging client/server (Phase 4)
+  - ✅ Integration tests and documentation (Phase 4.3)
+  - See [QUIC Documentation](protocols/quic/README.md) for details
 - 🚧 **WebRTC Support**: Peer-to-peer communication
 - 🚧 **Custom Protocol Support**: Plugin architecture for custom protocols
 
@@ -628,5 +693,5 @@ The following features are tracked in [IMPROVEMENTS.md](../IMPROVEMENTS.md):
 
 ---
 
-**Last Updated**: 2025-12-03
+**Last Updated**: 2025-12-04
 **Maintained by**: kcenon@naver.com

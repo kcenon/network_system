@@ -199,6 +199,59 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/test_websocket_e2e.cpp)
     message(STATUS "Integration test configured: test_websocket_e2e")
 endif()
 
+# QUIC E2E Test
+if(BUILD_QUIC_SUPPORT AND EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/test_quic_e2e.cpp)
+    add_executable(test_quic_e2e test_quic_e2e.cpp)
+
+    target_link_libraries(test_quic_e2e PRIVATE
+        NetworkSystem
+        GTest::gtest
+        GTest::gtest_main
+        Threads::Threads
+    )
+
+    # Setup ASIO integration (required for network_system headers)
+    setup_asio_integration(test_quic_e2e)
+
+    # Add system integration paths
+    if(CONTAINER_SYSTEM_INCLUDE_DIR)
+        target_include_directories(test_quic_e2e PRIVATE ${CONTAINER_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(test_quic_e2e PRIVATE BUILD_WITH_CONTAINER_SYSTEM)
+    endif()
+
+    if(THREAD_SYSTEM_INCLUDE_DIR)
+        target_include_directories(test_quic_e2e PRIVATE ${THREAD_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(test_quic_e2e PRIVATE BUILD_WITH_THREAD_SYSTEM)
+    endif()
+
+    if(LOGGER_SYSTEM_INCLUDE_DIR)
+        target_include_directories(test_quic_e2e PRIVATE ${LOGGER_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(test_quic_e2e PRIVATE BUILD_WITH_LOGGER_SYSTEM)
+    endif()
+
+    if(COMMON_SYSTEM_INCLUDE_DIR)
+        target_include_directories(test_quic_e2e PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(test_quic_e2e PRIVATE BUILD_WITH_COMMON_SYSTEM)
+    endif()
+
+    set_target_properties(test_quic_e2e PROPERTIES
+        CXX_STANDARD 20
+        CXX_STANDARD_REQUIRED ON
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+    )
+
+    add_test(NAME QuicE2ETests COMMAND test_quic_e2e)
+
+    # Exclude from sanitizer tests due to timing-sensitive operations
+    # that can cause false positives or timeouts under sanitizers
+    set_tests_properties(QuicE2ETests PROPERTIES
+        LABELS "integration;quic;no_sanitizer"
+        TIMEOUT 180
+    )
+
+    message(STATUS "Integration test configured: test_quic_e2e")
+endif()
+
 ##################################################
 # Test Data Setup
 ##################################################
