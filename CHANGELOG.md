@@ -12,6 +12,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **QUIC Protocol Support (Phase 3.1)**: Stream Management (RFC 9000 Sections 2-4)
+  - `stream` class with complete send/receive state machine
+  - Stream ID allocation for client/server roles (bidi/uni)
+  - `stream_manager` for stream lifecycle and multiplexing
+  - `flow_controller` for connection-level flow control
+  - Data reassembly with gap handling
+  - Flow control enforcement at stream level
+  - MAX_STREAM_DATA and MAX_DATA frame generation
+  - Comprehensive test suite
+
 - **QUIC Protocol Support (Phase 2.2)**: QUIC Socket with packet protection
   - `quic_socket` class wrapping UDP socket with QUIC packet protection
   - Connection management: `connect()`, `accept()`, `close()`
