@@ -39,6 +39,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [Unreleased]
 
 ### Added
+- **QUIC Protocol Epic Complete** (2025-12-04)
+  - All 4 phases of QUIC implementation completed
+  - Phase 1: Foundation (varint, frame, packet)
+  - Phase 2: Cryptography (TLS integration, quic_socket)
+  - Phase 3: Connection & Streams (stream management, connection state machine, loss detection)
+  - Phase 4: Public API (messaging_quic_client, messaging_quic_server, integration tests)
+  - Closes Epic #245
+
 - **QUIC Protocol - Phase 4.3 Complete** (2025-12-04)
   - Comprehensive E2E integration tests for QUIC protocol
     - Server lifecycle tests (start, stop, configuration)
