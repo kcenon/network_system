@@ -39,6 +39,7 @@ set(SAMPLE_PROGRAMS
     memory_profile_demo
     connection_pool_example
     quic_client_example
+    quic_server_example
 )
 
 # Add UDP sample if UDP support is enabled
