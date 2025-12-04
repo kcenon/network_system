@@ -221,6 +221,8 @@ add_library(NetworkSystem
     src/protocols/quic/frame.cpp
     src/protocols/quic/connection_id.cpp
     src/protocols/quic/packet.cpp
+    src/protocols/quic/keys.cpp
+    src/protocols/quic/crypto.cpp
 )
 
 # Suppress warnings inherited from parent project (especially from ASIO)
