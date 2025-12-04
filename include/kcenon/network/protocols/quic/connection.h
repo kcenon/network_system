@@ -126,7 +126,7 @@ struct sent_packet_info
     encryption_level level{encryption_level::initial};
 
     // Frames included in this packet (for retransmission)
-    std::vector<quic_frame> frames;
+    std::vector<frame> frames;
 };
 
 // ============================================================================
@@ -189,13 +189,11 @@ public:
 
     ~connection();
 
-    // Non-copyable
+    // Non-copyable and non-movable (members are not movable)
     connection(const connection&) = delete;
     auto operator=(const connection&) -> connection& = delete;
-
-    // Movable
-    connection(connection&&) noexcept;
-    auto operator=(connection&&) noexcept -> connection&;
+    connection(connection&&) = delete;
+    auto operator=(connection&&) -> connection& = delete;
 
     // ========================================================================
     // Connection State
@@ -523,7 +521,7 @@ private:
     bool pending_ack_app_{false};
 
     // Pending frames to send
-    std::deque<quic_frame> pending_frames_;
+    std::deque<frame> pending_frames_;
 
     // Close state
     bool close_sent_{false};
@@ -570,7 +568,7 @@ private:
     /*!
      * \brief Handle a specific frame
      */
-    [[nodiscard]] auto handle_frame(const quic_frame& frame, encryption_level level)
+    [[nodiscard]] auto handle_frame(const frame& frame, encryption_level level)
         -> VoidResult;
 
     /*!

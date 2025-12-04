@@ -90,8 +90,17 @@ struct preferred_address_info
     uint16_t ipv4_port{0};
     std::array<uint8_t, 16> ipv6_address{};
     uint16_t ipv6_port{0};
-    connection_id connection_id;
+    class connection_id connection_id;
     std::array<uint8_t, 16> stateless_reset_token{};
+
+    //! Equality comparison
+    [[nodiscard]] auto operator==(const preferred_address_info& other) const -> bool
+    {
+        return ipv4_address == other.ipv4_address && ipv4_port == other.ipv4_port &&
+               ipv6_address == other.ipv6_address && ipv6_port == other.ipv6_port &&
+               connection_id == other.connection_id &&
+               stateless_reset_token == other.stateless_reset_token;
+    }
 };
 
 /*!

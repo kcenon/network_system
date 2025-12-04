@@ -79,7 +79,7 @@ auto read_varint_from_span(std::span<const uint8_t>& data)
     -> Result<uint64_t>
 {
     auto result = varint::decode(data);
-    if (!result)
+    if (result.is_err())
     {
         return error<uint64_t>(transport_param_error::decode_error,
                                "Failed to decode varint",
@@ -101,21 +101,21 @@ auto transport_parameters::encode() const -> std::vector<uint8_t>
     if (original_destination_connection_id)
     {
         append_parameter(buffer, transport_param_id::original_destination_connection_id,
-                         original_destination_connection_id->span());
+                         original_destination_connection_id->data());
     }
 
     // Initial Source Connection ID
     if (initial_source_connection_id)
     {
         append_parameter(buffer, transport_param_id::initial_source_connection_id,
-                         initial_source_connection_id->span());
+                         initial_source_connection_id->data());
     }
 
     // Retry Source Connection ID (server only)
     if (retry_source_connection_id)
     {
         append_parameter(buffer, transport_param_id::retry_source_connection_id,
-                         retry_source_connection_id->span());
+                         retry_source_connection_id->data());
     }
 
     // Stateless Reset Token (server only)
@@ -223,7 +223,7 @@ auto transport_parameters::encode() const -> std::vector<uint8_t>
 
         // Connection ID length + Connection ID
         addr_data.push_back(static_cast<uint8_t>(preferred_address->connection_id.length()));
-        append_bytes(addr_data, preferred_address->connection_id.span());
+        append_bytes(addr_data, preferred_address->connection_id.data());
 
         // Stateless reset token (16 bytes)
         append_bytes(addr_data,
@@ -247,7 +247,7 @@ auto transport_parameters::decode(std::span<const uint8_t> data)
     {
         // Read parameter ID
         auto id_result = read_varint_from_span(data);
-        if (!id_result)
+        if (id_result.is_err())
         {
             return error<transport_parameters>(transport_param_error::decode_error,
                                                 "Failed to decode parameter ID",
@@ -266,7 +266,7 @@ auto transport_parameters::decode(std::span<const uint8_t> data)
 
         // Read parameter length
         auto len_result = read_varint_from_span(data);
-        if (!len_result)
+        if (len_result.is_err())
         {
             return error<transport_parameters>(transport_param_error::decode_error,
                                                 "Failed to decode parameter length",
@@ -295,7 +295,7 @@ auto transport_parameters::decode(std::span<const uint8_t> data)
                                                     "transport_params");
             }
             params.original_destination_connection_id =
-                connection_id(param_data.data(), param_data.size());
+                connection_id(param_data);
             break;
 
         case transport_param_id::initial_source_connection_id:
@@ -306,7 +306,7 @@ auto transport_parameters::decode(std::span<const uint8_t> data)
                                                     "transport_params");
             }
             params.initial_source_connection_id =
-                connection_id(param_data.data(), param_data.size());
+                connection_id(param_data);
             break;
 
         case transport_param_id::retry_source_connection_id:
@@ -317,7 +317,7 @@ auto transport_parameters::decode(std::span<const uint8_t> data)
                                                     "transport_params");
             }
             params.retry_source_connection_id =
-                connection_id(param_data.data(), param_data.size());
+                connection_id(param_data);
             break;
 
         case transport_param_id::stateless_reset_token:
@@ -337,7 +337,7 @@ auto transport_parameters::decode(std::span<const uint8_t> data)
         case transport_param_id::max_idle_timeout:
         {
             auto result = varint::decode(param_data);
-            if (!result)
+            if (result.is_err())
             {
                 return error<transport_parameters>(transport_param_error::decode_error,
                                                     "Failed to decode max_idle_timeout",
@@ -350,7 +350,7 @@ auto transport_parameters::decode(std::span<const uint8_t> data)
         case transport_param_id::ack_delay_exponent:
         {
             auto result = varint::decode(param_data);
-            if (!result)
+            if (result.is_err())
             {
                 return error<transport_parameters>(transport_param_error::decode_error,
                                                     "Failed to decode ack_delay_exponent",
@@ -369,7 +369,7 @@ auto transport_parameters::decode(std::span<const uint8_t> data)
         case transport_param_id::max_ack_delay:
         {
             auto result = varint::decode(param_data);
-            if (!result)
+            if (result.is_err())
             {
                 return error<transport_parameters>(transport_param_error::decode_error,
                                                     "Failed to decode max_ack_delay",
@@ -388,7 +388,7 @@ auto transport_parameters::decode(std::span<const uint8_t> data)
         case transport_param_id::max_udp_payload_size:
         {
             auto result = varint::decode(param_data);
-            if (!result)
+            if (result.is_err())
             {
                 return error<transport_parameters>(transport_param_error::decode_error,
                                                     "Failed to decode max_udp_payload_size",
@@ -407,7 +407,7 @@ auto transport_parameters::decode(std::span<const uint8_t> data)
         case transport_param_id::initial_max_data:
         {
             auto result = varint::decode(param_data);
-            if (!result)
+            if (result.is_err())
             {
                 return error<transport_parameters>(transport_param_error::decode_error,
                                                     "Failed to decode initial_max_data",
@@ -420,7 +420,7 @@ auto transport_parameters::decode(std::span<const uint8_t> data)
         case transport_param_id::initial_max_stream_data_bidi_local:
         {
             auto result = varint::decode(param_data);
-            if (!result)
+            if (result.is_err())
             {
                 return error<transport_parameters>(
                     transport_param_error::decode_error,
@@ -434,7 +434,7 @@ auto transport_parameters::decode(std::span<const uint8_t> data)
         case transport_param_id::initial_max_stream_data_bidi_remote:
         {
             auto result = varint::decode(param_data);
-            if (!result)
+            if (result.is_err())
             {
                 return error<transport_parameters>(
                     transport_param_error::decode_error,
@@ -448,7 +448,7 @@ auto transport_parameters::decode(std::span<const uint8_t> data)
         case transport_param_id::initial_max_stream_data_uni:
         {
             auto result = varint::decode(param_data);
-            if (!result)
+            if (result.is_err())
             {
                 return error<transport_parameters>(
                     transport_param_error::decode_error,
@@ -462,7 +462,7 @@ auto transport_parameters::decode(std::span<const uint8_t> data)
         case transport_param_id::initial_max_streams_bidi:
         {
             auto result = varint::decode(param_data);
-            if (!result)
+            if (result.is_err())
             {
                 return error<transport_parameters>(
                     transport_param_error::decode_error,
@@ -476,7 +476,7 @@ auto transport_parameters::decode(std::span<const uint8_t> data)
         case transport_param_id::initial_max_streams_uni:
         {
             auto result = varint::decode(param_data);
-            if (!result)
+            if (result.is_err())
             {
                 return error<transport_parameters>(
                     transport_param_error::decode_error,
@@ -501,7 +501,7 @@ auto transport_parameters::decode(std::span<const uint8_t> data)
         case transport_param_id::active_connection_id_limit:
         {
             auto result = varint::decode(param_data);
-            if (!result)
+            if (result.is_err())
             {
                 return error<transport_parameters>(
                     transport_param_error::decode_error,
@@ -557,7 +557,8 @@ auto transport_parameters::decode(std::span<const uint8_t> data)
                                                     "Invalid preferred address connection ID",
                                                     "transport_params");
             }
-            addr.connection_id = connection_id(param_data.data() + offset, cid_len);
+            addr.connection_id = connection_id(
+                std::span<const uint8_t>(param_data.data() + offset, cid_len));
             offset += cid_len;
 
             // Stateless reset token

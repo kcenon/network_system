@@ -120,8 +120,7 @@ connection::connection(bool is_server, const connection_id& initial_dcid)
 
 connection::~connection() = default;
 
-connection::connection(connection&&) noexcept = default;
-auto connection::operator=(connection&&) noexcept -> connection& = default;
+// Move operations are deleted because some members are not movable
 
 // ============================================================================
 // Connection IDs
@@ -234,7 +233,7 @@ auto connection::start_handshake(const std::string& server_name)
 
     // Initialize crypto for client
     auto init_result = crypto_.init_client(server_name);
-    if (!init_result)
+    if (init_result.is_err())
     {
         return error<std::vector<uint8_t>>(connection_error::handshake_failed,
                                             "Failed to initialize crypto",
@@ -244,7 +243,7 @@ auto connection::start_handshake(const std::string& server_name)
 
     // Derive initial secrets
     auto derive_result = crypto_.derive_initial_secrets(initial_dcid_);
-    if (!derive_result)
+    if (derive_result.is_err())
     {
         return error<std::vector<uint8_t>>(connection_error::handshake_failed,
                                             "Failed to derive initial secrets",
@@ -254,7 +253,7 @@ auto connection::start_handshake(const std::string& server_name)
 
     // Start TLS handshake to get ClientHello
     auto hs_result = crypto_.start_handshake();
-    if (!hs_result)
+    if (hs_result.is_err())
     {
         return error<std::vector<uint8_t>>(connection_error::handshake_failed,
                                             "Failed to start TLS handshake",
@@ -286,7 +285,7 @@ auto connection::init_server_handshake(const std::string& cert_file,
     }
 
     auto result = crypto_.init_server(cert_file, key_file);
-    if (!result)
+    if (result.is_err())
     {
         return error_void(connection_error::handshake_failed,
                           "Failed to initialize server crypto",
@@ -296,7 +295,7 @@ auto connection::init_server_handshake(const std::string& cert_file,
 
     // Derive initial secrets using the client's DCID
     auto derive_result = crypto_.derive_initial_secrets(initial_dcid_);
-    if (!derive_result)
+    if (derive_result.is_err())
     {
         return error_void(connection_error::handshake_failed,
                           "Failed to derive initial secrets",
@@ -337,7 +336,7 @@ auto connection::receive_packet(std::span<const uint8_t> data) -> VoidResult
     if (packet_parser::is_long_header(data[0]))
     {
         auto parse_result = packet_parser::parse_long_header(data);
-        if (!parse_result)
+        if (parse_result.is_err())
         {
             return error_void(connection_error::protocol_violation,
                               "Failed to parse long header",
@@ -351,7 +350,7 @@ auto connection::receive_packet(std::span<const uint8_t> data) -> VoidResult
     else
     {
         auto parse_result = packet_parser::parse_short_header(data, local_cid_.length());
-        if (!parse_result)
+        if (parse_result.is_err())
         {
             return error_void(connection_error::protocol_violation,
                               "Failed to parse short header",
@@ -380,7 +379,7 @@ auto connection::process_long_header_packet(const long_header& hdr,
         pending_ack_handshake_ = true;
         break;
     case packet_type::zero_rtt:
-        level = encryption_level::early_data;
+        level = encryption_level::zero_rtt;
         break;
     case packet_type::retry:
         // Handle Retry packet specially
@@ -405,7 +404,7 @@ auto connection::process_long_header_packet(const long_header& hdr,
 
     // Get keys for this level
     auto keys_result = crypto_.get_read_keys(level);
-    if (!keys_result)
+    if (keys_result.is_err())
     {
         // Keys not yet available - this might happen during handshake
         return ok();
@@ -439,7 +438,7 @@ auto connection::process_short_header_packet(const short_header& hdr,
 
     // Get 1-RTT keys
     auto keys_result = crypto_.get_read_keys(encryption_level::application);
-    if (!keys_result)
+    if (keys_result.is_err())
     {
         return error_void(connection_error::handshake_failed,
                           "1-RTT keys not available",
@@ -462,8 +461,8 @@ auto connection::process_frames(std::span<const uint8_t> payload,
                                  encryption_level level) -> VoidResult
 {
     // Parse all frames in the payload
-    auto frames_result = parse_frames(payload);
-    if (!frames_result)
+    auto frames_result = frame_parser::parse_all(payload);
+    if (frames_result.is_err())
     {
         return error_void(connection_error::protocol_violation,
                           "Failed to parse frames",
@@ -472,10 +471,10 @@ auto connection::process_frames(std::span<const uint8_t> payload,
     }
 
     // Process each frame
-    for (const auto& frame : frames_result.value())
+    for (const auto& f : frames_result.value())
     {
-        auto result = handle_frame(frame, level);
-        if (!result)
+        auto result = handle_frame(f, level);
+        if (result.is_err())
         {
             return result;
         }
@@ -485,7 +484,7 @@ auto connection::process_frames(std::span<const uint8_t> payload,
     return ok();
 }
 
-auto connection::handle_frame(const quic_frame& frame, encryption_level level)
+auto connection::handle_frame(const frame& frm, encryption_level level)
     -> VoidResult
 {
     return std::visit(
@@ -532,7 +531,7 @@ auto connection::handle_frame(const quic_frame& frame, encryption_level level)
                 // Process CRYPTO frame
                 auto result = crypto_.process_crypto_data(level,
                     std::span<const uint8_t>(f.data.data(), f.data.size()));
-                if (!result)
+                if (result.is_err())
                 {
                     return error_void(connection_error::handshake_failed,
                                       "Failed to process crypto data",
@@ -563,7 +562,7 @@ auto connection::handle_frame(const quic_frame& frame, encryption_level level)
             {
                 // Get or create stream
                 auto stream_result = stream_mgr_.get_or_create_stream(f.stream_id);
-                if (!stream_result)
+                if (stream_result.is_err())
                 {
                     return error_void(connection_error::protocol_violation,
                                       "Failed to get stream",
@@ -576,13 +575,17 @@ auto connection::handle_frame(const quic_frame& frame, encryption_level level)
                     f.offset,
                     std::span<const uint8_t>(f.data.data(), f.data.size()),
                     f.fin);
-                if (!recv_result)
+                if (recv_result.is_err())
                 {
                     return recv_result;
                 }
 
                 // Update connection-level flow control
-                flow_ctrl_.record_received(f.data.size());
+                auto recv_flow = flow_ctrl_.record_received(f.data.size());
+                if (recv_flow.is_err())
+                {
+                    return recv_flow;
+                }
                 return ok();
             }
             else if constexpr (std::is_same_v<T, max_data_frame>)
@@ -595,7 +598,7 @@ auto connection::handle_frame(const quic_frame& frame, encryption_level level)
                 auto* s = stream_mgr_.get_stream(f.stream_id);
                 if (s)
                 {
-                    s->set_max_send_data(f.maximum_data);
+                    s->set_max_send_data(f.maximum_stream_data);
                 }
                 return ok();
             }
@@ -616,7 +619,7 @@ auto connection::handle_frame(const quic_frame& frame, encryption_level level)
                 close_error_code_ = f.error_code;
                 close_reason_ = f.reason_phrase;
                 close_received_ = true;
-                application_close_ = f.application_error;
+                application_close_ = f.is_application_error;
                 enter_draining();
                 return ok();
             }
@@ -634,7 +637,7 @@ auto connection::handle_frame(const quic_frame& frame, encryption_level level)
                 auto* s = stream_mgr_.get_stream(f.stream_id);
                 if (s)
                 {
-                    return s->receive_reset(f.error_code, f.final_size);
+                    return s->receive_reset(f.application_error_code, f.final_size);
                 }
                 return ok();
             }
@@ -643,7 +646,7 @@ auto connection::handle_frame(const quic_frame& frame, encryption_level level)
                 auto* s = stream_mgr_.get_stream(f.stream_id);
                 if (s)
                 {
-                    return s->receive_stop_sending(f.error_code);
+                    return s->receive_stop_sending(f.application_error_code);
                 }
                 return ok();
             }
@@ -671,7 +674,7 @@ auto connection::handle_frame(const quic_frame& frame, encryption_level level)
                 return ok();
             }
         },
-        frame);
+        frm);
 }
 
 // ============================================================================
@@ -750,7 +753,7 @@ auto connection::build_packet(encryption_level level) -> std::vector<uint8_t>
 
     // Get keys for this level
     auto keys_result = crypto_.get_write_keys(level);
-    if (!keys_result)
+    if (keys_result.is_err())
     {
         return packet;
     }
@@ -787,7 +790,7 @@ auto connection::build_packet(encryption_level level) -> std::vector<uint8_t>
         auto ack = generate_ack_frame(space);
         if (ack)
         {
-            auto encoded = encode_frame(ack_frame{*ack});
+            auto encoded = frame_builder::build_ack(*ack);
             payload.insert(payload.end(), encoded.begin(), encoded.end());
             space.ack_needed = false;
         }
@@ -817,7 +820,7 @@ auto connection::build_packet(encryption_level level) -> std::vector<uint8_t>
         cf.data = std::move(data);
         crypto_offset += cf.data.size();
 
-        auto encoded = encode_frame(cf);
+        auto encoded = frame_builder::build_crypto(cf);
         payload.insert(payload.end(), encoded.begin(), encoded.end());
         crypto_queue->pop_front();
     }
@@ -827,7 +830,7 @@ auto connection::build_packet(encryption_level level) -> std::vector<uint8_t>
         hs_state_ == handshake_state::complete && state_ == connection_state::connected)
     {
         handshake_done_frame hd;
-        auto encoded = encode_frame(hd);
+        auto encoded = frame_builder::build(hd);
         payload.insert(payload.end(), encoded.begin(), encoded.end());
     }
 
@@ -837,8 +840,8 @@ auto connection::build_packet(encryption_level level) -> std::vector<uint8_t>
         connection_close_frame ccf;
         ccf.error_code = close_error_code_.value_or(0);
         ccf.reason_phrase = close_reason_;
-        ccf.application_error = application_close_;
-        auto encoded = encode_frame(ccf);
+        ccf.is_application_error = application_close_;
+        auto encoded = frame_builder::build(ccf);
         payload.insert(payload.end(), encoded.begin(), encoded.end());
     }
 
@@ -850,7 +853,7 @@ auto connection::build_packet(encryption_level level) -> std::vector<uint8_t>
         {
             if (auto sf = s->next_stream_frame(1200))
             {
-                auto encoded = encode_frame(*sf);
+                auto encoded = frame_builder::build_stream(*sf);
                 payload.insert(payload.end(), encoded.begin(), encoded.end());
             }
         }
@@ -868,9 +871,7 @@ auto connection::build_packet(encryption_level level) -> std::vector<uint8_t>
         size_t current_size = header.size() + payload.size() + 16; // +16 for AEAD tag
         if (current_size < min_size)
         {
-            padding_frame pf;
-            pf.length = min_size - current_size;
-            auto encoded = encode_frame(pf);
+            auto encoded = frame_builder::build_padding(min_size - current_size);
             payload.insert(payload.end(), encoded.begin(), encoded.end());
         }
     }
@@ -882,7 +883,7 @@ auto connection::build_packet(encryption_level level) -> std::vector<uint8_t>
         std::span<const uint8_t>(payload.data(), payload.size()),
         pn);
 
-    if (!protect_result)
+    if (protect_result.is_err())
     {
         return {};
     }
@@ -938,7 +939,7 @@ auto connection::get_pn_space(encryption_level level) -> packet_number_space&
     switch (level)
     {
     case encryption_level::initial:
-    case encryption_level::early_data:
+    case encryption_level::zero_rtt:
         return initial_space_;
     case encryption_level::handshake:
         return handshake_space_;
@@ -953,7 +954,7 @@ auto connection::get_pn_space(encryption_level level) const
     switch (level)
     {
     case encryption_level::initial:
-    case encryption_level::early_data:
+    case encryption_level::zero_rtt:
         return initial_space_;
     case encryption_level::handshake:
         return handshake_space_;
@@ -985,7 +986,8 @@ void connection::update_state()
 
 auto connection::close(uint64_t error_code, const std::string& reason) -> VoidResult
 {
-    if (is_closed())
+    // Already closing or closed - don't update error state
+    if (is_closed() || is_draining())
     {
         return ok();
     }
@@ -1002,7 +1004,8 @@ auto connection::close(uint64_t error_code, const std::string& reason) -> VoidRe
 auto connection::close_application(uint64_t error_code, const std::string& reason)
     -> VoidResult
 {
-    if (is_closed())
+    // Already closing or closed - don't update error state
+    if (is_closed() || is_draining())
     {
         return ok();
     }
@@ -1119,7 +1122,9 @@ auto connection::generate_ack_frame(const packet_number_space& space)
     ack.ack_delay = std::chrono::duration_cast<std::chrono::microseconds>(
                         std::chrono::steady_clock::now() - space.largest_received_time)
                         .count();
-    ack.first_ack_range = space.largest_received;  // Simplified: ACK all packets
+    // Simplified: ACK all packets from 0 to largest_received
+    // The first ACK range is implicit (largest_acknowledged to largest_acknowledged - first_ack_range_length)
+    // For simplicity, we don't add any additional ranges
 
     return ack;
 }
