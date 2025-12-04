@@ -43,6 +43,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <asio.hpp>
 
 #include "kcenon/network/core/messaging_quic_client.h"
+#include "kcenon/network/protocols/quic/connection_id.h"
 #include "kcenon/network/utils/result_types.h"
 
 namespace network_system::internal

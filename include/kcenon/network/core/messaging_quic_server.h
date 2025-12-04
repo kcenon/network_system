@@ -48,6 +48,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "kcenon/network/core/messaging_quic_client.h"
 #include "kcenon/network/integration/thread_integration.h"
+#include "kcenon/network/protocols/quic/connection_id.h"
 #include "kcenon/network/utils/result_types.h"
 
 // Optional monitoring support via common_system

@@ -365,7 +365,7 @@ namespace network_system::core
 			{
 				std::vector<uint8_t> data_copy(data);
 				auto result = session->send(std::move(data_copy));
-				if (!result)
+				if (result.is_err())
 				{
 					NETWORK_LOG_WARN("[messaging_quic_server] Failed to send to session "
 					                 + session->session_id() + ": "
@@ -387,7 +387,7 @@ namespace network_system::core
 			{
 				std::vector<uint8_t> data_copy(data);
 				auto result = session->send(std::move(data_copy));
-				if (!result)
+				if (result.is_err())
 				{
 					NETWORK_LOG_WARN("[messaging_quic_server] Failed to send to session "
 					                 + session_id + ": " + result.error().message);
@@ -509,7 +509,7 @@ namespace network_system::core
 
 		// Parse packet header to get destination connection ID
 		auto header_result = protocols::quic::packet_parser::parse_header(data);
-		if (!header_result)
+		if (header_result.is_err())
 		{
 			NETWORK_LOG_DEBUG("[messaging_quic_server] Invalid packet from "
 			                  + from.address().to_string());
@@ -523,7 +523,7 @@ namespace network_system::core
 		    {
 			    dcid = hdr.dest_conn_id;
 		    },
-		    header_result->first);
+		    header_result.value().first);
 
 		// Find or create session for this connection
 		auto session = find_or_create_session(dcid, from);
@@ -579,7 +579,7 @@ namespace network_system::core
 		{
 			auto accept_result =
 			    quic_socket->accept(config_.cert_file, config_.key_file);
-			if (!accept_result)
+			if (accept_result.is_err())
 			{
 				NETWORK_LOG_ERROR(
 				    "[messaging_quic_server] Failed to accept connection: "
