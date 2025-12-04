@@ -12,6 +12,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **QUIC Protocol Support (Phase 3.2)**: Connection State Machine (RFC 9000 Section 5)
+  - `transport_parameters` struct with RFC 9000 Section 18 compliant encoding/decoding
+    - All standard transport parameters (max_idle_timeout, flow control limits, etc.)
+    - Connection ID parameters (original/initial/retry)
+    - Server-only parameters (preferred_address, stateless_reset_token)
+    - Validation per client/server role
+  - `connection` class implementing the connection state machine
+    - Connection states: idle, handshaking, connected, closing, draining, closed
+    - Handshake states: initial, waiting_server_hello, waiting_finished, complete
+    - Packet number spaces: Initial, Handshake, Application
+    - Long and short header packet processing
+    - Frame handling via std::visit pattern
+    - Connection ID management (add, retire, rotation)
+    - Transport parameter negotiation
+    - Connection close with error code preservation
+    - Idle timeout handling
+    - Integration with stream_manager and flow_controller
+  - `preferred_address_info` struct for server address migration support
+  - Comprehensive test suite with 40 test cases
+
 - **QUIC Protocol Support (Phase 3.1)**: Stream Management (RFC 9000 Sections 2-4)
   - `stream` class with complete send/receive state machine
   - Stream ID allocation for client/server roles (bidi/uni)
