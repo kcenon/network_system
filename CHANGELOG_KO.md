@@ -11,10 +11,30 @@ Network System 프로젝트의 모든 주요 변경 사항이 이 파일에 문�
 
 ## [미배포]
 
+### 추가됨
+- **QUIC 프로토콜 지원 (Phase 3.2)**: 연결 상태 머신 (RFC 9000 Section 5)
+  - RFC 9000 Section 18 준수 인코딩/디코딩을 갖춘 `transport_parameters` 구조체
+    - 모든 표준 전송 파라미터 (max_idle_timeout, 흐름 제어 제한 등)
+    - 연결 ID 파라미터 (original/initial/retry)
+    - 서버 전용 파라미터 (preferred_address, stateless_reset_token)
+    - 클라이언트/서버 역할별 검증
+  - 연결 상태 머신을 구현하는 `connection` 클래스
+    - 연결 상태: idle, handshaking, connected, closing, draining, closed
+    - 핸드셰이크 상태: initial, waiting_server_hello, waiting_finished, complete
+    - 패킷 번호 공간: Initial, Handshake, Application
+    - 롱 및 숏 헤더 패킷 처리
+    - std::visit 패턴을 통한 프레임 처리
+    - 연결 ID 관리 (추가, 폐기, 로테이션)
+    - 전송 파라미터 협상
+    - 에러 코드 보존을 통한 연결 종료
+    - 유휴 타임아웃 처리
+    - stream_manager 및 flow_controller와의 통합
+  - 서버 주소 마이그레이션 지원을 위한 `preferred_address_info` 구조체
+  - 40개 테스트 케이스를 포함한 종합 테스트 스위트
+
 ### 계획됨
 - C++20 코루틴 완전 통합
 - HTTP/2 및 HTTP/3 지원
-- TLS 1.3 지원
 - 고급 로드 밸런싱 알고리즘
 
 ---

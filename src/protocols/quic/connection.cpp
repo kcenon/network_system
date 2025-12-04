@@ -1,0 +1,1132 @@
+/*****************************************************************************
+BSD 3-Clause License
+
+Copyright (c) 2024, kcenon
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice, this
+   list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
+
+3. Neither the name of the copyright holder nor the names of its
+   contributors may be used to endorse or promote products derived from
+   this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*****************************************************************************/
+
+#include "kcenon/network/protocols/quic/connection.h"
+#include "kcenon/network/protocols/quic/varint.h"
+
+#include <algorithm>
+
+namespace network_system::protocols::quic
+{
+
+// ============================================================================
+// String Conversion Functions
+// ============================================================================
+
+auto connection_state_to_string(connection_state state) -> const char*
+{
+    switch (state)
+    {
+    case connection_state::idle:
+        return "idle";
+    case connection_state::handshaking:
+        return "handshaking";
+    case connection_state::connected:
+        return "connected";
+    case connection_state::closing:
+        return "closing";
+    case connection_state::draining:
+        return "draining";
+    case connection_state::closed:
+        return "closed";
+    default:
+        return "unknown";
+    }
+}
+
+auto handshake_state_to_string(handshake_state state) -> const char*
+{
+    switch (state)
+    {
+    case handshake_state::initial:
+        return "initial";
+    case handshake_state::waiting_server_hello:
+        return "waiting_server_hello";
+    case handshake_state::waiting_finished:
+        return "waiting_finished";
+    case handshake_state::complete:
+        return "complete";
+    default:
+        return "unknown";
+    }
+}
+
+// ============================================================================
+// Constructor / Destructor
+// ============================================================================
+
+connection::connection(bool is_server, const connection_id& initial_dcid)
+    : is_server_(is_server)
+    , initial_dcid_(initial_dcid)
+    , stream_mgr_(is_server)
+    , flow_ctrl_(1048576)  // 1MB default
+{
+    // Generate local connection ID
+    local_cid_ = connection_id::generate();
+    local_cids_.emplace_back(0, local_cid_);
+
+    // For client: remote CID is the initial DCID
+    // For server: remote CID will be set when we receive client's SCID
+    if (!is_server)
+    {
+        remote_cid_ = initial_dcid;
+    }
+
+    // Initialize default transport parameters
+    if (is_server)
+    {
+        local_params_ = make_default_server_params();
+    }
+    else
+    {
+        local_params_ = make_default_client_params();
+    }
+
+    // Set initial source connection ID
+    local_params_.initial_source_connection_id = local_cid_;
+
+    // Initialize idle timer
+    reset_idle_timer();
+}
+
+connection::~connection() = default;
+
+// Move operations are deleted because some members are not movable
+
+// ============================================================================
+// Connection IDs
+// ============================================================================
+
+auto connection::add_local_cid(const connection_id& cid, uint64_t sequence)
+    -> VoidResult
+{
+    // Check for duplicates
+    for (const auto& [seq, existing_cid] : local_cids_)
+    {
+        if (seq == sequence)
+        {
+            return error_void(connection_error::protocol_violation,
+                              "Duplicate connection ID sequence",
+                              "connection");
+        }
+    }
+
+    local_cids_.emplace_back(sequence, cid);
+    return ok();
+}
+
+auto connection::retire_cid(uint64_t sequence) -> VoidResult
+{
+    auto it = std::find_if(local_cids_.begin(), local_cids_.end(),
+                           [sequence](const auto& p) { return p.first == sequence; });
+
+    if (it == local_cids_.end())
+    {
+        return error_void(connection_error::protocol_violation,
+                          "Connection ID not found",
+                          "connection");
+    }
+
+    // Don't retire the only remaining CID
+    if (local_cids_.size() <= 1)
+    {
+        return error_void(connection_error::protocol_violation,
+                          "Cannot retire last connection ID",
+                          "connection");
+    }
+
+    local_cids_.erase(it);
+    return ok();
+}
+
+// ============================================================================
+// Transport Parameters
+// ============================================================================
+
+void connection::set_local_params(const transport_parameters& params)
+{
+    local_params_ = params;
+    local_params_.initial_source_connection_id = local_cid_;
+
+    // Apply to subsystems
+    stream_mgr_.set_local_max_streams_bidi(params.initial_max_streams_bidi);
+    stream_mgr_.set_local_max_streams_uni(params.initial_max_streams_uni);
+}
+
+void connection::set_remote_params(const transport_parameters& params)
+{
+    remote_params_ = params;
+    apply_remote_params();
+}
+
+void connection::apply_remote_params()
+{
+    // Apply to flow control
+    flow_ctrl_.update_send_limit(remote_params_.initial_max_data);
+
+    // Apply to stream manager
+    stream_mgr_.set_peer_max_streams_bidi(remote_params_.initial_max_streams_bidi);
+    stream_mgr_.set_peer_max_streams_uni(remote_params_.initial_max_streams_uni);
+
+    // Update idle timeout
+    if (remote_params_.max_idle_timeout > 0)
+    {
+        auto timeout = std::min(local_params_.max_idle_timeout,
+                                remote_params_.max_idle_timeout);
+        if (timeout > 0)
+        {
+            idle_deadline_ = std::chrono::steady_clock::now() +
+                             std::chrono::milliseconds(timeout);
+        }
+    }
+}
+
+// ============================================================================
+// Handshake
+// ============================================================================
+
+auto connection::start_handshake(const std::string& server_name)
+    -> Result<std::vector<uint8_t>>
+{
+    if (is_server_)
+    {
+        return error<std::vector<uint8_t>>(connection_error::invalid_state,
+                                            "Server cannot start handshake",
+                                            "connection");
+    }
+
+    if (state_ != connection_state::idle)
+    {
+        return error<std::vector<uint8_t>>(connection_error::invalid_state,
+                                            "Connection already started",
+                                            "connection");
+    }
+
+    // Initialize crypto for client
+    auto init_result = crypto_.init_client(server_name);
+    if (init_result.is_err())
+    {
+        return error<std::vector<uint8_t>>(connection_error::handshake_failed,
+                                            "Failed to initialize crypto",
+                                            "connection",
+                                            init_result.error().message);
+    }
+
+    // Derive initial secrets
+    auto derive_result = crypto_.derive_initial_secrets(initial_dcid_);
+    if (derive_result.is_err())
+    {
+        return error<std::vector<uint8_t>>(connection_error::handshake_failed,
+                                            "Failed to derive initial secrets",
+                                            "connection",
+                                            derive_result.error().message);
+    }
+
+    // Start TLS handshake to get ClientHello
+    auto hs_result = crypto_.start_handshake();
+    if (hs_result.is_err())
+    {
+        return error<std::vector<uint8_t>>(connection_error::handshake_failed,
+                                            "Failed to start TLS handshake",
+                                            "connection",
+                                            hs_result.error().message);
+    }
+
+    // Store crypto data for Initial packet
+    if (!hs_result.value().empty())
+    {
+        pending_crypto_initial_.push_back(std::move(hs_result.value()));
+    }
+
+    // Update state
+    state_ = connection_state::handshaking;
+    hs_state_ = handshake_state::waiting_server_hello;
+
+    return ok(std::vector<uint8_t>{});
+}
+
+auto connection::init_server_handshake(const std::string& cert_file,
+                                         const std::string& key_file) -> VoidResult
+{
+    if (!is_server_)
+    {
+        return error_void(connection_error::invalid_state,
+                          "Not a server connection",
+                          "connection");
+    }
+
+    auto result = crypto_.init_server(cert_file, key_file);
+    if (result.is_err())
+    {
+        return error_void(connection_error::handshake_failed,
+                          "Failed to initialize server crypto",
+                          "connection",
+                          result.error().message);
+    }
+
+    // Derive initial secrets using the client's DCID
+    auto derive_result = crypto_.derive_initial_secrets(initial_dcid_);
+    if (derive_result.is_err())
+    {
+        return error_void(connection_error::handshake_failed,
+                          "Failed to derive initial secrets",
+                          "connection",
+                          derive_result.error().message);
+    }
+
+    state_ = connection_state::handshaking;
+    return ok();
+}
+
+// ============================================================================
+// Packet Processing
+// ============================================================================
+
+auto connection::receive_packet(std::span<const uint8_t> data) -> VoidResult
+{
+    if (data.empty())
+    {
+        return error_void(connection_error::protocol_violation,
+                          "Empty packet",
+                          "connection");
+    }
+
+    if (is_draining() || is_closed())
+    {
+        // In draining/closed state, just count the packet
+        packets_received_++;
+        bytes_received_ += data.size();
+        return ok();
+    }
+
+    bytes_received_ += data.size();
+    packets_received_++;
+    reset_idle_timer();
+
+    // Check header form
+    if (packet_parser::is_long_header(data[0]))
+    {
+        auto parse_result = packet_parser::parse_long_header(data);
+        if (parse_result.is_err())
+        {
+            return error_void(connection_error::protocol_violation,
+                              "Failed to parse long header",
+                              "connection",
+                              parse_result.error().message);
+        }
+
+        auto [header, header_len] = parse_result.value();
+        return process_long_header_packet(header, data.subspan(header_len));
+    }
+    else
+    {
+        auto parse_result = packet_parser::parse_short_header(data, local_cid_.length());
+        if (parse_result.is_err())
+        {
+            return error_void(connection_error::protocol_violation,
+                              "Failed to parse short header",
+                              "connection",
+                              parse_result.error().message);
+        }
+
+        auto [header, header_len] = parse_result.value();
+        return process_short_header_packet(header, data.subspan(header_len));
+    }
+}
+
+auto connection::process_long_header_packet(const long_header& hdr,
+                                             std::span<const uint8_t> payload)
+    -> VoidResult
+{
+    encryption_level level;
+    switch (hdr.type())
+    {
+    case packet_type::initial:
+        level = encryption_level::initial;
+        pending_ack_initial_ = true;
+        break;
+    case packet_type::handshake:
+        level = encryption_level::handshake;
+        pending_ack_handshake_ = true;
+        break;
+    case packet_type::zero_rtt:
+        level = encryption_level::zero_rtt;
+        break;
+    case packet_type::retry:
+        // Handle Retry packet specially
+        return ok();
+    default:
+        return error_void(connection_error::protocol_violation,
+                          "Unknown packet type",
+                          "connection");
+    }
+
+    // Update remote CID if this is first packet from peer
+    if (remote_cid_.length() == 0)
+    {
+        remote_cid_ = hdr.src_conn_id;
+    }
+
+    // Server: set original DCID for transport parameters
+    if (is_server_ && !local_params_.original_destination_connection_id)
+    {
+        local_params_.original_destination_connection_id = hdr.dest_conn_id;
+    }
+
+    // Get keys for this level
+    auto keys_result = crypto_.get_read_keys(level);
+    if (keys_result.is_err())
+    {
+        // Keys not yet available - this might happen during handshake
+        return ok();
+    }
+
+    // Track largest packet number
+    auto& space = get_pn_space(level);
+    if (hdr.packet_number > space.largest_received)
+    {
+        space.largest_received = hdr.packet_number;
+        space.largest_received_time = std::chrono::steady_clock::now();
+    }
+    space.ack_needed = true;
+
+    return process_frames(payload, level);
+}
+
+auto connection::process_short_header_packet(const short_header& hdr,
+                                              std::span<const uint8_t> payload)
+    -> VoidResult
+{
+    if (state_ != connection_state::connected)
+    {
+        // Short header packets require completed handshake
+        return error_void(connection_error::not_established,
+                          "Received 1-RTT packet before handshake complete",
+                          "connection");
+    }
+
+    pending_ack_app_ = true;
+
+    // Get 1-RTT keys
+    auto keys_result = crypto_.get_read_keys(encryption_level::application);
+    if (keys_result.is_err())
+    {
+        return error_void(connection_error::handshake_failed,
+                          "1-RTT keys not available",
+                          "connection");
+    }
+
+    // Track largest packet number
+    auto& space = app_space_;
+    if (hdr.packet_number > space.largest_received)
+    {
+        space.largest_received = hdr.packet_number;
+        space.largest_received_time = std::chrono::steady_clock::now();
+    }
+    space.ack_needed = true;
+
+    return process_frames(payload, encryption_level::application);
+}
+
+auto connection::process_frames(std::span<const uint8_t> payload,
+                                 encryption_level level) -> VoidResult
+{
+    // Parse all frames in the payload
+    auto frames_result = frame_parser::parse_all(payload);
+    if (frames_result.is_err())
+    {
+        return error_void(connection_error::protocol_violation,
+                          "Failed to parse frames",
+                          "connection",
+                          frames_result.error().message);
+    }
+
+    // Process each frame
+    for (const auto& f : frames_result.value())
+    {
+        auto result = handle_frame(f, level);
+        if (result.is_err())
+        {
+            return result;
+        }
+    }
+
+    update_state();
+    return ok();
+}
+
+auto connection::handle_frame(const frame& frm, encryption_level level)
+    -> VoidResult
+{
+    return std::visit(
+        [this, level](const auto& f) -> VoidResult
+        {
+            using T = std::decay_t<decltype(f)>;
+
+            if constexpr (std::is_same_v<T, padding_frame>)
+            {
+                // Padding is ignored
+                return ok();
+            }
+            else if constexpr (std::is_same_v<T, ping_frame>)
+            {
+                // Ping just elicits an ACK (already handled)
+                return ok();
+            }
+            else if constexpr (std::is_same_v<T, ack_frame>)
+            {
+                // Process ACK
+                auto& space = get_pn_space(level);
+                if (f.largest_acknowledged > space.largest_acked)
+                {
+                    space.largest_acked = f.largest_acknowledged;
+                }
+
+                // Mark acknowledged packets
+                for (auto it = space.sent_packets.begin();
+                     it != space.sent_packets.end();)
+                {
+                    if (it->first <= f.largest_acknowledged)
+                    {
+                        it = space.sent_packets.erase(it);
+                    }
+                    else
+                    {
+                        ++it;
+                    }
+                }
+                return ok();
+            }
+            else if constexpr (std::is_same_v<T, crypto_frame>)
+            {
+                // Process CRYPTO frame
+                auto result = crypto_.process_crypto_data(level,
+                    std::span<const uint8_t>(f.data.data(), f.data.size()));
+                if (result.is_err())
+                {
+                    return error_void(connection_error::handshake_failed,
+                                      "Failed to process crypto data",
+                                      "connection",
+                                      result.error().message);
+                }
+
+                // Store response crypto data
+                if (!result.value().empty())
+                {
+                    switch (level)
+                    {
+                    case encryption_level::initial:
+                        pending_crypto_initial_.push_back(std::move(result.value()));
+                        break;
+                    case encryption_level::handshake:
+                        pending_crypto_handshake_.push_back(std::move(result.value()));
+                        break;
+                    default:
+                        pending_crypto_app_.push_back(std::move(result.value()));
+                        break;
+                    }
+                }
+
+                return ok();
+            }
+            else if constexpr (std::is_same_v<T, stream_frame>)
+            {
+                // Get or create stream
+                auto stream_result = stream_mgr_.get_or_create_stream(f.stream_id);
+                if (stream_result.is_err())
+                {
+                    return error_void(connection_error::protocol_violation,
+                                      "Failed to get stream",
+                                      "connection",
+                                      stream_result.error().message);
+                }
+
+                // Deliver data
+                auto recv_result = stream_result.value()->receive_data(
+                    f.offset,
+                    std::span<const uint8_t>(f.data.data(), f.data.size()),
+                    f.fin);
+                if (recv_result.is_err())
+                {
+                    return recv_result;
+                }
+
+                // Update connection-level flow control
+                auto recv_flow = flow_ctrl_.record_received(f.data.size());
+                if (recv_flow.is_err())
+                {
+                    return recv_flow;
+                }
+                return ok();
+            }
+            else if constexpr (std::is_same_v<T, max_data_frame>)
+            {
+                flow_ctrl_.update_send_limit(f.maximum_data);
+                return ok();
+            }
+            else if constexpr (std::is_same_v<T, max_stream_data_frame>)
+            {
+                auto* s = stream_mgr_.get_stream(f.stream_id);
+                if (s)
+                {
+                    s->set_max_send_data(f.maximum_stream_data);
+                }
+                return ok();
+            }
+            else if constexpr (std::is_same_v<T, max_streams_frame>)
+            {
+                if (f.bidirectional)
+                {
+                    stream_mgr_.set_peer_max_streams_bidi(f.maximum_streams);
+                }
+                else
+                {
+                    stream_mgr_.set_peer_max_streams_uni(f.maximum_streams);
+                }
+                return ok();
+            }
+            else if constexpr (std::is_same_v<T, connection_close_frame>)
+            {
+                close_error_code_ = f.error_code;
+                close_reason_ = f.reason_phrase;
+                close_received_ = true;
+                application_close_ = f.is_application_error;
+                enter_draining();
+                return ok();
+            }
+            else if constexpr (std::is_same_v<T, handshake_done_frame>)
+            {
+                if (!is_server_)
+                {
+                    hs_state_ = handshake_state::complete;
+                    state_ = connection_state::connected;
+                }
+                return ok();
+            }
+            else if constexpr (std::is_same_v<T, reset_stream_frame>)
+            {
+                auto* s = stream_mgr_.get_stream(f.stream_id);
+                if (s)
+                {
+                    return s->receive_reset(f.application_error_code, f.final_size);
+                }
+                return ok();
+            }
+            else if constexpr (std::is_same_v<T, stop_sending_frame>)
+            {
+                auto* s = stream_mgr_.get_stream(f.stream_id);
+                if (s)
+                {
+                    return s->receive_stop_sending(f.application_error_code);
+                }
+                return ok();
+            }
+            else if constexpr (std::is_same_v<T, new_connection_id_frame>)
+            {
+                // TODO: Store new connection IDs from peer
+                return ok();
+            }
+            else if constexpr (std::is_same_v<T, retire_connection_id_frame>)
+            {
+                return retire_cid(f.sequence_number);
+            }
+            else if constexpr (std::is_same_v<T, data_blocked_frame> ||
+                              std::is_same_v<T, stream_data_blocked_frame> ||
+                              std::is_same_v<T, streams_blocked_frame> ||
+                              std::is_same_v<T, path_challenge_frame> ||
+                              std::is_same_v<T, path_response_frame> ||
+                              std::is_same_v<T, new_token_frame>)
+            {
+                // These frames are acknowledged but may not require action
+                return ok();
+            }
+            else
+            {
+                return ok();
+            }
+        },
+        frm);
+}
+
+// ============================================================================
+// Packet Generation
+// ============================================================================
+
+auto connection::generate_packets() -> std::vector<std::vector<uint8_t>>
+{
+    std::vector<std::vector<uint8_t>> packets;
+
+    if (is_closed())
+    {
+        return packets;
+    }
+
+    // Generate close packet if closing
+    if (close_sent_ && !close_received_)
+    {
+        auto pkt = build_packet(encryption_level::application);
+        if (!pkt.empty())
+        {
+            packets.push_back(std::move(pkt));
+        }
+        return packets;
+    }
+
+    // Generate Initial packets if needed
+    if (!pending_crypto_initial_.empty() || pending_ack_initial_)
+    {
+        auto pkt = build_packet(encryption_level::initial);
+        if (!pkt.empty())
+        {
+            packets.push_back(std::move(pkt));
+            pending_ack_initial_ = false;
+        }
+    }
+
+    // Generate Handshake packets if needed
+    if (!pending_crypto_handshake_.empty() || pending_ack_handshake_)
+    {
+        auto pkt = build_packet(encryption_level::handshake);
+        if (!pkt.empty())
+        {
+            packets.push_back(std::move(pkt));
+            pending_ack_handshake_ = false;
+        }
+    }
+
+    // Generate 1-RTT packets if connected
+    if (state_ == connection_state::connected)
+    {
+        // Send HANDSHAKE_DONE (server only, once)
+        if (is_server_ && hs_state_ == handshake_state::complete)
+        {
+            // Will be included in next packet
+        }
+
+        // Generate application data packets
+        if (has_pending_data() || pending_ack_app_)
+        {
+            auto pkt = build_packet(encryption_level::application);
+            if (!pkt.empty())
+            {
+                packets.push_back(std::move(pkt));
+                pending_ack_app_ = false;
+            }
+        }
+    }
+
+    return packets;
+}
+
+auto connection::build_packet(encryption_level level) -> std::vector<uint8_t>
+{
+    std::vector<uint8_t> packet;
+
+    // Get keys for this level
+    auto keys_result = crypto_.get_write_keys(level);
+    if (keys_result.is_err())
+    {
+        return packet;
+    }
+
+    auto& space = get_pn_space(level);
+    uint64_t pn = space.next_pn++;
+
+    // Build header
+    std::vector<uint8_t> header;
+    switch (level)
+    {
+    case encryption_level::initial:
+        header = packet_builder::build_initial(
+            remote_cid_, local_cid_, {}, pn);
+        break;
+    case encryption_level::handshake:
+        header = packet_builder::build_handshake(
+            remote_cid_, local_cid_, pn);
+        break;
+    case encryption_level::application:
+        header = packet_builder::build_short(
+            remote_cid_, pn, crypto_.key_phase());
+        break;
+    default:
+        return packet;
+    }
+
+    // Build payload with frames
+    std::vector<uint8_t> payload;
+
+    // Add ACK frame if needed
+    if (space.ack_needed)
+    {
+        auto ack = generate_ack_frame(space);
+        if (ack)
+        {
+            auto encoded = frame_builder::build_ack(*ack);
+            payload.insert(payload.end(), encoded.begin(), encoded.end());
+            space.ack_needed = false;
+        }
+    }
+
+    // Add CRYPTO frames
+    std::deque<std::vector<uint8_t>>* crypto_queue = nullptr;
+    switch (level)
+    {
+    case encryption_level::initial:
+        crypto_queue = &pending_crypto_initial_;
+        break;
+    case encryption_level::handshake:
+        crypto_queue = &pending_crypto_handshake_;
+        break;
+    default:
+        crypto_queue = &pending_crypto_app_;
+        break;
+    }
+
+    uint64_t crypto_offset = 0;
+    while (!crypto_queue->empty())
+    {
+        auto& data = crypto_queue->front();
+        crypto_frame cf;
+        cf.offset = crypto_offset;
+        cf.data = std::move(data);
+        crypto_offset += cf.data.size();
+
+        auto encoded = frame_builder::build_crypto(cf);
+        payload.insert(payload.end(), encoded.begin(), encoded.end());
+        crypto_queue->pop_front();
+    }
+
+    // Add HANDSHAKE_DONE for server
+    if (level == encryption_level::application && is_server_ &&
+        hs_state_ == handshake_state::complete && state_ == connection_state::connected)
+    {
+        handshake_done_frame hd;
+        auto encoded = frame_builder::build(hd);
+        payload.insert(payload.end(), encoded.begin(), encoded.end());
+    }
+
+    // Add CONNECTION_CLOSE if closing
+    if (close_sent_)
+    {
+        connection_close_frame ccf;
+        ccf.error_code = close_error_code_.value_or(0);
+        ccf.reason_phrase = close_reason_;
+        ccf.is_application_error = application_close_;
+        auto encoded = frame_builder::build(ccf);
+        payload.insert(payload.end(), encoded.begin(), encoded.end());
+    }
+
+    // Add stream data frames for application level
+    if (level == encryption_level::application && !close_sent_)
+    {
+        auto streams = stream_mgr_.streams_with_pending_data();
+        for (auto* s : streams)
+        {
+            if (auto sf = s->next_stream_frame(1200))
+            {
+                auto encoded = frame_builder::build_stream(*sf);
+                payload.insert(payload.end(), encoded.begin(), encoded.end());
+            }
+        }
+    }
+
+    if (payload.empty())
+    {
+        return packet;
+    }
+
+    // Add padding for Initial packets to meet minimum size
+    if (level == encryption_level::initial)
+    {
+        size_t min_size = 1200;
+        size_t current_size = header.size() + payload.size() + 16; // +16 for AEAD tag
+        if (current_size < min_size)
+        {
+            auto encoded = frame_builder::build_padding(min_size - current_size);
+            payload.insert(payload.end(), encoded.begin(), encoded.end());
+        }
+    }
+
+    // Encrypt and protect the packet
+    auto protect_result = packet_protection::protect(
+        keys_result.value(),
+        std::span<const uint8_t>(header.data(), header.size()),
+        std::span<const uint8_t>(payload.data(), payload.size()),
+        pn);
+
+    if (protect_result.is_err())
+    {
+        return {};
+    }
+
+    packet = std::move(protect_result.value());
+
+    // Track sent packet
+    sent_packet_info info;
+    info.packet_number = pn;
+    info.sent_time = std::chrono::steady_clock::now();
+    info.sent_bytes = packet.size();
+    info.ack_eliciting = !payload.empty();
+    info.in_flight = true;
+    info.level = level;
+    space.sent_packets[pn] = std::move(info);
+
+    bytes_sent_ += packet.size();
+    packets_sent_++;
+
+    return packet;
+}
+
+auto connection::has_pending_data() const -> bool
+{
+    if (!pending_crypto_initial_.empty() ||
+        !pending_crypto_handshake_.empty() ||
+        !pending_crypto_app_.empty())
+    {
+        return true;
+    }
+
+    if (pending_ack_initial_ || pending_ack_handshake_ || pending_ack_app_)
+    {
+        return true;
+    }
+
+    if (close_sent_)
+    {
+        return true;
+    }
+
+    // Check for stream data
+    auto& streams = const_cast<stream_manager&>(stream_mgr_);
+    return !streams.streams_with_pending_data().empty();
+}
+
+// ============================================================================
+// Packet Number Space Management
+// ============================================================================
+
+auto connection::get_pn_space(encryption_level level) -> packet_number_space&
+{
+    switch (level)
+    {
+    case encryption_level::initial:
+    case encryption_level::zero_rtt:
+        return initial_space_;
+    case encryption_level::handshake:
+        return handshake_space_;
+    default:
+        return app_space_;
+    }
+}
+
+auto connection::get_pn_space(encryption_level level) const
+    -> const packet_number_space&
+{
+    switch (level)
+    {
+    case encryption_level::initial:
+    case encryption_level::zero_rtt:
+        return initial_space_;
+    case encryption_level::handshake:
+        return handshake_space_;
+    default:
+        return app_space_;
+    }
+}
+
+// ============================================================================
+// State Management
+// ============================================================================
+
+void connection::update_state()
+{
+    if (crypto_.is_handshake_complete() && hs_state_ != handshake_state::complete)
+    {
+        hs_state_ = handshake_state::complete;
+        if (is_server_)
+        {
+            state_ = connection_state::connected;
+        }
+        // Client waits for HANDSHAKE_DONE
+    }
+}
+
+// ============================================================================
+// Connection Close
+// ============================================================================
+
+auto connection::close(uint64_t error_code, const std::string& reason) -> VoidResult
+{
+    // Already closing or closed - don't update error state
+    if (is_closed() || is_draining())
+    {
+        return ok();
+    }
+
+    close_error_code_ = error_code;
+    close_reason_ = reason;
+    close_sent_ = true;
+    application_close_ = false;
+    enter_closing();
+
+    return ok();
+}
+
+auto connection::close_application(uint64_t error_code, const std::string& reason)
+    -> VoidResult
+{
+    // Already closing or closed - don't update error state
+    if (is_closed() || is_draining())
+    {
+        return ok();
+    }
+
+    close_error_code_ = error_code;
+    close_reason_ = reason;
+    close_sent_ = true;
+    application_close_ = true;
+    enter_closing();
+
+    return ok();
+}
+
+void connection::enter_closing()
+{
+    if (state_ == connection_state::closing || state_ == connection_state::draining)
+    {
+        return;
+    }
+
+    state_ = connection_state::closing;
+
+    // Set drain timer (3 * PTO)
+    auto pto = std::chrono::milliseconds(100);  // Simplified PTO
+    drain_deadline_ = std::chrono::steady_clock::now() + 3 * pto;
+}
+
+void connection::enter_draining()
+{
+    if (state_ == connection_state::draining || state_ == connection_state::closed)
+    {
+        return;
+    }
+
+    state_ = connection_state::draining;
+
+    // Set drain timer (3 * PTO)
+    auto pto = std::chrono::milliseconds(100);
+    drain_deadline_ = std::chrono::steady_clock::now() + 3 * pto;
+}
+
+// ============================================================================
+// Timers
+// ============================================================================
+
+void connection::reset_idle_timer()
+{
+    auto timeout = local_params_.max_idle_timeout;
+    if (remote_params_.max_idle_timeout > 0)
+    {
+        timeout = std::min(timeout, remote_params_.max_idle_timeout);
+    }
+
+    if (timeout > 0)
+    {
+        idle_deadline_ = std::chrono::steady_clock::now() +
+                         std::chrono::milliseconds(timeout);
+    }
+}
+
+auto connection::next_timeout() const
+    -> std::optional<std::chrono::steady_clock::time_point>
+{
+    if (is_closed())
+    {
+        return std::nullopt;
+    }
+
+    if (is_draining())
+    {
+        return drain_deadline_;
+    }
+
+    return idle_deadline_;
+}
+
+void connection::on_timeout()
+{
+    auto now = std::chrono::steady_clock::now();
+
+    // Check drain timeout
+    if (is_draining() && now >= drain_deadline_)
+    {
+        state_ = connection_state::closed;
+        return;
+    }
+
+    // Check idle timeout
+    if (now >= idle_deadline_)
+    {
+        close_error_code_ = 0;
+        close_reason_ = "Idle timeout";
+        state_ = connection_state::closed;
+        return;
+    }
+
+    // TODO: Handle PTO timeout for loss detection
+}
+
+// ============================================================================
+// ACK Generation
+// ============================================================================
+
+auto connection::generate_ack_frame(const packet_number_space& space)
+    -> std::optional<ack_frame>
+{
+    if (space.largest_received == 0 && !space.ack_needed)
+    {
+        return std::nullopt;
+    }
+
+    ack_frame ack;
+    ack.largest_acknowledged = space.largest_received;
+    ack.ack_delay = std::chrono::duration_cast<std::chrono::microseconds>(
+                        std::chrono::steady_clock::now() - space.largest_received_time)
+                        .count();
+    // Simplified: ACK all packets from 0 to largest_received
+    // The first ACK range is implicit (largest_acknowledged to largest_acknowledged - first_ack_range_length)
+    // For simplicity, we don't add any additional ranges
+
+    return ack;
+}
+
+} // namespace network_system::protocols::quic
