@@ -959,12 +959,12 @@ auto quic_socket::generate_connection_id() -> connection_id
 {
 	std::random_device rd;
 	std::mt19937 gen(rd());
-	std::uniform_int_distribution<uint8_t> dis(0, 255);
+	std::uniform_int_distribution<unsigned int> dis(0, 255);
 
 	std::array<uint8_t, 8> id_bytes;
 	for (auto& byte : id_bytes)
 	{
-		byte = dis(gen);
+		byte = static_cast<uint8_t>(dis(gen));
 	}
 
 	return connection_id(std::span<const uint8_t>(id_bytes));
