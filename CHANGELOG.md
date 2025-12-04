@@ -12,6 +12,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **QUIC Protocol Support (Phase 2.2)**: QUIC Socket with packet protection
+  - `quic_socket` class wrapping UDP socket with QUIC packet protection
+  - Connection management: `connect()`, `accept()`, `close()`
+  - Stream-based data transfer: `create_stream()`, `send_stream_data()`
+  - Callback-based async I/O for stream data, connection events, errors
+  - Thread-safe implementation with internal locking
+  - Connection state machine (idle, handshake, connected, closing, draining, closed)
+  - Integration with QUIC crypto for TLS 1.3 handshake
+  - Comprehensive test suite with 18 test cases
+
 - **QUIC Protocol Support (Phase 1.2)**: Frame types and parsing (RFC 9000 Section 12, 19)
   - `frame_types.h` with all QUIC frame type definitions and structures
   - `frame_parser` class for parsing frames from raw bytes
