@@ -12,6 +12,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **QUIC Protocol Support (Phase 4.2)**: messaging_quic_server public API
+  - `messaging_quic_server` class following `messaging_server` pattern
+    - Consistent API with existing TCP server
+    - Thread-safe session management using shared_mutex
+    - Full Result<T> error handling
+  - Server lifecycle: `start_server()`, `stop_server()`, `wait_for_stop()`
+  - Session management:
+    - `sessions()` to get all active sessions
+    - `get_session()` to retrieve session by ID
+    - `session_count()` for active connection count
+    - `disconnect_session()` and `disconnect_all()` for termination
+  - Broadcasting:
+    - `broadcast()` to send to all clients
+    - `multicast()` to send to specific sessions
+  - `quic_session` class for individual client connections:
+    - `send()` for default stream data
+    - `send_on_stream()` for stream-specific data
+    - `create_stream()` for new streams
+    - `stats()` for connection statistics
+  - Callback system:
+    - `set_connection_callback()` for new clients
+    - `set_disconnection_callback()` for client disconnects
+    - `set_receive_callback()` for data from any session
+    - `set_stream_receive_callback()` for stream data
+    - `set_error_callback()` for error handling
+  - Configuration via `quic_server_config`:
+    - TLS certificate settings (cert_file, key_file, ca_cert_file)
+    - Client certificate authentication (require_client_cert)
+    - ALPN protocol negotiation
+    - Transport parameters (timeouts, flow control limits)
+    - Connection limits (max_connections)
+    - DoS protection (enable_retry, retry_key)
+  - Compatibility layer headers in network_system namespace
+  - Example application (quic_server_example.cpp)
+  - Comprehensive test suite with 20+ test cases
+
 - **QUIC Protocol Support (Phase 4.1)**: messaging_quic_client public API
   - `messaging_quic_client` class following `messaging_client` pattern
     - Consistent API with existing TCP/UDP/WebSocket clients

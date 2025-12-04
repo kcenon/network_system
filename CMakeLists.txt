@@ -180,9 +180,11 @@ add_library(NetworkSystem
     src/core/http_client.cpp
     src/core/http_server.cpp
     src/core/messaging_quic_client.cpp
+    src/core/messaging_quic_server.cpp
 
     # Session management
     src/session/messaging_session.cpp
+    src/session/quic_session.cpp
 
     # Internal implementation
     src/internal/tcp_socket.cpp
