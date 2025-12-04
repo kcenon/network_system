@@ -223,6 +223,9 @@ add_library(NetworkSystem
     src/protocols/quic/packet.cpp
     src/protocols/quic/keys.cpp
     src/protocols/quic/crypto.cpp
+
+    # QUIC socket (UDP wrapper with packet protection)
+    src/internal/quic_socket.cpp
 )
 
 # Suppress warnings inherited from parent project (especially from ASIO)
