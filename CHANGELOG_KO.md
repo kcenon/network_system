@@ -12,6 +12,32 @@ Network System 프로젝트의 모든 주요 변경 사항이 이 파일에 문�
 ## [미배포]
 
 ### 추가됨
+- **QUIC 프로토콜 지원 (Phase 4.1)**: messaging_quic_client 공개 API
+  - `messaging_client` 패턴을 따르는 `messaging_quic_client` 클래스
+    - 기존 TCP/UDP/WebSocket 클라이언트와 일관된 API
+    - 내부 잠금을 통한 스레드 안전 작업
+    - 완전한 Result<T> 에러 처리
+  - 연결 관리: `start_client()`, `stop_client()`, `wait_for_stop()`
+  - 기본 스트림에서의 데이터 전송: `send_packet()`
+  - 멀티 스트림 지원 (QUIC 전용):
+    - `create_stream()`: 양방향 스트림 생성
+    - `create_unidirectional_stream()`: 단방향 스트림 생성
+    - `send_on_stream()`: 스트림별 데이터 전송
+    - `close_stream()`: 스트림 종료
+  - 이벤트 콜백 시스템:
+    - `set_receive_callback()`: 기본 스트림 데이터
+    - `set_stream_receive_callback()`: 모든 스트림 데이터
+    - `set_connected_callback()`, `set_disconnected_callback()`
+    - `set_error_callback()`: 에러 처리
+  - `quic_client_config`를 통한 설정 옵션:
+    - TLS 설정 (CA 인증서, 클라이언트 인증서, 키, 검증)
+    - ALPN 프로토콜 협상
+    - 전송 파라미터 (타임아웃, 흐름 제어 제한)
+    - 0-RTT 조기 데이터 지원
+  - `stats()` 메서드를 통한 연결 통계
+  - API 사용법을 보여주는 예제 코드
+  - 22개 테스트 케이스를 포함한 종합 테스트 스위트
+
 - **QUIC 프로토콜 지원 (Phase 3.2)**: 연결 상태 머신 (RFC 9000 Section 5)
   - RFC 9000 Section 18 준수 인코딩/디코딩을 갖춘 `transport_parameters` 구조체
     - 모든 표준 전송 파라미터 (max_idle_timeout, 흐름 제어 제한 등)
