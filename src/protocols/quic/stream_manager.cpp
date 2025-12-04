@@ -118,7 +118,7 @@ auto stream_manager::get_or_create_stream(uint64_t stream_id) -> Result<stream*>
 
     // Validate stream ID
     auto validation = validate_stream_id(stream_id);
-    if (!validation) {
+    if (validation.is_err()) {
         return error<stream*>(validation.error().code,
                              validation.error().message,
                              "quic::stream_manager");

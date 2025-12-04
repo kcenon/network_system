@@ -283,30 +283,40 @@ TEST_F(QuicStreamTest, ReceiveReset)
 
 TEST_F(QuicStreamTest, FlowControlLimit)
 {
-    // Set a small send limit
-    local_bidi_stream_->set_max_send_data(10);
+    // Create a new stream with a small initial window for this test
+    // The constructor accepts initial_max_data as the third parameter
+    auto small_window_stream = std::make_unique<stream>(4, true, 10);
 
     std::vector<uint8_t> data(20, 'X'); // 20 bytes, but limit is 10
-    auto result = local_bidi_stream_->write(data);
 
-    // Should only write up to the limit
-    // The flow control check happens on write
-    EXPECT_FALSE(result.is_ok()); // Write fails when window is full
+    // First write of 10 bytes should succeed
+    auto result1 = small_window_stream->write(std::span<const uint8_t>(data.data(), 10));
+    ASSERT_TRUE(result1.is_ok());
+    EXPECT_EQ(result1.value(), 10UL);
+
+    // Second write should fail - window exhausted
+    auto result2 = small_window_stream->write(std::span<const uint8_t>(data.data(), 10));
+    EXPECT_FALSE(result2.is_ok()); // Write fails when window is full
 }
 
 TEST_F(QuicStreamTest, FlowControlUpdate)
 {
-    local_bidi_stream_->set_max_send_data(100);
-    EXPECT_EQ(local_bidi_stream_->available_send_window(), 100UL);
+    // Create a stream with initial window of 100 for this test
+    auto test_stream = std::make_unique<stream>(4, true, 100);
 
-    // After writing, window decreases
+    EXPECT_EQ(test_stream->available_send_window(), 100UL);
+
+    // After writing, window decreases (data goes to send buffer first)
     std::vector<uint8_t> data(50, 'Y');
-    auto write_result = local_bidi_stream_->write(data);
+    auto write_result = test_stream->write(data);
     ASSERT_TRUE(write_result.is_ok());
 
-    // Consume the data from send buffer
-    auto frame = local_bidi_stream_->next_stream_frame(1000);
-    EXPECT_EQ(local_bidi_stream_->available_send_window(), 50UL);
+    // Consume the data from send buffer by generating a frame
+    auto frame = test_stream->next_stream_frame(1000);
+    ASSERT_TRUE(frame.has_value());
+
+    // After sending, window should be reduced by bytes sent
+    EXPECT_EQ(test_stream->available_send_window(), 50UL);
 }
 
 // ============================================================================
