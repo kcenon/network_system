@@ -12,6 +12,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **QUIC Protocol Support (Phase 4.1)**: messaging_quic_client public API
+  - `messaging_quic_client` class following `messaging_client` pattern
+    - Consistent API with existing TCP/UDP/WebSocket clients
+    - Thread-safe operations with internal locking
+    - Full Result<T> error handling
+  - Connection management: `start_client()`, `stop_client()`, `wait_for_stop()`
+  - Data transfer on default stream: `send_packet()`
+  - Multi-stream support (QUIC specific):
+    - `create_stream()` for bidirectional streams
+    - `create_unidirectional_stream()` for unidirectional streams
+    - `send_on_stream()` for stream-specific data
+    - `close_stream()` for stream termination
+  - Callback system for events:
+    - `set_receive_callback()` for default stream data
+    - `set_stream_receive_callback()` for all stream data
+    - `set_connected_callback()`, `set_disconnected_callback()`
+    - `set_error_callback()` for error handling
+  - Configuration options via `quic_client_config`:
+    - TLS settings (CA cert, client cert, key, verification)
+    - ALPN protocol negotiation
+    - Transport parameters (timeouts, flow control limits)
+    - 0-RTT early data support
+  - Connection statistics via `stats()` method
+  - Example code demonstrating API usage
+  - Comprehensive test suite with 22 test cases
+
 - **QUIC Protocol Support (Phase 3.2)**: Connection State Machine (RFC 9000 Section 5)
   - `transport_parameters` struct with RFC 9000 Section 18 compliant encoding/decoding
     - All standard transport parameters (max_idle_timeout, flow control limits, etc.)

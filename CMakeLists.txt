@@ -179,6 +179,7 @@ add_library(NetworkSystem
     src/core/connection_pool.cpp
     src/core/http_client.cpp
     src/core/http_server.cpp
+    src/core/messaging_quic_client.cpp
 
     # Session management
     src/session/messaging_session.cpp
