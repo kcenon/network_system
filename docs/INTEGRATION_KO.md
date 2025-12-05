@@ -61,6 +61,33 @@ auto adapter = thread_system_pool_adapter::from_service_or_default("network_pool
 bind_thread_system_pool_into_manager("my_pool");
 ```
 
+### io_context 스레드 관리자
+
+`io_context_thread_manager`는 모든 메시징 컴포넌트에서 asio::io_context 실행을 통합 관리합니다:
+
+```cpp
+#include <kcenon/network/integration/io_context_thread_manager.h>
+
+// 공유 스레드 풀에서 io_context 실행
+auto io_ctx = std::make_shared<asio::io_context>();
+auto future = io_context_thread_manager::instance()
+    .run_io_context(io_ctx, "my_component");
+
+// 완료 시 중지
+io_context_thread_manager::instance().stop_io_context(io_ctx);
+future.wait();
+
+// 메트릭 조회
+auto metrics = io_context_thread_manager::instance().get_metrics();
+// metrics.active_contexts, metrics.total_started, metrics.total_completed
+```
+
+장점:
+- **중앙 집중식 관리**: 모든 io_context 인스턴스가 동일한 스레드 풀 사용
+- **일관된 종료**: 컴포넌트 전체에 걸쳐 일관된 종료 동작
+- **복잡성 감소**: 컴포넌트가 자체 스레드를 관리하지 않음
+- **향상된 관측 가능성**: 한 곳에서 모든 io_context 인스턴스의 메트릭 확인
+
 ### 요구 사항
 - thread_system은 `../thread_system`에 설치되어야 함
 - 헤더는 `../thread_system/include`에서 사용 가능해야 함
