@@ -38,6 +38,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Changed
+- **Thread System Integration - health_monitor** (2025-12-05)
+  - Replaced direct `std::thread` usage with `thread_integration_manager`
+  - Uses centralized thread pool for io_context execution
+  - Improved resource management with `std::future` instead of raw thread
+  - Part of Thread System Migration Epic (#271)
+
 ### Added
 - **QUIC Protocol Epic Complete** (2025-12-04)
   - All 4 phases of QUIC implementation completed

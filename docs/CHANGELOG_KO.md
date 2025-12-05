@@ -38,6 +38,13 @@ Network System 프로젝트의 모든 주목할 만한 변경 사항은 이 파�
 
 ## [Unreleased]
 
+### 변경됨
+- **Thread System 통합 - health_monitor** (2025-12-05)
+  - 직접적인 `std::thread` 사용을 `thread_integration_manager`로 대체
+  - io_context 실행을 위한 중앙화된 스레드 풀 사용
+  - 원시 스레드 대신 `std::future`로 리소스 관리 개선
+  - Thread System 마이그레이션 Epic (#271)의 일부
+
 ### 추가됨
 - **QUIC 프로토콜 - 패킷 헤더 구현** (2025-12-03)
   - QUIC 연결 ID 관리를 위한 `connection_id` 클래스 (0-20 바이트)

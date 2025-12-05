@@ -34,6 +34,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "kcenon/network/integration/logger_integration.h"
 #include "kcenon/network/integration/monitoring_integration.h"
+#include "kcenon/network/integration/thread_integration.h"
 
 #include <sstream>
 
@@ -102,8 +103,8 @@ namespace network_system::utils
 			health_.last_heartbeat = std::chrono::steady_clock::now();
 		}
 
-		// Start monitoring thread
-		monitor_thread_ = std::make_unique<std::thread>(
+		// Submit io_context::run() to thread pool
+		io_future_ = integration::thread_integration_manager::instance().submit_task(
 			[this]()
 			{
 				try
@@ -112,7 +113,7 @@ namespace network_system::utils
 				}
 				catch (const std::exception& e)
 				{
-					NETWORK_LOG_ERROR("[health_monitor] Exception in monitor thread: " +
+					NETWORK_LOG_ERROR("[health_monitor] Exception in io_context run: " +
 						std::string(e.what()));
 				}
 			}
@@ -149,15 +150,14 @@ namespace network_system::utils
 			io_context_->stop();
 		}
 
-		// Join thread
-		if (monitor_thread_ && monitor_thread_->joinable())
+		// Wait for io_context task to complete
+		if (io_future_.valid())
 		{
-			monitor_thread_->join();
+			io_future_.wait();
 		}
 
 		// Release resources
 		heartbeat_timer_.reset();
-		monitor_thread_.reset();
 		io_context_.reset();
 		client_.reset();
 
