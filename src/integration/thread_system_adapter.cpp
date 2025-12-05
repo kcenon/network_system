@@ -46,6 +46,71 @@ thread_system_pool_adapter::thread_system_pool_adapter(
     if (!pool_) {
         throw std::invalid_argument("thread_system_pool_adapter: pool is null");
     }
+
+    // Start the scheduler thread for delayed tasks
+    scheduler_running_ = true;
+    scheduler_thread_ = std::thread([this] { scheduler_loop(); });
+}
+
+thread_system_pool_adapter::~thread_system_pool_adapter() {
+    stop_scheduler();
+}
+
+void thread_system_pool_adapter::stop_scheduler() {
+    {
+        std::unique_lock<std::mutex> lock(scheduler_mutex_);
+        if (!scheduler_running_) {
+            return;
+        }
+        scheduler_running_ = false;
+    }
+
+    scheduler_condition_.notify_all();
+
+    if (scheduler_thread_.joinable()) {
+        scheduler_thread_.join();
+    }
+}
+
+void thread_system_pool_adapter::scheduler_loop() {
+    while (scheduler_running_) {
+        std::unique_lock<std::mutex> lock(scheduler_mutex_);
+
+        if (delayed_tasks_.empty()) {
+            scheduler_condition_.wait(lock, [this] {
+                return !scheduler_running_ || !delayed_tasks_.empty();
+            });
+        }
+
+        if (!scheduler_running_) {
+            break;
+        }
+
+        if (!delayed_tasks_.empty()) {
+            auto now = std::chrono::steady_clock::now();
+            const auto& next_task = delayed_tasks_.top();
+
+            if (now >= next_task.execute_at) {
+                // Task is ready to execute
+                auto task = std::move(const_cast<DelayedTask&>(next_task).task);
+                delayed_tasks_.pop();
+                lock.unlock();
+
+                // Execute the task (which submits to thread pool)
+                if (task) {
+                    task();
+                }
+            } else {
+                // Wait until the next task is due or a new task is added
+                auto wait_time = next_task.execute_at;
+                scheduler_condition_.wait_until(lock, wait_time, [this, wait_time] {
+                    return !scheduler_running_ ||
+                           delayed_tasks_.empty() ||
+                           delayed_tasks_.top().execute_at < wait_time;
+                });
+            }
+        }
+    }
 }
 
 std::future<void> thread_system_pool_adapter::submit(std::function<void()> task) {
@@ -75,11 +140,21 @@ std::future<void> thread_system_pool_adapter::submit_delayed(
     auto promise = std::make_shared<std::promise<void>>();
     auto future = promise->get_future();
 
-    // Dispatch a timer thread to schedule onto the pool without blocking workers
-    std::thread([this, task = std::move(task), delay, promise]() mutable {
-        try {
-            std::this_thread::sleep_for(delay);
-            bool ok = pool_->submit_task([task = std::move(task), promise]() mutable {
+    {
+        std::unique_lock<std::mutex> lock(scheduler_mutex_);
+        if (!scheduler_running_) {
+            promise->set_exception(std::make_exception_ptr(
+                std::runtime_error("thread_system_pool_adapter: scheduler is not running")));
+            return future;
+        }
+
+        auto execute_time = std::chrono::steady_clock::now() + delay;
+
+        // Capture pool_ by value (shared_ptr copy) to ensure it stays alive
+        auto pool = pool_;
+        delayed_tasks_.push({execute_time, [pool, task = std::move(task), promise]() mutable {
+            // Submit to thread pool when the delay expires
+            bool ok = pool->submit_task([task = std::move(task), promise]() mutable {
                 try {
                     if (task) task();
                     promise->set_value();
@@ -87,15 +162,15 @@ std::future<void> thread_system_pool_adapter::submit_delayed(
                     promise->set_exception(std::current_exception());
                 }
             });
+
             if (!ok) {
                 promise->set_exception(std::make_exception_ptr(
                     std::runtime_error("thread_system_pool_adapter: delayed submit failed")));
             }
-        } catch (...) {
-            promise->set_exception(std::current_exception());
-        }
-    }).detach();
+        }});
+    }
 
+    scheduler_condition_.notify_one();
     return future;
 }
 
