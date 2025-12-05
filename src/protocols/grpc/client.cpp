@@ -33,6 +33,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "kcenon/network/protocols/grpc/client.h"
 #include "kcenon/network/protocols/grpc/frame.h"
 #include "kcenon/network/protocols/http2/http2_client.h"
+#include "kcenon/network/integration/thread_integration.h"
 
 #include <atomic>
 #include <charconv>
@@ -660,14 +661,15 @@ public:
                         std::function<void(Result<grpc_message>)> callback,
                         const call_options& options) -> void
     {
-        // Execute asynchronously in a separate thread
-        std::thread([this, method, request, callback, options]() {
-            auto result = call_raw(method, request, options);
-            if (callback)
-            {
-                callback(std::move(result));
-            }
-        }).detach();
+        // Execute asynchronously using thread pool
+        integration::thread_integration_manager::instance().submit_task(
+            [this, method, request, callback, options]() {
+                auto result = call_raw(method, request, options);
+                if (callback)
+                {
+                    callback(std::move(result));
+                }
+            });
     }
 
     auto server_stream_raw(const std::string& method,

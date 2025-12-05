@@ -19,6 +19,11 @@ Network System 프로젝트의 모든 주요 변경 사항이 이 파일에 문�
   - 지연 작업 실행에 대한 포괄적인 단위 테스트 추가
 
 ### 리팩토링됨
+- **gRPC 클라이언트 비동기 호출**: `call_raw_async()`를 `std::thread().detach()`에서 `thread_integration_manager::submit_task()`로 마이그레이션 (#278)
+  - 분리된 스레드 생성 대신 공유 스레드 풀로 비동기 gRPC 호출 제출
+  - 중앙 집중식 스레드 관리를 통한 제어된 스레드 수명주기
+  - 대량 비동기 호출 시 스레드 폭발 방지
+
 - **Send Coroutine Fallback**: `async_send_with_pipeline_no_co()`를 `std::thread().detach()`에서 `thread_integration_manager::submit_task()`로 마이그레이션 (#274)
   - 분리된 스레드 생성 대신 공유 스레드 풀로 작업 제출
   - 관리되는 풀을 통한 제어된 스레드 수명주기
