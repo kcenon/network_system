@@ -119,15 +119,9 @@ void network_context::initialize(size_t thread_count) {
     }
 
     // Initialize logger if not already set
+    // Issue #285: Now uses common_system_logger_adapter by default
     if (!pimpl_->logger_) {
-#ifdef BUILD_WITH_LOGGER_SYSTEM
-        auto logger_adapter = std::make_shared<integration::logger_system_adapter>(true, 8192);
-        logger_adapter->start();
-        pimpl_->logger_ = logger_adapter;
-#else
-        pimpl_->logger_ = std::make_shared<integration::basic_logger>(
-            integration::log_level::info);
-#endif
+        pimpl_->logger_ = std::make_shared<integration::common_system_logger_adapter>();
         integration::logger_integration_manager::instance().set_logger(pimpl_->logger_);
     }
 
