@@ -38,6 +38,8 @@
 #include <thread>
 #include <stdexcept>
 
+#include <kcenon/thread/core/thread_worker.h>
+
 namespace kcenon::network::integration {
 
 thread_system_pool_adapter::thread_system_pool_adapter(
@@ -191,6 +193,17 @@ std::shared_ptr<thread_system_pool_adapter> thread_system_pool_adapter::create_d
 ) {
     kcenon::thread::thread_context ctx; // default resolves logger/monitoring if registered
     auto pool = std::make_shared<kcenon::thread::thread_pool>(pool_name, ctx);
+
+    // Add default workers based on hardware concurrency
+    size_t num_threads = std::thread::hardware_concurrency();
+    if (num_threads == 0) {
+        num_threads = 2; // Fallback
+    }
+
+    for (size_t i = 0; i < num_threads; ++i) {
+        pool->enqueue(std::make_unique<kcenon::thread::thread_worker>());
+    }
+
     (void)pool->start(); // best-effort start; ignore error to keep adapter usable
     return std::make_shared<thread_system_pool_adapter>(std::move(pool));
 }
