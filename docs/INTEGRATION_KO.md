@@ -19,11 +19,46 @@ network_system은 성능 향상을 위해 외부 스레드 풀과 선택적으�
 cmake .. -DBUILD_WITH_THREAD_SYSTEM=ON
 ```
 
+### 아키텍처
+
+`BUILD_WITH_THREAD_SYSTEM`이 활성화되면, `basic_thread_pool` 클래스는 내부적으로 `thread_system::thread_pool`에 위임합니다. 이를 통해:
+
+- **통합 스레드 관리**: 모든 스레드 연산이 thread_system을 통해 처리됨
+- **고급 기능**: adaptive_job_queue, hazard pointers, 워커 상태 모니터링에 접근
+- **일관된 메트릭**: 스레드 풀 메트릭이 thread_system의 메트릭 인프라를 통해 보고됨
+- **자동 혜택**: 코드 변경 불필요 - 기존 `basic_thread_pool` 사용이 자동으로 thread_system 기능을 활용
+
+### 구현 세부사항
+
+```cpp
+// basic_thread_pool은 이제 내부적으로 thread_system::thread_pool을 사용
+class basic_thread_pool::impl {
+    std::shared_ptr<kcenon::thread::thread_pool> pool_;
+    // ... 모든 연산을 pool_에 위임
+};
+```
+
+thread_system을 사용할 수 없는 경우, `basic_thread_pool`은 독립형 std::thread 기반 구현으로 폴백합니다.
+
 ### 사용
 thread_system이 사용 가능한 경우, 네트워크 연산은 다음을 위해 스레드 풀을 자동으로 활용합니다:
 - 연결 처리
 - 메시지 처리
 - 비동기 연산
+
+### thread_system_pool_adapter 사용
+
+thread_system 기능에 직접 접근하려면 `thread_system_pool_adapter`를 사용할 수 있습니다:
+
+```cpp
+#include <kcenon/network/integration/thread_system_adapter.h>
+
+// 서비스 컨테이너에서 어댑터 생성 또는 새 풀 생성
+auto adapter = thread_system_pool_adapter::from_service_or_default("network_pool");
+
+// 또는 thread_system을 직접 통합 관리자에 바인딩
+bind_thread_system_pool_into_manager("my_pool");
+```
 
 ### 요구 사항
 - thread_system은 `../thread_system`에 설치되어야 함

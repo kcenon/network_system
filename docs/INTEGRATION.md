@@ -20,11 +20,46 @@ The network_system can optionally integrate with an external thread pool for imp
 cmake .. -DBUILD_WITH_THREAD_SYSTEM=ON
 ```
 
+### Architecture
+
+When `BUILD_WITH_THREAD_SYSTEM` is enabled, the `basic_thread_pool` class internally delegates to `thread_system::thread_pool`. This provides:
+
+- **Unified Thread Management**: All thread operations go through thread_system
+- **Advanced Features**: Access to adaptive_job_queue, hazard pointers, and worker health monitoring
+- **Consistent Metrics**: Thread pool metrics are reported through thread_system's metrics infrastructure
+- **Automatic Benefits**: No code changes required - existing `basic_thread_pool` usage automatically gets thread_system features
+
+### Implementation Details
+
+```cpp
+// basic_thread_pool now internally uses thread_system::thread_pool
+class basic_thread_pool::impl {
+    std::shared_ptr<kcenon::thread::thread_pool> pool_;
+    // ... delegates all operations to pool_
+};
+```
+
+When thread_system is not available, `basic_thread_pool` falls back to a standalone std::thread-based implementation.
+
 ### Usage
 When thread_system is available, network operations will automatically utilize the thread pool for:
 - Connection handling
 - Message processing
 - Async operations
+
+### Using thread_system_pool_adapter
+
+For direct access to thread_system features, you can use the `thread_system_pool_adapter`:
+
+```cpp
+#include <kcenon/network/integration/thread_system_adapter.h>
+
+// Create adapter from service container or create new pool
+auto adapter = thread_system_pool_adapter::from_service_or_default("network_pool");
+
+// Or bind thread_system directly to the integration manager
+bind_thread_system_pool_into_manager("my_pool");
+```
 
 ### Requirements
 - thread_system must be installed in `../thread_system`
@@ -296,4 +331,4 @@ If CMake cannot find an integration system:
 
 ---
 
-*Last Updated: 2025-11-30*
+*Last Updated: 2025-12-05*
