@@ -50,7 +50,6 @@ public:
     struct context_entry {
         std::weak_ptr<asio::io_context> context;
         std::string component_name;
-        std::future<void> future;
     };
 
     impl() : total_started_(0), total_completed_(0) {}
@@ -91,10 +90,27 @@ public:
         auto ctx_weak = std::weak_ptr<asio::io_context>(io_context);
         auto name = component_name.empty() ? "unnamed" : component_name;
 
-        auto future = pool->submit([ctx_weak, name, this]() {
+        // Create a shared promise for the caller's future
+        auto caller_promise = std::make_shared<std::promise<void>>();
+        auto caller_future = caller_promise->get_future();
+
+        // Track the entry for metrics and stop_all functionality
+        {
+            std::lock_guard<std::mutex> lock(mutex_);
+            context_entry entry;
+            entry.context = io_context;
+            entry.component_name = name;
+            entries_.push_back(std::move(entry));
+            total_started_.fetch_add(1, std::memory_order_relaxed);
+        }
+
+        // Submit the io_context::run task - this is the ONLY task we submit
+        // No separate monitoring task to avoid thread pool exhaustion
+        pool->submit([ctx_weak, name, caller_promise, this]() {
             auto ctx = ctx_weak.lock();
             if (!ctx) {
                 NETWORK_LOG_WARN("[io_context_thread_manager] io_context expired before run: " + name);
+                caller_promise->set_value();
                 return;
             }
 
@@ -102,54 +118,22 @@ public:
             try {
                 ctx->run();
                 NETWORK_LOG_INFO("[io_context_thread_manager] io_context completed: " + name);
+                caller_promise->set_value();
             } catch (const std::exception& e) {
                 NETWORK_LOG_ERROR("[io_context_thread_manager] Exception in io_context " + name + ": " + e.what());
+                caller_promise->set_exception(std::current_exception());
             } catch (...) {
                 NETWORK_LOG_ERROR("[io_context_thread_manager] Unknown exception in io_context: " + name);
+                caller_promise->set_exception(std::current_exception());
             }
 
             total_completed_.fetch_add(1, std::memory_order_relaxed);
         });
 
-        // Track the entry
-        {
-            std::lock_guard<std::mutex> lock(mutex_);
-            context_entry entry;
-            entry.context = io_context;
-            entry.component_name = name;
-            entry.future = std::move(future);
-            entries_.push_back(std::move(entry));
-            total_started_.fetch_add(1, std::memory_order_relaxed);
-        }
-
         // Clean up expired entries periodically
         cleanup_expired();
 
-        // Return an empty future since we moved it into the entry
-        // We need to create a new future for the caller
-        auto promise = std::make_shared<std::promise<void>>();
-
-        // Submit a monitoring task that waits for the io_context to complete
-        pool->submit([ctx_weak, promise]() {
-            auto ctx = ctx_weak.lock();
-            if (!ctx) {
-                promise->set_value();
-                return;
-            }
-
-            // Wait for the io_context to stop
-            // This task will complete when the io_context is stopped
-            while (!ctx->stopped()) {
-                std::this_thread::sleep_for(std::chrono::milliseconds(100));
-                // Check if context is still valid
-                if (ctx.use_count() <= 1) {
-                    break;
-                }
-            }
-            promise->set_value();
-        });
-
-        return promise->get_future();
+        return caller_future;
     }
 
     void stop_io_context(std::shared_ptr<asio::io_context> io_context) {
@@ -171,26 +155,33 @@ public:
     }
 
     void wait_all() {
-        std::vector<std::future<void>> futures;
-        {
-            std::lock_guard<std::mutex> lock(mutex_);
-            for (auto& entry : entries_) {
-                if (entry.future.valid()) {
-                    futures.push_back(std::move(entry.future));
+        // Since futures are returned directly to callers, wait_all just
+        // waits for all tracked io_contexts to be stopped.
+        // The callers should wait on their own futures.
+        auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(10);
+
+        while (std::chrono::steady_clock::now() < deadline) {
+            {
+                std::lock_guard<std::mutex> lock(mutex_);
+                bool all_stopped = true;
+                for (const auto& entry : entries_) {
+                    auto ctx = entry.context.lock();
+                    if (ctx && !ctx->stopped()) {
+                        all_stopped = false;
+                        break;
+                    }
+                }
+                if (all_stopped) {
+                    entries_.clear();
+                    break;
                 }
             }
-            entries_.clear();
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
         }
 
-        for (auto& f : futures) {
-            if (f.valid()) {
-                try {
-                    f.wait();
-                } catch (...) {
-                    // Ignore exceptions during shutdown
-                }
-            }
-        }
+        // Clear any remaining expired entries
+        std::lock_guard<std::mutex> lock(mutex_);
+        entries_.clear();
     }
 
     size_t active_count() const {
