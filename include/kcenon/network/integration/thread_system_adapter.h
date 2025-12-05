@@ -42,7 +42,9 @@
 #include <memory>
 #include <future>
 #include <string>
+#include <functional>
 #include <queue>
+#include <vector>
 #include <mutex>
 #include <thread>
 #include <condition_variable>
