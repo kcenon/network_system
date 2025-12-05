@@ -36,8 +36,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * @file logger_integration.h
  * @brief Logger system integration interface for network_system
  *
- * This interface provides integration with logger_system for centralized
- * logging and monitoring capabilities.
+ * This file provides logging integration with optional common_system support.
+ * When BUILD_WITH_COMMON_SYSTEM is defined, NETWORK_LOG_* macros delegate to
+ * common_system's LOG_* macros. Otherwise, they use the built-in basic_logger.
+ *
+ * @note Issue #285: Supports both common_system ILogger and standalone operation.
  *
  * @author kcenon
  * @date 2025-09-20
@@ -49,11 +52,17 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "kcenon/network/integration/thread_integration.h"
 
+// Conditionally include common_system logging facilities
+#ifdef BUILD_WITH_COMMON_SYSTEM
+#include <kcenon/common/logging/log_macros.h>
+#include <kcenon/common/interfaces/global_logger_registry.h>
+#endif
+
 namespace kcenon::network::integration {
 
 /**
  * @enum log_level
- * @brief Log severity levels matching logger_system
+ * @brief Log severity levels
  */
 enum class log_level : int {
     trace = 0,
@@ -64,12 +73,29 @@ enum class log_level : int {
     fatal = 5
 };
 
+#ifdef BUILD_WITH_COMMON_SYSTEM
+/**
+ * @brief Convert network log_level to common_system log_level
+ */
+inline kcenon::common::interfaces::log_level to_common_level(log_level level) {
+    switch (level) {
+        case log_level::trace: return kcenon::common::interfaces::log_level::trace;
+        case log_level::debug: return kcenon::common::interfaces::log_level::debug;
+        case log_level::info: return kcenon::common::interfaces::log_level::info;
+        case log_level::warn: return kcenon::common::interfaces::log_level::warning;
+        case log_level::error: return kcenon::common::interfaces::log_level::error;
+        case log_level::fatal: return kcenon::common::interfaces::log_level::critical;
+        default: return kcenon::common::interfaces::log_level::info;
+    }
+}
+#endif
+
 /**
  * @class logger_interface
  * @brief Abstract interface for logger integration
  *
  * This interface allows network_system to work with any logger
- * implementation, including the logger_system module.
+ * implementation.
  */
 class logger_interface {
 public:
@@ -107,12 +133,43 @@ public:
     virtual void flush() = 0;
 };
 
+#ifdef BUILD_WITH_COMMON_SYSTEM
+/**
+ * @class common_system_logger_adapter
+ * @brief Adapter that wraps common_system's ILogger to logger_interface
+ *
+ * This adapter bridges the legacy logger_interface with common_system's
+ * ILogger, allowing existing code to work with the new logging system.
+ */
+class common_system_logger_adapter : public logger_interface {
+public:
+    /**
+     * @brief Constructor with optional named logger
+     * @param logger_name Name of the logger in GlobalLoggerRegistry (empty for default)
+     */
+    explicit common_system_logger_adapter(const std::string& logger_name = "");
+
+    ~common_system_logger_adapter() override = default;
+
+    void log(log_level level, const std::string& message) override;
+    void log(log_level level, const std::string& message,
+            const std::string& file, int line,
+            const std::string& function) override;
+    bool is_level_enabled(log_level level) const override;
+    void flush() override;
+
+private:
+    std::string logger_name_;
+    std::shared_ptr<kcenon::common::interfaces::ILogger> get_logger() const;
+};
+#endif // BUILD_WITH_COMMON_SYSTEM
+
 /**
  * @class basic_logger
  * @brief Basic console logger implementation for standalone use
  *
  * This provides a simple logger implementation for when
- * logger_system is not available.
+ * common_system or logger_system is not available.
  */
 class basic_logger : public logger_interface {
 public:
@@ -149,55 +206,13 @@ private:
     std::unique_ptr<impl> pimpl_;
 };
 
-#ifdef BUILD_WITH_LOGGER_SYSTEM
-/**
- * @class logger_system_adapter
- * @brief Adapter for logger_system integration
- *
- * This adapter wraps logger_system's logger class to provide
- * the logger_interface implementation.
- */
-class logger_system_adapter : public logger_interface {
-public:
-    /**
-     * @brief Constructor
-     * @param async Enable async logging (default: true)
-     * @param buffer_size Buffer size for async mode (default: 8192)
-     */
-    explicit logger_system_adapter(bool async = true, size_t buffer_size = 8192);
-
-    ~logger_system_adapter() override;
-
-    // logger_interface implementation
-    void log(log_level level, const std::string& message) override;
-    void log(log_level level, const std::string& message,
-            const std::string& file, int line,
-            const std::string& function) override;
-    bool is_level_enabled(log_level level) const override;
-    void flush() override;
-
-    /**
-     * @brief Start the logger (required for async mode)
-     */
-    void start();
-
-    /**
-     * @brief Stop the logger
-     */
-    void stop();
-
-private:
-    class impl;
-    std::unique_ptr<impl> pimpl_;
-};
-#endif // BUILD_WITH_LOGGER_SYSTEM
-
 /**
  * @class logger_integration_manager
  * @brief Manager for logger system integration
  *
  * This class manages the integration between network_system and
- * logger implementations.
+ * logger implementations. When BUILD_WITH_COMMON_SYSTEM is defined,
+ * it delegates to GlobalLoggerRegistry internally.
  */
 class logger_integration_manager {
 public:
@@ -245,7 +260,26 @@ private:
     std::unique_ptr<impl> pimpl_;
 };
 
+} // namespace kcenon::network::integration
+
+// =============================================================================
 // Convenience macros for logging with automatic source location
+//
+// When BUILD_WITH_COMMON_SYSTEM is defined, delegate to common_system's LOG_* macros.
+// Otherwise, use logger_integration_manager for standalone operation.
+// =============================================================================
+
+#ifdef BUILD_WITH_COMMON_SYSTEM
+
+#define NETWORK_LOG_TRACE(msg) LOG_TRACE(msg)
+#define NETWORK_LOG_DEBUG(msg) LOG_DEBUG(msg)
+#define NETWORK_LOG_INFO(msg) LOG_INFO(msg)
+#define NETWORK_LOG_WARN(msg) LOG_WARNING(msg)
+#define NETWORK_LOG_ERROR(msg) LOG_ERROR(msg)
+#define NETWORK_LOG_FATAL(msg) LOG_CRITICAL(msg)
+
+#else // !BUILD_WITH_COMMON_SYSTEM
+
 #define NETWORK_LOG_TRACE(msg) \
     kcenon::network::integration::logger_integration_manager::instance().log( \
         kcenon::network::integration::log_level::trace, msg, __FILE__, __LINE__, __FUNCTION__)
@@ -270,6 +304,6 @@ private:
     kcenon::network::integration::logger_integration_manager::instance().log( \
         kcenon::network::integration::log_level::fatal, msg, __FILE__, __LINE__, __FUNCTION__)
 
-} // namespace kcenon::network::integration
+#endif // BUILD_WITH_COMMON_SYSTEM
 
 // Backward compatibility namespace alias is defined in thread_integration.h

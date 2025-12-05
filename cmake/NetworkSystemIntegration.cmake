@@ -96,14 +96,21 @@ endfunction()
 
 ##################################################
 # Configure logger_system integration
+#
+# Issue #285: logger_system is now OPTIONAL.
+# Logging uses common_system's ILogger and GlobalLoggerRegistry by default.
+# If BUILD_WITH_LOGGER_SYSTEM is ON, logger_system_adapter is available
+# for runtime binding.
 ##################################################
 function(setup_logger_system_integration target)
-    # Always add logger_integration.cpp as it provides fallback logging
+    # Always add logger_integration.cpp - it now uses common_system's logging
     target_sources(${target} PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/src/integration/logger_integration.cpp
     )
 
+    # logger_system is optional - if enabled, add the adapter for runtime binding
     if(NOT BUILD_WITH_LOGGER_SYSTEM)
+        message(STATUS "${target}: Using common_system's ILogger (no logger_system dependency)")
         return()
     endif()
 
@@ -118,6 +125,8 @@ function(setup_logger_system_integration target)
         endif()
         target_compile_definitions(${target} PRIVATE BUILD_WITH_LOGGER_SYSTEM)
         message(STATUS "Configured ${target} with logger_system integration")
+    else()
+        message(STATUS "${target}: logger_system not found, using common_system's ILogger")
     endif()
 endfunction()
 

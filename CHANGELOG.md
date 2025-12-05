@@ -11,6 +11,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **Logging System**: Migrated from direct logger_system dependency to common_system's ILogger interface (#285)
+  - `NETWORK_LOG_*` macros now delegate to common_system's `LOG_*` macros
+  - Added `common_system_logger_adapter` for bridging legacy `logger_interface`
+  - `BUILD_WITH_LOGGER_SYSTEM` is now optional (default: OFF)
+  - Logging uses GlobalLoggerRegistry for runtime logger binding
+  - Reduces compile-time coupling and enables flexible logger configuration
+
 ### Fixed
 - **Thread System Adapter**: Fixed `submit_delayed()` to use a single scheduler thread with priority queue instead of creating a detached `std::thread` per delayed task (#273)
   - Eliminates thread explosion under high delayed task submission
