@@ -43,6 +43,7 @@
 #include <atomic>
 #include <algorithm>
 #include <stdexcept>
+#include <thread>
 
 #if defined(BUILD_WITH_THREAD_SYSTEM)
 #include <kcenon/thread/core/thread_pool.h>
@@ -185,10 +186,9 @@ private:
 #else // !BUILD_WITH_THREAD_SYSTEM
 
 // Fallback implementation when thread_system is not available
-// This provides a minimal thread pool using std::async
+// This provides a minimal thread pool using std::thread
 #include <queue>
 #include <condition_variable>
-#include <thread>
 
 class basic_thread_pool::impl {
     struct DelayedTask {
