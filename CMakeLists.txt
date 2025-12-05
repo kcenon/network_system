@@ -55,10 +55,13 @@ option(NETWORK_BUILD_INTEGRATION_TESTS "Build network system integration tests" 
 #       network_system provides basic_monitoring for standalone operation.
 ##################################################
 
-# Required dependencies (Tier 0-2)
+# Required dependencies (Tier 0-1)
 option(BUILD_WITH_COMMON_SYSTEM "Build with common_system integration (REQUIRED)" ON)
 option(BUILD_WITH_THREAD_SYSTEM "Build with thread_system integration (REQUIRED)" ON)
-option(BUILD_WITH_LOGGER_SYSTEM "Build with logger_system integration (REQUIRED)" ON)
+
+# Optional dependencies - logger_system is now OPTIONAL (runtime binding via GlobalLoggerRegistry)
+# Issue #285: Migrated to common_system's ILogger interface
+option(BUILD_WITH_LOGGER_SYSTEM "Build with logger_system integration (OPTIONAL - runtime binding)" OFF)
 
 # Optional dependencies
 option(BUILD_WITH_CONTAINER_SYSTEM "Build with container_system integration" ON)
@@ -82,8 +85,10 @@ if(NOT BUILD_WITH_THREAD_SYSTEM)
     message(WARNING "thread_system (Tier 1) is disabled - some features may be unavailable")
 endif()
 
-if(NOT BUILD_WITH_LOGGER_SYSTEM)
-    message(WARNING "logger_system (Tier 2) is disabled - some features may be unavailable")
+if(BUILD_WITH_LOGGER_SYSTEM)
+    message(STATUS "logger_system integration is ENABLED (optional - will use logger_system_adapter)")
+else()
+    message(STATUS "logger_system integration is DISABLED (default - uses common_system's ILogger)")
 endif()
 
 # Optional integration status message
@@ -514,9 +519,9 @@ message(STATUS "========================================")
 message(STATUS "")
 message(STATUS "Dependency Chain (Tier 4):")
 message(STATUS "  network_system")
-message(STATUS "    ├── common_system (Tier 0): ${BUILD_WITH_COMMON_SYSTEM} [REQUIRED]")
+message(STATUS "    ├── common_system (Tier 0): ${BUILD_WITH_COMMON_SYSTEM} [REQUIRED - provides ILogger]")
 message(STATUS "    ├── thread_system (Tier 1): ${BUILD_WITH_THREAD_SYSTEM} [REQUIRED]")
-message(STATUS "    ├── logger_system (Tier 2): ${BUILD_WITH_LOGGER_SYSTEM} [REQUIRED]")
+message(STATUS "    ├── logger_system (Tier 2): ${BUILD_WITH_LOGGER_SYSTEM} [OPTIONAL - runtime binding]")
 message(STATUS "    ├── container_system (Tier 1): ${BUILD_WITH_CONTAINER_SYSTEM}")
 message(STATUS "    └── monitoring_system (Tier 3): ${BUILD_WITH_MONITORING_SYSTEM} [OPTIONAL]")
 message(STATUS "")
