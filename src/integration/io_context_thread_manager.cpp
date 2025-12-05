@@ -64,8 +64,10 @@ public:
         if (!thread_pool_) {
             thread_pool_ = network_system::core::network_context::instance().get_thread_pool();
             if (!thread_pool_) {
-                // Fallback to basic thread pool
-                thread_pool_ = std::make_shared<basic_thread_pool>(2);
+                // Fallback to basic thread pool with reasonable size for concurrent io_contexts
+                // Each server/client needs its own io_context thread
+                auto pool_size = std::max(8u, std::thread::hardware_concurrency());
+                thread_pool_ = std::make_shared<basic_thread_pool>(pool_size);
             }
         }
         return thread_pool_;
