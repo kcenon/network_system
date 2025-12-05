@@ -31,22 +31,164 @@
  * @file thread_integration.cpp
  * @brief Implementation of thread system integration
  *
+ * This implementation delegates to thread_system::thread_pool when BUILD_WITH_THREAD_SYSTEM
+ * is defined, providing unified thread pool management across the network_system.
+ *
  * @author kcenon
  * @date 2025-09-20
-
  */
 
 #include "kcenon/network/integration/thread_integration.h"
-#include <thread>
-#include <queue>
 #include <mutex>
-#include <condition_variable>
 #include <atomic>
 #include <algorithm>
+#include <stdexcept>
+#include <thread>
+#include <queue>
+#include <condition_variable>
+
+#if defined(BUILD_WITH_THREAD_SYSTEM)
+#include <kcenon/thread/core/thread_pool.h>
+#include <kcenon/thread/core/thread_worker.h>
+#endif
 
 namespace kcenon::network::integration {
 
-// basic_thread_pool implementation
+#if defined(BUILD_WITH_THREAD_SYSTEM)
+
+// basic_thread_pool implementation using thread_system::thread_pool
+class basic_thread_pool::impl {
+public:
+    impl(size_t num_threads) : completed_tasks_(0) {
+        if (num_threads == 0) {
+            num_threads = std::thread::hardware_concurrency();
+            if (num_threads == 0) num_threads = 2; // Fallback
+        }
+
+        pool_ = std::make_shared<kcenon::thread::thread_pool>("network_basic_pool");
+
+        // Add workers to the pool
+        for (size_t i = 0; i < num_threads; ++i) {
+            pool_->enqueue(std::make_unique<kcenon::thread::thread_worker>());
+        }
+
+        pool_->start();
+    }
+
+    ~impl() {
+        stop(true);
+    }
+
+    std::future<void> submit(std::function<void()> task) {
+        auto promise = std::make_shared<std::promise<void>>();
+        auto future = promise->get_future();
+
+        if (!pool_ || !pool_->is_running()) {
+            promise->set_exception(
+                std::make_exception_ptr(
+                    std::runtime_error("Thread pool is not running")
+                )
+            );
+            return future;
+        }
+
+        bool ok = pool_->submit_task([task = std::move(task), promise, this]() mutable {
+            try {
+                if (task) task();
+                promise->set_value();
+                completed_tasks_++;
+            } catch (...) {
+                promise->set_exception(std::current_exception());
+            }
+        });
+
+        if (!ok) {
+            promise->set_exception(
+                std::make_exception_ptr(
+                    std::runtime_error("Failed to submit task to thread pool")
+                )
+            );
+        }
+
+        return future;
+    }
+
+    std::future<void> submit_delayed(
+        std::function<void()> task,
+        std::chrono::milliseconds delay
+    ) {
+        // Use thread_system's submit_delayed if available (via IExecutor interface)
+#if defined(THREAD_HAS_COMMON_EXECUTOR)
+        return pool_->submit_delayed(std::move(task), delay);
+#else
+        // Fallback: submit a task that sleeps then executes
+        // Note: This is not ideal but maintains API compatibility
+        auto promise = std::make_shared<std::promise<void>>();
+        auto future = promise->get_future();
+
+        if (!pool_ || !pool_->is_running()) {
+            promise->set_exception(
+                std::make_exception_ptr(
+                    std::runtime_error("Thread pool is not running")
+                )
+            );
+            return future;
+        }
+
+        bool ok = pool_->submit_task([task = std::move(task), delay, promise, this]() mutable {
+            try {
+                std::this_thread::sleep_for(delay);
+                if (task) task();
+                promise->set_value();
+                completed_tasks_++;
+            } catch (...) {
+                promise->set_exception(std::current_exception());
+            }
+        });
+
+        if (!ok) {
+            promise->set_exception(
+                std::make_exception_ptr(
+                    std::runtime_error("Failed to submit delayed task to thread pool")
+                )
+            );
+        }
+
+        return future;
+#endif
+    }
+
+    size_t worker_count() const {
+        return pool_ ? pool_->get_thread_count() : 0;
+    }
+
+    bool is_running() const {
+        return pool_ && pool_->is_running();
+    }
+
+    size_t pending_tasks() const {
+        return pool_ ? pool_->get_pending_task_count() : 0;
+    }
+
+    void stop(bool wait_for_tasks) {
+        if (pool_) {
+            pool_->stop(!wait_for_tasks);
+        }
+    }
+
+    size_t get_completed_tasks() const {
+        return completed_tasks_.load();
+    }
+
+private:
+    std::shared_ptr<kcenon::thread::thread_pool> pool_;
+    std::atomic<size_t> completed_tasks_;
+};
+
+#else // !BUILD_WITH_THREAD_SYSTEM
+
+// Fallback implementation when thread_system is not available
+// This provides a minimal thread pool using std::thread
 class basic_thread_pool::impl {
     struct DelayedTask {
         std::chrono::steady_clock::time_point execute_at;
@@ -138,7 +280,7 @@ public:
                 });
             }});
         }
-        
+
         scheduler_condition_.notify_one();
         return future;
     }
@@ -166,12 +308,9 @@ public:
             }
             running_ = false;
         }
-        
+
         {
              std::unique_lock<std::mutex> lock(scheduler_mutex_);
-             // Clear delayed tasks if not waiting? 
-             // For consistency with existing stop(false), we might want to clear them.
-             // But let's stick to stopping the scheduler loop.
         }
 
         condition_.notify_all();
@@ -224,7 +363,7 @@ private:
     void scheduler_loop() {
         while (running_) {
             std::unique_lock<std::mutex> lock(scheduler_mutex_);
-            
+
             if (delayed_tasks_.empty()) {
                 scheduler_condition_.wait(lock, [this] {
                     return !running_ || !delayed_tasks_.empty();
@@ -232,7 +371,7 @@ private:
             } else {
                 auto now = std::chrono::steady_clock::now();
                 auto& next_task = delayed_tasks_.top();
-                
+
                 if (now >= next_task.execute_at) {
                     auto task = next_task.task;
                     delayed_tasks_.pop();
@@ -250,7 +389,7 @@ private:
 
     std::vector<std::thread> workers_;
     std::thread scheduler_thread_;
-    
+
     std::queue<std::function<void()>> tasks_;
     mutable std::mutex queue_mutex_;
     std::condition_variable condition_;
@@ -262,6 +401,8 @@ private:
     std::atomic<bool> running_;
     std::atomic<size_t> completed_tasks_;
 };
+
+#endif // BUILD_WITH_THREAD_SYSTEM
 
 basic_thread_pool::basic_thread_pool(size_t num_threads)
     : pimpl_(std::make_unique<impl>(num_threads)) {
@@ -313,6 +454,9 @@ public:
     std::shared_ptr<thread_pool_interface> get_thread_pool() {
         std::unique_lock<std::mutex> lock(mutex_);
         if (!thread_pool_) {
+            // When thread_system is available, basic_thread_pool now internally
+            // uses thread_system::thread_pool, so creating basic_thread_pool
+            // automatically gets the benefits of thread_system.
             thread_pool_ = std::make_shared<basic_thread_pool>();
         }
         return thread_pool_;
