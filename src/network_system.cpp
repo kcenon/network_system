@@ -72,8 +72,12 @@ VoidResult initialize(const config::network_config &config) {
     }
 
     // Initialize logger
-    // Issue #285: Now uses common_system_logger_adapter with GlobalLoggerRegistry
+    // Issue #285: Uses common_system_logger_adapter when available, basic_logger otherwise
+#ifdef BUILD_WITH_COMMON_SYSTEM
     auto logger = std::make_shared<integration::common_system_logger_adapter>();
+#else
+    auto logger = std::make_shared<integration::basic_logger>(config.logger.min_level);
+#endif
     ctx.set_logger(logger);
     integration::logger_integration_manager::instance().set_logger(logger);
 

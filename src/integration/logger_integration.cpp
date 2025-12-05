@@ -32,9 +32,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /**
  * @file logger_integration.cpp
- * @brief Implementation of logger system integration using common_system
+ * @brief Implementation of logger system integration
  *
- * @note Issue #285: Migrated from logger_system to common_system's ILogger.
+ * This file supports both standalone operation (basic_logger) and
+ * common_system integration (common_system_logger_adapter).
+ *
+ * @note Issue #285: Supports both common_system ILogger and standalone operation.
  *
  * @author kcenon
  * @date 2025-09-20
@@ -78,8 +81,10 @@ static std::string get_timestamp() {
 }
 
 //============================================================================
-// common_system_logger_adapter implementation
+// common_system_logger_adapter implementation (only when common_system available)
 //============================================================================
+
+#ifdef BUILD_WITH_COMMON_SYSTEM
 
 common_system_logger_adapter::common_system_logger_adapter(const std::string& logger_name)
     : logger_name_(logger_name) {}
@@ -133,8 +138,10 @@ void common_system_logger_adapter::flush() {
     }
 }
 
+#endif // BUILD_WITH_COMMON_SYSTEM
+
 //============================================================================
-// basic_logger implementation (kept for backward compatibility)
+// basic_logger implementation
 //============================================================================
 
 class basic_logger::impl {
@@ -237,16 +244,21 @@ log_level basic_logger::get_min_level() const {
 //============================================================================
 // logger_integration_manager implementation
 //
-// Now delegates to GlobalLoggerRegistry for logging.
-// The legacy logger_interface is wrapped using common_system_logger_adapter.
+// When BUILD_WITH_COMMON_SYSTEM is defined, uses common_system_logger_adapter.
+// Otherwise, uses basic_logger for standalone operation.
 //============================================================================
 
 class logger_integration_manager::impl {
 public:
     impl() {
+#ifdef BUILD_WITH_COMMON_SYSTEM
         // Use common_system_logger_adapter by default
         // It delegates to GlobalLoggerRegistry which provides NullLogger fallback
         logger_ = std::make_shared<common_system_logger_adapter>();
+#else
+        // Use basic_logger for standalone operation
+        logger_ = std::make_shared<basic_logger>();
+#endif
     }
 
     void set_logger(std::shared_ptr<logger_interface> logger) {
@@ -257,21 +269,33 @@ public:
     std::shared_ptr<logger_interface> get_logger() {
         std::lock_guard<std::mutex> lock(mutex_);
         if (!logger_) {
+#ifdef BUILD_WITH_COMMON_SYSTEM
             logger_ = std::make_shared<common_system_logger_adapter>();
+#else
+            logger_ = std::make_shared<basic_logger>();
+#endif
         }
         return logger_;
     }
 
     void log(log_level level, const std::string& message) {
+#ifdef BUILD_WITH_COMMON_SYSTEM
         // Delegate directly to common_system's GlobalLoggerRegistry
         auto common_logger = kcenon::common::interfaces::get_logger();
         if (common_logger) {
             common_logger->log(to_common_level(level), message);
         }
+#else
+        auto logger = get_logger();
+        if (logger) {
+            logger->log(level, message);
+        }
+#endif
     }
 
     void log(log_level level, const std::string& message,
             const std::string& file, int line, const std::string& function) {
+#ifdef BUILD_WITH_COMMON_SYSTEM
         // Delegate directly to common_system's GlobalLoggerRegistry
         auto common_logger = kcenon::common::interfaces::get_logger();
         if (common_logger) {
@@ -289,6 +313,12 @@ public:
     #pragma warning(pop)
 #endif
         }
+#else
+        auto logger = get_logger();
+        if (logger) {
+            logger->log(level, message, file, line, function);
+        }
+#endif
     }
 
 private:
