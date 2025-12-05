@@ -47,6 +47,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "kcenon/network/utils/result_types.h"
 #include "kcenon/network/core/network_context.h"
 #include "kcenon/network/integration/thread_integration.h"
+#include "kcenon/network/integration/io_context_thread_manager.h"
 
 // Optional monitoring support via common_system
 #ifdef BUILD_WITH_COMMON_SYSTEM
@@ -330,13 +331,11 @@ namespace network_system::core {
 		std::string
 			server_id_;		/*!< Name or identifier for this server instance. */
 
-		std::unique_ptr<asio::io_context>
+		std::shared_ptr<asio::io_context>
 			io_context_;	/*!< The I/O context for async ops. */
 	std::unique_ptr<asio::executor_work_guard<asio::io_context::executor_type>> work_guard_; /*!< Keeps io_context running. */
 		std::unique_ptr<asio::ip::tcp::acceptor>
 			acceptor_;		/*!< Acceptor to listen for new connections. */
-		std::shared_ptr<integration::thread_pool_interface>
-			thread_pool_;	/*!< Thread pool for async operations. */
 		std::future<void>
 			io_context_future_; /*!< Future for the io_context run task. */
 

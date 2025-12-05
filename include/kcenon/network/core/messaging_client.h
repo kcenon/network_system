@@ -50,6 +50,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "kcenon/network/utils/result_types.h"
 #include "kcenon/network/core/network_context.h"
 #include "kcenon/network/integration/thread_integration.h"
+#include "kcenon/network/integration/io_context_thread_manager.h"
 
 // Use nested namespace definition in C++17
 namespace network_system::core
@@ -268,12 +269,10 @@ namespace network_system::core
 			false
 		}; /*!< True if stop has been called to prevent re-entry. */
 
-		std::unique_ptr<asio::io_context>
+		std::shared_ptr<asio::io_context>
 			io_context_; /*!< I/O context for async operations. */
 		std::unique_ptr<asio::executor_work_guard<asio::io_context::executor_type>>
 			work_guard_; /*!< Keeps io_context running. */
-		std::shared_ptr<integration::thread_pool_interface>
-			thread_pool_; /*!< Thread pool for async operations. */
 		std::future<void>
 			io_context_future_; /*!< Future for the io_context run task. */
 

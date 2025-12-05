@@ -204,6 +204,7 @@ add_library(NetworkSystem
     # Basic integration layer (always built - no external dependencies)
     src/integration/logger_integration.cpp
     src/integration/thread_integration.cpp
+    src/integration/io_context_thread_manager.cpp
     src/integration/container_integration.cpp
     src/integration/monitoring_integration.cpp
 
