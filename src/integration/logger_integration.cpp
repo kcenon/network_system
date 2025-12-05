@@ -32,7 +32,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /**
  * @file logger_integration.cpp
- * @brief Implementation of logger system integration
+ * @brief Implementation of logger system integration using common_system
+ *
+ * @note Issue #285: Migrated from logger_system to common_system's ILogger.
  *
  * @author kcenon
  * @date 2025-09-20
@@ -46,11 +48,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <iostream>
 #include <mutex>
 #include <sstream>
-
-#ifdef BUILD_WITH_LOGGER_SYSTEM
-#include <kcenon/logger/core/logger.h>
-#include <kcenon/logger/writers/console_writer.h>
-#endif
 
 namespace kcenon::network::integration {
 
@@ -81,7 +78,63 @@ static std::string get_timestamp() {
 }
 
 //============================================================================
-// basic_logger implementation
+// common_system_logger_adapter implementation
+//============================================================================
+
+common_system_logger_adapter::common_system_logger_adapter(const std::string& logger_name)
+    : logger_name_(logger_name) {}
+
+std::shared_ptr<kcenon::common::interfaces::ILogger>
+common_system_logger_adapter::get_logger() const {
+    if (logger_name_.empty()) {
+        return kcenon::common::interfaces::get_logger();
+    }
+    return kcenon::common::interfaces::get_logger(logger_name_);
+}
+
+void common_system_logger_adapter::log(log_level level, const std::string& message) {
+    auto logger = get_logger();
+    if (logger) {
+        logger->log(to_common_level(level), message);
+    }
+}
+
+void common_system_logger_adapter::log(log_level level, const std::string& message,
+                                       const std::string& file, int line,
+                                       const std::string& function) {
+    auto logger = get_logger();
+    if (logger) {
+        // Use the deprecated interface for backward compatibility
+#if defined(__GNUC__) || defined(__clang__)
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#elif defined(_MSC_VER)
+    #pragma warning(push)
+    #pragma warning(disable: 4996)
+#endif
+        logger->log(to_common_level(level), message, file, line, function);
+#if defined(__GNUC__) || defined(__clang__)
+    #pragma GCC diagnostic pop
+#elif defined(_MSC_VER)
+    #pragma warning(pop)
+#endif
+    }
+}
+
+bool common_system_logger_adapter::is_level_enabled(log_level level) const {
+    auto logger = get_logger();
+    return logger ? logger->is_enabled(to_common_level(level)) : false;
+}
+
+void common_system_logger_adapter::flush() {
+    auto logger = get_logger();
+    if (logger) {
+        logger->flush();
+    }
+}
+
+//============================================================================
+// basic_logger implementation (kept for backward compatibility)
 //============================================================================
 
 class basic_logger::impl {
@@ -182,119 +235,18 @@ log_level basic_logger::get_min_level() const {
 }
 
 //============================================================================
-// logger_system_adapter implementation (only when logger_system is available)
-//============================================================================
-
-#ifdef BUILD_WITH_LOGGER_SYSTEM
-
-// Helper function to convert our log_level to kcenon::logger::log_level
-static kcenon::logger::log_level convert_level(log_level level) {
-    switch (level) {
-        case log_level::trace: return kcenon::logger::log_level::trace;
-        case log_level::debug: return kcenon::logger::log_level::debug;
-        case log_level::info:  return kcenon::logger::log_level::info;
-        case log_level::warn:  return kcenon::logger::log_level::warning;
-        case log_level::error: return kcenon::logger::log_level::error;
-        case log_level::fatal: return kcenon::logger::log_level::critical;
-        default: return kcenon::logger::log_level::info;
-    }
-}
-
-class logger_system_adapter::impl {
-public:
-    impl(bool async, size_t buffer_size)
-        : logger_(std::make_shared<kcenon::logger::logger>(async, buffer_size)),
-          started_(false) {
-        // Add console writer by default
-        logger_->add_writer(std::make_unique<kcenon::logger::console_writer>());
-    }
-
-    void log(log_level level, const std::string& message) {
-        logger_->log(convert_level(level), message);
-    }
-
-    void log(log_level level, const std::string& message,
-            const std::string& file, int line, const std::string& function) {
-        logger_->log(convert_level(level), message, file, line, function);
-    }
-
-    bool is_level_enabled(log_level level) const {
-        return logger_->is_enabled(convert_level(level));
-    }
-
-    void flush() {
-        logger_->flush();
-    }
-
-    void start() {
-        if (!started_) {
-            logger_->start();
-            started_ = true;
-        }
-    }
-
-    void stop() {
-        if (started_) {
-            logger_->stop();
-            started_ = false;
-        }
-    }
-
-private:
-    std::shared_ptr<kcenon::logger::logger> logger_;
-    std::atomic<bool> started_;
-};
-
-logger_system_adapter::logger_system_adapter(bool async, size_t buffer_size)
-    : pimpl_(std::make_unique<impl>(async, buffer_size)) {
-    // Auto-start the logger
-    pimpl_->start();
-}
-
-logger_system_adapter::~logger_system_adapter() {
-    pimpl_->stop();
-}
-
-void logger_system_adapter::log(log_level level, const std::string& message) {
-    pimpl_->log(level, message);
-}
-
-void logger_system_adapter::log(log_level level, const std::string& message,
-                                const std::string& file, int line, const std::string& function) {
-    pimpl_->log(level, message, file, line, function);
-}
-
-bool logger_system_adapter::is_level_enabled(log_level level) const {
-    return pimpl_->is_level_enabled(level);
-}
-
-void logger_system_adapter::flush() {
-    pimpl_->flush();
-}
-
-void logger_system_adapter::start() {
-    pimpl_->start();
-}
-
-void logger_system_adapter::stop() {
-    pimpl_->stop();
-}
-
-#endif // BUILD_WITH_LOGGER_SYSTEM
-
-//============================================================================
 // logger_integration_manager implementation
+//
+// Now delegates to GlobalLoggerRegistry for logging.
+// The legacy logger_interface is wrapped using common_system_logger_adapter.
 //============================================================================
 
 class logger_integration_manager::impl {
 public:
     impl() {
-        // Create default logger if logger_system is available
-#ifdef BUILD_WITH_LOGGER_SYSTEM
-        logger_ = std::make_shared<logger_system_adapter>();
-#else
-        logger_ = std::make_shared<basic_logger>();
-#endif
+        // Use common_system_logger_adapter by default
+        // It delegates to GlobalLoggerRegistry which provides NullLogger fallback
+        logger_ = std::make_shared<common_system_logger_adapter>();
     }
 
     void set_logger(std::shared_ptr<logger_interface> logger) {
@@ -305,23 +257,37 @@ public:
     std::shared_ptr<logger_interface> get_logger() {
         std::lock_guard<std::mutex> lock(mutex_);
         if (!logger_) {
-            logger_ = std::make_shared<basic_logger>();
+            logger_ = std::make_shared<common_system_logger_adapter>();
         }
         return logger_;
     }
 
     void log(log_level level, const std::string& message) {
-        auto logger = get_logger();
-        if (logger) {
-            logger->log(level, message);
+        // Delegate directly to common_system's GlobalLoggerRegistry
+        auto common_logger = kcenon::common::interfaces::get_logger();
+        if (common_logger) {
+            common_logger->log(to_common_level(level), message);
         }
     }
 
     void log(log_level level, const std::string& message,
             const std::string& file, int line, const std::string& function) {
-        auto logger = get_logger();
-        if (logger) {
-            logger->log(level, message, file, line, function);
+        // Delegate directly to common_system's GlobalLoggerRegistry
+        auto common_logger = kcenon::common::interfaces::get_logger();
+        if (common_logger) {
+#if defined(__GNUC__) || defined(__clang__)
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#elif defined(_MSC_VER)
+    #pragma warning(push)
+    #pragma warning(disable: 4996)
+#endif
+            common_logger->log(to_common_level(level), message, file, line, function);
+#if defined(__GNUC__) || defined(__clang__)
+    #pragma GCC diagnostic pop
+#elif defined(_MSC_VER)
+    #pragma warning(pop)
+#endif
         }
     }
 
