@@ -35,9 +35,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <atomic>
 #include <chrono>
 #include <functional>
+#include <future>
 #include <memory>
 #include <mutex>
-#include <thread>
 
 #include <asio.hpp>
 
@@ -181,7 +181,7 @@ namespace network_system::utils
 		std::unique_ptr<asio::executor_work_guard<asio::io_context::executor_type>>
 			work_guard_; /*!< Work guard to keep io_context running */
 		std::unique_ptr<asio::steady_timer> heartbeat_timer_; /*!< Heartbeat timer */
-		std::unique_ptr<std::thread> monitor_thread_; /*!< Monitoring thread */
+		std::future<void> io_future_; /*!< Future for io_context execution */
 
 		std::chrono::seconds heartbeat_interval_; /*!< Heartbeat interval */
 		size_t max_missed_heartbeats_; /*!< Max missed heartbeats before dead */
