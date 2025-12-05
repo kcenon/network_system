@@ -44,6 +44,8 @@
 #include <algorithm>
 #include <stdexcept>
 #include <thread>
+#include <queue>
+#include <condition_variable>
 
 #if defined(BUILD_WITH_THREAD_SYSTEM)
 #include <kcenon/thread/core/thread_pool.h>
@@ -187,9 +189,6 @@ private:
 
 // Fallback implementation when thread_system is not available
 // This provides a minimal thread pool using std::thread
-#include <queue>
-#include <condition_variable>
-
 class basic_thread_pool::impl {
     struct DelayedTask {
         std::chrono::steady_clock::time_point execute_at;
