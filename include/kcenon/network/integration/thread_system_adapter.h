@@ -42,6 +42,14 @@
 #include <memory>
 #include <future>
 #include <string>
+#include <functional>
+#include <queue>
+#include <vector>
+#include <mutex>
+#include <thread>
+#include <condition_variable>
+#include <atomic>
+#include <chrono>
 
 #if defined(BUILD_WITH_THREAD_SYSTEM)
 // Suppress deprecation warnings from thread_system headers
@@ -62,6 +70,13 @@ namespace kcenon::network::integration {
 class thread_system_pool_adapter : public thread_pool_interface {
 public:
     explicit thread_system_pool_adapter(std::shared_ptr<kcenon::thread::thread_pool> pool);
+    ~thread_system_pool_adapter();
+
+    // Non-copyable, non-movable
+    thread_system_pool_adapter(const thread_system_pool_adapter&) = delete;
+    thread_system_pool_adapter& operator=(const thread_system_pool_adapter&) = delete;
+    thread_system_pool_adapter(thread_system_pool_adapter&&) = delete;
+    thread_system_pool_adapter& operator=(thread_system_pool_adapter&&) = delete;
 
     // thread_pool_interface
     std::future<void> submit(std::function<void()> task) override;
@@ -80,7 +95,36 @@ public:
         const std::string& pool_name = "network_pool");
 
 private:
+    /**
+     * @brief Internal structure for delayed tasks
+     */
+    struct DelayedTask {
+        std::chrono::steady_clock::time_point execute_at;
+        std::function<void()> task;
+
+        bool operator>(const DelayedTask& other) const {
+            return execute_at > other.execute_at;
+        }
+    };
+
+    /**
+     * @brief Scheduler loop that processes delayed tasks
+     */
+    void scheduler_loop();
+
+    /**
+     * @brief Stop the scheduler thread
+     */
+    void stop_scheduler();
+
     std::shared_ptr<kcenon::thread::thread_pool> pool_;
+
+    // Delayed task scheduler members
+    std::thread scheduler_thread_;
+    std::priority_queue<DelayedTask, std::vector<DelayedTask>, std::greater<DelayedTask>> delayed_tasks_;
+    mutable std::mutex scheduler_mutex_;
+    std::condition_variable scheduler_condition_;
+    std::atomic<bool> scheduler_running_{false};
 };
 
 // Bind a thread_system adapter into the global integration manager.

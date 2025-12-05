@@ -11,6 +11,13 @@ Network System 프로젝트의 모든 주요 변경 사항이 이 파일에 문�
 
 ## [미배포]
 
+### 수정됨
+- **Thread System Adapter**: 지연 작업마다 분리된 `std::thread`를 생성하는 대신 단일 스케줄러 스레드와 우선순위 큐를 사용하도록 `submit_delayed()` 수정 (#273)
+  - 지연 작업 대량 제출 시 스레드 폭발 방지
+  - 적절한 스레드 수명주기 관리 (joinable 스케줄러 스레드)
+  - 대기 중인 작업 취소와 함께 깔끔한 종료 지원
+  - 지연 작업 실행에 대한 포괄적인 단위 테스트 추가
+
 ### 추가됨
 - **QUIC 프로토콜 지원 (Phase 4.1)**: messaging_quic_client 공개 API
   - `messaging_client` 패턴을 따르는 `messaging_quic_client` 클래스

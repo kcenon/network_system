@@ -11,6 +11,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **Thread System Adapter**: Fixed `submit_delayed()` to use a single scheduler thread with priority queue instead of creating a detached `std::thread` per delayed task (#273)
+  - Eliminates thread explosion under high delayed task submission
+  - Provides proper thread lifecycle management (joinable scheduler thread)
+  - Supports clean shutdown with pending task cancellation
+  - Added comprehensive unit tests for delayed task execution
+
 ### Added
 - **QUIC Protocol Support (Phase 4.2)**: messaging_quic_server public API
   - `messaging_quic_server` class following `messaging_server` pattern
