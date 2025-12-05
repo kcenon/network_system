@@ -2,21 +2,30 @@
 
 ## Overview
 
-The network system integrates with logger_system to provide:
+The network system provides unified logging through common_system's ILogger interface and
+GlobalLoggerRegistry. This allows for runtime binding of logger implementations without
+direct compile-time dependencies on logger_system.
+
+**Note (Issue #285)**: As of this version, network_system uses common_system's logging
+infrastructure by default. logger_system is now an optional runtime dependency.
+
+### Key Features:
 - Connection lifecycle logging
 - Error and exception logging
 - Performance logging
 - Protocol-level debug tracing
 - Security event logging
+- Runtime logger binding via GlobalLoggerRegistry
 
 ## Dependencies
 
 ```cmake
+# Required: common_system provides ILogger interface
 target_link_libraries(my_network_app
     PRIVATE
         network_system
-        logger_system
-        common_system
+        common_system    # Required - provides ILogger and GlobalLoggerRegistry
+        # logger_system  # Optional - for enhanced logging features
 )
 ```
 
