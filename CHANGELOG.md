@@ -19,6 +19,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added comprehensive unit tests for delayed task execution
 
 ### Refactored
+- **gRPC Client Async Calls**: Migrated `call_raw_async()` from `std::thread().detach()` to `thread_integration_manager::submit_task()` (#278)
+  - Async gRPC calls now submitted to shared thread pool instead of creating detached threads
+  - Enables controlled thread lifecycle through centralized thread management
+  - Prevents thread explosion under high async call volume
+
 - **Send Coroutine Fallback**: Migrated `async_send_with_pipeline_no_co()` from `std::thread().detach()` to `thread_integration_manager::submit_task()` (#274)
   - Tasks now submitted to shared thread pool instead of creating detached threads
   - Controlled thread lifecycle through managed pool
