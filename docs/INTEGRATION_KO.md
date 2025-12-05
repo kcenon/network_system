@@ -45,6 +45,7 @@ thread_system이 사용 가능한 경우, 네트워크 연산은 다음을 위�
 - 연결 처리
 - 메시지 처리
 - 비동기 연산
+- Send coroutine 폴백 (non-coroutine 경로는 `thread_integration_manager::submit_task()` 사용)
 
 ### thread_system_pool_adapter 사용
 
