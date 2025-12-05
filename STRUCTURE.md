@@ -18,6 +18,7 @@ network_system/
 │   ├── 📁 integration/             # Integration interfaces
 │   │   ├── logger_integration.h    # Logger system adapter
 │   │   ├── thread_integration.h    # Thread system adapter
+│   │   ├── io_context_thread_manager.h # io_context thread management
 │   │   ├── thread_system_adapter.h # Advanced thread integration
 │   │   ├── common_system_adapter.h # Common adapter utilities
 │   │   ├── container_integration.h # DI container integration
@@ -42,6 +43,7 @@ network_system/
 │   ├── 📁 integration/             # Integration implementations
 │   │   ├── logger_integration.cpp  # Logger adapter implementation
 │   │   ├── thread_integration.cpp  # Thread adapter implementation
+│   │   ├── io_context_thread_manager.cpp # io_context thread management
 │   │   ├── thread_system_adapter.cpp # Advanced thread integration
 │   │   ├── container_integration.cpp # DI container integration
 │   │   └── messaging_bridge.cpp    # Messaging bridge implementation

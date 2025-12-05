@@ -32,6 +32,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "kcenon/network/core/messaging_client.h"
 #include "kcenon/network/integration/logger_integration.h"
+#include "kcenon/network/integration/io_context_thread_manager.h"
 #include "kcenon/network/internal/send_coroutine.h"
 #include <optional>
 #include <string_view>
@@ -111,7 +112,7 @@ auto messaging_client::start_client(std::string_view host, unsigned short port)
       socket_.reset();
     }
 
-    io_context_ = std::make_unique<asio::io_context>();
+    io_context_ = std::make_shared<asio::io_context>();
     // Create work guard to keep io_context running
     work_guard_ = std::make_unique<
         asio::executor_work_guard<asio::io_context::executor_type>>(
@@ -121,25 +122,9 @@ auto messaging_client::start_client(std::string_view host, unsigned short port)
     stop_promise_.emplace();
     stop_future_ = stop_promise_->get_future();
 
-    // Get thread pool from network context
-    thread_pool_ = network_context::instance().get_thread_pool();
-    if (!thread_pool_) {
-      // Fallback: create basic thread pool
-      thread_pool_ = std::make_shared<integration::basic_thread_pool>(2);
-    }
-
-    // Submit io_context run task to thread pool
-    io_context_future_ = thread_pool_->submit([this]() {
-      try {
-        NETWORK_LOG_INFO(
-            "[messaging_client] Starting io_context on thread pool");
-        io_context_->run();
-        NETWORK_LOG_INFO("[messaging_client] io_context stopped");
-      } catch (const std::exception &e) {
-        NETWORK_LOG_ERROR("[messaging_client] Exception in io_context: " +
-                          std::string(e.what()));
-      }
-    });
+    // Use io_context_thread_manager for unified thread management
+    io_context_future_ = integration::io_context_thread_manager::instance()
+        .run_io_context(io_context_, "messaging_client:" + client_id_);
 
     do_connect(host, port);
 
@@ -193,15 +178,14 @@ auto messaging_client::stop_client() -> VoidResult {
     if (work_guard_) {
       work_guard_.reset();
     }
-    // Stop io_context first to cancel all pending operations
+    // Stop io_context via unified manager
     if (io_context_) {
-      io_context_->stop();
+      integration::io_context_thread_manager::instance().stop_io_context(io_context_);
     }
     // Wait for io_context task to complete
     if (io_context_future_.valid()) {
       io_context_future_.wait();
     }
-    thread_pool_.reset();
     io_context_.reset();
     // Signal stop
     if (stop_promise_.has_value()) {

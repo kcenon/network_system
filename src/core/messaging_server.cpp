@@ -33,6 +33,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "kcenon/network/core/messaging_server.h"
 #include "kcenon/network/session/messaging_session.h"
 #include "kcenon/network/integration/logger_integration.h"
+#include "kcenon/network/integration/io_context_thread_manager.h"
 #include "kcenon/network/metrics/network_metrics.h"
 
 namespace network_system::core
@@ -74,7 +75,7 @@ namespace network_system::core
 		try
 		{
 			// Create io_context and acceptor
-			io_context_ = std::make_unique<asio::io_context>();
+			io_context_ = std::make_shared<asio::io_context>();
 			// Create work guard to keep io_context running
 			work_guard_ = std::make_unique<asio::executor_work_guard<asio::io_context::executor_type>>(
 				asio::make_work_guard(*io_context_)
@@ -97,29 +98,9 @@ namespace network_system::core
 			// Start periodic cleanup timer
 			start_cleanup_timer();
 
-			// Get thread pool from network context
-			thread_pool_ = network_context::instance().get_thread_pool();
-			if (!thread_pool_) {
-				// Fallback: create basic thread pool
-				thread_pool_ = std::make_shared<integration::basic_thread_pool>(2);
-			}
-
-			// Submit io_context run task to thread pool
-			io_context_future_ = thread_pool_->submit(
-				[this]()
-				{
-					try
-					{
-						NETWORK_LOG_INFO("[messaging_server] Starting io_context on thread pool");
-						io_context_->run();
-						NETWORK_LOG_INFO("[messaging_server] io_context stopped");
-					}
-					catch (const std::exception& e)
-					{
-						NETWORK_LOG_ERROR("[messaging_server] Exception in io_context: " +
-						                 std::string(e.what()));
-					}
-				});
+			// Use io_context_thread_manager for unified thread management
+			io_context_future_ = integration::io_context_thread_manager::instance()
+				.run_io_context(io_context_, "messaging_server:" + server_id_);
 
 			NETWORK_LOG_INFO("[messaging_server] Started listening on port " + std::to_string(port));
 			return ok();
@@ -222,25 +203,24 @@ namespace network_system::core
 				work_guard_.reset();
 			}
 
-			// Step 4: Stop io_context (this cancels all remaining pending operations)
+			// Step 4: Stop io_context via unified manager
 			if (io_context_)
 			{
-				io_context_->stop();
+				integration::io_context_thread_manager::instance().stop_io_context(io_context_);
 			}
 
-			// Step 4: Wait for io_context task to complete
+			// Step 5: Wait for io_context task to complete
 			if (io_context_future_.valid())
 			{
 				io_context_future_.wait();
 			}
 
-			// Step 5: Release resources explicitly to ensure cleanup
+			// Step 6: Release resources explicitly to ensure cleanup
 			acceptor_.reset();
 			cleanup_timer_.reset();
-			thread_pool_.reset();
 			io_context_.reset();
 
-			// Step 6: Signal the promise for wait_for_stop()
+			// Step 7: Signal the promise for wait_for_stop()
 			if (stop_promise_.has_value())
 			{
 				try
