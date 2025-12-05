@@ -62,6 +62,33 @@ auto adapter = thread_system_pool_adapter::from_service_or_default("network_pool
 bind_thread_system_pool_into_manager("my_pool");
 ```
 
+### io_context Thread Manager
+
+The `io_context_thread_manager` provides unified management of asio::io_context execution across all messaging components:
+
+```cpp
+#include <kcenon/network/integration/io_context_thread_manager.h>
+
+// Run an io_context on the shared thread pool
+auto io_ctx = std::make_shared<asio::io_context>();
+auto future = io_context_thread_manager::instance()
+    .run_io_context(io_ctx, "my_component");
+
+// Stop when done
+io_context_thread_manager::instance().stop_io_context(io_ctx);
+future.wait();
+
+// Get metrics
+auto metrics = io_context_thread_manager::instance().get_metrics();
+// metrics.active_contexts, metrics.total_started, metrics.total_completed
+```
+
+Benefits:
+- **Centralized Management**: All io_context instances use the same thread pool
+- **Consistent Shutdown**: Uniform shutdown behavior across components
+- **Reduced Complexity**: Components don't manage their own threads
+- **Better Observability**: Metrics for all io_context instances in one place
+
 ### Requirements
 - thread_system must be installed in `../thread_system`
 - Headers should be available at `../thread_system/include`
