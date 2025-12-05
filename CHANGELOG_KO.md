@@ -18,6 +18,13 @@ Network System 프로젝트의 모든 주요 변경 사항이 이 파일에 문�
   - 대기 중인 작업 취소와 함께 깔끔한 종료 지원
   - 지연 작업 실행에 대한 포괄적인 단위 테스트 추가
 
+### 리팩토링됨
+- **Send Coroutine Fallback**: `async_send_with_pipeline_no_co()`를 `std::thread().detach()`에서 `thread_integration_manager::submit_task()`로 마이그레이션 (#274)
+  - 분리된 스레드 생성 대신 공유 스레드 풀로 작업 제출
+  - 관리되는 풀을 통한 제어된 스레드 수명주기
+  - 고부하 시 리소스 고갈 방지
+  - 스레드 풀 제출 실패에 대한 에러 처리 추가
+
 ### 추가됨
 - **QUIC 프로토콜 지원 (Phase 4.1)**: messaging_quic_client 공개 API
   - `messaging_client` 패턴을 따르는 `messaging_quic_client` 클래스

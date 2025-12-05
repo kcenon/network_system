@@ -46,6 +46,7 @@ When thread_system is available, network operations will automatically utilize t
 - Connection handling
 - Message processing
 - Async operations
+- Send coroutine fallback (non-coroutine path uses `thread_integration_manager::submit_task()`)
 
 ### Using thread_system_pool_adapter
 

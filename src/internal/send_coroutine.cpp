@@ -32,9 +32,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "send_coroutine.h"
 #include "kcenon/network/integration/logger_integration.h"
+#include "kcenon/network/integration/thread_integration.h"
 
 #include <future>
-#include <thread>
 #include <functional>
 #include <type_traits>
 
@@ -106,25 +106,35 @@ namespace network_system::internal
         auto future_result = promise->get_future();
         
         // Process data in a separate thread
-        auto future_processed = prepare_data_async(std::move(data), pl, use_compress, use_encrypt);
-        
-        // When processing is done, send the data
-        std::thread([sock, promise, future = std::move(future_processed)]() mutable {
-            try {
-                auto processed_data = future.get();
-                
-                // Perform async write and capture result in the promise
-                sock->async_send(std::move(processed_data),
-                    [promise](std::error_code ec, std::size_t /*bytes_transferred*/) {
-                        promise->set_value(ec);
-                    });
-            }
-            catch (const std::exception& e) {
-                NETWORK_LOG_ERROR("[send_coroutine] Exception processing data: "
-                          + std::string(e.what()));
-                promise->set_value(std::make_error_code(std::errc::io_error));
-            }
-        }).detach();
+        // Wrap future in shared_ptr to allow copying into std::function
+        auto future_processed = std::make_shared<std::future<std::vector<uint8_t>>>(
+            prepare_data_async(std::move(data), pl, use_compress, use_encrypt));
+
+        // When processing is done, send the data using thread pool
+        try {
+            integration::thread_integration_manager::instance().submit_task(
+                [sock, promise, future_processed]() {
+                    try {
+                        auto processed_data = future_processed->get();
+
+                        // Perform async write and capture result in the promise
+                        sock->async_send(std::move(processed_data),
+                            [promise](std::error_code ec, std::size_t /*bytes_transferred*/) {
+                                promise->set_value(ec);
+                            });
+                    }
+                    catch (const std::exception& e) {
+                        NETWORK_LOG_ERROR("[send_coroutine] Exception processing data: "
+                                  + std::string(e.what()));
+                        promise->set_value(std::make_error_code(std::errc::io_error));
+                    }
+                });
+        }
+        catch (const std::exception& e) {
+            NETWORK_LOG_ERROR("[send_coroutine] Failed to submit task to thread pool: "
+                      + std::string(e.what()));
+            promise->set_value(std::make_error_code(std::errc::resource_unavailable_try_again));
+        }
         
         return future_result;
     }
