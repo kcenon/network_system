@@ -18,6 +18,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Supports clean shutdown with pending task cancellation
   - Added comprehensive unit tests for delayed task execution
 
+### Refactored
+- **Send Coroutine Fallback**: Migrated `async_send_with_pipeline_no_co()` from `std::thread().detach()` to `thread_integration_manager::submit_task()` (#274)
+  - Tasks now submitted to shared thread pool instead of creating detached threads
+  - Controlled thread lifecycle through managed pool
+  - Prevents resource exhaustion under high load
+  - Added error handling for thread pool submission failures
+
 ### Added
 - **QUIC Protocol Support (Phase 4.2)**: messaging_quic_server public API
   - `messaging_quic_server` class following `messaging_server` pattern
