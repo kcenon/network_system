@@ -147,6 +147,48 @@ if(GTest_FOUND OR GTEST_FOUND)
         DISCOVERY_TIMEOUT 60
     )
 
+    # Thread system adapter tests
+    if(THREAD_SYSTEM_INCLUDE_DIR)
+        add_executable(network_thread_system_adapter_test
+            unit/test_thread_system_adapter.cpp
+        )
+
+        target_link_libraries(network_thread_system_adapter_test PRIVATE
+            NetworkSystem
+            GTest::gtest
+            GTest::gtest_main
+            Threads::Threads
+        )
+
+        # Setup ASIO integration
+        setup_asio_integration(network_thread_system_adapter_test)
+
+        # Add system integration paths
+        target_include_directories(network_thread_system_adapter_test PRIVATE ${THREAD_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(network_thread_system_adapter_test PRIVATE BUILD_WITH_THREAD_SYSTEM)
+
+        if(COMMON_SYSTEM_INCLUDE_DIR)
+            target_include_directories(network_thread_system_adapter_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+            target_compile_definitions(network_thread_system_adapter_test PRIVATE BUILD_WITH_COMMON_SYSTEM)
+        endif()
+
+        if(LOGGER_SYSTEM_INCLUDE_DIR)
+            target_include_directories(network_thread_system_adapter_test PRIVATE ${LOGGER_SYSTEM_INCLUDE_DIR})
+            target_compile_definitions(network_thread_system_adapter_test PRIVATE BUILD_WITH_LOGGER_SYSTEM)
+        endif()
+
+        set_target_properties(network_thread_system_adapter_test PROPERTIES
+            CXX_STANDARD 20
+            CXX_STANDARD_REQUIRED ON
+            RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+        )
+
+        gtest_discover_tests(network_thread_system_adapter_test
+            DISCOVERY_TIMEOUT 60
+        )
+        message(STATUS "Thread system adapter tests enabled")
+    endif()
+
     # WebSocket frame tests
     if(BUILD_WEBSOCKET_SUPPORT)
         add_executable(network_websocket_frame_test
