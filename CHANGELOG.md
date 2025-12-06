@@ -25,6 +25,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Provides proper thread lifecycle management (joinable scheduler thread)
   - Supports clean shutdown with pending task cancellation
   - Added comprehensive unit tests for delayed task execution
+- **Thread System Adapter**: Eliminated scheduler_thread by delegating to thread_pool::submit_delayed (Epic #271)
+  - When THREAD_HAS_COMMON_EXECUTOR is defined: delegates directly to thread_pool::submit_delayed
+  - Removes all direct std::thread usage from thread_system_adapter.cpp (except std::thread::hardware_concurrency)
+  - Simplifies code by ~70 lines and removes priority queue, mutex, condition variable
+  - Maintains fallback for builds without common_system integration
 
 ### Refactored
 - **Memory Profiler**: Migrated from `std::thread` to `thread_integration_manager::submit_delayed_task()` (#277)
