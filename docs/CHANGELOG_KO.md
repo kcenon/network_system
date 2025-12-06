@@ -39,11 +39,27 @@ Network System 프로젝트의 모든 주목할 만한 변경 사항은 이 파�
 ## [Unreleased]
 
 ### 변경됨
+- **Thread System 마이그레이션 Epic 완료** (2025-12-06)
+  - 모든 직접적인 `std::thread` 사용이 `thread_system` 통합으로 마이그레이션됨
+  - 업데이트된 컴포넌트: basic_thread_pool, health_monitor, messaging_server, messaging_client
+  - `basic_thread_pool`이 BUILD_WITH_THREAD_SYSTEM 활성화 시 내부적으로 `thread_system::thread_pool` 사용
+  - `thread_system_pool_adapter` 추가로 thread_system과 직접 통합
+  - 지연 태스크가 분리된 스레드 대신 적절한 스케줄러 사용
+  - 스레드 풀 메트릭이 모든 서브시스템에서 통합됨
+  - Epic #271 종료
+
 - **Thread System 통합 - health_monitor** (2025-12-05)
   - 직접적인 `std::thread` 사용을 `thread_integration_manager`로 대체
   - io_context 실행을 위한 중앙화된 스레드 풀 사용
   - 원시 스레드 대신 `std::future`로 리소스 관리 개선
   - Thread System 마이그레이션 Epic (#271)의 일부
+
+### 문서
+- **Thread System 통합 문서화** (2025-12-06)
+  - ARCHITECTURE.md에 상세한 스레드 통합 아키텍처 다이어그램 추가
+  - API_REFERENCE.md에 Thread Integration API 섹션 추가
+  - PERFORMANCE_TUNING.md에 thread_system 설정 가이드 추가
+  - #279 종료
 
 ### 추가됨
 - **QUIC 프로토콜 - 패킷 헤더 구현** (2025-12-03)

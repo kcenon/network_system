@@ -39,11 +39,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [Unreleased]
 
 ### Changed
+- **Thread System Migration Epic Complete** (2025-12-06)
+  - All direct `std::thread` usage migrated to `thread_system` integration
+  - Components updated: basic_thread_pool, health_monitor, messaging_server, messaging_client
+  - `basic_thread_pool` now internally uses `thread_system::thread_pool` when BUILD_WITH_THREAD_SYSTEM is enabled
+  - Added `thread_system_pool_adapter` for direct integration with thread_system
+  - Delayed tasks now use proper scheduler instead of detached threads
+  - Thread pool metrics unified across all subsystems
+  - Closes Epic #271
+
 - **Thread System Integration - health_monitor** (2025-12-05)
   - Replaced direct `std::thread` usage with `thread_integration_manager`
   - Uses centralized thread pool for io_context execution
   - Improved resource management with `std::future` instead of raw thread
   - Part of Thread System Migration Epic (#271)
+
+### Documentation
+- **Thread System Integration Documentation** (2025-12-06)
+  - Updated ARCHITECTURE.md with detailed thread integration architecture diagram
+  - Added Thread Integration API section to API_REFERENCE.md
+  - Updated PERFORMANCE_TUNING.md with thread_system configuration guide
+  - Closes #279
 
 ### Added
 - **QUIC Protocol Epic Complete** (2025-12-04)
