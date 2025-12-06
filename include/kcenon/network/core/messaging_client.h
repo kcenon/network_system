@@ -40,7 +40,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <optional>
 #include <string>
 #include <string_view>
-#include <thread>
 #include <type_traits>
 
 #include <asio.hpp>
