@@ -40,13 +40,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Changed
 - **Thread System Migration Epic Complete** (2025-12-06)
-  - All direct `std::thread` usage migrated to `thread_system` integration
-  - Components updated: basic_thread_pool, health_monitor, messaging_server, messaging_client
-  - `basic_thread_pool` now internally uses `thread_system::thread_pool` when BUILD_WITH_THREAD_SYSTEM is enabled
+  - All direct `std::thread` usage in core source files migrated to `thread_system` integration
+  - **Core component migrations:**
+    - `messaging_server.cpp`: Uses `io_context_thread_manager` instead of direct `std::thread`
+    - `messaging_client.cpp`: Uses `io_context_thread_manager` instead of direct `std::thread`
+    - `send_coroutine.cpp`: Uses `thread_integration_manager::submit_task()` instead of `std::thread().detach()`
+    - `basic_thread_pool`: Now internally uses `thread_system::thread_pool` when BUILD_WITH_THREAD_SYSTEM is enabled
+    - `health_monitor`: Migrated to use centralized thread pool
+    - `memory_profiler`: Uses delayed task scheduling
+    - `grpc/client.cpp`: Uses thread pool for async calls
+  - Added `io_context_thread_manager` for unified ASIO io_context thread management
   - Added `thread_system_pool_adapter` for direct integration with thread_system
   - Delayed tasks now use proper scheduler instead of detached threads
   - Thread pool metrics unified across all subsystems
-  - Closes Epic #271
+  - Removed unused `#include <thread>` from headers where std::thread is no longer used
+  - **Benefits:**
+    - Unified thread resource management
+    - Consistent shutdown behavior across all components
+    - No more detached threads (proper lifecycle management)
+    - Better resource utilization under high load
+  - Closes Epic #271 and related issues #272, #273, #274, #275, #276, #277, #278
 
 - **Thread System Integration - health_monitor** (2025-12-05)
   - Replaced direct `std::thread` usage with `thread_integration_manager`

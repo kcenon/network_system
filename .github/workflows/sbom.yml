@@ -118,6 +118,7 @@ jobs:
 
     - name: Upload SBOM artifacts
       uses: actions/upload-artifact@v4
+      continue-on-error: true
       with:
         name: sbom-${{ github.sha }}
         path: |

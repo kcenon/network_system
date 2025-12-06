@@ -40,13 +40,26 @@ Network System 프로젝트의 모든 주목할 만한 변경 사항은 이 파�
 
 ### 변경됨
 - **Thread System 마이그레이션 Epic 완료** (2025-12-06)
-  - 모든 직접적인 `std::thread` 사용이 `thread_system` 통합으로 마이그레이션됨
-  - 업데이트된 컴포넌트: basic_thread_pool, health_monitor, messaging_server, messaging_client
-  - `basic_thread_pool`이 BUILD_WITH_THREAD_SYSTEM 활성화 시 내부적으로 `thread_system::thread_pool` 사용
-  - `thread_system_pool_adapter` 추가로 thread_system과 직접 통합
+  - 코어 소스 파일의 모든 직접적인 `std::thread` 사용이 `thread_system` 통합으로 마이그레이션됨
+  - **코어 컴포넌트 마이그레이션:**
+    - `messaging_server.cpp`: 직접 `std::thread` 대신 `io_context_thread_manager` 사용
+    - `messaging_client.cpp`: 직접 `std::thread` 대신 `io_context_thread_manager` 사용
+    - `send_coroutine.cpp`: `std::thread().detach()` 대신 `thread_integration_manager::submit_task()` 사용
+    - `basic_thread_pool`: BUILD_WITH_THREAD_SYSTEM 활성화 시 내부적으로 `thread_system::thread_pool` 사용
+    - `health_monitor`: 중앙화된 스레드 풀 사용으로 마이그레이션
+    - `memory_profiler`: 지연 태스크 스케줄링 사용
+    - `grpc/client.cpp`: 비동기 호출에 스레드 풀 사용
+  - 통합 ASIO io_context 스레드 관리를 위한 `io_context_thread_manager` 추가
+  - thread_system과 직접 통합을 위한 `thread_system_pool_adapter` 추가
   - 지연 태스크가 분리된 스레드 대신 적절한 스케줄러 사용
   - 스레드 풀 메트릭이 모든 서브시스템에서 통합됨
-  - Epic #271 종료
+  - std::thread가 더 이상 사용되지 않는 헤더에서 불필요한 `#include <thread>` 제거
+  - **이점:**
+    - 통합된 스레드 리소스 관리
+    - 모든 컴포넌트에서 일관된 종료 동작
+    - 분리된 스레드 없음 (적절한 생명주기 관리)
+    - 높은 부하에서 더 나은 리소스 활용
+  - Epic #271 및 관련 이슈 #272, #273, #274, #275, #276, #277, #278 종료
 
 - **Thread System 통합 - health_monitor** (2025-12-05)
   - 직접적인 `std::thread` 사용을 `thread_integration_manager`로 대체

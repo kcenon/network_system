@@ -32,6 +32,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "network_system/internal/send_coroutine.h"
 #include "network_system/integration/logger_integration.h"
+#include "network_system/integration/thread_integration.h"
 
 #include <asio/associated_executor.hpp>
 #include <asio/experimental/as_tuple.hpp>
@@ -39,7 +40,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <functional>
 #include <future>
 #include <system_error>
-#include <thread>
 #include <type_traits>
 
 namespace network_system::internal {
@@ -72,24 +72,26 @@ auto async_prepare_pipeline(std::vector<uint8_t> data,
             auto executor = asio::get_associated_executor(handler);
             Handler wrapped_handler(std::forward<decltype(handler)>(handler));
 
-            std::thread([executor,
-                         handler = std::move(wrapped_handler),
-                         data = std::move(data),
-                         pl = std::move(pl),
-                         use_compress,
-                         use_encrypt]() mutable {
-                std::error_code ec;
-                std::vector<uint8_t> processed;
-                try {
-                    processed = apply_pipeline(std::move(data), pl, use_compress, use_encrypt);
-                } catch (...) {
-                    ec = std::make_error_code(std::errc::io_error);
-                }
+            // Use thread pool instead of detached thread
+            integration::thread_integration_manager::instance().submit_task(
+                [executor,
+                 handler = std::move(wrapped_handler),
+                 data = std::move(data),
+                 pl = std::move(pl),
+                 use_compress,
+                 use_encrypt]() mutable {
+                    std::error_code ec;
+                    std::vector<uint8_t> processed;
+                    try {
+                        processed = apply_pipeline(std::move(data), pl, use_compress, use_encrypt);
+                    } catch (...) {
+                        ec = std::make_error_code(std::errc::io_error);
+                    }
 
-                asio::post(executor, [handler = std::move(handler), ec, processed = std::move(processed)]() mutable {
-                    handler(ec, std::move(processed));
+                    asio::post(executor, [handler = std::move(handler), ec, processed = std::move(processed)]() mutable {
+                        handler(ec, std::move(processed));
+                    });
                 });
-            }).detach();
         },
         std::forward<CompletionToken>(token));
 }
@@ -152,21 +154,23 @@ auto async_send_with_pipeline_no_co(std::shared_ptr<tcp_socket> sock,
     auto promise = std::make_shared<std::promise<std::error_code>>();
     auto future_result = promise->get_future();
 
-    std::thread([sock = std::move(sock), promise, data = std::move(data), pl = std::move(pl),
-                 use_compress, use_encrypt]() mutable {
-        try {
-            auto processed_future = prepare_data_async(std::move(data), std::move(pl), use_compress, use_encrypt);
-            auto processed_data = processed_future.get();
+    // Use thread pool instead of detached thread
+    integration::thread_integration_manager::instance().submit_task(
+        [sock = std::move(sock), promise, data = std::move(data), pl = std::move(pl),
+         use_compress, use_encrypt]() mutable {
+            try {
+                auto processed_future = prepare_data_async(std::move(data), std::move(pl), use_compress, use_encrypt);
+                auto processed_data = processed_future.get();
 
-            sock->async_send(std::move(processed_data),
-                [promise](std::error_code ec, std::size_t /*bytes_transferred*/) {
-                    promise->set_value(ec);
-                });
-        } catch (const std::exception& e) {
-            NETWORK_LOG_ERROR("[send_coroutine] Exception processing data: " + std::string(e.what()));
-            promise->set_value(std::make_error_code(std::errc::io_error));
-        }
-    }).detach();
+                sock->async_send(std::move(processed_data),
+                    [promise](std::error_code ec, std::size_t /*bytes_transferred*/) {
+                        promise->set_value(ec);
+                    });
+            } catch (const std::exception& e) {
+                NETWORK_LOG_ERROR("[send_coroutine] Exception processing data: " + std::string(e.what()));
+                promise->set_value(std::make_error_code(std::errc::io_error));
+            }
+        });
 
     return future_result;
 }

@@ -95,6 +95,7 @@ jobs:
 
     - name: Upload benchmark results
       uses: actions/upload-artifact@v4
+      continue-on-error: true
       with:
         name: benchmark-results-${{ matrix.os }}
         path: build/benchmarks/benchmark_results_${{ matrix.os }}.json
