@@ -70,8 +70,13 @@ namespace network_system::core
 		stop_promise_.emplace();
 		stop_future_ = stop_promise_->get_future();
 
-		// Begin accepting connections
-		do_accept();
+		// Post the accept operation to io_context BEFORE starting io_context::run
+		// This ensures the operation is queued and ready when the thread pool worker
+		// picks up the io_context::run task, avoiding potential race conditions
+		// detected by ThreadSanitizer
+		asio::post(*io_context_, [this]() {
+			do_accept();
+		});
 
 		// Run io_context using the centralized thread manager instead of direct std::thread
 		io_context_future_ = integration::io_context_thread_manager::instance()

@@ -78,11 +78,18 @@ namespace network_system::core
 		stop_promise_.emplace();
 		stop_future_ = stop_promise_->get_future();
 
-		// Run io_context using the centralized thread manager instead of direct std::thread
+		// Post the connect operation to io_context BEFORE starting io_context::run
+		// This ensures the operation is queued and ready when the thread pool worker
+		// picks up the io_context::run task, avoiding potential race conditions
+		// detected by ThreadSanitizer
+		std::string host_str(host);
+		asio::post(*io_context_, [this, host_str, port]() {
+			do_connect(host_str, port);
+		});
+
+		// Run io_context using the centralized thread manager
 		io_context_future_ = integration::io_context_thread_manager::instance()
 			.run_io_context(io_context_, "messaging_client:" + client_id_);
-
-		do_connect(host, port);
 
 		NETWORK_LOG_INFO("[messaging_client] started. ID=" + client_id_
 				+ " target=" + std::string(host) + ":" + std::to_string(port));
