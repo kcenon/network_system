@@ -27,6 +27,19 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+/**
+ * @file thread_system_adapter.cpp
+ * @brief Implementation of thread_system_pool_adapter
+ *
+ * This adapter bridges thread_system::thread_pool to the network_system's
+ * thread_pool_interface. It now delegates delayed task scheduling directly to
+ * thread_pool::submit_delayed (when THREAD_HAS_COMMON_EXECUTOR is available),
+ * eliminating the need for a separate scheduler thread.
+ *
+ * @author kcenon
+ * @date 2025-09-20
+ */
+
 #include "kcenon/network/integration/thread_system_adapter.h"
 
 #if defined(BUILD_WITH_THREAD_SYSTEM)
@@ -35,8 +48,8 @@
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
 
-#include <thread>
 #include <stdexcept>
+#include <thread>  // For std::thread::hardware_concurrency and std::this_thread::sleep_for (fallback)
 
 #include <kcenon/thread/core/thread_worker.h>
 
@@ -48,71 +61,11 @@ thread_system_pool_adapter::thread_system_pool_adapter(
     if (!pool_) {
         throw std::invalid_argument("thread_system_pool_adapter: pool is null");
     }
-
-    // Start the scheduler thread for delayed tasks
-    scheduler_running_ = true;
-    scheduler_thread_ = std::thread([this] { scheduler_loop(); });
+    // No scheduler thread needed - delayed tasks are handled by thread_pool::submit_delayed
 }
 
 thread_system_pool_adapter::~thread_system_pool_adapter() {
-    stop_scheduler();
-}
-
-void thread_system_pool_adapter::stop_scheduler() {
-    {
-        std::unique_lock<std::mutex> lock(scheduler_mutex_);
-        if (!scheduler_running_) {
-            return;
-        }
-        scheduler_running_ = false;
-    }
-
-    scheduler_condition_.notify_all();
-
-    if (scheduler_thread_.joinable()) {
-        scheduler_thread_.join();
-    }
-}
-
-void thread_system_pool_adapter::scheduler_loop() {
-    while (scheduler_running_) {
-        std::unique_lock<std::mutex> lock(scheduler_mutex_);
-
-        if (delayed_tasks_.empty()) {
-            scheduler_condition_.wait(lock, [this] {
-                return !scheduler_running_ || !delayed_tasks_.empty();
-            });
-        }
-
-        if (!scheduler_running_) {
-            break;
-        }
-
-        if (!delayed_tasks_.empty()) {
-            auto now = std::chrono::steady_clock::now();
-            const auto& next_task = delayed_tasks_.top();
-
-            if (now >= next_task.execute_at) {
-                // Task is ready to execute
-                auto task = std::move(const_cast<DelayedTask&>(next_task).task);
-                delayed_tasks_.pop();
-                lock.unlock();
-
-                // Execute the task (which submits to thread pool)
-                if (task) {
-                    task();
-                }
-            } else {
-                // Wait until the next task is due or a new task is added
-                auto wait_time = next_task.execute_at;
-                scheduler_condition_.wait_until(lock, wait_time, [this, wait_time] {
-                    return !scheduler_running_ ||
-                           delayed_tasks_.empty() ||
-                           delayed_tasks_.top().execute_at < wait_time;
-                });
-            }
-        }
-    }
+    // No scheduler thread to stop - cleanup handled by thread_pool
 }
 
 std::future<void> thread_system_pool_adapter::submit(std::function<void()> task) {
@@ -139,41 +92,39 @@ std::future<void> thread_system_pool_adapter::submit_delayed(
     std::function<void()> task,
     std::chrono::milliseconds delay
 ) {
+#if defined(THREAD_HAS_COMMON_EXECUTOR)
+    // Delegate directly to thread_pool::submit_delayed when IExecutor is available
+    // This eliminates the need for a separate scheduler thread
+    return pool_->submit_delayed(std::move(task), delay);
+#else
+    // Fallback: submit a task that sleeps then executes
+    // Note: This blocks a worker thread during the delay period
     auto promise = std::make_shared<std::promise<void>>();
     auto future = promise->get_future();
 
-    {
-        std::unique_lock<std::mutex> lock(scheduler_mutex_);
-        if (!scheduler_running_) {
-            promise->set_exception(std::make_exception_ptr(
-                std::runtime_error("thread_system_pool_adapter: scheduler is not running")));
-            return future;
-        }
-
-        auto execute_time = std::chrono::steady_clock::now() + delay;
-
-        // Capture pool_ by value (shared_ptr copy) to ensure it stays alive
-        auto pool = pool_;
-        delayed_tasks_.push({execute_time, [pool, task = std::move(task), promise]() mutable {
-            // Submit to thread pool when the delay expires
-            bool ok = pool->submit_task([task = std::move(task), promise]() mutable {
-                try {
-                    if (task) task();
-                    promise->set_value();
-                } catch (...) {
-                    promise->set_exception(std::current_exception());
-                }
-            });
-
-            if (!ok) {
-                promise->set_exception(std::make_exception_ptr(
-                    std::runtime_error("thread_system_pool_adapter: delayed submit failed")));
-            }
-        }});
+    if (!pool_->is_running()) {
+        promise->set_exception(std::make_exception_ptr(
+            std::runtime_error("thread_system_pool_adapter: pool is not running")));
+        return future;
     }
 
-    scheduler_condition_.notify_one();
+    bool ok = pool_->submit_task([task = std::move(task), delay, promise]() mutable {
+        try {
+            std::this_thread::sleep_for(delay);
+            if (task) task();
+            promise->set_value();
+        } catch (...) {
+            promise->set_exception(std::current_exception());
+        }
+    });
+
+    if (!ok) {
+        promise->set_exception(std::make_exception_ptr(
+            std::runtime_error("thread_system_pool_adapter: delayed submit failed")));
+    }
+
     return future;
+#endif
 }
 
 size_t thread_system_pool_adapter::worker_count() const {
