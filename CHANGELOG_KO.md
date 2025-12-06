@@ -17,6 +17,11 @@ Network System 프로젝트의 모든 주요 변경 사항이 이 파일에 문�
   - 적절한 스레드 수명주기 관리 (joinable 스케줄러 스레드)
   - 대기 중인 작업 취소와 함께 깔끔한 종료 지원
   - 지연 작업 실행에 대한 포괄적인 단위 테스트 추가
+- **Thread System Adapter**: thread_pool::submit_delayed로 위임하여 scheduler_thread 제거 (Epic #271)
+  - THREAD_HAS_COMMON_EXECUTOR 정의 시: thread_pool::submit_delayed로 직접 위임
+  - thread_system_adapter.cpp에서 모든 직접적인 std::thread 사용 제거 (std::thread::hardware_concurrency 제외)
+  - 약 70줄의 코드 단순화 및 우선순위 큐, 뮤텍스, 조건 변수 제거
+  - common_system 통합 없는 빌드를 위한 폴백 유지
 
 ### 리팩토링됨
 - **메모리 프로파일러**: `std::thread`에서 `thread_integration_manager::submit_delayed_task()`로 마이그레이션 (#277)

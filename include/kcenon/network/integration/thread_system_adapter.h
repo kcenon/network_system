@@ -36,6 +36,10 @@
  * This optional adapter lets NetworkSystem use thread_system's thread_pool via the
  * existing thread_integration API, strengthening DI/scheduling consistency.
  * Enabled when BUILD_WITH_THREAD_SYSTEM is defined.
+ *
+ * When THREAD_HAS_COMMON_EXECUTOR is available (i.e., common_system is integrated),
+ * delayed task scheduling is delegated directly to thread_pool::submit_delayed,
+ * eliminating the need for any std::thread usage in this adapter.
  */
 
 #include "kcenon/network/integration/thread_integration.h"
@@ -43,12 +47,6 @@
 #include <future>
 #include <string>
 #include <functional>
-#include <queue>
-#include <vector>
-#include <mutex>
-#include <thread>
-#include <condition_variable>
-#include <atomic>
 #include <chrono>
 
 #if defined(BUILD_WITH_THREAD_SYSTEM)
@@ -96,35 +94,13 @@ public:
 
 private:
     /**
-     * @brief Internal structure for delayed tasks
+     * @brief The underlying thread_pool from thread_system
+     *
+     * All task submission and delayed scheduling is delegated to this pool.
+     * When THREAD_HAS_COMMON_EXECUTOR is defined, the pool provides native
+     * submit_delayed support via IExecutor interface.
      */
-    struct DelayedTask {
-        std::chrono::steady_clock::time_point execute_at;
-        std::function<void()> task;
-
-        bool operator>(const DelayedTask& other) const {
-            return execute_at > other.execute_at;
-        }
-    };
-
-    /**
-     * @brief Scheduler loop that processes delayed tasks
-     */
-    void scheduler_loop();
-
-    /**
-     * @brief Stop the scheduler thread
-     */
-    void stop_scheduler();
-
     std::shared_ptr<kcenon::thread::thread_pool> pool_;
-
-    // Delayed task scheduler members
-    std::thread scheduler_thread_;
-    std::priority_queue<DelayedTask, std::vector<DelayedTask>, std::greater<DelayedTask>> delayed_tasks_;
-    mutable std::mutex scheduler_mutex_;
-    std::condition_variable scheduler_condition_;
-    std::atomic<bool> scheduler_running_{false};
 };
 
 // Bind a thread_system adapter into the global integration manager.
