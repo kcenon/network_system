@@ -27,6 +27,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added comprehensive unit tests for delayed task execution
 
 ### Refactored
+- **Memory Profiler**: Migrated from `std::thread` to `thread_integration_manager::submit_delayed_task()` (#277)
+  - Removed dedicated `std::thread worker_` member
+  - Periodic sampling now runs through shared thread pool
+  - Uses delayed task scheduling for interval-based snapshots
+  - Cleaner shutdown via atomic flag (no thread join needed)
+
 - **gRPC Client Async Calls**: Migrated `call_raw_async()` from `std::thread().detach()` to `thread_integration_manager::submit_task()` (#278)
   - Async gRPC calls now submitted to shared thread pool instead of creating detached threads
   - Enables controlled thread lifecycle through centralized thread management

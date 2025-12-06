@@ -39,9 +39,9 @@
 #include <cstddef>
 #include <cstdint>
 #include <atomic>
-#include <thread>
 #include <chrono>
 #include <functional>
+#include <future>
 #include <mutex>
 #include <vector>
 #include <string>
@@ -84,12 +84,12 @@ private:
     memory_profiler(const memory_profiler&) = delete;
     memory_profiler& operator=(const memory_profiler&) = delete;
 
-    void sampler_loop(std::chrono::milliseconds interval);
+    void schedule_next_sample();
     static bool query_process_memory(std::uint64_t& rss, std::uint64_t& vms);
 
 private:
     std::atomic<bool> running_{false};
-    std::thread worker_{};
+    std::chrono::milliseconds sampling_interval_{1000};
     mutable std::mutex mutex_{};
     std::vector<memory_snapshot> history_{};
     std::size_t max_history_{4096};
