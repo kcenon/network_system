@@ -33,6 +33,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "network_system/core/messaging_server.h"
 #include "network_system/session/messaging_session.h"
 #include "network_system/integration/logger_integration.h"
+#include "network_system/integration/io_context_thread_manager.h"
 
 namespace network_system::core
 {
@@ -55,8 +56,13 @@ namespace network_system::core
 		}
 		is_running_.store(true);
 
-		// Create io_context and acceptor
-		io_context_ = std::make_unique<asio::io_context>();
+		// Create io_context as shared_ptr (required by io_context_thread_manager)
+		io_context_ = std::make_shared<asio::io_context>();
+
+		// Create work guard to keep io_context running until explicitly stopped
+		work_guard_ = std::make_unique<asio::executor_work_guard<asio::io_context::executor_type>>(
+			io_context_->get_executor());
+
 		acceptor_ = std::make_unique<tcp::acceptor>(
 			*io_context_, tcp::endpoint(tcp::v4(), port));
 
@@ -67,19 +73,9 @@ namespace network_system::core
 		// Begin accepting connections
 		do_accept();
 
-		// Start thread to run the io_context
-		server_thread_ = std::make_unique<std::thread>(
-			[this]()
-			{
-				try
-				{
-					io_context_->run();
-				}
-				catch (...)
-				{
-					// Optionally handle any uncaught exceptions
-				}
-			});
+		// Run io_context using the centralized thread manager instead of direct std::thread
+		io_context_future_ = integration::io_context_thread_manager::instance()
+			.run_io_context(io_context_, "messaging_server:" + server_id_);
 
 		NETWORK_LOG_INFO("[messaging_server] Started listening on port " + std::to_string(port));
 	}
@@ -109,16 +105,19 @@ namespace network_system::core
 		}
 		sessions_.clear();
 
-		// Stop io_context
+		// Release work guard to allow io_context to complete
+		work_guard_.reset();
+
+		// Stop io_context through the centralized manager
 		if (io_context_)
 		{
-			io_context_->stop();
+			integration::io_context_thread_manager::instance().stop_io_context(io_context_);
 		}
 
-		// Join the thread
-		if (server_thread_ && server_thread_->joinable())
+		// Wait for io_context task to complete
+		if (io_context_future_.valid())
 		{
-			server_thread_->join();
+			io_context_future_.wait();
 		}
 
 		// Signal the promise for wait_for_stop()

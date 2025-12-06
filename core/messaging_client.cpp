@@ -33,6 +33,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "network_system/core/messaging_client.h"
 #include "network_system/internal/send_coroutine.h"
 #include "network_system/integration/logger_integration.h"
+#include "network_system/integration/io_context_thread_manager.h"
 #include <string_view>
 #include <type_traits>
 #include <optional>
@@ -66,24 +67,20 @@ namespace network_system::core
 		is_running_.store(true);
 		is_connected_.store(false);
 
-		io_context_ = std::make_unique<asio::io_context>();
+		// Create io_context as shared_ptr (required by io_context_thread_manager)
+		io_context_ = std::make_shared<asio::io_context>();
+
+		// Create work guard to keep io_context running until explicitly stopped
+		work_guard_ = std::make_unique<asio::executor_work_guard<asio::io_context::executor_type>>(
+			io_context_->get_executor());
+
 		// For wait_for_stop()
 		stop_promise_.emplace();
 		stop_future_ = stop_promise_->get_future();
 
-		// Launch the thread to run the io_context
-		client_thread_ = std::make_unique<std::thread>(
-			[this]()
-			{
-				try
-				{
-					io_context_->run();
-				}
-				catch (...)
-				{
-					// handle exceptions if needed
-				}
-			});
+		// Run io_context using the centralized thread manager instead of direct std::thread
+		io_context_future_ = integration::io_context_thread_manager::instance()
+			.run_io_context(io_context_, "messaging_client:" + client_id_);
 
 		do_connect(host, port);
 
@@ -104,16 +101,22 @@ namespace network_system::core
 		{
 			socket_->socket().close();
 		}
-		// Stop io_context
+
+		// Release work guard to allow io_context to complete
+		work_guard_.reset();
+
+		// Stop io_context through the centralized manager
 		if (io_context_)
 		{
-			io_context_->stop();
+			integration::io_context_thread_manager::instance().stop_io_context(io_context_);
 		}
-		// Join thread
-		if (client_thread_ && client_thread_->joinable())
+
+		// Wait for io_context task to complete
+		if (io_context_future_.valid())
 		{
-			client_thread_->join();
+			io_context_future_.wait();
 		}
+
 		// Signal stop
 		if (stop_promise_.has_value())
 		{
