@@ -28,6 +28,7 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "kcenon/network/utils/memory_profiler.h"
+#include "kcenon/network/integration/thread_integration.h"
 
 #include <sstream>
 #include <iomanip>
@@ -58,14 +59,14 @@ void memory_profiler::start(std::chrono::milliseconds interval) {
     return; // profiling disabled
 #else
     if (running_.exchange(true)) return;
-    worker_ = std::thread(&memory_profiler::sampler_loop, this, interval);
+    sampling_interval_ = interval;
+    schedule_next_sample();
 #endif
 }
 
 void memory_profiler::stop() {
 #ifdef NETWORK_ENABLE_MEMORY_PROFILER
-    if (!running_.exchange(false)) return;
-    if (worker_.joinable()) worker_.join();
+    running_.store(false);
 #endif
 }
 
@@ -109,11 +110,20 @@ std::string memory_profiler::to_tsv() const {
     return oss.str();
 }
 
-void memory_profiler::sampler_loop(std::chrono::milliseconds interval) {
-    while (running_.load()) {
-        snapshot();
-        std::this_thread::sleep_for(interval);
-    }
+void memory_profiler::schedule_next_sample() {
+#ifdef NETWORK_ENABLE_MEMORY_PROFILER
+    if (!running_.load()) return;
+
+    kcenon::network::integration::thread_integration_manager::instance()
+        .submit_delayed_task(
+            [this]() {
+                if (running_.load()) {
+                    snapshot();
+                    schedule_next_sample();
+                }
+            },
+            sampling_interval_);
+#endif
 }
 
 bool memory_profiler::query_process_memory(std::uint64_t& rss, std::uint64_t& vms) {
