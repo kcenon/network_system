@@ -90,6 +90,7 @@ jobs:
     - name: Upload coverage artifacts
       if: always()
       uses: actions/upload-artifact@v4
+      continue-on-error: true
       with:
         name: coverage-report
         path: |

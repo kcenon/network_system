@@ -115,6 +115,8 @@ jobs:
       - name: Upload Coverage Report
         if: matrix.build_type == 'Debug' && runner.os == 'Linux'
         uses: actions/upload-artifact@v4
+        # Continue even if artifact upload fails due to GitHub infrastructure issues
+        continue-on-error: true
         with:
           name: coverage-report-${{ matrix.os }}-${{ matrix.build_type }}
           path: build/coverage/html
@@ -123,6 +125,9 @@ jobs:
       - name: Upload Test Results
         if: always()
         uses: actions/upload-artifact@v4
+        # Continue even if artifact upload fails due to GitHub infrastructure issues
+        # This prevents transient upload timeouts from failing the entire workflow
+        continue-on-error: true
         with:
           name: test-results-${{ matrix.os }}-${{ matrix.build_type }}
           path: |

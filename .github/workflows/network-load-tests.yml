@@ -72,6 +72,7 @@ jobs:
 
     - name: Upload performance results
       uses: actions/upload-artifact@v4
+      continue-on-error: true
       with:
         name: performance-results-ubuntu
         path: |
@@ -156,6 +157,7 @@ jobs:
 
     - name: Upload performance results
       uses: actions/upload-artifact@v4
+      continue-on-error: true
       with:
         name: performance-results-macos
         path: |
@@ -240,6 +242,7 @@ jobs:
 
     - name: Upload performance results
       uses: actions/upload-artifact@v4
+      continue-on-error: true
       with:
         name: performance-results-windows
         path: |

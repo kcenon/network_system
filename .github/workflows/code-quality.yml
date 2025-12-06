@@ -81,6 +81,7 @@ jobs:
     - name: Upload Analysis Reports
       if: always()
       uses: actions/upload-artifact@v4
+      continue-on-error: true
       with:
         name: analysis-reports
         path: |
@@ -198,6 +199,7 @@ jobs:
 
     - name: Upload Coverage Report
       uses: actions/upload-artifact@v4
+      continue-on-error: true
       with:
         name: coverage-report
         path: build/coverage-report.html
@@ -230,6 +232,7 @@ jobs:
 
     - name: Upload License Report
       uses: actions/upload-artifact@v4
+      continue-on-error: true
       with:
         name: license-report
         path: license-report.md

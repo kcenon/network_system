@@ -176,6 +176,9 @@ jobs:
     - name: Upload Test Results
       if: always()
       uses: actions/upload-artifact@v4
+      # Continue even if artifact upload fails due to GitHub infrastructure issues
+      # This prevents transient upload timeouts from failing the entire workflow
+      continue-on-error: true
       with:
         name: test-results-${{ matrix.os }}-${{ matrix.build_type }}
         path: |
