@@ -338,38 +338,108 @@ private:
 
 ### Thread System Integration
 
-**Purpose**: Pluggable thread pool for async operations
+**Purpose**: Unified thread pool management for async operations
 
-```cpp
-// Interface definition
-class thread_pool_interface {
-public:
-    virtual void post(std::function<void()> task) = 0;
-    virtual size_t size() const = 0;
-};
+As of the Thread System Migration Epic (#271), all direct `std::thread` usage in network_system has been migrated to use thread_system for centralized thread management.
 
-// Adapter for thread_system
-class thread_system_adapter : public thread_pool_interface {
-    std::shared_ptr<kcenon::thread::thread_pool> pool_;
-public:
-    void post(std::function<void()> task) override {
-        pool_->post([task](const auto&) {
-            task();
-            return kcenon::thread::job_parameter{};
-        });
-    }
-};
+#### Architecture Overview
 
-// Usage
-auto thread_pool = std::make_shared<kcenon::thread::thread_pool>(8);
-auto adapter = std::make_shared<thread_system_adapter>(thread_pool);
-auto server = MessagingServer("0.0.0.0", 8080, adapter);
+```
+┌─────────────────────────────────────────────────────────────┐
+│                  Thread Integration Layer                    │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │           thread_integration_manager                 │   │
+│  │  (Singleton - Central thread pool management)        │   │
+│  └────────────────────┬────────────────────────────────┘   │
+│                       │                                     │
+│           ┌───────────┼───────────┐                        │
+│           ▼           ▼           ▼                        │
+│  ┌────────────┐ ┌──────────────┐ ┌────────────────────┐   │
+│  │ basic_     │ │ thread_      │ │ (Custom            │   │
+│  │ thread_    │ │ system_pool_ │ │ implementations)   │   │
+│  │ pool       │ │ adapter      │ │                    │   │
+│  └────────────┘ └──────────────┘ └────────────────────┘   │
+│       │               │                                     │
+│       ▼               ▼                                     │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │         thread_system::thread_pool                   │   │
+│  │  (When BUILD_WITH_THREAD_SYSTEM is enabled)         │   │
+│  └─────────────────────────────────────────────────────┘   │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-**Benefits**:
-- Reuse existing thread pools
-- Consistent threading across application
-- Performance monitoring via thread_system
+#### Key Components
+
+**thread_pool_interface**: Abstract interface for thread pool implementations
+
+```cpp
+class thread_pool_interface {
+public:
+    virtual std::future<void> submit(std::function<void()> task) = 0;
+    virtual std::future<void> submit_delayed(
+        std::function<void()> task,
+        std::chrono::milliseconds delay
+    ) = 0;
+    virtual size_t worker_count() const = 0;
+    virtual bool is_running() const = 0;
+    virtual size_t pending_tasks() const = 0;
+};
+```
+
+**basic_thread_pool**: Default implementation that internally uses thread_system::thread_pool when `BUILD_WITH_THREAD_SYSTEM` is enabled.
+
+**thread_system_pool_adapter**: Direct adapter for thread_system::thread_pool with scheduler support for delayed tasks.
+
+**thread_integration_manager**: Singleton that manages the global thread pool instance.
+
+#### Usage Examples
+
+```cpp
+#include <kcenon/network/integration/thread_integration.h>
+
+// Option 1: Use the integration manager (recommended)
+auto& manager = integration::thread_integration_manager::instance();
+
+// Submit a task
+manager.submit_task([]() {
+    // Task execution
+});
+
+// Submit a delayed task
+manager.submit_delayed_task(
+    []() { /* delayed task */ },
+    std::chrono::milliseconds(1000)
+);
+
+// Get metrics
+auto metrics = manager.get_metrics();
+std::cout << "Workers: " << metrics.worker_threads << "\n";
+std::cout << "Pending: " << metrics.pending_tasks << "\n";
+```
+
+```cpp
+#include <kcenon/network/integration/thread_system_adapter.h>
+
+// Option 2: Use thread_system_pool_adapter directly
+auto adapter = thread_system_pool_adapter::from_service_or_default("network_pool");
+integration::thread_integration_manager::instance().set_thread_pool(adapter);
+
+// Or use the convenience function
+bind_thread_system_pool_into_manager("network_pool");
+```
+
+#### Migration Benefits
+
+The thread_system integration provides:
+
+- **Unified Thread Management**: All network operations use centralized thread pools
+- **Advanced Queue Features**: Access to adaptive_job_queue for auto-switching between mutex and lock-free modes
+- **Delayed Task Support**: Proper scheduler-based delayed task execution (no detached threads)
+- **Consistent Metrics**: Thread pool metrics reported through unified infrastructure
+- **Automatic Benefits**: No code changes required when using basic_thread_pool - internally delegates to thread_system
 
 ### Logger System Integration
 
