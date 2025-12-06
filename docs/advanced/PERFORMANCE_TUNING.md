@@ -48,7 +48,7 @@ config.logger.async_logging = true;
 
 ### Thread Pool Configuration
 
-Thread pool controls the number of worker threads for async operations.
+Thread pool controls the number of worker threads for async operations. With the Thread System Migration Epic (#271), network_system now uses `thread_system` for unified thread management.
 
 ```cpp
 struct thread_pool_config {
@@ -56,6 +56,31 @@ struct thread_pool_config {
     size_t queue_capacity = 10000;  // Task queue size
     std::string pool_name = "network_pool";
 };
+```
+
+#### Thread System Integration (Recommended)
+
+When `BUILD_WITH_THREAD_SYSTEM` is enabled, the basic_thread_pool internally delegates to `thread_system::thread_pool`, providing:
+
+- **Adaptive Job Queue**: Automatically switches between mutex-based and lock-free modes based on contention
+- **Scheduler Support**: Proper delayed task execution without detached threads
+- **Unified Metrics**: Consistent performance monitoring across all subsystems
+
+```cpp
+#include <kcenon/network/integration/thread_system_adapter.h>
+
+// Use thread_system for maximum performance
+bind_thread_system_pool_into_manager("network_pool");
+
+// Or configure explicitly
+auto adapter = thread_system_pool_adapter::from_service_or_default("network_pool");
+auto& manager = integration::thread_integration_manager::instance();
+manager.set_thread_pool(adapter);
+
+// Check thread pool metrics
+auto metrics = manager.get_metrics();
+std::cout << "Workers: " << metrics.worker_threads << "\n";
+std::cout << "Pending: " << metrics.pending_tasks << "\n";
 ```
 
 #### worker_count

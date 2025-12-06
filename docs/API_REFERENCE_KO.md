@@ -1148,6 +1148,315 @@ Network System 라이브러리의 모든 공개 메서드는 명시적으로 문
 - macOS 10.14 이상 필요
 - Xcode 11 이상 권장
 
+---
+
+## 스레드 통합 API
+
+스레드 통합 모듈은 네트워크 작업을 위한 통합 스레드 풀 관리를 제공합니다.
+
+### 헤더 파일
+
+```cpp
+#include <kcenon/network/integration/thread_integration.h>
+#include <kcenon/network/integration/thread_system_adapter.h>
+```
+
+### thread_pool_interface
+
+스레드 풀 구현을 위한 추상 인터페이스입니다.
+
+```cpp
+namespace kcenon::network::integration {
+
+class thread_pool_interface {
+public:
+    virtual ~thread_pool_interface() = default;
+
+    /**
+     * @brief 스레드 풀에 태스크를 제출합니다
+     * @param task 실행할 태스크
+     * @return 태스크 결과를 위한 Future
+     */
+    virtual std::future<void> submit(std::function<void()> task) = 0;
+
+    /**
+     * @brief 지연과 함께 태스크를 제출합니다
+     * @param task 실행할 태스크
+     * @param delay 실행 전 지연
+     * @return 태스크 결과를 위한 Future
+     */
+    virtual std::future<void> submit_delayed(
+        std::function<void()> task,
+        std::chrono::milliseconds delay
+    ) = 0;
+
+    /**
+     * @brief 워커 스레드 수를 가져옵니다
+     * @return 워커 스레드 수
+     */
+    virtual size_t worker_count() const = 0;
+
+    /**
+     * @brief 스레드 풀이 실행 중인지 확인합니다
+     * @return 실행 중이면 true, 아니면 false
+     */
+    virtual bool is_running() const = 0;
+
+    /**
+     * @brief 대기 중인 태스크 수를 가져옵니다
+     * @return 실행 대기 중인 태스크 수
+     */
+    virtual size_t pending_tasks() const = 0;
+};
+
+} // namespace kcenon::network::integration
+```
+
+### basic_thread_pool
+
+기본 스레드 풀 구현입니다. `BUILD_WITH_THREAD_SYSTEM`이 활성화되면 내부적으로 `thread_system::thread_pool`에 위임합니다.
+
+```cpp
+namespace kcenon::network::integration {
+
+class basic_thread_pool : public thread_pool_interface {
+public:
+    /**
+     * @brief 지정된 스레드 수로 생성합니다
+     * @param num_threads 워커 스레드 수 (0 = 하드웨어 동시성)
+     */
+    explicit basic_thread_pool(size_t num_threads = 0);
+
+    ~basic_thread_pool();
+
+    // thread_pool_interface 구현
+    std::future<void> submit(std::function<void()> task) override;
+    std::future<void> submit_delayed(
+        std::function<void()> task,
+        std::chrono::milliseconds delay
+    ) override;
+    size_t worker_count() const override;
+    bool is_running() const override;
+    size_t pending_tasks() const override;
+
+    /**
+     * @brief 스레드 풀을 중지합니다
+     * @param wait_for_tasks 대기 중인 태스크를 기다릴지 여부
+     */
+    void stop(bool wait_for_tasks = true);
+
+    /**
+     * @brief 완료된 태스크 수를 가져옵니다
+     * @return 완료된 태스크 수
+     */
+    size_t completed_tasks() const;
+};
+
+} // namespace kcenon::network::integration
+```
+
+### thread_integration_manager
+
+스레드 시스템 통합을 위한 싱글톤 관리자입니다.
+
+```cpp
+namespace kcenon::network::integration {
+
+class thread_integration_manager {
+public:
+    /**
+     * @brief 싱글톤 인스턴스를 가져옵니다
+     * @return 싱글톤 인스턴스에 대한 참조
+     */
+    static thread_integration_manager& instance();
+
+    /**
+     * @brief 스레드 풀 구현을 설정합니다
+     * @param pool 사용할 스레드 풀
+     */
+    void set_thread_pool(std::shared_ptr<thread_pool_interface> pool);
+
+    /**
+     * @brief 현재 스레드 풀을 가져옵니다
+     * @return 현재 스레드 풀 (설정되지 않은 경우 기본 풀 생성)
+     */
+    std::shared_ptr<thread_pool_interface> get_thread_pool();
+
+    /**
+     * @brief 스레드 풀에 태스크를 제출합니다
+     * @param task 실행할 태스크
+     * @return 태스크 결과를 위한 Future
+     */
+    std::future<void> submit_task(std::function<void()> task);
+
+    /**
+     * @brief 지연과 함께 태스크를 제출합니다
+     * @param task 실행할 태스크
+     * @param delay 실행 전 지연
+     * @return 태스크 결과를 위한 Future
+     */
+    std::future<void> submit_delayed_task(
+        std::function<void()> task,
+        std::chrono::milliseconds delay
+    );
+
+    /**
+     * @brief 스레드 풀 메트릭
+     */
+    struct metrics {
+        size_t worker_threads = 0;  ///< 워커 스레드 수
+        size_t pending_tasks = 0;   ///< 실행 대기 중인 태스크
+        size_t completed_tasks = 0; ///< 완료된 태스크 총 수
+        bool is_running = false;    ///< 스레드 풀 실행 상태
+    };
+
+    /**
+     * @brief 현재 메트릭을 가져옵니다
+     * @return 현재 스레드 풀 메트릭
+     */
+    metrics get_metrics() const;
+};
+
+} // namespace kcenon::network::integration
+```
+
+### thread_system_pool_adapter
+
+thread_system::thread_pool 직접 통합을 위한 어댑터입니다 (`BUILD_WITH_THREAD_SYSTEM` 필요).
+
+```cpp
+#if defined(BUILD_WITH_THREAD_SYSTEM)
+
+namespace kcenon::network::integration {
+
+class thread_system_pool_adapter : public thread_pool_interface {
+public:
+    /**
+     * @brief 기존 thread_pool로 어댑터를 생성합니다
+     * @param pool 적응할 thread_system 스레드 풀
+     */
+    explicit thread_system_pool_adapter(
+        std::shared_ptr<kcenon::thread::thread_pool> pool
+    );
+
+    ~thread_system_pool_adapter();
+
+    // thread_pool_interface 구현
+    std::future<void> submit(std::function<void()> task) override;
+    std::future<void> submit_delayed(
+        std::function<void()> task,
+        std::chrono::milliseconds delay
+    ) override;
+    size_t worker_count() const override;
+    bool is_running() const override;
+    size_t pending_tasks() const override;
+
+    /**
+     * @brief 새 스레드 풀로 기본 어댑터를 생성합니다
+     * @param pool_name 스레드 풀 이름
+     * @return 새 어댑터에 대한 공유 포인터
+     */
+    static std::shared_ptr<thread_system_pool_adapter> create_default(
+        const std::string& pool_name = "network_pool"
+    );
+
+    /**
+     * @brief 서비스 컨테이너에서 해결을 시도하고, 실패 시 기본값으로 폴백
+     * @param pool_name 스레드 풀 이름
+     * @return 어댑터에 대한 공유 포인터
+     */
+    static std::shared_ptr<thread_system_pool_adapter> from_service_or_default(
+        const std::string& pool_name = "network_pool"
+    );
+};
+
+/**
+ * @brief thread_system 풀을 통합 관리자에 바인딩합니다
+ * @param pool_name 스레드 풀 이름
+ * @return 성공 시 true, 아니면 false
+ */
+bool bind_thread_system_pool_into_manager(
+    const std::string& pool_name = "network_pool"
+);
+
+} // namespace kcenon::network::integration
+
+#endif // BUILD_WITH_THREAD_SYSTEM
+```
+
+### 사용 예제
+
+#### 기본 사용
+
+```cpp
+#include <kcenon/network/integration/thread_integration.h>
+
+void example_basic_usage() {
+    auto& manager = kcenon::network::integration::thread_integration_manager::instance();
+
+    // 간단한 태스크 제출
+    auto future = manager.submit_task([]() {
+        std::cout << "태스크 실행!" << std::endl;
+    });
+
+    // 완료 대기
+    future.get();
+
+    // 지연 태스크 제출
+    auto delayed_future = manager.submit_delayed_task(
+        []() { std::cout << "지연 태스크!" << std::endl; },
+        std::chrono::milliseconds(500)
+    );
+
+    delayed_future.get();
+
+    // 메트릭 확인
+    auto metrics = manager.get_metrics();
+    std::cout << "완료됨: " << metrics.completed_tasks << std::endl;
+}
+```
+
+#### 커스텀 스레드 풀
+
+```cpp
+#include <kcenon/network/integration/thread_integration.h>
+
+void example_custom_pool() {
+    // 8개 워커로 커스텀 스레드 풀 생성
+    auto pool = std::make_shared<kcenon::network::integration::basic_thread_pool>(8);
+
+    // 글로벌 스레드 풀로 설정
+    auto& manager = kcenon::network::integration::thread_integration_manager::instance();
+    manager.set_thread_pool(pool);
+
+    // 평소처럼 관리자 사용
+    manager.submit_task([]() { /* ... */ });
+}
+```
+
+#### thread_system 통합
+
+```cpp
+#include <kcenon/network/integration/thread_system_adapter.h>
+
+void example_thread_system_integration() {
+#if defined(BUILD_WITH_THREAD_SYSTEM)
+    using namespace kcenon::network::integration;
+
+    // 옵션 1: 편의 함수 사용
+    bind_thread_system_pool_into_manager("my_network_pool");
+
+    // 옵션 2: 수동 설정
+    auto adapter = thread_system_pool_adapter::from_service_or_default("network_pool");
+    thread_integration_manager::instance().set_thread_pool(adapter);
+
+    // 이제 모든 네트워크 작업이 thread_system 사용
+#endif
+}
+```
+
+---
+
 ## 버전 기록
 
 자세한 버전 기록은 [CHANGELOG.md](CHANGELOG_KO.md)를 참조하십시오.

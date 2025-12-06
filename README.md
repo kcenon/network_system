@@ -280,24 +280,34 @@ This system integrates seamlessly with:
 ### Integration Example
 
 ```cpp
-#include <network_system/core/messaging_server.h>
-#include <logger_system/Logger.h>
-#include <thread_system/ThreadPool.h>
+#include <kcenon/network/core/messaging_server.h>
+#include <kcenon/network/integration/thread_system_adapter.h>
 
-// Configure logger
-auto logger = logger_system::createLogger("network.log");
+using namespace kcenon::network;
 
-// Configure thread pool
-auto thread_pool = std::make_shared<thread_system::ThreadPool>(
-    std::thread::hardware_concurrency() * 2  // I/O-bound
-);
+int main() {
+    // Bind thread_system for unified thread management
+#if defined(BUILD_WITH_THREAD_SYSTEM)
+    integration::bind_thread_system_pool_into_manager("network_pool");
+#endif
 
-// Create server with integrations
-auto server = std::make_shared<messaging_server>("IntegratedServer");
-server->set_logger(logger);
-server->set_thread_pool(thread_pool);
+    // Create and start server
+    auto server = std::make_shared<core::messaging_server>("IntegratedServer");
+    auto result = server->start_server(8080);
 
-server->start_server(8080);
+    if (result.is_err()) {
+        std::cerr << "Failed: " << result.error().message << std::endl;
+        return -1;
+    }
+
+    // Get thread pool metrics
+    auto& manager = integration::thread_integration_manager::instance();
+    auto metrics = manager.get_metrics();
+    std::cout << "Workers: " << metrics.worker_threads << std::endl;
+
+    server->wait_for_stop();
+    return 0;
+}
 ```
 
 🌐 **[Full Integration Guide →](docs/INTEGRATION.md)**
