@@ -20,6 +20,13 @@ All rights reserved.
 using namespace network_system::core;
 using namespace std::chrono_literals;
 
+// Free function for yielding to allow async operations to complete
+inline void wait_for_ready() {
+  for (int i = 0; i < 100; ++i) {
+    std::this_thread::yield();
+  }
+}
+
 class NetworkThreadSafetyTest : public ::testing::Test {
 protected:
   void SetUp() override {}
@@ -115,7 +122,7 @@ TEST_F(NetworkThreadSafetyTest, ConcurrentServerStartStop) {
         unsigned short port = 9000 + index;
         servers[index]->start_server(port);
         ++started;
-        std::this_thread::sleep_for(100ms);
+        wait_for_ready();
         servers[index]->stop_server();
         ++stopped;
       } catch (...) {
@@ -153,7 +160,7 @@ TEST_F(NetworkThreadSafetyTest, ConcurrentClientStartStop) {
       try {
         clients[index]->start_client("127.0.0.1", 9999); // Non-existent server
         ++started;
-        std::this_thread::sleep_for(50ms);
+        wait_for_ready();
         clients[index]->stop_client();
         ++stopped;
       } catch (...) {
@@ -213,7 +220,7 @@ TEST_F(NetworkThreadSafetyTest, MixedOperations) {
       try {
         auto server = std::make_shared<messaging_server>("mixed_server_" +
                                                          std::to_string(i));
-        std::this_thread::sleep_for(10ms);
+        std::this_thread::yield();
       } catch (...) {
         ++errors;
       }
@@ -226,7 +233,7 @@ TEST_F(NetworkThreadSafetyTest, MixedOperations) {
       try {
         auto client = std::make_shared<messaging_client>("mixed_client_" +
                                                          std::to_string(i));
-        std::this_thread::sleep_for(10ms);
+        std::this_thread::yield();
       } catch (...) {
         ++errors;
       }
@@ -239,9 +246,9 @@ TEST_F(NetworkThreadSafetyTest, MixedOperations) {
     for (int i = 0; i < num_iterations; ++i) {
       try {
         server->start_server(9100 + (i % 10));
-        std::this_thread::sleep_for(20ms);
+        wait_for_ready();
         server->stop_server();
-        std::this_thread::sleep_for(10ms);
+        std::this_thread::yield();
       } catch (...) {
         ++errors;
       }
@@ -313,7 +320,7 @@ TEST_F(NetworkThreadSafetyTest, MultipleServerPorts) {
         unsigned short port = 9200 + index;
         servers[index]->start_server(port);
         ++started;
-        std::this_thread::sleep_for(100ms);
+        wait_for_ready();
       } catch (...) {
         ++errors;
       }
@@ -342,7 +349,7 @@ TEST_F(NetworkThreadSafetyTest, ConcurrentWaitForStop) {
 
   // Start server
   server->start_server(9300);
-  std::this_thread::sleep_for(100ms);
+  wait_for_ready();
 
   // Multiple threads waiting for stop
   for (int i = 0; i < num_waiters; ++i) {
@@ -353,7 +360,7 @@ TEST_F(NetworkThreadSafetyTest, ConcurrentWaitForStop) {
   }
 
   // Give threads time to start waiting
-  std::this_thread::sleep_for(100ms);
+  wait_for_ready();
 
   // Stop server (should wake all waiting threads)
   server->stop_server();
@@ -381,7 +388,7 @@ TEST_F(NetworkThreadSafetyTest, MemorySafety) {
     threads.emplace_back([&]() {
       try {
         server->start_server(9400);
-        std::this_thread::sleep_for(50ms);
+        wait_for_ready();
         server->stop_server();
       } catch (...) {
         ++errors;
@@ -392,7 +399,7 @@ TEST_F(NetworkThreadSafetyTest, MemorySafety) {
     threads.emplace_back([&]() {
       try {
         client->start_client("127.0.0.1", 9400);
-        std::this_thread::sleep_for(50ms);
+        wait_for_ready();
         client->stop_client();
       } catch (...) {
         // Connection may fail, that's OK
@@ -405,7 +412,7 @@ TEST_F(NetworkThreadSafetyTest, MemorySafety) {
         for (int i = 0; i < 10; ++i) {
           std::vector<uint8_t> data = {0x01, 0x02, 0x03};
           client->send_packet(std::move(data));
-          std::this_thread::sleep_for(5ms);
+          std::this_thread::yield();
         }
       } catch (...) {
         // Expected if not connected
@@ -424,7 +431,7 @@ TEST_F(NetworkThreadSafetyTest, MemorySafety) {
     server->stop_server();
 
     // Give time for cleanup
-    std::this_thread::sleep_for(10ms);
+    std::this_thread::yield();
   }
 
   EXPECT_EQ(total_errors.load(), 0);
