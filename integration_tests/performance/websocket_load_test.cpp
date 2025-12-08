@@ -43,7 +43,7 @@ protected:
         ASSERT_TRUE(result.is_ok()) << "Failed to start server: " << result.error().message;
 
         // Wait for server to be ready
-        std::this_thread::sleep_for(std::chrono::milliseconds(200));
+        test_helpers::wait_for_ready();
     }
 
     void TearDown() override {
@@ -62,7 +62,7 @@ protected:
         }
 
         // Brief pause for cleanup
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        test_helpers::wait_for_ready();
     }
 
     /**
@@ -83,7 +83,7 @@ protected:
         }
 
         // Wait for connection
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+        test_helpers::wait_for_ready();
         return client;
     }
 
@@ -322,7 +322,7 @@ TEST_F(WebSocketLoadTest, Ping_Pong_Latency) {
             latencies.push_back(std::chrono::duration<double, std::milli>(end - start).count());
         }
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        std::this_thread::yield();
     }
 
     auto stats = test_helpers::calculate_statistics(latencies);

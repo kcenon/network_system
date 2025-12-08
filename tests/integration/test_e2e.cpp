@@ -55,6 +55,14 @@
 using namespace network_system;
 using namespace std::chrono_literals;
 
+// Free function for yielding to allow async operations to complete
+inline void wait_for_ready() {
+    for (int i = 0; i < 1000; ++i) {
+        std::this_thread::yield();
+    }
+}
+
+
 // Test configuration
 constexpr uint16_t TEST_PORT = 9191;
 constexpr size_t NUM_CLIENTS = 10;
@@ -98,13 +106,13 @@ bool test_basic_connectivity(TestResults &results) {
     auto server = std::make_shared<core::messaging_server>("e2e_server");
     server->start_server(TEST_PORT);
 
-    std::this_thread::sleep_for(100ms);
+    wait_for_ready();
 
     // Create client
     auto client = std::make_shared<core::messaging_client>("e2e_client");
     client->start_client("127.0.0.1", TEST_PORT);
 
-    std::this_thread::sleep_for(100ms);
+    wait_for_ready();
 
     // Send test message
     std::string test_data = "Hello, E2E Test!";
@@ -112,7 +120,7 @@ bool test_basic_connectivity(TestResults &results) {
     client->send_packet(std::move(data));
     results.messages_sent++;
 
-    std::this_thread::sleep_for(100ms);
+    wait_for_ready();
 
     // Clean up
     client->stop_client();
@@ -141,7 +149,7 @@ bool test_multi_client(TestResults &results) {
     auto server = std::make_shared<core::messaging_server>("multi_server");
     server->start_server(TEST_PORT + 1);
 
-    std::this_thread::sleep_for(200ms);
+    wait_for_ready();
 
     // Create and run multiple clients
     std::vector<std::thread> client_threads;
@@ -154,7 +162,7 @@ bool test_multi_client(TestResults &results) {
               "client_" + std::to_string(i));
           client->start_client("127.0.0.1", TEST_PORT + 1);
 
-          std::this_thread::sleep_for(50ms);
+          wait_for_ready();
 
           // Send multiple messages
           for (size_t j = 0; j < MESSAGES_PER_CLIENT; ++j) {
@@ -163,7 +171,7 @@ bool test_multi_client(TestResults &results) {
             std::vector<uint8_t> data(msg.begin(), msg.end());
             client->send_packet(std::move(data));
             local_messages++;
-            std::this_thread::sleep_for(5ms);
+            std::this_thread::yield();
           }
 
           client->stop_client();
@@ -214,12 +222,12 @@ bool test_large_messages(TestResults &results) {
     auto server = std::make_shared<core::messaging_server>("large_server");
     server->start_server(TEST_PORT + 2);
 
-    std::this_thread::sleep_for(100ms);
+    wait_for_ready();
 
     auto client = std::make_shared<core::messaging_client>("large_client");
     client->start_client("127.0.0.1", TEST_PORT + 2);
 
-    std::this_thread::sleep_for(100ms);
+    wait_for_ready();
 
     // Test different message sizes
     std::vector<size_t> sizes = {64, 256, 1024, 4096, 8192};
@@ -230,7 +238,7 @@ bool test_large_messages(TestResults &results) {
 
       client->send_packet(std::move(data));
       results.messages_sent++;
-      std::this_thread::sleep_for(10ms);
+      std::this_thread::yield();
     }
 
     // Clean up
@@ -260,7 +268,7 @@ bool test_connection_resilience(TestResults &results) {
     auto server = std::make_shared<core::messaging_server>("resilience_server");
     server->start_server(TEST_PORT + 3);
 
-    std::this_thread::sleep_for(100ms);
+    wait_for_ready();
 
     // Connect and disconnect multiple times
     for (int i = 0; i < 5; ++i) {
@@ -268,7 +276,7 @@ bool test_connection_resilience(TestResults &results) {
           "resilience_client_" + std::to_string(i));
 
       client->start_client("127.0.0.1", TEST_PORT + 3);
-      std::this_thread::sleep_for(50ms);
+      wait_for_ready();
 
       // Send a message
       std::string msg = "Resilience test " + std::to_string(i);
@@ -276,22 +284,22 @@ bool test_connection_resilience(TestResults &results) {
       client->send_packet(std::move(data));
       results.messages_sent++;
 
-      std::this_thread::sleep_for(50ms);
+      wait_for_ready();
       client->stop_client();
     }
 
     // Stop and restart server
     server->stop_server();
-    std::this_thread::sleep_for(100ms);
+    wait_for_ready();
 
     server = std::make_shared<core::messaging_server>("resilience_server2");
     server->start_server(TEST_PORT + 3);
-    std::this_thread::sleep_for(100ms);
+    wait_for_ready();
 
     // Try connecting again
     auto client = std::make_shared<core::messaging_client>("final_client");
     client->start_client("127.0.0.1", TEST_PORT + 3);
-    std::this_thread::sleep_for(50ms);
+    wait_for_ready();
 
     std::string msg = "Final message after restart";
     std::vector<uint8_t> data(msg.begin(), msg.end());
@@ -324,7 +332,7 @@ bool test_rapid_connections(TestResults &results) {
     auto server = std::make_shared<core::messaging_server>("rapid_server");
     server->start_server(TEST_PORT + 4);
 
-    std::this_thread::sleep_for(100ms);
+    wait_for_ready();
 
     // Rapid connect/disconnect cycles
     for (int i = 0; i < 20; ++i) {
@@ -342,7 +350,7 @@ bool test_rapid_connections(TestResults &results) {
       client->stop_client();
 
       // Small delay between cycles
-      std::this_thread::sleep_for(10ms);
+      std::this_thread::yield();
     }
 
     server->stop_server();
@@ -376,7 +384,7 @@ bool test_thread_pool_integration(TestResults &results) {
     for (size_t i = 0; i < 100; ++i) {
       futures.push_back(thread_mgr.submit_task([&completed_tasks]() {
         // Simulate work
-        std::this_thread::sleep_for(std::chrono::microseconds(100));
+        std::this_thread::yield();
         completed_tasks++;
       }));
     }

@@ -42,6 +42,14 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 using namespace network_system::protocols::quic;
 using namespace std::chrono_literals;
 
+// Free function for yielding to allow async operations to complete
+inline void wait_for_ready() {
+    for (int i = 0; i < 1000; ++i) {
+        std::this_thread::yield();
+    }
+}
+
+
 // ============================================================================
 // RTT Estimator Tests
 // ============================================================================
@@ -217,7 +225,7 @@ TEST_F(LossDetectorTest, PacketLossByReordering)
     {
         auto pkt = make_packet(i);
         detector_.on_packet_sent(pkt);
-        std::this_thread::sleep_for(1ms);
+        std::this_thread::yield();
     }
 
     // ACK packet 3 (packets 0, 1, 2 should be considered lost by reordering)
@@ -459,7 +467,7 @@ TEST_F(LossDetectionIntegrationTest, AckUpdatesRtt)
     cc_.on_packet_sent(pkt.sent_bytes);
 
     // Wait a bit to simulate network delay
-    std::this_thread::sleep_for(10ms);
+    std::this_thread::yield();
 
     ack_frame ack;
     ack.largest_acknowledged = 0;
@@ -483,7 +491,7 @@ TEST_F(LossDetectionIntegrationTest, LossTriggersCC)
         auto pkt = make_packet(i);
         detector_.on_packet_sent(pkt);
         cc_.on_packet_sent(pkt.sent_bytes);
-        std::this_thread::sleep_for(1ms);
+        std::this_thread::yield();
     }
 
     auto initial_cwnd = cc_.cwnd();
