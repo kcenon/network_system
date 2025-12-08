@@ -549,12 +549,19 @@ TEST(NetworkStressTest, ConcurrentClients) {
   const int num_threads = 5;
   const int clients_per_thread = 2;
   std::vector<std::thread> threads;
+  std::vector<std::shared_ptr<messaging_client>> all_clients;
+  std::mutex clients_mutex;
 
   for (int t = 0; t < num_threads; ++t) {
-    threads.emplace_back([port, t]() {
+    threads.emplace_back([port, t, &all_clients, &clients_mutex]() {
       for (int c = 0; c < clients_per_thread; ++c) {
         auto client = std::make_shared<messaging_client>(
             "thread_" + std::to_string(t) + "_client_" + std::to_string(c));
+
+        {
+          std::lock_guard<std::mutex> lock(clients_mutex);
+          all_clients.push_back(client);
+        }
 
         auto client_start = client->start_client("127.0.0.1", port);
         EXPECT_TRUE(client_start.is_ok()) << "Client should start successfully";
@@ -569,8 +576,6 @@ TEST(NetworkStressTest, ConcurrentClients) {
         EXPECT_TRUE(send_result.is_ok()) << "Message send should succeed";
 
         wait_for_ready();
-        auto client_stop = client->stop_client();
-        EXPECT_TRUE(client_stop.is_ok()) << "Client stop should succeed";
       }
     });
   }
@@ -578,6 +583,16 @@ TEST(NetworkStressTest, ConcurrentClients) {
   for (auto &t : threads) {
     t.join();
   }
+
+  // Stop all clients after threads complete (proper lifecycle management)
+  for (auto &client : all_clients) {
+    auto client_stop = client->stop_client();
+    EXPECT_TRUE(client_stop.is_ok()) << "Client stop should succeed";
+  }
+
+  // Wait for all async cleanup to complete before destroying clients
+  wait_for_ready();
+  all_clients.clear();
 
   auto server_stop = server->stop_server();
   EXPECT_TRUE(server_stop.is_ok()) << "Server should stop successfully";

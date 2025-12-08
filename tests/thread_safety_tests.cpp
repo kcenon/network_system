@@ -430,8 +430,8 @@ TEST_F(NetworkThreadSafetyTest, MemorySafety) {
     client->stop_client();
     server->stop_server();
 
-    // Give time for cleanup
-    std::this_thread::yield();
+    // Wait for all async cleanup to complete before next iteration
+    wait_for_ready();
   }
 
   EXPECT_EQ(total_errors.load(), 0);
