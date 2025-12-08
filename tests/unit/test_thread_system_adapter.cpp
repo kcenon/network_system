@@ -168,7 +168,7 @@ TEST_F(ThreadSystemAdapterTest, SubmitDelayedOrdering) {
     f3.wait();
 
     // Give a small buffer for any in-flight tasks
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    std::this_thread::yield();
 
     std::lock_guard<std::mutex> lock(order_mutex);
     ASSERT_EQ(order.size(), 3u);

@@ -46,6 +46,14 @@ using namespace network_module;
 using namespace container_module;
 using namespace std::chrono_literals;
 
+// Free function for yielding to allow async operations to complete
+inline void wait_for_ready() {
+    for (int i = 0; i < 100; ++i) {
+        std::this_thread::yield();
+    }
+}
+
+
 // Global server for benchmarks
 static std::shared_ptr<messaging_server> g_benchmark_server;
 static unsigned short g_server_port = 0;
@@ -84,7 +92,7 @@ public:
             g_benchmark_server->start_server(g_server_port);
             
             // Give server time to start
-            std::this_thread::sleep_for(100ms);
+            wait_for_ready();
         }
     }
     
@@ -556,7 +564,7 @@ int main(int argc, char** argv) {
     g_benchmark_server->start_server(g_server_port);
     
     // Give server time to start
-    std::this_thread::sleep_for(200ms);
+    wait_for_ready();
     
     std::cout << "Benchmark server started on port " << g_server_port << "\n";
     

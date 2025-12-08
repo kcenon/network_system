@@ -54,6 +54,14 @@
 using namespace network_system;
 using namespace std::chrono_literals;
 
+// Free function for yielding to allow async operations to complete
+inline void wait_for_ready() {
+    for (int i = 0; i < 100; ++i) {
+        std::this_thread::yield();
+    }
+}
+
+
 /**
  * @brief Benchmark result structure
  */
@@ -118,14 +126,14 @@ BenchmarkResult benchmark_throughput(
     server->start_server(port);
 
     // Wait for server to start
-    std::this_thread::sleep_for(100ms);
+    wait_for_ready();
 
     // Create client
     auto client = std::make_shared<core::messaging_client>("benchmark_client");
     client->start_client("127.0.0.1", port);
 
     // Wait for connection
-    std::this_thread::sleep_for(100ms);
+    wait_for_ready();
 
     // Create test message
     std::vector<uint8_t> message(message_size);
@@ -192,7 +200,7 @@ BenchmarkResult benchmark_concurrent_connections(
     server->start_server(port);
 
     // Wait for server
-    std::this_thread::sleep_for(200ms);
+    wait_for_ready();
 
     auto start = std::chrono::high_resolution_clock::now();
 
@@ -205,7 +213,7 @@ BenchmarkResult benchmark_concurrent_connections(
             client->start_client("127.0.0.1", port);
 
             // Wait for connection
-            std::this_thread::sleep_for(50ms);
+            wait_for_ready();
 
             std::vector<uint8_t> message(256);
             std::fill(message.begin(), message.end(), static_cast<uint8_t>(i % 256));
@@ -221,7 +229,7 @@ BenchmarkResult benchmark_concurrent_connections(
                 local_latencies.push_back(latency);
 
                 total_messages_sent++;
-                std::this_thread::sleep_for(1ms);  // Small delay between messages
+                std::this_thread::yield();  // Small delay between messages
             }
 
             // Add local latencies to global list
@@ -284,7 +292,7 @@ BenchmarkResult benchmark_thread_pool(size_t num_tasks) {
 
         futures.push_back(thread_mgr.submit_task([&completed_tasks, task_start, &task_latencies, &latency_mutex]() {
             // Simulate some work
-            std::this_thread::sleep_for(std::chrono::microseconds(10));
+            std::this_thread::yield();
 
             auto task_end = std::chrono::high_resolution_clock::now();
             auto latency = std::chrono::duration<double, std::micro>(task_end - task_start).count();

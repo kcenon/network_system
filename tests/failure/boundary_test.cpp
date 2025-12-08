@@ -46,7 +46,7 @@ TEST_F(BoundaryTest, HandlesEmptyMessage)
 	auto connect_result = client->start_client("localhost", TEST_PORT);
 	ASSERT_TRUE(connect_result.is_ok());
 
-	std::this_thread::sleep_for(std::chrono::milliseconds(100));
+	wait_for_ready();
 
 	// Send empty message
 	std::vector<uint8_t> empty_data;
@@ -65,13 +65,13 @@ TEST_F(BoundaryTest, HandlesSingleByteMessage)
 	auto connect_result = client->start_client("localhost", TEST_PORT);
 	ASSERT_TRUE(connect_result.is_ok());
 
-	std::this_thread::sleep_for(std::chrono::milliseconds(100));
+	wait_for_ready();
 
 	// Send single byte - should not crash
 	std::vector<uint8_t> single_byte = {0x42};
 	client->send_packet(std::move(single_byte));
 
-	std::this_thread::sleep_for(std::chrono::milliseconds(200));
+	wait_for_ready();
 
 	client->stop_client();
 	SUCCEED();
@@ -86,13 +86,13 @@ TEST_F(BoundaryTest, HandlesLargeMessage)
 	auto connect_result = client->start_client("localhost", TEST_PORT);
 	ASSERT_TRUE(connect_result.is_ok());
 
-	std::this_thread::sleep_for(std::chrono::milliseconds(100));
+	wait_for_ready();
 
 	// Send 64KB message - should not crash
 	std::vector<uint8_t> large_data(64 * 1024, 0xAB);
 	client->send_packet(std::move(large_data));
 
-	std::this_thread::sleep_for(std::chrono::milliseconds(500));
+	wait_for_ready();
 
 	client->stop_client();
 	SUCCEED();
@@ -107,13 +107,13 @@ TEST_F(BoundaryTest, HandlesMaxUint8Value)
 	auto connect_result = client->start_client("localhost", TEST_PORT);
 	ASSERT_TRUE(connect_result.is_ok());
 
-	std::this_thread::sleep_for(std::chrono::milliseconds(100));
+	wait_for_ready();
 
 	// Send max uint8_t value - should not crash
 	std::vector<uint8_t> max_value = {0xFF};
 	client->send_packet(std::move(max_value));
 
-	std::this_thread::sleep_for(std::chrono::milliseconds(200));
+	wait_for_ready();
 
 	client->stop_client();
 	SUCCEED();
@@ -128,13 +128,13 @@ TEST_F(BoundaryTest, HandlesZeroBytes)
 	auto connect_result = client->start_client("localhost", TEST_PORT);
 	ASSERT_TRUE(connect_result.is_ok());
 
-	std::this_thread::sleep_for(std::chrono::milliseconds(100));
+	wait_for_ready();
 
 	// Send zero bytes - should not crash
 	std::vector<uint8_t> zero_data = {0x00, 0x00, 0x00, 0x00};
 	client->send_packet(std::move(zero_data));
 
-	std::this_thread::sleep_for(std::chrono::milliseconds(200));
+	wait_for_ready();
 
 	client->stop_client();
 	SUCCEED();
@@ -149,7 +149,7 @@ TEST_F(BoundaryTest, HandlesBinaryData)
 	auto connect_result = client->start_client("localhost", TEST_PORT);
 	ASSERT_TRUE(connect_result.is_ok());
 
-	std::this_thread::sleep_for(std::chrono::milliseconds(100));
+	wait_for_ready();
 
 	// Send all possible byte values - should not crash
 	std::vector<uint8_t> all_bytes(256);
@@ -159,7 +159,7 @@ TEST_F(BoundaryTest, HandlesBinaryData)
 	}
 	client->send_packet(std::move(all_bytes));
 
-	std::this_thread::sleep_for(std::chrono::milliseconds(200));
+	wait_for_ready();
 
 	client->stop_client();
 	SUCCEED();

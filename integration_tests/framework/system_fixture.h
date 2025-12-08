@@ -85,7 +85,7 @@ protected:
         }
 
         // Brief pause to ensure cleanup
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+        wait_for_ready();
 
         timeout_guard_.reset();
     }
@@ -101,7 +101,7 @@ protected:
         }
 
         // Wait for server to be ready
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        wait_for_ready();
         return true;
     }
 

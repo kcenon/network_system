@@ -43,13 +43,13 @@ TEST_F(NetworkFailureTest, HandlesGracefulDisconnect)
 	ASSERT_TRUE(connect_result.is_ok());
 
 	// Wait for connection
-	std::this_thread::sleep_for(std::chrono::milliseconds(100));
+	wait_for_ready();
 
 	// Gracefully disconnect
 	client->stop_client();
 
 	// Wait for server to process disconnect
-	std::this_thread::sleep_for(std::chrono::milliseconds(200));
+	wait_for_ready();
 
 	// Server should handle gracefully (no crash)
 	SUCCEED();
@@ -66,11 +66,11 @@ TEST_F(NetworkFailureTest, HandlesMultipleDisconnects)
 		auto connect_result = client->start_client("localhost", TEST_PORT);
 		ASSERT_TRUE(connect_result.is_ok());
 
-		std::this_thread::sleep_for(std::chrono::milliseconds(20));
+		wait_for_ready();
 		client->stop_client();
 	}
 
-	std::this_thread::sleep_for(std::chrono::milliseconds(200));
+	wait_for_ready();
 	// Server should handle gracefully (no crash)
 	SUCCEED();
 }
@@ -105,7 +105,7 @@ TEST_F(NetworkFailureTest, HandlesRapidConnectDisconnect)
 		t.join();
 	}
 
-	std::this_thread::sleep_for(std::chrono::milliseconds(500));
+	wait_for_ready();
 
 	// Server should still be operational
 	EXPECT_GT(success_count.load(), 50); // Most should succeed
@@ -127,7 +127,7 @@ TEST_F(NetworkFailureTest, HandlesServerStopWithActiveClients)
 		}
 	}
 
-	std::this_thread::sleep_for(std::chrono::milliseconds(100));
+	wait_for_ready();
 
 	// Stop server while clients are connected
 	auto stop_result = server_->stop_server();
@@ -171,7 +171,7 @@ TEST_F(NetworkFailureTest, HandlesSendAfterDisconnect)
 	auto connect_result = client->start_client("localhost", TEST_PORT);
 	ASSERT_TRUE(connect_result.is_ok());
 
-	std::this_thread::sleep_for(std::chrono::milliseconds(100));
+	wait_for_ready();
 
 	// Disconnect
 	client->stop_client();
@@ -216,7 +216,7 @@ TEST_F(NetworkFailureTest, HandlesClientDoubleStop)
 	auto connect_result = client->start_client("localhost", TEST_PORT);
 	ASSERT_TRUE(connect_result.is_ok());
 
-	std::this_thread::sleep_for(std::chrono::milliseconds(100));
+	wait_for_ready();
 
 	client->stop_client();
 	client->stop_client(); // Second stop should be safe

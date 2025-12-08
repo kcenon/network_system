@@ -99,7 +99,7 @@ void test_server_lifecycle()
     auto dup_result = server->start_server(5556);
     test::assert_true(!dup_result.is_ok(), "Server should reject duplicate start");
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    wait_for_ready();
 
     // Test stop
     auto stop_result = server->stop_server();
@@ -125,7 +125,7 @@ void test_client_lifecycle()
     auto dup_result = client->start_client("localhost", 5557);
     test::assert_true(!dup_result.is_ok(), "Client should reject duplicate start");
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    wait_for_ready();
 
     // Test stop
     auto stop_result = client->stop_client();
@@ -158,14 +158,14 @@ void test_send_receive()
     auto server_result = server->start_server(5558);
     test::assert_true(server_result.is_ok(), "Server should start");
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    wait_for_ready();
 
     // Start client
     auto client = std::make_shared<messaging_udp_client>("TestClient");
     auto client_result = client->start_client("localhost", 5558);
     test::assert_true(client_result.is_ok(), "Client should start");
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    wait_for_ready();
 
     // Send message
     std::string msg = "Test message";
@@ -181,7 +181,7 @@ void test_send_receive()
         });
 
     // Wait for send/receive
-    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    wait_for_ready();
 
     test::assert_true(sent.load(), "Message should be sent");
     test::assert_true(received.load(), "Message should be received");

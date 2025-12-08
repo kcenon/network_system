@@ -61,6 +61,14 @@
 using namespace network_system::internal;
 using namespace std::chrono_literals;
 
+// Free function for yielding to allow async operations to complete
+inline void wait_for_ready() {
+    for (int i = 0; i < 100; ++i) {
+        std::this_thread::yield();
+    }
+}
+
+
 namespace
 {
 
@@ -411,7 +419,7 @@ protected:
     void TearDown() override
     {
         // Allow cleanup
-        std::this_thread::sleep_for(50ms);
+        wait_for_ready();
     }
 
     uint16_t port_;
@@ -426,7 +434,7 @@ TEST_F(WebSocketE2ETest, HandshakeSuccess)
     TestWebSocketServer server(port_);
     ASSERT_TRUE(server.start());
 
-    std::this_thread::sleep_for(100ms);
+    wait_for_ready();
 
     TestWebSocketClient client;
     ASSERT_TRUE(client.connect("localhost", port_));
@@ -438,7 +446,7 @@ TEST_F(WebSocketE2ETest, HandshakeWithPath)
     TestWebSocketServer server(port_);
     ASSERT_TRUE(server.start());
 
-    std::this_thread::sleep_for(100ms);
+    wait_for_ready();
 
     TestWebSocketClient client;
     ASSERT_TRUE(client.connect("localhost", port_, "/chat"));
@@ -455,12 +463,12 @@ TEST_F(WebSocketE2ETest, ServerAcceptsClient)
     });
 
     ASSERT_TRUE(server.start());
-    std::this_thread::sleep_for(100ms);
+    wait_for_ready();
 
     TestWebSocketClient client;
     ASSERT_TRUE(client.connect("localhost", port_));
 
-    std::this_thread::sleep_for(200ms);
+    wait_for_ready();
     EXPECT_TRUE(client_connected);
 }
 
@@ -486,7 +494,7 @@ TEST_F(WebSocketE2ETest, TextMessageRoundTrip)
     });
 
     ASSERT_TRUE(server.start());
-    std::this_thread::sleep_for(100ms);
+    wait_for_ready();
 
     TestWebSocketClient client;
     ASSERT_TRUE(client.connect("localhost", port_));
@@ -517,7 +525,7 @@ TEST_F(WebSocketE2ETest, LargeTextMessage)
     });
 
     ASSERT_TRUE(server.start());
-    std::this_thread::sleep_for(100ms);
+    wait_for_ready();
 
     TestWebSocketClient client;
     ASSERT_TRUE(client.connect("localhost", port_));
@@ -550,7 +558,7 @@ TEST_F(WebSocketE2ETest, MultipleTextMessages)
     });
 
     ASSERT_TRUE(server.start());
-    std::this_thread::sleep_for(100ms);
+    wait_for_ready();
 
     TestWebSocketClient client;
     ASSERT_TRUE(client.connect("localhost", port_));
@@ -589,7 +597,7 @@ TEST_F(WebSocketE2ETest, BinaryMessageRoundTrip)
     });
 
     ASSERT_TRUE(server.start());
-    std::this_thread::sleep_for(100ms);
+    wait_for_ready();
 
     TestWebSocketClient client;
     ASSERT_TRUE(client.connect("localhost", port_));
@@ -621,7 +629,7 @@ TEST_F(WebSocketE2ETest, LargeBinaryMessage)
     });
 
     ASSERT_TRUE(server.start());
-    std::this_thread::sleep_for(100ms);
+    wait_for_ready();
 
     TestWebSocketClient client;
     ASSERT_TRUE(client.connect("localhost", port_));
@@ -650,7 +658,7 @@ TEST_F(WebSocketE2ETest, PingPongExchange)
     TestWebSocketServer server(port_);
     ASSERT_TRUE(server.start());
 
-    std::this_thread::sleep_for(100ms);
+    wait_for_ready();
 
     TestWebSocketClient client;
     ASSERT_TRUE(client.connect("localhost", port_));
@@ -680,7 +688,7 @@ TEST_F(WebSocketE2ETest, EmptyPing)
     TestWebSocketServer server(port_);
     ASSERT_TRUE(server.start());
 
-    std::this_thread::sleep_for(100ms);
+    wait_for_ready();
 
     TestWebSocketClient client;
     ASSERT_TRUE(client.connect("localhost", port_));
@@ -711,14 +719,14 @@ TEST_F(WebSocketE2ETest, NormalClose)
     TestWebSocketServer server(port_);
     ASSERT_TRUE(server.start());
 
-    std::this_thread::sleep_for(100ms);
+    wait_for_ready();
 
     TestWebSocketClient client;
     ASSERT_TRUE(client.connect("localhost", port_));
 
     ASSERT_TRUE(client.close(ws_close_code::normal, "Goodbye"));
 
-    std::this_thread::sleep_for(200ms);
+    wait_for_ready();
     EXPECT_FALSE(client.is_connected());
 }
 
@@ -741,7 +749,7 @@ TEST_F(WebSocketE2ETest, CloseWithCode)
     });
 
     ASSERT_TRUE(server.start());
-    std::this_thread::sleep_for(100ms);
+    wait_for_ready();
 
     TestWebSocketClient client;
     ASSERT_TRUE(client.connect("localhost", port_));
@@ -773,7 +781,7 @@ TEST_F(WebSocketE2ETest, EchoTextMessage)
     });
 
     ASSERT_TRUE(server.start());
-    std::this_thread::sleep_for(100ms);
+    wait_for_ready();
 
     TestWebSocketClient client;
     ASSERT_TRUE(client.connect("localhost", port_));
@@ -815,7 +823,7 @@ TEST_F(WebSocketE2ETest, EchoBinaryMessage)
     });
 
     ASSERT_TRUE(server.start());
-    std::this_thread::sleep_for(100ms);
+    wait_for_ready();
 
     TestWebSocketClient client;
     ASSERT_TRUE(client.connect("localhost", port_));
@@ -851,7 +859,7 @@ TEST_F(WebSocketE2ETest, ConnectionState)
     TestWebSocketServer server(port_);
     ASSERT_TRUE(server.start());
 
-    std::this_thread::sleep_for(100ms);
+    wait_for_ready();
 
     TestWebSocketClient client;
     EXPECT_FALSE(client.is_connected());
@@ -860,7 +868,7 @@ TEST_F(WebSocketE2ETest, ConnectionState)
     EXPECT_TRUE(client.is_connected());
 
     ASSERT_TRUE(client.close());
-    std::this_thread::sleep_for(200ms);
+    wait_for_ready();
     EXPECT_FALSE(client.is_connected());
 }
 
