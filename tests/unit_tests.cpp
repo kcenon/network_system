@@ -368,6 +368,9 @@ TEST_F(NetworkTest, BasicMessageTransfer) {
 
   auto server_stop = server->stop_server();
   EXPECT_TRUE(server_stop.is_ok()) << "Server stop should succeed";
+
+  // Wait for async cleanup before shared_ptrs are destroyed
+  wait_for_ready();
 }
 
 // Large message transfer test using container_manager (new API)
@@ -413,6 +416,9 @@ TEST_F(NetworkTest, LargeMessageTransfer) {
 
   auto server_stop = server->stop_server();
   EXPECT_TRUE(server_stop.is_ok()) << "Server stop should succeed";
+
+  // Wait for async cleanup before shared_ptrs are destroyed
+  wait_for_ready();
 }
 
 // Multiple message transfer test using container_manager (new API)
@@ -464,6 +470,9 @@ TEST_F(NetworkTest, MultipleMessageTransfer) {
 
   auto server_stop = server->stop_server();
   EXPECT_TRUE(server_stop.is_ok()) << "Server stop should succeed";
+
+  // Wait for async cleanup before shared_ptrs are destroyed
+  wait_for_ready();
 }
 
 // ============================================================================
@@ -663,6 +672,10 @@ TEST_F(NetworkTest, ServerStopWhileClientsConnected) {
           << "Client " << i << " stop returned error (expected)";
     }
   }
+
+  // Wait for async cleanup before shared_ptrs are destroyed
+  wait_for_ready();
+  clients.clear();
 }
 
 // Main function for running tests
