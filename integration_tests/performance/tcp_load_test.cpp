@@ -37,7 +37,7 @@ protected:
         ASSERT_TRUE(result.is_ok()) << "Failed to start server: " << result.error().message;
 
         // Wait for server to be ready
-        wait_for_ready();
+        test_helpers::wait_for_ready();
     }
 
     void TearDown() override {
@@ -56,7 +56,7 @@ protected:
         }
 
         // Brief pause for cleanup
-        wait_for_ready();
+        test_helpers::wait_for_ready();
     }
 
     /**
@@ -71,7 +71,7 @@ protected:
         }
 
         // Wait for connection
-        wait_for_ready();
+        test_helpers::wait_for_ready();
         return client;
     }
 
@@ -300,7 +300,7 @@ TEST_F(TCPLoadTest, Concurrent_Connections_50) {
 
         // Small delay between connection batches
         if (i % 10 == 9) {
-            wait_for_ready();
+            test_helpers::wait_for_ready();
         }
     }
 

@@ -37,7 +37,7 @@ protected:
         ASSERT_TRUE(result.is_ok()) << "Failed to start server: " << result.error().message;
 
         // Wait for server to be ready
-        wait_for_ready();
+        test_helpers::wait_for_ready();
     }
 
     void TearDown() override {
@@ -56,7 +56,7 @@ protected:
         }
 
         // Brief pause for cleanup
-        wait_for_ready();
+        test_helpers::wait_for_ready();
     }
 
     /**
@@ -71,7 +71,7 @@ protected:
         }
 
         // Brief pause for initialization
-        wait_for_ready();
+        test_helpers::wait_for_ready();
         return client;
     }
 
@@ -405,7 +405,7 @@ TEST_F(UDPLoadTest, Burst_Send_Performance) {
         burst_latencies.push_back(burst_duration_ms);
 
         // Brief pause between bursts
-        wait_for_ready();
+        test_helpers::wait_for_ready();
     }
 
     auto stats = test_helpers::calculate_statistics(burst_latencies);

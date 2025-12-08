@@ -43,7 +43,7 @@ protected:
         ASSERT_TRUE(result.is_ok()) << "Failed to start server: " << result.error().message;
 
         // Wait for server to be ready
-        wait_for_ready();
+        test_helpers::wait_for_ready();
     }
 
     void TearDown() override {
@@ -62,7 +62,7 @@ protected:
         }
 
         // Brief pause for cleanup
-        wait_for_ready();
+        test_helpers::wait_for_ready();
     }
 
     /**
@@ -83,7 +83,7 @@ protected:
         }
 
         // Wait for connection
-        wait_for_ready();
+        test_helpers::wait_for_ready();
         return client;
     }
 
