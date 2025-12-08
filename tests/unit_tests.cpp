@@ -52,7 +52,7 @@ using namespace std::chrono_literals;
 
 // Free function for tests without fixtures - yields to allow async operations
 inline void wait_for_ready() {
-  for (int i = 0; i < 100; ++i) {
+  for (int i = 0; i < 1000; ++i) {
     std::this_thread::yield();
   }
 }
@@ -122,7 +122,7 @@ protected:
   static void WaitForServerReady() {
     // Give the async server a chance to start accepting connections
     // Using yield instead of fixed sleep - actual readiness should be checked
-    for (int i = 0; i < 100; ++i) {
+    for (int i = 0; i < 1000; ++i) {
       std::this_thread::yield();
     }
   }

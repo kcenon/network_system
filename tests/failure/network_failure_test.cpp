@@ -18,7 +18,7 @@ using namespace network_system::core;
 
 // Free function for yielding to allow async operations to complete
 inline void wait_for_ready() {
-  for (int i = 0; i < 100; ++i) {
+  for (int i = 0; i < 1000; ++i) {
     std::this_thread::yield();
   }
 }
