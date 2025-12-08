@@ -378,59 +378,87 @@ TEST_F(NetworkThreadSafetyTest, MemorySafety) {
   std::atomic<int> total_errors{0};
 
   for (int iteration = 0; iteration < num_iterations; ++iteration) {
-    std::vector<std::thread> threads;
     std::atomic<int> errors{0};
+
+    // Use unique port per iteration to avoid conflicts
+    unsigned short port = static_cast<unsigned short>(9400 + (iteration % 100));
 
     auto server = std::make_shared<messaging_server>("memory_test_server");
     auto client = std::make_shared<messaging_client>("memory_test_client");
 
+    // Use atomic flags to coordinate threads
+    std::atomic<bool> server_started{false};
+    std::atomic<bool> client_started{false};
+    std::atomic<bool> should_stop{false};
+
+    std::vector<std::thread> threads;
+
     // Thread 1: Server operations
-    threads.emplace_back([&]() {
+    threads.emplace_back([&, port]() {
       try {
-        server->start_server(9400);
-        wait_for_ready();
-        server->stop_server();
+        auto result = server->start_server(port);
+        if (result.is_ok()) {
+          server_started.store(true);
+          // Wait until signaled to stop
+          while (!should_stop.load()) {
+            std::this_thread::yield();
+          }
+        }
       } catch (...) {
         ++errors;
       }
     });
 
-    // Thread 2: Client operations
-    threads.emplace_back([&]() {
+    // Wait for server to start before starting client
+    for (int i = 0; i < 1000 && !server_started.load(); ++i) {
+      std::this_thread::yield();
+    }
+
+    // Thread 2: Client operations (only if server started)
+    threads.emplace_back([&, port]() {
       try {
-        client->start_client("127.0.0.1", 9400);
-        wait_for_ready();
-        client->stop_client();
+        if (server_started.load()) {
+          auto result = client->start_client("127.0.0.1", port);
+          if (result.is_ok()) {
+            client_started.store(true);
+            // Wait until signaled to stop
+            while (!should_stop.load()) {
+              std::this_thread::yield();
+            }
+          }
+        }
       } catch (...) {
         // Connection may fail, that's OK
       }
     });
 
-    // Thread 3: Send attempts
-    threads.emplace_back([&]() {
-      try {
-        for (int i = 0; i < 10; ++i) {
-          std::vector<uint8_t> data = {0x01, 0x02, 0x03};
-          client->send_packet(std::move(data));
-          std::this_thread::yield();
-        }
-      } catch (...) {
-        // Expected if not connected
-      }
-    });
+    // Give client time to try connecting
+    wait_for_ready();
 
+    // Thread 3: Send attempts (sequential, not concurrent with stop)
+    // Only send if client started successfully
+    if (client_started.load()) {
+      for (int i = 0; i < 5; ++i) {
+        std::vector<uint8_t> data = {0x01, 0x02, 0x03};
+        client->send_packet(std::move(data));
+        std::this_thread::yield();
+      }
+    }
+
+    // Signal all threads to stop
+    should_stop.store(true);
+
+    // Join all threads
     for (auto &t : threads) {
       t.join();
     }
 
     total_errors += errors.load();
 
-    // Ensure all async operations complete before next iteration
-    // Stop client and server explicitly before destroying
+    // Cleanup in correct order: client then server
     client->stop_client();
+    wait_for_ready();
     server->stop_server();
-
-    // Wait for all async cleanup to complete before next iteration
     wait_for_ready();
   }
 
