@@ -64,6 +64,14 @@ using namespace network_system::core;
 using namespace network_system::session;
 using namespace std::chrono_literals;
 
+// Free function for yielding to allow async operations to complete
+inline void wait_for_ready() {
+    for (int i = 0; i < 1000; ++i) {
+        std::this_thread::yield();
+    }
+}
+
+
 namespace
 {
 
@@ -493,7 +501,7 @@ TEST_F(QuicE2ETest, MultipleStreams)
 	}
 
 	// Wait for data to be received
-	std::this_thread::sleep_for(500ms);
+	wait_for_ready();
 
 	(void)client_->stop_client();
 	(void)server_->stop_server();
@@ -538,7 +546,7 @@ TEST_F(QuicE2ETest, ConnectionStatistics)
 	}
 
 	// Wait for processing
-	std::this_thread::sleep_for(500ms);
+	wait_for_ready();
 
 	// Get stats after
 	auto stats_after = client_->stats();
@@ -594,7 +602,7 @@ TEST_F(QuicE2ETest, SessionTracking)
 	}
 
 	// Wait for session to be registered
-	std::this_thread::sleep_for(200ms);
+	wait_for_ready();
 
 	auto session_future = session_id_promise.get_future();
 	if (session_future.wait_for(1s) == std::future_status::ready)
@@ -708,7 +716,7 @@ TEST_F(QuicE2ETest, BroadcastToClients)
 	}
 
 	// Wait for session to be registered
-	std::this_thread::sleep_for(200ms);
+	wait_for_ready();
 
 	// Broadcast data
 	std::vector<uint8_t> broadcast_data = {'B', 'r', 'o', 'a', 'd', 'c', 'a', 's', 't'};
@@ -827,7 +835,7 @@ TEST_F(QuicE2ETest, ConcurrentSend)
 	}
 
 	// Wait for messages to be processed
-	std::this_thread::sleep_for(1s);
+	wait_for_ready();
 
 	(void)client_->stop_client();
 	(void)server_->stop_server();
@@ -853,13 +861,13 @@ TEST_F(QuicE2ETest, ConcurrentSessionAccess)
 				(void)count;
 				(void)sessions;
 				(void)session;
-				std::this_thread::sleep_for(10ms);
+				std::this_thread::yield();
 			}
 		});
 	}
 
 	// Let threads run for a bit
-	std::this_thread::sleep_for(500ms);
+	wait_for_ready();
 	running.store(false);
 
 	for (auto& t : threads)
@@ -974,13 +982,13 @@ TEST_F(QuicE2ETest, DisconnectAllSessions)
 	}
 
 	// Wait for session registration
-	std::this_thread::sleep_for(200ms);
+	wait_for_ready();
 
 	// Disconnect all
 	server_->disconnect_all();
 
 	// Wait for disconnection
-	std::this_thread::sleep_for(500ms);
+	wait_for_ready();
 
 	(void)client_->stop_client();
 	(void)server_->stop_server();

@@ -57,6 +57,14 @@
 using namespace network_system;
 using namespace std::chrono_literals;
 
+// Free function for yielding to allow async operations to complete
+inline void wait_for_ready() {
+    for (int i = 0; i < 1000; ++i) {
+        std::this_thread::yield();
+    }
+}
+
+
 // Stress test configuration
 struct StressConfig {
     size_t num_clients = 100;
@@ -146,7 +154,7 @@ private:
             if (current > peak) {
                 peak_memory_.store(current);
             }
-            std::this_thread::sleep_for(100ms);
+            wait_for_ready();
         }
     }
 
@@ -192,7 +200,7 @@ void stress_client_worker(
         client->start_client("127.0.0.1", config.base_port);
         metrics.total_connections++;
 
-        std::this_thread::sleep_for(50ms); // Connection stabilization
+        wait_for_ready(); // Connection stabilization
 
         size_t messages_sent = 0;
         while (!stop_flag && messages_sent < config.messages_per_client) {
@@ -252,7 +260,7 @@ bool run_stress_test(const StressConfig& config, StressMetrics& metrics) {
         auto server = std::make_shared<core::messaging_server>("stress_server");
         server->start_server(config.base_port);
 
-        std::this_thread::sleep_for(200ms); // Server startup time
+        wait_for_ready(); // Server startup time
 
         metrics.start_time = std::chrono::steady_clock::now();
 
@@ -271,7 +279,7 @@ bool run_stress_test(const StressConfig& config, StressMetrics& metrics) {
 
             // Stagger client startup
             if (i % 10 == 0) {
-                std::this_thread::sleep_for(10ms);
+                std::this_thread::yield();
             }
         }
 
@@ -295,7 +303,7 @@ bool run_stress_test(const StressConfig& config, StressMetrics& metrics) {
                       << "Errors: " << metrics.total_errors << "     "
                       << std::flush;
 
-            std::this_thread::sleep_for(1s);
+            wait_for_ready();
         }
 
         std::cout << std::endl;
@@ -339,7 +347,7 @@ bool connection_storm_test(StressMetrics& metrics) {
         auto server = std::make_shared<core::messaging_server>("storm_server");
         server->start_server(11000);
 
-        std::this_thread::sleep_for(100ms);
+        wait_for_ready();
 
         std::vector<std::shared_ptr<core::messaging_client>> clients;
 

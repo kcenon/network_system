@@ -90,7 +90,7 @@ TEST_F(NetworkPerformanceTest, SingleConnectionLatency) {
     // Measure latency for single connection
     std::vector<double> latencies;
 
-    for (int i = 0; i < 100; ++i) {
+    for (int i = 0; i < 1000; ++i) {
         client_ = std::make_shared<core::messaging_client>("client_" + std::to_string(i));
 
         auto latency = this->MeasureDuration([&]() {
@@ -126,7 +126,7 @@ TEST_F(NetworkPerformanceTest, SmallMessageLatency) {
     constexpr size_t message_size = 64;
 
     // Measure latency for 100 small messages
-    for (int i = 0; i < 100; ++i) {
+    for (int i = 0; i < 1000; ++i) {
         auto message = CreateTestMessage(message_size);
 
         auto latency = this->MeasureDuration([&]() {

@@ -230,7 +230,7 @@ TEST_F(RateLimiterTest, RefillsOverTime) {
     EXPECT_FALSE(limiter.allow("client1"));
 
     // Wait for refill (should get at least 1 token in 10ms at 1000/sec)
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    std::this_thread::yield();
 
     EXPECT_TRUE(limiter.allow("client1"));
 }

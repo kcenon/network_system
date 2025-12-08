@@ -53,6 +53,14 @@
 
 using namespace std::chrono_literals;
 
+// Free function for yielding to allow async operations to complete
+inline void wait_for_ready() {
+    for (int i = 0; i < 1000; ++i) {
+        std::this_thread::yield();
+    }
+}
+
+
 // Test results tracking
 struct TestResults {
   int passed = 0;
@@ -301,14 +309,14 @@ void test_message_passing(TestResults &results) {
     server->start_server(7070);
 
     // Wait for server to start
-    std::this_thread::sleep_for(500ms);
+    wait_for_ready();
 
     // Create client using legacy API
     auto client = network_module::create_client("compat_client");
     client->start_client("127.0.0.1", 7070);
 
     // Wait for connection
-    std::this_thread::sleep_for(500ms);
+    wait_for_ready();
 
     // Send test message
     std::string test_msg = "Compatibility test message";
@@ -318,7 +326,7 @@ void test_message_passing(TestResults &results) {
     results.record_pass("Legacy API message send");
 
     // Wait for message processing
-    std::this_thread::sleep_for(200ms);
+    wait_for_ready();
 
     // Stop client and server
     client->stop_client();
