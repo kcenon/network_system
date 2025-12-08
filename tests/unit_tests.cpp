@@ -126,6 +126,28 @@ protected:
       std::this_thread::yield();
     }
   }
+
+  // Wait for client to be connected using callback-based synchronization
+  // This is more reliable than yield loops, especially under sanitizers
+  static bool WaitForClientConnected(std::shared_ptr<messaging_client> client,
+                                     std::chrono::seconds timeout = 5s) {
+    std::promise<bool> connected_promise;
+    auto connected_future = connected_promise.get_future();
+    bool promise_set = false;
+    std::mutex promise_mutex;
+
+    client->set_connected_callback(
+        [&connected_promise, &promise_set, &promise_mutex]() {
+          std::lock_guard<std::mutex> lock(promise_mutex);
+          if (!promise_set) {
+            promise_set = true;
+            connected_promise.set_value(true);
+          }
+        });
+
+    auto status = connected_future.wait_for(timeout);
+    return status == std::future_status::ready;
+  }
 };
 
 // ============================================================================
@@ -337,15 +359,33 @@ TEST_F(NetworkTest, BasicMessageTransfer) {
   // Give server time to start
   WaitForServerReady();
 
-  // Create client
+  // Create client with connection synchronization
   auto client = std::make_shared<messaging_client>("test_client");
+
+  // Set up connection callback before starting client
+  std::promise<bool> connected_promise;
+  auto connected_future = connected_promise.get_future();
+  bool promise_set = false;
+  std::mutex promise_mutex;
+
+  client->set_connected_callback(
+      [&connected_promise, &promise_set, &promise_mutex]() {
+        std::lock_guard<std::mutex> lock(promise_mutex);
+        if (!promise_set) {
+          promise_set = true;
+          connected_promise.set_value(true);
+        }
+      });
+
   auto client_start = client->start_client("127.0.0.1", port);
   EXPECT_TRUE(client_start.is_ok())
       << "Client should start successfully: "
       << (client_start.is_err() ? client_start.error().message : "");
 
-  // Give time to connect
-  WaitForServerReady();
+  // Wait for connection with timeout
+  auto status = connected_future.wait_for(5s);
+  ASSERT_EQ(status, std::future_status::ready)
+      << "Client should connect within timeout";
 
   // Create simple test message (basic_container supports std::string directly)
   std::string test_message = "test_message:Hello, Server!:1";
@@ -365,6 +405,7 @@ TEST_F(NetworkTest, BasicMessageTransfer) {
 
   auto client_stop = client->stop_client();
   EXPECT_TRUE(client_stop.is_ok()) << "Client stop should succeed";
+  wait_for_ready();
 
   auto server_stop = server->stop_server();
   EXPECT_TRUE(server_stop.is_ok()) << "Server stop should succeed";
@@ -387,17 +428,35 @@ TEST_F(NetworkTest, LargeMessageTransfer) {
 
   WaitForServerReady();
 
-  // Create client
+  // Create client with connection synchronization
   auto client = std::make_shared<messaging_client>("test_client");
+
+  std::promise<bool> connected_promise;
+  auto connected_future = connected_promise.get_future();
+  bool promise_set = false;
+  std::mutex promise_mutex;
+
+  client->set_connected_callback(
+      [&connected_promise, &promise_set, &promise_mutex]() {
+        std::lock_guard<std::mutex> lock(promise_mutex);
+        if (!promise_set) {
+          promise_set = true;
+          connected_promise.set_value(true);
+        }
+      });
+
   auto client_start = client->start_client("127.0.0.1", port);
   EXPECT_TRUE(client_start.is_ok())
       << "Client should start successfully: "
       << (client_start.is_err() ? client_start.error().message : "");
 
-  WaitForServerReady();
+  auto status = connected_future.wait_for(5s);
+  ASSERT_EQ(status, std::future_status::ready)
+      << "Client should connect within timeout";
 
   // Create large message (1MB) as string
-  std::string large_message = "large_message:" + std::string(1024 * 1024, 'X');
+  std::string large_message =
+      "large_message:" + std::string(1024UL * 1024UL, 'X');
 
   // Get container manager and serialize
   auto &manager = integration::container_manager::instance();
@@ -413,6 +472,7 @@ TEST_F(NetworkTest, LargeMessageTransfer) {
 
   auto client_stop = client->stop_client();
   EXPECT_TRUE(client_stop.is_ok()) << "Client stop should succeed";
+  wait_for_ready();
 
   auto server_stop = server->stop_server();
   EXPECT_TRUE(server_stop.is_ok()) << "Server stop should succeed";
@@ -435,14 +495,31 @@ TEST_F(NetworkTest, MultipleMessageTransfer) {
 
   WaitForServerReady();
 
-  // Create client
+  // Create client with connection synchronization
   auto client = std::make_shared<messaging_client>("test_client");
+
+  std::promise<bool> connected_promise;
+  auto connected_future = connected_promise.get_future();
+  bool promise_set = false;
+  std::mutex promise_mutex;
+
+  client->set_connected_callback(
+      [&connected_promise, &promise_set, &promise_mutex]() {
+        std::lock_guard<std::mutex> lock(promise_mutex);
+        if (!promise_set) {
+          promise_set = true;
+          connected_promise.set_value(true);
+        }
+      });
+
   auto client_start = client->start_client("127.0.0.1", port);
   EXPECT_TRUE(client_start.is_ok())
       << "Client should start successfully: "
       << (client_start.is_err() ? client_start.error().message : "");
 
-  WaitForServerReady();
+  auto status = connected_future.wait_for(5s);
+  ASSERT_EQ(status, std::future_status::ready)
+      << "Client should connect within timeout";
 
   // Get container manager
   auto &manager = integration::container_manager::instance();
@@ -467,6 +544,7 @@ TEST_F(NetworkTest, MultipleMessageTransfer) {
 
   auto client_stop = client->stop_client();
   EXPECT_TRUE(client_stop.is_ok()) << "Client stop should succeed";
+  wait_for_ready();
 
   auto server_stop = server->stop_server();
   EXPECT_TRUE(server_stop.is_ok()) << "Server stop should succeed";
