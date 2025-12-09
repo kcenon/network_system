@@ -55,9 +55,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <type_traits>
 #include <vector>
 
-#ifdef BUILD_WITH_COMMON_SYSTEM
-#include <kcenon/common/concepts/concepts.h>
-#endif
+// Note: common_system concepts are included via the parent concepts.h header
+// to avoid forward declaration conflicts. Do not include concepts.h here directly.
 
 namespace network_system::concepts {
 
@@ -377,36 +376,7 @@ concept Duration = requires {
 // ============================================================================
 // Integration with common_system concepts (when available)
 // ============================================================================
-
-#ifdef BUILD_WITH_COMMON_SYSTEM
-
-/**
- * @concept NetworkResultHandler
- * @brief A callback for handling Result types from network operations.
- *
- * Combines common_system's Resultable concept with network callback patterns.
- *
- * Example usage:
- * @code
- * template<NetworkResultHandler<network_system::VoidResult> Handler>
- * void set_result_handler(Handler&& handler) {
- *     // handler can process Result types
- * }
- * @endcode
- */
-template <typename F, typename R>
-concept NetworkResultHandler =
-    kcenon::common::concepts::Resultable<R> && std::invocable<F, R>;
-
-/**
- * @concept AsyncNetworkCallback
- * @brief A void-returning callback suitable for async network operations.
- *
- * Uses common_system's VoidCallable concept.
- */
-template <typename F>
-concept AsyncNetworkCallback = kcenon::common::concepts::VoidCallable<F>;
-
-#endif // BUILD_WITH_COMMON_SYSTEM
+// Note: Additional common_system integration concepts are defined in the
+// parent concepts.h header after proper include order is established.
 
 } // namespace network_system::concepts

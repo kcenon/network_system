@@ -84,20 +84,27 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * @see common_system/concepts/concepts.h for common concepts (when available)
  */
 
-// Network-specific concepts
+// Re-export common_system concepts when available
+// Note: Include core.h directly to avoid forward declaration conflicts in callable.h
+// The callable.h has `class VoidResult;` forward decl that conflicts with
+// `using VoidResult = Result<std::monostate>;` in result.h
+#ifdef BUILD_WITH_COMMON_SYSTEM
+#include <kcenon/common/patterns/result.h>
+#include <kcenon/common/concepts/core.h>
+#include <kcenon/common/concepts/container.h>
+#endif
+
+// Network-specific concepts (after common_system to avoid forward decl conflicts)
 #include "network_concepts.h"
 
-// Re-export common_system concepts when available
 #ifdef BUILD_WITH_COMMON_SYSTEM
-#include <kcenon/common/concepts/concepts.h>
 
 namespace network_system::concepts {
 
 // Re-export commonly used common_system concepts for convenience
-using kcenon::common::concepts::Invocable;
-using kcenon::common::concepts::Predicate;
 using kcenon::common::concepts::Resultable;
-using kcenon::common::concepts::VoidCallable;
+using kcenon::common::concepts::Unwrappable;
+using kcenon::common::concepts::Mappable;
 
 } // namespace network_system::concepts
 
