@@ -63,6 +63,9 @@
 // Result type for error handling
 #include "kcenon/network/utils/result_types.h"
 
+// C++20 Concepts for compile-time type validation
+#include "kcenon/network/concepts/concepts.h"
+
 /**
  * @namespace network_system
  * @brief Main namespace for all Network System components
