@@ -11,6 +11,17 @@ Network System 프로젝트의 모든 주요 변경 사항이 이 파일에 문�
 
 ## [미배포]
 
+### 추가됨
+- **C++20 Concepts**: 컴파일 타임 타입 검증을 위한 네트워크 전용 C++20 concepts 추가 (#294)
+  - 새로운 `<kcenon/network/concepts/concepts.h>` 통합 헤더
+  - 버퍼 concepts: `ByteBuffer`, `MutableByteBuffer`
+  - 콜백 concepts: `DataReceiveHandler`, `ErrorHandler`, `SessionHandler`, `SessionDataHandler`, `SessionErrorHandler`, `DisconnectionHandler`, `RetryCallback`
+  - 네트워크 컴포넌트 concepts: `NetworkClient`, `NetworkServer`, `NetworkSession`
+  - 파이프라인 concepts: `DataTransformer`, `ReversibleDataTransformer`
+  - 시간 관련 제약을 위한 Duration concept
+  - common_system의 Result/Optional concepts와 통합 (사용 가능 시)
+  - Concepts는 에러 메시지를 개선하고 자기 문서화 타입 제약 역할
+
 ### 수정됨
 - **Thread System Adapter**: 지연 작업마다 분리된 `std::thread`를 생성하는 대신 단일 스케줄러 스레드와 우선순위 큐를 사용하도록 `submit_delayed()` 수정 (#273)
   - 지연 작업 대량 제출 시 스레드 폭발 방지

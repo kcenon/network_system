@@ -11,6 +11,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **C++20 Concepts**: Added network-specific C++20 concepts for compile-time type validation (#294)
+  - New `<kcenon/network/concepts/concepts.h>` unified header
+  - Buffer concepts: `ByteBuffer`, `MutableByteBuffer`
+  - Callback concepts: `DataReceiveHandler`, `ErrorHandler`, `SessionHandler`, `SessionDataHandler`, `SessionErrorHandler`, `DisconnectionHandler`, `RetryCallback`
+  - Network component concepts: `NetworkClient`, `NetworkServer`, `NetworkSession`
+  - Pipeline concepts: `DataTransformer`, `ReversibleDataTransformer`
+  - Duration concept for time-related constraints
+  - Integration with common_system's Result/Optional concepts when available
+  - Concepts improve error messages and serve as self-documenting type constraints
+
 ### Changed
 - **Logging System**: Migrated from direct logger_system dependency to common_system's ILogger interface (#285)
   - `NETWORK_LOG_*` macros now delegate to common_system's `LOG_*` macros
