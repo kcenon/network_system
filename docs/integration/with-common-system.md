@@ -237,9 +237,69 @@ private:
 
 ## Type Utilities
 
-### Concepts
+### Network System Concepts
 
-Network system uses common_system concepts:
+network_system provides 16 C++20 concepts for compile-time type validation. These concepts improve code quality through better error messages and self-documenting interfaces.
+
+```cpp
+#include <kcenon/network/concepts/concepts.h>
+
+using namespace network_system::concepts;
+
+// Data buffer concepts
+template<ByteBuffer Buffer>
+void send_data(const Buffer& buffer) {
+    // buffer.data() and buffer.size() are guaranteed at compile time
+}
+
+// Callback concepts
+template<DataReceiveHandler Handler>
+void set_receive_handler(Handler&& handler) {
+    // Handler must be callable with const std::vector<uint8_t>&
+}
+
+// Network component concepts
+template<NetworkClient Client>
+void use_client(Client& client) {
+    // Client must have is_connected(), send_packet(), stop_client()
+}
+```
+
+#### Available Concepts
+
+| Category | Concepts |
+|----------|----------|
+| **Data Buffers** | `ByteBuffer`, `MutableByteBuffer` |
+| **Callbacks** | `DataReceiveHandler`, `ErrorHandler`, `ConnectionHandler`, `SessionHandler`, `SessionDataHandler`, `SessionErrorHandler`, `DisconnectionHandler`, `RetryCallback` |
+| **Components** | `NetworkClient`, `NetworkServer`, `NetworkSession` |
+| **Pipeline** | `DataTransformer`, `ReversibleDataTransformer` |
+| **Utility** | `Duration` |
+
+See [advanced/CONCEPTS.md](../advanced/CONCEPTS.md) for detailed documentation.
+
+### common_system Concepts Integration
+
+When `BUILD_WITH_COMMON_SYSTEM` is enabled, additional concepts from common_system are available:
+
+```cpp
+#include <kcenon/network/concepts/concepts.h>
+
+#ifdef BUILD_WITH_COMMON_SYSTEM
+// Re-exported from common_system
+using common_system::concepts::Resultable;
+using common_system::concepts::Unwrappable;
+using common_system::concepts::Mappable;
+
+template<Resultable T>
+void handle_result(T&& result) {
+    if (result.is_ok()) {
+        // Process success...
+    }
+}
+#endif
+```
+
+### Concepts with common_system Serializable
 
 ```cpp
 #include "common_system/concepts.h"
@@ -261,6 +321,31 @@ requires common_system::is_trivially_serializable_v<T>
 Result<void> sendPOD(const T& data) {
     return connection->send_raw(&data, sizeof(T));
 }
+```
+
+### Combining Concepts
+
+You can combine network_system and common_system concepts for more precise constraints:
+
+```cpp
+#include <kcenon/network/concepts/concepts.h>
+
+template<typename T>
+    requires network_system::concepts::DataTransformer<T> &&
+             std::default_initializable<T>
+auto create_transformer() -> T {
+    return T{};
+}
+
+// With common_system integration
+#ifdef BUILD_WITH_COMMON_SYSTEM
+template<typename Handler, typename ResultType>
+    requires network_system::concepts::DataReceiveHandler<Handler> &&
+             common_system::concepts::Resultable<ResultType>
+void process_with_result(Handler&& h, ResultType&& result) {
+    // Both concepts satisfied
+}
+#endif
 ```
 
 ## Configuration

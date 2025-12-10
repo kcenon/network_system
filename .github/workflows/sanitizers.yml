@@ -74,7 +74,7 @@ jobs:
         ctest --output-on-failure --verbose -LE no_sanitizer
       env:
         NETWORK_SYSTEM_SANITIZER: ${{ matrix.sanitizer }}
-        TSAN_OPTIONS: "halt_on_error=0 second_deadlock_stack=1"
+        TSAN_OPTIONS: "halt_on_error=0 second_deadlock_stack=1 suppressions=${{ github.workspace }}/network_system/tsan_suppressions.txt"
         ASAN_OPTIONS: "halt_on_error=0"
         UBSAN_OPTIONS: "halt_on_error=0 print_stacktrace=1"
 

@@ -50,6 +50,10 @@ network_system/
 
 ```
 include/network_system/
+├── 📁 concepts/                   # C++20 Concepts (backward compatibility)
+│   ├── concepts.h                 # Unified umbrella header
+│   └── network_concepts.h         # Backward compatibility redirect
+│
 ├── 📁 core/                       # Core networking components
 │   ├── messaging_server.h         # TCP server implementation
 │   ├── messaging_client.h         # TCP client implementation
@@ -89,6 +93,49 @@ include/network_system/
 │
 └── compatibility.h                # Legacy API compatibility layer
 ```
+
+### include/kcenon/network/ (Modern API)
+
+**Purpose**: Modern namespace structure for public headers (recommended)
+
+```
+include/kcenon/network/
+├── 📁 concepts/                   # C++20 Concepts definitions
+│   ├── concepts.h                 # Unified umbrella header
+│   └── network_concepts.h         # 16 network-specific concepts
+│
+├── 📁 core/                       # Core networking components
+├── 📁 config/                     # Configuration structures
+├── 📁 integration/                # External system integration
+├── 📁 metrics/                    # Network metrics and monitoring
+├── 📁 di/                         # Dependency injection support
+└── compatibility.h                # API compatibility layer
+```
+
+#### Concepts Module
+
+The `concepts/` directory provides C++20 concepts for compile-time type validation:
+
+| Concept | Description |
+|---------|-------------|
+| `ByteBuffer` | Read-only buffer with `data()` and `size()` |
+| `MutableByteBuffer` | Resizable buffer extending ByteBuffer |
+| `DataReceiveHandler` | Handler for received data |
+| `ErrorHandler` | Error notification handler |
+| `ConnectionHandler` | Connection state change handler |
+| `SessionHandler` | Session event handler |
+| `SessionDataHandler` | Session data event handler |
+| `SessionErrorHandler` | Session error handler |
+| `DisconnectionHandler` | Disconnection event handler |
+| `RetryCallback` | Reconnection attempt handler |
+| `NetworkClient` | Client interface requirements |
+| `NetworkServer` | Server interface requirements |
+| `NetworkSession` | Session interface requirements |
+| `DataTransformer` | Data transformation interface |
+| `ReversibleDataTransformer` | Bidirectional transformation |
+| `Duration` | std::chrono::duration constraint |
+
+See [advanced/CONCEPTS.md](advanced/CONCEPTS.md) for detailed documentation.
 
 #### Core Components Description
 
@@ -567,5 +614,5 @@ class messaging_server {
 
 ---
 
-**Last Updated**: 2025-11-15
+**Last Updated**: 2025-12-10
 **Maintained by**: kcenon@naver.com

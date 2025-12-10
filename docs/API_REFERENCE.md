@@ -7,6 +7,7 @@ Comprehensive API documentation for the Network System library.
 ## Table of Contents
 
 - [Overview](#overview)
+- [C++20 Concepts](#c20-concepts)
 - [Core Classes](#core-classes)
 - [Networking Components](#networking-components)
 - [Protocol Handlers](#protocol-handlers)
@@ -43,6 +44,130 @@ namespace network {
 #include <network/error.hpp>           // Error handling
 #include <network/config.hpp>          // Configuration
 ```
+
+## C++20 Concepts
+
+Network System provides 16 C++20 concepts for compile-time type validation. These concepts improve code quality through better error messages and self-documenting interfaces.
+
+### Header Files
+
+```cpp
+#include <kcenon/network/concepts/concepts.h>       // Unified umbrella header
+#include <kcenon/network/concepts/network_concepts.h>  // All concept definitions
+```
+
+### Namespace
+
+All concepts are in the `network_system::concepts` namespace.
+
+### Concept Reference
+
+#### Data Buffer Concepts
+
+| Concept | Signature | Description |
+|---------|-----------|-------------|
+| `ByteBuffer<T>` | `data()`, `size()` | Read-only buffer interface |
+| `MutableByteBuffer<T>` | `data()`, `size()`, `resize(n)` | Resizable buffer extending ByteBuffer |
+
+```cpp
+template<ByteBuffer Buffer>
+void send_data(const Buffer& buffer);
+
+template<MutableByteBuffer Buffer>
+void receive_data(Buffer& buffer, std::size_t size);
+```
+
+#### Callback Concepts
+
+| Concept | Signature | Description |
+|---------|-----------|-------------|
+| `DataReceiveHandler<F>` | `F(const std::vector<uint8_t>&)` | Handler for received data |
+| `ErrorHandler<F>` | `F(std::error_code)` | Error notification handler |
+| `ConnectionHandler<F>` | `F()` | Connection state change handler |
+| `SessionHandler<F, Session>` | `F(std::shared_ptr<Session>)` | Session event handler |
+| `SessionDataHandler<F, Session>` | `F(std::shared_ptr<Session>, const std::vector<uint8_t>&)` | Session data handler |
+| `SessionErrorHandler<F, Session>` | `F(std::shared_ptr<Session>, std::error_code)` | Session error handler |
+| `DisconnectionHandler<F>` | `F(const std::string&)` | Disconnection event handler |
+| `RetryCallback<F>` | `F(std::size_t)` | Reconnection attempt handler |
+
+```cpp
+template<DataReceiveHandler Handler>
+void set_receive_handler(Handler&& handler);
+
+template<ErrorHandler Handler>
+void set_error_handler(Handler&& handler);
+```
+
+#### Network Component Concepts
+
+| Concept | Requirements | Description |
+|---------|--------------|-------------|
+| `NetworkClient<T>` | `is_connected()`, `send_packet()`, `stop_client()` | Client interface |
+| `NetworkServer<T>` | `start_server(port)`, `stop_server()` | Server interface |
+| `NetworkSession<T>` | `get_session_id()`, `start_session()`, `stop_session()` | Session interface |
+
+```cpp
+template<NetworkClient Client>
+void use_client(Client& client);
+
+template<NetworkServer Server>
+void manage_server(Server& server);
+```
+
+#### Pipeline Concepts
+
+| Concept | Requirements | Description |
+|---------|--------------|-------------|
+| `DataTransformer<T>` | `transform(data)` -> `bool` | Data transformation |
+| `ReversibleDataTransformer<T>` | `transform()`, `reverse_transform()` | Bidirectional transformation |
+
+```cpp
+template<DataTransformer T>
+bool apply_transform(T& transformer, std::vector<uint8_t>& data);
+
+template<ReversibleDataTransformer T>
+void process_bidirectional(T& t, std::vector<uint8_t>& data);
+```
+
+#### Utility Concepts
+
+| Concept | Requirements | Description |
+|---------|--------------|-------------|
+| `Duration<T>` | `T::rep`, `T::period` (arithmetic) | std::chrono::duration constraint |
+
+```cpp
+template<Duration D>
+void set_timeout(D duration);
+```
+
+### Usage Example
+
+```cpp
+#include <kcenon/network/concepts/concepts.h>
+
+using namespace network_system::concepts;
+
+class MyClient {
+public:
+    template<DataReceiveHandler Handler>
+    void on_data(Handler&& handler) {
+        // Compile-time validated: handler accepts const std::vector<uint8_t>&
+        data_handler_ = std::forward<Handler>(handler);
+    }
+
+    template<ErrorHandler Handler>
+    void on_error(Handler&& handler) {
+        // Compile-time validated: handler accepts std::error_code
+        error_handler_ = std::forward<Handler>(handler);
+    }
+
+private:
+    std::function<void(const std::vector<uint8_t>&)> data_handler_;
+    std::function<void(std::error_code)> error_handler_;
+};
+```
+
+See [advanced/CONCEPTS.md](advanced/CONCEPTS.md) for detailed documentation and more examples.
 
 ## Core Classes
 
@@ -1677,4 +1802,4 @@ See [CHANGELOG.md](CHANGELOG.md) for detailed version history.
 This library is licensed under the MIT License. See LICENSE file for details.
 ---
 
-*Last Updated: 2025-10-20*
+*Last Updated: 2025-12-10*

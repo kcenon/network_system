@@ -17,6 +17,7 @@ Welcome to the network_system documentation! This is a high-performance C++20 as
 | Get started quickly | [Build Guide](guides/BUILD.md) |
 | Understand the architecture | [Architecture](ARCHITECTURE.md) |
 | Learn the API | [API Reference](API_REFERENCE.md) |
+| Use C++20 Concepts | [Concepts Guide](advanced/CONCEPTS.md) |
 | Configure TLS/SSL | [TLS Setup Guide](guides/TLS_SETUP_GUIDE.md) |
 | Troubleshoot an issue | [Troubleshooting](guides/TROUBLESHOOTING.md) |
 | Tune performance | [Performance Tuning](advanced/PERFORMANCE_TUNING.md) |
@@ -68,6 +69,7 @@ For experienced users and performance optimization:
 
 | Document | Description |
 |----------|-------------|
+| [advanced/CONCEPTS.md](advanced/CONCEPTS.md) | C++20 Concepts for compile-time type validation |
 | [advanced/PERFORMANCE_TUNING.md](advanced/PERFORMANCE_TUNING.md) | Performance optimization techniques |
 | [advanced/CONNECTION_POOLING.md](advanced/CONNECTION_POOLING.md) | Connection pool architecture and usage |
 | [advanced/UDP_RELIABILITY.md](advanced/UDP_RELIABILITY.md) | UDP reliability patterns and implementation |
@@ -262,4 +264,4 @@ System integration documentation:
 
 **Network System Documentation** - High-Performance C++20 Async Networking
 
-**Last Updated**: 2025-11-28
+**Last Updated**: 2025-12-10
