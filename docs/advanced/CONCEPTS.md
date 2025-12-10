@@ -1,7 +1,5 @@
 # C++20 Concepts for Network System
 
-> **Language:** **English** | [한국어](CONCEPTS_KO.md)
-
 **Version:** 1.0
 **Last Updated:** 2025-12-10
 **Status:** Complete
