@@ -40,6 +40,7 @@ set(SAMPLE_PROGRAMS
     connection_pool_example
     quic_client_example
     quic_server_example
+    concepts_example
 )
 
 # Add UDP sample if UDP support is enabled
@@ -134,6 +135,7 @@ set(SAMPLE_SOURCE_FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/run_all_samples.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/memory_profile_demo.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/connection_pool_example.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/concepts_example.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt
     ${CMAKE_CURRENT_SOURCE_DIR}/README.md
 )
