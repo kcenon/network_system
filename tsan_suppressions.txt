@@ -1,0 +1,25 @@
+# ThreadSanitizer suppression file for network_system
+#
+# This file contains suppressions for known false positives in third-party
+# libraries, particularly ASIO, which has internal threading patterns that
+# trigger TSan warnings but are actually safe.
+#
+# Reference: https://github.com/chriskohlhoff/asio/issues/1237
+
+# ASIO epoll_reactor false positives
+race:asio::detail::epoll_reactor::cleanup_descriptor_data
+race:asio::detail::epoll_reactor::descriptor_state
+
+# ASIO reactive_socket_service false positives
+# Known false positive during rapid connection/disconnection cycles
+# Reference: https://github.com/chriskohlhoff/asio/issues/1237
+race:asio::detail::reactive_socket_service_base::construct
+race:asio::detail::reactive_socket_service_base::close
+race:asio::detail::reactive_socket_service*::async_accept
+
+# Mutex operations during socket close (false positive in rapid disconnect scenarios)
+mutex:asio::detail::reactive_socket_service_base::close
+
+# ASIO scheduler false positives
+race:asio::detail::scheduler::do_run_one
+race:asio::detail::scheduler::run
