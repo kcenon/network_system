@@ -145,6 +145,7 @@ int main() {
 
 - **ASIO-Based**: Non-blocking event loop with async operations
 - **C++20 Coroutines**: Optional coroutine-based async helpers
+- **C++20 Concepts**: Compile-time type validation with clear error messages
 - **Pipeline Architecture**: Message transformation with compression/encryption hooks
 - **Move Semantics**: Zero-copy friendly APIs (move-aware buffer handling)
 
@@ -327,6 +328,7 @@ int main() {
 - ⚡ [Performance & Benchmarks](docs/BENCHMARKS.md) - Performance metrics and testing
 - 🏭 [Production Quality](docs/PRODUCTION_QUALITY.md) - CI/CD, security, quality assurance
 - 📁 [Project Structure](docs/PROJECT_STRUCTURE.md) - Directory organization and modules
+- 🧩 [C++20 Concepts](docs/advanced/CONCEPTS.md) - Compile-time type validation
 - 🔒 [TLS Setup Guide](docs/TLS_SETUP_GUIDE.md) - TLS/SSL configuration
 - 🔍 [Troubleshooting](docs/TROUBLESHOOTING.md) - Common issues and solutions
 - 🧪 [Load Test Guide](docs/LOAD_TEST_GUIDE.md) - Load testing procedures
