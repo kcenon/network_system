@@ -5,7 +5,7 @@
 This directory contains detailed technical implementation documentation for the network_system separation project.
 
 **Date**: 2025-09-19
-**Version**: 1.0.0
+**Version**: 0.1.0.0
 **Owner**: kcenon
 
 ---

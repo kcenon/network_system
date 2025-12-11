@@ -1532,7 +1532,7 @@ If you encounter any problems during migration:
 
 **Document Information**
 
-- **Version**: 1.0.0
+- **Version**: 0.1.0.0
 - **Last Updated**: 2025-10-22
 - **Maintainer**: kcenon@naver.com
 - **License**: BSD-3-Clause

@@ -6,7 +6,7 @@
 
 This document provides a comprehensive architectural overview of network_system, a high-performance asynchronous networking library built on ASIO (Asynchronous I/O). Originally extracted from messaging_system for enhanced modularity and reusability, network_system delivers 305K+ messages/second with sub-microsecond latency through zero-copy pipelines and efficient connection management.
 
-**Version**: 1.0.0
+**Version**: 0.1.0.0
 **Last Updated**: 2025-10-22
 **Architecture Style**: Layered, Asynchronous, Event-Driven
 
@@ -771,4 +771,4 @@ Session Pool → Acquire → Use → Release → Pool
 
 **Last Updated**: 2025-10-22
 **Maintainer**: kcenon@naver.com
-**Version**: 1.0.0
+**Version**: 0.1.0.0

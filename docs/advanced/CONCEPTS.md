@@ -1,6 +1,6 @@
 # C++20 Concepts for Network System
 
-**Version:** 1.0
+**Version:** 0.1.0
 **Last Updated:** 2025-12-10
 **Status:** Complete
 

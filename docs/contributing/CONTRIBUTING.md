@@ -1,6 +1,6 @@
 # Contributing to Network System
 
-**Version:** 1.0.0
+**Version:** 0.1.0.0
 **Last Updated:** 2025-11-28
 
 Thank you for your interest in contributing to Network System! This guide will help you get started.

@@ -1,7 +1,7 @@
 # UDP Reliability Layer Guide
 
 **Last Updated**: 2025-11-24
-**Version**: 1.0
+**Version**: 0.1.0
 
 This document provides comprehensive guidance on using the UDP reliability layer, which offers configurable reliability guarantees on top of UDP.
 
