@@ -51,7 +51,7 @@ This document covers the architectural design and core component implementation 
   - [Migration Benefits](#migration-benefits)
 
 **Date**: 2025-09-19
-**Version**: 1.0.0
+**Version**: 0.1.0.0
 **Owner**: kcenon
 
 ---

@@ -1,7 +1,7 @@
 # HTTP Server Advanced Features Guide
 
 **Last Updated**: 2025-11-24
-**Version**: 1.0
+**Version**: 0.1.0
 
 This document provides comprehensive guidance on using advanced features of the network_system HTTP server and client.
 
