@@ -496,7 +496,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.0] - 2025-10-22
 
 ### Added
-- **Core Network System**: Production-ready C++20 asynchronous network library
+- **Core Network System**: Modern C++20 asynchronous network library
   - ASIO-based non-blocking I/O operations
   - Zero-copy pipeline for maximum efficiency
   - Connection pooling with intelligent lifecycle management

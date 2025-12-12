@@ -197,7 +197,7 @@ System integration documentation:
 - **Type**: Static Library
 - **C++ Standard**: C++20 (C++17 compatible for some features)
 - **License**: BSD 3-Clause
-- **Test Status**: Production-ready
+- **Test Status**: Under Development
 
 ### Supported Protocols
 - TCP with lifecycle management and health monitoring
