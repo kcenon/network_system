@@ -29,7 +29,7 @@ This document provides a comprehensive architectural overview of network_system,
 
 ### Primary Purpose
 
-Network_system provides a production-ready, high-performance networking foundation that:
+Network_system provides a high-performance networking foundation that:
 
 - **Abstracts complexity**: Simplifies asynchronous network programming through intuitive APIs
 - **Maximizes performance**: Achieves 305K+ msg/s through zero-copy and efficient I/O

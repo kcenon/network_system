@@ -11,7 +11,7 @@
 
 ## Overview
 
-A production-ready C++20 asynchronous network library providing reusable transport primitives for distributed systems and messaging applications. Originally extracted from messaging_system for enhanced modularity and ecosystem-wide reusability.
+A modern C++20 asynchronous network library providing reusable transport primitives for distributed systems and messaging applications. Originally extracted from messaging_system for enhanced modularity and ecosystem-wide reusability.
 
 **Key Characteristics**:
 - 🏗️ **Modular Architecture**: Coroutine-friendly async I/O with pluggable protocol stack

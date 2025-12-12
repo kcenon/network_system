@@ -398,7 +398,7 @@ bool connection_storm_test(StressMetrics& metrics) {
  */
 int main(int argc, char* argv[]) {
     std::cout << "=== Network System Stress Tests ===" << std::endl;
-    std::cout << "Configuration: High-Performance | Target: 300K+ msg/s | Platform: Production-Ready" << std::endl;
+    std::cout << "Configuration: High-Performance | Target: 300K+ msg/s | Platform: Test Environment" << std::endl;
 
     // Parse command line arguments
     StressConfig config;
