@@ -1,0 +1,26 @@
+var searchData=
+[
+  ['ubuntu_2022_2004_20gcc_2011_20tt_20o3_20tt_0',['ubuntu 22 04 gcc 11 tt o3 tt',['../md_BASELINE__KO.html#autotoc_md36',1,'성능 메트릭 (Intel i7-12700K, Ubuntu 22.04, GCC 11 &lt;tt&gt;-O3&lt;/tt&gt;)'],['../md_README__KO.html#autotoc_md354',1,'합성 메시지 할당 결과 (Intel i7-12700K, Ubuntu 22.04, GCC 11, &lt;tt&gt;-O3&lt;/tt&gt;)'],['../md_BASELINE.html#autotoc_md8',1,'Performance Metrics (Intel i7-12700K, Ubuntu 22.04, GCC 11 &lt;tt&gt;-O3&lt;/tt&gt;)'],['../md_README.html#autotoc_md292',1,'Synthetic Benchmarks (Intel i7-12700K, Ubuntu 22.04, GCC 11, &lt;tt&gt;-O3&lt;/tt&gt;)']]],
+  ['ubuntu_20debian_1',['Ubuntu/Debian',['../md_README__KO.html#autotoc_md368',1,'']]],
+  ['udp_20characteristics_2',['UDP Characteristics',['../md_UDP__SUPPORT.html#autotoc_md460',1,'']]],
+  ['udp_20client_3',['3. UDP Client',['../md_UDP__SUPPORT.html#autotoc_md458',1,'']]],
+  ['udp_20server_4',['2. UDP Server',['../md_UDP__SUPPORT.html#autotoc_md457',1,'']]],
+  ['udp_20socket_20low_20level_5',['1. UDP Socket (Low-level)',['../md_UDP__SUPPORT.html#autotoc_md456',1,'']]],
+  ['udp_20support_20in_20network_20system_6',['UDP Support in Network System',['../md_UDP__SUPPORT.html',1,'']]],
+  ['udp_20vs_20tcp_20comparison_7',['UDP vs TCP Comparison',['../md_UDP__SUPPORT.html#autotoc_md459',1,'']]],
+  ['undefined_20reference_20to_20network_5fsystem_20functions_8',['Issue 1: Undefined Reference to network_system Functions',['../md_MIGRATION.html#autotoc_md223',1,'']]],
+  ['unit_20tests_9',['Step 4.2: Run Unit Tests',['../md_MIGRATION.html#autotoc_md211',1,'']]],
+  ['unreleased_10',['[Unreleased]',['../md_CHANGELOG.html#autotoc_md58',1,'']]],
+  ['update_20api_20calls_20if_20using_20modern_20api_11',['Step 3.5: Update API Calls (If Using Modern API)',['../md_MIGRATION.html#autotoc_md207',1,'']]],
+  ['update_20build_20configuration_12',['Phase 2: Update Build Configuration',['../md_MIGRATION.html#autotoc_md197',1,'']]],
+  ['update_20cmakelists_20txt_13',['Step 2.1: Update CMakeLists.txt',['../md_MIGRATION.html#autotoc_md198',1,'']]],
+  ['update_20code_14',['Phase 3: Update Code',['../md_MIGRATION.html#autotoc_md202',1,'']]],
+  ['update_20include_20paths_15',['Step 2: Update Include Paths',['../md_STRUCTURE.html#autotoc_md444',1,'']]],
+  ['update_20includes_16',['Step 3.2: Update Includes',['../md_MIGRATION.html#autotoc_md204',1,'']]],
+  ['update_20namespace_20references_17',['Step 3.3: Update Namespace References',['../md_MIGRATION.html#autotoc_md205',1,'']]],
+  ['update_20namespace_20usage_18',['Step 3: Update Namespace Usage',['../md_STRUCTURE.html#autotoc_md445',1,'']]],
+  ['update_20package_20configuration_20optional_19',['Step 2.2: Update Package Configuration (Optional)',['../md_MIGRATION.html#autotoc_md199',1,'']]],
+  ['usage_20',['usage',['../index.html#usage_client',1,'Basic Client Usage'],['../index.html#usage_server',1,'Basic Server Usage'],['../md_MIGRATION.html#autotoc_md219',1,'Client Usage'],['../md_MIGRATION.html#autotoc_md217',1,'Namespace Usage'],['../md_MIGRATION.html#autotoc_md260',1,'Resource Usage'],['../md_MIGRATION.html#autotoc_md194',1,'Step 1.2: Audit Current Network Usage'],['../md_STRUCTURE.html#autotoc_md445',1,'Step 3: Update Namespace Usage']]],
+  ['usage_20examples_21',['Usage Examples',['../index.html#usage_sec',1,'']]],
+  ['using_20modern_20api_22',['Step 3.5: Update API Calls (If Using Modern API)',['../md_MIGRATION.html#autotoc_md207',1,'']]]
+];
