@@ -225,6 +225,14 @@ function(find_thread_system)
 
     message(STATUS "Looking for thread_system...")
 
+    # Check if THREAD_SYSTEM_INCLUDE_DIR is already set (e.g., by parent project via FetchContent)
+    if(THREAD_SYSTEM_INCLUDE_DIR AND EXISTS "${THREAD_SYSTEM_INCLUDE_DIR}/kcenon/thread/core/thread_pool.h")
+        message(STATUS "Found thread_system via pre-set THREAD_SYSTEM_INCLUDE_DIR: ${THREAD_SYSTEM_INCLUDE_DIR}")
+        set(THREAD_SYSTEM_FOUND TRUE PARENT_SCOPE)
+        set(THREAD_SYSTEM_INCLUDE_DIR ${THREAD_SYSTEM_INCLUDE_DIR} PARENT_SCOPE)
+        return()
+    endif()
+
     foreach(_candidate ThreadSystem utilities thread_system::thread_system)
         if(TARGET ${_candidate})
             message(STATUS "Found thread_system CMake target: ${_candidate}")
@@ -306,6 +314,14 @@ function(find_logger_system)
 
     message(STATUS "Looking for logger_system...")
 
+    # Check if LOGGER_SYSTEM_INCLUDE_DIR is already set (e.g., by parent project via FetchContent)
+    if(LOGGER_SYSTEM_INCLUDE_DIR AND EXISTS "${LOGGER_SYSTEM_INCLUDE_DIR}/kcenon/logger/core/logger.h")
+        message(STATUS "Found logger_system via pre-set LOGGER_SYSTEM_INCLUDE_DIR: ${LOGGER_SYSTEM_INCLUDE_DIR}")
+        set(LOGGER_SYSTEM_FOUND TRUE PARENT_SCOPE)
+        set(LOGGER_SYSTEM_INCLUDE_DIR ${LOGGER_SYSTEM_INCLUDE_DIR} PARENT_SCOPE)
+        return()
+    endif()
+
     foreach(_candidate LoggerSystem logger logger_system::logger_system)
         if(TARGET ${_candidate})
             message(STATUS "Found logger_system CMake target: ${_candidate}")
@@ -386,6 +402,14 @@ function(find_common_system)
     endif()
 
     message(STATUS "Looking for common_system...")
+
+    # Check if COMMON_SYSTEM_INCLUDE_DIR is already set (e.g., by parent project via FetchContent)
+    if(COMMON_SYSTEM_INCLUDE_DIR AND EXISTS "${COMMON_SYSTEM_INCLUDE_DIR}/kcenon/common/patterns/result.h")
+        message(STATUS "Found common_system via pre-set COMMON_SYSTEM_INCLUDE_DIR: ${COMMON_SYSTEM_INCLUDE_DIR}")
+        set(COMMON_SYSTEM_FOUND TRUE PARENT_SCOPE)
+        set(COMMON_SYSTEM_INCLUDE_DIR ${COMMON_SYSTEM_INCLUDE_DIR} PARENT_SCOPE)
+        return()
+    endif()
 
     foreach(_candidate common_system kcenon::common)
         if(TARGET ${_candidate})
