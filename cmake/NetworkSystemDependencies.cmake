@@ -154,9 +154,15 @@ function(find_container_system)
         endif()
     endforeach()
 
-    # Path-based detection - prioritize environment variable, then standard paths
+    # Path-based detection - prioritize workspace path (CI), then environment variable, then standard paths
     set(_container_search_paths)
     set(_container_lib_paths)
+
+    # 0. Check workspace-relative path first (GitHub Actions CI pattern)
+    if(EXISTS "${CMAKE_SOURCE_DIR}/container_system")
+        list(INSERT _container_search_paths 0 "${CMAKE_SOURCE_DIR}/container_system")
+        list(INSERT _container_lib_paths 0 "${CMAKE_SOURCE_DIR}/container_system/build/lib")
+    endif()
 
     # 1. Check environment variable
     if(DEFINED ENV{CONTAINER_SYSTEM_ROOT})
@@ -242,9 +248,15 @@ function(find_thread_system)
         endif()
     endforeach()
 
-    # Prioritize environment variable, then standard paths
+    # Path-based detection - prioritize workspace path (CI), then environment variable, then standard paths
     set(_thread_search_paths)
     set(_thread_lib_paths)
+
+    # 0. Check workspace-relative path first (GitHub Actions CI pattern)
+    if(EXISTS "${CMAKE_SOURCE_DIR}/thread_system/include")
+        list(INSERT _thread_search_paths 0 "${CMAKE_SOURCE_DIR}/thread_system/include")
+        list(INSERT _thread_lib_paths 0 "${CMAKE_SOURCE_DIR}/thread_system/build/lib")
+    endif()
 
     # 1. Check environment variable
     if(DEFINED ENV{THREAD_SYSTEM_ROOT})
@@ -331,9 +343,15 @@ function(find_logger_system)
         endif()
     endforeach()
 
-    # Prioritize environment variable, then standard paths
+    # Path-based detection - prioritize workspace path (CI), then environment variable, then standard paths
     set(_logger_search_paths)
     set(_logger_lib_paths)
+
+    # 0. Check workspace-relative path first (GitHub Actions CI pattern)
+    if(EXISTS "${CMAKE_SOURCE_DIR}/logger_system/include")
+        list(INSERT _logger_search_paths 0 "${CMAKE_SOURCE_DIR}/logger_system/include")
+        list(INSERT _logger_lib_paths 0 "${CMAKE_SOURCE_DIR}/logger_system/build/lib")
+    endif()
 
     # 1. Check environment variable
     if(DEFINED ENV{LOGGER_SYSTEM_ROOT})
@@ -420,8 +438,13 @@ function(find_common_system)
         endif()
     endforeach()
 
-    # Prioritize environment variable, then standard paths
+    # Path-based detection - prioritize workspace path (CI), then environment variable, then standard paths
     set(_common_search_paths)
+
+    # 0. Check workspace-relative path first (GitHub Actions CI pattern)
+    if(EXISTS "${CMAKE_SOURCE_DIR}/common_system/include")
+        list(INSERT _common_search_paths 0 "${CMAKE_SOURCE_DIR}/common_system/include")
+    endif()
 
     # 1. Check environment variable
     if(DEFINED ENV{COMMON_SYSTEM_ROOT})
