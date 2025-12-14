@@ -80,18 +80,19 @@ jobs:
         run: |
           echo "=== Build Configuration ==="
           echo "Build Type: ${{ matrix.build_type }}"
-          echo "Ecosystem Dependencies: ON (required)"
+          echo "Ecosystem Dependencies: ON (via UnifiedDependencies)"
           echo "==========================="
 
           cmake -B build \
             -G Ninja \
             -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+            -DUNIFIED_USE_LOCAL=ON \
             -DBUILD_TESTS=ON \
             -DNETWORK_BUILD_INTEGRATION_TESTS=ON \
             -DENABLE_COVERAGE=${{ matrix.build_type == 'Debug' && 'ON' || 'OFF' }} \
             -DBUILD_SAMPLES=OFF \
             -DBUILD_WITH_COMMON_SYSTEM=ON \
-            -DBUILD_WITH_LOGGER_SYSTEM=ON \
+            -DBUILD_WITH_LOGGER_SYSTEM=OFF \
             -DBUILD_WITH_THREAD_SYSTEM=ON \
             -DBUILD_WITH_CONTAINER_SYSTEM=ON \
             -DBUILD_MESSAGING_BRIDGE=OFF
@@ -219,17 +220,18 @@ jobs:
         run: |
           echo "=== Build Configuration ==="
           echo "Build Type: Release"
-          echo "Ecosystem Dependencies: ON (required)"
+          echo "Ecosystem Dependencies: ON (via UnifiedDependencies)"
           echo "==========================="
 
           cmake -B build \
             -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
+            -DUNIFIED_USE_LOCAL=ON \
             -DBUILD_TESTS=ON \
             -DNETWORK_BUILD_INTEGRATION_TESTS=ON \
             -DBUILD_SAMPLES=OFF \
             -DBUILD_WITH_COMMON_SYSTEM=ON \
-            -DBUILD_WITH_LOGGER_SYSTEM=ON \
+            -DBUILD_WITH_LOGGER_SYSTEM=OFF \
             -DBUILD_WITH_THREAD_SYSTEM=ON \
             -DBUILD_WITH_CONTAINER_SYSTEM=ON \
             -DBUILD_MESSAGING_BRIDGE=OFF

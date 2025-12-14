@@ -114,13 +114,14 @@ jobs:
       run: |
         echo "=== Build Configuration ==="
         echo "Compiler: $CC / $CXX"
-        echo "Ecosystem Dependencies: ON (required)"
+        echo "Ecosystem Dependencies: ON (via UnifiedDependencies)"
         echo "==========================="
 
         cmake -B build -G Ninja \
           -DCMAKE_BUILD_TYPE=Debug \
+          -DUNIFIED_USE_LOCAL=ON \
           -DBUILD_WITH_COMMON_SYSTEM=ON \
-          -DBUILD_WITH_LOGGER_SYSTEM=ON \
+          -DBUILD_WITH_LOGGER_SYSTEM=OFF \
           -DBUILD_WITH_THREAD_SYSTEM=ON \
           -DBUILD_WITH_CONTAINER_SYSTEM=ON \
           -DBUILD_MESSAGING_BRIDGE=OFF \
@@ -133,7 +134,7 @@ jobs:
       run: |
         Write-Host "=== Build Configuration ==="
         Write-Host "Compiler: MSVC"
-        Write-Host "Ecosystem Dependencies: ON (required)"
+        Write-Host "Ecosystem Dependencies: ON (via UnifiedDependencies)"
         Write-Host "==========================="
 
         $toolchainFile = "$env:VCPKG_INSTALLATION_ROOT\scripts\buildsystems\vcpkg.cmake"
@@ -147,8 +148,9 @@ jobs:
         cmake -B build -G Ninja `
           -DCMAKE_BUILD_TYPE=Debug `
           -DCMAKE_TOOLCHAIN_FILE="$toolchainFile" `
+          -DUNIFIED_USE_LOCAL=ON `
           -DBUILD_WITH_COMMON_SYSTEM=ON `
-          -DBUILD_WITH_LOGGER_SYSTEM=ON `
+          -DBUILD_WITH_LOGGER_SYSTEM=OFF `
           -DBUILD_WITH_THREAD_SYSTEM=ON `
           -DBUILD_WITH_CONTAINER_SYSTEM=ON `
           -DBUILD_MESSAGING_BRIDGE=OFF `
@@ -238,13 +240,14 @@ jobs:
       run: |
         echo "=== Build Configuration ==="
         echo "Sanitizer: ${{ matrix.sanitizer.name }}"
-        echo "Ecosystem Dependencies: ON (required)"
+        echo "Ecosystem Dependencies: ON (via UnifiedDependencies)"
         echo "==========================="
 
         cmake -B build -G Ninja \
           -DCMAKE_BUILD_TYPE=Debug \
+          -DUNIFIED_USE_LOCAL=ON \
           -DBUILD_WITH_COMMON_SYSTEM=ON \
-          -DBUILD_WITH_LOGGER_SYSTEM=ON \
+          -DBUILD_WITH_LOGGER_SYSTEM=OFF \
           -DBUILD_WITH_THREAD_SYSTEM=ON \
           -DBUILD_WITH_CONTAINER_SYSTEM=ON \
           -DBUILD_MESSAGING_BRIDGE=OFF \

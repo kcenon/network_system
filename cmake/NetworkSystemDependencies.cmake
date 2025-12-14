@@ -584,18 +584,33 @@ function(find_monitoring_system)
 endfunction()
 
 ##################################################
-# Main dependency finding function
+# Main dependency finding function (external libraries only)
+# Ecosystem dependencies (common_system, thread_system, etc.) are handled by UnifiedDependencies.cmake
 ##################################################
-function(find_network_system_dependencies)
-    message(STATUS "Finding NetworkSystem dependencies...")
+function(find_network_system_external_dependencies)
+    message(STATUS "Finding NetworkSystem external dependencies (ASIO, FMT)...")
 
     find_asio_library()
     find_fmt_library()
-    find_container_system()
-    find_thread_system()
-    find_logger_system()
-    find_monitoring_system()
-    find_common_system()
+
+    # Note: Ecosystem dependencies are now handled by UnifiedDependencies.cmake
+    # The following functions are kept for backward compatibility but may be skipped
+    # if targets are already created by UnifiedDependencies
+    if(NOT common_system_FOUND AND NOT TARGET common_system AND NOT TARGET kcenon::common_system)
+        find_common_system()
+    endif()
+    if(NOT thread_system_FOUND AND NOT TARGET ThreadSystem AND NOT TARGET thread_system)
+        find_thread_system()
+    endif()
+    if(NOT logger_system_FOUND AND NOT TARGET LoggerSystem AND NOT TARGET logger_system)
+        find_logger_system()
+    endif()
+    if(NOT container_system_FOUND AND NOT TARGET ContainerSystem AND NOT TARGET container_system)
+        find_container_system()
+    endif()
+    if(NOT monitoring_system_FOUND AND NOT TARGET MonitoringSystem AND NOT TARGET monitoring_system)
+        find_monitoring_system()
+    endif()
 
     # Export all variables to parent scope
     # ASIO variables (standalone only - Boost.ASIO not supported)

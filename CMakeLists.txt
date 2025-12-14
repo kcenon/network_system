@@ -154,11 +154,61 @@ include(NetworkSystemIntegration)
 include(NetworkSystemInstall)
 
 ##################################################
-# Dependency Detection
+# Unified Dependency Management (Ecosystem Dependencies)
+##################################################
+
+# Include unified dependency management module (same pattern as logger_system)
+include(UnifiedDependencies)
+
+# Setup dependency resolution mode
+# Supports: UNIFIED_USE_LOCAL, UNIFIED_USE_FETCHCONTENT, find_package with fallback
+unified_setup_dependency_mode()
+
+message(STATUS "=== Ecosystem Dependency Management (UnifiedDependencies) ===")
+
+# Find common_system (required dependency - Tier 0)
+if(BUILD_WITH_COMMON_SYSTEM)
+    unified_find_dependency(common_system REQUIRED)
+    if(common_system_FOUND AND common_system_SOURCE_DIR)
+        set(COMMON_SYSTEM_INCLUDE_DIR "${common_system_SOURCE_DIR}/include")
+    endif()
+endif()
+
+# Find thread_system (required dependency - Tier 1)
+if(BUILD_WITH_THREAD_SYSTEM)
+    unified_find_dependency(thread_system REQUIRED)
+    if(thread_system_FOUND AND thread_system_SOURCE_DIR)
+        set(THREAD_SYSTEM_INCLUDE_DIR "${thread_system_SOURCE_DIR}/include")
+    endif()
+endif()
+
+# Find logger_system (optional dependency - Tier 2)
+if(BUILD_WITH_LOGGER_SYSTEM)
+    unified_find_dependency(logger_system QUIET)
+    if(logger_system_FOUND AND logger_system_SOURCE_DIR)
+        set(LOGGER_SYSTEM_INCLUDE_DIR "${logger_system_SOURCE_DIR}/include")
+    endif()
+endif()
+
+# Find container_system (optional dependency - Tier 1)
+if(BUILD_WITH_CONTAINER_SYSTEM)
+    unified_find_dependency(container_system QUIET)
+    if(container_system_FOUND AND container_system_SOURCE_DIR)
+        set(CONTAINER_SYSTEM_INCLUDE_DIR "${container_system_SOURCE_DIR}")
+    endif()
+endif()
+
+# Find monitoring_system (optional dependency - Tier 3)
+if(BUILD_WITH_MONITORING_SYSTEM)
+    unified_find_dependency(monitoring_system QUIET)
+endif()
+
+##################################################
+# External Dependency Detection (ASIO, FMT, etc.)
 ##################################################
 
 find_package(PkgConfig QUIET)
-find_network_system_dependencies()
+find_network_system_external_dependencies()
 
 ##################################################
 # Feature Detection
@@ -494,10 +544,12 @@ endif()
 ##################################################
 
 # Skip installation in unified build to avoid export conflicts
-if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+# Also skip when UNIFIED_USE_LOCAL is ON because dependencies are built with
+# EXCLUDE_FROM_ALL and won't be in the export set
+if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR AND NOT UNIFIED_USE_LOCAL)
     setup_network_system_install()
 else()
-    message(STATUS "Installation skipped in unified build mode")
+    message(STATUS "Installation skipped (unified build or local dependencies mode)")
 endif()
 
 ##################################################

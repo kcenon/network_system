@@ -2,6 +2,10 @@
 # NetworkSystemInstall.cmake
 #
 # Installation configuration for NetworkSystem
+#
+# Note: Function names are prefixed with 'network_' to avoid
+# conflicts with dependencies (e.g., thread_system) that may
+# define functions with the same names when built via add_subdirectory.
 ##################################################
 
 include(GNUInstallDirs)
@@ -10,7 +14,7 @@ include(CMakePackageConfigHelpers)
 ##################################################
 # Install library
 ##################################################
-function(install_network_system_library)
+function(network_install_library)
     install(TARGETS NetworkSystem
         EXPORT NetworkSystemTargets
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
@@ -24,7 +28,7 @@ endfunction()
 ##################################################
 # Install headers
 ##################################################
-function(install_network_system_headers)
+function(network_install_headers)
     install(DIRECTORY include/
         DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
         FILES_MATCHING PATTERN "*.h"
@@ -35,7 +39,7 @@ endfunction()
 ##################################################
 # Install CMake config files
 ##################################################
-function(install_cmake_config_files)
+function(network_install_cmake_config_files)
     # Generate config file
     configure_package_config_file(
         "${CMAKE_CURRENT_SOURCE_DIR}/cmake/NetworkSystemConfig.cmake.in"
@@ -71,9 +75,9 @@ endfunction()
 # Main installation setup
 ##################################################
 function(setup_network_system_install)
-    install_network_system_library()
-    install_network_system_headers()
-    install_cmake_config_files()
+    network_install_library()
+    network_install_headers()
+    network_install_cmake_config_files()
 
     message(STATUS "Installation configuration complete")
 endfunction()
