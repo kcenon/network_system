@@ -299,6 +299,13 @@ public:
     }
 
     void stop(bool wait_for_tasks) {
+        // Prevent double-stop which can cause issues during static destruction
+        bool expected = true;
+        if (!running_.compare_exchange_strong(expected, false)) {
+            // Already stopped, nothing to do
+            return;
+        }
+
         {
             std::unique_lock<std::mutex> lock(queue_mutex_);
             if (!wait_for_tasks) {
@@ -306,7 +313,6 @@ public:
                     tasks_.pop();
                 }
             }
-            running_ = false;
         }
 
         {

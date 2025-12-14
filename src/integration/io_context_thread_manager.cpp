@@ -53,12 +53,16 @@ public:
         std::string component_name;
     };
 
-    impl() : total_started_(0), total_completed_(0), owns_thread_pool_(false) {}
+    impl() : total_started_(0), total_completed_(0), owns_thread_pool_(false), is_destroying_(false) {}
 
     ~impl() {
+        // Mark as destroying to prevent logging during destruction
+        // (logger singleton may already be destroyed)
+        is_destroying_ = true;
+
         // Safe cleanup to avoid static destruction order issues
         try {
-            stop_all();
+            stop_all_internal();
             wait_all();
 
             // Only stop the thread pool if we own it and it's still valid
@@ -165,7 +169,20 @@ public:
         for (auto& entry : entries_) {
             auto ctx = entry.context.lock();
             if (ctx) {
-                NETWORK_LOG_DEBUG("[io_context_thread_manager] Stopping: " + entry.component_name);
+                if (!is_destroying_) {
+                    NETWORK_LOG_DEBUG("[io_context_thread_manager] Stopping: " + entry.component_name);
+                }
+                ctx->stop();
+            }
+        }
+    }
+
+    // Internal version called from destructor - no logging
+    void stop_all_internal() {
+        std::lock_guard<std::mutex> lock(mutex_);
+        for (auto& entry : entries_) {
+            auto ctx = entry.context.lock();
+            if (ctx) {
                 ctx->stop();
             }
         }
@@ -259,6 +276,7 @@ private:
     std::atomic<size_t> total_started_;
     std::atomic<size_t> total_completed_;
     bool owns_thread_pool_ = false;  // Track if we created the thread pool
+    bool is_destroying_ = false;     // True during destructor to avoid logging
 };
 
 io_context_thread_manager& io_context_thread_manager::instance() {
