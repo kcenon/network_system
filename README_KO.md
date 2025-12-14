@@ -15,6 +15,54 @@ Network System Project는 분산 시스템 및 메시징 애플리케이션을 �
 
 > **✅ 최신 업데이트**: messaging_system으로부터 분리 완료 및 확장된 문서화와 통합 훅. 빌드, 코드 품질, 커버리지 및 문서에 대한 GitHub Actions 워크플로우가 정의됨—최신 상태는 저장소 대시보드를 확인하세요.
 
+---
+
+## 요구사항
+
+| 의존성 | 버전 | 필수 | 설명 |
+|--------|------|------|------|
+| C++20 컴파일러 | GCC 11+ / Clang 14+ / MSVC 2022+ / Apple Clang 14+ | 예 | C++20 기능 필요 |
+| CMake | 3.20+ | 예 | 빌드 시스템 |
+| ASIO | latest | 예 | 비동기 I/O (standalone) |
+| OpenSSL | 1.1+ | 예 | TLS/SSL 지원 |
+| [common_system](https://github.com/kcenon/common_system) | latest | 예 | 공통 인터페이스 및 Result<T> |
+| [thread_system](https://github.com/kcenon/thread_system) | latest | 예 | 스레드 풀 및 비동기 작업 |
+| [logger_system](https://github.com/kcenon/logger_system) | latest | 예 | 로깅 인프라 |
+| [container_system](https://github.com/kcenon/container_system) | latest | 예 | 데이터 컨테이너 작업 |
+
+### 의존성 구조
+
+```
+network_system
+├── common_system (필수)
+├── thread_system (필수)
+│   └── common_system
+├── logger_system (필수)
+│   └── common_system
+└── container_system (필수)
+    └── common_system
+```
+
+### 의존성과 함께 빌드
+
+```bash
+# 모든 의존성 클론
+git clone https://github.com/kcenon/common_system.git
+git clone https://github.com/kcenon/thread_system.git
+git clone https://github.com/kcenon/logger_system.git
+git clone https://github.com/kcenon/container_system.git
+git clone https://github.com/kcenon/network_system.git
+
+# network_system 빌드
+cd network_system
+cmake -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build
+```
+
+📖 **[빠른 시작 가이드 →](docs/guides/QUICK_START_KO.md)**
+
+---
+
 ## 🔗 프로젝트 생태계 및 상호 의존성
 
 이 network system은 생태계 전반에 걸쳐 향상된 모듈성과 재사용성을 제공하기 위해 messaging_system에서 분리된 기본 구성 요소입니다:
