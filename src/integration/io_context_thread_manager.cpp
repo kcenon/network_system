@@ -37,7 +37,8 @@
 
 #include "kcenon/network/integration/io_context_thread_manager.h"
 #include "kcenon/network/integration/logger_integration.h"
-#include "kcenon/network/core/network_context.h"
+// Removed: #include "kcenon/network/core/network_context.h"
+// This removes the circular dependency that caused static destruction order issues
 
 #include <atomic>
 #include <unordered_map>
@@ -52,24 +53,37 @@ public:
         std::string component_name;
     };
 
-    impl() : total_started_(0), total_completed_(0) {}
+    impl() : total_started_(0), total_completed_(0), owns_thread_pool_(false) {}
 
     ~impl() {
-        stop_all();
-        wait_all();
+        // Safe cleanup to avoid static destruction order issues
+        try {
+            stop_all();
+            wait_all();
+
+            // Only stop the thread pool if we own it and it's still valid
+            if (owns_thread_pool_ && thread_pool_) {
+                if (auto* basic_pool = dynamic_cast<basic_thread_pool*>(thread_pool_.get())) {
+                    basic_pool->stop(true);  // Wait for pending tasks
+                }
+                thread_pool_.reset();
+            }
+        } catch (...) {
+            // Swallow exceptions in destructor to prevent termination
+        }
     }
 
     std::shared_ptr<thread_pool_interface> get_thread_pool() {
         std::lock_guard<std::mutex> lock(mutex_);
         if (!thread_pool_) {
-            thread_pool_ = network_system::core::network_context::instance().get_thread_pool();
-            if (!thread_pool_) {
-                // Fallback to basic thread pool with size for concurrent io_contexts
-                // Tests like ConnectionScaling need 20+ clients + server
-                // Use larger size to avoid thread exhaustion
-                auto pool_size = std::max(32u, std::thread::hardware_concurrency() * 4);
-                thread_pool_ = std::make_shared<basic_thread_pool>(pool_size);
-            }
+            // IMPORTANT: Create our own thread pool instead of using network_context
+            // This avoids static destruction order issues where network_context's
+            // thread pool might be destroyed before io_context_thread_manager
+            // Tests like ConnectionScaling need 20+ clients + server
+            // Use larger size to avoid thread exhaustion
+            auto pool_size = std::max(32u, std::thread::hardware_concurrency() * 4);
+            thread_pool_ = std::make_shared<basic_thread_pool>(pool_size);
+            owns_thread_pool_ = true;
         }
         return thread_pool_;
     }
@@ -244,6 +258,7 @@ private:
     std::vector<context_entry> entries_;
     std::atomic<size_t> total_started_;
     std::atomic<size_t> total_completed_;
+    bool owns_thread_pool_ = false;  // Track if we created the thread pool
 };
 
 io_context_thread_manager& io_context_thread_manager::instance() {

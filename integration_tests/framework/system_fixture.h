@@ -42,6 +42,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "kcenon/network/core/messaging_client.h"
 #include "kcenon/network/core/messaging_server.h"
 #include "kcenon/network/utils/result_types.h"
+#include "kcenon/network/integration/io_context_thread_manager.h"
 #include "test_helpers.h"
 
 namespace network_system::integration_tests {
@@ -87,6 +88,11 @@ protected:
 
     // Brief pause to ensure cleanup
     test_helpers::wait_for_ready();
+
+    // Ensure all io_contexts are properly stopped before test process exits
+    // This prevents static destruction order issues with singletons
+    integration::io_context_thread_manager::instance().stop_all();
+    integration::io_context_thread_manager::instance().wait_all();
 
     timeout_guard_.reset();
   }
