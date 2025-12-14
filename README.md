@@ -22,6 +22,52 @@ A modern C++20 asynchronous network library providing reusable transport primiti
 
 ---
 
+## Requirements
+
+| Dependency | Version | Required | Description |
+|------------|---------|----------|-------------|
+| C++20 Compiler | GCC 11+ / Clang 14+ / MSVC 2022+ / Apple Clang 14+ | Yes | C++20 features required |
+| CMake | 3.20+ | Yes | Build system |
+| ASIO | latest | Yes | Asynchronous I/O (standalone) |
+| OpenSSL | 1.1+ | Yes | TLS/SSL support |
+| [common_system](https://github.com/kcenon/common_system) | latest | Yes | Common interfaces and Result<T> |
+| [thread_system](https://github.com/kcenon/thread_system) | latest | Yes | Thread pool and async operations |
+| [logger_system](https://github.com/kcenon/logger_system) | latest | Yes | Logging infrastructure |
+| [container_system](https://github.com/kcenon/container_system) | latest | Yes | Data container operations |
+
+### Dependency Flow
+
+```
+network_system
+├── common_system (required)
+├── thread_system (required)
+│   └── common_system
+├── logger_system (required)
+│   └── common_system
+└── container_system (required)
+    └── common_system
+```
+
+### Building with Dependencies
+
+```bash
+# Clone all dependencies
+git clone https://github.com/kcenon/common_system.git
+git clone https://github.com/kcenon/thread_system.git
+git clone https://github.com/kcenon/logger_system.git
+git clone https://github.com/kcenon/container_system.git
+git clone https://github.com/kcenon/network_system.git
+
+# Build network_system
+cd network_system
+cmake -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build
+```
+
+📖 **[Quick Start Guide →](docs/guides/QUICK_START.md)**
+
+---
+
 ## Quick Start
 
 ### Prerequisites
