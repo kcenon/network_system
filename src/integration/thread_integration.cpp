@@ -59,7 +59,7 @@ namespace kcenon::network::integration {
 // basic_thread_pool implementation using thread_system::thread_pool
 class basic_thread_pool::impl {
 public:
-    impl(size_t num_threads) : completed_tasks_(0) {
+    impl(size_t num_threads) : completed_tasks_(0), stopped_(false) {
         if (num_threads == 0) {
             num_threads = std::thread::hardware_concurrency();
             if (num_threads == 0) num_threads = 2; // Fallback
@@ -171,6 +171,13 @@ public:
     }
 
     void stop(bool wait_for_tasks) {
+        // Prevent double-stop which can cause issues during static destruction
+        bool expected = false;
+        if (!stopped_.compare_exchange_strong(expected, true)) {
+            // Already stopped, nothing to do
+            return;
+        }
+
         if (pool_) {
             pool_->stop(!wait_for_tasks);
         }
@@ -183,6 +190,7 @@ public:
 private:
     std::shared_ptr<kcenon::thread::thread_pool> pool_;
     std::atomic<size_t> completed_tasks_;
+    std::atomic<bool> stopped_;
 };
 
 #else // !BUILD_WITH_THREAD_SYSTEM
