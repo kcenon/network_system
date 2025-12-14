@@ -178,15 +178,23 @@ macro(unified_setup_dependency_mode)
 
     # Common settings for subdirectory builds
     if(UNIFIED_USE_LOCAL OR UNIFIED_USE_FETCHCONTENT)
-        # Disable tests/examples in dependencies to speed up build
-        set(BUILD_TESTS OFF CACHE BOOL "Disable tests in dependencies" FORCE)
-        set(BUILD_INTEGRATION_TESTS OFF CACHE BOOL "Disable integration tests" FORCE)
-        set(BUILD_EXAMPLES OFF CACHE BOOL "Disable examples" FORCE)
-        set(BUILD_SAMPLES OFF CACHE BOOL "Disable samples" FORCE)
-        set(ENABLE_TESTING OFF CACHE BOOL "Disable testing" FORCE)
-        set(BUILD_TESTING OFF CACHE BOOL "Disable testing" FORCE)
+        # IMPORTANT: Only disable generic build flags for DEPENDENCIES, not the main project.
+        # The main project (CMAKE_SOURCE_DIR == CMAKE_CURRENT_SOURCE_DIR) should retain
+        # its BUILD_TESTS setting from command line or option() default.
+        # This prevents the root project's tests from being accidentally disabled.
+        if(NOT CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+            # This project is being built as a dependency - disable its tests
+            set(BUILD_TESTS OFF CACHE BOOL "Disable tests in dependencies" FORCE)
+            set(BUILD_INTEGRATION_TESTS OFF CACHE BOOL "Disable integration tests" FORCE)
+            set(BUILD_EXAMPLES OFF CACHE BOOL "Disable examples" FORCE)
+            set(BUILD_SAMPLES OFF CACHE BOOL "Disable samples" FORCE)
+            set(ENABLE_TESTING OFF CACHE BOOL "Disable testing" FORCE)
+            set(BUILD_TESTING OFF CACHE BOOL "Disable testing" FORCE)
+        endif()
 
-        # System-specific build flags
+        # System-specific build flags for ecosystem dependencies
+        # These are always set to ensure dependencies don't build their tests/samples
+        # even when loaded via add_subdirectory()
         set(LOGGER_BUILD_SAMPLES OFF CACHE BOOL "" FORCE)
         set(LOGGER_BUILD_TESTS OFF CACHE BOOL "" FORCE)
         set(LOGGER_BUILD_INTEGRATION_TESTS OFF CACHE BOOL "" FORCE)
@@ -194,9 +202,14 @@ macro(unified_setup_dependency_mode)
         set(DATABASE_BUILD_TESTS OFF CACHE BOOL "" FORCE)
         set(DATABASE_BUILD_INTEGRATION_TESTS OFF CACHE BOOL "" FORCE)
         set(CONTAINER_BUILD_SAMPLES OFF CACHE BOOL "" FORCE)
-        set(NETWORK_BUILD_SAMPLES OFF CACHE BOOL "" FORCE)
         set(COMMON_BUILD_TESTS OFF CACHE BOOL "" FORCE)
         set(COMMON_BUILD_INTEGRATION_TESTS OFF CACHE BOOL "" FORCE)
+        set(THREAD_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+        set(THREAD_BUILD_SAMPLES OFF CACHE BOOL "" FORCE)
+        set(MONITORING_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+        set(MONITORING_BUILD_SAMPLES OFF CACHE BOOL "" FORCE)
+        set(NETWORK_BUILD_SAMPLES OFF CACHE BOOL "" FORCE)
+        set(NETWORK_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 
         # Prevent find_package conflicts in FetchContent mode
         if(UNIFIED_USE_FETCHCONTENT)
