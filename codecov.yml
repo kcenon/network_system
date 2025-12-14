@@ -1,0 +1,52 @@
+# Codecov configuration for network_system
+# Reference: https://docs.codecov.com/docs/codecov-yaml
+
+codecov:
+  require_ci_to_pass: yes
+
+coverage:
+  precision: 2
+  round: down
+  range: "50...80"
+  status:
+    project:
+      default:
+        target: 55%  # Phase 1: Establish baseline
+        threshold: 2%
+        if_ci_failed: error
+    patch:
+      default:
+        target: 60%
+        threshold: 5%
+        if_ci_failed: error
+
+# Gradual improvement plan:
+# - Phase 1 (Current): 55% project, 60% patch
+# - Phase 2: 65% project, 70% patch
+# - Phase 3: 75% project, 80% patch
+
+parsers:
+  gcov:
+    branch_detection:
+      conditional: yes
+      loop: yes
+      method: no
+      macro: no
+
+ignore:
+  - "tests/**/*"
+  - "integration_tests/**/*"
+  - "benchmarks/**/*"
+  - "samples/**/*"
+  - "build/**/*"
+  - "vcpkg/**/*"
+  - "vcpkg_installed/**/*"
+  - "common_system/**/*"
+  - "thread_system/**/*"
+  - "logger_system/**/*"
+  - "container_system/**/*"
+
+comment:
+  layout: "reach,diff,flags,files"
+  behavior: default
+  require_changes: no
