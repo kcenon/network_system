@@ -285,6 +285,11 @@ void io_context_thread_manager::stop_all() {
     pimpl_->stop_all();
 }
 
+void io_context_thread_manager::shutdown() {
+    pimpl_->stop_all();
+    pimpl_->wait_all();
+}
+
 void io_context_thread_manager::wait_all() {
     pimpl_->wait_all();
 }

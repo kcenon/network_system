@@ -129,6 +129,18 @@ public:
     void stop_all();
 
     /**
+     * @brief Perform graceful shutdown of the manager
+     *
+     * Convenience method that stops all io_contexts and waits for completion.
+     * Equivalent to calling stop_all() followed by wait_all().
+     *
+     * @note Since this class uses Intentional Leak pattern, this method provides
+     *       explicit cleanup for users who want to ensure graceful shutdown
+     *       before process termination.
+     */
+    void shutdown();
+
+    /**
      * @brief Wait for all managed io_contexts to complete
      *
      * Blocks until all io_context::run() calls have returned.
