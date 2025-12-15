@@ -23,6 +23,11 @@ Network System 프로젝트의 모든 주요 변경 사항이 이 파일에 문�
   - Concepts는 에러 메시지를 개선하고 자기 문서화 타입 제약 역할
 
 ### 수정됨
+- **정적 소멸 순서**: `io_context_thread_manager` 및 `basic_thread_pool`의 정적 소멸 중 잠재적 크래시 수정 (#302)
+  - `thread_logger` 접근을 유발할 수 있는 소멸자 내 명시적 `stop()` 호출 제거
+  - 안전한 처리를 위해 `shared_ptr` 소멸에 정리 위임
+  - `thread_logger`에 Intentional Leak 패턴을 적용한 thread_system#293에 의존
+  - Ubuntu CI에서 `free(): invalid pointer` 에러 방지
 - **Thread System Adapter**: 지연 작업마다 분리된 `std::thread`를 생성하는 대신 단일 스케줄러 스레드와 우선순위 큐를 사용하도록 `submit_delayed()` 수정 (#273)
   - 지연 작업 대량 제출 시 스레드 폭발 방지
   - 적절한 스레드 수명주기 관리 (joinable 스케줄러 스레드)
