@@ -70,7 +70,18 @@ public:
             // Tests like ConnectionScaling need 20+ clients + server
             // Use larger size to avoid thread exhaustion
             auto pool_size = std::max(32u, std::thread::hardware_concurrency() * 4);
-            thread_pool_ = std::make_shared<basic_thread_pool>(pool_size);
+
+            // Intentional Leak pattern: Use no-op deleter to prevent destruction
+            // during static destruction phase. This avoids heap corruption when
+            // thread_pool's destructor tries to log while logger singleton is
+            // already destroyed.
+            // Memory impact: ~few KB (reclaimed by OS on process termination)
+            // Related: io_context_thread_manager::instance() also uses Intentional Leak
+            auto* pool = new basic_thread_pool(pool_size);
+            thread_pool_ = std::shared_ptr<basic_thread_pool>(
+                pool,
+                [](basic_thread_pool*) { /* no-op deleter - intentional leak */ }
+            );
             owns_thread_pool_ = true;
         }
         return thread_pool_;
