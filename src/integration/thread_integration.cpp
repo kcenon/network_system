@@ -525,8 +525,16 @@ private:
 };
 
 thread_integration_manager& thread_integration_manager::instance() {
-    static thread_integration_manager instance;
-    return instance;
+    // Intentional Leak pattern: Use heap-allocated pointer that is never deleted.
+    // This prevents Static Destruction Order Fiasco (SDOF) when:
+    // 1. thread_integration_manager is destroyed during static destruction
+    // 2. basic_thread_pool::impl is destroyed, but thread_pool workers are still running
+    // 3. Workers try to access completed_tasks_ via captured 'this' pointer
+    //
+    // Memory impact: ~few KB (reclaimed by OS on process termination)
+    // Related: io_context_thread_manager also uses Intentional Leak pattern
+    static thread_integration_manager* instance = new thread_integration_manager();
+    return *instance;
 }
 
 thread_integration_manager::thread_integration_manager()
