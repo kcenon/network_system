@@ -31,11 +31,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Reduces compile-time coupling and enables flexible logger configuration
 
 ### Fixed
-- **Static Destruction Order**: Fixed potential crashes during static destruction in `io_context_thread_manager` and `basic_thread_pool` (#302)
-  - Removed explicit `stop()` calls in destructors that could trigger `thread_logger` access
-  - Delegates cleanup to `shared_ptr` destruction for safe handling
-  - Relies on thread_system#293 which applied Intentional Leak pattern to `thread_logger`
-  - Prevents `free(): invalid pointer` errors on Ubuntu CI
+- **Static Destruction Order**: Fixed potential crashes during static destruction in `io_context_thread_manager` and `basic_thread_pool` (#302, #305, #306)
+  - Applied Intentional Leak pattern to `io_context_thread_manager::instance()` (#305)
+  - Applied Intentional Leak pattern to `basic_thread_pool::impl`'s internal `thread_pool` (#306)
+  - Uses no-op deleter to prevent destruction during static destruction phase
+  - Prevents heap corruption when thread_pool's destructor accesses statically destroyed objects
+  - Fixes Ubuntu CI failures: `malloc.c:2599 assertion failed`, `corrupted size vs. prev_size`
 - **Thread System Adapter**: Fixed `submit_delayed()` to use a single scheduler thread with priority queue instead of creating a detached `std::thread` per delayed task (#273)
   - Eliminates thread explosion under high delayed task submission
   - Provides proper thread lifecycle management (joinable scheduler thread)
