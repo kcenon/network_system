@@ -59,6 +59,18 @@ messaging_client::~messaging_client() noexcept {
       return;
     }
 
+    // CRITICAL: Mark socket as destroying BEFORE any cleanup
+    // This prevents async callbacks from accessing invalid memory
+    {
+      std::lock_guard<std::mutex> lock(socket_mutex_);
+      if (socket_) {
+        socket_->mark_destroying();
+      }
+    }
+
+    // Brief pause to allow in-flight callbacks to notice the destroying flag
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+
     // Ensure client is properly stopped before destruction
     // Ignore the return value in destructor to avoid throwing
     auto result = stop_client();
@@ -73,6 +85,9 @@ messaging_client::~messaging_client() noexcept {
                         "Client stopped successfully (Client ID: " +
                         client_id_ + ")");
     }
+
+    // Additional wait for async operations to fully complete
+    std::this_thread::sleep_for(std::chrono::milliseconds(20));
   } catch (const std::exception &e) {
     // Destructor must not throw - swallow all exceptions but log them
     NETWORK_LOG_ERROR("[messaging_client::~messaging_client] "

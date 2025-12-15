@@ -36,6 +36,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "kcenon/network/integration/io_context_thread_manager.h"
 #include "kcenon/network/metrics/network_metrics.h"
 
+#include <chrono>
+#include <thread>
+
 namespace network_system::core
 {
 
@@ -50,8 +53,14 @@ namespace network_system::core
 	{
 		try
 		{
+			// Brief pause before cleanup to allow in-flight operations to settle
+			std::this_thread::sleep_for(std::chrono::milliseconds(10));
+
 			// Ignore the return value in destructor to avoid throwing
 			(void)stop_server();
+
+			// Additional wait for async operations to fully complete
+			std::this_thread::sleep_for(std::chrono::milliseconds(20));
 		}
 		catch (...)
 		{

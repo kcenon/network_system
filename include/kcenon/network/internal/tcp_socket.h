@@ -158,6 +158,20 @@ namespace network_system::internal
 		 */
 		auto stop_read() -> void;
 
+		/*!
+		 * \brief Mark the socket as being destroyed to prevent callback access
+		 *
+		 * This should be called before destroying the owning object to ensure
+		 * that any pending async callbacks will not access invalid memory.
+		 */
+		auto mark_destroying() -> void;
+
+		/*!
+		 * \brief Check if the socket is being destroyed
+		 * \return true if mark_destroying() has been called
+		 */
+		auto is_destroying() const -> bool;
+
 	private:
 		/*!
 		 * \brief Internal function to handle the read logic with \c
@@ -181,5 +195,6 @@ namespace network_system::internal
 			error_callback_;   /*!< Error callback. */
 
 		std::atomic<bool> is_reading_{false}; /*!< Flag to prevent read after stop. */
+		std::atomic<bool> is_destroying_{false}; /*!< Flag to prevent callback access during destruction. */
 	};
 } // namespace network_system::internal

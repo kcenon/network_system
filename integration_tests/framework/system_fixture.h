@@ -74,15 +74,19 @@ protected:
   }
 
   void TearDown() override {
-    // Stop client first
+    // Stop client first - give time for async operations to complete
     if (client_) {
       client_->stop_client();
+      // Wait for client async operations to drain
+      std::this_thread::sleep_for(std::chrono::milliseconds(50));
       client_.reset();
     }
 
     // Then stop server
     if (server_) {
       server_->stop_server();
+      // Wait for server async operations to drain
+      std::this_thread::sleep_for(std::chrono::milliseconds(50));
       server_.reset();
     }
 
@@ -91,8 +95,12 @@ protected:
 
     // Ensure all io_contexts are properly stopped before test process exits
     // This prevents static destruction order issues with singletons
-    integration::io_context_thread_manager::instance().stop_all();
-    integration::io_context_thread_manager::instance().wait_all();
+    // Use shutdown() which combines stop_all() and wait_all() with proper synchronization
+    integration::io_context_thread_manager::instance().shutdown();
+
+    // Additional wait for all pending async callbacks to complete
+    // This is critical to prevent heap corruption from dangling callbacks
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
     timeout_guard_.reset();
   }
