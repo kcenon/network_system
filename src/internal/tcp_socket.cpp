@@ -85,6 +85,13 @@ namespace network_system::internal
 			return;
 		}
 
+		// Check if socket is still open to prevent SEGFAULT on closed socket
+		if (!socket_.is_open())
+		{
+			is_reading_.store(false);
+			return;
+		}
+
 		auto self = shared_from_this();
 		socket_.async_read_some(
 			asio::buffer(read_buffer_),
@@ -93,6 +100,13 @@ namespace network_system::internal
 				// Check if reading has been stopped at callback time
 				if (!is_reading_.load())
 				{
+					return;
+				}
+
+				// Check if socket is still open (may have been closed during async operation)
+				if (!socket_.is_open())
+				{
+					is_reading_.store(false);
 					return;
 				}
 
@@ -137,6 +151,16 @@ auto tcp_socket::async_send(
     std::vector<uint8_t>&& data,
     std::function<void(std::error_code, std::size_t)> handler) -> void
 {
+    // Check if socket is open before attempting to send
+    if (!socket_.is_open())
+    {
+        if (handler)
+        {
+            handler(asio::error::not_connected, 0);
+        }
+        return;
+    }
+
     auto self = shared_from_this();
     // Move data into shared_ptr for lifetime management
     auto buffer = std::make_shared<std::vector<uint8_t>>(std::move(data));

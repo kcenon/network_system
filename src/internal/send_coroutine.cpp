@@ -47,7 +47,10 @@ namespace network_system::internal
                             bool use_encrypt)
         -> std::future<std::vector<uint8_t>>
     {
-        return std::async(std::launch::async, [processed_data = std::move(input_data), &pl, use_compress, use_encrypt]() mutable {
+        // Copy pipeline by value to avoid dangling reference when the caller
+        // (messaging_client) is destroyed before the async task completes.
+        // This prevents use-after-free and heap corruption.
+        return std::async(std::launch::async, [processed_data = std::move(input_data), pl, use_compress, use_encrypt]() mutable {
             // Apply compression in-place
             if constexpr (std::is_invocable_r_v<std::vector<uint8_t>, decltype(pl.compress), const std::vector<uint8_t>&>) {
                 if (use_compress && pl.compress) {
