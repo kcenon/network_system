@@ -76,7 +76,13 @@ public:
     }
 
     ~impl() {
-        stop(true);
+        // During static destruction, do NOT call explicit stop() here!
+        // Calling stop() triggers thread_system's internal logging via thread_logger,
+        // which could crash if logger singleton is already destroyed.
+        // Instead, mark as stopped and let shared_ptr destruction handle cleanup.
+        // Related: thread_system#293 (thread_logger now uses Intentional Leak pattern)
+        stopped_.store(true, std::memory_order_release);
+        // pool_ will be destroyed when shared_ptr goes out of scope
     }
 
     std::future<void> submit(std::function<void()> task) {

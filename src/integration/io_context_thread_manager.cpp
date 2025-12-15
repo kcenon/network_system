@@ -65,11 +65,14 @@ public:
             stop_all_internal();
             wait_all();
 
-            // Only stop the thread pool if we own it and it's still valid
+            // Only reset the thread pool if we own it
+            // IMPORTANT: Do NOT call explicit stop() here!
+            // During static destruction, calling stop() on thread_pool can trigger
+            // thread_system's thread_logger access, which may cause crashes if
+            // the logger singleton is already destroyed (Static Destruction Order Fiasco).
+            // Instead, delegate cleanup to shared_ptr destruction which handles it safely.
+            // Related: thread_system#293 (thread_logger now uses Intentional Leak pattern)
             if (owns_thread_pool_ && thread_pool_) {
-                if (auto* basic_pool = dynamic_cast<basic_thread_pool*>(thread_pool_.get())) {
-                    basic_pool->stop(true);  // Wait for pending tasks
-                }
                 thread_pool_.reset();
             }
         } catch (...) {
