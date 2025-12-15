@@ -60,11 +60,22 @@ namespace kcenon::network::integration {
  * instances in the network system. Instead of each component managing its own
  * threads, this manager provides a centralized approach.
  *
+ * ### Singleton Pattern
+ * This class uses the **Intentional Leak pattern** for singleton implementation.
+ * The singleton is never destroyed during program execution, which prevents
+ * Static Destruction Order Fiasco (SDOF) issues when other singletons access
+ * this manager during their destruction phase.
+ *
+ * Memory impact is minimal (~few KB) and is reclaimed by the OS on process
+ * termination. For applications requiring explicit cleanup, use the shutdown()
+ * method before process exit.
+ *
  * ### Benefits
  * - Unified thread resource management
  * - Consistent shutdown behavior across all components
  * - Reduced total thread count
  * - Simplified component implementation
+ * - Safe access during static destruction phase
  *
  * ### Thread Safety
  * All public methods are thread-safe.
@@ -82,6 +93,9 @@ namespace kcenon::network::integration {
  * // Stop when done
  * manager.stop_io_context(io_ctx);
  * future.wait();
+ *
+ * // Optional: Explicit shutdown before process exit
+ * manager.shutdown();
  * @endcode
  */
 class io_context_thread_manager {
@@ -127,6 +141,18 @@ public:
      * Useful for application shutdown.
      */
     void stop_all();
+
+    /**
+     * @brief Perform graceful shutdown of the manager
+     *
+     * Convenience method that stops all io_contexts and waits for completion.
+     * Equivalent to calling stop_all() followed by wait_all().
+     *
+     * @note Since this class uses Intentional Leak pattern, this method provides
+     *       explicit cleanup for users who want to ensure graceful shutdown
+     *       before process termination.
+     */
+    void shutdown();
 
     /**
      * @brief Wait for all managed io_contexts to complete
