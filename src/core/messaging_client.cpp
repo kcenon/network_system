@@ -233,6 +233,44 @@ auto messaging_client::wait_for_stop() -> void {
   }
 }
 
+auto messaging_client::handle_connection_failure(std::error_code ec) -> void {
+  // Mark as not running/connected
+  is_running_.store(false, std::memory_order_release);
+  is_connected_.store(false, std::memory_order_release);
+
+  // Invoke error callback if set
+  {
+    std::lock_guard<std::mutex> lock(callback_mutex_);
+    if (error_callback_) {
+      try {
+        error_callback_(ec);
+      } catch (const std::exception &e) {
+        NETWORK_LOG_ERROR(
+            "[messaging_client] Exception in error callback: " +
+            std::string(e.what()));
+      }
+    }
+  }
+
+  // CRITICAL: Release work guard to allow io_context to finish.
+  // Without this, io_context.run() never returns and causes heap corruption
+  // when the messaging_client object is destroyed while async callbacks
+  // are still pending.
+  if (work_guard_) {
+    work_guard_.reset();
+  }
+
+  // Signal stop promise if set, so wait_for_stop() returns
+  if (stop_promise_.has_value()) {
+    try {
+      stop_promise_->set_value();
+    } catch (const std::future_error &) {
+      // Promise already satisfied, ignore
+    }
+    stop_promise_.reset();
+  }
+}
+
 auto messaging_client::do_connect(std::string_view host, unsigned short port)
     -> void {
   // Use resolver to get endpoints
@@ -251,6 +289,7 @@ auto messaging_client::do_connect(std::string_view host, unsigned short port)
         if (ec) {
           NETWORK_LOG_ERROR("[messaging_client] Resolve error: " +
                             ec.message());
+          handle_connection_failure(ec);
           return;
         }
         NETWORK_LOG_INFO(
@@ -267,6 +306,7 @@ auto messaging_client::do_connect(std::string_view host, unsigned short port)
               if (connect_ec) {
                 NETWORK_LOG_ERROR("[messaging_client] Connect error: " +
                                   connect_ec.message());
+                handle_connection_failure(connect_ec);
                 return;
               }
               NETWORK_LOG_INFO(

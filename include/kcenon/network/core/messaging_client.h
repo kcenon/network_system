@@ -255,6 +255,22 @@ namespace network_system::core
 		 */
 		auto on_error(std::error_code ec) -> void;
 
+		/*!
+		 * \brief Handles connection failures during async_resolve or async_connect.
+		 * \param ec The error code from the failed operation.
+		 *
+		 * This ensures proper cleanup when connection fails:
+		 * - Resets is_running_ and is_connected_ flags
+		 * - Invokes error callback if set
+		 * - Releases work_guard_ so io_context can complete
+		 * - Signals stop_promise_ for wait_for_stop()
+		 *
+		 * CRITICAL: Without this, io_context would run forever after connection
+		 * failure because work_guard_ keeps it alive, leading to heap corruption
+		 * when the messaging_client is destroyed.
+		 */
+		auto handle_connection_failure(std::error_code ec) -> void;
+
 	private:
 		std::string client_id_; /*!< Identifier or name for this client. */
 
