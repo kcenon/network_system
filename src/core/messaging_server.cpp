@@ -55,16 +55,29 @@ namespace network_system::core
 
 			// CRITICAL: Ensure proper cleanup order even if stop_server()
 			// returned early due to is_running_ == false
+			//
+			// The order MUST be:
+			// 1. work_guard_ (releases io_context's work, may access io_context)
+			// 2. acceptor_ (closes listening socket)
+			// 3. cleanup_timer_ (cancels timer)
+			// 4. sessions (stops all sessions)
+			// 5. io_context_ (must be last since others depend on it)
 
-			// Step 1: Stop io_context to cancel pending async operations
-			// This must happen before session cleanup to prevent callbacks
-			// from being invoked on destroyed objects
+			// Step 1: Release work guard FIRST - its destructor calls
+			// io_context::on_work_finished() which requires io_context to be alive
+			work_guard_.reset();
+
+			// Step 2: Stop io_context to cancel pending async operations
 			if (io_context_)
 			{
 				io_context_->stop();
 			}
 
-			// Step 2: Clear sessions - their sockets can safely close now
+			// Step 3: Close acceptor and timer
+			acceptor_.reset();
+			cleanup_timer_.reset();
+
+			// Step 4: Clear sessions - their sockets can safely close now
 			// since io_context is stopped (no more async callbacks)
 			{
 				std::lock_guard<std::mutex> lock(sessions_mutex_);
@@ -78,7 +91,7 @@ namespace network_system::core
 				sessions_.clear();
 			}
 
-			// Step 3: Reset io_context after sessions are cleared
+			// Step 5: Reset io_context LAST - after all resources that use it
 			io_context_.reset();
 		}
 		catch (...)

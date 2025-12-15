@@ -54,25 +54,42 @@ messaging_client::messaging_client(std::string_view client_id)
 
 messaging_client::~messaging_client() noexcept {
   try {
-    // Early exit if already stopped (optimization)
-    if (!is_running_.load(std::memory_order_acquire)) {
-      return;
+    // Always try to stop the client first
+    if (is_running_.load(std::memory_order_acquire)) {
+      auto result = stop_client();
+      if (result.is_err()) {
+        NETWORK_LOG_WARN("[messaging_client::~messaging_client] "
+                         "Failed to stop client cleanly: " +
+                         result.error().message + " (Client ID: " + client_id_ +
+                         ")");
+      } else {
+        NETWORK_LOG_DEBUG("[messaging_client::~messaging_client] "
+                          "Client stopped successfully (Client ID: " +
+                          client_id_ + ")");
+      }
     }
 
-    // Ensure client is properly stopped before destruction
-    // Ignore the return value in destructor to avoid throwing
-    auto result = stop_client();
-    if (result.is_err()) {
-      // Log error but don't throw (destructors must not throw)
-      NETWORK_LOG_WARN("[messaging_client::~messaging_client] "
-                       "Failed to stop client cleanly: " +
-                       result.error().message + " (Client ID: " + client_id_ +
-                       ")");
-    } else {
-      NETWORK_LOG_DEBUG("[messaging_client::~messaging_client] "
-                        "Client stopped successfully (Client ID: " +
-                        client_id_ + ")");
+    // CRITICAL: Ensure proper cleanup order even if stop_client() was not
+    // called or returned early (e.g., start_client() failed with exception).
+    //
+    // The order MUST be:
+    // 1. work_guard_ (releases io_context's work, may access io_context)
+    // 2. socket_ (closes connection)
+    // 3. io_context_ (must be last since others depend on it)
+
+    // Step 1: Release work guard FIRST - its destructor calls
+    // io_context::on_work_finished() which requires io_context to be alive
+    work_guard_.reset();
+
+    // Step 2: Close socket
+    {
+      std::lock_guard<std::mutex> lock(socket_mutex_);
+      socket_.reset();
     }
+
+    // Step 3: Reset io_context LAST - after all resources that use it
+    io_context_.reset();
+
   } catch (const std::exception &e) {
     // Destructor must not throw - swallow all exceptions but log them
     NETWORK_LOG_ERROR("[messaging_client::~messaging_client] "
