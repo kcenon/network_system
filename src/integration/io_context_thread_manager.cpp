@@ -283,8 +283,16 @@ private:
 };
 
 io_context_thread_manager& io_context_thread_manager::instance() {
-    static io_context_thread_manager instance;
-    return instance;
+    // Intentionally leak to avoid static destruction order issues.
+    // This singleton may be accessed during other singletons' destruction,
+    // so we intentionally leak to ensure it remains valid throughout
+    // the entire process lifetime.
+    //
+    // Memory impact: ~few KB (reclaimed by OS on process termination)
+    //
+    // Related: thread_system#293 (thread_logger), logger_integration.cpp:329
+    static io_context_thread_manager* instance = new io_context_thread_manager();
+    return *instance;
 }
 
 io_context_thread_manager::io_context_thread_manager()
