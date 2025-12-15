@@ -65,7 +65,16 @@ public:
             if (num_threads == 0) num_threads = 2; // Fallback
         }
 
-        pool_ = std::make_shared<kcenon::thread::thread_pool>("network_basic_pool");
+        // Intentional Leak pattern: Use no-op deleter to prevent destruction
+        // during static destruction phase. This avoids heap corruption when
+        // thread_pool's destructor accesses statically destroyed objects.
+        // Memory impact: ~few KB (reclaimed by OS on process termination)
+        // Related: io_context_thread_manager also uses Intentional Leak pattern
+        auto* pool = new kcenon::thread::thread_pool("network_basic_pool");
+        pool_ = std::shared_ptr<kcenon::thread::thread_pool>(
+            pool,
+            [](kcenon::thread::thread_pool*) { /* no-op deleter - intentional leak */ }
+        );
 
         // Add workers to the pool
         for (size_t i = 0; i < num_threads; ++i) {
