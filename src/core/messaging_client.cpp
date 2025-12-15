@@ -70,12 +70,15 @@ messaging_client::~messaging_client() noexcept {
     }
 
     // CRITICAL: Ensure proper cleanup order even if stop_client() was not
-    // called or returned early (e.g., start_client() failed with exception).
+    // called or returned early (e.g., start_client() failed with exception,
+    // or handle_connection_failure() was called which sets is_running_=false
+    // but doesn't fully clean up io_context).
     //
     // The order MUST be:
     // 1. work_guard_ (releases io_context's work, may access io_context)
     // 2. socket_ (closes connection)
-    // 3. io_context_ (must be last since others depend on it)
+    // 3. Stop and wait for io_context task completion
+    // 4. io_context_ (must be last since others depend on it)
 
     // Step 1: Release work guard FIRST - its destructor calls
     // io_context::on_work_finished() which requires io_context to be alive
@@ -87,7 +90,19 @@ messaging_client::~messaging_client() noexcept {
       socket_.reset();
     }
 
-    // Step 3: Reset io_context LAST - after all resources that use it
+    // Step 3: Stop io_context and wait for task completion
+    // This is CRITICAL for cases where handle_connection_failure() was called
+    // (e.g., connection refused), which doesn't stop the io_context task.
+    // Without this, io_context::run() may still be executing on the thread pool
+    // while we reset io_context_, causing heap corruption.
+    if (io_context_) {
+      integration::io_context_thread_manager::instance().stop_io_context(io_context_);
+    }
+    if (io_context_future_.valid()) {
+      io_context_future_.wait();
+    }
+
+    // Step 4: Reset io_context LAST - after all resources that use it
     io_context_.reset();
 
   } catch (const std::exception &e) {
