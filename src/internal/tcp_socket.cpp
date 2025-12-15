@@ -77,28 +77,8 @@ namespace network_system::internal
 		is_reading_.store(false);
 	}
 
-	auto tcp_socket::mark_destroying() -> void
-	{
-		// Mark that the socket owner is being destroyed
-		// This prevents callbacks from accessing potentially invalid memory
-		is_destroying_.store(true, std::memory_order_release);
-		// Also stop reading to prevent new async operations
-		is_reading_.store(false, std::memory_order_release);
-	}
-
-	auto tcp_socket::is_destroying() const -> bool
-	{
-		return is_destroying_.load(std::memory_order_acquire);
-	}
-
 	auto tcp_socket::do_read() -> void
 	{
-		// Check if socket is being destroyed - early exit to prevent use-after-free
-		if (is_destroying_.load(std::memory_order_acquire))
-		{
-			return;
-		}
-
 		// Check if reading has been stopped before initiating new async operation
 		if (!is_reading_.load())
 		{
@@ -117,13 +97,6 @@ namespace network_system::internal
 			asio::buffer(read_buffer_),
 			[this, self](std::error_code ec, std::size_t length)
 			{
-				// CRITICAL: Check if socket owner is being destroyed first
-				// This prevents accessing potentially freed memory
-				if (is_destroying_.load(std::memory_order_acquire))
-				{
-					return;
-				}
-
 				// Check if reading has been stopped at callback time
 				if (!is_reading_.load())
 				{
@@ -146,8 +119,7 @@ namespace network_system::internal
 						std::lock_guard<std::mutex> lock(callback_mutex_);
 						error_cb = error_callback_;
 					}
-					// Re-check destroying flag before invoking callback
-					if (error_cb && !is_destroying_.load(std::memory_order_acquire)) {
+					if (error_cb) {
 						error_cb(ec);
 					}
 					return;
@@ -163,13 +135,12 @@ namespace network_system::internal
 						std::lock_guard<std::mutex> lock(callback_mutex_);
 						recv_cb = receive_callback_;
 					}
-					// Re-check destroying flag before invoking callback
-					if (recv_cb && !is_destroying_.load(std::memory_order_acquire)) {
+					if (recv_cb) {
 						recv_cb(chunk);
 					}
 				}
-				// Continue reading only if still active and not destroying
-				if (is_reading_.load() && !is_destroying_.load(std::memory_order_acquire))
+				// Continue reading only if still active
+				if (is_reading_.load())
 				{
 					do_read();
 				}
@@ -180,16 +151,6 @@ auto tcp_socket::async_send(
     std::vector<uint8_t>&& data,
     std::function<void(std::error_code, std::size_t)> handler) -> void
 {
-    // Check if socket is being destroyed - early exit
-    if (is_destroying_.load(std::memory_order_acquire))
-    {
-        if (handler)
-        {
-            handler(asio::error::operation_aborted, 0);
-        }
-        return;
-    }
-
     // Check if socket is open before attempting to send
     if (!socket_.is_open())
     {

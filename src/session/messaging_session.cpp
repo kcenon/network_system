@@ -32,8 +32,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "kcenon/network/session/messaging_session.h"
 
-#include <chrono>
-#include <thread>
 #include <type_traits>
 
 #include "kcenon/network/integration/logger_integration.h"
@@ -64,21 +62,8 @@ namespace network_system::session
 	{
 		try
 		{
-			// CRITICAL: Mark socket as destroying BEFORE any cleanup
-			// This prevents async callbacks from accessing invalid memory
-			if (socket_)
-			{
-				socket_->mark_destroying();
-			}
-
-			// Brief pause to allow in-flight callbacks to notice the destroying flag
-			std::this_thread::sleep_for(std::chrono::milliseconds(10));
-
 			// Call stop_session to clean up resources
 			stop_session();
-
-			// Additional wait for async operations to fully complete
-			std::this_thread::sleep_for(std::chrono::milliseconds(10));
 		}
 		catch (...)
 		{
