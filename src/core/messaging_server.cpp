@@ -52,6 +52,34 @@ namespace network_system::core
 		{
 			// Ignore the return value in destructor to avoid throwing
 			(void)stop_server();
+
+			// CRITICAL: Ensure proper cleanup order even if stop_server()
+			// returned early due to is_running_ == false
+
+			// Step 1: Stop io_context to cancel pending async operations
+			// This must happen before session cleanup to prevent callbacks
+			// from being invoked on destroyed objects
+			if (io_context_)
+			{
+				io_context_->stop();
+			}
+
+			// Step 2: Clear sessions - their sockets can safely close now
+			// since io_context is stopped (no more async callbacks)
+			{
+				std::lock_guard<std::mutex> lock(sessions_mutex_);
+				for (auto& sess : sessions_)
+				{
+					if (sess)
+					{
+						sess->stop_session();
+					}
+				}
+				sessions_.clear();
+			}
+
+			// Step 3: Reset io_context after sessions are cleared
+			io_context_.reset();
 		}
 		catch (...)
 		{
