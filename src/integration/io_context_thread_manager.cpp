@@ -200,6 +200,19 @@ public:
         entries_.clear();
     }
 
+    void shutdown_thread_pool() {
+        // Gracefully stop the thread pool to prevent worker threads from
+        // accessing destroyed static objects during process termination.
+        // This should be called after all io_contexts have been stopped
+        // and while logger and other singletons are still valid.
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (thread_pool_ && owns_thread_pool_) {
+            if (auto* basic = dynamic_cast<basic_thread_pool*>(thread_pool_.get())) {
+                basic->stop(true);  // wait for pending tasks to complete
+            }
+        }
+    }
+
     size_t active_count() const {
         std::lock_guard<std::mutex> lock(mutex_);
         size_t count = 0;
@@ -299,6 +312,10 @@ void io_context_thread_manager::stop_all() {
 void io_context_thread_manager::shutdown() {
     pimpl_->stop_all();
     pimpl_->wait_all();
+    // Stop thread pool after all io_contexts have completed.
+    // This must be done while logger and other static objects are still valid,
+    // because thread_pool::stop() may log messages.
+    pimpl_->shutdown_thread_pool();
 }
 
 void io_context_thread_manager::wait_all() {

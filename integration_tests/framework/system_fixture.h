@@ -89,10 +89,11 @@ protected:
     // Brief pause to ensure cleanup
     test_helpers::wait_for_ready();
 
-    // Ensure all io_contexts are properly stopped before test process exits
-    // This prevents static destruction order issues with singletons
-    integration::io_context_thread_manager::instance().stop_all();
-    integration::io_context_thread_manager::instance().wait_all();
+    // Ensure all io_contexts and thread pool are properly stopped before test
+    // process exits. shutdown() stops all io_contexts, waits for completion,
+    // and then stops the thread pool. This prevents static destruction order
+    // issues where worker threads might access destroyed static objects.
+    integration::io_context_thread_manager::instance().shutdown();
 
     timeout_guard_.reset();
   }
