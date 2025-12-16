@@ -60,6 +60,12 @@ jobs:
         path: container_system
         token: ${{ secrets.GITHUB_TOKEN }}
 
+    # MSVC setup must come BEFORE ecosystem dependencies build
+    # so that dependencies are built with the same compiler as network_system
+    - name: Set up compiler (MSVC)
+      if: matrix.compiler == 'msvc'
+      uses: ilammy/msvc-dev-cmd@v1
+
     - name: Build ecosystem dependencies (Unix)
       if: runner.os != 'Windows'
       shell: bash
@@ -246,10 +252,6 @@ jobs:
       run: |
         echo "CC=clang" >> $GITHUB_ENV
         echo "CXX=clang++" >> $GITHUB_ENV
-
-    - name: Set up compiler (MSVC)
-      if: matrix.compiler == 'msvc'
-      uses: ilammy/msvc-dev-cmd@v1
 
     - name: Configure CMake (Unix)
       if: runner.os != 'Windows'
