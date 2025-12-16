@@ -175,8 +175,12 @@ jobs:
             -DBUILD_SAMPLES=OFF
           cmake --build build
           # Install may fail due to missing files in container_system CMake config
-          cmake --install build --prefix ${{ github.workspace }}/deps/install
-          if ($LASTEXITCODE -ne 0) { Write-Host "container_system install had warnings (continuing)" }
+          # Use try/catch to prevent script termination
+          try {
+            cmake --install build --prefix ${{ github.workspace }}/deps/install
+          } catch {
+            Write-Host "container_system install had warnings (continuing)"
+          }
           Pop-Location
         }
 
