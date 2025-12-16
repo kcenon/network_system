@@ -86,27 +86,44 @@ server->on_connection([executor](auto conn) {
 
 ## Error Handling with Result<T>
 
-Network system uses `Result<T>` for all fallible operations:
+Network system uses `Result<T>` for all fallible operations. As of the ecosystem-wide
+Result<T> unification initiative, **`kcenon::common::Result<T>` is the primary API**.
+
+### Migration Notice
+
+The `network_system::Result<T>` alias is retained for backward compatibility but
+new code should use `kcenon::common::Result<T>` directly for ecosystem consistency.
+
+To enable deprecation warnings during migration preparation, define:
+```cpp
+#define NETWORK_SYSTEM_ENABLE_DEPRECATION_WARNINGS
+```
+
+See [common_system Result<T> Unification](https://github.com/kcenon/common_system/issues/205)
+for more details on the ecosystem-wide migration.
 
 ### Basic Usage
 
 ```cpp
-#include "common_system/result.h"
-#include "network_system/TcpClient.h"
+#include <kcenon/common/patterns/result.h>
+#include <kcenon/network/core/messaging_client.h>
 
-auto client = network_system::TcpClient::create();
+// Use common::Result<T> directly (recommended)
+using kcenon::common::Result;
+using kcenon::common::VoidResult;
 
-// Connect returns Result<Connection>
-auto conn_result = client->connect("example.com", 80);
+auto client = std::make_shared<network_system::core::messaging_client>("client");
 
-if (!conn_result) {
+// Connect returns VoidResult
+auto conn_result = client->start_client("example.com", 80);
+
+if (conn_result.is_err()) {
     // Handle error
-    std::cerr << "Connection failed: " << conn_result.error() << std::endl;
+    std::cerr << "Connection failed: " << conn_result.error().message << std::endl;
     return;
 }
 
-auto conn = conn_result.value();
-// ... use connection ...
+// ... use client ...
 ```
 
 ### Propagating Errors
