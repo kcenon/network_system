@@ -38,6 +38,15 @@ Network System 프로젝트의 모든 주목할 만한 변경 사항은 이 파�
 
 ## [Unreleased]
 
+### CI/CD
+- **Ecosystem 의존성 표준화** (2025-12-16)
+  - actions/checkout@v4를 사용하여 ecosystem 의존성(common_system, thread_system, logger_system, container_system) checkout 표준화
+  - upstream CMake 설정에서 누락된 파일 처리를 위한 container_system 설치 단계에 graceful error handling 추가
+  - ci.yml 및 integration-tests.yml에 일관된 의존성 빌드 단계 업데이트
+  - 현실적인 커버리지 타겟을 포함한 codecov.yml 추가 (프로젝트 55%, 패치 60%)
+  - CMake 의존성 해결에서 CI workspace 경로 명확화
+  - #298 종료
+
 ### 변경됨
 - **Thread System 마이그레이션 Epic 완료** (2025-12-06)
   - 코어 소스 파일의 모든 직접적인 `std::thread` 사용이 `thread_system` 통합으로 마이그레이션됨

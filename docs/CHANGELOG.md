@@ -38,6 +38,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### CI/CD
+- **Ecosystem Dependencies Standardization** (2025-12-16)
+  - Standardized checkout of ecosystem dependencies (common_system, thread_system, logger_system, container_system) using actions/checkout@v4
+  - Added graceful error handling for container_system install step to handle missing files in upstream CMake configuration
+  - Updated ci.yml and integration-tests.yml with consistent dependency build steps
+  - Added codecov.yml with realistic coverage targets (55% project, 60% patch)
+  - Clarified CI workspace paths in CMake dependency resolution
+  - Closes #298
+
 ### Changed
 - **Thread System Migration Epic Complete** (2025-12-06)
   - All direct `std::thread` usage in core source files migrated to `thread_system` integration
