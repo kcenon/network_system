@@ -100,11 +100,14 @@ public:
             return future;
         }
 
-        bool ok = pool_->submit_task([task = std::move(task), promise, this]() mutable {
+        // Note: Capture completed_tasks_ by pointer to avoid capturing 'this',
+        // which can cause heap corruption during static destruction.
+        auto* completed_ptr = &completed_tasks_;
+        bool ok = pool_->submit_task([task = std::move(task), promise, completed_ptr]() mutable {
             try {
                 if (task) task();
                 promise->set_value();
-                completed_tasks_++;
+                completed_ptr->fetch_add(1, std::memory_order_relaxed);
             } catch (...) {
                 promise->set_exception(std::current_exception());
             }
@@ -143,12 +146,15 @@ public:
             return future;
         }
 
-        bool ok = pool_->submit_task([task = std::move(task), delay, promise, this]() mutable {
+        // Note: Capture completed_tasks_ by pointer to avoid capturing 'this',
+        // which can cause heap corruption during static destruction.
+        auto* completed_ptr = &completed_tasks_;
+        bool ok = pool_->submit_task([task = std::move(task), delay, promise, completed_ptr]() mutable {
             try {
                 std::this_thread::sleep_for(delay);
                 if (task) task();
                 promise->set_value();
-                completed_tasks_++;
+                completed_ptr->fetch_add(1, std::memory_order_relaxed);
             } catch (...) {
                 promise->set_exception(std::current_exception());
             }
@@ -413,7 +419,11 @@ private:
 #endif // BUILD_WITH_THREAD_SYSTEM
 
 basic_thread_pool::basic_thread_pool(size_t num_threads)
-    : pimpl_(std::make_unique<impl>(num_threads)) {
+    // Intentional Leak pattern: Use no-op deleter to prevent destruction
+    // during static destruction phase. This avoids heap corruption when
+    // worker threads may still access the impl's members (queue, mutex, etc.)
+    // Memory impact: ~few KB (reclaimed by OS on process termination)
+    : pimpl_(new impl(num_threads), [](impl*) { /* no-op deleter - intentional leak */ }) {
 }
 
 basic_thread_pool::~basic_thread_pool() = default;
@@ -509,7 +519,11 @@ thread_integration_manager& thread_integration_manager::instance() {
 }
 
 thread_integration_manager::thread_integration_manager()
-    : pimpl_(std::make_unique<impl>()) {
+    // Intentional Leak pattern: Use no-op deleter to prevent destruction
+    // during static destruction phase. This avoids heap corruption when
+    // thread pool tasks may still reference the impl's members.
+    // Memory impact: ~few KB (reclaimed by OS on process termination)
+    : pimpl_(new impl(), [](impl*) { /* no-op deleter - intentional leak */ }) {
 }
 
 thread_integration_manager::~thread_integration_manager() = default;

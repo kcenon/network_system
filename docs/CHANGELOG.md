@@ -38,6 +38,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### CI/CD
+- **Ecosystem Dependencies Standardization** (2025-12-16)
+  - Standardized checkout of ecosystem dependencies (common_system, thread_system, logger_system, container_system) using actions/checkout@v4
+  - Added graceful error handling for container_system install step to handle missing files in upstream CMake configuration
+  - Updated ci.yml and integration-tests.yml with consistent dependency build steps
+  - Added codecov.yml with realistic coverage targets (55% project, 60% patch)
+  - Clarified CI workspace paths in CMake dependency resolution
+  - Closes #298
+- **Windows MSVC Build Fix** (2025-12-16)
+  - Moved MSVC compiler setup before ecosystem dependencies build step
+  - Changed ecosystem dependencies to build with Debug configuration to match network_system
+  - Windows MSVC requires matching RuntimeLibrary settings (MDd vs MD) between linked libraries
+
+### Fixed
+- **Static Destruction Order Heap Corruption** (2025-12-16)
+  - Applied Intentional Leak pattern to `io_context_thread_manager` to prevent heap corruption during static destruction
+  - Avoided capturing `this` pointer in lambdas submitted to thread pools
+  - Captured atomic counter pointers directly instead of `this` in `thread_integration.cpp`
+  - Fixes "corrupted size vs. prev_size" errors in integration tests when ecosystem dependencies are enabled
+
 ### Changed
 - **Thread System Migration Epic Complete** (2025-12-06)
   - All direct `std::thread` usage in core source files migrated to `thread_system` integration

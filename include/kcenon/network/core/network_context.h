@@ -131,7 +131,10 @@ private:
     network_context& operator=(network_context&&) = delete;
 
     class impl;
-    std::unique_ptr<impl> pimpl_;
+    // Use shared_ptr with no-op deleter (Intentional Leak pattern) to prevent
+    // heap corruption during static destruction phase when io_context_thread_manager
+    // tasks may still reference the thread pool.
+    std::shared_ptr<impl> pimpl_;
 };
 
 } // namespace network_system::core

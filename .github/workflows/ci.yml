@@ -32,6 +32,176 @@ jobs:
       with:
         submodules: recursive
 
+    - name: Checkout common_system
+      uses: actions/checkout@v4
+      with:
+        repository: kcenon/common_system
+        path: common_system
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Checkout thread_system
+      uses: actions/checkout@v4
+      with:
+        repository: kcenon/thread_system
+        path: thread_system
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Checkout logger_system
+      uses: actions/checkout@v4
+      with:
+        repository: kcenon/logger_system
+        path: logger_system
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Checkout container_system
+      uses: actions/checkout@v4
+      with:
+        repository: kcenon/container_system
+        path: container_system
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    # MSVC setup must come BEFORE ecosystem dependencies build
+    # so that dependencies are built with the same compiler as network_system
+    - name: Set up compiler (MSVC)
+      if: matrix.compiler == 'msvc'
+      uses: ilammy/msvc-dev-cmd@v1
+
+    - name: Build ecosystem dependencies (Unix)
+      if: runner.os != 'Windows'
+      shell: bash
+      run: |
+        # Build common_system (header-only, just need include path)
+        if [ -d "common_system" ]; then
+          echo "common_system found - header-only library"
+        fi
+
+        # Build thread_system
+        if [ -d "thread_system" ]; then
+          echo "Building thread_system..."
+          cd thread_system
+          cmake -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DBUILD_TESTS=OFF \
+            -DBUILD_EXAMPLES=OFF \
+            -DBUILD_SAMPLES=OFF \
+            -DBUILD_INTEGRATION_TESTS=OFF
+          cmake --build build --target ThreadSystem
+          cmake --install build --prefix ${{ github.workspace }}/deps/install
+          cd ..
+        fi
+
+        # Build logger_system
+        if [ -d "logger_system" ]; then
+          echo "Building logger_system..."
+          cd logger_system
+          cmake -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_PREFIX_PATH=${{ github.workspace }}/deps/install \
+            -DBUILD_TESTS=OFF \
+            -DBUILD_EXAMPLES=OFF \
+            -DBUILD_SAMPLES=OFF \
+            -DLOGGER_BUILD_INTEGRATION_TESTS=OFF
+          cmake --build build
+          cmake --install build --prefix ${{ github.workspace }}/deps/install
+          cd ..
+        fi
+
+        # Build container_system
+        if [ -d "container_system" ]; then
+          echo "Building container_system..."
+          cd container_system
+          cmake -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_PREFIX_PATH=${{ github.workspace }}/deps/install \
+            -DBUILD_TESTS=OFF \
+            -DBUILD_EXAMPLES=OFF \
+            -DBUILD_SAMPLES=OFF
+          cmake --build build
+          # Install may fail due to missing files in container_system CMake config
+          cmake --install build --prefix ${{ github.workspace }}/deps/install || true
+          cd ..
+        fi
+
+        # Remove GoogleTest from deps/install to avoid ABI conflicts with system GoogleTest
+        # This ensures network_system uses the system-installed GoogleTest (brew/apt)
+        # Must remove CMake config files too, otherwise find_package finds broken config
+        echo "Removing GoogleTest from deps/install to avoid ABI conflicts..."
+        rm -f ${{ github.workspace }}/deps/install/lib/libgtest*.a 2>/dev/null || true
+        rm -f ${{ github.workspace }}/deps/install/lib/libgmock*.a 2>/dev/null || true
+        rm -rf ${{ github.workspace }}/deps/install/include/gtest 2>/dev/null || true
+        rm -rf ${{ github.workspace }}/deps/install/include/gmock 2>/dev/null || true
+        rm -rf ${{ github.workspace }}/deps/install/lib/cmake/GTest 2>/dev/null || true
+
+    - name: Build ecosystem dependencies (Windows)
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        New-Item -ItemType Directory -Force -Path deps/install | Out-Null
+
+        # Build thread_system
+        # Note: Must use Debug build type to match network_system's Debug configuration
+        # Windows MSVC requires matching RuntimeLibrary settings (MDd vs MD)
+        if (Test-Path "thread_system") {
+          Write-Host "Building thread_system..."
+          Push-Location thread_system
+          cmake -B build -G Ninja `
+            -DCMAKE_BUILD_TYPE=Debug `
+            -DBUILD_TESTS=OFF `
+            -DBUILD_EXAMPLES=OFF `
+            -DBUILD_SAMPLES=OFF `
+            -DBUILD_INTEGRATION_TESTS=OFF
+          cmake --build build --target ThreadSystem
+          cmake --install build --prefix ${{ github.workspace }}/deps/install
+          Pop-Location
+        }
+
+        # Build logger_system
+        if (Test-Path "logger_system") {
+          Write-Host "Building logger_system..."
+          Push-Location logger_system
+          cmake -B build -G Ninja `
+            -DCMAKE_BUILD_TYPE=Debug `
+            -DCMAKE_PREFIX_PATH=${{ github.workspace }}/deps/install `
+            -DBUILD_TESTS=OFF `
+            -DBUILD_EXAMPLES=OFF `
+            -DBUILD_SAMPLES=OFF `
+            -DLOGGER_BUILD_INTEGRATION_TESTS=OFF
+          cmake --build build
+          cmake --install build --prefix ${{ github.workspace }}/deps/install
+          Pop-Location
+        }
+
+        # Build container_system
+        if (Test-Path "container_system") {
+          Write-Host "Building container_system..."
+          Push-Location container_system
+          cmake -B build -G Ninja `
+            -DCMAKE_BUILD_TYPE=Debug `
+            -DCMAKE_PREFIX_PATH=${{ github.workspace }}/deps/install `
+            -DBUILD_TESTS=OFF `
+            -DBUILD_EXAMPLES=OFF `
+            -DBUILD_SAMPLES=OFF
+          cmake --build build
+          # Install may fail due to missing files in container_system CMake config
+          # Capture output and reset exit code to allow script to continue
+          $installOutput = cmake --install build --prefix ${{ github.workspace }}/deps/install 2>&1
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "container_system install had issues (exit code: $LASTEXITCODE), continuing..."
+            Write-Host $installOutput
+            $global:LASTEXITCODE = 0  # Reset to allow script to continue successfully
+          }
+          Pop-Location
+        }
+
+        # Remove GoogleTest from deps/install to avoid ABI conflicts with vcpkg GoogleTest
+        # Must remove CMake config files too, otherwise find_package finds broken config
+        Write-Host "Removing GoogleTest from deps/install to avoid ABI conflicts..."
+        Remove-Item -Force "${{ github.workspace }}/deps/install/lib/gtest*.lib" -ErrorAction SilentlyContinue
+        Remove-Item -Force "${{ github.workspace }}/deps/install/lib/gmock*.lib" -ErrorAction SilentlyContinue
+        Remove-Item -Recurse -Force "${{ github.workspace }}/deps/install/include/gtest" -ErrorAction SilentlyContinue
+        Remove-Item -Recurse -Force "${{ github.workspace }}/deps/install/include/gmock" -ErrorAction SilentlyContinue
+        Remove-Item -Recurse -Force "${{ github.workspace }}/deps/install/lib/cmake/GTest" -ErrorAction SilentlyContinue
+
     - name: Install dependencies (Ubuntu)
       if: runner.os == 'Linux'
       run: |
@@ -85,19 +255,16 @@ jobs:
         echo "CC=clang" >> $GITHUB_ENV
         echo "CXX=clang++" >> $GITHUB_ENV
 
-    - name: Set up compiler (MSVC)
-      if: matrix.compiler == 'msvc'
-      uses: ilammy/msvc-dev-cmd@v1
-
     - name: Configure CMake (Unix)
       if: runner.os != 'Windows'
       run: |
         cmake -B build -G Ninja \
           -DCMAKE_BUILD_TYPE=Debug \
-          -DBUILD_WITH_COMMON_SYSTEM=OFF \
-          -DBUILD_WITH_LOGGER_SYSTEM=OFF \
-          -DBUILD_WITH_THREAD_SYSTEM=OFF \
-          -DBUILD_WITH_CONTAINER_SYSTEM=OFF \
+          -DCMAKE_PREFIX_PATH=${{ github.workspace }}/deps/install \
+          -DBUILD_WITH_COMMON_SYSTEM=ON \
+          -DBUILD_WITH_LOGGER_SYSTEM=ON \
+          -DBUILD_WITH_THREAD_SYSTEM=ON \
+          -DBUILD_WITH_CONTAINER_SYSTEM=ON \
           -DBUILD_MESSAGING_BRIDGE=OFF \
           -DBUILD_TESTS=ON \
           -DBUILD_SAMPLES=OFF
@@ -107,20 +274,18 @@ jobs:
       shell: pwsh
       run: |
         $toolchainFile = "$env:VCPKG_INSTALLATION_ROOT\scripts\buildsystems\vcpkg.cmake"
-        echo "Toolchain file: $toolchainFile"
-        if (Test-Path $toolchainFile) {
-          echo "Toolchain file exists"
-        } else {
-          echo "ERROR: Toolchain file not found!"
+        if (-not (Test-Path $toolchainFile)) {
+          Write-Host "ERROR: Toolchain file not found!"
           exit 1
         }
         cmake -B build -G Ninja `
           -DCMAKE_BUILD_TYPE=Debug `
           -DCMAKE_TOOLCHAIN_FILE="$toolchainFile" `
-          -DBUILD_WITH_COMMON_SYSTEM=OFF `
-          -DBUILD_WITH_LOGGER_SYSTEM=OFF `
-          -DBUILD_WITH_THREAD_SYSTEM=OFF `
-          -DBUILD_WITH_CONTAINER_SYSTEM=OFF `
+          -DCMAKE_PREFIX_PATH="${{ github.workspace }}/deps/install" `
+          -DBUILD_WITH_COMMON_SYSTEM=ON `
+          -DBUILD_WITH_LOGGER_SYSTEM=ON `
+          -DBUILD_WITH_THREAD_SYSTEM=ON `
+          -DBUILD_WITH_CONTAINER_SYSTEM=ON `
           -DBUILD_MESSAGING_BRIDGE=OFF `
           -DBUILD_TESTS=ON `
           -DBUILD_SAMPLES=OFF
@@ -171,6 +336,84 @@ jobs:
       with:
         submodules: recursive
 
+    - name: Checkout common_system
+      uses: actions/checkout@v4
+      with:
+        repository: kcenon/common_system
+        path: common_system
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Checkout thread_system
+      uses: actions/checkout@v4
+      with:
+        repository: kcenon/thread_system
+        path: thread_system
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Checkout logger_system
+      uses: actions/checkout@v4
+      with:
+        repository: kcenon/logger_system
+        path: logger_system
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Checkout container_system
+      uses: actions/checkout@v4
+      with:
+        repository: kcenon/container_system
+        path: container_system
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Build ecosystem dependencies
+      shell: bash
+      run: |
+        # Build thread_system
+        if [ -d "thread_system" ]; then
+          echo "Building thread_system..."
+          cd thread_system
+          cmake -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DBUILD_TESTS=OFF \
+            -DBUILD_EXAMPLES=OFF \
+            -DBUILD_SAMPLES=OFF \
+            -DBUILD_INTEGRATION_TESTS=OFF
+          cmake --build build --target ThreadSystem
+          cmake --install build --prefix ${{ github.workspace }}/deps/install
+          cd ..
+        fi
+
+        # Build logger_system
+        if [ -d "logger_system" ]; then
+          echo "Building logger_system..."
+          cd logger_system
+          cmake -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_PREFIX_PATH=${{ github.workspace }}/deps/install \
+            -DBUILD_TESTS=OFF \
+            -DBUILD_EXAMPLES=OFF \
+            -DBUILD_SAMPLES=OFF \
+            -DLOGGER_BUILD_INTEGRATION_TESTS=OFF
+          cmake --build build
+          cmake --install build --prefix ${{ github.workspace }}/deps/install
+          cd ..
+        fi
+
+        # Build container_system
+        if [ -d "container_system" ]; then
+          echo "Building container_system..."
+          cd container_system
+          cmake -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_PREFIX_PATH=${{ github.workspace }}/deps/install \
+            -DBUILD_TESTS=OFF \
+            -DBUILD_EXAMPLES=OFF \
+            -DBUILD_SAMPLES=OFF
+          cmake --build build
+          # Install may fail due to missing files in container_system CMake config
+          cmake --install build --prefix ${{ github.workspace }}/deps/install || true
+          cd ..
+        fi
+
     - name: Install dependencies
       run: |
         sudo apt-get update
@@ -180,10 +423,11 @@ jobs:
       run: |
         cmake -B build -G Ninja \
           -DCMAKE_BUILD_TYPE=Debug \
-          -DBUILD_WITH_COMMON_SYSTEM=OFF \
-          -DBUILD_WITH_LOGGER_SYSTEM=OFF \
-          -DBUILD_WITH_THREAD_SYSTEM=OFF \
-          -DBUILD_WITH_CONTAINER_SYSTEM=OFF \
+          -DCMAKE_PREFIX_PATH=${{ github.workspace }}/deps/install \
+          -DBUILD_WITH_COMMON_SYSTEM=ON \
+          -DBUILD_WITH_LOGGER_SYSTEM=ON \
+          -DBUILD_WITH_THREAD_SYSTEM=ON \
+          -DBUILD_WITH_CONTAINER_SYSTEM=ON \
           -DBUILD_MESSAGING_BRIDGE=OFF \
           -DBUILD_TESTS=ON \
           -DBUILD_SAMPLES=OFF \

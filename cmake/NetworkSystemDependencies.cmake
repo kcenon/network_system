@@ -170,10 +170,14 @@ function(find_container_system)
         list(APPEND _container_lib_paths "${CONTAINER_SYSTEM_ROOT}/build/lib")
     endif()
 
-    # 3. Standard search paths
+    # 3. CI workspace path (actions/checkout@v4 with path: container_system)
+    list(APPEND _container_search_paths
+        "${CMAKE_SOURCE_DIR}/container_system"
+    )
+
+    # 4. Local development paths
     list(APPEND _container_search_paths
         "${CMAKE_CURRENT_SOURCE_DIR}/../container_system"
-        "${CMAKE_SOURCE_DIR}/container_system"
         "${CMAKE_SOURCE_DIR}/../container_system"
         "../container_system"
     )
@@ -258,10 +262,14 @@ function(find_thread_system)
         list(APPEND _thread_lib_paths "${THREAD_SYSTEM_ROOT}/build/lib")
     endif()
 
-    # 3. Standard search paths
+    # 3. CI workspace path (actions/checkout@v4 with path: thread_system)
+    list(APPEND _thread_search_paths
+        "${CMAKE_SOURCE_DIR}/thread_system/include"
+    )
+
+    # 4. Local development paths
     list(APPEND _thread_search_paths
         "${CMAKE_CURRENT_SOURCE_DIR}/../thread_system/include"
-        "${CMAKE_SOURCE_DIR}/thread_system/include"
         "${CMAKE_SOURCE_DIR}/../thread_system/include"
         "../thread_system/include"
     )
@@ -347,10 +355,14 @@ function(find_logger_system)
         list(APPEND _logger_lib_paths "${LOGGER_SYSTEM_ROOT}/build/lib")
     endif()
 
-    # 3. Standard search paths
+    # 3. CI workspace path (actions/checkout@v4 with path: logger_system)
+    list(APPEND _logger_search_paths
+        "${CMAKE_SOURCE_DIR}/logger_system/include"
+    )
+
+    # 4. Local development paths
     list(APPEND _logger_search_paths
         "${CMAKE_CURRENT_SOURCE_DIR}/../logger_system/include"
-        "${CMAKE_SOURCE_DIR}/logger_system/include"
         "${CMAKE_SOURCE_DIR}/../logger_system/include"
         "../logger_system/include"
     )
@@ -433,10 +445,14 @@ function(find_common_system)
         list(APPEND _common_search_paths "${COMMON_SYSTEM_ROOT}/include")
     endif()
 
-    # 3. Standard search paths
+    # 3. CI workspace path (actions/checkout@v4 with path: common_system)
+    list(APPEND _common_search_paths
+        "${CMAKE_SOURCE_DIR}/common_system/include"
+    )
+
+    # 4. Local development paths
     list(APPEND _common_search_paths
         "${CMAKE_CURRENT_SOURCE_DIR}/../common_system/include"
-        "${CMAKE_SOURCE_DIR}/common_system/include"
         "${CMAKE_SOURCE_DIR}/../common_system/include"
         "../common_system/include"
     )

@@ -24,6 +24,94 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Checkout common_system
+        uses: actions/checkout@v4
+        with:
+          repository: kcenon/common_system
+          path: common_system
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Checkout thread_system
+        uses: actions/checkout@v4
+        with:
+          repository: kcenon/thread_system
+          path: thread_system
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Checkout logger_system
+        uses: actions/checkout@v4
+        with:
+          repository: kcenon/logger_system
+          path: logger_system
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Checkout container_system
+        uses: actions/checkout@v4
+        with:
+          repository: kcenon/container_system
+          path: container_system
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build ecosystem dependencies
+        shell: bash
+        run: |
+          # Build thread_system
+          if [ -d "thread_system" ]; then
+            echo "Building thread_system..."
+            cd thread_system
+            cmake -B build -G Ninja \
+              -DCMAKE_BUILD_TYPE=Release \
+              -DBUILD_TESTS=OFF \
+              -DBUILD_EXAMPLES=OFF \
+              -DBUILD_SAMPLES=OFF \
+              -DBUILD_INTEGRATION_TESTS=OFF
+            cmake --build build --target ThreadSystem
+            cmake --install build --prefix ${{ github.workspace }}/deps/install
+            cd ..
+          fi
+
+          # Build logger_system
+          if [ -d "logger_system" ]; then
+            echo "Building logger_system..."
+            cd logger_system
+            cmake -B build -G Ninja \
+              -DCMAKE_BUILD_TYPE=Release \
+              -DCMAKE_PREFIX_PATH=${{ github.workspace }}/deps/install \
+              -DBUILD_TESTS=OFF \
+              -DBUILD_EXAMPLES=OFF \
+              -DBUILD_SAMPLES=OFF \
+              -DLOGGER_BUILD_INTEGRATION_TESTS=OFF
+            cmake --build build
+            cmake --install build --prefix ${{ github.workspace }}/deps/install
+            cd ..
+          fi
+
+          # Build container_system
+          if [ -d "container_system" ]; then
+            echo "Building container_system..."
+            cd container_system
+            cmake -B build -G Ninja \
+              -DCMAKE_BUILD_TYPE=Release \
+              -DCMAKE_PREFIX_PATH=${{ github.workspace }}/deps/install \
+              -DBUILD_TESTS=OFF \
+              -DBUILD_EXAMPLES=OFF \
+              -DBUILD_SAMPLES=OFF
+            cmake --build build
+            # Install may fail due to missing files in container_system CMake config
+            cmake --install build --prefix ${{ github.workspace }}/deps/install || true
+            cd ..
+          fi
+
+          # Remove GoogleTest from deps/install to avoid ABI conflicts with system GoogleTest
+          # This ensures network_system uses the system-installed GoogleTest (brew/apt)
+          # Must remove CMake config files too, otherwise find_package finds broken config
+          echo "Removing GoogleTest from deps/install to avoid ABI conflicts..."
+          rm -f ${{ github.workspace }}/deps/install/lib/libgtest*.a 2>/dev/null || true
+          rm -f ${{ github.workspace }}/deps/install/lib/libgmock*.a 2>/dev/null || true
+          rm -rf ${{ github.workspace }}/deps/install/include/gtest 2>/dev/null || true
+          rm -rf ${{ github.workspace }}/deps/install/include/gmock 2>/dev/null || true
+          rm -rf ${{ github.workspace }}/deps/install/lib/cmake/GTest 2>/dev/null || true
+
       - name: Install dependencies (Ubuntu)
         if: runner.os == 'Linux'
         run: |
@@ -63,14 +151,15 @@ jobs:
           cmake -B build \
             -G Ninja \
             -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+            -DCMAKE_PREFIX_PATH=${{ github.workspace }}/deps/install \
             -DBUILD_TESTS=ON \
             -DNETWORK_BUILD_INTEGRATION_TESTS=ON \
             -DENABLE_COVERAGE=${{ matrix.build_type == 'Debug' && 'ON' || 'OFF' }} \
             -DBUILD_SAMPLES=OFF \
-            -DBUILD_WITH_COMMON_SYSTEM=OFF \
-            -DBUILD_WITH_LOGGER_SYSTEM=OFF \
-            -DBUILD_WITH_THREAD_SYSTEM=OFF \
-            -DBUILD_WITH_CONTAINER_SYSTEM=OFF \
+            -DBUILD_WITH_COMMON_SYSTEM=ON \
+            -DBUILD_WITH_LOGGER_SYSTEM=ON \
+            -DBUILD_WITH_THREAD_SYSTEM=ON \
+            -DBUILD_WITH_CONTAINER_SYSTEM=ON \
             -DBUILD_MESSAGING_BRIDGE=OFF
 
       - name: Build
@@ -153,6 +242,84 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Checkout common_system
+        uses: actions/checkout@v4
+        with:
+          repository: kcenon/common_system
+          path: common_system
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Checkout thread_system
+        uses: actions/checkout@v4
+        with:
+          repository: kcenon/thread_system
+          path: thread_system
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Checkout logger_system
+        uses: actions/checkout@v4
+        with:
+          repository: kcenon/logger_system
+          path: logger_system
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Checkout container_system
+        uses: actions/checkout@v4
+        with:
+          repository: kcenon/container_system
+          path: container_system
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build ecosystem dependencies
+        shell: bash
+        run: |
+          # Build thread_system
+          if [ -d "thread_system" ]; then
+            echo "Building thread_system..."
+            cd thread_system
+            cmake -B build -G Ninja \
+              -DCMAKE_BUILD_TYPE=Release \
+              -DBUILD_TESTS=OFF \
+              -DBUILD_EXAMPLES=OFF \
+              -DBUILD_SAMPLES=OFF \
+              -DBUILD_INTEGRATION_TESTS=OFF
+            cmake --build build --target ThreadSystem
+            cmake --install build --prefix ${{ github.workspace }}/deps/install
+            cd ..
+          fi
+
+          # Build logger_system
+          if [ -d "logger_system" ]; then
+            echo "Building logger_system..."
+            cd logger_system
+            cmake -B build -G Ninja \
+              -DCMAKE_BUILD_TYPE=Release \
+              -DCMAKE_PREFIX_PATH=${{ github.workspace }}/deps/install \
+              -DBUILD_TESTS=OFF \
+              -DBUILD_EXAMPLES=OFF \
+              -DBUILD_SAMPLES=OFF \
+              -DLOGGER_BUILD_INTEGRATION_TESTS=OFF
+            cmake --build build
+            cmake --install build --prefix ${{ github.workspace }}/deps/install
+            cd ..
+          fi
+
+          # Build container_system
+          if [ -d "container_system" ]; then
+            echo "Building container_system..."
+            cd container_system
+            cmake -B build -G Ninja \
+              -DCMAKE_BUILD_TYPE=Release \
+              -DCMAKE_PREFIX_PATH=${{ github.workspace }}/deps/install \
+              -DBUILD_TESTS=OFF \
+              -DBUILD_EXAMPLES=OFF \
+              -DBUILD_SAMPLES=OFF
+            cmake --build build
+            # Install may fail due to missing files in container_system CMake config
+            cmake --install build --prefix ${{ github.workspace }}/deps/install || true
+            cd ..
+          fi
+
       - name: Install dependencies
         run: |
           sudo apt-get update
@@ -169,13 +336,14 @@ jobs:
           cmake -B build \
             -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_PREFIX_PATH=${{ github.workspace }}/deps/install \
             -DBUILD_TESTS=ON \
             -DNETWORK_BUILD_INTEGRATION_TESTS=ON \
             -DBUILD_SAMPLES=OFF \
-            -DBUILD_WITH_COMMON_SYSTEM=OFF \
-            -DBUILD_WITH_LOGGER_SYSTEM=OFF \
-            -DBUILD_WITH_THREAD_SYSTEM=OFF \
-            -DBUILD_WITH_CONTAINER_SYSTEM=OFF \
+            -DBUILD_WITH_COMMON_SYSTEM=ON \
+            -DBUILD_WITH_LOGGER_SYSTEM=ON \
+            -DBUILD_WITH_THREAD_SYSTEM=ON \
+            -DBUILD_WITH_CONTAINER_SYSTEM=ON \
             -DBUILD_MESSAGING_BRIDGE=OFF
 
       - name: Build
