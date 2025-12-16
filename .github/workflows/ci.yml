@@ -175,11 +175,12 @@ jobs:
             -DBUILD_SAMPLES=OFF
           cmake --build build
           # Install may fail due to missing files in container_system CMake config
-          # Use $LASTEXITCODE check since try/catch doesn't work with external commands
+          # Capture output and reset exit code to allow script to continue
           $installOutput = cmake --install build --prefix ${{ github.workspace }}/deps/install 2>&1
           if ($LASTEXITCODE -ne 0) {
             Write-Host "container_system install had issues (exit code: $LASTEXITCODE), continuing..."
             Write-Host $installOutput
+            $global:LASTEXITCODE = 0  # Reset to allow script to continue successfully
           }
           Pop-Location
         }
