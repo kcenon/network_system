@@ -1,0 +1,32 @@
+# Codecov Configuration for network_system
+# Reference: https://docs.codecov.com/docs/codecovyml-reference
+
+coverage:
+  status:
+    project:
+      default:
+        target: 55%  # Phase 1: Establish baseline
+        threshold: 2%
+    patch:
+      default:
+        target: 60%
+        threshold: 5%
+
+# Gradual improvement plan:
+# - Phase 1 (Current): 55% project, 60% patch
+# - Phase 2: 65% project, 70% patch
+# - Phase 3: 75% project, 80% patch
+
+comment:
+  layout: "reach,diff,flags,files"
+  behavior: default
+  require_changes: false
+
+ignore:
+  - "tests/**/*"
+  - "integration_tests/**/*"
+  - "samples/**/*"
+  - "benchmarks/**/*"
+  - "build/**/*"
+  - "**/test_*.cpp"
+  - "**/*_test.cpp"
