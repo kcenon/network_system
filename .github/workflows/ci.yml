@@ -139,11 +139,13 @@ jobs:
         New-Item -ItemType Directory -Force -Path deps/install | Out-Null
 
         # Build thread_system
+        # Note: Must use Debug build type to match network_system's Debug configuration
+        # Windows MSVC requires matching RuntimeLibrary settings (MDd vs MD)
         if (Test-Path "thread_system") {
           Write-Host "Building thread_system..."
           Push-Location thread_system
           cmake -B build -G Ninja `
-            -DCMAKE_BUILD_TYPE=Release `
+            -DCMAKE_BUILD_TYPE=Debug `
             -DBUILD_TESTS=OFF `
             -DBUILD_EXAMPLES=OFF `
             -DBUILD_SAMPLES=OFF `
@@ -158,7 +160,7 @@ jobs:
           Write-Host "Building logger_system..."
           Push-Location logger_system
           cmake -B build -G Ninja `
-            -DCMAKE_BUILD_TYPE=Release `
+            -DCMAKE_BUILD_TYPE=Debug `
             -DCMAKE_PREFIX_PATH=${{ github.workspace }}/deps/install `
             -DBUILD_TESTS=OFF `
             -DBUILD_EXAMPLES=OFF `
@@ -174,7 +176,7 @@ jobs:
           Write-Host "Building container_system..."
           Push-Location container_system
           cmake -B build -G Ninja `
-            -DCMAKE_BUILD_TYPE=Release `
+            -DCMAKE_BUILD_TYPE=Debug `
             -DCMAKE_PREFIX_PATH=${{ github.workspace }}/deps/install `
             -DBUILD_TESTS=OFF `
             -DBUILD_EXAMPLES=OFF `
