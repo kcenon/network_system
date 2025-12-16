@@ -109,7 +109,10 @@ public:
 
         // Submit the io_context::run task - this is the ONLY task we submit
         // No separate monitoring task to avoid thread pool exhaustion
-        pool->submit([ctx_weak, name, caller_promise, this]() {
+        // Note: Capture total_completed_ by pointer to avoid capturing 'this',
+        // which can cause heap corruption during static destruction.
+        auto* completed_ptr = &total_completed_;
+        pool->submit([ctx_weak, name, caller_promise, completed_ptr]() {
             auto ctx = ctx_weak.lock();
             if (!ctx) {
                 NETWORK_LOG_WARN("[io_context_thread_manager] io_context expired before run: " + name);
@@ -130,7 +133,7 @@ public:
                 caller_promise->set_exception(std::current_exception());
             }
 
-            total_completed_.fetch_add(1, std::memory_order_relaxed);
+            completed_ptr->fetch_add(1, std::memory_order_relaxed);
         });
 
         // Clean up expired entries periodically
@@ -252,7 +255,11 @@ io_context_thread_manager& io_context_thread_manager::instance() {
 }
 
 io_context_thread_manager::io_context_thread_manager()
-    : pimpl_(std::make_unique<impl>()) {
+    // Intentional Leak pattern: Use no-op deleter to prevent destruction
+    // during static destruction phase. This avoids heap corruption when
+    // thread pool tasks still reference impl's members (e.g., completed counter).
+    // Memory impact: ~few KB (reclaimed by OS on process termination)
+    : pimpl_(new impl(), [](impl*) { /* no-op deleter - intentional leak */ }) {
 }
 
 io_context_thread_manager::~io_context_thread_manager() = default;

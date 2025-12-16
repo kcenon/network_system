@@ -38,6 +38,26 @@ Network System 프로젝트의 모든 주목할 만한 변경 사항은 이 파�
 
 ## [Unreleased]
 
+### CI/CD
+- **Ecosystem 의존성 표준화** (2025-12-16)
+  - actions/checkout@v4를 사용하여 ecosystem 의존성(common_system, thread_system, logger_system, container_system) checkout 표준화
+  - upstream CMake 설정에서 누락된 파일 처리를 위한 container_system 설치 단계에 graceful error handling 추가
+  - ci.yml 및 integration-tests.yml에 일관된 의존성 빌드 단계 업데이트
+  - 현실적인 커버리지 타겟을 포함한 codecov.yml 추가 (프로젝트 55%, 패치 60%)
+  - CMake 의존성 해결에서 CI workspace 경로 명확화
+  - #298 종료
+- **Windows MSVC 빌드 수정** (2025-12-16)
+  - MSVC 컴파일러 설정을 생태계 의존성 빌드 단계 전으로 이동
+  - 생태계 의존성을 network_system과 일치하도록 Debug 구성으로 빌드하도록 변경
+  - Windows MSVC는 링크된 라이브러리 간 RuntimeLibrary 설정(MDd vs MD)이 일치해야 함
+
+### 수정됨
+- **정적 객체 소멸 순서로 인한 힙 손상 수정** (2025-12-16)
+  - 정적 소멸 단계에서 힙 손상을 방지하기 위해 `io_context_thread_manager`에 Intentional Leak 패턴 적용
+  - 스레드 풀에 제출된 람다에서 `this` 포인터 캡처 회피
+  - `thread_integration.cpp`에서 `this` 대신 atomic 카운터 포인터를 직접 캡처
+  - ecosystem 의존성이 활성화된 상태에서 통합 테스트의 "corrupted size vs. prev_size" 오류 수정
+
 ### 변경됨
 - **Thread System 마이그레이션 Epic 완료** (2025-12-06)
   - 코어 소스 파일의 모든 직접적인 `std::thread` 사용이 `thread_system` 통합으로 마이그레이션됨

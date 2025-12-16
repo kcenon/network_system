@@ -67,10 +67,18 @@ public:
     mutable std::mutex mutex_;
 };
 
-network_context::network_context() : pimpl_(std::make_unique<impl>()) {}
+network_context::network_context()
+    // Intentional Leak pattern: Use no-op deleter to prevent destruction
+    // during static destruction phase. This avoids heap corruption when
+    // io_context_thread_manager tasks still reference the thread pool.
+    // Memory impact: ~few KB (reclaimed by OS on process termination)
+    : pimpl_(new impl(), [](impl*) { /* no-op deleter - intentional leak */ }) {
+}
 
 network_context::~network_context() {
-    shutdown();
+    // Note: With Intentional Leak pattern, shutdown() is never called
+    // during static destruction. The OS reclaims all resources on exit.
+    // This prevents heap corruption from thread pool destruction order issues.
 }
 
 network_context& network_context::instance() {
