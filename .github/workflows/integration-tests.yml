@@ -52,6 +52,55 @@ jobs:
           path: container_system
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Build ecosystem dependencies
+        shell: bash
+        run: |
+          # Build thread_system
+          if [ -d "thread_system" ]; then
+            echo "Building thread_system..."
+            cd thread_system
+            cmake -B build -G Ninja \
+              -DCMAKE_BUILD_TYPE=Release \
+              -DBUILD_TESTS=OFF \
+              -DBUILD_EXAMPLES=OFF \
+              -DBUILD_SAMPLES=OFF \
+              -DBUILD_INTEGRATION_TESTS=OFF
+            cmake --build build --target ThreadSystem
+            cmake --install build --prefix ${{ github.workspace }}/deps/install
+            cd ..
+          fi
+
+          # Build logger_system
+          if [ -d "logger_system" ]; then
+            echo "Building logger_system..."
+            cd logger_system
+            cmake -B build -G Ninja \
+              -DCMAKE_BUILD_TYPE=Release \
+              -DCMAKE_PREFIX_PATH=${{ github.workspace }}/deps/install \
+              -DBUILD_TESTS=OFF \
+              -DBUILD_EXAMPLES=OFF \
+              -DBUILD_SAMPLES=OFF \
+              -DLOGGER_BUILD_INTEGRATION_TESTS=OFF
+            cmake --build build
+            cmake --install build --prefix ${{ github.workspace }}/deps/install
+            cd ..
+          fi
+
+          # Build container_system
+          if [ -d "container_system" ]; then
+            echo "Building container_system..."
+            cd container_system
+            cmake -B build -G Ninja \
+              -DCMAKE_BUILD_TYPE=Release \
+              -DCMAKE_PREFIX_PATH=${{ github.workspace }}/deps/install \
+              -DBUILD_TESTS=OFF \
+              -DBUILD_EXAMPLES=OFF \
+              -DBUILD_SAMPLES=OFF
+            cmake --build build
+            cmake --install build --prefix ${{ github.workspace }}/deps/install
+            cd ..
+          fi
+
       - name: Install dependencies (Ubuntu)
         if: runner.os == 'Linux'
         run: |
@@ -88,14 +137,10 @@ jobs:
 
       - name: Configure CMake
         run: |
-          echo "=== Build Configuration ==="
-          echo "Build Type: ${{ matrix.build_type }}"
-          echo "Ecosystem Dependencies: ON (required)"
-          echo "==========================="
-
           cmake -B build \
             -G Ninja \
             -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+            -DCMAKE_PREFIX_PATH=${{ github.workspace }}/deps/install \
             -DBUILD_TESTS=ON \
             -DNETWORK_BUILD_INTEGRATION_TESTS=ON \
             -DENABLE_COVERAGE=${{ matrix.build_type == 'Debug' && 'ON' || 'OFF' }} \
@@ -214,6 +259,55 @@ jobs:
           path: container_system
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Build ecosystem dependencies
+        shell: bash
+        run: |
+          # Build thread_system
+          if [ -d "thread_system" ]; then
+            echo "Building thread_system..."
+            cd thread_system
+            cmake -B build -G Ninja \
+              -DCMAKE_BUILD_TYPE=Release \
+              -DBUILD_TESTS=OFF \
+              -DBUILD_EXAMPLES=OFF \
+              -DBUILD_SAMPLES=OFF \
+              -DBUILD_INTEGRATION_TESTS=OFF
+            cmake --build build --target ThreadSystem
+            cmake --install build --prefix ${{ github.workspace }}/deps/install
+            cd ..
+          fi
+
+          # Build logger_system
+          if [ -d "logger_system" ]; then
+            echo "Building logger_system..."
+            cd logger_system
+            cmake -B build -G Ninja \
+              -DCMAKE_BUILD_TYPE=Release \
+              -DCMAKE_PREFIX_PATH=${{ github.workspace }}/deps/install \
+              -DBUILD_TESTS=OFF \
+              -DBUILD_EXAMPLES=OFF \
+              -DBUILD_SAMPLES=OFF \
+              -DLOGGER_BUILD_INTEGRATION_TESTS=OFF
+            cmake --build build
+            cmake --install build --prefix ${{ github.workspace }}/deps/install
+            cd ..
+          fi
+
+          # Build container_system
+          if [ -d "container_system" ]; then
+            echo "Building container_system..."
+            cd container_system
+            cmake -B build -G Ninja \
+              -DCMAKE_BUILD_TYPE=Release \
+              -DCMAKE_PREFIX_PATH=${{ github.workspace }}/deps/install \
+              -DBUILD_TESTS=OFF \
+              -DBUILD_EXAMPLES=OFF \
+              -DBUILD_SAMPLES=OFF
+            cmake --build build
+            cmake --install build --prefix ${{ github.workspace }}/deps/install
+            cd ..
+          fi
+
       - name: Install dependencies
         run: |
           sudo apt-get update
@@ -227,14 +321,10 @@ jobs:
 
       - name: Configure CMake
         run: |
-          echo "=== Build Configuration ==="
-          echo "Build Type: Release"
-          echo "Ecosystem Dependencies: ON (required)"
-          echo "==========================="
-
           cmake -B build \
             -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_PREFIX_PATH=${{ github.workspace }}/deps/install \
             -DBUILD_TESTS=ON \
             -DNETWORK_BUILD_INTEGRATION_TESTS=ON \
             -DBUILD_SAMPLES=OFF \
