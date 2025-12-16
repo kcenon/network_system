@@ -515,7 +515,11 @@ thread_integration_manager& thread_integration_manager::instance() {
 }
 
 thread_integration_manager::thread_integration_manager()
-    : pimpl_(std::make_unique<impl>()) {
+    // Intentional Leak pattern: Use no-op deleter to prevent destruction
+    // during static destruction phase. This avoids heap corruption when
+    // thread pool tasks may still reference the impl's members.
+    // Memory impact: ~few KB (reclaimed by OS on process termination)
+    : pimpl_(new impl(), [](impl*) { /* no-op deleter - intentional leak */ }) {
 }
 
 thread_integration_manager::~thread_integration_manager() = default;

@@ -206,7 +206,10 @@ private:
     ~thread_integration_manager();
 
     class impl;
-    std::unique_ptr<impl> pimpl_;
+    // Use shared_ptr with no-op deleter (Intentional Leak pattern) to prevent
+    // heap corruption during static destruction phase when thread pool tasks
+    // may still reference the impl's members.
+    std::shared_ptr<impl> pimpl_;
 };
 
 } // namespace kcenon::network::integration
