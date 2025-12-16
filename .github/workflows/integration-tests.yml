@@ -24,6 +24,34 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Checkout common_system
+        uses: actions/checkout@v4
+        with:
+          repository: kcenon/common_system
+          path: common_system
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Checkout thread_system
+        uses: actions/checkout@v4
+        with:
+          repository: kcenon/thread_system
+          path: thread_system
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Checkout logger_system
+        uses: actions/checkout@v4
+        with:
+          repository: kcenon/logger_system
+          path: logger_system
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Checkout container_system
+        uses: actions/checkout@v4
+        with:
+          repository: kcenon/container_system
+          path: container_system
+          token: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Install dependencies (Ubuntu)
         if: runner.os == 'Linux'
         run: |
@@ -60,6 +88,11 @@ jobs:
 
       - name: Configure CMake
         run: |
+          echo "=== Build Configuration ==="
+          echo "Build Type: ${{ matrix.build_type }}"
+          echo "Ecosystem Dependencies: ON (required)"
+          echo "==========================="
+
           cmake -B build \
             -G Ninja \
             -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
@@ -67,10 +100,10 @@ jobs:
             -DNETWORK_BUILD_INTEGRATION_TESTS=ON \
             -DENABLE_COVERAGE=${{ matrix.build_type == 'Debug' && 'ON' || 'OFF' }} \
             -DBUILD_SAMPLES=OFF \
-            -DBUILD_WITH_COMMON_SYSTEM=OFF \
-            -DBUILD_WITH_LOGGER_SYSTEM=OFF \
-            -DBUILD_WITH_THREAD_SYSTEM=OFF \
-            -DBUILD_WITH_CONTAINER_SYSTEM=OFF \
+            -DBUILD_WITH_COMMON_SYSTEM=ON \
+            -DBUILD_WITH_LOGGER_SYSTEM=ON \
+            -DBUILD_WITH_THREAD_SYSTEM=ON \
+            -DBUILD_WITH_CONTAINER_SYSTEM=ON \
             -DBUILD_MESSAGING_BRIDGE=OFF
 
       - name: Build
@@ -153,6 +186,34 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Checkout common_system
+        uses: actions/checkout@v4
+        with:
+          repository: kcenon/common_system
+          path: common_system
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Checkout thread_system
+        uses: actions/checkout@v4
+        with:
+          repository: kcenon/thread_system
+          path: thread_system
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Checkout logger_system
+        uses: actions/checkout@v4
+        with:
+          repository: kcenon/logger_system
+          path: logger_system
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Checkout container_system
+        uses: actions/checkout@v4
+        with:
+          repository: kcenon/container_system
+          path: container_system
+          token: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Install dependencies
         run: |
           sudo apt-get update
@@ -166,16 +227,21 @@ jobs:
 
       - name: Configure CMake
         run: |
+          echo "=== Build Configuration ==="
+          echo "Build Type: Release"
+          echo "Ecosystem Dependencies: ON (required)"
+          echo "==========================="
+
           cmake -B build \
             -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
             -DBUILD_TESTS=ON \
             -DNETWORK_BUILD_INTEGRATION_TESTS=ON \
             -DBUILD_SAMPLES=OFF \
-            -DBUILD_WITH_COMMON_SYSTEM=OFF \
-            -DBUILD_WITH_LOGGER_SYSTEM=OFF \
-            -DBUILD_WITH_THREAD_SYSTEM=OFF \
-            -DBUILD_WITH_CONTAINER_SYSTEM=OFF \
+            -DBUILD_WITH_COMMON_SYSTEM=ON \
+            -DBUILD_WITH_LOGGER_SYSTEM=ON \
+            -DBUILD_WITH_THREAD_SYSTEM=ON \
+            -DBUILD_WITH_CONTAINER_SYSTEM=ON \
             -DBUILD_MESSAGING_BRIDGE=OFF
 
       - name: Build
