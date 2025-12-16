@@ -43,13 +43,50 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace network_system {
 
 #ifdef BUILD_WITH_COMMON_SYSTEM
-	// Use common_system Result<T> when available
+	// ============================================================
+	// Primary API: Use common::Result<T> directly
+	// ============================================================
+	//
+	// network_system now uses common_system's Result<T> as the primary
+	// error handling mechanism. While network_system::Result<T> aliases
+	// remain available for backward compatibility, new code should use
+	// kcenon::common::Result<T> directly for ecosystem-wide consistency.
+	//
+	// Migration path:
+	//   Before: network_system::Result<T>
+	//   After:  kcenon::common::Result<T>
+	//
+	// To enable deprecation warnings for migration preparation, define:
+	//   NETWORK_SYSTEM_ENABLE_DEPRECATION_WARNINGS
+	//
+	// See: https://github.com/kcenon/common_system/issues/205
+	// ============================================================
+
+#ifdef NETWORK_SYSTEM_ENABLE_DEPRECATION_WARNINGS
+	// Deprecated aliases - enable warnings to find usage during migration
+	template<typename T>
+	using Result [[deprecated("Use kcenon::common::Result<T> directly for ecosystem consistency. "
+	                          "See https://github.com/kcenon/common_system/issues/205")]]
+		= ::kcenon::common::Result<T>;
+
+	using VoidResult [[deprecated("Use kcenon::common::VoidResult directly for ecosystem consistency. "
+	                              "See https://github.com/kcenon/common_system/issues/205")]]
+		= ::kcenon::common::VoidResult;
+
+	using error_info [[deprecated("Use kcenon::common::error_info directly for ecosystem consistency. "
+	                              "See https://github.com/kcenon/common_system/issues/205")]]
+		= ::kcenon::common::error_info;
+#else
+	// Backward-compatible aliases (prefer kcenon::common::Result<T> for new code)
+	// These aliases are retained for migration support but may be removed
+	// in a future major version.
 	template<typename T>
 	using Result = ::kcenon::common::Result<T>;
 
 	using VoidResult = ::kcenon::common::VoidResult;
 
 	using error_info = ::kcenon::common::error_info;
+#endif
 
 	// Error code namespace (includes common_errors and network_system)
 	namespace error_codes = ::kcenon::common::error::codes;
