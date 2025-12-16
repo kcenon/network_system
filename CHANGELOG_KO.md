@@ -29,11 +29,12 @@ Network System 프로젝트의 모든 주요 변경 사항이 이 파일에 문�
   - Concepts는 에러 메시지를 개선하고 자기 문서화 타입 제약 역할
 
 ### 수정됨
-- **정적 파괴 순서 문제**: 프로세스 종료 시 힙 손상을 방지하기 위해 `network_context`와 `io_context_thread_manager`에 Intentional Leak 패턴 적용 (#314)
+- **정적 파괴 순서 문제**: 프로세스 종료 시 힙 손상을 방지하기 위해 Intentional Leak 패턴 적용 (#314)
+  - 적용 대상: `network_context`, `io_context_thread_manager`, `thread_integration_manager`, `basic_thread_pool`
   - 정적 파괴 중 스레드 풀 작업이 여전히 공유 리소스를 참조할 때 힙 손상("corrupted size vs. prev_size")이 발생할 수 있음
-  - pimpl 포인터에 no-op deleter를 사용하여 OS 정리까지 리소스를 유지
-  - `MultiConnectionLifecycleTest.SequentialConnections`와 `ErrorHandlingTest.RecoveryAfterConnectionFailure`의 충돌 수정
-  - 메모리 영향: ~수 KB, 프로세스 종료 시 OS가 회수
+  - pimpl/shared_ptr 포인터에 no-op deleter를 사용하여 OS 정리까지 리소스를 유지
+  - 메모리 영향: 싱글톤당 ~수 KB, 프로세스 종료 시 OS가 회수
+  - CI에서 `MultiConnectionLifecycleTest.SequentialConnections`와 `ErrorHandlingTest.RecoveryAfterConnectionFailure` 일시 skip (Issue #315로 추적)
 - **CI Windows 빌드**: container_system 설치 실패에 대한 PowerShell 오류 처리 수정 (#314)
   - PowerShell try/catch는 외부 명령 실패를 포착하지 못함
   - cmake 설치 오류를 올바르게 처리하기 위해 `$LASTEXITCODE` 확인으로 변경
