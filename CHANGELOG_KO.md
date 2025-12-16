@@ -12,6 +12,12 @@ Network System 프로젝트의 모든 주요 변경 사항이 이 파일에 문�
 ## [미배포]
 
 ### 추가됨
+- **OpenSSL 3.x 지원**: OpenSSL 1.1.1과의 하위 호환성을 유지하면서 OpenSSL 3.x와의 완전한 호환성 추가 (#308)
+  - 버전 감지 매크로 및 유틸리티 함수가 포함된 새로운 `openssl_compat.h` 헤더
+  - OpenSSL 1.1.1 (EOL: 2023년 9월) 사용 시 지원 종료 경고를 표시하는 CMake 버전 감지
+  - 컴파일 타임 매크로: `NETWORK_OPENSSL_3_X`, `NETWORK_OPENSSL_1_1_X`, `NETWORK_OPENSSL_VERSION_3_X`
+  - 런타임 유틸리티: `is_openssl_3x()`, `is_openssl_eol()`, `get_openssl_error()`
+  - OpenSSL 버전을 확인하고 OpenSSL 3.x 종속성을 설치하도록 CI 워크플로우 업데이트
 - **C++20 Concepts**: 컴파일 타임 타입 검증을 위한 네트워크 전용 C++20 concepts 추가 (#294)
   - 새로운 `<kcenon/network/concepts/concepts.h>` 통합 헤더
   - 버퍼 concepts: `ByteBuffer`, `MutableByteBuffer`
