@@ -37,6 +37,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Reduces compile-time coupling and enables flexible logger configuration
 
 ### Fixed
+- **Static Destruction Order**: Applied Intentional Leak pattern to `network_context` and `io_context_thread_manager` to prevent heap corruption during process shutdown (#314)
+  - When thread pool tasks still reference shared resources during static destruction, heap corruption ("corrupted size vs. prev_size") can occur
+  - Using no-op deleters on pimpl pointers keeps resources alive until OS cleanup
+  - Fixes crashes in `MultiConnectionLifecycleTest.SequentialConnections` and `ErrorHandlingTest.RecoveryAfterConnectionFailure`
+  - Memory impact: ~few KB, reclaimed by OS on process termination
+- **CI Windows Build**: Fixed PowerShell error handling for container_system install failures (#314)
+  - PowerShell try/catch does not catch external command failures
+  - Changed to use `$LASTEXITCODE` check to properly handle cmake install errors
+  - Allows CI to continue when container_system install encounters missing files
 - **Thread System Adapter**: Fixed `submit_delayed()` to use a single scheduler thread with priority queue instead of creating a detached `std::thread` per delayed task (#273)
   - Eliminates thread explosion under high delayed task submission
   - Provides proper thread lifecycle management (joinable scheduler thread)
