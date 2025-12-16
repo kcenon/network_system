@@ -29,11 +29,15 @@ A modern C++20 asynchronous network library providing reusable transport primiti
 | C++20 Compiler | GCC 11+ / Clang 14+ / MSVC 2022+ / Apple Clang 14+ | Yes | C++20 features required |
 | CMake | 3.20+ | Yes | Build system |
 | ASIO | latest | Yes | Asynchronous I/O (standalone) |
-| OpenSSL | 1.1+ | Yes | TLS/SSL support |
+| OpenSSL | 3.x (recommended) / 1.1.1 (minimum) | Yes | TLS/SSL support |
 | [common_system](https://github.com/kcenon/common_system) | latest | Yes | Common interfaces and Result<T> |
 | [thread_system](https://github.com/kcenon/thread_system) | latest | Yes | Thread pool and async operations |
 | [logger_system](https://github.com/kcenon/logger_system) | latest | Yes | Logging infrastructure |
 | [container_system](https://github.com/kcenon/container_system) | latest | Yes | Data container operations |
+
+> **OpenSSL Version Note**: OpenSSL 1.1.1 reached End-of-Life on September 11, 2023.
+> We strongly recommend upgrading to OpenSSL 3.x for continued security support.
+> The build system will display a warning if OpenSSL 1.1.1 is detected.
 
 ### Dependency Flow
 
@@ -72,15 +76,21 @@ cmake --build build
 
 ### Prerequisites
 
-**Ubuntu/Debian**:
+**Ubuntu/Debian** (Ubuntu 22.04+ provides OpenSSL 3.x by default):
 ```bash
 sudo apt update
-sudo apt install -y cmake ninja-build libasio-dev libssl-dev
+sudo apt install -y cmake ninja-build libasio-dev libssl-dev liblz4-dev zlib1g-dev
 ```
 
-**macOS**:
+**macOS** (OpenSSL 3.x via Homebrew):
 ```bash
-brew install cmake ninja asio openssl
+brew install cmake ninja asio openssl@3 lz4 zlib
+```
+
+**Windows (vcpkg)**:
+```powershell
+# vcpkg provides OpenSSL 3.x
+vcpkg install openssl asio lz4 zlib --triplet x64-windows
 ```
 
 **Windows (MSYS2)**:

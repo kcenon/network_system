@@ -35,7 +35,12 @@ jobs:
             libgtest-dev \
             libasio-dev \
             libfmt-dev \
+            libssl-dev \
+            liblz4-dev \
+            zlib1g-dev \
             lcov
+          # Verify OpenSSL version (should be 3.x on Ubuntu 22.04+)
+          openssl version
 
       - name: Install dependencies (macOS)
         if: runner.os == 'macOS'
@@ -46,7 +51,12 @@ jobs:
             googletest \
             asio \
             fmt \
+            openssl@3 \
+            lz4 \
+            zlib \
             lcov
+          # Verify OpenSSL version
+          openssl version
 
       - name: Configure CMake
         run: |

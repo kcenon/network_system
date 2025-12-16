@@ -31,6 +31,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *****************************************************************************/
 
 #include "kcenon/network/internal/dtls_socket.h"
+#include "kcenon/network/internal/openssl_compat.h"
 
 #include <cstring>
 

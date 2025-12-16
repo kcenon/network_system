@@ -36,12 +36,18 @@ jobs:
       if: runner.os == 'Linux'
       run: |
         sudo apt-get update
-        sudo apt-get install -y cmake ninja-build g++ clang libgtest-dev libgmock-dev libasio-dev libfmt-dev
+        sudo apt-get install -y cmake ninja-build g++ clang libgtest-dev libgmock-dev libasio-dev libfmt-dev libssl-dev liblz4-dev zlib1g-dev
+        # Verify OpenSSL version (Ubuntu 24.04 provides OpenSSL 3.x)
+        openssl version
+        pkg-config --modversion openssl
 
     - name: Install dependencies (macOS)
       if: runner.os == 'macOS'
       run: |
-        brew install ninja googletest asio fmt
+        brew install ninja googletest asio fmt openssl@3 lz4 zlib
+        # Verify OpenSSL version
+        /opt/homebrew/opt/openssl@3/bin/openssl version || /usr/local/opt/openssl@3/bin/openssl version || openssl version
+        echo "OpenSSL 3.x is recommended for continued security support (1.1.1 reached EOL September 2023)"
 
     - name: Install dependencies (Windows)
       if: runner.os == 'Windows'
@@ -58,6 +64,8 @@ jobs:
         }
         echo "Dependencies installed successfully"
         & "$env:VCPKG_INSTALLATION_ROOT\vcpkg.exe" list
+        # Display OpenSSL version from vcpkg
+        echo "OpenSSL 3.x is recommended for continued security support (1.1.1 reached EOL September 2023)"
 
     - name: Set up compiler (GCC)
       if: matrix.compiler == 'gcc'

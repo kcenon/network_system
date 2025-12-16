@@ -41,10 +41,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <vector>
 
 #include <asio.hpp>
-#include <openssl/ssl.h>
-#include <openssl/err.h>
 
 #include "kcenon/network/internal/common_defs.h"
+#include "kcenon/network/internal/openssl_compat.h"
 
 namespace network_system::internal
 {
