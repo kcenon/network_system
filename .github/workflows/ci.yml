@@ -118,11 +118,13 @@ jobs:
 
         # Remove GoogleTest from deps/install to avoid ABI conflicts with system GoogleTest
         # This ensures network_system uses the system-installed GoogleTest (brew/apt)
+        # Must remove CMake config files too, otherwise find_package finds broken config
         echo "Removing GoogleTest from deps/install to avoid ABI conflicts..."
         rm -f ${{ github.workspace }}/deps/install/lib/libgtest*.a 2>/dev/null || true
         rm -f ${{ github.workspace }}/deps/install/lib/libgmock*.a 2>/dev/null || true
         rm -rf ${{ github.workspace }}/deps/install/include/gtest 2>/dev/null || true
         rm -rf ${{ github.workspace }}/deps/install/include/gmock 2>/dev/null || true
+        rm -rf ${{ github.workspace }}/deps/install/lib/cmake/GTest 2>/dev/null || true
 
     - name: Build ecosystem dependencies (Windows)
       if: runner.os == 'Windows'
@@ -179,11 +181,13 @@ jobs:
         }
 
         # Remove GoogleTest from deps/install to avoid ABI conflicts with vcpkg GoogleTest
+        # Must remove CMake config files too, otherwise find_package finds broken config
         Write-Host "Removing GoogleTest from deps/install to avoid ABI conflicts..."
         Remove-Item -Force "${{ github.workspace }}/deps/install/lib/gtest*.lib" -ErrorAction SilentlyContinue
         Remove-Item -Force "${{ github.workspace }}/deps/install/lib/gmock*.lib" -ErrorAction SilentlyContinue
         Remove-Item -Recurse -Force "${{ github.workspace }}/deps/install/include/gtest" -ErrorAction SilentlyContinue
         Remove-Item -Recurse -Force "${{ github.workspace }}/deps/install/include/gmock" -ErrorAction SilentlyContinue
+        Remove-Item -Recurse -Force "${{ github.workspace }}/deps/install/lib/cmake/GTest" -ErrorAction SilentlyContinue
 
     - name: Install dependencies (Ubuntu)
       if: runner.os == 'Linux'
