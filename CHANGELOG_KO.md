@@ -39,6 +39,10 @@ Network System 프로젝트의 모든 주요 변경 사항이 이 파일에 문�
   - PowerShell try/catch는 외부 명령 실패를 포착하지 못함
   - cmake 설치 오류를 올바르게 처리하기 위해 `$LASTEXITCODE` 확인으로 변경
   - container_system 설치 중 누락된 파일을 만나도 CI가 계속 진행 가능
+- **CI Windows MSVC 빌드**: 생태계 의존성 링커 오류 수정 (#314)
+  - MSVC 컴파일러 설정을 생태계 의존성 빌드 단계 전으로 이동
+  - 생태계 의존성을 network_system과 일치하도록 Debug 구성으로 빌드하도록 변경
+  - Windows MSVC는 링크된 라이브러리 간 RuntimeLibrary 설정(MDd vs MD)이 일치해야 함
 - **Thread System Adapter**: 지연 작업마다 분리된 `std::thread`를 생성하는 대신 단일 스케줄러 스레드와 우선순위 큐를 사용하도록 `submit_delayed()` 수정 (#273)
   - 지연 작업 대량 제출 시 스레드 폭발 방지
   - 적절한 스레드 수명주기 관리 (joinable 스케줄러 스레드)

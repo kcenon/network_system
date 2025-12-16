@@ -47,6 +47,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - PowerShell try/catch does not catch external command failures
   - Changed to use `$LASTEXITCODE` check to properly handle cmake install errors
   - Allows CI to continue when container_system install encounters missing files
+- **CI Windows MSVC Build**: Fixed linker errors for ecosystem dependencies (#314)
+  - Moved MSVC compiler setup before ecosystem dependencies build step
+  - Changed ecosystem dependencies to build with Debug configuration to match network_system
+  - Windows MSVC requires matching RuntimeLibrary settings (MDd vs MD) between linked libraries
 - **Thread System Adapter**: Fixed `submit_delayed()` to use a single scheduler thread with priority queue instead of creating a detached `std::thread` per delayed task (#273)
   - Eliminates thread explosion under high delayed task submission
   - Provides proper thread lifecycle management (joinable scheduler thread)

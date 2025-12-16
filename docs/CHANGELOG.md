@@ -46,6 +46,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   - Added codecov.yml with realistic coverage targets (55% project, 60% patch)
   - Clarified CI workspace paths in CMake dependency resolution
   - Closes #298
+- **Windows MSVC Build Fix** (2025-12-16)
+  - Moved MSVC compiler setup before ecosystem dependencies build step
+  - Changed ecosystem dependencies to build with Debug configuration to match network_system
+  - Windows MSVC requires matching RuntimeLibrary settings (MDd vs MD) between linked libraries
 
 ### Fixed
 - **Static Destruction Order Heap Corruption** (2025-12-16)
