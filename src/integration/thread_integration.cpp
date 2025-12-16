@@ -419,7 +419,11 @@ private:
 #endif // BUILD_WITH_THREAD_SYSTEM
 
 basic_thread_pool::basic_thread_pool(size_t num_threads)
-    : pimpl_(std::make_unique<impl>(num_threads)) {
+    // Intentional Leak pattern: Use no-op deleter to prevent destruction
+    // during static destruction phase. This avoids heap corruption when
+    // worker threads may still access the impl's members (queue, mutex, etc.)
+    // Memory impact: ~few KB (reclaimed by OS on process termination)
+    : pimpl_(new impl(num_threads), [](impl*) { /* no-op deleter - intentional leak */ }) {
 }
 
 basic_thread_pool::~basic_thread_pool() = default;

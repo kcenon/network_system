@@ -137,7 +137,10 @@ public:
 
 private:
     class impl;
-    std::unique_ptr<impl> pimpl_;
+    // Use shared_ptr with no-op deleter (Intentional Leak pattern) to prevent
+    // heap corruption during static destruction phase when worker threads
+    // may still access the impl's members.
+    std::shared_ptr<impl> pimpl_;
 };
 
 /**
