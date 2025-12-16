@@ -24,11 +24,15 @@ Network System Project는 분산 시스템 및 메시징 애플리케이션을 �
 | C++20 컴파일러 | GCC 11+ / Clang 14+ / MSVC 2022+ / Apple Clang 14+ | 예 | C++20 기능 필요 |
 | CMake | 3.20+ | 예 | 빌드 시스템 |
 | ASIO | latest | 예 | 비동기 I/O (standalone) |
-| OpenSSL | 1.1+ | 예 | TLS/SSL 지원 |
+| OpenSSL | 3.x (권장) / 1.1.1 (최소) | 예 | TLS/SSL 지원 |
 | [common_system](https://github.com/kcenon/common_system) | latest | 예 | 공통 인터페이스 및 Result<T> |
 | [thread_system](https://github.com/kcenon/thread_system) | latest | 예 | 스레드 풀 및 비동기 작업 |
 | [logger_system](https://github.com/kcenon/logger_system) | latest | 예 | 로깅 인프라 |
 | [container_system](https://github.com/kcenon/container_system) | latest | 예 | 데이터 컨테이너 작업 |
+
+> **OpenSSL 버전 참고**: OpenSSL 1.1.1은 2023년 9월 11일에 지원이 종료(EOL)되었습니다.
+> 지속적인 보안 지원을 위해 OpenSSL 3.x로 업그레이드하는 것을 강력히 권장합니다.
+> OpenSSL 1.1.1이 감지되면 빌드 시스템에서 경고를 표시합니다.
 
 ### 의존성 구조
 

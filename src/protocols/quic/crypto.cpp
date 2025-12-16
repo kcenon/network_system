@@ -32,11 +32,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "kcenon/network/protocols/quic/crypto.h"
 #include "kcenon/network/protocols/quic/packet.h"
+#include "kcenon/network/internal/openssl_compat.h"
 
 #include <openssl/evp.h>
 #include <openssl/kdf.h>
-#include <openssl/ssl.h>
-#include <openssl/err.h>
 #include <openssl/rand.h>
 
 #include <algorithm>
@@ -48,16 +47,12 @@ namespace network_system::protocols::quic
 namespace
 {
 
+// Use the compatibility layer for OpenSSL error handling
+using network_system::internal::get_openssl_error;
+
 auto get_openssl_error_string() -> std::string
 {
-    unsigned long err = ERR_get_error();
-    if (err == 0)
-    {
-        return "Unknown OpenSSL error";
-    }
-    char buf[256];
-    ERR_error_string_n(err, buf, sizeof(buf));
-    return std::string(buf);
+    return get_openssl_error();
 }
 
 constexpr std::array<uint8_t, 9> client_initial_label = {

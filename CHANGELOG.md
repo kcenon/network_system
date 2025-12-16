@@ -12,6 +12,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **OpenSSL 3.x Support**: Added full compatibility with OpenSSL 3.x while maintaining backward compatibility with 1.1.1 (#308)
+  - New `openssl_compat.h` header with version detection macros and utility functions
+  - CMake version detection with deprecation warnings for OpenSSL 1.1.1 (EOL: September 2023)
+  - Compile-time macros: `NETWORK_OPENSSL_3_X`, `NETWORK_OPENSSL_1_1_X`, `NETWORK_OPENSSL_VERSION_3_X`
+  - Runtime utilities: `is_openssl_3x()`, `is_openssl_eol()`, `get_openssl_error()`
+  - CI workflows updated to verify OpenSSL version and install OpenSSL 3.x dependencies
 - **C++20 Concepts**: Added network-specific C++20 concepts for compile-time type validation (#294)
   - New `<kcenon/network/concepts/concepts.h>` unified header
   - Buffer concepts: `ByteBuffer`, `MutableByteBuffer`
