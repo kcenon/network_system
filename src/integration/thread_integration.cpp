@@ -100,11 +100,14 @@ public:
             return future;
         }
 
-        bool ok = pool_->submit_task([task = std::move(task), promise, this]() mutable {
+        // Note: Capture completed_tasks_ by pointer to avoid capturing 'this',
+        // which can cause heap corruption during static destruction.
+        auto* completed_ptr = &completed_tasks_;
+        bool ok = pool_->submit_task([task = std::move(task), promise, completed_ptr]() mutable {
             try {
                 if (task) task();
                 promise->set_value();
-                completed_tasks_++;
+                completed_ptr->fetch_add(1, std::memory_order_relaxed);
             } catch (...) {
                 promise->set_exception(std::current_exception());
             }
@@ -143,12 +146,15 @@ public:
             return future;
         }
 
-        bool ok = pool_->submit_task([task = std::move(task), delay, promise, this]() mutable {
+        // Note: Capture completed_tasks_ by pointer to avoid capturing 'this',
+        // which can cause heap corruption during static destruction.
+        auto* completed_ptr = &completed_tasks_;
+        bool ok = pool_->submit_task([task = std::move(task), delay, promise, completed_ptr]() mutable {
             try {
                 std::this_thread::sleep_for(delay);
                 if (task) task();
                 promise->set_value();
-                completed_tasks_++;
+                completed_ptr->fetch_add(1, std::memory_order_relaxed);
             } catch (...) {
                 promise->set_exception(std::current_exception());
             }
