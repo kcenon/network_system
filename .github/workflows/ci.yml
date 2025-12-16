@@ -32,6 +32,34 @@ jobs:
       with:
         submodules: recursive
 
+    - name: Checkout common_system
+      uses: actions/checkout@v4
+      with:
+        repository: kcenon/common_system
+        path: common_system
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Checkout thread_system
+      uses: actions/checkout@v4
+      with:
+        repository: kcenon/thread_system
+        path: thread_system
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Checkout logger_system
+      uses: actions/checkout@v4
+      with:
+        repository: kcenon/logger_system
+        path: logger_system
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Checkout container_system
+      uses: actions/checkout@v4
+      with:
+        repository: kcenon/container_system
+        path: container_system
+        token: ${{ secrets.GITHUB_TOKEN }}
+
     - name: Install dependencies (Ubuntu)
       if: runner.os == 'Linux'
       run: |
@@ -92,12 +120,17 @@ jobs:
     - name: Configure CMake (Unix)
       if: runner.os != 'Windows'
       run: |
+        echo "=== Build Configuration ==="
+        echo "Compiler: $CC / $CXX"
+        echo "Ecosystem Dependencies: ON (required)"
+        echo "==========================="
+
         cmake -B build -G Ninja \
           -DCMAKE_BUILD_TYPE=Debug \
-          -DBUILD_WITH_COMMON_SYSTEM=OFF \
-          -DBUILD_WITH_LOGGER_SYSTEM=OFF \
-          -DBUILD_WITH_THREAD_SYSTEM=OFF \
-          -DBUILD_WITH_CONTAINER_SYSTEM=OFF \
+          -DBUILD_WITH_COMMON_SYSTEM=ON \
+          -DBUILD_WITH_LOGGER_SYSTEM=ON \
+          -DBUILD_WITH_THREAD_SYSTEM=ON \
+          -DBUILD_WITH_CONTAINER_SYSTEM=ON \
           -DBUILD_MESSAGING_BRIDGE=OFF \
           -DBUILD_TESTS=ON \
           -DBUILD_SAMPLES=OFF
@@ -106,21 +139,26 @@ jobs:
       if: runner.os == 'Windows'
       shell: pwsh
       run: |
+        Write-Host "=== Build Configuration ==="
+        Write-Host "Compiler: MSVC"
+        Write-Host "Ecosystem Dependencies: ON (required)"
+        Write-Host "==========================="
+
         $toolchainFile = "$env:VCPKG_INSTALLATION_ROOT\scripts\buildsystems\vcpkg.cmake"
-        echo "Toolchain file: $toolchainFile"
+        Write-Host "Toolchain file: $toolchainFile"
         if (Test-Path $toolchainFile) {
-          echo "Toolchain file exists"
+          Write-Host "Toolchain file exists"
         } else {
-          echo "ERROR: Toolchain file not found!"
+          Write-Host "ERROR: Toolchain file not found!"
           exit 1
         }
         cmake -B build -G Ninja `
           -DCMAKE_BUILD_TYPE=Debug `
           -DCMAKE_TOOLCHAIN_FILE="$toolchainFile" `
-          -DBUILD_WITH_COMMON_SYSTEM=OFF `
-          -DBUILD_WITH_LOGGER_SYSTEM=OFF `
-          -DBUILD_WITH_THREAD_SYSTEM=OFF `
-          -DBUILD_WITH_CONTAINER_SYSTEM=OFF `
+          -DBUILD_WITH_COMMON_SYSTEM=ON `
+          -DBUILD_WITH_LOGGER_SYSTEM=ON `
+          -DBUILD_WITH_THREAD_SYSTEM=ON `
+          -DBUILD_WITH_CONTAINER_SYSTEM=ON `
           -DBUILD_MESSAGING_BRIDGE=OFF `
           -DBUILD_TESTS=ON `
           -DBUILD_SAMPLES=OFF
@@ -171,6 +209,34 @@ jobs:
       with:
         submodules: recursive
 
+    - name: Checkout common_system
+      uses: actions/checkout@v4
+      with:
+        repository: kcenon/common_system
+        path: common_system
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Checkout thread_system
+      uses: actions/checkout@v4
+      with:
+        repository: kcenon/thread_system
+        path: thread_system
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Checkout logger_system
+      uses: actions/checkout@v4
+      with:
+        repository: kcenon/logger_system
+        path: logger_system
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Checkout container_system
+      uses: actions/checkout@v4
+      with:
+        repository: kcenon/container_system
+        path: container_system
+        token: ${{ secrets.GITHUB_TOKEN }}
+
     - name: Install dependencies
       run: |
         sudo apt-get update
@@ -180,10 +246,10 @@ jobs:
       run: |
         cmake -B build -G Ninja \
           -DCMAKE_BUILD_TYPE=Debug \
-          -DBUILD_WITH_COMMON_SYSTEM=OFF \
-          -DBUILD_WITH_LOGGER_SYSTEM=OFF \
-          -DBUILD_WITH_THREAD_SYSTEM=OFF \
-          -DBUILD_WITH_CONTAINER_SYSTEM=OFF \
+          -DBUILD_WITH_COMMON_SYSTEM=ON \
+          -DBUILD_WITH_LOGGER_SYSTEM=ON \
+          -DBUILD_WITH_THREAD_SYSTEM=ON \
+          -DBUILD_WITH_CONTAINER_SYSTEM=ON \
           -DBUILD_MESSAGING_BRIDGE=OFF \
           -DBUILD_TESTS=ON \
           -DBUILD_SAMPLES=OFF \
