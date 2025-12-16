@@ -47,6 +47,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   - Clarified CI workspace paths in CMake dependency resolution
   - Closes #298
 
+### Fixed
+- **Static Destruction Order Heap Corruption** (2025-12-16)
+  - Applied Intentional Leak pattern to `io_context_thread_manager` to prevent heap corruption during static destruction
+  - Avoided capturing `this` pointer in lambdas submitted to thread pools
+  - Captured atomic counter pointers directly instead of `this` in `thread_integration.cpp`
+  - Fixes "corrupted size vs. prev_size" errors in integration tests when ecosystem dependencies are enabled
+
 ### Changed
 - **Thread System Migration Epic Complete** (2025-12-06)
   - All direct `std::thread` usage in core source files migrated to `thread_system` integration
