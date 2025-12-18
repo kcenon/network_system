@@ -12,6 +12,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **WebSocket Zero-Copy Receive**: Migrated WebSocket receive path to use `std::span<const uint8_t>` callbacks (#318)
+  - `websocket_protocol::process_data()` now accepts `std::span<const uint8_t>` instead of `const std::vector<uint8_t>&`
+  - `websocket_socket` uses `tcp_socket::set_receive_callback_view()` for zero-copy TCP-to-WebSocket data flow
+  - Eliminates per-read `std::vector` allocation solely for TCP-to-protocol handoff
+  - Part of Epic #315 (TCP receive zero-allocation hot path)
 - **secure_tcp_socket Zero-Copy Receive**: Added `set_receive_callback_view(std::span<const uint8_t>)` API for zero-copy TLS data reception (#317)
   - Zero-copy path using `std::span` directly into read buffer, avoiding per-read `std::vector` allocations
   - Lock-free callback storage using `shared_ptr` + `atomic_load/store` for better performance under high TPS
@@ -43,6 +48,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Reduces compile-time coupling and enables flexible logger configuration
 
 ### Fixed
+- **tcp_socket UBSAN Fix**: Added socket validity check before async read operation (#318)
+  - `tcp_socket::do_read()` now checks `socket_.is_open()` before initiating `async_read_some()`
+  - Prevents undefined behavior (null descriptor_state access) when socket is already closed
+  - Fixes UBSAN failure in `BoundaryTest.HandlesSingleByteMessage`
 - **Static Destruction Order**: Applied Intentional Leak pattern to prevent heap corruption during process shutdown (#314)
   - Applied to: `network_context`, `io_context_thread_manager`, `thread_integration_manager`, `basic_thread_pool`
   - When thread pool tasks still reference shared resources during static destruction, heap corruption ("corrupted size vs. prev_size") can occur

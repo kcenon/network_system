@@ -69,8 +69,9 @@ namespace network_system::internal
 									 { handle_protocol_close(code, reason); });
 
 		// Set up TCP socket callbacks to feed data into protocol layer
-		tcp_socket_->set_receive_callback(
-			[this](const std::vector<uint8_t>& data) { on_tcp_receive(data); });
+		// Use zero-copy span callback to avoid per-read vector allocation
+		tcp_socket_->set_receive_callback_view(
+			[this](std::span<const uint8_t> data) { on_tcp_receive(data); });
 
 		tcp_socket_->set_error_callback(
 			[this](std::error_code ec) { on_tcp_error(ec); });
@@ -115,8 +116,9 @@ namespace network_system::internal
 				}
 
 				// Set up temporary callback to receive handshake response
-				tcp_socket_->set_receive_callback(
-					[this, client_key, handler](const std::vector<uint8_t>& data)
+				// Use span callback for zero-copy during handshake
+				tcp_socket_->set_receive_callback_view(
+					[this, client_key, handler](std::span<const uint8_t> data)
 					{
 						// Convert response to string
 						std::string response(data.begin(), data.end());
@@ -135,8 +137,8 @@ namespace network_system::internal
 						state_ = ws_state::open;
 
 						// Restore normal receive callback
-						tcp_socket_->set_receive_callback(
-							[this](const std::vector<uint8_t>& data)
+						tcp_socket_->set_receive_callback_view(
+							[this](std::span<const uint8_t> data)
 							{ on_tcp_receive(data); });
 
 						handler(std::error_code{});
@@ -151,8 +153,9 @@ namespace network_system::internal
 		-> void
 	{
 		// Set up temporary callback to receive handshake request
-		tcp_socket_->set_receive_callback(
-			[this, handler](const std::vector<uint8_t>& data)
+		// Use span callback for zero-copy during handshake
+		tcp_socket_->set_receive_callback_view(
+			[this, handler](std::span<const uint8_t> data)
 			{
 				// Convert request to string
 				std::string request(data.begin(), data.end());
@@ -195,8 +198,8 @@ namespace network_system::internal
 						state_ = ws_state::open;
 
 						// Restore normal receive callback
-						tcp_socket_->set_receive_callback(
-							[this](const std::vector<uint8_t>& data)
+						tcp_socket_->set_receive_callback_view(
+							[this](std::span<const uint8_t> data)
 							{ on_tcp_receive(data); });
 
 						handler(std::error_code{});
@@ -345,9 +348,9 @@ namespace network_system::internal
 		error_callback_ = std::move(callback);
 	}
 
-	auto websocket_socket::on_tcp_receive(const std::vector<uint8_t>& data) -> void
+	auto websocket_socket::on_tcp_receive(std::span<const uint8_t> data) -> void
 	{
-		// Feed raw TCP data into WebSocket protocol decoder
+		// Feed raw TCP data into WebSocket protocol decoder (zero-copy view)
 		protocol_.process_data(data);
 	}
 

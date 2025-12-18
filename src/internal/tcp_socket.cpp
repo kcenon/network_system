@@ -96,6 +96,14 @@ namespace network_system::internal
 			return;
 		}
 
+		// Check if socket is still open before starting async operation
+		// This prevents UBSAN errors from accessing null descriptor_state
+		if (!socket_.is_open())
+		{
+			is_reading_.store(false);
+			return;
+		}
+
 		auto self = shared_from_this();
 		socket_.async_read_some(
 			asio::buffer(read_buffer_),
