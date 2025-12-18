@@ -39,6 +39,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [Unreleased]
 
 ### Performance
+- **WebSocket Zero-Copy Receive Path** (2025-12-19)
+  - `websocket_protocol::process_data()` now accepts `std::span<const uint8_t>` instead of `const std::vector<uint8_t>&`
+  - `websocket_socket` uses `tcp_socket::set_receive_callback_view()` for zero-copy TCP-to-WebSocket data flow
+  - Eliminates per-read `std::vector` allocation solely for TCP-to-protocol handoff
+  - Data is copied once into protocol's internal buffer for frame processing
+  - Part of TCP receive std::span callback migration epic (#315, #318)
+
 - **TCP Socket Zero-Allocation Receive Path** (2025-12-18)
   - Added `set_receive_callback_view(std::span<const uint8_t>)` to `tcp_socket` for zero-copy data reception
   - Eliminated per-read `std::vector` allocations when using span callback

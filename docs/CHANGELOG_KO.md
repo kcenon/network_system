@@ -39,6 +39,13 @@ Network System 프로젝트의 모든 주목할 만한 변경 사항은 이 파�
 ## [Unreleased]
 
 ### 성능
+- **WebSocket 제로 카피 수신 경로** (2025-12-19)
+  - `websocket_protocol::process_data()`가 `const std::vector<uint8_t>&` 대신 `std::span<const uint8_t>`을 받도록 변경
+  - `websocket_socket`이 `tcp_socket::set_receive_callback_view()`를 사용하여 제로 카피 TCP-to-WebSocket 데이터 흐름 구현
+  - TCP-to-protocol 전달을 위한 매 읽기마다 발생하던 `std::vector` 할당 제거
+  - 프레임 처리를 위해 프로토콜의 내부 버퍼로 한 번만 복사
+  - TCP receive std::span 콜백 마이그레이션 epic (#315, #318)의 일부
+
 - **TCP 소켓 제로 할당 수신 경로** (2025-12-18)
   - 제로 카피 데이터 수신을 위한 `set_receive_callback_view(std::span<const uint8_t>)` 추가
   - span 콜백 사용 시 매 읽기마다 발생하던 `std::vector` 할당 제거

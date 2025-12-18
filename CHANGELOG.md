@@ -12,6 +12,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **WebSocket Zero-Copy Receive**: Migrated WebSocket receive path to use `std::span<const uint8_t>` callbacks (#318)
+  - `websocket_protocol::process_data()` now accepts `std::span<const uint8_t>` instead of `const std::vector<uint8_t>&`
+  - `websocket_socket` uses `tcp_socket::set_receive_callback_view()` for zero-copy TCP-to-WebSocket data flow
+  - Eliminates per-read `std::vector` allocation solely for TCP-to-protocol handoff
+  - Part of Epic #315 (TCP receive zero-allocation hot path)
 - **secure_tcp_socket Zero-Copy Receive**: Added `set_receive_callback_view(std::span<const uint8_t>)` API for zero-copy TLS data reception (#317)
   - Zero-copy path using `std::span` directly into read buffer, avoiding per-read `std::vector` allocations
   - Lock-free callback storage using `shared_ptr` + `atomic_load/store` for better performance under high TPS
