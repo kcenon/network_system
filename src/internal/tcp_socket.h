@@ -37,6 +37,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <memory>
 #include <vector>
 #include <array>
+#include <span>
 #include <system_error>
 
 #include "common_defs.h"
@@ -89,9 +90,46 @@ namespace network_system::internal
 		 * successfully read.
 		 *
 		 * If no callback is set, received data is effectively discarded.
+		 *
+		 * \note This is the legacy callback API. For better performance,
+		 * consider using set_receive_callback_view() instead.
 		 */
 		auto set_receive_callback(
 			std::function<void(const std::vector<uint8_t>&)> callback) -> void;
+
+		/*!
+		 * \brief Sets a zero-copy callback to receive inbound data as a view.
+		 * \param callback A function with signature \c void(std::span<const
+		 * uint8_t>), called whenever a chunk of data is successfully read.
+		 *
+		 * ### Zero-Copy Performance
+		 * Unlike set_receive_callback(), this callback receives data as a
+		 * non-owning view directly into the internal read buffer, avoiding
+		 * per-read std::vector allocations and copies.
+		 *
+		 * ### Lifetime Contract
+		 * - The span is valid **only** until the callback returns.
+		 * - Callers must **not** store, capture, or use the span after
+		 *   returning from the callback.
+		 * - If data must be retained, copy it into your own container
+		 *   within the callback.
+		 *
+		 * ### Dispatch Priority
+		 * - If both view and vector callbacks are set, the view callback
+		 *   takes priority and the vector callback is not invoked.
+		 *
+		 * ### Example
+		 * \code
+		 * sock->set_receive_callback_view([](std::span<const uint8_t> data) {
+		 *     // Process data directly (zero-copy)
+		 *     process_bytes(data.data(), data.size());
+		 *     // If you need to keep the data:
+		 *     // my_buffer.insert(my_buffer.end(), data.begin(), data.end());
+		 * });
+		 * \endcode
+		 */
+		auto set_receive_callback_view(
+			std::function<void(std::span<const uint8_t>)> callback) -> void;
 
 		/*!
 		 * \brief Sets a callback to handle socket errors (e.g., read/write
@@ -169,16 +207,25 @@ namespace network_system::internal
 		auto do_read() -> void;
 
 	private:
+		/*! \brief Callback type aliases for lock-free storage */
+		using receive_callback_t = std::function<void(const std::vector<uint8_t>&)>;
+		using receive_callback_view_t = std::function<void(std::span<const uint8_t>)>;
+		using error_callback_t = std::function<void(std::error_code)>;
+
 		asio::ip::tcp::socket socket_; /*!< The underlying ASIO TCP socket. */
 
 		std::array<uint8_t, 4096>
 			read_buffer_; /*!< Buffer for receiving data in \c do_read(). */
 
-		std::mutex callback_mutex_; /*!< Protects callback registration and access. */
-		std::function<void(const std::vector<uint8_t>&)>
-			receive_callback_; /*!< Inbound data callback. */
-		std::function<void(std::error_code)>
-			error_callback_;   /*!< Error callback. */
+		/*!
+		 * Lock-free callback storage using shared_ptr + atomic operations.
+		 * This eliminates mutex contention on the receive hot path.
+		 */
+		std::shared_ptr<receive_callback_t> receive_callback_;
+		std::shared_ptr<receive_callback_view_t> receive_callback_view_;
+		std::shared_ptr<error_callback_t> error_callback_;
+
+		std::mutex callback_mutex_; /*!< Protects callback registration only. */
 
 		std::atomic<bool> is_reading_{false}; /*!< Flag to prevent read after stop. */
 	};
