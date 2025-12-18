@@ -48,6 +48,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Reduces compile-time coupling and enables flexible logger configuration
 
 ### Fixed
+- **tcp_socket UBSAN Fix**: Added socket validity check before async read operation (#318)
+  - `tcp_socket::do_read()` now checks `socket_.is_open()` before initiating `async_read_some()`
+  - Prevents undefined behavior (null descriptor_state access) when socket is already closed
+  - Fixes UBSAN failure in `BoundaryTest.HandlesSingleByteMessage`
 - **Static Destruction Order**: Applied Intentional Leak pattern to prevent heap corruption during process shutdown (#314)
   - Applied to: `network_context`, `io_context_thread_manager`, `thread_integration_manager`, `basic_thread_pool`
   - When thread pool tasks still reference shared resources during static destruction, heap corruption ("corrupted size vs. prev_size") can occur

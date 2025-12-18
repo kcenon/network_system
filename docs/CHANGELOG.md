@@ -68,6 +68,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   - Part of TCP receive std::span callback migration epic (#315)
   - Closes #317
 
+### Fixed
+- **tcp_socket UBSAN Fix** (2025-12-19)
+  - Added `socket_.is_open()` check in `tcp_socket::do_read()` before initiating `async_read_some()`
+  - Prevents undefined behavior (null descriptor_state access) when socket is already closed
+  - Fixes UBSAN failure in `BoundaryTest.HandlesSingleByteMessage` (#318)
+
 ### CI/CD
 - **Ecosystem Dependencies Standardization** (2025-12-16)
   - Standardized checkout of ecosystem dependencies (common_system, thread_system, logger_system, container_system) using actions/checkout@v4

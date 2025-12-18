@@ -68,6 +68,12 @@ Network System 프로젝트의 모든 주목할 만한 변경 사항은 이 파�
   - TCP receive std::span 콜백 마이그레이션 epic (#315)의 일부
   - #317 종료
 
+### 수정됨
+- **tcp_socket UBSAN 수정** (2025-12-19)
+  - `tcp_socket::do_read()`에서 `async_read_some()` 시작 전 `socket_.is_open()` 확인 추가
+  - 소켓이 이미 닫힌 경우 정의되지 않은 동작(null descriptor_state 접근) 방지
+  - `BoundaryTest.HandlesSingleByteMessage` UBSAN 실패 수정 (#318)
+
 ### CI/CD
 - **Ecosystem 의존성 표준화** (2025-12-16)
   - actions/checkout@v4를 사용하여 ecosystem 의존성(common_system, thread_system, logger_system, container_system) checkout 표준화
