@@ -40,6 +40,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <functional>
 #include <memory>
 #include <mutex>
+#include <span>
 #include <string>
 #include <system_error>
 #include <vector>
@@ -273,10 +274,11 @@ namespace network_system::internal
 		 * \brief Called by tcp_socket when data is received.
 		 *
 		 * Feeds the data into the WebSocket protocol decoder.
+		 * Uses zero-copy span view from tcp_socket's read buffer.
 		 *
-		 * \param data The received raw bytes
+		 * \param data The received raw bytes as a view
 		 */
-		auto on_tcp_receive(const std::vector<uint8_t>& data) -> void;
+		auto on_tcp_receive(std::span<const uint8_t> data) -> void;
 
 		/*!
 		 * \brief Called by tcp_socket when an error occurs.

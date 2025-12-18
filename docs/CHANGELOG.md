@@ -39,6 +39,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [Unreleased]
 
 ### Performance
+- **WebSocket Zero-Copy Receive Path** (2025-12-19)
+  - `websocket_protocol::process_data()` now accepts `std::span<const uint8_t>` instead of `const std::vector<uint8_t>&`
+  - `websocket_socket` uses `tcp_socket::set_receive_callback_view()` for zero-copy TCP-to-WebSocket data flow
+  - Eliminates per-read `std::vector` allocation solely for TCP-to-protocol handoff
+  - Data is copied once into protocol's internal buffer for frame processing
+  - Part of TCP receive std::span callback migration epic (#315, #318)
+
 - **TCP Socket Zero-Allocation Receive Path** (2025-12-18)
   - Added `set_receive_callback_view(std::span<const uint8_t>)` to `tcp_socket` for zero-copy data reception
   - Eliminated per-read `std::vector` allocations when using span callback
@@ -60,6 +67,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   - Span callback takes precedence when both are set
   - Part of TCP receive std::span callback migration epic (#315)
   - Closes #317
+
+### Fixed
+- **tcp_socket UBSAN Fix** (2025-12-19)
+  - Added `socket_.is_open()` check in `tcp_socket::do_read()` before initiating `async_read_some()`
+  - Prevents undefined behavior (null descriptor_state access) when socket is already closed
+  - Fixes UBSAN failure in `BoundaryTest.HandlesSingleByteMessage` (#318)
 
 ### CI/CD
 - **Ecosystem Dependencies Standardization** (2025-12-16)

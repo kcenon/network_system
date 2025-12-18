@@ -12,6 +12,11 @@ Network System 프로젝트의 모든 주요 변경 사항이 이 파일에 문�
 ## [미배포]
 
 ### 추가됨
+- **WebSocket Zero-Copy 수신**: WebSocket 수신 경로를 `std::span<const uint8_t>` 콜백으로 마이그레이션 (#318)
+  - `websocket_protocol::process_data()`가 `const std::vector<uint8_t>&` 대신 `std::span<const uint8_t>`을 받도록 변경
+  - `websocket_socket`이 `tcp_socket::set_receive_callback_view()`를 사용하여 zero-copy TCP-to-WebSocket 데이터 흐름 구현
+  - TCP-to-protocol 전달을 위한 읽기당 `std::vector` 할당 제거
+  - Epic #315 (TCP 수신 zero-allocation hot path)의 일부
 - **secure_tcp_socket Zero-Copy 수신**: TLS 데이터의 zero-copy 수신을 위한 `set_receive_callback_view(std::span<const uint8_t>)` API 추가 (#317)
   - `std::span`을 사용하여 읽기 버퍼에서 직접 데이터를 제공하여 읽기당 `std::vector` 할당 방지
   - 높은 TPS에서 더 나은 성능을 위해 `shared_ptr` + `atomic_load/store`를 사용한 lock-free 콜백 저장소
@@ -35,6 +40,10 @@ Network System 프로젝트의 모든 주요 변경 사항이 이 파일에 문�
   - Concepts는 에러 메시지를 개선하고 자기 문서화 타입 제약 역할
 
 ### 수정됨
+- **tcp_socket UBSAN 수정**: 비동기 읽기 작업 전 소켓 유효성 검사 추가 (#318)
+  - `tcp_socket::do_read()`가 `async_read_some()` 시작 전 `socket_.is_open()` 확인
+  - 소켓이 이미 닫힌 경우 정의되지 않은 동작(null descriptor_state 접근) 방지
+  - `BoundaryTest.HandlesSingleByteMessage` UBSAN 실패 수정
 - **정적 파괴 순서 문제**: 프로세스 종료 시 힙 손상을 방지하기 위해 Intentional Leak 패턴 적용 (#314)
   - 적용 대상: `network_context`, `io_context_thread_manager`, `thread_integration_manager`, `basic_thread_pool`
   - 정적 파괴 중 스레드 풀 작업이 여전히 공유 리소스를 참조할 때 힙 손상("corrupted size vs. prev_size")이 발생할 수 있음
