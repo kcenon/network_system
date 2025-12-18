@@ -36,6 +36,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <cstdint>
 #include <functional>
+#include <span>
 #include <string>
 #include <vector>
 
@@ -122,9 +123,17 @@ namespace network_system::internal
 		 * Parses frames, handles fragmentation, and invokes appropriate callbacks.
 		 * This method should be called when data is received from the network.
 		 *
-		 * \param data The incoming data buffer
+		 * ### Zero-Copy Performance
+		 * Accepts data as a non-owning span view, avoiding unnecessary copies.
+		 * The data is copied once into the internal buffer for frame processing.
+		 *
+		 * ### Lifetime Contract
+		 * - The span must remain valid for the duration of this call.
+		 * - After the call returns, the span may be invalidated.
+		 *
+		 * \param data The incoming data buffer as a view
 		 */
-		auto process_data(const std::vector<uint8_t>& data) -> void;
+		auto process_data(std::span<const uint8_t> data) -> void;
 
 		/*!
 		 * \brief Creates a text message frame.

@@ -33,6 +33,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "kcenon/network/internal/websocket_protocol.h"
 
 #include <algorithm>
+#include <span>
 
 namespace network_system::internal
 {
@@ -60,9 +61,9 @@ namespace network_system::internal
 	{
 	}
 
-	auto websocket_protocol::process_data(const std::vector<uint8_t>& data) -> void
+	auto websocket_protocol::process_data(std::span<const uint8_t> data) -> void
 	{
-		// Append incoming data to buffer
+		// Append incoming data to buffer (single copy from span view)
 		buffer_.insert(buffer_.end(), data.begin(), data.end());
 
 		// Process frames from buffer
