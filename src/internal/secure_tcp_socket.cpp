@@ -32,6 +32,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "kcenon/network/internal/secure_tcp_socket.h"
 
+#include <atomic>
+#include <span>
 #include <type_traits>
 
 namespace network_system::internal
@@ -65,15 +67,25 @@ namespace network_system::internal
 	auto secure_tcp_socket::set_receive_callback(
 		std::function<void(const std::vector<uint8_t>&)> callback) -> void
 	{
+		auto new_cb = std::make_shared<receive_callback_t>(std::move(callback));
 		std::lock_guard<std::mutex> lock(callback_mutex_);
-		receive_callback_ = std::move(callback);
+		std::atomic_store(&receive_callback_, new_cb);
+	}
+
+	auto secure_tcp_socket::set_receive_callback_view(
+		std::function<void(std::span<const uint8_t>)> callback) -> void
+	{
+		auto new_cb = std::make_shared<receive_callback_view_t>(std::move(callback));
+		std::lock_guard<std::mutex> lock(callback_mutex_);
+		std::atomic_store(&receive_callback_view_, new_cb);
 	}
 
 	auto secure_tcp_socket::set_error_callback(
 		std::function<void(std::error_code)> callback) -> void
 	{
+		auto new_cb = std::make_shared<error_callback_t>(std::move(callback));
 		std::lock_guard<std::mutex> lock(callback_mutex_);
-		error_callback_ = std::move(callback);
+		std::atomic_store(&error_callback_, new_cb);
 	}
 
 	auto secure_tcp_socket::start_read() -> void
@@ -111,26 +123,37 @@ namespace network_system::internal
 				if (ec)
 				{
 					// On error, invoke the error callback
-					if constexpr (std::is_invocable_v<decltype(error_callback_), std::error_code>)
+					// Lock-free callback access via atomic_load
+					auto error_cb = std::atomic_load(&error_callback_);
+					if (error_cb && *error_cb)
 					{
-						std::lock_guard<std::mutex> lock(callback_mutex_);
-						if (error_callback_) {
-							error_callback_(ec);
-						}
+						(*error_cb)(ec);
 					}
 					return;
 				}
 
-				// On success, if length > 0, build a vector and call receive_callback_
+				// On success, if length > 0, dispatch to the appropriate callback
 				if (length > 0)
 				{
-					if constexpr (std::is_invocable_v<decltype(receive_callback_), const std::vector<uint8_t>&>)
+					// Lock-free callback access via atomic_load
+					// Prefer view callback (zero-copy) over vector callback
+					auto view_cb = std::atomic_load(&receive_callback_view_);
+					if (view_cb && *view_cb)
 					{
-						std::vector<uint8_t> chunk(read_buffer_.begin(),
-											   read_buffer_.begin() + length);
-						std::lock_guard<std::mutex> lock(callback_mutex_);
-						if (receive_callback_) {
-							receive_callback_(chunk);
+						// Zero-copy path: create span view directly into read_buffer_
+						// No std::vector allocation or copy required
+						std::span<const uint8_t> data_view(read_buffer_.data(), length);
+						(*view_cb)(data_view);
+					}
+					else
+					{
+						// Legacy path: allocate and copy into vector for compatibility
+						auto recv_cb = std::atomic_load(&receive_callback_);
+						if (recv_cb && *recv_cb)
+						{
+							std::vector<uint8_t> chunk(read_buffer_.begin(),
+													   read_buffer_.begin() + length);
+							(*recv_cb)(chunk);
 						}
 					}
 				}

@@ -50,6 +50,17 @@ Network System 프로젝트의 모든 주목할 만한 변경 사항은 이 파�
   - TCP receive std::span 콜백 마이그레이션 epic (#315)의 일부
   - #316 종료
 
+- **보안 TCP 소켓 제로 할당 수신 경로** (2025-12-18)
+  - TLS 데이터의 제로 카피 수신을 위한 `set_receive_callback_view(std::span<const uint8_t>)` 추가
+  - 일관성을 위해 `tcp_socket` 구현 패턴과 동일하게 구현
+  - span 콜백 사용 시 매 읽기마다 발생하던 `std::vector` 할당 제거
+  - `shared_ptr` + `atomic_load/store`를 사용한 lock-free 콜백 저장 구현
+  - 수신 hot path에서 뮤텍스 경합 제거
+  - 하위 호환성을 위해 기존 vector 콜백 유지
+  - 두 콜백이 모두 설정된 경우 span 콜백이 우선
+  - TCP receive std::span 콜백 마이그레이션 epic (#315)의 일부
+  - #317 종료
+
 ### CI/CD
 - **Ecosystem 의존성 표준화** (2025-12-16)
   - actions/checkout@v4를 사용하여 ecosystem 의존성(common_system, thread_system, logger_system, container_system) checkout 표준화
