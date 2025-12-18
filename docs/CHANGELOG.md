@@ -50,6 +50,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   - Part of TCP receive std::span callback migration epic (#315)
   - Closes #316
 
+- **Secure TCP Socket Zero-Allocation Receive Path** (2025-12-18)
+  - Added `set_receive_callback_view(std::span<const uint8_t>)` to `secure_tcp_socket` for zero-copy TLS data reception
+  - Aligned with `tcp_socket` implementation pattern for consistency
+  - Eliminated per-read `std::vector` allocations when using span callback
+  - Implemented lock-free callback storage using `shared_ptr` + `atomic_load/store`
+  - Removed mutex contention from receive hot path
+  - Legacy vector callback preserved for backward compatibility
+  - Span callback takes precedence when both are set
+  - Part of TCP receive std::span callback migration epic (#315)
+  - Closes #317
+
 ### CI/CD
 - **Ecosystem Dependencies Standardization** (2025-12-16)
   - Standardized checkout of ecosystem dependencies (common_system, thread_system, logger_system, container_system) using actions/checkout@v4
