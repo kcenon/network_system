@@ -12,6 +12,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Messaging Zero-Copy Receive**: Migrated messaging components to use `std::span<const uint8_t>` callbacks (#319)
+  - `messaging_session` uses `tcp_socket::set_receive_callback_view()` for zero-copy receive
+  - `messaging_client` uses `tcp_socket::set_receive_callback_view()` for zero-copy receive
+  - Internal `on_receive()` methods now accept `std::span<const uint8_t>` instead of `const std::vector<uint8_t>&`
+  - Data is copied to vector only when queuing (session) or at API boundary (client)
+  - Removes one heap allocation per read vs legacy vector-based path
+  - Part of Epic #315 (TCP receive zero-allocation hot path)
 - **WebSocket Zero-Copy Receive**: Migrated WebSocket receive path to use `std::span<const uint8_t>` callbacks (#318)
   - `websocket_protocol::process_data()` now accepts `std::span<const uint8_t>` instead of `const std::vector<uint8_t>&`
   - `websocket_socket` uses `tcp_socket::set_receive_callback_view()` for zero-copy TCP-to-WebSocket data flow
