@@ -12,6 +12,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **secure_tcp_socket Zero-Copy Receive**: Added `set_receive_callback_view(std::span<const uint8_t>)` API for zero-copy TLS data reception (#317)
+  - Zero-copy path using `std::span` directly into read buffer, avoiding per-read `std::vector` allocations
+  - Lock-free callback storage using `shared_ptr` + `atomic_load/store` for better performance under high TPS
+  - Span callback takes priority when both view and vector callbacks are set
+  - Legacy vector callback preserved for backward compatibility
+  - Aligned with `tcp_socket` implementation from #316 for consistency
 - **OpenSSL 3.x Support**: Added full compatibility with OpenSSL 3.x while maintaining backward compatibility with 1.1.1 (#308)
   - New `openssl_compat.h` header with version detection macros and utility functions
   - CMake version detection with deprecation warnings for OpenSSL 1.1.1 (EOL: September 2023)
