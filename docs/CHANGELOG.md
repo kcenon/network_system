@@ -38,6 +38,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Performance
+- **TCP Socket Zero-Allocation Receive Path** (2025-12-18)
+  - Added `set_receive_callback_view(std::span<const uint8_t>)` to `tcp_socket` for zero-copy data reception
+  - Eliminated per-read `std::vector` allocations when using span callback
+  - Implemented lock-free callback storage using `shared_ptr` + `atomic_load/store`
+  - Removed mutex contention from receive hot path
+  - Legacy vector callback preserved for backward compatibility
+  - Span callback takes precedence when both are set
+  - Added comprehensive unit tests for new functionality
+  - Part of TCP receive std::span callback migration epic (#315)
+  - Closes #316
+
 ### CI/CD
 - **Ecosystem Dependencies Standardization** (2025-12-16)
   - Standardized checkout of ecosystem dependencies (common_system, thread_system, logger_system, container_system) using actions/checkout@v4
