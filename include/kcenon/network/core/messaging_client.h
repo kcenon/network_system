@@ -38,6 +38,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <memory>
 #include <mutex>
 #include <optional>
+#include <span>
 #include <string>
 #include <string_view>
 #include <type_traits>
@@ -240,12 +241,21 @@ namespace network_system::core
 
 		/*!
 		 * \brief Callback for receiving data from the \c tcp_socket.
-		 * \param data A chunk of bytes that has arrived.
+		 * \param data A span view of bytes that has arrived.
+		 *
+		 * ### Zero-Copy Performance
+		 * The span provides a non-owning view directly into the socket's
+		 * internal read buffer, avoiding per-read vector allocations.
+		 *
+		 * ### Lifetime Contract
+		 * - The span is valid **only** until this callback returns.
+		 * - Data is copied into a vector only when invoking external
+		 *   receive_callback_ to maintain API compatibility.
 		 *
 		 * By default, logs the size of received data. To fully handle incoming
 		 * messages, one could parse, decompress, decrypt, etc.
 		 */
-		auto on_receive(const std::vector<uint8_t>& data) -> void;
+		auto on_receive(std::span<const uint8_t> data) -> void;
 
 		/*!
 		 * \brief Callback for handling socket errors from \c tcp_socket.

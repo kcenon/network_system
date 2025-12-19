@@ -32,6 +32,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "kcenon/network/session/messaging_session.h"
 
+#include <span>
 #include <type_traits>
 
 #include "kcenon/network/integration/logger_integration.h"
@@ -79,9 +80,10 @@ namespace network_system::session
 		}
 
 		// Set up callbacks with weak_ptr to avoid circular reference
+		// Use span-based callback for zero-copy receive path (no per-read allocation)
 		auto weak_self = weak_from_this();
-		socket_->set_receive_callback(
-			[weak_self](const std::vector<uint8_t>& data)
+		socket_->set_receive_callback_view(
+			[weak_self](std::span<const uint8_t> data)
 			{
 				if (auto self = weak_self.lock())
 				{
@@ -198,7 +200,7 @@ if constexpr (std::is_same_v<decltype(socket_->socket().get_executor()), asio::i
 }
 	}
 
-	auto messaging_session::on_receive(const std::vector<uint8_t>& data) -> void
+	auto messaging_session::on_receive(std::span<const uint8_t> data) -> void
 	{
 		if (is_stopped_.load())
 		{
@@ -233,8 +235,9 @@ if constexpr (std::is_same_v<decltype(socket_->socket().get_executor()), asio::i
 				}
 			}
 
-			// Add message to queue
-			pending_messages_.push_back(data);
+			// Copy span data into vector only when adding to queue (single copy point)
+			// This is the only allocation in the receive path
+			pending_messages_.emplace_back(data.begin(), data.end());
 		}
 
 		// Process messages from queue
