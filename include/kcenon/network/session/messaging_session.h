@@ -37,6 +37,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <functional>
 #include <memory>
 #include <mutex>
+#include <span>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -167,13 +168,21 @@ namespace network_system::session
 	private:
 		/*!
 		 * \brief Callback for when data arrives from the client.
-		 * \param data A vector containing a chunk of received bytes.
+		 * \param data A span view containing a chunk of received bytes.
+		 *
+		 * ### Zero-Copy Performance
+		 * The span provides a non-owning view directly into the socket's
+		 * internal read buffer, avoiding per-read vector allocations.
+		 *
+		 * ### Lifetime Contract
+		 * - The span is valid **only** until this callback returns.
+		 * - Data must be copied into pending_messages_ for retention.
 		 *
 		 * Override or extend the logic here to parse messages, handle commands,
 		 * etc. If decompression/decryption is needed, apply \c pipeline_
 		 * accordingly.
 		 */
-		auto on_receive(const std::vector<uint8_t>& data) -> void;
+		auto on_receive(std::span<const uint8_t> data) -> void;
 
 		/*!
 		 * \brief Callback for handling socket errors from \c tcp_socket.

@@ -39,6 +39,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [Unreleased]
 
 ### Performance
+- **Messaging Zero-Copy Receive Path** (2025-12-19)
+  - `messaging_session` uses `tcp_socket::set_receive_callback_view()` for zero-copy receive
+  - `messaging_client` uses `tcp_socket::set_receive_callback_view()` for zero-copy receive
+  - Internal `on_receive()` methods now accept `std::span<const uint8_t>` instead of `const std::vector<uint8_t>&`
+  - Data is copied to vector only when queuing (session) or at API boundary (client)
+  - Removes one heap allocation per read vs legacy vector-based path
+  - Part of TCP receive std::span callback migration epic (#315, #319)
+
 - **WebSocket Zero-Copy Receive Path** (2025-12-19)
   - `websocket_protocol::process_data()` now accepts `std::span<const uint8_t>` instead of `const std::vector<uint8_t>&`
   - `websocket_socket` uses `tcp_socket::set_receive_callback_view()` for zero-copy TCP-to-WebSocket data flow

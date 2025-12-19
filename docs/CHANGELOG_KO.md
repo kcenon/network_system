@@ -39,6 +39,14 @@ Network System 프로젝트의 모든 주목할 만한 변경 사항은 이 파�
 ## [Unreleased]
 
 ### 성능
+- **메시징 제로 카피 수신 경로** (2025-12-19)
+  - `messaging_session`이 `tcp_socket::set_receive_callback_view()`를 사용하여 제로 카피 수신
+  - `messaging_client`가 `tcp_socket::set_receive_callback_view()`를 사용하여 제로 카피 수신
+  - 내부 `on_receive()` 메서드가 `const std::vector<uint8_t>&` 대신 `std::span<const uint8_t>`을 받도록 변경
+  - 데이터는 큐잉 시(session) 또는 API 경계(client)에서만 vector로 복사
+  - 기존 vector 기반 경로 대비 읽기당 힙 할당 1회 감소
+  - TCP receive std::span 콜백 마이그레이션 epic (#315, #319)의 일부
+
 - **WebSocket 제로 카피 수신 경로** (2025-12-19)
   - `websocket_protocol::process_data()`가 `const std::vector<uint8_t>&` 대신 `std::span<const uint8_t>`을 받도록 변경
   - `websocket_socket`이 `tcp_socket::set_receive_callback_view()`를 사용하여 제로 카피 TCP-to-WebSocket 데이터 흐름 구현

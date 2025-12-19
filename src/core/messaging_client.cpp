@@ -35,6 +35,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "kcenon/network/integration/io_context_thread_manager.h"
 #include "kcenon/network/internal/send_coroutine.h"
 #include <optional>
+#include <span>
 #include <string_view>
 #include <type_traits>
 
@@ -288,12 +289,13 @@ auto messaging_client::on_connect(std::error_code ec) -> void {
   }
 
   // set callbacks and start read loop with mutex protection
+  // Use span-based callback for zero-copy receive path (no per-read allocation)
   auto self = shared_from_this();
   auto local_socket = get_socket();
 
   if (local_socket) {
-    local_socket->set_receive_callback(
-        [this, self](const std::vector<uint8_t> &chunk) { on_receive(chunk); });
+    local_socket->set_receive_callback_view(
+        [this, self](std::span<const uint8_t> chunk) { on_receive(chunk); });
     local_socket->set_error_callback(
         [this, self](std::error_code err) { on_error(err); });
     local_socket->start_read();
@@ -359,7 +361,7 @@ auto messaging_client::send_packet(std::vector<uint8_t> &&data) -> VoidResult {
   return ok();
 }
 
-auto messaging_client::on_receive(const std::vector<uint8_t> &data) -> void {
+auto messaging_client::on_receive(std::span<const uint8_t> data) -> void {
   if (!is_connected_.load()) {
     return;
   }
@@ -367,11 +369,14 @@ auto messaging_client::on_receive(const std::vector<uint8_t> &data) -> void {
                     std::to_string(data.size()) + " bytes");
 
   // Invoke receive callback if set
+  // Copy span to vector only at API boundary to maintain external callback compatibility
   {
     std::lock_guard<std::mutex> lock(callback_mutex_);
     if (receive_callback_) {
       try {
-        receive_callback_(data);
+        // Single copy point: span -> vector for external callback
+        std::vector<uint8_t> data_copy(data.begin(), data.end());
+        receive_callback_(data_copy);
       } catch (const std::exception &e) {
         NETWORK_LOG_ERROR("[messaging_client] Exception in receive callback: " +
                           std::string(e.what()));

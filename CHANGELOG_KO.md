@@ -12,6 +12,13 @@ Network System 프로젝트의 모든 주요 변경 사항이 이 파일에 문�
 ## [미배포]
 
 ### 추가됨
+- **Messaging Zero-Copy 수신**: 메시징 컴포넌트를 `std::span<const uint8_t>` 콜백으로 마이그레이션 (#319)
+  - `messaging_session`이 `tcp_socket::set_receive_callback_view()`를 사용하여 zero-copy 수신
+  - `messaging_client`가 `tcp_socket::set_receive_callback_view()`를 사용하여 zero-copy 수신
+  - 내부 `on_receive()` 메서드가 `const std::vector<uint8_t>&` 대신 `std::span<const uint8_t>`을 받도록 변경
+  - 데이터는 큐잉 시(session) 또는 API 경계(client)에서만 vector로 복사
+  - 기존 vector 기반 경로 대비 읽기당 힙 할당 1회 감소
+  - Epic #315 (TCP 수신 zero-allocation hot path)의 일부
 - **WebSocket Zero-Copy 수신**: WebSocket 수신 경로를 `std::span<const uint8_t>` 콜백으로 마이그레이션 (#318)
   - `websocket_protocol::process_data()`가 `const std::vector<uint8_t>&` 대신 `std::span<const uint8_t>`을 받도록 변경
   - `websocket_socket`이 `tcp_socket::set_receive_callback_view()`를 사용하여 zero-copy TCP-to-WebSocket 데이터 흐름 구현
