@@ -11,6 +11,7 @@ Phase 0, Task 0.2: 기준 성능 벤치마킹
 - **메시지 처리량**: 메시지 생성, 직렬화 및 처리 성능
 - **연결 관리**: 연결 설정, 수명 주기 및 풀 관리
 - **세션 관리**: 세션 생성, 조회 및 정리 성능
+- **TCP 수신 디스패치**: std::span vs std::vector 수신 콜백 오버헤드 비교
 
 ## 빌드
 
@@ -63,6 +64,9 @@ make network_benchmarks
 
 # 세션 벤치마크만
 ./build/benchmarks/network_benchmarks --benchmark_filter=Session
+
+# TCP 수신 디스패치 벤치마크만
+./build/benchmarks/network_benchmarks --benchmark_filter=TcpReceive
 ```
 
 ### 출력 형식
@@ -163,6 +167,26 @@ make network_benchmarks
 - 데이터 저장: < 500ns
 - 정리 (100개 세션): < 100μs
 - 동시 조회: 잠금 없음 또는 최소 경합
+
+### 4. TCP 수신 디스패치 벤치마크
+
+**파일**: `tcp_receive_bench.cpp`
+
+span 기반과 vector 기반 수신 디스패치 간의 오버헤드 차이를 측정합니다:
+
+- Span 디스패치 (할당 없음, 64B ~ 64KB)
+- Vector 폴백 (반복당 할당, 64B ~ 64KB)
+- 멀티 콜백 span 공유 (3개 핸들러)
+- 멀티 콜백 vector 복사 (3개 핸들러)
+- Subspan 작업 (헤더/페이로드 파싱)
+- Vector 슬라이스 작업 (레거시 패턴)
+
+**목표 지표**:
+- Span 디스패치: vector 폴백보다 10-50배 빠름
+- Span 64B: < 1ns
+- Span 64KB: < 300ns
+- Span 경로에서 읽기당 할당 없음
+- 프로토콜 파싱을 위한 효율적인 subspan 작업
 
 ## 기준 결과
 

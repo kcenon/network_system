@@ -20,6 +20,7 @@ if(benchmark_FOUND OR BENCHMARK_FOUND)
         connection_bench.cpp
         session_bench.cpp
         http_bench.cpp
+        tcp_receive_bench.cpp
         main_bench.cpp
     )
 

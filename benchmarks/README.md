@@ -11,6 +11,7 @@ This directory contains comprehensive performance benchmarks for the network_sys
 - **Message Throughput**: Message creation, serialization, and processing performance
 - **Connection Management**: Connection establishment, lifecycle, and pool management
 - **Session Management**: Session creation, lookup, and cleanup performance
+- **TCP Receive Dispatch**: std::span vs std::vector receive callback overhead comparison
 
 ## Building
 
@@ -63,6 +64,9 @@ make network_benchmarks
 
 # Session benchmarks only
 ./build/benchmarks/network_benchmarks --benchmark_filter=Session
+
+# TCP receive dispatch benchmarks only
+./build/benchmarks/network_benchmarks --benchmark_filter=TcpReceive
 ```
 
 ### Output Formats
@@ -163,6 +167,26 @@ Measures session management performance:
 - Data storage: < 500ns
 - Cleanup (100 sessions): < 100μs
 - Concurrent lookup: lock-free or minimal contention
+
+### 4. TCP Receive Dispatch Benchmarks
+
+**File**: `tcp_receive_bench.cpp`
+
+Measures the overhead difference between span-based and vector-based receive dispatch:
+
+- Span dispatch (zero allocation, 64B to 64KB)
+- Vector fallback (per-iteration allocation, 64B to 64KB)
+- Multi-callback span sharing (3 handlers)
+- Multi-callback vector copying (3 handlers)
+- Subspan operations (header/payload parsing)
+- Vector slice operations (legacy pattern)
+
+**Target Metrics**:
+- Span dispatch: 10-50x faster than vector fallback
+- Span 64B: < 1ns
+- Span 64KB: < 300ns
+- No per-read allocation with span path
+- Efficient subspan operations for protocol parsing
 
 ## Baseline Results
 
