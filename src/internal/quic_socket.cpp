@@ -36,7 +36,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <chrono>
 #include <type_traits>
 
-namespace network_system::internal
+namespace kcenon::network::internal
 {
 
 using namespace protocols::quic;
@@ -982,4 +982,4 @@ auto quic_socket::transition_state(quic_connection_state new_state) -> void
 	state_.store(new_state);
 }
 
-} // namespace network_system::internal
+} // namespace kcenon::network::internal

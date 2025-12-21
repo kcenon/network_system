@@ -35,7 +35,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <iomanip>
 #include <ctime>
 
-namespace network_system::internal
+namespace kcenon::network::internal
 {
 
 auto get_error_status_text(http_error_code code) -> std::string_view
@@ -312,4 +312,4 @@ auto http_error_response::make_error(http_error_code code, const std::string& de
 	return error;
 }
 
-} // namespace network_system::internal
+} // namespace kcenon::network::internal
