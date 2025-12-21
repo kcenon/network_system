@@ -33,7 +33,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "kcenon/network/protocols/quic/frame.h"
 #include "kcenon/network/protocols/quic/varint.h"
 
-namespace network_system::protocols::quic
+namespace kcenon::network::protocols::quic
 {
 
 namespace
@@ -1228,4 +1228,4 @@ auto frame_builder::build_handshake_done() -> std::vector<uint8_t>
     return {static_cast<uint8_t>(frame_type::handshake_done)};
 }
 
-} // namespace network_system::protocols::quic
+} // namespace kcenon::network::protocols::quic

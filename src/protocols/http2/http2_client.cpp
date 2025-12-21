@@ -35,7 +35,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <algorithm>
 #include <thread>
 
-namespace network_system::protocols::http2
+namespace kcenon::network::protocols::http2
 {
     // http2_response implementation
     auto http2_response::get_header(const std::string& name) const -> std::optional<std::string>
@@ -1112,4 +1112,4 @@ namespace network_system::protocols::http2
         }
     }
 
-} // namespace network_system::protocols::http2
+} // namespace kcenon::network::protocols::http2

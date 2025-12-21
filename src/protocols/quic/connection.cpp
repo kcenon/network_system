@@ -35,7 +35,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <algorithm>
 
-namespace network_system::protocols::quic
+namespace kcenon::network::protocols::quic
 {
 
 // ============================================================================
@@ -1129,4 +1129,4 @@ auto connection::generate_ack_frame(const packet_number_space& space)
     return ack;
 }
 
-} // namespace network_system::protocols::quic
+} // namespace kcenon::network::protocols::quic

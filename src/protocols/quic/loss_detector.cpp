@@ -35,7 +35,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <algorithm>
 #include <cmath>
 
-namespace network_system::protocols::quic
+namespace kcenon::network::protocols::quic
 {
 
 loss_detector::loss_detector(rtt_estimator& rtt)
@@ -511,4 +511,4 @@ auto loss_detector::discard_space(encryption_level level) -> void
     set_loss_detection_timer();
 }
 
-} // namespace network_system::protocols::quic
+} // namespace kcenon::network::protocols::quic

@@ -35,7 +35,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <algorithm>
 #include <cmath>
 
-namespace network_system::protocols::quic
+namespace kcenon::network::protocols::quic
 {
 
 auto congestion_state_to_string(congestion_state state) noexcept -> const char*
@@ -211,4 +211,4 @@ auto congestion_controller::reset() -> void
     congestion_recovery_start_ = std::chrono::steady_clock::time_point{};
 }
 
-} // namespace network_system::protocols::quic
+} // namespace kcenon::network::protocols::quic

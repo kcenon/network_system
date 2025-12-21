@@ -34,7 +34,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <algorithm>
 #include <cstring>
 
-namespace network_system::protocols::http2
+namespace kcenon::network::protocols::http2
 {
     namespace
     {
@@ -698,4 +698,4 @@ namespace network_system::protocols::http2
         }
     }
 
-} // namespace network_system::protocols::http2
+} // namespace kcenon::network::protocols::http2

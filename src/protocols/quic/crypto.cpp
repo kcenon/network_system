@@ -41,7 +41,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <algorithm>
 #include <cstring>
 
-namespace network_system::protocols::quic
+namespace kcenon::network::protocols::quic
 {
 
 namespace
@@ -1159,4 +1159,4 @@ auto quic_crypto::key_phase() const noexcept -> uint8_t
     return impl_->key_phase;
 }
 
-} // namespace network_system::protocols::quic
+} // namespace kcenon::network::protocols::quic
