@@ -35,7 +35,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <algorithm>
 #include <cstring>
 
-namespace network_system::protocols::quic
+namespace kcenon::network::protocols::quic
 {
 
 stream::stream(uint64_t id, bool is_local, uint64_t initial_max_data)
@@ -536,4 +536,4 @@ auto recv_state_to_string(recv_stream_state state) -> const char*
     }
 }
 
-} // namespace network_system::protocols::quic
+} // namespace kcenon::network::protocols::quic

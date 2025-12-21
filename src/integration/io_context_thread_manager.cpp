@@ -62,7 +62,7 @@ public:
     std::shared_ptr<thread_pool_interface> get_thread_pool() {
         std::lock_guard<std::mutex> lock(mutex_);
         if (!thread_pool_) {
-            thread_pool_ = network_system::core::network_context::instance().get_thread_pool();
+            thread_pool_ = kcenon::network::core::network_context::instance().get_thread_pool();
             if (!thread_pool_) {
                 // Fallback to basic thread pool with size for concurrent io_contexts
                 // Tests like ConnectionScaling need 20+ clients + server

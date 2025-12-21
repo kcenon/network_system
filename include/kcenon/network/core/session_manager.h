@@ -15,11 +15,11 @@ All rights reserved.
 #include <unordered_map>
 #include <vector>
 
-namespace network_system::session {
+namespace kcenon::network::session {
     class messaging_session;
 }
 
-namespace network_system::core {
+namespace kcenon::network::core {
 
 /**
  * @struct session_config
@@ -71,7 +71,7 @@ struct session_config {
  */
 class session_manager {
 public:
-    using session_ptr = std::shared_ptr<network_system::session::messaging_session>;
+    using session_ptr = std::shared_ptr<kcenon::network::session::messaging_session>;
 
     explicit session_manager(const session_config& config = session_config())
         : config_(config)
@@ -306,4 +306,4 @@ private:
     std::atomic<uint64_t> total_rejected_;
 };
 
-} // namespace network_system::core
+} // namespace kcenon::network::core

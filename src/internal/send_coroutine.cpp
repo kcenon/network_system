@@ -39,7 +39,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <type_traits>
 
 // Use nested namespace definition (C++17)
-namespace network_system::internal
+namespace kcenon::network::internal
 {
     auto prepare_data_async(std::vector<uint8_t> input_data,
                             const pipeline& pl,
@@ -141,4 +141,4 @@ namespace network_system::internal
 
 #endif
 
-} // namespace network_system::internal
+} // namespace kcenon::network::internal

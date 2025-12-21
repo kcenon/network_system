@@ -43,7 +43,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <string>
 #include <cstddef>
 
-namespace network_system::metrics {
+namespace kcenon::network::metrics {
 
 /**
  * @brief Standard metric names for network system monitoring
@@ -137,4 +137,4 @@ public:
     static void report_session_duration(double ms);
 };
 
-} // namespace network_system::metrics
+} // namespace kcenon::network::metrics

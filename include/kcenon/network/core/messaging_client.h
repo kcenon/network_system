@@ -53,7 +53,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "kcenon/network/integration/io_context_thread_manager.h"
 
 // Use nested namespace definition in C++17
-namespace network_system::core
+namespace kcenon::network::core
 {
 
 	/*!
@@ -158,9 +158,9 @@ namespace network_system::core
 		 * compressing/encrypting via the \c pipeline.
 		 * \param data The buffer to send (moved for efficiency).
 		 * \return Result<void> - Success if data queued for send, or error with code:
-		 *         - error_codes::network_system::connection_closed if not connected
+		 *         - error_codes::kcenon::network::connection_closed if not connected
 		 *         - error_codes::common_errors::invalid_argument if empty data
-		 *         - error_codes::network_system::send_failed for other failures
+		 *         - error_codes::kcenon::network::send_failed for other failures
 		 *
 		 * ### Example
 		 * \code
@@ -318,4 +318,4 @@ namespace network_system::core
 		mutable std::mutex callback_mutex_;
 	};
 
-} // namespace network_system::core
+} // namespace kcenon::network::core

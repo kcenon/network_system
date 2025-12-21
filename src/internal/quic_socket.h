@@ -49,7 +49,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "kcenon/network/protocols/quic/packet.h"
 #include "kcenon/network/utils/result_types.h"
 
-namespace network_system::internal
+namespace kcenon::network::internal
 {
 	/*!
 	 * \enum quic_role
@@ -508,4 +508,4 @@ namespace network_system::internal
 		mutable std::mutex state_mutex_;
 	};
 
-} // namespace network_system::internal
+} // namespace kcenon::network::internal

@@ -36,7 +36,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <algorithm>
 #include <set>
 
-namespace network_system::protocols::quic
+namespace kcenon::network::protocols::quic
 {
 
 namespace
@@ -705,4 +705,4 @@ auto make_default_server_params() -> transport_parameters
     return params;
 }
 
-} // namespace network_system::protocols::quic
+} // namespace kcenon::network::protocols::quic

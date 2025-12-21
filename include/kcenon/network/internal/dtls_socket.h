@@ -45,7 +45,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "kcenon/network/internal/common_defs.h"
 #include "kcenon/network/internal/openssl_compat.h"
 
-namespace network_system::internal
+namespace kcenon::network::internal
 {
 	/*!
 	 * \class dtls_socket
@@ -266,4 +266,4 @@ namespace network_system::internal
 		handshake_type handshake_type_{handshake_type::client}; /*!< Handshake mode. */
 	};
 
-} // namespace network_system::internal
+} // namespace kcenon::network::internal

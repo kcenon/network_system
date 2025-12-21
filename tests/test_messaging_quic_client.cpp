@@ -37,8 +37,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <future>
 
 #include "kcenon/network/core/messaging_quic_client.h"
+#include "kcenon/network/utils/result_types.h"
 
-namespace network_system::core::test
+namespace kcenon::network::core::test
 {
 
 class MessagingQuicClientTest : public ::testing::Test
@@ -389,4 +390,4 @@ TEST_F(MessagingQuicClientTest, ApiConsistencyWithTcpClient)
 	EXPECT_TRUE(stop_result.is_ok());
 }
 
-} // namespace network_system::core::test
+} // namespace kcenon::network::core::test

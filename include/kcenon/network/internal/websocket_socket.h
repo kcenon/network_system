@@ -45,7 +45,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <system_error>
 #include <vector>
 
-namespace network_system::internal
+namespace kcenon::network::internal
 {
 	// Forward declaration
 	class tcp_socket;
@@ -328,4 +328,4 @@ namespace network_system::internal
 			-> void;
 	};
 
-} // namespace network_system::internal
+} // namespace kcenon::network::internal

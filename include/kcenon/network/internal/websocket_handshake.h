@@ -38,7 +38,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <string_view>
 #include <vector>
 
-namespace network_system::internal
+namespace kcenon::network::internal
 {
 	/*!
 	 * \struct ws_handshake_result
@@ -186,4 +186,4 @@ namespace network_system::internal
 		static auto sha1_hash(const std::string& data) -> std::vector<uint8_t>;
 	};
 
-} // namespace network_system::internal
+} // namespace kcenon::network::internal

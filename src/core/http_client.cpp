@@ -37,7 +37,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <sstream>
 #include <thread>
 
-namespace network_system::core {
+namespace kcenon::network::core {
 namespace {
 // Default timeout: 30 seconds
 constexpr auto DEFAULT_TIMEOUT_MS = std::chrono::milliseconds(30000);
@@ -354,4 +354,4 @@ auto http_client::request(internal::http_method method, const std::string &url,
   return response_result;
 }
 
-} // namespace network_system::core
+} // namespace kcenon::network::core

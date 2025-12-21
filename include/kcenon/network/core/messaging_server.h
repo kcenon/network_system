@@ -53,15 +53,15 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	#include <kcenon/common/interfaces/monitoring_interface.h>
 #endif
 
-namespace network_system::core
+namespace kcenon::network::core
 {
-} // namespace network_system::core
+} // namespace kcenon::network::core
 
-namespace network_system::session {
+namespace kcenon::network::session {
 	class messaging_session;
 }
 
-namespace network_system::core {
+namespace kcenon::network::core {
 
 	/*!
 	 * \class messaging_server
@@ -133,8 +133,8 @@ namespace network_system::core {
 		 *
 		 * \param port The TCP port to bind and listen on (e.g., 5555).
 		 * \return Result<void> - Success if server started, or error with code:
-		 *         - error_codes::network_system::server_already_running if already running
-		 *         - error_codes::network_system::bind_failed if port binding failed
+		 *         - error_codes::kcenon::network::server_already_running if already running
+		 *         - error_codes::kcenon::network::bind_failed if port binding failed
 		 *         - error_codes::common_errors::internal_error for other failures
 		 *
 		 * #### Behavior
@@ -159,7 +159,7 @@ namespace network_system::core {
 		 * sessions, then stops the \c io_context and joins the internal thread.
 		 *
 		 * \return Result<void> - Success if server stopped, or error with code:
-		 *         - error_codes::network_system::server_not_started if not running
+		 *         - error_codes::kcenon::network::server_not_started if not running
 		 *         - error_codes::common_errors::internal_error for other failures
 		 *
 		 * #### Steps:
@@ -223,7 +223,7 @@ namespace network_system::core {
 		 * \endcode
 		 */
 		auto set_connection_callback(
-			std::function<void(std::shared_ptr<network_system::session::messaging_session>)> callback)
+			std::function<void(std::shared_ptr<kcenon::network::session::messaging_session>)> callback)
 			-> void;
 
 		/*!
@@ -263,7 +263,7 @@ namespace network_system::core {
 		 * \endcode
 		 */
 		auto set_receive_callback(
-			std::function<void(std::shared_ptr<network_system::session::messaging_session>,
+			std::function<void(std::shared_ptr<kcenon::network::session::messaging_session>,
 			                   const std::vector<uint8_t>&)> callback) -> void;
 
 		/*!
@@ -282,7 +282,7 @@ namespace network_system::core {
 		 * \endcode
 		 */
 		auto set_error_callback(
-			std::function<void(std::shared_ptr<network_system::session::messaging_session>,
+			std::function<void(std::shared_ptr<kcenon::network::session::messaging_session>,
 			                   std::error_code)> callback) -> void;
 
 	private:
@@ -352,7 +352,7 @@ namespace network_system::core {
 		 *        each session's \c stop_session() is called and they are
 		 * cleared.
 		 */
-		std::vector<std::shared_ptr<network_system::session::messaging_session>> sessions_;
+		std::vector<std::shared_ptr<kcenon::network::session::messaging_session>> sessions_;
 
 		/*!
 		 * \brief Mutex protecting access to sessions_ vector.
@@ -381,14 +381,14 @@ namespace network_system::core {
 		/*!
 		 * \brief Callbacks for server events
 		 */
-		std::function<void(std::shared_ptr<network_system::session::messaging_session>)>
+		std::function<void(std::shared_ptr<kcenon::network::session::messaging_session>)>
 			connection_callback_;
 		std::function<void(const std::string&)>
 			disconnection_callback_;
-		std::function<void(std::shared_ptr<network_system::session::messaging_session>,
+		std::function<void(std::shared_ptr<kcenon::network::session::messaging_session>,
 		                   const std::vector<uint8_t>&)>
 			receive_callback_;
-		std::function<void(std::shared_ptr<network_system::session::messaging_session>,
+		std::function<void(std::shared_ptr<kcenon::network::session::messaging_session>,
 		                   std::error_code)>
 			error_callback_;
 
@@ -398,4 +398,4 @@ namespace network_system::core {
 		mutable std::mutex callback_mutex_;
 	};
 
-} // namespace network_system::core
+} // namespace kcenon::network::core

@@ -33,7 +33,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "kcenon/network/core/connection_pool.h"
 #include "kcenon/network/integration/logger_integration.h"
 
-namespace network_system::core
+namespace kcenon::network::core
 {
 
 	connection_pool::connection_pool(std::string host, unsigned short port,
@@ -171,4 +171,4 @@ namespace network_system::core
 			std::to_string(pool_size_));
 	}
 
-} // namespace network_system::core
+} // namespace kcenon::network::core

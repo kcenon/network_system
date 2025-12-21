@@ -32,7 +32,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "kcenon/network/protocols/quic/stream_manager.h"
 
-namespace network_system::protocols::quic
+namespace kcenon::network::protocols::quic
 {
 
 stream_manager::stream_manager(bool is_server, uint64_t initial_max_stream_data)
@@ -406,4 +406,4 @@ auto stream_manager::can_accept_peer_stream(uint64_t stream_id) const -> bool
     }
 }
 
-} // namespace network_system::protocols::quic
+} // namespace kcenon::network::protocols::quic

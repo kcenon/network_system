@@ -46,12 +46,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "kcenon/network/protocols/quic/connection_id.h"
 #include "kcenon/network/utils/result_types.h"
 
-namespace network_system::internal
+namespace kcenon::network::internal
 {
 	class quic_socket;
-} // namespace network_system::internal
+} // namespace kcenon::network::internal
 
-namespace network_system::session
+namespace kcenon::network::session
 {
 
 	/*!
@@ -263,4 +263,4 @@ namespace network_system::session
 		mutable std::mutex callback_mutex_;
 	};
 
-} // namespace network_system::session
+} // namespace kcenon::network::session

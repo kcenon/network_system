@@ -35,7 +35,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <cstring>
 
-namespace network_system::internal
+namespace kcenon::network::internal
 {
 
 namespace
@@ -507,4 +507,4 @@ auto dtls_socket::make_ssl_error() const -> std::error_code
 	return make_ssl_error_code(static_cast<int>(err));
 }
 
-} // namespace network_system::internal
+} // namespace kcenon::network::internal

@@ -308,7 +308,7 @@ int main(int argc, char* argv[]) {
     std::cout << "Demonstrating the new API with all integration features" << std::endl;
 
     // Initialize using modern API
-    network_system::compat::initialize();
+    kcenon::network::compat::initialize();
     std::cout << "\n✓ Network system initialized" << std::endl;
 
     try {
@@ -375,7 +375,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Shutdown
-    network_system::compat::shutdown();
+    kcenon::network::compat::shutdown();
     std::cout << "\n✓ Network system shutdown complete" << std::endl;
 
     std::cout << "\n=== Modern Usage Demo Complete ===" << std::endl;

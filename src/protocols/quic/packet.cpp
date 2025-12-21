@@ -35,7 +35,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <algorithm>
 
-namespace network_system::protocols::quic
+namespace kcenon::network::protocols::quic
 {
 
 namespace
@@ -664,4 +664,4 @@ auto packet_builder::build(const short_header& header) -> std::vector<uint8_t>
                        header.key_phase(), header.spin_bit());
 }
 
-} // namespace network_system::protocols::quic
+} // namespace kcenon::network::protocols::quic

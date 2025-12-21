@@ -48,7 +48,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "kcenon/network/integration/monitoring_integration.h"
 #endif
 
-namespace network_system::core {
+namespace kcenon::network::core {
 
 /**
  * @class network_context
@@ -137,4 +137,4 @@ private:
     std::shared_ptr<impl> pimpl_;
 };
 
-} // namespace network_system::core
+} // namespace kcenon::network::core

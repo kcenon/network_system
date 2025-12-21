@@ -35,7 +35,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <algorithm>
 #include <cmath>
 
-namespace network_system::protocols::quic
+namespace kcenon::network::protocols::quic
 {
 
 rtt_estimator::rtt_estimator()
@@ -136,4 +136,4 @@ auto rtt_estimator::reset() -> void
     first_sample_ = true;
 }
 
-} // namespace network_system::protocols::quic
+} // namespace kcenon::network::protocols::quic

@@ -44,7 +44,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "kcenon/network/utils/result_types.h"
 #include "test_helpers.h"
 
-namespace network_system::integration_tests {
+namespace kcenon::network::integration_tests {
 
 /**
  * @brief Base fixture for network system integration tests
@@ -281,4 +281,4 @@ protected:
   std::vector<std::shared_ptr<core::messaging_client>> clients_;
 };
 
-} // namespace network_system::integration_tests
+} // namespace kcenon::network::integration_tests

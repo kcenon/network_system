@@ -35,7 +35,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "../framework/test_helpers.h"
 #include <iostream>
 
-namespace network_system::integration_tests {
+namespace kcenon::network::integration_tests {
 
 /**
  * @brief Test suite for network performance measurement
@@ -354,4 +354,4 @@ TEST_F(NetworkPerformanceTest, BurstLoad) {
     EXPECT_GT(throughput, 1000.0);
 }
 
-} // namespace network_system::integration_tests
+} // namespace kcenon::network::integration_tests

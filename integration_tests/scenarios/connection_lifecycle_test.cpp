@@ -34,7 +34,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "../framework/system_fixture.h"
 #include "../framework/test_helpers.h"
 
-namespace network_system::integration_tests {
+namespace kcenon::network::integration_tests {
 
 /**
  * @brief Test suite for connection lifecycle scenarios
@@ -256,4 +256,4 @@ TEST_F(ConnectionLifecycleTest, ServerRestartCycle) {
     ASSERT_TRUE(StartServer());
 }
 
-} // namespace network_system::integration_tests
+} // namespace kcenon::network::integration_tests

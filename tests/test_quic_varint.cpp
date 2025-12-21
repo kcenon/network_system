@@ -34,7 +34,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "kcenon/network/protocols/quic/varint.h"
 
-namespace network_system::protocols::quic
+namespace kcenon::network::protocols::quic
 {
 namespace
 {
@@ -383,4 +383,4 @@ TEST_F(VarintTest, DecodeRFC9000Examples)
 }
 
 }  // namespace
-}  // namespace network_system::protocols::quic
+}  // namespace kcenon::network::protocols::quic

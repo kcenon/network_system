@@ -58,7 +58,7 @@
 #include "kcenon/network/internal/tcp_socket.h"
 #include "kcenon/network/internal/websocket_socket.h"
 
-using namespace network_system::internal;
+using namespace kcenon::network::internal;
 using namespace std::chrono_literals;
 
 // Free function for yielding to allow async operations to complete

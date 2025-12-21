@@ -35,7 +35,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "kcenon/network/internal/udp_socket.h"
 #include "kcenon/network/integration/logger_integration.h"
 
-namespace network_system::core
+namespace kcenon::network::core
 {
 	using udp = asio::ip::udp;
 
@@ -231,4 +231,4 @@ namespace network_system::core
 		}
 	}
 
-} // namespace network_system::core
+} // namespace kcenon::network::core

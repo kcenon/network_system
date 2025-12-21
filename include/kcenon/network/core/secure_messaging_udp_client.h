@@ -45,12 +45,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "kcenon/network/utils/result_types.h"
 #include "kcenon/network/integration/thread_integration.h"
 
-namespace network_system::internal
+namespace kcenon::network::internal
 {
 	class dtls_socket;
 }
 
-namespace network_system::core
+namespace kcenon::network::core
 {
 	/*!
 	 * \class secure_messaging_udp_client
@@ -219,4 +219,4 @@ namespace network_system::core
 		std::function<void()> disconnected_callback_;
 	};
 
-} // namespace network_system::core
+} // namespace kcenon::network::core

@@ -43,7 +43,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <span>
 #include <vector>
 
-namespace network_system::protocols::quic
+namespace kcenon::network::protocols::quic
 {
 
 /*!
@@ -453,4 +453,4 @@ private:
  */
 [[nodiscard]] auto recv_state_to_string(recv_stream_state state) -> const char*;
 
-} // namespace network_system::protocols::quic
+} // namespace kcenon::network::protocols::quic

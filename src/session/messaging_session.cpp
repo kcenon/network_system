@@ -40,7 +40,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "kcenon/network/metrics/network_metrics.h"
 
 // Use nested namespace definition (C++17)
-namespace network_system::session
+namespace kcenon::network::session
 {
 
 	// Use string_view in constructor for efficiency (C++17)
@@ -351,4 +351,4 @@ if constexpr (std::is_same_v<decltype(socket_->socket().get_executor()), asio::i
 		error_callback_ = std::move(callback);
 	}
 
-} // namespace network_system::session
+} // namespace kcenon::network::session

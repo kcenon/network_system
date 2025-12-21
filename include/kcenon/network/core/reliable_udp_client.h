@@ -42,7 +42,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "kcenon/network/utils/result_types.h"
 
-namespace network_system::core
+namespace kcenon::network::core
 {
 	/*!
 	 * \enum reliability_mode
@@ -247,4 +247,4 @@ namespace network_system::core
 		std::unique_ptr<impl> pimpl_; /*!< Implementation (PIMPL idiom) */
 	};
 
-} // namespace network_system::core
+} // namespace kcenon::network::core

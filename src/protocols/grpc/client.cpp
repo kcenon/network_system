@@ -41,7 +41,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <mutex>
 #include <thread>
 
-namespace network_system::protocols::grpc
+namespace kcenon::network::protocols::grpc
 {
 
 // Server stream reader implementation
@@ -1020,4 +1020,4 @@ auto grpc_client::bidi_stream_raw(const std::string& method,
     return impl_->bidi_stream_raw(method, options);
 }
 
-} // namespace network_system::protocols::grpc
+} // namespace kcenon::network::protocols::grpc

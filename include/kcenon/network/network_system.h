@@ -67,10 +67,10 @@
 #include "kcenon/network/concepts/concepts.h"
 
 /**
- * @namespace network_system
+ * @namespace kcenon::network
  * @brief Main namespace for all Network System components
  */
-namespace network_system {
+namespace kcenon::network {
 
 /**
  * @brief Initialize the network system with default configuration
@@ -117,4 +117,4 @@ VoidResult shutdown();
  */
 bool is_initialized();
 
-} // namespace network_system
+} // namespace kcenon::network

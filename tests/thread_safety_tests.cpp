@@ -8,6 +8,7 @@ All rights reserved.
 #include "kcenon/network/core/messaging_client.h"
 #include "kcenon/network/core/messaging_server.h"
 #include "kcenon/network/session/messaging_session.h"
+#include "kcenon/network/compatibility.h"
 #include <gtest/gtest.h>
 
 #include <atomic>
@@ -19,7 +20,7 @@ All rights reserved.
 #include <thread>
 #include <vector>
 
-using namespace network_system::core;
+using namespace kcenon::network::core;
 using namespace std::chrono_literals;
 
 // Free function for yielding to allow async operations to complete

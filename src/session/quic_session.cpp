@@ -36,7 +36,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "kcenon/network/metrics/network_metrics.h"
 #include "internal/quic_socket.h"
 
-namespace network_system::session
+namespace kcenon::network::session
 {
 
 	quic_session::quic_session(std::shared_ptr<internal::quic_socket> socket,
@@ -377,4 +377,4 @@ namespace network_system::session
 		}
 	}
 
-} // namespace network_system::session
+} // namespace kcenon::network::session

@@ -49,33 +49,36 @@
 #endif
 #include "kcenon/network/integration/thread_integration.h"
 #include "kcenon/network/integration/container_integration.h"
+#include "kcenon/network/config/network_config.h"
+#include "kcenon/network/utils/result_types.h"
+#include "kcenon/network/utils/health_monitor.h"
 
 // Legacy namespace aliases for backward compatibility
 namespace network_module {
     // Core types
-    using messaging_server = ::network_system::core::messaging_server;
-    using messaging_client = ::network_system::core::messaging_client;
+    using messaging_server = ::kcenon::network::core::messaging_server;
+    using messaging_client = ::kcenon::network::core::messaging_client;
 
     // Session types
-    using messaging_session = ::network_system::session::messaging_session;
+    using messaging_session = ::kcenon::network::session::messaging_session;
 
 #ifdef BUILD_MESSAGING_BRIDGE
     // Integration types
-    using messaging_bridge = ::network_system::integration::messaging_bridge;
+    using messaging_bridge = ::kcenon::network::integration::messaging_bridge;
 #endif
 
     // Thread integration
-    using thread_pool_interface = ::network_system::integration::thread_pool_interface;
-    using basic_thread_pool = ::network_system::integration::basic_thread_pool;
-    using thread_integration_manager = ::network_system::integration::thread_integration_manager;
+    using thread_pool_interface = ::kcenon::network::integration::thread_pool_interface;
+    using basic_thread_pool = ::kcenon::network::integration::basic_thread_pool;
+    using thread_integration_manager = ::kcenon::network::integration::thread_integration_manager;
 
     // Container integration
-    using container_interface = ::network_system::integration::container_interface;
-    using basic_container = ::network_system::integration::basic_container;
-    using container_manager = ::network_system::integration::container_manager;
+    using container_interface = ::kcenon::network::integration::container_interface;
+    using basic_container = ::kcenon::network::integration::basic_container;
+    using container_manager = ::kcenon::network::integration::container_manager;
 
 #ifdef BUILD_WITH_CONTAINER_SYSTEM
-    using container_system_adapter = ::network_system::integration::container_system_adapter;
+    using container_system_adapter = ::kcenon::network::integration::container_system_adapter;
 #endif
 
     /**
@@ -113,6 +116,21 @@ namespace messaging {
     using namespace network_module;
 }
 
+// Legacy network_system namespace for backward compatibility
+// DEPRECATED: Use kcenon::network directly in new code
+namespace network_system {
+    // Import all kcenon::network types
+    using namespace kcenon::network;
+
+    // Explicit namespace aliases for sub-namespaces
+    namespace core = kcenon::network::core;
+    namespace session = kcenon::network::session;
+    namespace integration = kcenon::network::integration;
+    namespace config = kcenon::network::config;
+    namespace internal = kcenon::network::internal;
+    namespace utils = kcenon::network::utils;
+}
+
 // Feature detection macros
 #ifdef BUILD_WITH_CONTAINER_SYSTEM
     #define HAS_CONTAINER_INTEGRATION 1
@@ -136,10 +154,10 @@ namespace messaging {
 #endif
 
 /**
- * @namespace network_system::compat
+ * @namespace kcenon::network::compat
  * @brief Compatibility utilities namespace
  */
-namespace network_system::compat {
+namespace kcenon::network::compat {
 
     /**
      * @brief Check if container integration is available

@@ -37,7 +37,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "kcenon/network/integration/monitoring_integration.h"
 #endif
 
-namespace network_system::metrics {
+namespace kcenon::network::metrics {
 
 void metric_reporter::report_connection_accepted() {
 #ifdef BUILD_WITH_MONITORING_SYSTEM
@@ -137,4 +137,4 @@ void metric_reporter::report_session_duration(double ms) {
 #endif
 }
 
-} // namespace network_system::metrics
+} // namespace kcenon::network::metrics

@@ -34,7 +34,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <kcenon/network/protocols/grpc/frame.h>
 #include <kcenon/network/protocols/grpc/status.h>
 
-namespace grpc = network_system::protocols::grpc;
+namespace grpc = kcenon::network::protocols::grpc;
 
 // grpc_message tests
 class GrpcMessageTest : public ::testing::Test

@@ -37,7 +37,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <mutex>
 #include <unordered_map>
 
-namespace network_system::protocols::grpc
+namespace kcenon::network::protocols::grpc
 {
 
 // Method type enumeration
@@ -428,4 +428,4 @@ auto grpc_server::register_bidi_streaming_method(const std::string& full_method_
     return impl_->register_bidi_streaming_method(full_method_name, std::move(handler));
 }
 
-} // namespace network_system::protocols::grpc
+} // namespace kcenon::network::protocols::grpc

@@ -23,7 +23,7 @@
 #include <system_error>
 #include <vector>
 
-using namespace network_system::concepts;
+using namespace kcenon::network::concepts;
 
 // ============================================================================
 // Example 1: Using ByteBuffer concept

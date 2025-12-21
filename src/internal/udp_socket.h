@@ -43,7 +43,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "common_defs.h"
 
-namespace network_system::internal
+namespace kcenon::network::internal
 {
 	/*!
 	 * \class udp_socket
@@ -187,4 +187,4 @@ namespace network_system::internal
 
 		std::atomic<bool> is_receiving_{false}; /*!< Flag to prevent receive after stop. */
 	};
-} // namespace network_system::internal
+} // namespace kcenon::network::internal

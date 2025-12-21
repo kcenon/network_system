@@ -42,7 +42,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "kcenon/network/core/messaging_client.h"
 #include "kcenon/network/utils/result_types.h"
 
-namespace network_system::utils
+namespace kcenon::network::utils
 {
 
 	/*!
@@ -185,4 +185,4 @@ namespace network_system::utils
 		std::function<void()> disconnect_callback_;      /*!< Disconnection callback */
 	};
 
-} // namespace network_system::utils
+} // namespace kcenon::network::utils
