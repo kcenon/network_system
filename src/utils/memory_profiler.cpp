@@ -44,7 +44,7 @@
 #pragma comment(lib, "psapi.lib")
 #endif
 
-namespace network_system::utils {
+namespace kcenon::network::utils {
 
 memory_profiler& memory_profiler::instance() {
     static memory_profiler s;
@@ -162,5 +162,5 @@ bool memory_profiler::query_process_memory(std::uint64_t& rss, std::uint64_t& vm
 #endif
 }
 
-} // namespace network_system::utils
+} // namespace kcenon::network::utils
 

@@ -38,7 +38,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <sstream>
 
-namespace network_system::utils
+namespace kcenon::network::utils
 {
 
 	health_monitor::health_monitor(std::chrono::seconds heartbeat_interval,
@@ -330,4 +330,4 @@ namespace network_system::utils
 		}
 	}
 
-} // namespace network_system::utils
+} // namespace kcenon::network::utils

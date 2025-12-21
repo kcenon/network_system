@@ -37,7 +37,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <deque>
 #include <mutex>
 
-namespace network_system::utils
+namespace kcenon::network::utils
 {
 
 	class buffer_pool::impl
@@ -193,4 +193,4 @@ namespace network_system::utils
 
 	auto buffer_pool::clear() -> void { pimpl_->clear(); }
 
-} // namespace network_system::utils
+} // namespace kcenon::network::utils
