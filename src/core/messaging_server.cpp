@@ -36,7 +36,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "kcenon/network/integration/io_context_thread_manager.h"
 #include "kcenon/network/metrics/network_metrics.h"
 
-namespace network_system::core
+namespace kcenon::network::core
 {
 
 	using tcp = asio::ip::tcp;
@@ -480,4 +480,4 @@ namespace network_system::core
 		error_callback_ = std::move(callback);
 	}
 
-} // namespace network_system::core
+} // namespace kcenon::network::core

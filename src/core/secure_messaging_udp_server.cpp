@@ -34,7 +34,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "kcenon/network/core/network_context.h"
 #include "kcenon/network/internal/dtls_socket.h"
 
-namespace network_system::core
+namespace kcenon::network::core
 {
 
 secure_messaging_udp_server::secure_messaging_udp_server(const std::string& server_id)
@@ -469,4 +469,4 @@ auto secure_messaging_udp_server::set_client_disconnected_callback(
 	client_disconnected_callback_ = std::move(callback);
 }
 
-} // namespace network_system::core
+} // namespace kcenon::network::core
