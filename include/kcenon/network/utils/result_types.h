@@ -163,7 +163,7 @@ namespace kcenon::network {
 
 	// Minimal error codes (fallback)
 	namespace error_codes {
-		namespace kcenon::network {
+		namespace network_system {
 			constexpr int connection_failed = -600;
 			constexpr int connection_refused = -601;
 			constexpr int connection_timeout = -602;
