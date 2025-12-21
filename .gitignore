@@ -1,8 +1,11 @@
 # Build directories
 build/
-build*/
+build-*/
+build_*/
+cmake-build-*/
 out/
 install/
+_deps/
 
 # IDE files
 .vscode/
