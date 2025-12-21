@@ -183,7 +183,7 @@ jobs:
           lcov --capture \
             --directory . \
             --output-file coverage/coverage.info \
-            --ignore-errors mismatch,gcov,source,unused \
+            --ignore-errors mismatch,gcov,source,unused,negative \
             --rc lcov_branch_coverage=1
 
           # Remove system and test files and external dependencies
@@ -197,7 +197,7 @@ jobs:
             '*/build/_deps/*' \
             '*/asio/*' \
             --output-file coverage/coverage_filtered.info \
-            --ignore-errors mismatch,unused \
+            --ignore-errors mismatch,unused,negative \
             --rc lcov_branch_coverage=1
 
           # Generate HTML report
