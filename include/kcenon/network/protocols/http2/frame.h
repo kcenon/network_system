@@ -40,7 +40,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <memory>
 #include <string>
 
-namespace network_system::protocols::http2
+namespace kcenon::network::protocols::http2
 {
     /*!
      * \enum frame_type
@@ -513,4 +513,4 @@ namespace network_system::protocols::http2
         http_1_1_required   = 0xd   //!< Use HTTP/1.1 for the request
     };
 
-} // namespace network_system::protocols::http2
+} // namespace kcenon::network::protocols::http2

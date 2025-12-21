@@ -38,7 +38,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <string>
 #include <string_view>
 
-namespace network_system::internal
+namespace kcenon::network::internal
 {
     /*!
      * \class http_parser
@@ -205,4 +205,4 @@ namespace network_system::internal
         static auto serialize_chunked_response(const http_response& response) -> std::vector<uint8_t>;
     };
 
-} // namespace network_system::internal
+} // namespace kcenon::network::internal

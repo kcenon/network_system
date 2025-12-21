@@ -40,7 +40,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <string>
 #include <vector>
 
-namespace network_system::internal
+namespace kcenon::network::internal
 {
 	/*!
 	 * \enum ws_message_type
@@ -317,4 +317,4 @@ namespace network_system::internal
 		static auto is_valid_utf8(const std::vector<uint8_t>& data) -> bool;
 	};
 
-} // namespace network_system::internal
+} // namespace kcenon::network::internal

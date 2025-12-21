@@ -38,7 +38,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <optional>
 
 // Use nested namespace definition (C++17)
-namespace network_system::internal
+namespace kcenon::network::internal
 {
 	/*!
 	 * \enum data_mode
@@ -240,4 +240,4 @@ namespace network_system::internal
 		"ECDHE-RSA-AES128-GCM-SHA256:"
 		"ECDHE-RSA-CHACHA20-POLY1305";
 
-} // namespace network_system::internal
+} // namespace kcenon::network::internal

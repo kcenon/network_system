@@ -46,7 +46,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "kcenon/network/integration/thread_system_adapter.h"
 #endif
 
-namespace network_system::core {
+namespace kcenon::network::core {
 
 // Use namespace alias for integration types
 namespace integration = kcenon::network::integration;
@@ -225,4 +225,4 @@ std::shared_ptr<integration::monitoring_interface> network_context::get_monitori
 }
 #endif
 
-} // namespace network_system::core
+} // namespace kcenon::network::core

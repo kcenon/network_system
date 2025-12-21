@@ -35,7 +35,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <algorithm>
 #include <cstring>
 
-namespace network_system::protocols::quic
+namespace kcenon::network::protocols::quic
 {
 
 auto encryption_level_to_string(encryption_level level) -> std::string
@@ -101,4 +101,4 @@ void key_pair::clear() noexcept
     write.clear();
 }
 
-} // namespace network_system::protocols::quic
+} // namespace kcenon::network::protocols::quic

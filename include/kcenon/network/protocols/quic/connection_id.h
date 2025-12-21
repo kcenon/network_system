@@ -37,7 +37,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <span>
 #include <string>
 
-namespace network_system::protocols::quic
+namespace kcenon::network::protocols::quic
 {
 
 /*!
@@ -130,4 +130,4 @@ private:
     uint8_t length_{0};
 };
 
-} // namespace network_system::protocols::quic
+} // namespace kcenon::network::protocols::quic

@@ -42,7 +42,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "kcenon/network/core/messaging_client.h"
 #include "kcenon/network/utils/result_types.h"
 
-namespace network_system::core
+namespace kcenon::network::core
 {
 
 	/*!
@@ -156,4 +156,4 @@ namespace network_system::core
 													/*!< Shutdown flag */
 	};
 
-} // namespace network_system::core
+} // namespace kcenon::network::core

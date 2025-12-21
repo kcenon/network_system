@@ -54,8 +54,8 @@
 #include "kcenon/network/core/http_server.h"
 #include "kcenon/network/core/http_client.h"
 
-using namespace network_system::core;
-using namespace network_system::internal;
+using namespace kcenon::network::core;
+using namespace kcenon::network::internal;
 using namespace std::chrono_literals;
 
 namespace {

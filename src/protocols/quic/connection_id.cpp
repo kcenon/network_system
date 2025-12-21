@@ -37,7 +37,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <sstream>
 #include <iomanip>
 
-namespace network_system::protocols::quic
+namespace kcenon::network::protocols::quic
 {
 
 connection_id::connection_id(std::span<const uint8_t> data)
@@ -130,4 +130,4 @@ auto connection_id::to_string() const -> std::string
     return oss.str();
 }
 
-} // namespace network_system::protocols::quic
+} // namespace kcenon::network::protocols::quic

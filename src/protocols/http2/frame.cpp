@@ -34,7 +34,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <cstring>
 #include <algorithm>
 
-namespace network_system::protocols::http2
+namespace kcenon::network::protocols::http2
 {
     namespace
     {
@@ -618,4 +618,4 @@ namespace network_system::protocols::http2
         return window_size_increment_;
     }
 
-} // namespace network_system::protocols::http2
+} // namespace kcenon::network::protocols::http2

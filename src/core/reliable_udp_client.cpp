@@ -44,7 +44,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <mutex>
 #include <thread>
 
-namespace network_system::core
+namespace kcenon::network::core
 {
 	// Packet header structure (12 bytes)
 	struct packet_header
@@ -769,4 +769,4 @@ namespace network_system::core
 
 	auto reliable_udp_client::mode() const -> reliability_mode { return pimpl_->mode(); }
 
-} // namespace network_system::core
+} // namespace kcenon::network::core

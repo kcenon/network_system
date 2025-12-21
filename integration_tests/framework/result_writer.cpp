@@ -13,7 +13,7 @@ All rights reserved.
 #include <iomanip>
 #include <sstream>
 
-namespace network_system::integration_tests {
+namespace kcenon::network::integration_tests {
 
 auto ResultWriter::write_json(const std::string& path,
                                const std::vector<PerformanceResult>& results) const -> bool {
@@ -128,4 +128,4 @@ auto ResultWriter::escape_csv(const std::string& str) -> std::string {
     return str;
 }
 
-} // namespace network_system::integration_tests
+} // namespace kcenon::network::integration_tests

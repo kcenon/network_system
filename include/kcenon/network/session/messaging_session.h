@@ -48,7 +48,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "kcenon/network/internal/pipeline.h"
 
 // Use nested namespace definition in C++17
-namespace network_system::session
+namespace kcenon::network::session
 {
 
 	/*!
@@ -251,4 +251,4 @@ namespace network_system::session
 		mutable std::mutex callback_mutex_;
 	};
 
-} // namespace network_system::session
+} // namespace kcenon::network::session

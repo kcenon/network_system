@@ -37,7 +37,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <chrono>
 #include <condition_variable>
 
-namespace network_system::core
+namespace kcenon::network::core
 {
 
 secure_messaging_udp_client::secure_messaging_udp_client(
@@ -365,4 +365,4 @@ auto secure_messaging_udp_client::set_disconnected_callback(
 	disconnected_callback_ = std::move(callback);
 }
 
-} // namespace network_system::core
+} // namespace kcenon::network::core

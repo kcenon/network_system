@@ -40,7 +40,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "kcenon/network/utils/result_types.h"
 
-namespace network_system::internal
+namespace kcenon::network::internal
 {
     /*!
      * \enum http_method
@@ -253,7 +253,7 @@ namespace network_system::internal
      * Possible errors:
      * - invalid_argument: Unknown HTTP method string
      */
-    auto string_to_http_method(const std::string& method_str) -> ::network_system::Result<http_method>;
+    auto string_to_http_method(const std::string& method_str) -> ::kcenon::network::Result<http_method>;
 
     /*!
      * \brief Convert HTTP version enum to string
@@ -270,7 +270,7 @@ namespace network_system::internal
      * Possible errors:
      * - invalid_argument: Unknown HTTP version string
      */
-    auto string_to_http_version(const std::string& version_str) -> ::network_system::Result<http_version>;
+    auto string_to_http_version(const std::string& version_str) -> ::kcenon::network::Result<http_version>;
 
     /*!
      * \brief Get HTTP status message for a status code
@@ -279,4 +279,4 @@ namespace network_system::internal
      */
     auto get_status_message(int status_code) -> std::string;
 
-} // namespace network_system::internal
+} // namespace kcenon::network::internal

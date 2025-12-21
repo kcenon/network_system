@@ -37,7 +37,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "kcenon/network/internal/pipeline.h"
 #include "kcenon/network/internal/tcp_socket.h"
 
-namespace network_system::internal
+namespace kcenon::network::internal
 {
 	/*!
 	 * \brief Launches a separate thread (via std::async) to apply
@@ -117,4 +117,4 @@ auto prepare_data_async(std::vector<uint8_t> input_data,
 
 #endif
 
-} // namespace network_system::internal
+} // namespace kcenon::network::internal

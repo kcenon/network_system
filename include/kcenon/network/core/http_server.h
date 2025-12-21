@@ -46,7 +46,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <vector>
 #include <chrono>
 
-namespace network_system::core
+namespace kcenon::network::core
 {
     /*!
      * \struct http_request_buffer
@@ -471,4 +471,4 @@ namespace network_system::core
         std::chrono::milliseconds request_timeout_{30000};  // 30 seconds default
     };
 
-} // namespace network_system::core
+} // namespace kcenon::network::core

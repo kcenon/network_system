@@ -10,8 +10,8 @@ All rights reserved.
 #include <chrono>
 #include <thread>
 
-using namespace network_system::core;
-using namespace network_system::internal;
+using namespace kcenon::network::core;
+using namespace kcenon::network::internal;
 
 int main()
 {

@@ -39,7 +39,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <utility>
 #include <vector>
 
-namespace network_system::protocols::quic
+namespace kcenon::network::protocols::quic
 {
     /*!
      * \brief Maximum value that can be encoded in QUIC variable-length integer
@@ -151,4 +151,4 @@ namespace network_system::protocols::quic
         static constexpr uint8_t value_mask = 0x3F;
     };
 
-} // namespace network_system::protocols::quic
+} // namespace kcenon::network::protocols::quic

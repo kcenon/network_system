@@ -56,7 +56,7 @@
 #include <unistd.h>
 #endif
 
-using namespace network_system::core;
+using namespace kcenon::network::core;
 
 /**
  * @brief Get current RSS (Resident Set Size) in bytes

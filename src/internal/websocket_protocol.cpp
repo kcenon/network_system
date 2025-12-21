@@ -35,7 +35,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <algorithm>
 #include <span>
 
-namespace network_system::internal
+namespace kcenon::network::internal
 {
 	// ========================================================================
 	// ws_message implementation
@@ -439,4 +439,4 @@ namespace network_system::internal
 		return true;
 	}
 
-} // namespace network_system::internal
+} // namespace kcenon::network::internal

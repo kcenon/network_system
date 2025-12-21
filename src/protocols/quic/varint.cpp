@@ -32,7 +32,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "kcenon/network/protocols/quic/varint.h"
 
-namespace network_system::protocols::quic
+namespace kcenon::network::protocols::quic
 {
 
 auto varint::encode(uint64_t value) -> std::vector<uint8_t>
@@ -207,4 +207,4 @@ auto varint::decode(std::span<const uint8_t> data)
     return ok(std::make_pair(value, length));
 }
 
-} // namespace network_system::protocols::quic
+} // namespace kcenon::network::protocols::quic

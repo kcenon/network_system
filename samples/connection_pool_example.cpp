@@ -33,7 +33,7 @@ All rights reserved.
 #include "network_system/core/messaging_server.h"
 #include "network_system/session/messaging_session.h"
 
-using namespace network_system::core;
+using namespace kcenon::network::core;
 
 // RAII wrapper for automatic connection release
 class scoped_connection
@@ -297,7 +297,7 @@ int main()
 
 	// Set up echo handler
 	server->set_receive_callback(
-		[](std::shared_ptr<network_system::session::messaging_session> session,
+		[](std::shared_ptr<kcenon::network::session::messaging_session> session,
 		   const std::vector<uint8_t>& data)
 		{
 			// Echo back the data

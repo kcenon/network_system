@@ -42,7 +42,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <atomic>
 
-namespace network_system {
+namespace kcenon::network {
 
 using error_codes::common_errors::already_exists;
 using error_codes::common_errors::internal_error;
@@ -162,4 +162,4 @@ VoidResult shutdown() {
 
 bool is_initialized() { return g_initialized.load(); }
 
-} // namespace network_system
+} // namespace kcenon::network

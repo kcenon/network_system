@@ -80,16 +80,16 @@ messaging_bridge::messaging_bridge() : pimpl_(std::make_unique<impl>()) {
 
 messaging_bridge::~messaging_bridge() = default;
 
-std::shared_ptr<network_system::core::messaging_server> messaging_bridge::create_server(
+std::shared_ptr<kcenon::network::core::messaging_server> messaging_bridge::create_server(
     const std::string& server_id
 ) {
-    return std::make_shared<network_system::core::messaging_server>(server_id);
+    return std::make_shared<kcenon::network::core::messaging_server>(server_id);
 }
 
-std::shared_ptr<network_system::core::messaging_client> messaging_bridge::create_client(
+std::shared_ptr<kcenon::network::core::messaging_client> messaging_bridge::create_client(
     const std::string& client_id
 ) {
-    return std::make_shared<network_system::core::messaging_client>(client_id);
+    return std::make_shared<kcenon::network::core::messaging_client>(client_id);
 }
 
 #ifdef BUILD_WITH_CONTAINER_SYSTEM

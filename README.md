@@ -111,11 +111,11 @@ cmake --build build -j
 ### Your First Server (60 seconds)
 
 ```cpp
-#include <network_system/core/messaging_server.h>
+#include <kcenon/network/core/messaging_server.h>
 #include <iostream>
 
 int main() {
-    auto server = std::make_shared<network_system::core::messaging_server>("MyServer");
+    auto server = std::make_shared<kcenon::network::core::messaging_server>("MyServer");
 
     auto result = server->start_server(8080);
     if (result.is_err()) {
@@ -131,14 +131,16 @@ int main() {
 }
 ```
 
+> **Note**: Legacy `network_system::` namespace is still supported via `<kcenon/network/compatibility.h>` for backward compatibility.
+
 ### Your First Client
 
 ```cpp
-#include <network_system/core/messaging_client.h>
+#include <kcenon/network/core/messaging_client.h>
 #include <iostream>
 
 int main() {
-    auto client = std::make_shared<network_system::core::messaging_client>("MyClient");
+    auto client = std::make_shared<kcenon::network::core::messaging_client>("MyClient");
 
     auto result = client->start_client("localhost", 8080);
     if (result.is_err()) {

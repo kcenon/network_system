@@ -34,7 +34,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "../framework/test_helpers.h"
 #include <gtest/gtest.h>
 
-namespace network_system::integration_tests {
+namespace kcenon::network::integration_tests {
 
 /**
  * @brief Test suite for error handling scenarios
@@ -349,4 +349,4 @@ TEST_F(ErrorHandlingTest, PartialMessageRecovery) {
   EXPECT_TRUE(SendMessage(std::move(valid_message)));
 }
 
-} // namespace network_system::integration_tests
+} // namespace kcenon::network::integration_tests

@@ -34,7 +34,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "kcenon/network/integration/logger_integration.h"
 #include "internal/quic_socket.h"
 
-namespace network_system::core
+namespace kcenon::network::core
 {
 
 messaging_quic_client::messaging_quic_client(std::string_view client_id)
@@ -706,4 +706,4 @@ auto messaging_quic_client::get_socket() const
 	return socket_;
 }
 
-} // namespace network_system::core
+} // namespace kcenon::network::core

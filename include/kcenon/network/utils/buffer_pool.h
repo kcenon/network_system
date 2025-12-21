@@ -36,7 +36,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <memory>
 #include <vector>
 
-namespace network_system::utils
+namespace kcenon::network::utils
 {
 
 	/*!
@@ -121,4 +121,4 @@ namespace network_system::utils
 		std::unique_ptr<impl> pimpl_;
 	};
 
-} // namespace network_system::utils
+} // namespace kcenon::network::utils

@@ -37,7 +37,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pipeline.h"
 #include "tcp_socket.h"
 
-namespace network_system::internal
+namespace kcenon::network::internal
 {
 	/*!
 	 * \brief Launches a separate thread (via std::async) to apply
@@ -117,4 +117,4 @@ namespace network_system::internal
 
 #endif
 
-} // namespace network_system::internal
+} // namespace kcenon::network::internal

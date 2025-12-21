@@ -41,7 +41,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <variant>
 #include <vector>
 
-namespace network_system::protocols::quic
+namespace kcenon::network::protocols::quic
 {
 
 // ============================================================================
@@ -421,4 +421,4 @@ private:
                              std::span<const uint8_t> data);
 };
 
-} // namespace network_system::protocols::quic
+} // namespace kcenon::network::protocols::quic

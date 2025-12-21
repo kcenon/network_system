@@ -39,7 +39,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <type_traits>
 
 // Use nested namespace definition (C++17)
-namespace network_system::internal
+namespace kcenon::network::internal
 {
 
 	/*!
@@ -100,4 +100,4 @@ namespace network_system::internal
 	// Pipeline creation function - can't be constexpr because std::function is not a literal type
 	auto make_default_pipeline() -> pipeline;
 
-} // namespace network_system::internal
+} // namespace kcenon::network::internal

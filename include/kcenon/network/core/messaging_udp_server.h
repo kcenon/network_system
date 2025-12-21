@@ -44,12 +44,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "kcenon/network/utils/result_types.h"
 #include "kcenon/network/integration/thread_integration.h"
 
-namespace network_system::internal
+namespace kcenon::network::internal
 {
 	class udp_socket;
 }
 
-namespace network_system::core
+namespace kcenon::network::core
 {
 	/*!
 	 * \class messaging_udp_server
@@ -116,8 +116,8 @@ namespace network_system::core
 		 * \brief Begins listening on the specified UDP port.
 		 * \param port The UDP port to bind and listen on (e.g., 5555).
 		 * \return Result<void> - Success if server started, or error with code:
-		 *         - error_codes::network_system::server_already_running if already running
-		 *         - error_codes::network_system::bind_failed if port binding failed
+		 *         - error_codes::kcenon::network::server_already_running if already running
+		 *         - error_codes::kcenon::network::bind_failed if port binding failed
 		 *         - error_codes::common_errors::internal_error for other failures
 		 *
 		 * Creates an io_context and UDP socket, binds to the specified port,
@@ -194,4 +194,4 @@ namespace network_system::core
 		std::future<void> io_context_future_;            /*!< Future for io_context run task. */
 	};
 
-} // namespace network_system::core
+} // namespace kcenon::network::core

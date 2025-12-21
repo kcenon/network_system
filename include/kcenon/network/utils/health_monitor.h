@@ -43,7 +43,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "kcenon/network/core/messaging_client.h"
 
-namespace network_system::utils
+namespace kcenon::network::utils
 {
 
 	/*!
@@ -196,4 +196,4 @@ namespace network_system::utils
 		std::function<void(const connection_health&)> health_callback_; /*!< Health callback */
 	};
 
-} // namespace network_system::utils
+} // namespace kcenon::network::utils

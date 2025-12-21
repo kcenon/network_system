@@ -45,7 +45,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <system_error>
 #include <vector>
 
-namespace network_system::core
+namespace kcenon::network::core
 {
 	/*!
 	 * \struct ws_client_config
@@ -290,4 +290,4 @@ namespace network_system::core
 		std::unique_ptr<impl> pimpl_;
 	};
 
-} // namespace network_system::core
+} // namespace kcenon::network::core

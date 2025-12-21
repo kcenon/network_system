@@ -17,8 +17,8 @@ All rights reserved.
 #include <thread>
 #include <vector>
 
-using namespace network_system::core;
-using namespace network_system::internal;
+using namespace kcenon::network::core;
+using namespace kcenon::network::internal;
 
 // Free function for yielding to allow async operations to complete
 inline void wait_for_ready() {

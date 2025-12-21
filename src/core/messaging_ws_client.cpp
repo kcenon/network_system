@@ -44,7 +44,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <mutex>
 #include <thread>
 
-namespace network_system::core
+namespace kcenon::network::core
 {
 	using tcp = asio::ip::tcp;
 
@@ -605,4 +605,4 @@ namespace network_system::core
 		return pimpl_->client_id();
 	}
 
-} // namespace network_system::core
+} // namespace kcenon::network::core

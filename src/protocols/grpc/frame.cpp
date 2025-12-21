@@ -36,7 +36,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <cstring>
 #include <sstream>
 
-namespace network_system::protocols::grpc
+namespace kcenon::network::protocols::grpc
 {
 
 auto grpc_message::parse(std::span<const uint8_t> input) -> Result<grpc_message>
@@ -186,4 +186,4 @@ auto format_timeout(uint64_t timeout_ms) -> std::string
     return oss.str();
 }
 
-} // namespace network_system::protocols::grpc
+} // namespace kcenon::network::protocols::grpc

@@ -47,7 +47,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 typedef struct ssl_ctx_st SSL_CTX;
 typedef struct ssl_st SSL;
 
-namespace network_system::protocols::quic
+namespace kcenon::network::protocols::quic
 {
 
 // ============================================================================
@@ -404,4 +404,4 @@ private:
     std::unique_ptr<impl> impl_;
 };
 
-} // namespace network_system::protocols::quic
+} // namespace kcenon::network::protocols::quic

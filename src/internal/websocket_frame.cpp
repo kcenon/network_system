@@ -35,7 +35,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <algorithm>
 #include <random>
 
-namespace network_system::internal
+namespace kcenon::network::internal
 {
 	namespace
 	{
@@ -296,4 +296,4 @@ namespace network_system::internal
 				static_cast<uint8_t>(random_value & 0xFF)};
 	}
 
-} // namespace network_system::internal
+} // namespace kcenon::network::internal

@@ -34,7 +34,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "kcenon/network/integration/logger_integration.h"
 
-namespace network_system::session {
+namespace kcenon::network::session {
 
 secure_session::secure_session(asio::ip::tcp::socket socket,
                                asio::ssl::context &ssl_context,
@@ -267,4 +267,4 @@ auto secure_session::set_error_callback(
   error_callback_ = std::move(callback);
 }
 
-} // namespace network_system::session
+} // namespace kcenon::network::session

@@ -43,7 +43,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <chrono>
 #include <optional>
 
-namespace network_system::core
+namespace kcenon::network::core
 {
     /*!
      * \struct http_url
@@ -263,4 +263,4 @@ namespace network_system::core
         std::chrono::milliseconds timeout_;
     };
 
-} // namespace network_system::core
+} // namespace kcenon::network::core

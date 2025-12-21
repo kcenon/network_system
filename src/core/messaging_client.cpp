@@ -40,7 +40,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <type_traits>
 
 // Use nested namespace definition (C++17)
-namespace network_system::core {
+namespace kcenon::network::core {
 
 using tcp = asio::ip::tcp;
 
@@ -457,4 +457,4 @@ auto messaging_client::set_error_callback(
   error_callback_ = std::move(callback);
 }
 
-} // namespace network_system::core
+} // namespace kcenon::network::core

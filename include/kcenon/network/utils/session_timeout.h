@@ -31,7 +31,7 @@
 #include <chrono>
 #include <atomic>
 
-namespace network_system {
+namespace kcenon::network {
 
 class session_timeout_manager {
 public:

@@ -35,7 +35,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "kcenon/network/internal/tcp_socket.h"
 #include "kcenon/network/internal/websocket_handshake.h"
 
-namespace network_system::internal
+namespace kcenon::network::internal
 {
 	// ========================================================================
 	// websocket_socket implementation
@@ -409,4 +409,4 @@ namespace network_system::internal
 		}
 	}
 
-} // namespace network_system::internal
+} // namespace kcenon::network::internal

@@ -43,7 +43,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <shared_mutex>
 #include <vector>
 
-namespace network_system::protocols::quic
+namespace kcenon::network::protocols::quic
 {
 
 /*!
@@ -312,4 +312,4 @@ private:
     [[nodiscard]] auto can_accept_peer_stream(uint64_t stream_id) const -> bool;
 };
 
-} // namespace network_system::protocols::quic
+} // namespace kcenon::network::protocols::quic

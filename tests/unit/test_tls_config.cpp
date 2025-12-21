@@ -8,7 +8,7 @@ All rights reserved.
 #include <gtest/gtest.h>
 #include <kcenon/network/internal/common_defs.h>
 
-using namespace network_system::internal;
+using namespace kcenon::network::internal;
 
 /**
  * @file test_tls_config.cpp

@@ -45,12 +45,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "kcenon/network/utils/result_types.h"
 #include "kcenon/network/integration/thread_integration.h"
 
-namespace network_system::internal
+namespace kcenon::network::internal
 {
 	class udp_socket;
 }
 
-namespace network_system::core
+namespace kcenon::network::core
 {
 	/*!
 	 * \class messaging_udp_client
@@ -205,4 +205,4 @@ namespace network_system::core
 		std::mutex socket_mutex_;                        /*!< Protects socket access. */
 	};
 
-} // namespace network_system::core
+} // namespace kcenon::network::core

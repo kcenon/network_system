@@ -35,7 +35,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "kcenon/network/core/network_context.h"
 #include "kcenon/network/integration/logger_integration.h"
 
-namespace network_system::core {
+namespace kcenon::network::core {
 
 using tcp = asio::ip::tcp;
 
@@ -409,4 +409,4 @@ auto secure_messaging_client::set_error_callback(
   error_callback_ = std::move(callback);
 }
 
-} // namespace network_system::core
+} // namespace kcenon::network::core

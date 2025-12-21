@@ -42,7 +42,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <span>
 #include <map>
 
-namespace network_system::protocols::http2
+namespace kcenon::network::protocols::http2
 {
     /*!
      * \struct http_header
@@ -300,4 +300,4 @@ namespace network_system::protocols::http2
         auto encoded_size(std::string_view input) -> size_t;
     }
 
-} // namespace network_system::protocols::http2
+} // namespace kcenon::network::protocols::http2

@@ -269,7 +269,7 @@ void test_cross_compatibility(TestResults &results) {
     // Create objects using different namespaces
     auto legacy_server = network_module::create_server("legacy");
     auto modern_server =
-        std::make_shared<network_system::core::messaging_server>("modern");
+        std::make_shared<kcenon::network::core::messaging_server>("modern");
 
     if (legacy_server && modern_server) {
       results.record_pass("Mixed namespace object creation");

@@ -50,7 +50,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <string>
 #include <atomic>
 
-using namespace network_system::core;
+using namespace kcenon::network::core;
 
 // Shared flag for graceful shutdown
 std::atomic<bool> should_stop{false};

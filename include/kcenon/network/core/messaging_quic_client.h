@@ -51,13 +51,13 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "kcenon/network/utils/result_types.h"
 
 // Forward declaration
-namespace network_system::internal
+namespace kcenon::network::internal
 {
 	class quic_socket;
 	enum class quic_role : uint8_t;
-} // namespace network_system::internal
+} // namespace kcenon::network::internal
 
-namespace network_system::core
+namespace kcenon::network::core
 {
 
 	/*!
@@ -455,4 +455,4 @@ namespace network_system::core
 		mutable std::mutex callback_mutex_; //!< Protects callback access
 	};
 
-} // namespace network_system::core
+} // namespace kcenon::network::core

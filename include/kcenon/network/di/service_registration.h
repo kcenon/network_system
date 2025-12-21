@@ -61,7 +61,7 @@ struct network_registration_config {
  * auto result = register_network_services(container, config);
  *
  * // Then resolve network context anywhere in the application
- * auto ctx = container.resolve<network_system::core::network_context>().value();
+ * auto ctx = container.resolve<kcenon::network::core::network_context>().value();
  * ctx->get_thread_pool()->submit([]{ /* work */ });
  * @endcode
  */
@@ -70,20 +70,20 @@ inline common::VoidResult register_network_services(
     const network_registration_config& config = {}) {
 
     // Check if already registered
-    if (container.is_registered<network_system::core::network_context>()) {
+    if (container.is_registered<kcenon::network::core::network_context>()) {
         return common::make_error<std::monostate>(
             common::di::di_error_codes::already_registered,
             "network_context is already registered",
-            "network_system::di"
+            "kcenon::network::di"
         );
     }
 
     // Register network_context factory
     // Note: network_context is a singleton, so we return a reference wrapper
-    return container.register_factory<network_system::core::network_context>(
-        [config](common::di::IServiceContainer&) -> std::shared_ptr<network_system::core::network_context> {
+    return container.register_factory<kcenon::network::core::network_context>(
+        [config](common::di::IServiceContainer&) -> std::shared_ptr<kcenon::network::core::network_context> {
             // Get the singleton instance
-            auto& ctx = network_system::core::network_context::instance();
+            auto& ctx = kcenon::network::core::network_context::instance();
 
             // Initialize if requested and not already initialized
             if (config.initialize_on_register && !ctx.is_initialized()) {
@@ -92,7 +92,7 @@ inline common::VoidResult register_network_services(
 
             // Return a non-owning shared_ptr (aliasing constructor)
             // This allows the context to be managed via DI without changing ownership
-            return std::shared_ptr<network_system::core::network_context>(
+            return std::shared_ptr<kcenon::network::core::network_context>(
                 std::shared_ptr<void>{}, &ctx);
         },
         config.lifetime
@@ -111,7 +111,7 @@ inline common::VoidResult register_network_services(
 inline common::VoidResult unregister_network_services(
     common::di::IServiceContainer& container) {
 
-    return container.unregister<network_system::core::network_context>();
+    return container.unregister<kcenon::network::core::network_context>();
 }
 
 /**
@@ -127,7 +127,7 @@ inline common::VoidResult shutdown_network_services(
     common::di::IServiceContainer& container) {
 
     // Shutdown the singleton
-    network_system::core::network_context::instance().shutdown();
+    kcenon::network::core::network_context::instance().shutdown();
 
     // Unregister from container
     return unregister_network_services(container);
@@ -141,8 +141,8 @@ inline common::VoidResult shutdown_network_services(
  *
  * @return Reference to the network_context singleton
  */
-inline network_system::core::network_context& get_network_context() {
-    return network_system::core::network_context::instance();
+inline kcenon::network::core::network_context& get_network_context() {
+    return kcenon::network::core::network_context::instance();
 }
 
 /**

@@ -52,7 +52,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <string>
 #include <vector>
 
-namespace network_system::protocols::http2
+namespace kcenon::network::protocols::http2
 {
     /*!
      * \enum stream_state
@@ -433,4 +433,4 @@ namespace network_system::protocols::http2
         static constexpr size_t DEFAULT_WINDOW_SIZE = 65535;
     };
 
-} // namespace network_system::protocols::http2
+} // namespace kcenon::network::protocols::http2

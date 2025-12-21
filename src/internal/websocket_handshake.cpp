@@ -39,7 +39,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <openssl/evp.h>
 #include <openssl/sha.h>
 
-namespace network_system::internal
+namespace kcenon::network::internal
 {
 	namespace
 	{
@@ -369,4 +369,4 @@ namespace network_system::internal
 		return response.str();
 	}
 
-} // namespace network_system::internal
+} // namespace kcenon::network::internal

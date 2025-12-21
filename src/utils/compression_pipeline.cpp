@@ -44,7 +44,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <cstring>
 
-namespace network_system::utils
+namespace kcenon::network::utils
 {
 
 	class compression_pipeline::impl
@@ -548,4 +548,4 @@ namespace network_system::utils
 		};
 	}
 
-} // namespace network_system::utils
+} // namespace kcenon::network::utils

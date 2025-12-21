@@ -43,7 +43,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "kcenon/network/internal/common_defs.h"
 
-namespace network_system::internal
+namespace kcenon::network::internal
 {
 	/*!
 	 * \class udp_socket
@@ -136,7 +136,7 @@ namespace network_system::internal
 		 *
 		 * ### Example
 		 * \code
-		 * auto sock = std::make_shared<network_system::internal::udp_socket>(...);
+		 * auto sock = std::make_shared<kcenon::network::internal::udp_socket>(...);
 		 * std::vector<uint8_t> buf = {0x01, 0x02, 0x03};
 		 * asio::ip::udp::endpoint target(asio::ip::address::from_string("127.0.0.1"), 8080);
 		 * sock->async_send_to(std::move(buf), target,
@@ -187,4 +187,4 @@ namespace network_system::internal
 
 		std::atomic<bool> is_receiving_{false}; /*!< Flag to prevent receive after stop. */
 	};
-} // namespace network_system::internal
+} // namespace kcenon::network::internal

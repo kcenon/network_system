@@ -93,7 +93,7 @@ public:
      * @param server_id Unique identifier for the server
      * @return Shared pointer to the created server
      */
-    std::shared_ptr<network_system::core::messaging_server> create_server(
+    std::shared_ptr<kcenon::network::core::messaging_server> create_server(
         const std::string& server_id
     );
 
@@ -102,7 +102,7 @@ public:
      * @param client_id Unique identifier for the client
      * @return Shared pointer to the created client
      */
-    std::shared_ptr<network_system::core::messaging_client> create_client(
+    std::shared_ptr<kcenon::network::core::messaging_client> create_client(
         const std::string& client_id
     );
 
@@ -184,14 +184,14 @@ private:
 };
 
 // Namespace alias for backward compatibility
-namespace bridge = network_system::integration;
+namespace bridge = kcenon::network::integration;
 
 } // namespace kcenon::network::integration
 
 // Additional backward compatibility aliases
 namespace network_module {
-    using messaging_bridge = network_system::integration::messaging_bridge;
-    using messaging_server = network_system::core::messaging_server;
-    using messaging_client = network_system::core::messaging_client;
-    using messaging_session = network_system::session::messaging_session;
+    using messaging_bridge = kcenon::network::integration::messaging_bridge;
+    using messaging_server = kcenon::network::core::messaging_server;
+    using messaging_client = kcenon::network::core::messaging_client;
+    using messaging_session = kcenon::network::session::messaging_session;
 }

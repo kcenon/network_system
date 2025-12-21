@@ -28,8 +28,8 @@
 #include "kcenon/network/core/messaging_quic_server.h"
 #include "kcenon/network/session/quic_session.h"
 
-using namespace network_system::core;
-using namespace network_system::session;
+using namespace kcenon::network::core;
+using namespace kcenon::network::session;
 
 // Global flag for graceful shutdown
 std::atomic<bool> g_running{true};

@@ -42,7 +42,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <random>
 #include <sstream>
 
-namespace network_system::core
+namespace kcenon::network::core
 {
 
 	messaging_quic_server::messaging_quic_server(std::string_view server_id)
@@ -793,4 +793,4 @@ namespace network_system::core
 		}
 	}
 
-} // namespace network_system::core
+} // namespace kcenon::network::core

@@ -42,7 +42,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <unordered_map>
 #include <vector>
 
-namespace network_system::core
+namespace kcenon::network::core
 {
 	// Forward declaration
 	class ws_connection;
@@ -306,4 +306,4 @@ namespace network_system::core
 		std::atomic<uint64_t> total_rejected_;
 	};
 
-} // namespace network_system::core
+} // namespace kcenon::network::core

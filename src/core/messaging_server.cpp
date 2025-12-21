@@ -36,7 +36,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "kcenon/network/integration/io_context_thread_manager.h"
 #include "kcenon/network/metrics/network_metrics.h"
 
-namespace network_system::core
+namespace kcenon::network::core
 {
 
 	using tcp = asio::ip::tcp;
@@ -293,7 +293,7 @@ namespace network_system::core
 		cleanup_dead_sessions();
 
 		// Create a new messaging_session
-		auto new_session = std::make_shared<network_system::session::messaging_session>(
+		auto new_session = std::make_shared<kcenon::network::session::messaging_session>(
 			std::move(socket), server_id_);
 
 		// Set up session callbacks to forward to server callbacks
@@ -301,9 +301,9 @@ namespace network_system::core
 		auto self = shared_from_this();
 
 		// Copy callbacks while holding lock, then release before calling set_*_callback
-		std::function<void(std::shared_ptr<network_system::session::messaging_session>, const std::vector<uint8_t>&)> local_receive_callback;
+		std::function<void(std::shared_ptr<kcenon::network::session::messaging_session>, const std::vector<uint8_t>&)> local_receive_callback;
 		std::function<void(const std::string&)> local_disconnection_callback;
-		std::function<void(std::shared_ptr<network_system::session::messaging_session>, std::error_code)> local_error_callback;
+		std::function<void(std::shared_ptr<kcenon::network::session::messaging_session>, std::error_code)> local_error_callback;
 
 		{
 			std::lock_guard<std::mutex> lock(callback_mutex_);
@@ -450,7 +450,7 @@ namespace network_system::core
 #endif
 
 	auto messaging_server::set_connection_callback(
-		std::function<void(std::shared_ptr<network_system::session::messaging_session>)> callback)
+		std::function<void(std::shared_ptr<kcenon::network::session::messaging_session>)> callback)
 		-> void
 	{
 		std::lock_guard<std::mutex> lock(callback_mutex_);
@@ -465,7 +465,7 @@ namespace network_system::core
 	}
 
 	auto messaging_server::set_receive_callback(
-		std::function<void(std::shared_ptr<network_system::session::messaging_session>,
+		std::function<void(std::shared_ptr<kcenon::network::session::messaging_session>,
 		                   const std::vector<uint8_t>&)> callback) -> void
 	{
 		std::lock_guard<std::mutex> lock(callback_mutex_);
@@ -473,11 +473,11 @@ namespace network_system::core
 	}
 
 	auto messaging_server::set_error_callback(
-		std::function<void(std::shared_ptr<network_system::session::messaging_session>,
+		std::function<void(std::shared_ptr<kcenon::network::session::messaging_session>,
 		                   std::error_code)> callback) -> void
 	{
 		std::lock_guard<std::mutex> lock(callback_mutex_);
 		error_callback_ = std::move(callback);
 	}
 
-} // namespace network_system::core
+} // namespace kcenon::network::core

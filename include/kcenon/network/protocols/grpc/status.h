@@ -37,7 +37,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <string>
 #include <string_view>
 
-namespace network_system::protocols::grpc
+namespace kcenon::network::protocols::grpc
 {
     /*!
      * \enum status_code
@@ -208,4 +208,4 @@ namespace network_system::protocols::grpc
         }
     };
 
-} // namespace network_system::protocols::grpc
+} // namespace kcenon::network::protocols::grpc

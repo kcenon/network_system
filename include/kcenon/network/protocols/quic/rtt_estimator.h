@@ -35,7 +35,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <chrono>
 #include <cstdint>
 
-namespace network_system::protocols::quic
+namespace kcenon::network::protocols::quic
 {
 
 /*!
@@ -188,4 +188,4 @@ private:
     static constexpr auto kDefaultMaxAckDelay = std::chrono::microseconds{25000};
 };
 
-} // namespace network_system::protocols::quic
+} // namespace kcenon::network::protocols::quic

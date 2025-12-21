@@ -40,7 +40,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <cstdint>
 #include <limits>
 
-namespace network_system::protocols::quic
+namespace kcenon::network::protocols::quic
 {
 
 /*!
@@ -234,4 +234,4 @@ private:
     static constexpr size_t kMinimumWindowPackets = 2;
 };
 
-} // namespace network_system::protocols::quic
+} // namespace kcenon::network::protocols::quic

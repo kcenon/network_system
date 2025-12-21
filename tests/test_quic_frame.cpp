@@ -35,7 +35,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "kcenon/network/protocols/quic/frame.h"
 #include "kcenon/network/protocols/quic/frame_types.h"
 
-namespace network_system::protocols::quic
+namespace kcenon::network::protocols::quic
 {
 namespace
 {
@@ -666,4 +666,4 @@ TEST_F(FrameTest, PeekType)
 }
 
 }  // namespace
-}  // namespace network_system::protocols::quic
+}  // namespace kcenon::network::protocols::quic

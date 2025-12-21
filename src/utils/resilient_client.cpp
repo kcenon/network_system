@@ -36,7 +36,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "kcenon/network/integration/logger_integration.h"
 
-namespace network_system::utils
+namespace kcenon::network::utils
 {
 
 	resilient_client::resilient_client(const std::string& client_id,
@@ -303,4 +303,4 @@ namespace network_system::utils
 		return std::min(backoff, max_backoff);
 	}
 
-} // namespace network_system::utils
+} // namespace kcenon::network::utils

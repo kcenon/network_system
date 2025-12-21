@@ -8,7 +8,7 @@ All rights reserved.
 #include <gtest/gtest.h>
 #include "kcenon/network/internal/websocket_frame.h"
 
-using namespace network_system::internal;
+using namespace kcenon::network::internal;
 
 /**
  * @file websocket_frame_test.cpp

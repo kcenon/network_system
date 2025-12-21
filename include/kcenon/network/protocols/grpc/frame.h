@@ -37,7 +37,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <span>
 #include <vector>
 
-namespace network_system::protocols::grpc
+namespace kcenon::network::protocols::grpc
 {
     /*!
      * \brief gRPC message header size (5 bytes)
@@ -182,4 +182,4 @@ namespace network_system::protocols::grpc
      */
     auto format_timeout(uint64_t timeout_ms) -> std::string;
 
-} // namespace network_system::protocols::grpc
+} // namespace kcenon::network::protocols::grpc

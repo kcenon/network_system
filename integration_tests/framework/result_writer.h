@@ -13,7 +13,7 @@ All rights reserved.
 #include <string>
 #include <vector>
 
-namespace network_system::integration_tests {
+namespace kcenon::network::integration_tests {
 
 /**
  * @struct PerformanceResult
@@ -78,4 +78,4 @@ private:
     [[nodiscard]] static auto escape_csv(const std::string& str) -> std::string;
 };
 
-} // namespace network_system::integration_tests
+} // namespace kcenon::network::integration_tests

@@ -34,7 +34,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <type_traits>
 
-namespace network_system::internal
+namespace kcenon::network::internal
 {
 
 	udp_socket::udp_socket(asio::ip::udp::socket socket)
@@ -156,4 +156,4 @@ namespace network_system::internal
 			});
 	}
 
-} // namespace network_system::internal
+} // namespace kcenon::network::internal

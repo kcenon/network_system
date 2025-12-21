@@ -34,7 +34,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <algorithm>
 #include <cctype>
 
-namespace network_system::internal
+namespace kcenon::network::internal
 {
     namespace
     {
@@ -156,24 +156,24 @@ namespace network_system::internal
         }
     }
 
-    auto string_to_http_method(const std::string& method_str) -> ::network_system::Result<http_method>
+    auto string_to_http_method(const std::string& method_str) -> ::kcenon::network::Result<http_method>
     {
         auto upper_method = method_str;
         std::transform(upper_method.begin(), upper_method.end(), upper_method.begin(),
             [](unsigned char c) { return std::toupper(c); });
 
-        if (upper_method == "GET")     return ::network_system::ok(http_method::HTTP_GET);
-        if (upper_method == "POST")    return ::network_system::ok(http_method::HTTP_POST);
-        if (upper_method == "PUT")     return ::network_system::ok(http_method::HTTP_PUT);
-        if (upper_method == "DELETE")  return ::network_system::ok(http_method::HTTP_DELETE);
-        if (upper_method == "HEAD")    return ::network_system::ok(http_method::HTTP_HEAD);
-        if (upper_method == "OPTIONS") return ::network_system::ok(http_method::HTTP_OPTIONS);
-        if (upper_method == "PATCH")   return ::network_system::ok(http_method::HTTP_PATCH);
-        if (upper_method == "CONNECT") return ::network_system::ok(http_method::HTTP_CONNECT);
-        if (upper_method == "TRACE")   return ::network_system::ok(http_method::HTTP_TRACE);
+        if (upper_method == "GET")     return ::kcenon::network::ok(http_method::HTTP_GET);
+        if (upper_method == "POST")    return ::kcenon::network::ok(http_method::HTTP_POST);
+        if (upper_method == "PUT")     return ::kcenon::network::ok(http_method::HTTP_PUT);
+        if (upper_method == "DELETE")  return ::kcenon::network::ok(http_method::HTTP_DELETE);
+        if (upper_method == "HEAD")    return ::kcenon::network::ok(http_method::HTTP_HEAD);
+        if (upper_method == "OPTIONS") return ::kcenon::network::ok(http_method::HTTP_OPTIONS);
+        if (upper_method == "PATCH")   return ::kcenon::network::ok(http_method::HTTP_PATCH);
+        if (upper_method == "CONNECT") return ::kcenon::network::ok(http_method::HTTP_CONNECT);
+        if (upper_method == "TRACE")   return ::kcenon::network::ok(http_method::HTTP_TRACE);
 
-        return ::network_system::error<http_method>(
-            ::network_system::error_codes::common_errors::invalid_argument,
+        return ::kcenon::network::error<http_method>(
+            ::kcenon::network::error_codes::common_errors::invalid_argument,
             "Unknown HTTP method: " + method_str,
             "http_types");
     }
@@ -189,15 +189,15 @@ namespace network_system::internal
         }
     }
 
-    auto string_to_http_version(const std::string& version_str) -> ::network_system::Result<http_version>
+    auto string_to_http_version(const std::string& version_str) -> ::kcenon::network::Result<http_version>
     {
-        if (version_str == "HTTP/1.0") return ::network_system::ok(http_version::HTTP_1_0);
-        if (version_str == "HTTP/1.1") return ::network_system::ok(http_version::HTTP_1_1);
-        if (version_str == "HTTP/2.0") return ::network_system::ok(http_version::HTTP_2_0);
-        if (version_str == "HTTP/2")   return ::network_system::ok(http_version::HTTP_2_0);
+        if (version_str == "HTTP/1.0") return ::kcenon::network::ok(http_version::HTTP_1_0);
+        if (version_str == "HTTP/1.1") return ::kcenon::network::ok(http_version::HTTP_1_1);
+        if (version_str == "HTTP/2.0") return ::kcenon::network::ok(http_version::HTTP_2_0);
+        if (version_str == "HTTP/2")   return ::kcenon::network::ok(http_version::HTTP_2_0);
 
-        return ::network_system::error<http_version>(
-            ::network_system::error_codes::common_errors::invalid_argument,
+        return ::kcenon::network::error<http_version>(
+            ::kcenon::network::error_codes::common_errors::invalid_argument,
             "Unknown HTTP version: " + version_str,
             "http_types");
     }
@@ -308,4 +308,4 @@ namespace network_system::internal
         set_cookies.push_back(c);
     }
 
-} // namespace network_system::internal
+} // namespace kcenon::network::internal

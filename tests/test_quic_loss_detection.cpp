@@ -39,7 +39,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <chrono>
 #include <thread>
 
-using namespace network_system::protocols::quic;
+using namespace kcenon::network::protocols::quic;
 using namespace std::chrono_literals;
 
 // Free function for yielding to allow async operations to complete

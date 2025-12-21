@@ -194,5 +194,5 @@ private:
 } // namespace kcenon::network::integration
 
 // Backward compatibility - use the existing namespace alias from thread_integration.h
-// The alias `namespace network_system::integration = kcenon::network::integration;` is
+// The alias `namespace kcenon::network::integration = kcenon::network::integration;` is
 // already defined in thread_integration.h, which is included before this header.

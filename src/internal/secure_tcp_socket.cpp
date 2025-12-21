@@ -36,7 +36,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <span>
 #include <type_traits>
 
-namespace network_system::internal
+namespace kcenon::network::internal
 {
 
 	secure_tcp_socket::secure_tcp_socket(asio::ip::tcp::socket socket,
@@ -187,4 +187,4 @@ namespace network_system::internal
 			});
 	}
 
-} // namespace network_system::internal
+} // namespace kcenon::network::internal

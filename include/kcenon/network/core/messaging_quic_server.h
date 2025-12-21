@@ -56,17 +56,17 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	#include <kcenon/common/interfaces/monitoring_interface.h>
 #endif
 
-namespace network_system::internal
+namespace kcenon::network::internal
 {
 	class quic_socket;
-} // namespace network_system::internal
+} // namespace kcenon::network::internal
 
-namespace network_system::session
+namespace kcenon::network::session
 {
 	class quic_session;
-} // namespace network_system::session
+} // namespace kcenon::network::session
 
-namespace network_system::core
+namespace kcenon::network::core
 {
 
 	/*!
@@ -420,4 +420,4 @@ namespace network_system::core
 #endif
 	};
 
-} // namespace network_system::core
+} // namespace kcenon::network::core

@@ -45,7 +45,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <utility>
 #include <vector>
 
-namespace network_system::protocols::grpc
+namespace kcenon::network::protocols::grpc
 {
     /*!
      * \brief Metadata key-value pair for gRPC requests/responses
@@ -394,4 +394,4 @@ namespace network_system::protocols::grpc
         std::unique_ptr<impl> impl_;
     };
 
-} // namespace network_system::protocols::grpc
+} // namespace kcenon::network::protocols::grpc

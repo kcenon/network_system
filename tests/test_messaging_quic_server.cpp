@@ -37,9 +37,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <future>
 
 #include "kcenon/network/core/messaging_quic_server.h"
+#include "kcenon/network/utils/result_types.h"
 #include "kcenon/network/session/quic_session.h"
+#include "kcenon/network/utils/result_types.h"
 
-namespace network_system::core::test
+namespace kcenon::network::core::test
 {
 
 class MessagingQuicServerTest : public ::testing::Test
@@ -468,4 +470,4 @@ TEST_F(MessagingQuicServerTest, QuicSessionDefaultStats)
 	EXPECT_EQ(stats.cwnd, 0);
 }
 
-} // namespace network_system::core::test
+} // namespace kcenon::network::core::test

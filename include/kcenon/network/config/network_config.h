@@ -45,7 +45,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <cstddef>
 #include "kcenon/network/integration/logger_integration.h"
 
-namespace network_system::config {
+namespace kcenon::network::config {
 
 /**
  * @struct thread_pool_config
@@ -149,4 +149,4 @@ struct network_config {
     }
 };
 
-} // namespace network_system::config
+} // namespace kcenon::network::config

@@ -111,7 +111,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // API Compatibility Utilities
 // ============================================================================
 
-namespace network_system::internal
+namespace kcenon::network::internal
 {
 
 /*!
@@ -182,7 +182,7 @@ inline void clear_openssl_errors() noexcept
     ERR_clear_error();
 }
 
-} // namespace network_system::internal
+} // namespace kcenon::network::internal
 
 // ============================================================================
 // OpenSSL 3.x Provider Notes

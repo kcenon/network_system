@@ -34,7 +34,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <algorithm>
 
-namespace network_system::protocols::quic
+namespace kcenon::network::protocols::quic
 {
 
 flow_controller::flow_controller(uint64_t initial_window)
@@ -218,4 +218,4 @@ auto get_flow_control_stats(const flow_controller& fc) -> flow_control_stats
     return stats;
 }
 
-} // namespace network_system::protocols::quic
+} // namespace kcenon::network::protocols::quic

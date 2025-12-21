@@ -35,7 +35,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <vector>
 #include <cstdint>
 
-using namespace network_system::protocols::http2;
+using namespace kcenon::network::protocols::http2;
 
 class Http2FrameTest : public ::testing::Test
 {

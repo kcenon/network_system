@@ -37,7 +37,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <cctype>
 #include <algorithm>
 
-namespace network_system::internal
+namespace kcenon::network::internal
 {
     namespace
     {
@@ -777,4 +777,4 @@ namespace network_system::internal
         return ok(std::monostate{});
     }
 
-} // namespace network_system::internal
+} // namespace kcenon::network::internal

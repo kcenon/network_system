@@ -39,7 +39,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "../src/internal/quic_socket.h"
 
-namespace network_system::internal::test
+namespace kcenon::network::internal::test
 {
 
 class QuicSocketTest : public ::testing::Test
@@ -438,4 +438,4 @@ TEST_F(QuicSocketTest, ErrorCallbackOnSocketError)
 	SUCCEED();
 }
 
-} // namespace network_system::internal::test
+} // namespace kcenon::network::internal::test

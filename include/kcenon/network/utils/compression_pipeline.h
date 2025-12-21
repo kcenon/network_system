@@ -40,7 +40,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <span>
 #include <vector>
 
-namespace network_system::utils
+namespace kcenon::network::utils
 {
 
 	/*!
@@ -179,4 +179,4 @@ namespace network_system::utils
 	auto make_decompress_function(std::shared_ptr<compression_pipeline> pipeline)
 		-> std::function<std::vector<uint8_t>(const std::vector<uint8_t>&)>;
 
-} // namespace network_system::utils
+} // namespace kcenon::network::utils

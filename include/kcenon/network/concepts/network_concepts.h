@@ -58,7 +58,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // Note: common_system concepts are included via the parent concepts.h header
 // to avoid forward declaration conflicts. Do not include concepts.h here directly.
 
-namespace network_system::concepts {
+namespace kcenon::network::concepts {
 
 // ============================================================================
 // Data Buffer Concepts
@@ -379,4 +379,4 @@ concept Duration = requires {
 // Note: Additional common_system integration concepts are defined in the
 // parent concepts.h header after proper include order is established.
 
-} // namespace network_system::concepts
+} // namespace kcenon::network::concepts

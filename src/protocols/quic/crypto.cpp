@@ -41,14 +41,14 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <algorithm>
 #include <cstring>
 
-namespace network_system::protocols::quic
+namespace kcenon::network::protocols::quic
 {
 
 namespace
 {
 
 // Use the compatibility layer for OpenSSL error handling
-using network_system::internal::get_openssl_error;
+using kcenon::network::internal::get_openssl_error;
 
 auto get_openssl_error_string() -> std::string
 {
@@ -1159,4 +1159,4 @@ auto quic_crypto::key_phase() const noexcept -> uint8_t
     return impl_->key_phase;
 }
 
-} // namespace network_system::protocols::quic
+} // namespace kcenon::network::protocols::quic

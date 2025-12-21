@@ -35,7 +35,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "kcenon/network/protocols/quic/connection_id.h"
 #include "kcenon/network/protocols/quic/packet.h"
 
-using namespace network_system::protocols::quic;
+using namespace kcenon::network::protocols::quic;
 
 // ============================================================================
 // Connection ID Tests
