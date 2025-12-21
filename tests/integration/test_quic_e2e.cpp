@@ -60,8 +60,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "kcenon/network/core/messaging_quic_server.h"
 #include "kcenon/network/session/quic_session.h"
 
-using namespace network_system::core;
-using namespace network_system::session;
+using namespace kcenon::network::core;
+using namespace kcenon::network::session;
 using namespace std::chrono_literals;
 
 // Free function for yielding to allow async operations to complete

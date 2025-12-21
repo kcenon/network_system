@@ -46,7 +46,7 @@
 #include <vector>
 #include <string>
 
-namespace network_system::utils {
+namespace kcenon::network::utils {
 
 struct memory_snapshot {
     std::chrono::system_clock::time_point timestamp{};
@@ -95,5 +95,5 @@ private:
     std::size_t max_history_{4096};
 };
 
-} // namespace network_system::utils
+} // namespace kcenon::network::utils
 

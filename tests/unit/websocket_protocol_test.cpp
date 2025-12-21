@@ -8,7 +8,7 @@ All rights reserved.
 #include "kcenon/network/internal/websocket_protocol.h"
 #include <gtest/gtest.h>
 
-using namespace network_system::internal;
+using namespace kcenon::network::internal;
 
 /**
  * @file websocket_protocol_test.cpp

@@ -37,7 +37,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <string_view>
 #include <chrono>
 
-namespace network_system::internal
+namespace kcenon::network::internal
 {
 
 	/*!
@@ -233,4 +233,4 @@ namespace network_system::internal
 							   const std::string& request_id = "") -> http_error;
 	};
 
-} // namespace network_system::internal
+} // namespace kcenon::network::internal

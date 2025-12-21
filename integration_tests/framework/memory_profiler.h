@@ -34,7 +34,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <cstddef>
 
-namespace network_system::integration_tests {
+namespace kcenon::network::integration_tests {
 
 /**
  * @struct MemoryMetrics
@@ -137,4 +137,4 @@ private:
 #endif
 };
 
-} // namespace network_system::integration_tests
+} // namespace kcenon::network::integration_tests

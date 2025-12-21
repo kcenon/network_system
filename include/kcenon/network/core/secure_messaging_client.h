@@ -48,7 +48,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "kcenon/network/utils/result_types.h"
 #include "kcenon/network/integration/thread_integration.h"
 
-namespace network_system::core
+namespace kcenon::network::core
 {
 
 	/*!
@@ -105,8 +105,8 @@ namespace network_system::core
 		 * \param host The server hostname or IP address.
 		 * \param port The server port number.
 		 * \return Result<void> - Success if connected, or error with code:
-		 *         - error_codes::network_system::connection_failed
-		 *         - error_codes::network_system::connection_timeout
+		 *         - error_codes::kcenon::network::connection_failed
+		 *         - error_codes::kcenon::network::connection_timeout
 		 *         - error_codes::common_errors::internal_error
 		 *
 		 * This method:
@@ -224,4 +224,4 @@ namespace network_system::core
 		mutable std::mutex callback_mutex_;
 	};
 
-} // namespace network_system::core
+} // namespace kcenon::network::core

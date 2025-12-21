@@ -8,7 +8,7 @@ All rights reserved.
 #include <gtest/gtest.h>
 #include "kcenon/network/internal/websocket_handshake.h"
 
-using namespace network_system::internal;
+using namespace kcenon::network::internal;
 
 /**
  * @file websocket_handshake_test.cpp

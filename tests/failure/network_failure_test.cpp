@@ -16,7 +16,7 @@ All rights reserved.
 #include <string_view>
 #include <thread>
 
-using namespace network_system::core;
+using namespace kcenon::network::core;
 
 // Free function for yielding to allow async operations to complete
 inline void wait_for_ready() {

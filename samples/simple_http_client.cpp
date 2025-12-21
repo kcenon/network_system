@@ -10,8 +10,8 @@ All rights reserved.
 #include <thread>
 #include <chrono>
 
-using namespace network_system::core;
-using namespace network_system::internal;
+using namespace kcenon::network::core;
+using namespace kcenon::network::internal;
 
 void print_response(const http_response& response)
 {

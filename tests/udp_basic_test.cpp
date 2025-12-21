@@ -50,7 +50,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <atomic>
 #include <cassert>
 
-using namespace network_system::core;
+using namespace kcenon::network::core;
 
 // Test utilities
 namespace test

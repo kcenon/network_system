@@ -10,7 +10,7 @@ class ILogger;
 class IMonitor;
 } // namespace kcenon::common::interfaces
 
-namespace network_system::config {
+namespace kcenon::network::config {
 
 struct network_system_config {
     network_config runtime{network_config::production()};
@@ -19,4 +19,4 @@ struct network_system_config {
     std::shared_ptr<kcenon::common::interfaces::IMonitor> monitor;
 };
 
-} // namespace network_system::config
+} // namespace kcenon::network::config

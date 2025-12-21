@@ -41,7 +41,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <span>
 #include <vector>
 
-namespace network_system::protocols::quic
+namespace kcenon::network::protocols::quic
 {
 
 /*!
@@ -236,4 +236,4 @@ struct transport_parameters
  */
 [[nodiscard]] auto make_default_server_params() -> transport_parameters;
 
-} // namespace network_system::protocols::quic
+} // namespace kcenon::network::protocols::quic

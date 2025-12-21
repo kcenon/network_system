@@ -37,7 +37,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <optional>
 #include <vector>
 
-namespace network_system::internal
+namespace kcenon::network::internal
 {
 	/*!
 	 * \enum ws_opcode
@@ -162,4 +162,4 @@ namespace network_system::internal
 		static auto calculate_header_size(uint64_t payload_len, bool mask) -> size_t;
 	};
 
-} // namespace network_system::internal
+} // namespace kcenon::network::internal

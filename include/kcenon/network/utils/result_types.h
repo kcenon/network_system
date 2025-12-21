@@ -40,7 +40,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <variant>
 #include <string>
 
-namespace network_system {
+namespace kcenon::network {
 
 #ifdef BUILD_WITH_COMMON_SYSTEM
 	// ============================================================
@@ -48,12 +48,12 @@ namespace network_system {
 	// ============================================================
 	//
 	// network_system now uses common_system's Result<T> as the primary
-	// error handling mechanism. While network_system::Result<T> aliases
+	// error handling mechanism. While kcenon::network::Result<T> aliases
 	// remain available for backward compatibility, new code should use
 	// kcenon::common::Result<T> directly for ecosystem-wide consistency.
 	//
 	// Migration path:
-	//   Before: network_system::Result<T>
+	//   Before: kcenon::network::Result<T>
 	//   After:  kcenon::common::Result<T>
 	//
 	// To enable deprecation warnings for migration preparation, define:
@@ -163,7 +163,7 @@ namespace network_system {
 
 	// Minimal error codes (fallback)
 	namespace error_codes {
-		namespace network_system {
+		namespace kcenon::network {
 			constexpr int connection_failed = -600;
 			constexpr int connection_refused = -601;
 			constexpr int connection_timeout = -602;
@@ -232,4 +232,4 @@ namespace network_system {
 
 #endif
 
-} // namespace network_system
+} // namespace kcenon::network

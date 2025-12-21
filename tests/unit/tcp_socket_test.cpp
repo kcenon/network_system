@@ -15,7 +15,7 @@ All rights reserved.
 #include <thread>
 #include <vector>
 
-using namespace network_system::internal;
+using namespace kcenon::network::internal;
 
 /**
  * @file tcp_socket_test.cpp

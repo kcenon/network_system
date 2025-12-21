@@ -40,7 +40,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <variant>
 #include <vector>
 
-namespace network_system::protocols::quic
+namespace kcenon::network::protocols::quic
 {
 
 /*!
@@ -424,4 +424,4 @@ using frame = std::variant<
  */
 [[nodiscard]] auto frame_type_to_string(frame_type type) -> std::string;
 
-} // namespace network_system::protocols::quic
+} // namespace kcenon::network::protocols::quic

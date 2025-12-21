@@ -42,7 +42,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <optional>
 #include <vector>
 
-namespace network_system::protocols::quic
+namespace kcenon::network::protocols::quic
 {
 
 /*!
@@ -279,4 +279,4 @@ private:
     static constexpr auto kGranularity = std::chrono::milliseconds{1};
 };
 
-} // namespace network_system::protocols::quic
+} // namespace kcenon::network::protocols::quic

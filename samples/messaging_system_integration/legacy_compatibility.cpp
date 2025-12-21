@@ -169,9 +169,9 @@ void demonstrate_integration_features() {
 
     // Check feature support using compatibility API
     std::cout << "Container support: "
-              << (network_system::compat::has_container_support() ? "YES" : "NO") << std::endl;
+              << (kcenon::network::compat::has_container_support() ? "YES" : "NO") << std::endl;
     std::cout << "Thread support: "
-              << (network_system::compat::has_thread_support() ? "YES" : "NO") << std::endl;
+              << (kcenon::network::compat::has_thread_support() ? "YES" : "NO") << std::endl;
 
     // Use thread pool if available
     auto& thread_mgr = thread_integration_manager::instance();
@@ -215,7 +215,7 @@ int main(int argc, char* argv[]) {
     std::cout << "works seamlessly with the new network_system." << std::endl;
 
     // Initialize network system
-    network_system::compat::initialize();
+    kcenon::network::compat::initialize();
     std::cout << "\n✓ Network system initialized for legacy support" << std::endl;
 
     try {
@@ -257,7 +257,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Shutdown network system
-    network_system::compat::shutdown();
+    kcenon::network::compat::shutdown();
     std::cout << "\n✓ Network system shutdown complete" << std::endl;
 
     std::cout << "\n=== Legacy Compatibility Demo Complete ===" << std::endl;

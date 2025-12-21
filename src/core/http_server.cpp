@@ -183,7 +183,7 @@ auto http_server::start(unsigned short port) -> VoidResult {
   // Set up receive callback to handle HTTP requests with buffering
   tcp_server_->set_receive_callback(
       [this](
-          std::shared_ptr<network_system::session::messaging_session> session,
+          std::shared_ptr<kcenon::network::session::messaging_session> session,
           const std::vector<uint8_t> &data) {
         if (!session) {
           return;

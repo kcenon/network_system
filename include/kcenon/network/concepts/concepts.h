@@ -59,7 +59,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * @code
  * #include <kcenon/network/concepts/concepts.h>
  *
- * using namespace network_system::concepts;
+ * using namespace kcenon::network::concepts;
  *
  * template<DataReceiveHandler Handler>
  * void set_handler(Handler&& handler) {
@@ -99,19 +99,19 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #ifdef BUILD_WITH_COMMON_SYSTEM
 
-namespace network_system::concepts {
+namespace kcenon::network::concepts {
 
 // Re-export commonly used common_system concepts for convenience
 using kcenon::common::concepts::Resultable;
 using kcenon::common::concepts::Unwrappable;
 using kcenon::common::concepts::Mappable;
 
-} // namespace network_system::concepts
+} // namespace kcenon::network::concepts
 
 #endif // BUILD_WITH_COMMON_SYSTEM
 
 /**
- * @namespace network_system::concepts
+ * @namespace kcenon::network::concepts
  * @brief C++20 concepts for compile-time type validation in network_system.
  *
  * This namespace contains all concept definitions used throughout
@@ -154,7 +154,7 @@ using kcenon::common::concepts::Mappable;
  * - NetworkResultHandler: Result-aware callbacks
  * - AsyncNetworkCallback: Async-suitable callbacks
  */
-namespace network_system::concepts {
+namespace kcenon::network::concepts {
 // All concepts are defined in their respective headers
 // This namespace block serves as documentation
-} // namespace network_system::concepts
+} // namespace kcenon::network::concepts

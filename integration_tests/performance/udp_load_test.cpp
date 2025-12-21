@@ -18,8 +18,8 @@ All rights reserved.
 #include <thread>
 #include <vector>
 
-using namespace network_system::core;
-using namespace network_system::integration_tests;
+using namespace kcenon::network::core;
+using namespace kcenon::network::integration_tests;
 
 /**
  * @brief Test fixture for UDP load testing

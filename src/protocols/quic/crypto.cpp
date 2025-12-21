@@ -48,7 +48,7 @@ namespace
 {
 
 // Use the compatibility layer for OpenSSL error handling
-using network_system::internal::get_openssl_error;
+using kcenon::network::internal::get_openssl_error;
 
 auto get_openssl_error_string() -> std::string
 {

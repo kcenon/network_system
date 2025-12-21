@@ -19,7 +19,7 @@ All rights reserved.
 #include <psapi.h>
 #endif
 
-namespace network_system::integration_tests {
+namespace kcenon::network::integration_tests {
 
 auto MemoryProfiler::snapshot() const -> MemoryMetrics {
 #if defined(__linux__)
@@ -115,4 +115,4 @@ auto MemoryProfiler::snapshot_windows() const -> MemoryMetrics {
 }
 #endif
 
-} // namespace network_system::integration_tests
+} // namespace kcenon::network::integration_tests

@@ -27,7 +27,7 @@
 
 #include "kcenon/network/core/messaging_quic_client.h"
 
-using namespace network_system::core;
+using namespace kcenon::network::core;
 
 /**
  * @brief Simple QUIC client demo

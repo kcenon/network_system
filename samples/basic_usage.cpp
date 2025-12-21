@@ -5,6 +5,7 @@
 
 #include <kcenon/network/core/messaging_server.h>
 #include <kcenon/network/core/messaging_client.h>
+#include <kcenon/network/compatibility.h>
 #include <iostream>
 #include <memory>
 #include <thread>

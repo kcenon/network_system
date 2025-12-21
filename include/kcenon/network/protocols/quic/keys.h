@@ -36,7 +36,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <cstdint>
 #include <string>
 
-namespace network_system::protocols::quic
+namespace kcenon::network::protocols::quic
 {
 
 // ============================================================================
@@ -174,4 +174,4 @@ struct key_pair
     void clear() noexcept;
 };
 
-} // namespace network_system::protocols::quic
+} // namespace kcenon::network::protocols::quic

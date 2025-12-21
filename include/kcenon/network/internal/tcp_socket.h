@@ -42,7 +42,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "kcenon/network/internal/common_defs.h"
 
-namespace network_system::internal
+namespace kcenon::network::internal
 {
 	/*!
 	 * \class tcp_socket
@@ -229,4 +229,4 @@ namespace network_system::internal
 
 		std::atomic<bool> is_reading_{false}; /*!< Flag to prevent read after stop. */
 	};
-} // namespace network_system::internal
+} // namespace kcenon::network::internal

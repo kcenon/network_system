@@ -34,7 +34,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <kcenon/network/protocols/grpc/client.h>
 #include <kcenon/network/protocols/grpc/server.h>
 
-namespace grpc = network_system::protocols::grpc;
+namespace grpc = kcenon::network::protocols::grpc;
 
 // grpc_client tests
 class GrpcClientTest : public ::testing::Test

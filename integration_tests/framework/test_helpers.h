@@ -47,7 +47,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <asio.hpp>
 
-namespace network_system::integration_tests::test_helpers {
+namespace kcenon::network::integration_tests::test_helpers {
 
 // Free function for yielding to allow async operations to complete
 inline void wait_for_ready() {
@@ -445,4 +445,4 @@ private:
   std::atomic<size_t> message_count_{0};
 };
 
-} // namespace network_system::integration_tests::test_helpers
+} // namespace kcenon::network::integration_tests::test_helpers
