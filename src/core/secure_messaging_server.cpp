@@ -252,7 +252,9 @@ namespace kcenon::network::core
 				cleanup_timer_->cancel();
 			}
 
-			// Step 2: Stop all active sessions
+			// Step 2: Stop all active sessions (close sockets, stop reading)
+			// NOTE: Do NOT clear sessions here - they may still be referenced by
+			// pending async callbacks. We must wait for io_context to finish first.
 			{
 				std::lock_guard<std::mutex> lock(sessions_mutex_);
 				for (auto& sess : sessions_)
@@ -262,7 +264,6 @@ namespace kcenon::network::core
 						sess->stop_session();
 					}
 				}
-				sessions_.clear();
 			}
 
 			// Step 3: Release work guard to allow io_context to finish
@@ -277,7 +278,8 @@ namespace kcenon::network::core
 				io_context_->stop();
 			}
 
-			// Step 4: Wait for io_context task to complete
+			// Step 5: Wait for io_context task to complete
+			// This ensures all pending async callbacks have finished executing
 			if (io_context_future_.valid())
 			{
 				try {
@@ -288,13 +290,19 @@ namespace kcenon::network::core
 				}
 			}
 
-			// Step 5: Release resources explicitly to ensure cleanup
+			// Step 6: NOW it's safe to clear sessions - all async operations are done
+			{
+				std::lock_guard<std::mutex> lock(sessions_mutex_);
+				sessions_.clear();
+			}
+
+			// Step 7: Release resources explicitly to ensure cleanup
 			acceptor_.reset();
 			cleanup_timer_.reset();
 			thread_pool_.reset();
 			io_context_.reset();
 
-			// Step 6: Signal the promise for wait_for_stop()
+			// Step 8: Signal the promise for wait_for_stop()
 			if (stop_promise_.has_value())
 			{
 				try
