@@ -42,7 +42,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
 
-#include <kcenon/common/config/feature_flags.h>
+#include <kcenon/network/config/feature_flags.h>
 
 #include "kcenon/network/integration/messaging_bridge.h"
 #include "kcenon/network/integration/thread_integration.h"

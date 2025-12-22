@@ -32,7 +32,7 @@
  * This file verifies that the core NetworkSystem library can be compiled and linked
  */
 
-#include <kcenon/common/config/feature_flags.h>
+#include <kcenon/network/config/feature_flags.h>
 
 #include "network_system/core/messaging_client.h"
 #include "network_system/core/messaging_server.h"

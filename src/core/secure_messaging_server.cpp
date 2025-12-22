@@ -30,7 +30,7 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *****************************************************************************/
 
-#include <kcenon/common/config/feature_flags.h>
+#include <kcenon/network/config/feature_flags.h>
 
 #include "kcenon/network/core/secure_messaging_server.h"
 

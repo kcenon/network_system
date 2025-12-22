@@ -41,7 +41,7 @@
 
  */
 
-#include <kcenon/common/config/feature_flags.h>
+#include <kcenon/network/config/feature_flags.h>
 
 #include <cassert>
 #include <chrono>

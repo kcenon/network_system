@@ -38,7 +38,7 @@
  * @date 2025-09-20
  */
 
-#include <kcenon/common/config/feature_flags.h>
+#include <kcenon/network/config/feature_flags.h>
 
 #include "kcenon/network/integration/thread_integration.h"
 #include <mutex>

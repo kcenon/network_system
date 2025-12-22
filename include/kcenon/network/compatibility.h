@@ -41,7 +41,7 @@
  * @date 2025-09-20
  */
 
-#include <kcenon/common/config/feature_flags.h>
+#include <kcenon/network/config/feature_flags.h>
 
 #include "kcenon/network/core/messaging_server.h"
 #include "kcenon/network/core/messaging_client.h"
