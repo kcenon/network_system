@@ -41,6 +41,8 @@
  * @date 2025-09-20
  */
 
+#include <kcenon/common/config/feature_flags.h>
+
 #include "kcenon/network/core/messaging_server.h"
 #include "kcenon/network/core/messaging_client.h"
 #include "kcenon/network/session/messaging_session.h"
@@ -77,7 +79,7 @@ namespace network_module {
     using basic_container = ::kcenon::network::integration::basic_container;
     using container_manager = ::kcenon::network::integration::container_manager;
 
-#ifdef BUILD_WITH_CONTAINER_SYSTEM
+#if KCENON_WITH_CONTAINER_SYSTEM
     using container_system_adapter = ::kcenon::network::integration::container_system_adapter;
 #endif
 
@@ -132,13 +134,13 @@ namespace network_system {
 }
 
 // Feature detection macros
-#ifdef BUILD_WITH_CONTAINER_SYSTEM
+#if KCENON_WITH_CONTAINER_SYSTEM
     #define HAS_CONTAINER_INTEGRATION 1
 #else
     #define HAS_CONTAINER_INTEGRATION 0
 #endif
 
-#ifdef BUILD_WITH_THREAD_SYSTEM
+#if KCENON_WITH_THREAD_SYSTEM
     #define HAS_THREAD_INTEGRATION 1
 #else
     #define HAS_THREAD_INTEGRATION 0

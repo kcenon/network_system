@@ -32,7 +32,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
-#ifdef BUILD_WITH_COMMON_SYSTEM
+#include <kcenon/common/config/feature_flags.h>
+
+#if KCENON_WITH_COMMON_SYSTEM
 	#include <kcenon/common/patterns/result.h>
 	#include <kcenon/common/error/error_codes.h>
 #endif
@@ -42,7 +44,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace kcenon::network {
 
-#ifdef BUILD_WITH_COMMON_SYSTEM
+#if KCENON_WITH_COMMON_SYSTEM
 	// ============================================================
 	// Primary API: Use common::Result<T> directly
 	// ============================================================

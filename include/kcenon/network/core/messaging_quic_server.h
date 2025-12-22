@@ -32,6 +32,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
+#include <kcenon/common/config/feature_flags.h>
+
 #include <atomic>
 #include <functional>
 #include <future>
@@ -52,9 +54,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "kcenon/network/utils/result_types.h"
 
 // Optional monitoring support via common_system
-#ifdef BUILD_WITH_COMMON_SYSTEM
+#if KCENON_WITH_COMMON_SYSTEM
 	#include <kcenon/common/interfaces/monitoring_interface.h>
-#endif
+#endif // KCENON_WITH_COMMON_SYSTEM
 
 namespace kcenon::network::internal
 {
@@ -324,7 +326,7 @@ namespace kcenon::network::core
 		auto set_error_callback(std::function<void(std::error_code)> callback)
 		    -> void;
 
-#ifdef BUILD_WITH_COMMON_SYSTEM
+#if KCENON_WITH_COMMON_SYSTEM
 		/*!
 		 * \brief Set a monitoring interface for metrics collection.
 		 * \param monitor Pointer to IMonitor implementation (not owned).
@@ -336,7 +338,7 @@ namespace kcenon::network::core
 		 * \return Pointer to monitor or nullptr if not set.
 		 */
 		auto get_monitor() const -> kcenon::common::interfaces::IMonitor*;
-#endif
+#endif // KCENON_WITH_COMMON_SYSTEM
 
 	private:
 		// =====================================================================
@@ -412,12 +414,12 @@ namespace kcenon::network::core
 
 		mutable std::mutex callback_mutex_;
 
-#ifdef BUILD_WITH_COMMON_SYSTEM
+#if KCENON_WITH_COMMON_SYSTEM
 		kcenon::common::interfaces::IMonitor* monitor_ = nullptr;
 		std::atomic<uint64_t> messages_received_{0};
 		std::atomic<uint64_t> messages_sent_{0};
 		std::atomic<uint64_t> connection_errors_{0};
-#endif
+#endif // KCENON_WITH_COMMON_SYSTEM
 	};
 
 } // namespace kcenon::network::core

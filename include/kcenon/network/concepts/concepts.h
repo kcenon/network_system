@@ -32,6 +32,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
+#include <kcenon/common/config/feature_flags.h>
+
 /**
  * @file concepts.h
  * @brief Unified header for all C++20 concepts in network_system.
@@ -46,7 +48,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Component concepts: NetworkClient, NetworkServer, NetworkSession
  * - Pipeline concepts: DataTransformer, ReversibleDataTransformer
  *
- * When BUILD_WITH_COMMON_SYSTEM is defined, this header also provides
+ * When KCENON_WITH_COMMON_SYSTEM is defined, this header also provides
  * access to common_system concepts:
  * - Result/Optional: Resultable, Unwrappable, Mappable
  * - Callable: Invocable, VoidCallable, Predicate
@@ -88,7 +90,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // Note: Include core.h directly to avoid forward declaration conflicts in callable.h
 // The callable.h has `class VoidResult;` forward decl that conflicts with
 // `using VoidResult = Result<std::monostate>;` in result.h
-#ifdef BUILD_WITH_COMMON_SYSTEM
+#if KCENON_WITH_COMMON_SYSTEM
 #include <kcenon/common/patterns/result.h>
 #include <kcenon/common/concepts/core.h>
 #include <kcenon/common/concepts/container.h>
@@ -97,7 +99,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // Network-specific concepts (after common_system to avoid forward decl conflicts)
 #include "network_concepts.h"
 
-#ifdef BUILD_WITH_COMMON_SYSTEM
+#if KCENON_WITH_COMMON_SYSTEM
 
 namespace kcenon::network::concepts {
 
@@ -108,7 +110,7 @@ using kcenon::common::concepts::Mappable;
 
 } // namespace kcenon::network::concepts
 
-#endif // BUILD_WITH_COMMON_SYSTEM
+#endif // KCENON_WITH_COMMON_SYSTEM
 
 /**
  * @namespace kcenon::network::concepts

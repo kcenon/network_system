@@ -32,6 +32,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
+#include <kcenon/common/config/feature_flags.h>
+
 #include <atomic>
 #include <functional>
 #include <future>
@@ -49,9 +51,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "kcenon/network/integration/thread_integration.h"
 
 // Optional monitoring support via common_system
-#ifdef BUILD_WITH_COMMON_SYSTEM
+#if KCENON_WITH_COMMON_SYSTEM
 	#include <kcenon/common/interfaces/monitoring_interface.h>
-#endif
+#endif // KCENON_WITH_COMMON_SYSTEM
 
 namespace kcenon::network::session {
 	class secure_session;
@@ -148,7 +150,7 @@ namespace kcenon::network::core
 		 */
 		auto wait_for_stop() -> void;
 
-#ifdef BUILD_WITH_COMMON_SYSTEM
+#if KCENON_WITH_COMMON_SYSTEM
 		/*!
 		 * \brief Set a monitoring interface for metrics collection
 		 * \param monitor Pointer to IMonitor implementation (not owned)
@@ -160,7 +162,7 @@ namespace kcenon::network::core
 		 * \return Pointer to monitor or nullptr if not set
 		 */
 		auto get_monitor() const -> kcenon::common::interfaces::IMonitor*;
-#endif
+#endif // KCENON_WITH_COMMON_SYSTEM
 
 		/*!
 		 * \brief Sets the callback for new client connections.
@@ -273,7 +275,7 @@ namespace kcenon::network::core
 		 */
 		std::unique_ptr<asio::steady_timer> cleanup_timer_;
 
-#ifdef BUILD_WITH_COMMON_SYSTEM
+#if KCENON_WITH_COMMON_SYSTEM
 		/*!
 		 * \brief Optional monitoring interface for metrics collection
 		 */
@@ -285,7 +287,7 @@ namespace kcenon::network::core
 		std::atomic<uint64_t> messages_received_{0};
 		std::atomic<uint64_t> messages_sent_{0};
 		std::atomic<uint64_t> connection_errors_{0};
-#endif
+#endif // KCENON_WITH_COMMON_SYSTEM
 
 		/*!
 		 * \brief Callbacks for server events

@@ -14,9 +14,11 @@
 
 #pragma once
 
+#include <kcenon/common/config/feature_flags.h>
+
 #include <memory>
 
-#ifdef BUILD_WITH_COMMON_SYSTEM
+#if KCENON_WITH_COMMON_SYSTEM
 
 #include <kcenon/common/di/service_container.h>
 
@@ -169,4 +171,4 @@ inline common::VoidResult register_all_network_services(
 
 } // namespace kcenon::network::di
 
-#endif // BUILD_WITH_COMMON_SYSTEM
+#endif // KCENON_WITH_COMMON_SYSTEM

@@ -29,13 +29,15 @@
 
 #pragma once
 
+#include <kcenon/common/config/feature_flags.h>
+
 /**
  * @file thread_system_adapter.h
  * @brief Adapter that bridges thread_system::thread_pool to thread_pool_interface
  *
  * This optional adapter lets NetworkSystem use thread_system's thread_pool via the
  * existing thread_integration API, strengthening DI/scheduling consistency.
- * Enabled when BUILD_WITH_THREAD_SYSTEM is defined.
+ * Enabled when KCENON_WITH_THREAD_SYSTEM is defined.
  *
  * When THREAD_HAS_COMMON_EXECUTOR is available (i.e., common_system is integrated),
  * delayed task scheduling is delegated directly to thread_pool::submit_delayed,
@@ -49,7 +51,7 @@
 #include <functional>
 #include <chrono>
 
-#if defined(BUILD_WITH_THREAD_SYSTEM)
+#if KCENON_WITH_THREAD_SYSTEM
 // Suppress deprecation warnings from thread_system headers
 #  pragma clang diagnostic push
 #  pragma clang diagnostic ignored "-Wdeprecated-declarations"
@@ -63,7 +65,7 @@
 
 namespace kcenon::network::integration {
 
-#if defined(BUILD_WITH_THREAD_SYSTEM)
+#if KCENON_WITH_THREAD_SYSTEM
 
 class thread_system_pool_adapter : public thread_pool_interface {
 public:
@@ -107,14 +109,14 @@ private:
 // Returns true on success.
 bool bind_thread_system_pool_into_manager(const std::string& pool_name = "network_pool");
 
-#else // BUILD_WITH_THREAD_SYSTEM
+#else // KCENON_WITH_THREAD_SYSTEM
 
 // Placeholder when thread_system is not available, to keep includes harmless
 struct thread_system_pool_adapter_unavailable final {
     thread_system_pool_adapter_unavailable() = delete;
 };
 
-#endif // BUILD_WITH_THREAD_SYSTEM
+#endif // KCENON_WITH_THREAD_SYSTEM
 
 } // namespace kcenon::network::integration
 

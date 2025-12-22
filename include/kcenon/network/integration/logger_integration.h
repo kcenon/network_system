@@ -32,12 +32,14 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
+#include <kcenon/common/config/feature_flags.h>
+
 /**
  * @file logger_integration.h
  * @brief Logger system integration interface for network_system
  *
  * This file provides logging integration with optional common_system support.
- * When BUILD_WITH_COMMON_SYSTEM is defined, NETWORK_LOG_* macros delegate to
+ * When KCENON_WITH_COMMON_SYSTEM is enabled, NETWORK_LOG_* macros delegate to
  * common_system's LOG_* macros. Otherwise, they use the built-in basic_logger.
  *
  * @note Issue #285: Supports both common_system ILogger and standalone operation.
@@ -53,7 +55,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "kcenon/network/integration/thread_integration.h"
 
 // Conditionally include common_system logging facilities
-#ifdef BUILD_WITH_COMMON_SYSTEM
+#if KCENON_WITH_COMMON_SYSTEM
 #include <kcenon/common/logging/log_macros.h>
 #include <kcenon/common/interfaces/global_logger_registry.h>
 #endif
@@ -73,7 +75,7 @@ enum class log_level : int {
     fatal = 5
 };
 
-#ifdef BUILD_WITH_COMMON_SYSTEM
+#if KCENON_WITH_COMMON_SYSTEM
 /**
  * @brief Convert network log_level to common_system log_level
  */
@@ -88,7 +90,7 @@ inline kcenon::common::interfaces::log_level to_common_level(log_level level) {
         default: return kcenon::common::interfaces::log_level::info;
     }
 }
-#endif
+#endif // KCENON_WITH_COMMON_SYSTEM
 
 /**
  * @class logger_interface
@@ -133,7 +135,7 @@ public:
     virtual void flush() = 0;
 };
 
-#ifdef BUILD_WITH_COMMON_SYSTEM
+#if KCENON_WITH_COMMON_SYSTEM
 /**
  * @class common_system_logger_adapter
  * @brief Adapter that wraps common_system's ILogger to logger_interface
@@ -162,7 +164,7 @@ private:
     std::string logger_name_;
     std::shared_ptr<kcenon::common::interfaces::ILogger> get_logger() const;
 };
-#endif // BUILD_WITH_COMMON_SYSTEM
+#endif // KCENON_WITH_COMMON_SYSTEM
 
 /**
  * @class basic_logger
@@ -211,7 +213,7 @@ private:
  * @brief Manager for logger system integration
  *
  * This class manages the integration between network_system and
- * logger implementations. When BUILD_WITH_COMMON_SYSTEM is defined,
+ * logger implementations. When KCENON_WITH_COMMON_SYSTEM is enabled,
  * it delegates to GlobalLoggerRegistry internally.
  */
 class logger_integration_manager {
@@ -265,11 +267,11 @@ private:
 // =============================================================================
 // Convenience macros for logging with automatic source location
 //
-// When BUILD_WITH_COMMON_SYSTEM is defined, delegate to common_system's LOG_* macros.
+// When KCENON_WITH_COMMON_SYSTEM is enabled, delegate to common_system's LOG_* macros.
 // Otherwise, use logger_integration_manager for standalone operation.
 // =============================================================================
 
-#ifdef BUILD_WITH_COMMON_SYSTEM
+#if KCENON_WITH_COMMON_SYSTEM
 
 #define NETWORK_LOG_TRACE(msg) LOG_TRACE(msg)
 #define NETWORK_LOG_DEBUG(msg) LOG_DEBUG(msg)
@@ -278,7 +280,7 @@ private:
 #define NETWORK_LOG_ERROR(msg) LOG_ERROR(msg)
 #define NETWORK_LOG_FATAL(msg) LOG_CRITICAL(msg)
 
-#else // !BUILD_WITH_COMMON_SYSTEM
+#else // KCENON_WITH_COMMON_SYSTEM
 
 #define NETWORK_LOG_TRACE(msg) \
     kcenon::network::integration::logger_integration_manager::instance().log( \
@@ -304,6 +306,6 @@ private:
     kcenon::network::integration::logger_integration_manager::instance().log( \
         kcenon::network::integration::log_level::fatal, msg, __FILE__, __LINE__, __FUNCTION__)
 
-#endif // BUILD_WITH_COMMON_SYSTEM
+#endif // KCENON_WITH_COMMON_SYSTEM
 
 // Backward compatibility namespace alias is defined in thread_integration.h

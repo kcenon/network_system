@@ -29,12 +29,14 @@
 
 #pragma once
 
+#include <kcenon/common/config/feature_flags.h>
+
 /**
  * @file common_system_adapter.h
  * @brief Adapter for common_system integration
  */
 
-#ifdef BUILD_WITH_COMMON_SYSTEM
+#if KCENON_WITH_COMMON_SYSTEM
 #include <kcenon/common/interfaces/executor_interface.h>
 #include <kcenon/common/interfaces/logger_interface.h>
 #include <kcenon/common/interfaces/monitoring_interface.h>
@@ -54,7 +56,7 @@
 
 namespace kcenon::network::integration {
 
-#ifdef BUILD_WITH_COMMON_SYSTEM
+#if KCENON_WITH_COMMON_SYSTEM
 
 namespace detail {
 inline std::future<void> make_error_future(const std::string& message) {
@@ -253,7 +255,7 @@ private:
     std::shared_ptr<::kcenon::common::interfaces::IMonitor> monitor_;
 };
 
-#endif // BUILD_WITH_COMMON_SYSTEM
+#endif // KCENON_WITH_COMMON_SYSTEM
 
 } // namespace kcenon::network::integration
 

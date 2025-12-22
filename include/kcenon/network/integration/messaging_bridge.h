@@ -32,6 +32,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
+#include <kcenon/common/config/feature_flags.h>
+
 /**
  * @file messaging_bridge.h
  * @brief Bridge for messaging_system compatibility
@@ -46,11 +48,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "kcenon/network/core/messaging_client.h"
 #include "kcenon/network/core/messaging_server.h"
 
-#ifdef BUILD_WITH_CONTAINER_SYSTEM
+#if KCENON_WITH_CONTAINER_SYSTEM
 #include "container.h"
 #endif
 
-#ifdef BUILD_WITH_THREAD_SYSTEM
+#if KCENON_WITH_THREAD_SYSTEM
 // Suppress deprecation warnings from thread_system headers
 #  pragma clang diagnostic push
 #  pragma clang diagnostic ignored "-Wdeprecated-declarations"
@@ -106,7 +108,7 @@ public:
         const std::string& client_id
     );
 
-#ifdef BUILD_WITH_CONTAINER_SYSTEM
+#if KCENON_WITH_CONTAINER_SYSTEM
     /**
      * @brief Set container for message serialization/deserialization
      * @param container Shared pointer to value container
@@ -124,7 +126,7 @@ public:
     );
 #endif
 
-#ifdef BUILD_WITH_THREAD_SYSTEM
+#if KCENON_WITH_THREAD_SYSTEM
     /**
      * @brief Set thread pool for asynchronous operations
      * @param pool Shared pointer to thread pool
