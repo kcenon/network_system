@@ -43,22 +43,22 @@ if(benchmark_FOUND OR BENCHMARK_FOUND)
     # Add system integration paths and definitions
     if(CONTAINER_SYSTEM_INCLUDE_DIR)
         target_include_directories(network_benchmarks PRIVATE ${CONTAINER_SYSTEM_INCLUDE_DIR})
-        target_compile_definitions(network_benchmarks PRIVATE BUILD_WITH_CONTAINER_SYSTEM)
+        target_compile_definitions(network_benchmarks PRIVATE WITH_CONTAINER_SYSTEM)
     endif()
 
     if(THREAD_SYSTEM_INCLUDE_DIR)
         target_include_directories(network_benchmarks PRIVATE ${THREAD_SYSTEM_INCLUDE_DIR})
-        target_compile_definitions(network_benchmarks PRIVATE BUILD_WITH_THREAD_SYSTEM)
+        target_compile_definitions(network_benchmarks PRIVATE WITH_THREAD_SYSTEM)
     endif()
 
     if(LOGGER_SYSTEM_INCLUDE_DIR)
         target_include_directories(network_benchmarks PRIVATE ${LOGGER_SYSTEM_INCLUDE_DIR})
-        target_compile_definitions(network_benchmarks PRIVATE BUILD_WITH_LOGGER_SYSTEM)
+        target_compile_definitions(network_benchmarks PRIVATE WITH_LOGGER_SYSTEM)
     endif()
 
     if(COMMON_SYSTEM_INCLUDE_DIR)
         target_include_directories(network_benchmarks PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
-        target_compile_definitions(network_benchmarks PRIVATE BUILD_WITH_COMMON_SYSTEM)
+        target_compile_definitions(network_benchmarks PRIVATE WITH_COMMON_SYSTEM)
     endif()
 
     if(BUILD_MESSAGING_BRIDGE)

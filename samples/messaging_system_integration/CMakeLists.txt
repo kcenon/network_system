@@ -39,8 +39,8 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../../../container_system")
     target_include_directories(modern_usage
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../../container_system
     )
-    target_compile_definitions(legacy_compatibility PRIVATE BUILD_WITH_CONTAINER_SYSTEM)
-    target_compile_definitions(modern_usage PRIVATE BUILD_WITH_CONTAINER_SYSTEM)
+    target_compile_definitions(legacy_compatibility PRIVATE WITH_CONTAINER_SYSTEM)
+    target_compile_definitions(modern_usage PRIVATE WITH_CONTAINER_SYSTEM)
 endif()
 
 # Platform-specific settings

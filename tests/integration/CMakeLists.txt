@@ -33,22 +33,22 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/test_e2e.cpp)
     # Add system integration paths
     if(CONTAINER_SYSTEM_INCLUDE_DIR)
         target_include_directories(test_e2e PRIVATE ${CONTAINER_SYSTEM_INCLUDE_DIR})
-        target_compile_definitions(test_e2e PRIVATE BUILD_WITH_CONTAINER_SYSTEM)
+        target_compile_definitions(test_e2e PRIVATE WITH_CONTAINER_SYSTEM)
     endif()
 
     if(THREAD_SYSTEM_INCLUDE_DIR)
         target_include_directories(test_e2e PRIVATE ${THREAD_SYSTEM_INCLUDE_DIR})
-        target_compile_definitions(test_e2e PRIVATE BUILD_WITH_THREAD_SYSTEM)
+        target_compile_definitions(test_e2e PRIVATE WITH_THREAD_SYSTEM)
     endif()
 
     if(LOGGER_SYSTEM_INCLUDE_DIR)
         target_include_directories(test_e2e PRIVATE ${LOGGER_SYSTEM_INCLUDE_DIR})
-        target_compile_definitions(test_e2e PRIVATE BUILD_WITH_LOGGER_SYSTEM)
+        target_compile_definitions(test_e2e PRIVATE WITH_LOGGER_SYSTEM)
     endif()
 
     if(COMMON_SYSTEM_INCLUDE_DIR)
         target_include_directories(test_e2e PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
-        target_compile_definitions(test_e2e PRIVATE BUILD_WITH_COMMON_SYSTEM)
+        target_compile_definitions(test_e2e PRIVATE WITH_COMMON_SYSTEM)
     endif()
 
     set_target_properties(test_e2e PROPERTIES
@@ -77,22 +77,22 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/test_integration.cpp)
     # Add system integration paths
     if(CONTAINER_SYSTEM_INCLUDE_DIR)
         target_include_directories(stress_test PRIVATE ${CONTAINER_SYSTEM_INCLUDE_DIR})
-        target_compile_definitions(stress_test PRIVATE BUILD_WITH_CONTAINER_SYSTEM)
+        target_compile_definitions(stress_test PRIVATE WITH_CONTAINER_SYSTEM)
     endif()
 
     if(THREAD_SYSTEM_INCLUDE_DIR)
         target_include_directories(stress_test PRIVATE ${THREAD_SYSTEM_INCLUDE_DIR})
-        target_compile_definitions(stress_test PRIVATE BUILD_WITH_THREAD_SYSTEM)
+        target_compile_definitions(stress_test PRIVATE WITH_THREAD_SYSTEM)
     endif()
 
     if(LOGGER_SYSTEM_INCLUDE_DIR)
         target_include_directories(stress_test PRIVATE ${LOGGER_SYSTEM_INCLUDE_DIR})
-        target_compile_definitions(stress_test PRIVATE BUILD_WITH_LOGGER_SYSTEM)
+        target_compile_definitions(stress_test PRIVATE WITH_LOGGER_SYSTEM)
     endif()
 
     if(COMMON_SYSTEM_INCLUDE_DIR)
         target_include_directories(stress_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
-        target_compile_definitions(stress_test PRIVATE BUILD_WITH_COMMON_SYSTEM)
+        target_compile_definitions(stress_test PRIVATE WITH_COMMON_SYSTEM)
     endif()
 
     set_target_properties(stress_test PROPERTIES
@@ -119,22 +119,22 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/test_compatibility.cpp)
     # Add system integration paths
     if(CONTAINER_SYSTEM_INCLUDE_DIR)
         target_include_directories(benchmark PRIVATE ${CONTAINER_SYSTEM_INCLUDE_DIR})
-        target_compile_definitions(benchmark PRIVATE BUILD_WITH_CONTAINER_SYSTEM)
+        target_compile_definitions(benchmark PRIVATE WITH_CONTAINER_SYSTEM)
     endif()
 
     if(THREAD_SYSTEM_INCLUDE_DIR)
         target_include_directories(benchmark PRIVATE ${THREAD_SYSTEM_INCLUDE_DIR})
-        target_compile_definitions(benchmark PRIVATE BUILD_WITH_THREAD_SYSTEM)
+        target_compile_definitions(benchmark PRIVATE WITH_THREAD_SYSTEM)
     endif()
 
     if(LOGGER_SYSTEM_INCLUDE_DIR)
         target_include_directories(benchmark PRIVATE ${LOGGER_SYSTEM_INCLUDE_DIR})
-        target_compile_definitions(benchmark PRIVATE BUILD_WITH_LOGGER_SYSTEM)
+        target_compile_definitions(benchmark PRIVATE WITH_LOGGER_SYSTEM)
     endif()
 
     if(COMMON_SYSTEM_INCLUDE_DIR)
         target_include_directories(benchmark PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
-        target_compile_definitions(benchmark PRIVATE BUILD_WITH_COMMON_SYSTEM)
+        target_compile_definitions(benchmark PRIVATE WITH_COMMON_SYSTEM)
     endif()
 
     set_target_properties(benchmark PROPERTIES
@@ -163,22 +163,22 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/test_websocket_e2e.cpp)
     # Add system integration paths
     if(CONTAINER_SYSTEM_INCLUDE_DIR)
         target_include_directories(test_websocket_e2e PRIVATE ${CONTAINER_SYSTEM_INCLUDE_DIR})
-        target_compile_definitions(test_websocket_e2e PRIVATE BUILD_WITH_CONTAINER_SYSTEM)
+        target_compile_definitions(test_websocket_e2e PRIVATE WITH_CONTAINER_SYSTEM)
     endif()
 
     if(THREAD_SYSTEM_INCLUDE_DIR)
         target_include_directories(test_websocket_e2e PRIVATE ${THREAD_SYSTEM_INCLUDE_DIR})
-        target_compile_definitions(test_websocket_e2e PRIVATE BUILD_WITH_THREAD_SYSTEM)
+        target_compile_definitions(test_websocket_e2e PRIVATE WITH_THREAD_SYSTEM)
     endif()
 
     if(LOGGER_SYSTEM_INCLUDE_DIR)
         target_include_directories(test_websocket_e2e PRIVATE ${LOGGER_SYSTEM_INCLUDE_DIR})
-        target_compile_definitions(test_websocket_e2e PRIVATE BUILD_WITH_LOGGER_SYSTEM)
+        target_compile_definitions(test_websocket_e2e PRIVATE WITH_LOGGER_SYSTEM)
     endif()
 
     if(COMMON_SYSTEM_INCLUDE_DIR)
         target_include_directories(test_websocket_e2e PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
-        target_compile_definitions(test_websocket_e2e PRIVATE BUILD_WITH_COMMON_SYSTEM)
+        target_compile_definitions(test_websocket_e2e PRIVATE WITH_COMMON_SYSTEM)
     endif()
 
     set_target_properties(test_websocket_e2e PROPERTIES
@@ -216,22 +216,22 @@ if(BUILD_QUIC_SUPPORT AND EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/test_quic_e2e.cpp)
     # Add system integration paths
     if(CONTAINER_SYSTEM_INCLUDE_DIR)
         target_include_directories(test_quic_e2e PRIVATE ${CONTAINER_SYSTEM_INCLUDE_DIR})
-        target_compile_definitions(test_quic_e2e PRIVATE BUILD_WITH_CONTAINER_SYSTEM)
+        target_compile_definitions(test_quic_e2e PRIVATE WITH_CONTAINER_SYSTEM)
     endif()
 
     if(THREAD_SYSTEM_INCLUDE_DIR)
         target_include_directories(test_quic_e2e PRIVATE ${THREAD_SYSTEM_INCLUDE_DIR})
-        target_compile_definitions(test_quic_e2e PRIVATE BUILD_WITH_THREAD_SYSTEM)
+        target_compile_definitions(test_quic_e2e PRIVATE WITH_THREAD_SYSTEM)
     endif()
 
     if(LOGGER_SYSTEM_INCLUDE_DIR)
         target_include_directories(test_quic_e2e PRIVATE ${LOGGER_SYSTEM_INCLUDE_DIR})
-        target_compile_definitions(test_quic_e2e PRIVATE BUILD_WITH_LOGGER_SYSTEM)
+        target_compile_definitions(test_quic_e2e PRIVATE WITH_LOGGER_SYSTEM)
     endif()
 
     if(COMMON_SYSTEM_INCLUDE_DIR)
         target_include_directories(test_quic_e2e PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
-        target_compile_definitions(test_quic_e2e PRIVATE BUILD_WITH_COMMON_SYSTEM)
+        target_compile_definitions(test_quic_e2e PRIVATE WITH_COMMON_SYSTEM)
     endif()
 
     set_target_properties(test_quic_e2e PROPERTIES
