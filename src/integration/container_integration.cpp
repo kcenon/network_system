@@ -36,6 +36,8 @@
 
  */
 
+#include <kcenon/common/config/feature_flags.h>
+
 #include "kcenon/network/integration/container_integration.h"
 #include <unordered_map>
 #include <mutex>
@@ -43,7 +45,7 @@
 
 namespace kcenon::network::integration {
 
-#ifdef BUILD_WITH_CONTAINER_SYSTEM
+#if KCENON_WITH_CONTAINER_SYSTEM
 // container_system_adapter implementation
 container_system_adapter::container_system_adapter(
     std::shared_ptr<container_module::value_container> container

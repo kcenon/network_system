@@ -30,6 +30,8 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *****************************************************************************/
 
+#include <kcenon/common/config/feature_flags.h>
+
 #include "kcenon/network/integration/monitoring_integration.h"
 #include "kcenon/network/integration/logger_integration.h"
 
@@ -38,7 +40,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <sstream>
 #include <unordered_map>
 
-#ifdef BUILD_WITH_MONITORING_SYSTEM
+#if KCENON_WITH_MONITORING_SYSTEM
 #include <kcenon/monitoring/core/performance_monitor.h>
 #include <kcenon/monitoring/health/health_monitor.h>
 #include <kcenon/monitoring/utils/metric_types.h>
@@ -191,7 +193,7 @@ namespace kcenon::network::integration
 
 	bool basic_monitoring::is_logging_enabled() const { return pimpl_->is_logging_enabled(); }
 
-#ifdef BUILD_WITH_MONITORING_SYSTEM
+#if KCENON_WITH_MONITORING_SYSTEM
 	//===========================================================================
 	// monitoring_system_adapter implementation
 	//===========================================================================
@@ -372,7 +374,7 @@ namespace kcenon::network::integration
 
 	void monitoring_system_adapter::stop() { pimpl_->stop(); }
 
-#endif // BUILD_WITH_MONITORING_SYSTEM
+#endif // KCENON_WITH_MONITORING_SYSTEM
 
 	//===========================================================================
 	// monitoring_integration_manager implementation

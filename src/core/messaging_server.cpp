@@ -30,6 +30,8 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *****************************************************************************/
 
+#include <kcenon/common/config/feature_flags.h>
+
 #include "kcenon/network/core/messaging_server.h"
 #include "kcenon/network/session/messaging_session.h"
 #include "kcenon/network/integration/logger_integration.h"
@@ -282,7 +284,7 @@ namespace kcenon::network::core
 		if (ec)
 		{
 			NETWORK_LOG_ERROR("[messaging_server] Accept error: " + ec.message());
-#ifdef BUILD_WITH_COMMON_SYSTEM
+#if KCENON_WITH_COMMON_SYSTEM
 			// Record connection error
 			connection_errors_.fetch_add(1, std::memory_order_relaxed);
 			if (monitor_) {
@@ -378,7 +380,7 @@ namespace kcenon::network::core
 			}
 		}
 
-#ifdef BUILD_WITH_COMMON_SYSTEM
+#if KCENON_WITH_COMMON_SYSTEM
 		// Record active connections metric
 		{
 			std::lock_guard<std::mutex> lock(sessions_mutex_);
@@ -414,7 +416,7 @@ namespace kcenon::network::core
 		NETWORK_LOG_DEBUG("[messaging_server] Cleaned up dead sessions. Active: " +
 			std::to_string(sessions_.size()));
 
-#ifdef BUILD_WITH_COMMON_SYSTEM
+#if KCENON_WITH_COMMON_SYSTEM
 		// Update active connections metric after cleanup
 		if (monitor_) {
 			monitor_->record_metric("active_connections", static_cast<double>(sessions_.size()));
@@ -445,7 +447,7 @@ namespace kcenon::network::core
 		);
 	}
 
-#ifdef BUILD_WITH_COMMON_SYSTEM
+#if KCENON_WITH_COMMON_SYSTEM
 	auto messaging_server::set_monitor(kcenon::common::interfaces::IMonitor* monitor) -> void
 	{
 		monitor_ = monitor;

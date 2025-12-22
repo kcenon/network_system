@@ -30,6 +30,8 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *****************************************************************************/
 
+#include <kcenon/common/config/feature_flags.h>
+
 #include "kcenon/network/core/messaging_quic_server.h"
 
 #include "kcenon/network/core/network_context.h"
@@ -440,7 +442,7 @@ namespace kcenon::network::core
 		error_callback_ = std::move(callback);
 	}
 
-#ifdef BUILD_WITH_COMMON_SYSTEM
+#if KCENON_WITH_COMMON_SYSTEM
 	auto messaging_quic_server::set_monitor(
 	    kcenon::common::interfaces::IMonitor* monitor) -> void
 	{
@@ -670,7 +672,7 @@ namespace kcenon::network::core
 			}
 		}
 
-#ifdef BUILD_WITH_COMMON_SYSTEM
+#if KCENON_WITH_COMMON_SYSTEM
 		if (monitor_)
 		{
 			monitor_->record_metric("active_connections",
@@ -729,7 +731,7 @@ namespace kcenon::network::core
 				}
 			}
 
-#ifdef BUILD_WITH_COMMON_SYSTEM
+#if KCENON_WITH_COMMON_SYSTEM
 			if (monitor_)
 			{
 				monitor_->record_metric("active_connections",

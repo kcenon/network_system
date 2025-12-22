@@ -40,9 +40,11 @@
  * @date 2025-09-20
  */
 
+#include <kcenon/common/config/feature_flags.h>
+
 #include "kcenon/network/integration/thread_system_adapter.h"
 
-#if defined(BUILD_WITH_THREAD_SYSTEM)
+#if KCENON_WITH_THREAD_SYSTEM
 
 // Suppress deprecation warnings from thread_system headers
 #pragma clang diagnostic push
@@ -188,5 +190,5 @@ bool bind_thread_system_pool_into_manager(const std::string& pool_name) {
 
 #pragma clang diagnostic pop
 
-#endif // BUILD_WITH_THREAD_SYSTEM
+#endif // KCENON_WITH_THREAD_SYSTEM
 

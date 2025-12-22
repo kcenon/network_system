@@ -42,12 +42,14 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
 
+#include <kcenon/common/config/feature_flags.h>
+
 #include "kcenon/network/integration/messaging_bridge.h"
 #include "kcenon/network/integration/thread_integration.h"
 #include <atomic>
 #include <mutex>
 
-#ifdef BUILD_WITH_CONTAINER_SYSTEM
+#if KCENON_WITH_CONTAINER_SYSTEM
 #include "container.h"
 #endif
 
@@ -63,12 +65,12 @@ public:
     mutable std::mutex metrics_mutex_;
     performance_metrics metrics_;
 
-#ifdef BUILD_WITH_CONTAINER_SYSTEM
+#if KCENON_WITH_CONTAINER_SYSTEM
     std::shared_ptr<container_module::value_container> active_container_;
     std::function<void(const container_module::value_container&)> container_handler_;
 #endif
 
-#ifdef BUILD_WITH_THREAD_SYSTEM
+#if KCENON_WITH_THREAD_SYSTEM
     std::shared_ptr<kcenon::thread::thread_pool> thread_pool_;
 #endif
     std::shared_ptr<thread_pool_interface> thread_pool_interface_;
@@ -92,7 +94,7 @@ std::shared_ptr<kcenon::network::core::messaging_client> messaging_bridge::creat
     return std::make_shared<kcenon::network::core::messaging_client>(client_id);
 }
 
-#ifdef BUILD_WITH_CONTAINER_SYSTEM
+#if KCENON_WITH_CONTAINER_SYSTEM
 void messaging_bridge::set_container(
     std::shared_ptr<container_module::value_container> container
 ) {
@@ -106,7 +108,7 @@ void messaging_bridge::set_container_message_handler(
 }
 #endif
 
-#ifdef BUILD_WITH_THREAD_SYSTEM
+#if KCENON_WITH_THREAD_SYSTEM
 void messaging_bridge::set_thread_pool(
     std::shared_ptr<kcenon::thread::thread_pool> pool
 ) {

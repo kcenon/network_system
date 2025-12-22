@@ -30,17 +30,19 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *****************************************************************************/
 
+#include <kcenon/common/config/feature_flags.h>
+
 #include "kcenon/network/metrics/network_metrics.h"
 #include "kcenon/network/core/network_context.h"
 
-#ifdef BUILD_WITH_MONITORING_SYSTEM
+#if KCENON_WITH_MONITORING_SYSTEM
 #include "kcenon/network/integration/monitoring_integration.h"
 #endif
 
 namespace kcenon::network::metrics {
 
 void metric_reporter::report_connection_accepted() {
-#ifdef BUILD_WITH_MONITORING_SYSTEM
+#if KCENON_WITH_MONITORING_SYSTEM
     auto monitoring = core::network_context::instance().get_monitoring();
     if (monitoring) {
         monitoring->report_counter(metric_names::CONNECTIONS_TOTAL, 1);
@@ -49,7 +51,7 @@ void metric_reporter::report_connection_accepted() {
 }
 
 void metric_reporter::report_connection_failed(const std::string& reason) {
-#ifdef BUILD_WITH_MONITORING_SYSTEM
+#if KCENON_WITH_MONITORING_SYSTEM
     auto monitoring = core::network_context::instance().get_monitoring();
     if (monitoring) {
         monitoring->report_counter(metric_names::CONNECTIONS_FAILED, 1);
@@ -60,7 +62,7 @@ void metric_reporter::report_connection_failed(const std::string& reason) {
 }
 
 void metric_reporter::report_bytes_sent(size_t bytes) {
-#ifdef BUILD_WITH_MONITORING_SYSTEM
+#if KCENON_WITH_MONITORING_SYSTEM
     auto monitoring = core::network_context::instance().get_monitoring();
     if (monitoring) {
         monitoring->report_counter(metric_names::BYTES_SENT, static_cast<double>(bytes));
@@ -72,7 +74,7 @@ void metric_reporter::report_bytes_sent(size_t bytes) {
 }
 
 void metric_reporter::report_bytes_received(size_t bytes) {
-#ifdef BUILD_WITH_MONITORING_SYSTEM
+#if KCENON_WITH_MONITORING_SYSTEM
     auto monitoring = core::network_context::instance().get_monitoring();
     if (monitoring) {
         monitoring->report_counter(metric_names::BYTES_RECEIVED, static_cast<double>(bytes));
@@ -84,7 +86,7 @@ void metric_reporter::report_bytes_received(size_t bytes) {
 }
 
 void metric_reporter::report_latency(double ms) {
-#ifdef BUILD_WITH_MONITORING_SYSTEM
+#if KCENON_WITH_MONITORING_SYSTEM
     auto monitoring = core::network_context::instance().get_monitoring();
     if (monitoring) {
         monitoring->report_histogram(metric_names::LATENCY_MS, ms);
@@ -95,7 +97,7 @@ void metric_reporter::report_latency(double ms) {
 }
 
 void metric_reporter::report_error(const std::string& error_type) {
-#ifdef BUILD_WITH_MONITORING_SYSTEM
+#if KCENON_WITH_MONITORING_SYSTEM
     auto monitoring = core::network_context::instance().get_monitoring();
     if (monitoring) {
         monitoring->report_counter(metric_names::ERRORS_TOTAL, 1);
@@ -107,7 +109,7 @@ void metric_reporter::report_error(const std::string& error_type) {
 }
 
 void metric_reporter::report_timeout() {
-#ifdef BUILD_WITH_MONITORING_SYSTEM
+#if KCENON_WITH_MONITORING_SYSTEM
     auto monitoring = core::network_context::instance().get_monitoring();
     if (monitoring) {
         monitoring->report_counter(metric_names::TIMEOUTS_TOTAL, 1);
@@ -116,7 +118,7 @@ void metric_reporter::report_timeout() {
 }
 
 void metric_reporter::report_active_connections(size_t count) {
-#ifdef BUILD_WITH_MONITORING_SYSTEM
+#if KCENON_WITH_MONITORING_SYSTEM
     auto monitoring = core::network_context::instance().get_monitoring();
     if (monitoring) {
         monitoring->report_gauge(metric_names::CONNECTIONS_ACTIVE, static_cast<double>(count));
@@ -127,7 +129,7 @@ void metric_reporter::report_active_connections(size_t count) {
 }
 
 void metric_reporter::report_session_duration(double ms) {
-#ifdef BUILD_WITH_MONITORING_SYSTEM
+#if KCENON_WITH_MONITORING_SYSTEM
     auto monitoring = core::network_context::instance().get_monitoring();
     if (monitoring) {
         monitoring->report_histogram(metric_names::SESSION_DURATION_MS, ms);

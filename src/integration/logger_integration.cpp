@@ -43,6 +43,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * @date 2025-09-20
  */
 
+#include <kcenon/common/config/feature_flags.h>
+
 #include "kcenon/network/integration/logger_integration.h"
 #include <atomic>
 #include <chrono>
@@ -84,7 +86,7 @@ static std::string get_timestamp() {
 // common_system_logger_adapter implementation (only when common_system available)
 //============================================================================
 
-#ifdef BUILD_WITH_COMMON_SYSTEM
+#if KCENON_WITH_COMMON_SYSTEM
 
 common_system_logger_adapter::common_system_logger_adapter(const std::string& logger_name)
     : logger_name_(logger_name) {}
@@ -138,7 +140,7 @@ void common_system_logger_adapter::flush() {
     }
 }
 
-#endif // BUILD_WITH_COMMON_SYSTEM
+#endif // KCENON_WITH_COMMON_SYSTEM
 
 //============================================================================
 // basic_logger implementation
@@ -244,14 +246,14 @@ log_level basic_logger::get_min_level() const {
 //============================================================================
 // logger_integration_manager implementation
 //
-// When BUILD_WITH_COMMON_SYSTEM is defined, uses common_system_logger_adapter.
+// When KCENON_WITH_COMMON_SYSTEM is defined, uses common_system_logger_adapter.
 // Otherwise, uses basic_logger for standalone operation.
 //============================================================================
 
 class logger_integration_manager::impl {
 public:
     impl() {
-#ifdef BUILD_WITH_COMMON_SYSTEM
+#if KCENON_WITH_COMMON_SYSTEM
         // Use common_system_logger_adapter by default
         // It delegates to GlobalLoggerRegistry which provides NullLogger fallback
         logger_ = std::make_shared<common_system_logger_adapter>();
@@ -269,7 +271,7 @@ public:
     std::shared_ptr<logger_interface> get_logger() {
         std::lock_guard<std::mutex> lock(mutex_);
         if (!logger_) {
-#ifdef BUILD_WITH_COMMON_SYSTEM
+#if KCENON_WITH_COMMON_SYSTEM
             logger_ = std::make_shared<common_system_logger_adapter>();
 #else
             logger_ = std::make_shared<basic_logger>();
@@ -279,7 +281,7 @@ public:
     }
 
     void log(log_level level, const std::string& message) {
-#ifdef BUILD_WITH_COMMON_SYSTEM
+#if KCENON_WITH_COMMON_SYSTEM
         // Delegate directly to common_system's GlobalLoggerRegistry
         auto common_logger = kcenon::common::interfaces::get_logger();
         if (common_logger) {
@@ -295,7 +297,7 @@ public:
 
     void log(log_level level, const std::string& message,
             const std::string& file, int line, const std::string& function) {
-#ifdef BUILD_WITH_COMMON_SYSTEM
+#if KCENON_WITH_COMMON_SYSTEM
         // Delegate directly to common_system's GlobalLoggerRegistry
         auto common_logger = kcenon::common::interfaces::get_logger();
         if (common_logger) {

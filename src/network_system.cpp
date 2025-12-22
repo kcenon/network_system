@@ -30,13 +30,15 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *****************************************************************************/
 
+#include <kcenon/common/config/feature_flags.h>
+
 #include "kcenon/network/network_system.h"
 #include "kcenon/network/core/network_context.h"
 #include "kcenon/network/integration/common_system_adapter.h"
 #include "kcenon/network/integration/logger_integration.h"
 #include "kcenon/network/integration/thread_integration.h"
 
-#ifdef BUILD_WITH_MONITORING_SYSTEM
+#if KCENON_WITH_MONITORING_SYSTEM
 #include "kcenon/network/integration/monitoring_integration.h"
 #endif
 
@@ -73,7 +75,7 @@ VoidResult initialize(const config::network_config &config) {
 
     // Initialize logger
     // Issue #285: Uses common_system_logger_adapter when available, basic_logger otherwise
-#ifdef BUILD_WITH_COMMON_SYSTEM
+#if KCENON_WITH_COMMON_SYSTEM
     auto logger = std::make_shared<integration::common_system_logger_adapter>();
 #else
     auto logger = std::make_shared<integration::basic_logger>(config.logger.min_level);
@@ -82,7 +84,7 @@ VoidResult initialize(const config::network_config &config) {
     integration::logger_integration_manager::instance().set_logger(logger);
 
     // Initialize monitoring
-#ifdef BUILD_WITH_MONITORING_SYSTEM
+#if KCENON_WITH_MONITORING_SYSTEM
     if (config.monitoring.enabled) {
       auto monitoring =
           std::make_shared<integration::monitoring_system_adapter>(
@@ -107,7 +109,7 @@ VoidResult initialize(const config::network_config &config) {
 }
 
 VoidResult initialize(const config::network_system_config &config_with_dependencies) {
-#ifdef BUILD_WITH_COMMON_SYSTEM
+#if KCENON_WITH_COMMON_SYSTEM
   auto &ctx = core::network_context::instance();
 
   if (config_with_dependencies.executor) {
@@ -123,7 +125,7 @@ VoidResult initialize(const config::network_system_config &config_with_dependenc
     ctx.set_logger(logger_adapter);
   }
 
-#ifdef BUILD_WITH_MONITORING_SYSTEM
+#if KCENON_WITH_MONITORING_SYSTEM
   if (config_with_dependencies.monitor) {
     auto monitoring_adapter =
         std::make_shared<integration::common_monitoring_adapter>(
