@@ -100,7 +100,7 @@ manager.set_monitoring(std::make_shared<my_monitoring>());
 ### Using monitoring_system_adapter (When Available)
 
 ```cpp
-#ifdef BUILD_WITH_MONITORING_SYSTEM
+#if KCENON_WITH_MONITORING_SYSTEM
 #include <kcenon/network/integration/monitoring_integration.h>
 
 // Create adapter for monitoring_system

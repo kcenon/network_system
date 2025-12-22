@@ -346,7 +346,7 @@ using namespace kcenon::network;
 
 int main() {
     // Bind thread_system for unified thread management
-#if defined(BUILD_WITH_THREAD_SYSTEM)
+#if KCENON_WITH_THREAD_SYSTEM
     integration::bind_thread_system_pool_into_manager("network_pool");
 #endif
 

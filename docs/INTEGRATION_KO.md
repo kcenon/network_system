@@ -207,17 +207,17 @@ cmake .. -G Ninja \
 시스템은 사용 가능한 통합을 확인하기 위한 매크로를 제공합니다:
 
 ```cpp
-#ifdef BUILD_WITH_THREAD_SYSTEM
+#if KCENON_WITH_THREAD_SYSTEM
     // Thread system 사용 가능
     use_thread_pool();
 #endif
 
-#ifdef BUILD_WITH_CONTAINER_SYSTEM
+#if KCENON_WITH_CONTAINER_SYSTEM
     // Container system 사용 가능
     use_advanced_serialization();
 #endif
 
-#ifdef BUILD_WITH_LOGGER_SYSTEM
+#if KCENON_WITH_LOGGER_SYSTEM
     // Logger system 사용 가능
     use_structured_logging();
 #else
