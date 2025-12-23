@@ -29,6 +29,8 @@
 
 #pragma once
 
+#include <kcenon/network/config/feature_flags.h>
+
 /**
  * @file container_integration.h
  * @brief Container system integration interface for network_system
@@ -48,7 +50,7 @@
 
 #include "kcenon/network/integration/thread_integration.h"
 
-#ifdef BUILD_WITH_CONTAINER_SYSTEM
+#if KCENON_WITH_CONTAINER_SYSTEM
 #include "container.h"
 #endif
 
@@ -92,7 +94,7 @@ public:
     virtual bool is_valid() const = 0;
 };
 
-#ifdef BUILD_WITH_CONTAINER_SYSTEM
+#if KCENON_WITH_CONTAINER_SYSTEM
 /**
  * @class container_system_adapter
  * @brief Adapter for container_system integration

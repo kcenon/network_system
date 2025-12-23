@@ -47,6 +47,11 @@ Network System 프로젝트의 모든 주요 변경 사항이 이 파일에 문�
   - Concepts는 에러 메시지를 개선하고 자기 문서화 타입 제약 역할
 
 ### 수정됨
+- **messaging_server 리소스 정리**: `start_server()` 실패 시 힙 손상 수정 (#335)
+  - 포트 바인딩 실패 시(예: 주소가 이미 사용 중) 부분적으로 생성된 리소스(`io_context_`, `work_guard_`)가 정리되지 않음
+  - `start_server()` catch 블록에 부분 생성된 리소스를 해제하는 정리 코드 추가
+  - `stop_server()`가 조기 반환하는 경우를 처리하기 위해 소멸자에 명시적 리소스 정리 추가
+  - Linux Debug 빌드에서 `ConnectionLifecycleTest.ServerStartupOnUsedPort`의 "corrupted size vs. prev_size" 오류 수정
 - **tcp_socket UBSAN 수정**: 비동기 읽기 작업 전 소켓 유효성 검사 추가 (#318)
   - `tcp_socket::do_read()`가 `async_read_some()` 시작 전 `socket_.is_open()` 확인
   - 소켓이 이미 닫힌 경우 정의되지 않은 동작(null descriptor_state 접근) 방지

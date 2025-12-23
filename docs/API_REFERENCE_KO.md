@@ -1325,7 +1325,7 @@ public:
 thread_system::thread_pool 직접 통합을 위한 어댑터입니다 (`BUILD_WITH_THREAD_SYSTEM` 필요).
 
 ```cpp
-#if defined(BUILD_WITH_THREAD_SYSTEM)
+#if KCENON_WITH_THREAD_SYSTEM
 
 namespace kcenon::network::integration {
 
@@ -1381,7 +1381,7 @@ bool bind_thread_system_pool_into_manager(
 
 } // namespace kcenon::network::integration
 
-#endif // BUILD_WITH_THREAD_SYSTEM
+#endif // KCENON_WITH_THREAD_SYSTEM
 ```
 
 ### 사용 예제
@@ -1440,7 +1440,7 @@ void example_custom_pool() {
 #include <kcenon/network/integration/thread_system_adapter.h>
 
 void example_thread_system_integration() {
-#if defined(BUILD_WITH_THREAD_SYSTEM)
+#if KCENON_WITH_THREAD_SYSTEM
     using namespace kcenon::network::integration;
 
     // 옵션 1: 편의 함수 사용

@@ -259,7 +259,7 @@ TEST_F(MessagingServerTest, MaxConnectionsLimit) {
 
 ```cpp
 // tests/integration/test_container_integration.cpp
-#ifdef BUILD_WITH_CONTAINER_SYSTEM
+#if KCENON_WITH_CONTAINER_SYSTEM
 
 #include <gtest/gtest.h>
 #include "network_system/integration/messaging_bridge.h"
@@ -344,5 +344,5 @@ TEST_F(ContainerIntegrationTest, ContainerSerialization) {
 
 } // namespace network_system::test
 
-#endif // BUILD_WITH_CONTAINER_SYSTEM
+#endif // KCENON_WITH_CONTAINER_SYSTEM
 ```

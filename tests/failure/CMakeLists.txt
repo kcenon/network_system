@@ -19,22 +19,22 @@ if(GTest_FOUND OR GTEST_FOUND)
 
     if(CONTAINER_SYSTEM_INCLUDE_DIR)
         target_include_directories(network_failure_test PRIVATE ${CONTAINER_SYSTEM_INCLUDE_DIR})
-        target_compile_definitions(network_failure_test PRIVATE BUILD_WITH_CONTAINER_SYSTEM)
+        target_compile_definitions(network_failure_test PRIVATE WITH_CONTAINER_SYSTEM)
     endif()
 
     if(THREAD_SYSTEM_INCLUDE_DIR)
         target_include_directories(network_failure_test PRIVATE ${THREAD_SYSTEM_INCLUDE_DIR})
-        target_compile_definitions(network_failure_test PRIVATE BUILD_WITH_THREAD_SYSTEM)
+        target_compile_definitions(network_failure_test PRIVATE WITH_THREAD_SYSTEM)
     endif()
 
     if(LOGGER_SYSTEM_INCLUDE_DIR)
         target_include_directories(network_failure_test PRIVATE ${LOGGER_SYSTEM_INCLUDE_DIR})
-        target_compile_definitions(network_failure_test PRIVATE BUILD_WITH_LOGGER_SYSTEM)
+        target_compile_definitions(network_failure_test PRIVATE WITH_LOGGER_SYSTEM)
     endif()
 
     if(COMMON_SYSTEM_INCLUDE_DIR)
         target_include_directories(network_failure_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
-        target_compile_definitions(network_failure_test PRIVATE BUILD_WITH_COMMON_SYSTEM)
+        target_compile_definitions(network_failure_test PRIVATE WITH_COMMON_SYSTEM)
     endif()
 
     set_target_properties(network_failure_test PROPERTIES
@@ -63,22 +63,22 @@ if(GTest_FOUND OR GTEST_FOUND)
 
     if(CONTAINER_SYSTEM_INCLUDE_DIR)
         target_include_directories(network_boundary_test PRIVATE ${CONTAINER_SYSTEM_INCLUDE_DIR})
-        target_compile_definitions(network_boundary_test PRIVATE BUILD_WITH_CONTAINER_SYSTEM)
+        target_compile_definitions(network_boundary_test PRIVATE WITH_CONTAINER_SYSTEM)
     endif()
 
     if(THREAD_SYSTEM_INCLUDE_DIR)
         target_include_directories(network_boundary_test PRIVATE ${THREAD_SYSTEM_INCLUDE_DIR})
-        target_compile_definitions(network_boundary_test PRIVATE BUILD_WITH_THREAD_SYSTEM)
+        target_compile_definitions(network_boundary_test PRIVATE WITH_THREAD_SYSTEM)
     endif()
 
     if(LOGGER_SYSTEM_INCLUDE_DIR)
         target_include_directories(network_boundary_test PRIVATE ${LOGGER_SYSTEM_INCLUDE_DIR})
-        target_compile_definitions(network_boundary_test PRIVATE BUILD_WITH_LOGGER_SYSTEM)
+        target_compile_definitions(network_boundary_test PRIVATE WITH_LOGGER_SYSTEM)
     endif()
 
     if(COMMON_SYSTEM_INCLUDE_DIR)
         target_include_directories(network_boundary_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
-        target_compile_definitions(network_boundary_test PRIVATE BUILD_WITH_COMMON_SYSTEM)
+        target_compile_definitions(network_boundary_test PRIVATE WITH_COMMON_SYSTEM)
     endif()
 
     set_target_properties(network_boundary_test PROPERTIES

@@ -38,11 +38,13 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * @date 2025-01-13
  */
 
+#include <kcenon/network/config/feature_flags.h>
+
 #include "kcenon/network/core/network_context.h"
 #include <thread>
 #include <mutex>
 
-#ifdef BUILD_WITH_THREAD_SYSTEM
+#if KCENON_WITH_THREAD_SYSTEM
 #include "kcenon/network/integration/thread_system_adapter.h"
 #endif
 
@@ -58,7 +60,7 @@ public:
     std::shared_ptr<integration::thread_pool_interface> thread_pool_;
     std::shared_ptr<integration::logger_interface> logger_;
 
-#ifdef BUILD_WITH_MONITORING_SYSTEM
+#if KCENON_WITH_MONITORING_SYSTEM
     std::shared_ptr<integration::monitoring_interface> monitoring_;
 #endif
 
@@ -102,7 +104,7 @@ void network_context::initialize(size_t thread_count) {
             }
         }
 
-#ifdef BUILD_WITH_THREAD_SYSTEM
+#if KCENON_WITH_THREAD_SYSTEM
         // Use thread_system's thread_pool via adapter
         try {
             auto adapter = integration::thread_system_pool_adapter::from_service_or_default("network_pool");
@@ -129,7 +131,7 @@ void network_context::initialize(size_t thread_count) {
     // Initialize logger if not already set
     // Issue #285: Uses common_system_logger_adapter when available, basic_logger otherwise
     if (!pimpl_->logger_) {
-#ifdef BUILD_WITH_COMMON_SYSTEM
+#if KCENON_WITH_COMMON_SYSTEM
         pimpl_->logger_ = std::make_shared<integration::common_system_logger_adapter>();
 #else
         pimpl_->logger_ = std::make_shared<integration::basic_logger>(
@@ -138,7 +140,7 @@ void network_context::initialize(size_t thread_count) {
         integration::logger_integration_manager::instance().set_logger(pimpl_->logger_);
     }
 
-#ifdef BUILD_WITH_MONITORING_SYSTEM
+#if KCENON_WITH_MONITORING_SYSTEM
     // Initialize monitoring if not already set
     if (!pimpl_->monitoring_) {
         pimpl_->monitoring_ = std::make_shared<integration::monitoring_system_adapter>("network_system");
@@ -166,7 +168,7 @@ void network_context::shutdown() {
         pimpl_->logger_->log(integration::log_level::info, "network_context shutting down");
     }
 
-#ifdef BUILD_WITH_MONITORING_SYSTEM
+#if KCENON_WITH_MONITORING_SYSTEM
     if (pimpl_->monitoring_) {
         pimpl_->monitoring_.reset();
     }
@@ -213,7 +215,7 @@ std::shared_ptr<integration::logger_interface> network_context::get_logger() {
     return pimpl_->logger_;
 }
 
-#ifdef BUILD_WITH_MONITORING_SYSTEM
+#if KCENON_WITH_MONITORING_SYSTEM
 void network_context::set_monitoring(std::shared_ptr<integration::monitoring_interface> monitoring) {
     std::lock_guard<std::mutex> lock(pimpl_->mutex_);
     pimpl_->monitoring_ = monitoring;

@@ -301,7 +301,7 @@ When `BUILD_WITH_COMMON_SYSTEM` is enabled, additional concepts from common_syst
 ```cpp
 #include <kcenon/network/concepts/concepts.h>
 
-#ifdef BUILD_WITH_COMMON_SYSTEM
+#if KCENON_WITH_COMMON_SYSTEM
 // Re-exported from common_system
 using common_system::concepts::Resultable;
 using common_system::concepts::Unwrappable;
@@ -355,7 +355,7 @@ auto create_transformer() -> T {
 }
 
 // With common_system integration
-#ifdef BUILD_WITH_COMMON_SYSTEM
+#if KCENON_WITH_COMMON_SYSTEM
 template<typename Handler, typename ResultType>
     requires network_system::concepts::DataReceiveHandler<Handler> &&
              common_system::concepts::Resultable<ResultType>

@@ -55,6 +55,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Reduces compile-time coupling and enables flexible logger configuration
 
 ### Fixed
+- **messaging_server Resource Cleanup**: Fixed heap corruption when `start_server()` fails (#335)
+  - When port binding fails (e.g., address already in use), partially created resources (`io_context_`, `work_guard_`) were not cleaned up
+  - Added resource cleanup in `start_server()` catch blocks to release partially created resources
+  - Added explicit resource cleanup in destructor to handle cases where `stop_server()` returns early
+  - Fixes "corrupted size vs. prev_size" errors in `ConnectionLifecycleTest.ServerStartupOnUsedPort` on Linux Debug builds
 - **tcp_socket UBSAN Fix**: Added socket validity check before async read operation (#318)
   - `tcp_socket::do_read()` now checks `socket_.is_open()` before initiating `async_read_some()`
   - Prevents undefined behavior (null descriptor_state access) when socket is already closed

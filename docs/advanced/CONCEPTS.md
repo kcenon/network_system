@@ -687,7 +687,7 @@ When `BUILD_WITH_COMMON_SYSTEM` is enabled, additional concepts from common_syst
 #include <kcenon/network/concepts/concepts.h>
 
 // When common_system is available
-#ifdef BUILD_WITH_COMMON_SYSTEM
+#if KCENON_WITH_COMMON_SYSTEM
 
 template<typename T>
     requires common_system::concepts::Resultable<T>

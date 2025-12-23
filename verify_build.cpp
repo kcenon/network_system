@@ -32,6 +32,8 @@
  * This file verifies that the core NetworkSystem library can be compiled and linked
  */
 
+#include <kcenon/network/config/feature_flags.h>
+
 #include "network_system/core/messaging_client.h"
 #include "network_system/core/messaging_server.h"
 #include "network_system/session/messaging_session.h"
@@ -55,7 +57,7 @@ int main() {
         auto bridge = std::make_unique<kcenon::network::integration::messaging_bridge>();
         std::cout << "✅ Messaging bridge can be created" << std::endl;
 
-#ifdef BUILD_WITH_CONTAINER_SYSTEM
+#if KCENON_WITH_CONTAINER_SYSTEM
         // Test container_system integration
         try {
             auto container = std::make_shared<container_module::value_container>();

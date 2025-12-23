@@ -1661,7 +1661,7 @@ public:
 Adapter for direct thread_system::thread_pool integration (requires `BUILD_WITH_THREAD_SYSTEM`).
 
 ```cpp
-#if defined(BUILD_WITH_THREAD_SYSTEM)
+#if KCENON_WITH_THREAD_SYSTEM
 
 namespace kcenon::network::integration {
 
@@ -1776,7 +1776,7 @@ void example_custom_pool() {
 #include <kcenon/network/integration/thread_system_adapter.h>
 
 void example_thread_system_integration() {
-#if defined(BUILD_WITH_THREAD_SYSTEM)
+#if KCENON_WITH_THREAD_SYSTEM
     using namespace kcenon::network::integration;
 
     // Option 1: Use convenience function

@@ -33,22 +33,22 @@ if(GTest_FOUND OR GTEST_FOUND)
     # Add system integration paths
     if(CONTAINER_SYSTEM_INCLUDE_DIR)
         target_include_directories(network_unit_tests PRIVATE ${CONTAINER_SYSTEM_INCLUDE_DIR})
-        target_compile_definitions(network_unit_tests PRIVATE BUILD_WITH_CONTAINER_SYSTEM)
+        target_compile_definitions(network_unit_tests PRIVATE WITH_CONTAINER_SYSTEM)
     endif()
 
     if(THREAD_SYSTEM_INCLUDE_DIR)
         target_include_directories(network_unit_tests PRIVATE ${THREAD_SYSTEM_INCLUDE_DIR})
-        target_compile_definitions(network_unit_tests PRIVATE BUILD_WITH_THREAD_SYSTEM)
+        target_compile_definitions(network_unit_tests PRIVATE WITH_THREAD_SYSTEM)
     endif()
 
     if(LOGGER_SYSTEM_INCLUDE_DIR)
         target_include_directories(network_unit_tests PRIVATE ${LOGGER_SYSTEM_INCLUDE_DIR})
-        target_compile_definitions(network_unit_tests PRIVATE BUILD_WITH_LOGGER_SYSTEM)
+        target_compile_definitions(network_unit_tests PRIVATE WITH_LOGGER_SYSTEM)
     endif()
 
     if(COMMON_SYSTEM_INCLUDE_DIR)
         target_include_directories(network_unit_tests PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
-        target_compile_definitions(network_unit_tests PRIVATE BUILD_WITH_COMMON_SYSTEM)
+        target_compile_definitions(network_unit_tests PRIVATE WITH_COMMON_SYSTEM)
     endif()
 
     # Set properties
@@ -85,22 +85,22 @@ if(GTest_FOUND OR GTEST_FOUND)
     # Add system integration paths
     if(CONTAINER_SYSTEM_INCLUDE_DIR)
         target_include_directories(network_thread_safety_test PRIVATE ${CONTAINER_SYSTEM_INCLUDE_DIR})
-        target_compile_definitions(network_thread_safety_test PRIVATE BUILD_WITH_CONTAINER_SYSTEM)
+        target_compile_definitions(network_thread_safety_test PRIVATE WITH_CONTAINER_SYSTEM)
     endif()
 
     if(THREAD_SYSTEM_INCLUDE_DIR)
         target_include_directories(network_thread_safety_test PRIVATE ${THREAD_SYSTEM_INCLUDE_DIR})
-        target_compile_definitions(network_thread_safety_test PRIVATE BUILD_WITH_THREAD_SYSTEM)
+        target_compile_definitions(network_thread_safety_test PRIVATE WITH_THREAD_SYSTEM)
     endif()
 
     if(LOGGER_SYSTEM_INCLUDE_DIR)
         target_include_directories(network_thread_safety_test PRIVATE ${LOGGER_SYSTEM_INCLUDE_DIR})
-        target_compile_definitions(network_thread_safety_test PRIVATE BUILD_WITH_LOGGER_SYSTEM)
+        target_compile_definitions(network_thread_safety_test PRIVATE WITH_LOGGER_SYSTEM)
     endif()
 
     if(COMMON_SYSTEM_INCLUDE_DIR)
         target_include_directories(network_thread_safety_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
-        target_compile_definitions(network_thread_safety_test PRIVATE BUILD_WITH_COMMON_SYSTEM)
+        target_compile_definitions(network_thread_safety_test PRIVATE WITH_COMMON_SYSTEM)
     endif()
 
     set_target_properties(network_thread_safety_test PROPERTIES
@@ -134,7 +134,7 @@ if(GTest_FOUND OR GTEST_FOUND)
     # Add system integration paths
     if(COMMON_SYSTEM_INCLUDE_DIR)
         target_include_directories(network_tls_config_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
-        target_compile_definitions(network_tls_config_test PRIVATE BUILD_WITH_COMMON_SYSTEM)
+        target_compile_definitions(network_tls_config_test PRIVATE WITH_COMMON_SYSTEM)
     endif()
 
     set_target_properties(network_tls_config_test PROPERTIES
@@ -165,16 +165,16 @@ if(GTest_FOUND OR GTEST_FOUND)
 
         # Add system integration paths
         target_include_directories(network_thread_system_adapter_test PRIVATE ${THREAD_SYSTEM_INCLUDE_DIR})
-        target_compile_definitions(network_thread_system_adapter_test PRIVATE BUILD_WITH_THREAD_SYSTEM)
+        target_compile_definitions(network_thread_system_adapter_test PRIVATE WITH_THREAD_SYSTEM)
 
         if(COMMON_SYSTEM_INCLUDE_DIR)
             target_include_directories(network_thread_system_adapter_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
-            target_compile_definitions(network_thread_system_adapter_test PRIVATE BUILD_WITH_COMMON_SYSTEM)
+            target_compile_definitions(network_thread_system_adapter_test PRIVATE WITH_COMMON_SYSTEM)
         endif()
 
         if(LOGGER_SYSTEM_INCLUDE_DIR)
             target_include_directories(network_thread_system_adapter_test PRIVATE ${LOGGER_SYSTEM_INCLUDE_DIR})
-            target_compile_definitions(network_thread_system_adapter_test PRIVATE BUILD_WITH_LOGGER_SYSTEM)
+            target_compile_definitions(network_thread_system_adapter_test PRIVATE WITH_LOGGER_SYSTEM)
         endif()
 
         set_target_properties(network_thread_system_adapter_test PROPERTIES
@@ -207,7 +207,7 @@ if(GTest_FOUND OR GTEST_FOUND)
     # Add system integration paths
     if(COMMON_SYSTEM_INCLUDE_DIR)
         target_include_directories(network_tcp_socket_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
-        target_compile_definitions(network_tcp_socket_test PRIVATE BUILD_WITH_COMMON_SYSTEM)
+        target_compile_definitions(network_tcp_socket_test PRIVATE WITH_COMMON_SYSTEM)
     endif()
 
     set_target_properties(network_tcp_socket_test PROPERTIES
@@ -323,7 +323,7 @@ if(GTest_FOUND OR GTEST_FOUND)
     # Add system integration paths
     if(COMMON_SYSTEM_INCLUDE_DIR)
         target_include_directories(network_http2_frame_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
-        target_compile_definitions(network_http2_frame_test PRIVATE BUILD_WITH_COMMON_SYSTEM)
+        target_compile_definitions(network_http2_frame_test PRIVATE WITH_COMMON_SYSTEM)
     endif()
 
     set_target_properties(network_http2_frame_test PROPERTIES
@@ -355,7 +355,7 @@ if(GTest_FOUND OR GTEST_FOUND)
     # Add system integration paths
     if(COMMON_SYSTEM_INCLUDE_DIR)
         target_include_directories(network_http2_hpack_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
-        target_compile_definitions(network_http2_hpack_test PRIVATE BUILD_WITH_COMMON_SYSTEM)
+        target_compile_definitions(network_http2_hpack_test PRIVATE WITH_COMMON_SYSTEM)
     endif()
 
     set_target_properties(network_http2_hpack_test PROPERTIES
@@ -390,7 +390,7 @@ if(GTest_FOUND OR GTEST_FOUND)
         # Add system integration paths
         if(COMMON_SYSTEM_INCLUDE_DIR)
             target_include_directories(network_http2_client_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
-            target_compile_definitions(network_http2_client_test PRIVATE BUILD_WITH_COMMON_SYSTEM)
+            target_compile_definitions(network_http2_client_test PRIVATE WITH_COMMON_SYSTEM)
         endif()
 
         set_target_properties(network_http2_client_test PROPERTIES
@@ -427,7 +427,7 @@ if(GTest_FOUND OR GTEST_FOUND)
     # Add system integration paths
     if(COMMON_SYSTEM_INCLUDE_DIR)
         target_include_directories(network_grpc_frame_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
-        target_compile_definitions(network_grpc_frame_test PRIVATE BUILD_WITH_COMMON_SYSTEM)
+        target_compile_definitions(network_grpc_frame_test PRIVATE WITH_COMMON_SYSTEM)
     endif()
 
     set_target_properties(network_grpc_frame_test PROPERTIES
@@ -459,7 +459,7 @@ if(GTest_FOUND OR GTEST_FOUND)
     # Add system integration paths
     if(COMMON_SYSTEM_INCLUDE_DIR)
         target_include_directories(network_grpc_client_server_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
-        target_compile_definitions(network_grpc_client_server_test PRIVATE BUILD_WITH_COMMON_SYSTEM)
+        target_compile_definitions(network_grpc_client_server_test PRIVATE WITH_COMMON_SYSTEM)
     endif()
 
     set_target_properties(network_grpc_client_server_test PROPERTIES
@@ -495,7 +495,7 @@ if(GTest_FOUND OR GTEST_FOUND)
     # Add system integration paths
     if(COMMON_SYSTEM_INCLUDE_DIR)
         target_include_directories(network_quic_varint_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
-        target_compile_definitions(network_quic_varint_test PRIVATE BUILD_WITH_COMMON_SYSTEM)
+        target_compile_definitions(network_quic_varint_test PRIVATE WITH_COMMON_SYSTEM)
     endif()
 
     set_target_properties(network_quic_varint_test PROPERTIES
@@ -527,7 +527,7 @@ if(GTest_FOUND OR GTEST_FOUND)
     # Add system integration paths
     if(COMMON_SYSTEM_INCLUDE_DIR)
         target_include_directories(network_quic_frame_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
-        target_compile_definitions(network_quic_frame_test PRIVATE BUILD_WITH_COMMON_SYSTEM)
+        target_compile_definitions(network_quic_frame_test PRIVATE WITH_COMMON_SYSTEM)
     endif()
 
     set_target_properties(network_quic_frame_test PROPERTIES
@@ -559,7 +559,7 @@ if(GTest_FOUND OR GTEST_FOUND)
     # Add system integration paths
     if(COMMON_SYSTEM_INCLUDE_DIR)
         target_include_directories(network_quic_packet_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
-        target_compile_definitions(network_quic_packet_test PRIVATE BUILD_WITH_COMMON_SYSTEM)
+        target_compile_definitions(network_quic_packet_test PRIVATE WITH_COMMON_SYSTEM)
     endif()
 
     set_target_properties(network_quic_packet_test PROPERTIES
@@ -594,7 +594,7 @@ if(GTest_FOUND OR GTEST_FOUND)
         # Add system integration paths
         if(COMMON_SYSTEM_INCLUDE_DIR)
             target_include_directories(network_quic_crypto_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
-            target_compile_definitions(network_quic_crypto_test PRIVATE BUILD_WITH_COMMON_SYSTEM)
+            target_compile_definitions(network_quic_crypto_test PRIVATE WITH_COMMON_SYSTEM)
         endif()
 
         set_target_properties(network_quic_crypto_test PROPERTIES
@@ -628,7 +628,7 @@ if(GTest_FOUND OR GTEST_FOUND)
         # Add system integration paths
         if(COMMON_SYSTEM_INCLUDE_DIR)
             target_include_directories(network_quic_socket_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
-            target_compile_definitions(network_quic_socket_test PRIVATE BUILD_WITH_COMMON_SYSTEM)
+            target_compile_definitions(network_quic_socket_test PRIVATE WITH_COMMON_SYSTEM)
         endif()
 
         set_target_properties(network_quic_socket_test PROPERTIES
@@ -661,7 +661,7 @@ if(GTest_FOUND OR GTEST_FOUND)
     # Add system integration paths
     if(COMMON_SYSTEM_INCLUDE_DIR)
         target_include_directories(network_quic_stream_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
-        target_compile_definitions(network_quic_stream_test PRIVATE BUILD_WITH_COMMON_SYSTEM)
+        target_compile_definitions(network_quic_stream_test PRIVATE WITH_COMMON_SYSTEM)
     endif()
 
     set_target_properties(network_quic_stream_test PROPERTIES
@@ -693,7 +693,7 @@ if(GTest_FOUND OR GTEST_FOUND)
     # Add system integration paths
     if(COMMON_SYSTEM_INCLUDE_DIR)
         target_include_directories(network_quic_connection_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
-        target_compile_definitions(network_quic_connection_test PRIVATE BUILD_WITH_COMMON_SYSTEM)
+        target_compile_definitions(network_quic_connection_test PRIVATE WITH_COMMON_SYSTEM)
     endif()
 
     set_target_properties(network_quic_connection_test PROPERTIES
@@ -725,7 +725,7 @@ if(GTest_FOUND OR GTEST_FOUND)
     # Add system integration paths
     if(COMMON_SYSTEM_INCLUDE_DIR)
         target_include_directories(network_quic_loss_detection_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
-        target_compile_definitions(network_quic_loss_detection_test PRIVATE BUILD_WITH_COMMON_SYSTEM)
+        target_compile_definitions(network_quic_loss_detection_test PRIVATE WITH_COMMON_SYSTEM)
     endif()
 
     set_target_properties(network_quic_loss_detection_test PROPERTIES
@@ -757,7 +757,7 @@ if(GTest_FOUND OR GTEST_FOUND)
     # Add system integration paths
     if(COMMON_SYSTEM_INCLUDE_DIR)
         target_include_directories(network_messaging_quic_client_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
-        target_compile_definitions(network_messaging_quic_client_test PRIVATE BUILD_WITH_COMMON_SYSTEM)
+        target_compile_definitions(network_messaging_quic_client_test PRIVATE WITH_COMMON_SYSTEM)
     endif()
 
     set_target_properties(network_messaging_quic_client_test PROPERTIES
@@ -787,7 +787,7 @@ if(GTest_FOUND OR GTEST_FOUND)
 
     if(COMMON_SYSTEM_INCLUDE_DIR)
         target_include_directories(network_messaging_quic_server_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
-        target_compile_definitions(network_messaging_quic_server_test PRIVATE BUILD_WITH_COMMON_SYSTEM)
+        target_compile_definitions(network_messaging_quic_server_test PRIVATE WITH_COMMON_SYSTEM)
     endif()
 
     set_target_properties(network_messaging_quic_server_test PROPERTIES
@@ -831,22 +831,22 @@ if(FALSE AND benchmark_FOUND)
     # Add system integration paths
     if(CONTAINER_SYSTEM_INCLUDE_DIR)
         target_include_directories(network_benchmark_tests PRIVATE ${CONTAINER_SYSTEM_INCLUDE_DIR})
-        target_compile_definitions(network_benchmark_tests PRIVATE BUILD_WITH_CONTAINER_SYSTEM)
+        target_compile_definitions(network_benchmark_tests PRIVATE WITH_CONTAINER_SYSTEM)
     endif()
 
     if(THREAD_SYSTEM_INCLUDE_DIR)
         target_include_directories(network_benchmark_tests PRIVATE ${THREAD_SYSTEM_INCLUDE_DIR})
-        target_compile_definitions(network_benchmark_tests PRIVATE BUILD_WITH_THREAD_SYSTEM)
+        target_compile_definitions(network_benchmark_tests PRIVATE WITH_THREAD_SYSTEM)
     endif()
 
     if(LOGGER_SYSTEM_INCLUDE_DIR)
         target_include_directories(network_benchmark_tests PRIVATE ${LOGGER_SYSTEM_INCLUDE_DIR})
-        target_compile_definitions(network_benchmark_tests PRIVATE BUILD_WITH_LOGGER_SYSTEM)
+        target_compile_definitions(network_benchmark_tests PRIVATE WITH_LOGGER_SYSTEM)
     endif()
 
     if(COMMON_SYSTEM_INCLUDE_DIR)
         target_include_directories(network_benchmark_tests PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
-        target_compile_definitions(network_benchmark_tests PRIVATE BUILD_WITH_COMMON_SYSTEM)
+        target_compile_definitions(network_benchmark_tests PRIVATE WITH_COMMON_SYSTEM)
     endif()
 
     # Set properties

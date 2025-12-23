@@ -149,11 +149,11 @@ namespace network_system {
 #include "network_system/core/messaging_server.h"
 #include "network_system/utils/performance_monitor.h"
 
-#ifdef BUILD_WITH_CONTAINER_SYSTEM
+#if KCENON_WITH_CONTAINER_SYSTEM
 #include "container_system/value_container.h"
 #endif
 
-#ifdef BUILD_WITH_THREAD_SYSTEM
+#if KCENON_WITH_THREAD_SYSTEM
 #include "thread_system/thread_pool.h"
 #endif
 
@@ -197,7 +197,7 @@ public:
         );
     }
 
-#ifdef BUILD_WITH_CONTAINER_SYSTEM
+#if KCENON_WITH_CONTAINER_SYSTEM
     // Container System integration
     void set_container_factory(
         std::shared_ptr<container_system::value_factory> factory
@@ -215,7 +215,7 @@ public:
     }
 #endif
 
-#ifdef BUILD_WITH_THREAD_SYSTEM
+#if KCENON_WITH_THREAD_SYSTEM
     // Thread System integration
     void set_thread_pool(
         std::shared_ptr<thread_system::thread_pool> pool

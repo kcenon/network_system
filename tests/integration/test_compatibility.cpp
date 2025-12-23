@@ -41,6 +41,8 @@
 
  */
 
+#include <kcenon/network/config/feature_flags.h>
+
 #include <cassert>
 #include <chrono>
 #include <iostream>
@@ -187,19 +189,19 @@ void test_feature_detection(TestResults &results) {
   std::cout << "Container support: " << (container_support ? "YES" : "NO")
             << std::endl;
 
-#ifdef BUILD_WITH_CONTAINER_SYSTEM
+#if KCENON_WITH_CONTAINER_SYSTEM
   if (container_support) {
     results.record_pass("Container support detection");
   } else {
     results.record_fail("Container support detection",
-                        "Should be true with BUILD_WITH_CONTAINER_SYSTEM");
+                        "Should be true with KCENON_WITH_CONTAINER_SYSTEM");
   }
 #else
   if (!container_support) {
     results.record_pass("Container support detection");
   } else {
     results.record_fail("Container support detection",
-                        "Should be false without BUILD_WITH_CONTAINER_SYSTEM");
+                        "Should be false without KCENON_WITH_CONTAINER_SYSTEM");
   }
 #endif
 
@@ -208,19 +210,19 @@ void test_feature_detection(TestResults &results) {
   std::cout << "Thread support: " << (thread_support ? "YES" : "NO")
             << std::endl;
 
-#ifdef BUILD_WITH_THREAD_SYSTEM
+#if KCENON_WITH_THREAD_SYSTEM
   if (thread_support) {
     results.record_pass("Thread support detection");
   } else {
     results.record_fail("Thread support detection",
-                        "Should be true with BUILD_WITH_THREAD_SYSTEM");
+                        "Should be true with KCENON_WITH_THREAD_SYSTEM");
   }
 #else
   if (!thread_support) {
     results.record_pass("Thread support detection");
   } else {
     results.record_fail("Thread support detection",
-                        "Should be false without BUILD_WITH_THREAD_SYSTEM");
+                        "Should be false without KCENON_WITH_THREAD_SYSTEM");
   }
 #endif
 }
@@ -435,13 +437,13 @@ void test_legacy_thread_integration(TestResults &results) {
 int main() {
   std::cout << "=== Network System Compatibility Tests ===" << std::endl;
   std::cout << "Build: "
-#ifdef BUILD_WITH_CONTAINER_SYSTEM
+#if KCENON_WITH_CONTAINER_SYSTEM
             << "Container+"
 #endif
-#ifdef BUILD_WITH_THREAD_SYSTEM
+#if KCENON_WITH_THREAD_SYSTEM
             << "Thread+"
 #endif
-#ifdef BUILD_WITH_LOGGER_SYSTEM
+#if KCENON_WITH_LOGGER_SYSTEM
             << "Logger+"
 #endif
             << "Core" << std::endl;

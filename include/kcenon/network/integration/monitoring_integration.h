@@ -32,6 +32,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
+#include <kcenon/network/config/feature_flags.h>
+
 /**
  * @file monitoring_integration.h
  * @brief Monitoring system integration interface for network_system
@@ -165,7 +167,7 @@ namespace kcenon::network::integration
 		std::unique_ptr<impl> pimpl_;
 	};
 
-#ifdef BUILD_WITH_MONITORING_SYSTEM
+#if KCENON_WITH_MONITORING_SYSTEM
 	/**
 	 * @class monitoring_system_adapter
 	 * @brief Adapter for monitoring_system integration
@@ -212,7 +214,7 @@ namespace kcenon::network::integration
 		class impl;
 		std::unique_ptr<impl> pimpl_;
 	};
-#endif // BUILD_WITH_MONITORING_SYSTEM
+#endif // KCENON_WITH_MONITORING_SYSTEM
 
 	/**
 	 * @class monitoring_integration_manager
