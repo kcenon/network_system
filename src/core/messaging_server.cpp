@@ -54,6 +54,37 @@ namespace kcenon::network::core
 		{
 			// Ignore the return value in destructor to avoid throwing
 			(void)stop_server();
+
+			// Ensure all resources are cleaned up even if stop_server() returned early
+			// This handles the case where start_server() failed and is_running_ is false
+			// but resources were partially created
+			if (acceptor_)
+			{
+				asio::error_code ec;
+				acceptor_->cancel(ec);
+				if (acceptor_->is_open())
+				{
+					acceptor_->close(ec);
+				}
+				acceptor_.reset();
+			}
+
+			if (cleanup_timer_)
+			{
+				cleanup_timer_->cancel();
+				cleanup_timer_.reset();
+			}
+
+			if (work_guard_)
+			{
+				work_guard_.reset();
+			}
+
+			if (io_context_)
+			{
+				io_context_->stop();
+				io_context_.reset();
+			}
 		}
 		catch (...)
 		{
@@ -111,6 +142,13 @@ namespace kcenon::network::core
 		{
 			is_running_.store(false);
 
+			// Cleanup partially created resources to prevent memory corruption
+			// Resources may have been created before the exception was thrown
+			acceptor_.reset();
+			cleanup_timer_.reset();
+			work_guard_.reset();
+			io_context_.reset();
+
 			// Check for specific error codes (ASIO uses asio::error category)
 			if (e.code() == asio::error::address_in_use ||
 			    e.code() == std::errc::address_in_use)
@@ -143,6 +181,13 @@ namespace kcenon::network::core
 		catch (const std::exception& e)
 		{
 			is_running_.store(false);
+
+			// Cleanup partially created resources to prevent memory corruption
+			acceptor_.reset();
+			cleanup_timer_.reset();
+			work_guard_.reset();
+			io_context_.reset();
+
 			return error_void(
 				error_codes::common_errors::internal_error,
 				"Failed to start server: " + std::string(e.what()),
