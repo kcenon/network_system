@@ -183,7 +183,14 @@ public:
         if (!logger_) {
             return;
         }
-        logger_->log(to_common_log_level(level), message, file, line, function);
+        ::kcenon::common::interfaces::log_entry entry;
+        entry.level = to_common_log_level(level);
+        entry.message = message;
+        entry.file = file;
+        entry.line = line;
+        entry.function = function;
+        entry.timestamp = std::chrono::system_clock::now();
+        logger_->log(entry);
     }
 
     bool is_level_enabled(log_level level) const override {
