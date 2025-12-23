@@ -82,7 +82,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   - Added `feature_flags.h` for unified feature detection across network_system
   - CMake options remain as `BUILD_WITH_*` (user-facing), compile definitions changed to `WITH_*_SYSTEM`
   - `feature_flags.h` detects `WITH_*_SYSTEM` and sets `KCENON_WITH_*` macros for source code
-  - Fixed ODR violation in integration tests by aligning macro definitions
+  - Fixed ODR violation in integration_tests by using `*_SYSTEM_INCLUDE_DIR` instead of `BUILD_WITH_*`
+  - Added `KCENON_HAS_COMMON_EXECUTOR` definition for consistent thread_pool class layout
+  - Fixed macOS CI test failures by using `127.0.0.1` instead of `localhost` (avoids IPv6 fallback delays)
   - Closes #335
 
 ### Fixed
