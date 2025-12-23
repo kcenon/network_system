@@ -76,6 +76,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   - Part of TCP receive std::span callback migration epic (#315)
   - Closes #317
 
+### Changed
+- **KCENON_WITH_* Feature Flag Unification** (2025-12-23)
+  - Switched integration flags from `BUILD_WITH_*` to `KCENON_WITH_*` macros (#336)
+  - Added `feature_flags.h` for unified feature detection across network_system
+  - CMake options remain as `BUILD_WITH_*` (user-facing), compile definitions changed to `WITH_*_SYSTEM`
+  - `feature_flags.h` detects `WITH_*_SYSTEM` and sets `KCENON_WITH_*` macros for source code
+  - Fixed ODR violation in integration tests by aligning macro definitions
+  - Closes #335
+
 ### Fixed
 - **tcp_socket UBSAN Fix** (2025-12-19)
   - Added `socket_.is_open()` check in `tcp_socket::do_read()` before initiating `async_read_some()`

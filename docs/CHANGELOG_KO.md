@@ -76,6 +76,15 @@ Network System 프로젝트의 모든 주목할 만한 변경 사항은 이 파�
   - TCP receive std::span 콜백 마이그레이션 epic (#315)의 일부
   - #317 종료
 
+### 변경됨
+- **KCENON_WITH_* 기능 플래그 통합** (2025-12-23)
+  - 통합 플래그를 `BUILD_WITH_*`에서 `KCENON_WITH_*` 매크로로 전환 (#336)
+  - network_system 전체에서 통합 기능 감지를 위한 `feature_flags.h` 추가
+  - CMake 옵션은 `BUILD_WITH_*`(사용자 대면)로 유지, 컴파일 정의는 `WITH_*_SYSTEM`으로 변경
+  - `feature_flags.h`가 `WITH_*_SYSTEM`을 감지하고 소스 코드용 `KCENON_WITH_*` 매크로 설정
+  - 매크로 정의 정렬로 통합 테스트의 ODR 위반 수정
+  - #335 종료
+
 ### 수정됨
 - **tcp_socket UBSAN 수정** (2025-12-19)
   - `tcp_socket::do_read()`에서 `async_read_some()` 시작 전 `socket_.is_open()` 확인 추가
