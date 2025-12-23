@@ -46,15 +46,27 @@ set(INTEGRATION_TEST_INCLUDE_DIRS
 )
 
 # Common compile definitions
+# Use *_SYSTEM_INCLUDE_DIR variables to detect actual system availability
+# This ensures feature_flags.h sets KCENON_WITH_* macros consistently with the library
+# NOTE: We must use *_SYSTEM_INCLUDE_DIR instead of BUILD_WITH_* options because
+# the library uses NetworkSystemIntegration.cmake which checks these variables.
 set(INTEGRATION_TEST_DEFINITIONS)
-if(BUILD_WITH_COMMON_SYSTEM)
-    list(APPEND INTEGRATION_TEST_DEFINITIONS BUILD_WITH_COMMON_SYSTEM)
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    list(APPEND INTEGRATION_TEST_DEFINITIONS WITH_COMMON_SYSTEM)
 endif()
-if(BUILD_WITH_LOGGER_SYSTEM)
-    list(APPEND INTEGRATION_TEST_DEFINITIONS BUILD_WITH_LOGGER_SYSTEM)
+if(LOGGER_SYSTEM_INCLUDE_DIR)
+    list(APPEND INTEGRATION_TEST_DEFINITIONS WITH_LOGGER_SYSTEM)
 endif()
-if(BUILD_WITH_THREAD_SYSTEM)
-    list(APPEND INTEGRATION_TEST_DEFINITIONS BUILD_WITH_THREAD_SYSTEM)
+if(THREAD_SYSTEM_INCLUDE_DIR)
+    list(APPEND INTEGRATION_TEST_DEFINITIONS WITH_THREAD_SYSTEM)
+    # thread_system builds with KCENON_HAS_COMMON_EXECUTOR when common_system is available
+    # We must match this definition to ensure consistent class layout across compilation units
+    if(COMMON_SYSTEM_INCLUDE_DIR)
+        list(APPEND INTEGRATION_TEST_DEFINITIONS KCENON_HAS_COMMON_EXECUTOR=1)
+    endif()
+endif()
+if(CONTAINER_SYSTEM_INCLUDE_DIR)
+    list(APPEND INTEGRATION_TEST_DEFINITIONS WITH_CONTAINER_SYSTEM)
 endif()
 
 ##################################################

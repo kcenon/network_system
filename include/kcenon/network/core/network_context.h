@@ -40,13 +40,15 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
+#include <kcenon/network/config/feature_flags.h>
+
 #include <memory>
 #include "kcenon/network/integration/thread_integration.h"
 #include "kcenon/network/integration/logger_integration.h"
 
-#ifdef BUILD_WITH_MONITORING_SYSTEM
+#if KCENON_WITH_MONITORING_SYSTEM
 #include "kcenon/network/integration/monitoring_integration.h"
-#endif
+#endif // KCENON_WITH_MONITORING_SYSTEM
 
 namespace kcenon::network::core {
 
@@ -89,7 +91,7 @@ public:
      */
     std::shared_ptr<kcenon::network::integration::logger_interface> get_logger();
 
-#ifdef BUILD_WITH_MONITORING_SYSTEM
+#if KCENON_WITH_MONITORING_SYSTEM
     /**
      * @brief Set custom monitoring system
      * @param monitoring Monitoring implementation
@@ -101,7 +103,7 @@ public:
      * @return Shared pointer to monitoring interface
      */
     std::shared_ptr<kcenon::network::integration::monitoring_interface> get_monitoring();
-#endif
+#endif // KCENON_WITH_MONITORING_SYSTEM
 
     /**
      * @brief Initialize all systems

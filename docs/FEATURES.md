@@ -475,7 +475,7 @@ if (!result) {
 
 **Dual API Support**:
 ```cpp
-#ifdef BUILD_WITH_COMMON_SYSTEM
+#if KCENON_WITH_COMMON_SYSTEM
     // Use common_system Result<T>
     template<typename T>
     using Result = ::common::Result<T>;

@@ -456,17 +456,17 @@ if(BUILD_VERIFY_BUILD)
     # Add system include paths to verify_build
     if(CONTAINER_SYSTEM_INCLUDE_DIR)
         target_include_directories(verify_build PRIVATE ${CONTAINER_SYSTEM_INCLUDE_DIR})
-        target_compile_definitions(verify_build PRIVATE BUILD_WITH_CONTAINER_SYSTEM)
+        target_compile_definitions(verify_build PRIVATE WITH_CONTAINER_SYSTEM)
     endif()
 
     if(THREAD_SYSTEM_INCLUDE_DIR)
         target_include_directories(verify_build PRIVATE ${THREAD_SYSTEM_INCLUDE_DIR})
-        target_compile_definitions(verify_build PRIVATE BUILD_WITH_THREAD_SYSTEM)
+        target_compile_definitions(verify_build PRIVATE WITH_THREAD_SYSTEM)
     endif()
 
     if(LOGGER_SYSTEM_INCLUDE_DIR)
         target_include_directories(verify_build PRIVATE ${LOGGER_SYSTEM_INCLUDE_DIR})
-        target_compile_definitions(verify_build PRIVATE BUILD_WITH_LOGGER_SYSTEM)
+        target_compile_definitions(verify_build PRIVATE WITH_LOGGER_SYSTEM)
     endif()
 
     if(BUILD_MESSAGING_BRIDGE)

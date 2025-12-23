@@ -1108,7 +1108,7 @@ auto on_error(std::error_code ec) -> void;
 **이중 API 구현**
 ```cpp
 // Supports both common_system integration and standalone usage
-#ifdef BUILD_WITH_COMMON_SYSTEM
+#if KCENON_WITH_COMMON_SYSTEM
     // Uses common_system Result<T> when available
     template<typename T>
     using Result = ::common::Result<T>;

@@ -32,6 +32,8 @@
  * @brief Unit tests for thread_system_pool_adapter
  */
 
+#include <kcenon/network/config/feature_flags.h>
+
 #include <gtest/gtest.h>
 
 #include "kcenon/network/integration/thread_system_adapter.h"
@@ -41,7 +43,7 @@
 #include <thread>
 #include <vector>
 
-#if defined(BUILD_WITH_THREAD_SYSTEM)
+#if KCENON_WITH_THREAD_SYSTEM
 
 namespace kcenon::network::integration {
 namespace {
@@ -241,11 +243,11 @@ TEST_F(ThreadSystemAdapterTest, ConcurrentDelayedSubmissions) {
 } // namespace
 } // namespace kcenon::network::integration
 
-#else // !BUILD_WITH_THREAD_SYSTEM
+#else // !KCENON_WITH_THREAD_SYSTEM
 
 // Placeholder test when thread_system is not available
 TEST(ThreadSystemAdapterTest, NotAvailable) {
     GTEST_SKIP() << "thread_system not available, skipping adapter tests";
 }
 
-#endif // BUILD_WITH_THREAD_SYSTEM
+#endif // KCENON_WITH_THREAD_SYSTEM

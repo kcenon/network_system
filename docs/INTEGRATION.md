@@ -276,17 +276,17 @@ cmake .. -G Ninja \
 The system provides macros to check which integrations are available:
 
 ```cpp
-#ifdef BUILD_WITH_THREAD_SYSTEM
+#if KCENON_WITH_THREAD_SYSTEM
     // Thread system is available
     use_thread_pool();
 #endif
 
-#ifdef BUILD_WITH_CONTAINER_SYSTEM
+#if KCENON_WITH_CONTAINER_SYSTEM
     // Container system is available
     use_advanced_serialization();
 #endif
 
-#ifdef BUILD_WITH_LOGGER_SYSTEM
+#if KCENON_WITH_LOGGER_SYSTEM
     // Logger system is available
     use_structured_logging();
 #else
@@ -294,7 +294,7 @@ The system provides macros to check which integrations are available:
     use_console_logging();
 #endif
 
-#ifdef BUILD_WITH_MONITORING_SYSTEM
+#if KCENON_WITH_MONITORING_SYSTEM
     // Monitoring system is available
     auto adapter = std::make_shared<monitoring_system_adapter>("my_service");
     monitoring_integration_manager::instance().set_monitoring(adapter);

@@ -31,12 +31,14 @@
  * @file thread_integration.cpp
  * @brief Implementation of thread system integration
  *
- * This implementation delegates to thread_system::thread_pool when BUILD_WITH_THREAD_SYSTEM
+ * This implementation delegates to thread_system::thread_pool when KCENON_WITH_THREAD_SYSTEM
  * is defined, providing unified thread pool management across the network_system.
  *
  * @author kcenon
  * @date 2025-09-20
  */
+
+#include <kcenon/network/config/feature_flags.h>
 
 #include "kcenon/network/integration/thread_integration.h"
 #include <mutex>
@@ -47,14 +49,14 @@
 #include <queue>
 #include <condition_variable>
 
-#if defined(BUILD_WITH_THREAD_SYSTEM)
+#if KCENON_WITH_THREAD_SYSTEM
 #include <kcenon/thread/core/thread_pool.h>
 #include <kcenon/thread/core/thread_worker.h>
 #endif
 
 namespace kcenon::network::integration {
 
-#if defined(BUILD_WITH_THREAD_SYSTEM)
+#if KCENON_WITH_THREAD_SYSTEM
 
 // basic_thread_pool implementation using thread_system::thread_pool
 class basic_thread_pool::impl {
@@ -199,7 +201,7 @@ private:
     std::atomic<size_t> completed_tasks_;
 };
 
-#else // !BUILD_WITH_THREAD_SYSTEM
+#else // !KCENON_WITH_THREAD_SYSTEM
 
 // Fallback implementation when thread_system is not available
 // This provides a minimal thread pool using std::thread
@@ -416,7 +418,7 @@ private:
     std::atomic<size_t> completed_tasks_;
 };
 
-#endif // BUILD_WITH_THREAD_SYSTEM
+#endif // KCENON_WITH_THREAD_SYSTEM
 
 basic_thread_pool::basic_thread_pool(size_t num_threads)
     // Intentional Leak pattern: Use no-op deleter to prevent destruction

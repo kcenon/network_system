@@ -120,13 +120,15 @@ protected:
    * @return true if client connected successfully
    */
   bool ConnectClient() {
-    auto result = client_->start_client("localhost", test_port_);
+    // Use 127.0.0.1 instead of localhost to avoid IPv6 lookup delays on macOS.
+    // macOS attempts IPv6 (::1) first, and fallback to IPv4 can take 5-10 seconds.
+    auto result = client_->start_client("127.0.0.1", test_port_);
     if (!result.is_ok()) {
       return false;
     }
 
-    // Wait for connection to establish with shorter timeout in CI
-    auto timeout = test_helpers::is_ci_environment() ? std::chrono::seconds(3)
+    // Wait for connection to establish with reasonable timeout for CI
+    auto timeout = test_helpers::is_ci_environment() ? std::chrono::seconds(5)
                                                      : std::chrono::seconds(5);
     return test_helpers::wait_for_connection(client_, timeout);
   }
@@ -248,13 +250,14 @@ protected:
    * total connection time for multiple clients.
    */
   size_t ConnectAllClients() {
-    // Use shorter timeout in CI and per-client timeout to avoid hangs
-    auto timeout = test_helpers::is_ci_environment() ? std::chrono::seconds(2)
-                                                     : std::chrono::seconds(3);
+    // Use reasonable timeout for CI environments
+    auto timeout = test_helpers::is_ci_environment() ? std::chrono::seconds(5)
+                                                     : std::chrono::seconds(5);
 
     // Start all connections in parallel (async operations)
+    // Use 127.0.0.1 to avoid IPv6 lookup delays on macOS
     for (auto &client : clients_) {
-      client->start_client("localhost", test_port_);
+      client->start_client("127.0.0.1", test_port_);
     }
 
     // Wait for all to complete with single timeout period
