@@ -495,6 +495,26 @@ Result<std::optional<User>> findUser(int id) {
 
 ## Troubleshooting
 
+### ABI Incompatibility (Heap Corruption or Linker Errors)
+
+**Problem**: When using network_system with common_system, you may encounter:
+- Linux/macOS: Heap corruption (`malloc.c:2599: assertion failed`)
+- Windows (MSVC): Linker errors for `kcenon::common::Result<T>`
+
+**Cause**: The `KCENON_WITH_COMMON_SYSTEM` compile definition is not consistently
+propagated to consuming projects, causing type mismatch between headers and libraries.
+
+**Solution**: Ensure you're using network_system v0.1.0 or later, which automatically
+propagates `KCENON_WITH_COMMON_SYSTEM=1` as a PUBLIC compile definition when
+`BUILD_WITH_COMMON_SYSTEM=ON` (the default).
+
+If building from source with an older version, add this to your CMakeLists.txt:
+```cmake
+target_compile_definitions(your_target PUBLIC KCENON_WITH_COMMON_SYSTEM=1)
+```
+
+See [Issue #338](https://github.com/kcenon/network_system/issues/338) for details.
+
 ### Linker Errors
 
 **Problem**: Undefined reference to common_system symbols

@@ -749,6 +749,64 @@ endif()
 target_link_libraries(network_server ${PLATFORM_LIBS})
 ```
 
+### ABI Incompatibility with common_system
+
+When building projects that depend on network_system with common_system enabled,
+ABI incompatibility can occur if compile definitions are not properly propagated.
+
+#### Symptoms
+
+**Linux/macOS - Heap Corruption**
+```
+Fatal glibc error: malloc.c:2599 (sysmalloc): assertion failed
+```
+
+**Windows (MSVC) - Linker Errors**
+```
+error LNK2019: unresolved external symbol "kcenon::common::Result<struct std::monostate>..."
+```
+
+#### Root Cause
+
+When network_system is built with common_system available (`BUILD_WITH_COMMON_SYSTEM=ON`),
+the `KCENON_WITH_COMMON_SYSTEM` preprocessor definition must be exported to consuming projects.
+
+Without this definition:
+1. network_system headers check `#if KCENON_WITH_COMMON_SYSTEM`
+2. Without the define, headers use local Result type fallback
+3. Consuming projects that include common_system expect `kcenon::common::Result<T>`
+4. Link errors or heap corruption occur due to type mismatch
+
+#### Solution
+
+Ensure your CMakeLists.txt properly propagates the compile definition:
+
+```cmake
+# When linking network_system with common_system
+if(BUILD_WITH_COMMON_SYSTEM)
+    target_compile_definitions(${target} PUBLIC
+        WITH_COMMON_SYSTEM
+        KCENON_WITH_COMMON_SYSTEM=1
+    )
+endif()
+```
+
+**Verification Steps:**
+1. Check compile definitions in your build:
+```bash
+# Look for KCENON_WITH_COMMON_SYSTEM in compile commands
+grep -r "KCENON_WITH_COMMON_SYSTEM" build/compile_commands.json
+```
+
+2. Ensure consuming project receives the definition:
+```cmake
+# In consuming project's CMakeLists.txt
+get_target_property(DEFS NetworkSystem INTERFACE_COMPILE_DEFINITIONS)
+message(STATUS "NetworkSystem definitions: ${DEFS}")
+```
+
+> **See also:** [GitHub Issue #338](https://github.com/kcenon/network_system/issues/338)
+
 ## Platform-Specific Issues
 
 ### Linux Issues
@@ -1022,4 +1080,4 @@ For operational procedures, see the [Operations Guide](OPERATIONS.md).
 For API documentation, see the [API Reference](API_REFERENCE.md).
 ---
 
-*Last Updated: 2025-10-20*
+*Last Updated: 2025-12-24*

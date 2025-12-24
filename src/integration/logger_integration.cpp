@@ -118,20 +118,16 @@ void common_system_logger_adapter::log(log_level level, const std::string& messa
                                        const std::string& function) {
     auto logger = get_logger();
     if (logger) {
-        // Use the deprecated interface for backward compatibility
-#if defined(__GNUC__) || defined(__clang__)
-    #pragma GCC diagnostic push
-    #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#elif defined(_MSC_VER)
-    #pragma warning(push)
-    #pragma warning(disable: 4996)
-#endif
-        logger->log(to_common_level(level), message, file, line, function);
-#if defined(__GNUC__) || defined(__clang__)
-    #pragma GCC diagnostic pop
-#elif defined(_MSC_VER)
-    #pragma warning(pop)
-#endif
+        // Use log_entry API for common_system v3.0.0 compatibility
+        // See: https://github.com/kcenon/network_system/issues/338
+        kcenon::common::interfaces::log_entry entry;
+        entry.level = to_common_level(level);
+        entry.message = message;
+        entry.file = file;
+        entry.line = line;
+        entry.function = function;
+        entry.timestamp = std::chrono::system_clock::now();
+        logger->log(entry);
     }
 }
 
@@ -306,21 +302,17 @@ public:
             const std::string& file, int line, const std::string& function) {
 #if KCENON_WITH_COMMON_SYSTEM
         // Delegate directly to common_system's GlobalLoggerRegistry
+        // Use log_entry API for common_system v3.0.0 compatibility
         auto common_logger = kcenon::common::interfaces::get_logger();
         if (common_logger) {
-#if defined(__GNUC__) || defined(__clang__)
-    #pragma GCC diagnostic push
-    #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#elif defined(_MSC_VER)
-    #pragma warning(push)
-    #pragma warning(disable: 4996)
-#endif
-            common_logger->log(to_common_level(level), message, file, line, function);
-#if defined(__GNUC__) || defined(__clang__)
-    #pragma GCC diagnostic pop
-#elif defined(_MSC_VER)
-    #pragma warning(pop)
-#endif
+            kcenon::common::interfaces::log_entry entry;
+            entry.level = to_common_level(level);
+            entry.message = message;
+            entry.file = file;
+            entry.line = line;
+            entry.function = function;
+            entry.timestamp = std::chrono::system_clock::now();
+            common_logger->log(entry);
         }
 #else
         auto logger = get_logger();
