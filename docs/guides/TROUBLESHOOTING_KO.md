@@ -749,6 +749,64 @@ endif()
 target_link_libraries(network_server ${PLATFORM_LIBS})
 ```
 
+### common_system과의 ABI 비호환성
+
+network_system을 common_system이 활성화된 상태로 의존하는 프로젝트를 빌드할 때,
+컴파일 정의가 올바르게 전파되지 않으면 ABI 비호환성이 발생할 수 있습니다.
+
+#### 증상
+
+**Linux/macOS - 힙 손상**
+```
+Fatal glibc error: malloc.c:2599 (sysmalloc): assertion failed
+```
+
+**Windows (MSVC) - 링커 오류**
+```
+error LNK2019: unresolved external symbol "kcenon::common::Result<struct std::monostate>..."
+```
+
+#### 근본 원인
+
+network_system이 common_system과 함께 빌드될 때 (`BUILD_WITH_COMMON_SYSTEM=ON`),
+`KCENON_WITH_COMMON_SYSTEM` 전처리기 정의가 소비하는 프로젝트에 내보내져야 합니다.
+
+이 정의가 없으면:
+1. network_system 헤더가 `#if KCENON_WITH_COMMON_SYSTEM`을 확인
+2. 정의가 없으면 헤더가 로컬 Result 타입 폴백을 사용
+3. common_system을 포함하는 소비 프로젝트는 `kcenon::common::Result<T>`를 기대
+4. 타입 불일치로 인해 링크 오류 또는 힙 손상 발생
+
+#### 해결책
+
+CMakeLists.txt에서 컴파일 정의를 올바르게 전파해야 합니다:
+
+```cmake
+# network_system을 common_system과 링크할 때
+if(BUILD_WITH_COMMON_SYSTEM)
+    target_compile_definitions(${target} PUBLIC
+        WITH_COMMON_SYSTEM
+        KCENON_WITH_COMMON_SYSTEM=1
+    )
+endif()
+```
+
+**검증 단계:**
+1. 빌드에서 컴파일 정의 확인:
+```bash
+# compile commands에서 KCENON_WITH_COMMON_SYSTEM 찾기
+grep -r "KCENON_WITH_COMMON_SYSTEM" build/compile_commands.json
+```
+
+2. 소비 프로젝트가 정의를 받는지 확인:
+```cmake
+# 소비 프로젝트의 CMakeLists.txt에서
+get_target_property(DEFS NetworkSystem INTERFACE_COMPILE_DEFINITIONS)
+message(STATUS "NetworkSystem definitions: ${DEFS}")
+```
+
+> **참고:** [GitHub Issue #338](https://github.com/kcenon/network_system/issues/338)
+
 ## 플랫폼별 문제
 
 ### Linux 문제
@@ -1023,4 +1081,4 @@ API 문서는 [API 참조](API_REFERENCE_KO.md)를 참조하십시오.
 
 ---
 
-*Last Updated: 2025-10-20*
+*Last Updated: 2025-12-24*
