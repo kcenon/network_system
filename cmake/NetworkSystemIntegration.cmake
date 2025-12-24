@@ -190,13 +190,25 @@ function(setup_common_system_integration target)
 
     if(COMMON_SYSTEM_TARGET)
         target_link_libraries(${target} PUBLIC ${COMMON_SYSTEM_TARGET})
-        target_compile_definitions(${target} PUBLIC WITH_COMMON_SYSTEM)
+        # Propagate both WITH_COMMON_SYSTEM (CMake convention) and
+        # KCENON_WITH_COMMON_SYSTEM (codebase convention) for ABI compatibility.
+        # See: https://github.com/kcenon/network_system/issues/338
+        target_compile_definitions(${target} PUBLIC
+            WITH_COMMON_SYSTEM
+            KCENON_WITH_COMMON_SYSTEM=1
+        )
         message(STATUS "Configured ${target} with common_system target: ${COMMON_SYSTEM_TARGET}")
     elseif(COMMON_SYSTEM_INCLUDE_DIR)
         target_include_directories(${target} PUBLIC
             $<BUILD_INTERFACE:${COMMON_SYSTEM_INCLUDE_DIR}>
         )
-        target_compile_definitions(${target} PUBLIC WITH_COMMON_SYSTEM)
+        # Propagate both WITH_COMMON_SYSTEM (CMake convention) and
+        # KCENON_WITH_COMMON_SYSTEM (codebase convention) for ABI compatibility.
+        # See: https://github.com/kcenon/network_system/issues/338
+        target_compile_definitions(${target} PUBLIC
+            WITH_COMMON_SYSTEM
+            KCENON_WITH_COMMON_SYSTEM=1
+        )
         message(STATUS "Configured ${target} with common_system integration")
     endif()
 endfunction()
