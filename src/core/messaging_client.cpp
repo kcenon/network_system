@@ -119,9 +119,10 @@ auto messaging_client::start_client(std::string_view host, unsigned short port)
 
     do_connect(host, port);
 
-    NETWORK_LOG_INFO("[messaging_client] started. ID=" + client_id_ +
-                     " target=" + std::string(host) + ":" +
-                     std::to_string(port));
+    // NOTE: No logging here to prevent heap corruption during static destruction.
+    // When common_system uses async logging, log messages may still be queued
+    // when static destruction begins, causing heap corruption when the logging
+    // thread accesses destroyed GlobalLoggerRegistry.
 
     return ok();
   } catch (const std::exception &e) {
