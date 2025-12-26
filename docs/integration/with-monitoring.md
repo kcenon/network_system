@@ -2,57 +2,219 @@
 
 ## Overview
 
-This guide explains how to integrate network_system with monitoring_system for metrics collection and observability.
+This guide explains how network_system publishes metrics that can be consumed by monitoring_system or other metric collectors.
 
-**Important**: monitoring_system integration is **OPTIONAL** (OFF by default) to prevent circular dependencies.
+**Since issue #342**: network_system uses **EventBus-based metric publishing**. No compile-time dependency on monitoring_system is required.
+
+## Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    network_system                            │
+│  ┌───────────────┐     ┌───────────────────────────────┐   │
+│  │ metric_reporter├────►│ common_system::EventBus       │   │
+│  └───────────────┘     │   - network_metric_event      │   │
+│                        │   - network_connection_event  │   │
+│  ┌────────────────────►│   - network_latency_event     │   │
+│  │ basic_monitoring   │   - network_health_event      │   │
+│  └────────────────────┘└─────────────┬─────────────────┘   │
+└───────────────────────────────────────┼─────────────────────┘
+                                        │
+                 ┌──────────────────────▼────────────────────┐
+                 │            External Consumers              │
+                 │  - monitoring_system (subscribes)          │
+                 │  - prometheus_exporter                     │
+                 │  - custom metric collectors                │
+                 └────────────────────────────────────────────┘
+```
 
 ## Dependency Structure
 
 ```
 Tier 4: network_system
-  ├── common_system (Tier 0) [REQUIRED]
+  ├── common_system (Tier 0) [REQUIRED - provides EventBus]
   ├── thread_system (Tier 1) [REQUIRED]
-  ├── logger_system (Tier 2) [REQUIRED]
-  └── monitoring_system (Tier 3) [OPTIONAL]
+  ├── logger_system (Tier 2) [OPTIONAL - runtime binding]
+  └── monitoring_system (Tier 3) [NO COMPILE-TIME DEPENDENCY]
 ```
 
-### Why Optional?
+### Why EventBus?
 
-monitoring_system can optionally depend on network_system for HTTP metrics export (`MONITORING_WITH_NETWORK_SYSTEM`). Making monitoring_system a required dependency of network_system would create a circular dependency:
+The previous approach (`KCENON_WITH_MONITORING_SYSTEM`) created optional bidirectional dependencies that complicated build order and isolated testing. The EventBus pattern:
 
+- Eliminates compile-time coupling
+- Enables runtime metric subscription
+- Simplifies build configuration
+- Allows any consumer to receive metrics
+
+## Subscribing to Metrics (for External Consumers)
+
+### Basic Subscription
+
+```cpp
+#include <kcenon/common/patterns/event_bus.h>
+#include <kcenon/network/events/network_metric_event.h>
+
+// Subscribe to network metrics
+auto& bus = kcenon::common::get_event_bus();
+
+auto subscription_id = bus.subscribe<kcenon::network::events::network_metric_event>(
+    [](const auto& event) {
+        std::cout << "Metric: " << event.name
+                  << " = " << event.value << std::endl;
+    }
+);
+
+// Later: unsubscribe
+bus.unsubscribe(subscription_id);
 ```
-network_system → monitoring_system → network_system (circular!)
+
+### Filtered Subscription
+
+```cpp
+// Subscribe only to connection metrics
+auto subscription_id = bus.subscribe_filtered<network_metric_event>(
+    [](const auto& event) {
+        // Process connection metric
+    },
+    [](const auto& event) {
+        return event.name.find("connections") != std::string::npos;
+    }
+);
 ```
 
-By keeping both integrations optional and using adapter patterns, we avoid compile-time cycles.
+### Specialized Event Types
 
-## Build Configuration
+```cpp
+#include <kcenon/network/events/network_metric_event.h>
 
-### Standalone Mode (Default)
+using namespace kcenon::network::events;
 
-```bash
-cmake .. -G Ninja \
-    -DCMAKE_BUILD_TYPE=Release \
-    -DBUILD_WITH_MONITORING_SYSTEM=OFF  # Default, can be omitted
+// Subscribe to connection events
+bus.subscribe<network_connection_event>(
+    [](const auto& event) {
+        std::cout << "Connection " << event.connection_id
+                  << " " << event.event_type << std::endl;
+    }
+);
+
+// Subscribe to latency events
+bus.subscribe<network_latency_event>(
+    [](const auto& event) {
+        if (event.latency_ms > 100.0) {
+            std::cerr << "High latency: " << event.latency_ms << "ms" << std::endl;
+        }
+    }
+);
+
+// Subscribe to health events
+bus.subscribe<network_health_event>(
+    [](const auto& event) {
+        if (!event.is_alive) {
+            std::cerr << "Connection unhealthy: " << event.connection_id << std::endl;
+        }
+    }
+);
 ```
 
-In standalone mode, network_system uses `basic_monitoring` which logs metrics to console via logger_system.
+## Event Types
 
-### With monitoring_system Integration
+### network_metric_event
 
-```bash
-cmake .. -G Ninja \
-    -DCMAKE_BUILD_TYPE=Release \
-    -DBUILD_WITH_MONITORING_SYSTEM=ON
+Generic metric event with name, value, type, and labels:
+
+```cpp
+struct network_metric_event {
+    std::string name;                              // Metric name
+    double value;                                  // Metric value
+    std::string unit;                              // Unit of measurement
+    network_metric_type type;                      // counter, gauge, histogram, summary
+    std::chrono::steady_clock::time_point timestamp;
+    std::map<std::string, std::string> labels;
+};
 ```
 
-When enabled, network_system uses `monitoring_system_adapter` for full metrics collection capabilities.
+### network_connection_event
 
-## API Usage
+Connection lifecycle events:
 
-### Monitoring Interface
+```cpp
+struct network_connection_event {
+    std::string connection_id;
+    std::string event_type;     // "accepted", "closed", "failed"
+    std::string protocol;        // "tcp", "udp", "websocket", "quic"
+    std::string remote_address;
+    std::chrono::steady_clock::time_point timestamp;
+    std::map<std::string, std::string> labels;
+};
+```
 
-network_system provides a unified `monitoring_interface` that works in both modes:
+### network_transfer_event
+
+Data transfer metrics:
+
+```cpp
+struct network_transfer_event {
+    std::string connection_id;
+    std::string direction;       // "sent", "received"
+    std::size_t bytes;
+    std::size_t packets;
+    std::chrono::steady_clock::time_point timestamp;
+    std::map<std::string, std::string> labels;
+};
+```
+
+### network_latency_event
+
+Latency measurements:
+
+```cpp
+struct network_latency_event {
+    std::string connection_id;
+    double latency_ms;
+    std::string operation;       // "request", "response", "roundtrip"
+    std::chrono::steady_clock::time_point timestamp;
+    std::map<std::string, std::string> labels;
+};
+```
+
+### network_health_event
+
+Connection health status:
+
+```cpp
+struct network_health_event {
+    std::string connection_id;
+    bool is_alive;
+    double response_time_ms;
+    std::size_t missed_heartbeats;
+    double packet_loss_rate;     // 0.0-1.0
+    std::chrono::steady_clock::time_point timestamp;
+    std::map<std::string, std::string> labels;
+};
+```
+
+## Standard Network Metrics
+
+network_system publishes these metrics automatically:
+
+| Metric | Type | Description |
+|--------|------|-------------|
+| `network.connections.total` | Counter | Total connections established |
+| `network.connections.active` | Gauge | Currently active connections |
+| `network.connections.failed` | Counter | Failed connection attempts |
+| `network.bytes.sent` | Counter | Total bytes sent |
+| `network.bytes.received` | Counter | Total bytes received |
+| `network.packets.sent` | Counter | Total packets sent |
+| `network.packets.received` | Counter | Total packets received |
+| `network.latency.ms` | Histogram | Request/response latency |
+| `network.errors.total` | Counter | Total errors by type |
+| `network.timeouts.total` | Counter | Total timeouts |
+| `network.session.duration.ms` | Histogram | Session durations |
+
+## Local Monitoring Interface
+
+For direct access (without EventBus), use the monitoring integration manager:
 
 ```cpp
 #include <kcenon/network/integration/monitoring_integration.h>
@@ -62,13 +224,13 @@ using namespace kcenon::network::integration;
 // Get the monitoring manager (singleton)
 auto& monitor = monitoring_integration_manager::instance();
 
-// Report metrics
-monitor.report_counter("network.connections.total", 1, {{"type", "tcp"}});
-monitor.report_gauge("network.connections.active", 42, {{"server", "main"}});
-monitor.report_histogram("network.latency_ms", 12.5, {{"endpoint", "/api"}});
+// Report metrics directly
+monitor.report_counter("custom.metric", 1, {{"type", "custom"}});
+monitor.report_gauge("custom.gauge", 42.0);
+monitor.report_histogram("custom.histogram", 12.5);
 
 // Report health
-monitor.report_health("connection_1",
+monitor.report_health("custom_connection",
     true,      // is_alive
     15.3,      // response_time_ms
     0,         // missed_heartbeats
@@ -77,12 +239,7 @@ monitor.report_health("connection_1",
 
 ### Custom Monitoring Implementation
 
-You can inject a custom monitoring implementation:
-
 ```cpp
-#include <kcenon/network/integration/monitoring_integration.h>
-
-// Create custom implementation
 class my_monitoring : public monitoring_interface {
 public:
     void report_counter(const std::string& name, double value,
@@ -97,167 +254,52 @@ auto& manager = monitoring_integration_manager::instance();
 manager.set_monitoring(std::make_shared<my_monitoring>());
 ```
 
-### Using monitoring_system_adapter (When Available)
+## Migration from KCENON_WITH_MONITORING_SYSTEM
+
+### Before (Compile-time Dependency)
 
 ```cpp
 #if KCENON_WITH_MONITORING_SYSTEM
-#include <kcenon/network/integration/monitoring_integration.h>
-
-// Create adapter for monitoring_system
-auto adapter = std::make_shared<monitoring_system_adapter>("my_network_service");
-adapter->start();
-
-// Set as the active monitoring implementation
-monitoring_integration_manager::instance().set_monitoring(adapter);
-
-// ... use network_system ...
-
-adapter->stop();
+auto collector = monitoring_system::get_collector();
+http_client client(collector);
+#else
+http_client client;
 #endif
 ```
 
-## Metric Types
-
-### Counters
-
-Monotonically increasing values (e.g., total connections, bytes sent):
+### After (EventBus Pattern)
 
 ```cpp
-monitor.report_counter("network.bytes_sent", 1024);
-monitor.report_counter("network.errors.total", 1, {{"type", "timeout"}});
+// In monitoring_system (the consumer):
+auto& bus = common::get_event_bus();
+bus.subscribe<network::events::network_metric_event>(
+    [this](const auto& event) {
+        record_metric(event.name, event.value, event.labels);
+    }
+);
+
+// In your application:
+http_client client;  // No conditional compilation needed
 ```
 
-### Gauges
+## Build Configuration
 
-Values that can increase or decrease (e.g., active connections):
-
-```cpp
-monitor.report_gauge("network.connections.active", 42);
-monitor.report_gauge("network.buffer.usage_percent", 75.5);
-```
-
-### Histograms
-
-Distribution of values (e.g., latency):
-
-```cpp
-monitor.report_histogram("network.request.duration_ms", 125.3);
-monitor.report_histogram("network.packet.size_bytes", 512);
-```
-
-### Health Reports
-
-Connection health status:
-
-```cpp
-monitor.report_health("conn_123",
-    true,   // is_alive
-    10.5,   // response_time_ms
-    0,      // missed_heartbeats
-    0.01);  // packet_loss_rate (1%)
-```
-
-## Standard Network Metrics
-
-network_system reports these metrics automatically when monitoring is enabled:
-
-| Metric | Type | Description |
-|--------|------|-------------|
-| `network.connections.total` | Counter | Total connections established |
-| `network.connections.active` | Gauge | Currently active connections |
-| `network.connections.failed` | Counter | Failed connection attempts |
-| `network.bytes.sent` | Counter | Total bytes sent |
-| `network.bytes.received` | Counter | Total bytes received |
-| `network.latency.ms` | Histogram | Request/response latency |
-| `network.errors.total` | Counter | Total errors by type |
-
-## Bidirectional Optional Integration
-
-Both network_system and monitoring_system can optionally use each other:
-
-### network_system → monitoring_system
+No special build flags required for metric publishing. Metrics are always published via EventBus.
 
 ```bash
-# In network_system
-cmake .. -DBUILD_WITH_MONITORING_SYSTEM=ON
+cmake .. -G Ninja \
+    -DCMAKE_BUILD_TYPE=Release
+# That's it! No BUILD_WITH_MONITORING_SYSTEM needed
 ```
 
-Provides: Network metrics collection via monitoring_system
-
-### monitoring_system → network_system
-
-```bash
-# In monitoring_system
-cmake .. -DMONITORING_WITH_NETWORK_SYSTEM=ON
-```
-
-Provides: HTTP metrics export endpoint
-
-### Both Enabled
-
-When both systems have their optional integrations enabled:
-- network_system collects metrics via monitoring_system
-- monitoring_system exports metrics via network_system HTTP server
-- No circular dependency due to adapter patterns
-
-## Implementation Details
-
-### basic_monitoring (Standalone Mode)
-
-- Logs metrics to console via logger_system
-- No external dependencies beyond logger_system
-- Suitable for development and testing
-
-### monitoring_system_adapter (Integration Mode)
-
-- Full monitoring_system integration
-- Uses `performance_monitor` for metric collection
-- Uses `health_monitor` for health tracking
-- Requires monitoring_system library
+**Note**: `BUILD_WITH_MONITORING_SYSTEM` is deprecated and has no effect.
 
 ## Requirements
 
-### Standalone Mode
-
-- logger_system (for metric logging)
-
-### Integration Mode
-
-- monitoring_system built and available
-- Headers at `../monitoring_system/include`
-- Library at `../monitoring_system/lib` or build directory
-
-## Troubleshooting
-
-### BUILD_WITH_MONITORING_SYSTEM=ON but monitoring_system not found
-
-```
-CMake Warning: BUILD_WITH_MONITORING_SYSTEM is ON but monitoring_system not found
-```
-
-Solution:
-1. Ensure monitoring_system is built first (Tier 3 before Tier 4)
-2. Check include path: `../monitoring_system/include`
-3. Verify library exists in expected location
-
-### No metrics being reported
-
-Check that monitoring is enabled and configured:
-
-```cpp
-auto& mgr = monitoring_integration_manager::instance();
-auto mon = mgr.get_monitoring();
-
-// Check if using basic_monitoring (logs to console)
-if (auto* basic = dynamic_cast<basic_monitoring*>(mon.get())) {
-    basic->set_logging_enabled(true);
-}
-```
-
-### Performance concerns
-
-basic_monitoring has minimal overhead as it only logs when logging is enabled. monitoring_system_adapter has slightly more overhead but provides full observability.
+- common_system (provides EventBus)
+- thread_system
+- No compile-time monitoring_system dependency
 
 ---
 
-*Last Updated: 2025-11-30*
+*Last Updated: 2025-01-26*

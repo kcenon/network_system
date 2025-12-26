@@ -66,8 +66,10 @@ option(BUILD_WITH_LOGGER_SYSTEM "Build with logger_system integration (OPTIONAL 
 # Optional dependencies
 option(BUILD_WITH_CONTAINER_SYSTEM "Build with container_system integration" ON)
 
-# Optional integration (Tier 3 - prevents circular dependency)
-option(BUILD_WITH_MONITORING_SYSTEM "Build with monitoring_system integration (OPTIONAL - prevents circular dep)" OFF)
+# DEPRECATED: Since issue #342, monitoring integration uses EventBus pattern
+# instead of compile-time dependency. This option is kept for backward
+# compatibility but has no effect. It will be removed in a future version.
+option(BUILD_WITH_MONITORING_SYSTEM "DEPRECATED - monitoring uses EventBus pattern (no compile-time dep)" OFF)
 
 ##################################################
 # Dependency Validation (Advisory)
@@ -91,25 +93,20 @@ else()
     message(STATUS "logger_system integration is DISABLED (default - uses common_system's ILogger)")
 endif()
 
-# Optional integration status message
+# Monitoring integration status message
+# Note: Since issue #342, monitoring uses EventBus pattern - no compile-time dependency
 if(BUILD_WITH_MONITORING_SYSTEM)
     message(STATUS "")
     message(STATUS "========================================")
-    message(STATUS "BUILD_WITH_MONITORING_SYSTEM is ENABLED")
+    message(STATUS "BUILD_WITH_MONITORING_SYSTEM is DEPRECATED")
     message(STATUS "")
-    message(STATUS "This creates an optional dependency on Tier 3.")
-    message(STATUS "network_system will use monitoring_system_adapter")
-    message(STATUS "for metrics collection if monitoring_system is available.")
-    message(STATUS "")
-    message(STATUS "Note: If monitoring_system also has MONITORING_WITH_NETWORK_SYSTEM=ON,")
-    message(STATUS "      this creates a bidirectional optional dependency.")
-    message(STATUS "      Both systems use adapter patterns to avoid compile-time cycles.")
+    message(STATUS "Since issue #342, network_system uses EventBus-based metric")
+    message(STATUS "publishing. No compile-time monitoring_system dependency needed.")
+    message(STATUS "External consumers subscribe to network_metric_event via EventBus.")
     message(STATUS "========================================")
     message(STATUS "")
-else()
-    message(STATUS "BUILD_WITH_MONITORING_SYSTEM is OFF (default)")
-    message(STATUS "network_system will use basic_monitoring (standalone mode)")
 endif()
+message(STATUS "Monitoring: EventBus-based metric publishing (no compile-time dependency)")
 
 # Respect global BUILD_INTEGRATION_TESTS flag if set
 if(DEFINED BUILD_INTEGRATION_TESTS)
@@ -555,17 +552,15 @@ message(STATUS "========================================")
 message(STATUS "")
 message(STATUS "Dependency Chain (Tier 4):")
 message(STATUS "  network_system")
-message(STATUS "    ├── common_system (Tier 0): ${BUILD_WITH_COMMON_SYSTEM} [REQUIRED - provides ILogger]")
+message(STATUS "    ├── common_system (Tier 0): ${BUILD_WITH_COMMON_SYSTEM} [REQUIRED - provides ILogger, EventBus]")
 message(STATUS "    ├── thread_system (Tier 1): ${BUILD_WITH_THREAD_SYSTEM} [REQUIRED]")
 message(STATUS "    ├── logger_system (Tier 2): ${BUILD_WITH_LOGGER_SYSTEM} [OPTIONAL - runtime binding]")
 message(STATUS "    ├── container_system (Tier 1): ${BUILD_WITH_CONTAINER_SYSTEM}")
-message(STATUS "    └── monitoring_system (Tier 3): ${BUILD_WITH_MONITORING_SYSTEM} [OPTIONAL]")
+message(STATUS "    └── monitoring_system (Tier 3): EventBus [NO COMPILE-TIME DEP]")
 message(STATUS "")
-if(NOT BUILD_WITH_MONITORING_SYSTEM)
-    message(STATUS "Standalone Mode: ENABLED (basic_monitoring)")
-else()
-    message(STATUS "Standalone Mode: DISABLED (using monitoring_system_adapter)")
-endif()
+message(STATUS "Monitoring Mode: EventBus-based metric publishing")
+message(STATUS "  - Metrics published via common_system's EventBus")
+message(STATUS "  - External consumers subscribe to network_metric_event")
 message(STATUS "")
 message(STATUS "Build Options:")
 message(STATUS "  Build type: ${CMAKE_BUILD_TYPE}")

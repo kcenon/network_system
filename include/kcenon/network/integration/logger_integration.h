@@ -262,6 +262,49 @@ private:
     std::unique_ptr<impl> pimpl_;
 };
 
+// =============================================================================
+// Static destruction guard
+//
+// When KCENON_WITH_COMMON_SYSTEM is enabled, LOG_* macros access common_system's
+// GlobalLoggerRegistry singleton. During static destruction, this singleton may
+// be destroyed before network_system's singletons, causing heap corruption when
+// thread pool threads try to log.
+//
+// This guard prevents logging during static destruction by tracking if the
+// logging subsystem is still valid.
+// =============================================================================
+
+namespace detail {
+
+/**
+ * @brief Guard against logging during static destruction
+ *
+ * Uses the Schwarz Counter (Nifty Counter) idiom to detect when static
+ * destruction has begun. This prevents heap corruption when common_system's
+ * GlobalLoggerRegistry is destroyed before network_system's thread pool.
+ */
+class static_destruction_guard {
+public:
+    static_destruction_guard() { ++counter_; }
+    ~static_destruction_guard() { --counter_; }
+
+    /**
+     * @brief Check if logging is safe (not in static destruction)
+     * @return true if logging is safe, false if in static destruction
+     */
+    static bool is_logging_safe() { return counter_ > 0; }
+
+private:
+    static inline int counter_ = 0;
+};
+
+// This static instance ensures the counter is incremented at program start
+// and decremented during static destruction. When counter_ reaches 0,
+// we know static destruction has begun.
+inline static_destruction_guard global_guard_;
+
+} // namespace detail
+
 } // namespace kcenon::network::integration
 
 // =============================================================================
@@ -269,16 +312,25 @@ private:
 //
 // When KCENON_WITH_COMMON_SYSTEM is enabled, delegate to common_system's LOG_* macros.
 // Otherwise, use logger_integration_manager for standalone operation.
+//
+// Note: All macros now check static_destruction_guard to avoid heap corruption
+// during static destruction when common_system's GlobalLoggerRegistry is destroyed.
 // =============================================================================
 
 #if KCENON_WITH_COMMON_SYSTEM
 
-#define NETWORK_LOG_TRACE(msg) LOG_TRACE(msg)
-#define NETWORK_LOG_DEBUG(msg) LOG_DEBUG(msg)
-#define NETWORK_LOG_INFO(msg) LOG_INFO(msg)
-#define NETWORK_LOG_WARN(msg) LOG_WARNING(msg)
-#define NETWORK_LOG_ERROR(msg) LOG_ERROR(msg)
-#define NETWORK_LOG_FATAL(msg) LOG_CRITICAL(msg)
+#define NETWORK_LOG_TRACE(msg) \
+    do { if (::kcenon::network::integration::detail::static_destruction_guard::is_logging_safe()) { LOG_TRACE(msg); } } while(0)
+#define NETWORK_LOG_DEBUG(msg) \
+    do { if (::kcenon::network::integration::detail::static_destruction_guard::is_logging_safe()) { LOG_DEBUG(msg); } } while(0)
+#define NETWORK_LOG_INFO(msg) \
+    do { if (::kcenon::network::integration::detail::static_destruction_guard::is_logging_safe()) { LOG_INFO(msg); } } while(0)
+#define NETWORK_LOG_WARN(msg) \
+    do { if (::kcenon::network::integration::detail::static_destruction_guard::is_logging_safe()) { LOG_WARNING(msg); } } while(0)
+#define NETWORK_LOG_ERROR(msg) \
+    do { if (::kcenon::network::integration::detail::static_destruction_guard::is_logging_safe()) { LOG_ERROR(msg); } } while(0)
+#define NETWORK_LOG_FATAL(msg) \
+    do { if (::kcenon::network::integration::detail::static_destruction_guard::is_logging_safe()) { LOG_CRITICAL(msg); } } while(0)
 
 #else // KCENON_WITH_COMMON_SYSTEM
 
