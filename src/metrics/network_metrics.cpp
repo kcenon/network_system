@@ -32,6 +32,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "kcenon/network/metrics/network_metrics.h"
 #include "kcenon/network/integration/monitoring_integration.h"
+#include "kcenon/network/integration/logger_integration.h"
 #include "kcenon/network/config/feature_flags.h"
 
 #if KCENON_WITH_COMMON_SYSTEM
@@ -52,11 +53,17 @@ namespace {
  * @param labels Additional labels
  *
  * Note: Only available when common_system is enabled (provides EventBus).
+ * Uses static_destruction_guard to prevent heap corruption during static
+ * destruction when common_system's EventBus singleton is destroyed.
  */
 void publish_metric(const std::string& name, double value,
 					events::network_metric_type type,
 					const std::map<std::string, std::string>& labels = {})
 {
+	// Guard against static destruction - EventBus may already be destroyed
+	if (!integration::detail::static_destruction_guard::is_logging_safe()) {
+		return;
+	}
 	auto& bus = kcenon::common::get_event_bus();
 	bus.publish(events::network_metric_event{name, value, type, labels});
 }
