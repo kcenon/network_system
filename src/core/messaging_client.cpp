@@ -54,6 +54,9 @@ messaging_client::messaging_client(std::string_view client_id)
 }
 
 messaging_client::~messaging_client() noexcept {
+  // NOTE: No logging in destructor to prevent heap corruption during static
+  // destruction. When common_system's GlobalLoggerRegistry is destroyed before
+  // this destructor runs, any logging causes heap corruption.
   try {
     // Early exit if already stopped (optimization)
     if (!is_running_.load(std::memory_order_acquire)) {
@@ -62,29 +65,9 @@ messaging_client::~messaging_client() noexcept {
 
     // Ensure client is properly stopped before destruction
     // Ignore the return value in destructor to avoid throwing
-    auto result = stop_client();
-    if (result.is_err()) {
-      // Log error but don't throw (destructors must not throw)
-      NETWORK_LOG_WARN("[messaging_client::~messaging_client] "
-                       "Failed to stop client cleanly: " +
-                       result.error().message + " (Client ID: " + client_id_ +
-                       ")");
-    } else {
-      NETWORK_LOG_DEBUG("[messaging_client::~messaging_client] "
-                        "Client stopped successfully (Client ID: " +
-                        client_id_ + ")");
-    }
-  } catch (const std::exception &e) {
-    // Destructor must not throw - swallow all exceptions but log them
-    NETWORK_LOG_ERROR("[messaging_client::~messaging_client] "
-                      "Exception during cleanup: " +
-                      std::string(e.what()) + " (Client ID: " + client_id_ +
-                      ")");
+    (void)stop_client();
   } catch (...) {
-    // Destructor must not throw - swallow unknown exceptions
-    NETWORK_LOG_ERROR("[messaging_client::~messaging_client] "
-                      "Unknown exception during cleanup (Client ID: " +
-                      client_id_ + ")");
+    // Destructor must not throw - swallow all exceptions silently
   }
 }
 
@@ -152,12 +135,14 @@ auto messaging_client::start_client(std::string_view host, unsigned short port)
 }
 
 auto messaging_client::stop_client() -> VoidResult {
+  // NOTE: No logging in stop_client to prevent heap corruption during static
+  // destruction. This method may be called from destructor when
+  // GlobalLoggerRegistry is already destroyed.
+
   // Use compare_exchange to ensure only one thread executes cleanup
   bool expected = false;
   if (!stop_initiated_.compare_exchange_strong(expected, true)) {
     // Another thread is already stopping or has stopped
-    NETWORK_LOG_DEBUG(
-        "[messaging_client] stop_client already called, returning success");
     return ok();
   }
 
@@ -230,15 +215,13 @@ auto messaging_client::stop_client() -> VoidResult {
     if (stop_promise_.has_value()) {
       try {
         stop_promise_->set_value();
-      } catch (const std::future_error &e) {
-        // Promise already satisfied, ignore
-        NETWORK_LOG_DEBUG("[messaging_client] Promise already satisfied");
+      } catch (const std::future_error &) {
+        // Promise already satisfied, ignore silently
       }
       stop_promise_.reset();
     }
     stop_future_ = std::future<void>();
 
-    NETWORK_LOG_INFO("[messaging_client] stopped.");
     return ok();
   } catch (const std::exception &e) {
     stop_initiated_.store(false);
@@ -408,6 +391,8 @@ auto messaging_client::send_packet(std::vector<uint8_t> &&data) -> VoidResult {
   }
 
   // Using if constexpr for compile-time branching (C++17)
+  // NOTE: No logging in send callbacks to prevent heap corruption during
+  // static destruction.
   if constexpr (std::is_same_v<decltype(local_socket->socket().get_executor()),
                                asio::io_context::executor_type>) {
 #ifdef USE_STD_COROUTINE
@@ -416,27 +401,18 @@ auto messaging_client::send_packet(std::vector<uint8_t> &&data) -> VoidResult {
         local_socket->socket().get_executor(),
         async_send_with_pipeline_co(local_socket, std::move(data), pipeline_,
                                     compress_mode_, encrypt_mode_),
-        [](std::error_code ec) {
-          if (ec) {
-            NETWORK_LOG_ERROR("[messaging_client] Send error: " + ec.message());
-          }
+        [](std::error_code) {
+          // Silently ignore errors - no logging during potential static destruction
         });
 #else
     // Fallback approach
     auto fut =
         async_send_with_pipeline_no_co(local_socket, std::move(data), pipeline_,
                                        compress_mode_, encrypt_mode_);
-    // Use structured binding with try/catch for better error handling (C++17)
     try {
-      auto result_ec = fut.get();
-      if (result_ec) {
-        NETWORK_LOG_ERROR("[messaging_client] Send error: " +
-                          result_ec.message());
-      }
-    } catch (const std::exception &e) {
-      NETWORK_LOG_ERROR(
-          "[messaging_client] Exception while waiting for send: " +
-          std::string(e.what()));
+      (void)fut.get();  // Ignore result - no logging during potential static destruction
+    } catch (...) {
+      // Silently ignore exceptions - no logging during potential static destruction
     }
 #endif
   }

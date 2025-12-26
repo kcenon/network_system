@@ -142,18 +142,20 @@ public:
     }
 
     void stop_io_context(std::shared_ptr<asio::io_context> io_context) {
+        // NOTE: No logging here to prevent heap corruption during static
+        // destruction. This may be called when GlobalLoggerRegistry is destroyed.
         if (io_context) {
-            NETWORK_LOG_DEBUG("[io_context_thread_manager] Stopping io_context");
             io_context->stop();
         }
     }
 
     void stop_all() {
+        // NOTE: No logging here to prevent heap corruption during static
+        // destruction. This may be called when GlobalLoggerRegistry is destroyed.
         std::lock_guard<std::mutex> lock(mutex_);
         for (auto& entry : entries_) {
             auto ctx = entry.context.lock();
             if (ctx) {
-                NETWORK_LOG_DEBUG("[io_context_thread_manager] Stopping: " + entry.component_name);
                 ctx->stop();
             }
         }
