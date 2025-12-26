@@ -113,7 +113,14 @@ auto messaging_client::start_client(std::string_view host, unsigned short port)
       socket_.reset();
     }
 
-    io_context_ = std::make_shared<asio::io_context>();
+    // Use Intentional Leak pattern for io_context to prevent heap corruption
+    // during static destruction phase. The no-op deleter ensures io_context
+    // survives until process termination, avoiding issues when pending async
+    // operations' handlers reference io_context internals.
+    // Memory impact: ~few KB per client (reclaimed by OS on process termination)
+    io_context_ = std::shared_ptr<asio::io_context>(
+        new asio::io_context(),
+        [](asio::io_context*) { /* no-op deleter - intentional leak */ });
     // Create work guard to keep io_context running
     work_guard_ = std::make_unique<
         asio::executor_work_guard<asio::io_context::executor_type>>(
@@ -175,18 +182,53 @@ auto messaging_client::stop_client() -> VoidResult {
       local_socket->socket().close(ec);
     }
 
-    // Release work guard to allow io_context to finish
+    // Cancel pending connection operations FIRST to trigger handler callbacks
+    // with operation_aborted error. This ensures handlers run and clean up
+    // their captured resources (resolver/socket) properly.
+    {
+      std::lock_guard<std::mutex> lock(pending_mutex_);
+      if (pending_resolver_) {
+        pending_resolver_->cancel();
+      }
+      if (pending_socket_) {
+        asio::error_code ec;
+        pending_socket_->cancel(ec);
+        pending_socket_->close(ec);
+      }
+    }
+
+    // Release work guard AFTER cancelling operations.
+    // This allows io_context::run() to complete naturally once all
+    // cancelled handlers have been invoked.
     if (work_guard_) {
       work_guard_.reset();
     }
-    // Stop io_context via unified manager
-    if (io_context_) {
-      integration::io_context_thread_manager::instance().stop_io_context(io_context_);
-    }
-    // Wait for io_context task to complete
+
+    // Wait for io_context::run() to complete. After work_guard is released
+    // and operations are cancelled, run() will return once all pending
+    // handlers (including cancellation callbacks) have been processed.
+    // We do NOT call io_context::stop() here because that would prevent
+    // cancelled handlers from running, causing heap corruption when
+    // resolver/socket destructors run after io_context destruction.
     if (io_context_future_.valid()) {
       io_context_future_.wait();
     }
+
+    // Clear pending resources. At this point, handlers should have already
+    // reset these via the identity check, but clear them explicitly just in case.
+    {
+      std::lock_guard<std::mutex> lock(pending_mutex_);
+      pending_resolver_.reset();
+      pending_socket_.reset();
+    }
+
+    // Now stop io_context to prevent any further work from being posted
+    if (io_context_) {
+      integration::io_context_thread_manager::instance().stop_io_context(
+          io_context_);
+    }
+    // Note: io_context uses intentional leak pattern (no-op deleter),
+    // so reset() just clears the shared_ptr without destroying io_context
     io_context_.reset();
     // Signal stop
     if (stop_promise_.has_value()) {
@@ -245,8 +287,12 @@ auto messaging_client::on_connection_failed(std::error_code ec) -> void {
 auto messaging_client::do_connect(std::string_view host, unsigned short port)
     -> void {
   // Use resolver to get endpoints
-  // Create resolver on heap to keep it alive during async operation
+  // Store resolver as member so we can cancel it during stop_client()
   auto resolver = std::make_shared<tcp::resolver>(*io_context_);
+  {
+    std::lock_guard<std::mutex> lock(pending_mutex_);
+    pending_resolver_ = resolver;
+  }
   auto self = shared_from_this();
 
   NETWORK_LOG_INFO("[messaging_client] Starting async resolve for " +
@@ -257,6 +303,14 @@ auto messaging_client::do_connect(std::string_view host, unsigned short port)
       [this, self, resolver](std::error_code ec,
                              tcp::resolver::results_type results) {
         NETWORK_LOG_INFO("[messaging_client] Resolve callback invoked");
+        // Clear pending resolver only if it's still the same resolver
+        // (prevents race when rapid connect/disconnect overwrites pending_resolver_)
+        {
+          std::lock_guard<std::mutex> lock(pending_mutex_);
+          if (pending_resolver_.get() == resolver.get()) {
+            pending_resolver_.reset();
+          }
+        }
         if (ec) {
           on_connection_failed(ec);
           return;
@@ -264,14 +318,26 @@ auto messaging_client::do_connect(std::string_view host, unsigned short port)
         NETWORK_LOG_INFO(
             "[messaging_client] Resolve successful, starting async connect");
         // Attempt to connect to one of the resolved endpoints
-        // Create socket on heap to avoid dangling reference
+        // Store socket as member so we can cancel it during stop_client()
         auto raw_socket = std::make_shared<tcp::socket>(*io_context_);
+        {
+          std::lock_guard<std::mutex> lock(pending_mutex_);
+          pending_socket_ = raw_socket;
+        }
         asio::async_connect(
             *raw_socket, results,
             [this, self,
              raw_socket](std::error_code connect_ec,
                          [[maybe_unused]] const tcp::endpoint &endpoint) {
               NETWORK_LOG_INFO("[messaging_client] Connect callback invoked");
+              // Clear pending socket only if it's still the same socket
+              // (prevents race when rapid connect/disconnect overwrites pending_socket_)
+              {
+                std::lock_guard<std::mutex> lock(pending_mutex_);
+                if (pending_socket_.get() == raw_socket.get()) {
+                  pending_socket_.reset();
+                }
+              }
               if (connect_ec) {
                 on_connection_failed(connect_ec);
                 return;

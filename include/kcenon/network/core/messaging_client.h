@@ -303,6 +303,16 @@ namespace kcenon::network::core
 		std::shared_ptr<internal::tcp_socket>
 			socket_;   /*!< The \c tcp_socket wrapper once connected. */
 
+		/*!
+		 * \brief Pending connection resources that need explicit cleanup.
+		 * These are stored as members to allow cancellation during stop_client(),
+		 * preventing heap corruption when io_context is destroyed with pending
+		 * async operations.
+		 */
+		mutable std::mutex pending_mutex_; /*!< Protects pending connection state. */
+		std::shared_ptr<asio::ip::tcp::resolver> pending_resolver_;
+		std::shared_ptr<asio::ip::tcp::socket> pending_socket_;
+
 		internal::pipeline
 			pipeline_; /*!< Pipeline for optional compression/encryption. */
 		bool compress_mode_{
