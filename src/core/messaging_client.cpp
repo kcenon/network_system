@@ -256,7 +256,12 @@ auto messaging_client::wait_for_stop() -> void {
 }
 
 auto messaging_client::on_connection_failed(std::error_code ec) -> void {
-  NETWORK_LOG_ERROR("[messaging_client] Connection failed: " + ec.message());
+  // NOTE: No logging here to prevent heap corruption during static destruction.
+  // When common_system's GlobalLoggerRegistry is destroyed before this callback
+  // completes, any logging (even with is_logging_safe() check) causes heap
+  // corruption because the check cannot synchronize with common_system's
+  // static destruction order.
+  (void)ec;  // Suppress unused parameter warning
 
   // Mark as not connected (but keep is_running_ true so destructor calls stop_client)
   is_connected_.store(false);
@@ -267,10 +272,8 @@ auto messaging_client::on_connection_failed(std::error_code ec) -> void {
     if (error_callback_) {
       try {
         error_callback_(ec);
-      } catch (const std::exception &e) {
-        NETWORK_LOG_ERROR(
-            "[messaging_client] Exception in error callback: " +
-            std::string(e.what()));
+      } catch (...) {
+        // Silently ignore exceptions in callback during potential static destruction
       }
     }
   }
@@ -291,14 +294,14 @@ auto messaging_client::do_connect(std::string_view host, unsigned short port)
   }
   auto self = shared_from_this();
 
-  NETWORK_LOG_INFO("[messaging_client] Starting async resolve for " +
-                   std::string(host) + ":" + std::to_string(port));
+  // NOTE: No logging in async handlers to prevent heap corruption during
+  // static destruction. The is_logging_safe() check cannot synchronize with
+  // common_system's static destruction order.
 
   resolver->async_resolve(
       std::string(host), std::to_string(port),
       [this, self, resolver](std::error_code ec,
                              tcp::resolver::results_type results) {
-        NETWORK_LOG_INFO("[messaging_client] Resolve callback invoked");
         // Clear pending resolver only if it's still the same resolver
         // (prevents race when rapid connect/disconnect overwrites pending_resolver_)
         {
@@ -311,8 +314,6 @@ auto messaging_client::do_connect(std::string_view host, unsigned short port)
           on_connection_failed(ec);
           return;
         }
-        NETWORK_LOG_INFO(
-            "[messaging_client] Resolve successful, starting async connect");
         // Attempt to connect to one of the resolved endpoints
         // Store socket as member so we can cancel it during stop_client()
         auto raw_socket = std::make_shared<tcp::socket>(*io_context_);
@@ -325,7 +326,6 @@ auto messaging_client::do_connect(std::string_view host, unsigned short port)
             [this, self,
              raw_socket](std::error_code connect_ec,
                          [[maybe_unused]] const tcp::endpoint &endpoint) {
-              NETWORK_LOG_INFO("[messaging_client] Connect callback invoked");
               // Clear pending socket only if it's still the same socket
               // (prevents race when rapid connect/disconnect overwrites pending_socket_)
               {
@@ -338,8 +338,6 @@ auto messaging_client::do_connect(std::string_view host, unsigned short port)
                 on_connection_failed(connect_ec);
                 return;
               }
-              NETWORK_LOG_INFO(
-                  "[messaging_client] Connect successful, calling on_connect");
               // On success, wrap it in our tcp_socket with mutex protection
               {
                 std::lock_guard<std::mutex> lock(socket_mutex_);
@@ -352,11 +350,12 @@ auto messaging_client::do_connect(std::string_view host, unsigned short port)
 }
 
 auto messaging_client::on_connect(std::error_code ec) -> void {
+  // NOTE: No logging in async handlers to prevent heap corruption during
+  // static destruction. The is_logging_safe() check cannot synchronize with
+  // common_system's static destruction order.
   if (ec) {
-    NETWORK_LOG_ERROR("[messaging_client] on_connect error: " + ec.message());
     return;
   }
-  NETWORK_LOG_INFO("[messaging_client] Connected successfully.");
   is_connected_.store(true);
 
   // Invoke connected callback if set
@@ -365,10 +364,8 @@ auto messaging_client::on_connect(std::error_code ec) -> void {
     if (connected_callback_) {
       try {
         connected_callback_();
-      } catch (const std::exception &e) {
-        NETWORK_LOG_ERROR(
-            "[messaging_client] Exception in connected callback: " +
-            std::string(e.what()));
+      } catch (...) {
+        // Silently ignore exceptions in callback during potential static destruction
       }
     }
   }
@@ -447,11 +444,11 @@ auto messaging_client::send_packet(std::vector<uint8_t> &&data) -> VoidResult {
 }
 
 auto messaging_client::on_receive(std::span<const uint8_t> data) -> void {
+  // NOTE: No logging in async handlers to prevent heap corruption during
+  // static destruction.
   if (!is_connected_.load()) {
     return;
   }
-  NETWORK_LOG_DEBUG("[messaging_client] Received " +
-                    std::to_string(data.size()) + " bytes");
 
   // Invoke receive callback if set
   // Copy span to vector only at API boundary to maintain external callback compatibility
@@ -462,9 +459,8 @@ auto messaging_client::on_receive(std::span<const uint8_t> data) -> void {
         // Single copy point: span -> vector for external callback
         std::vector<uint8_t> data_copy(data.begin(), data.end());
         receive_callback_(data_copy);
-      } catch (const std::exception &e) {
-        NETWORK_LOG_ERROR("[messaging_client] Exception in receive callback: " +
-                          std::string(e.what()));
+      } catch (...) {
+        // Silently ignore exceptions in callback during potential static destruction
       }
     }
   }
@@ -477,7 +473,9 @@ auto messaging_client::on_receive(std::span<const uint8_t> data) -> void {
 }
 
 auto messaging_client::on_error(std::error_code ec) -> void {
-  NETWORK_LOG_ERROR("[messaging_client] Socket error: " + ec.message());
+  // NOTE: No logging in async handlers to prevent heap corruption during
+  // static destruction.
+  (void)ec;  // Suppress unused parameter warning
 
   // Invoke error callback if set
   {
@@ -485,9 +483,8 @@ auto messaging_client::on_error(std::error_code ec) -> void {
     if (error_callback_) {
       try {
         error_callback_(ec);
-      } catch (const std::exception &e) {
-        NETWORK_LOG_ERROR("[messaging_client] Exception in error callback: " +
-                          std::string(e.what()));
+      } catch (...) {
+        // Silently ignore exceptions in callback during potential static destruction
       }
     }
   }
@@ -498,10 +495,8 @@ auto messaging_client::on_error(std::error_code ec) -> void {
     if (disconnected_callback_) {
       try {
         disconnected_callback_();
-      } catch (const std::exception &e) {
-        NETWORK_LOG_ERROR(
-            "[messaging_client] Exception in disconnected callback: " +
-            std::string(e.what()));
+      } catch (...) {
+        // Silently ignore exceptions in callback during potential static destruction
       }
     }
   }

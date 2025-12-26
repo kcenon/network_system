@@ -112,24 +112,23 @@ public:
         // Note: Capture total_completed_ by pointer to avoid capturing 'this',
         // which can cause heap corruption during static destruction.
         auto* completed_ptr = &total_completed_;
-        pool->submit([ctx_weak, name, caller_promise, completed_ptr]() {
+        // Submit io_context::run task to thread pool
+        // IMPORTANT: Avoid logging inside this task to prevent heap corruption during
+        // static destruction. When common_system's GlobalLoggerRegistry is destroyed
+        // before this thread pool task completes, logging causes heap corruption.
+        // Use detail::static_destruction_guard::is_logging_safe() for any necessary logging.
+        pool->submit([ctx_weak, caller_promise, completed_ptr]() {
             auto ctx = ctx_weak.lock();
             if (!ctx) {
-                NETWORK_LOG_WARN("[io_context_thread_manager] io_context expired before run: " + name);
+                // io_context expired - this can happen during rapid shutdown
                 caller_promise->set_value();
                 return;
             }
 
-            NETWORK_LOG_INFO("[io_context_thread_manager] Starting io_context: " + name);
             try {
                 ctx->run();
-                NETWORK_LOG_INFO("[io_context_thread_manager] io_context completed: " + name);
                 caller_promise->set_value();
-            } catch (const std::exception& e) {
-                NETWORK_LOG_ERROR("[io_context_thread_manager] Exception in io_context " + name + ": " + e.what());
-                caller_promise->set_exception(std::current_exception());
             } catch (...) {
-                NETWORK_LOG_ERROR("[io_context_thread_manager] Unknown exception in io_context: " + name);
                 caller_promise->set_exception(std::current_exception());
             }
 
