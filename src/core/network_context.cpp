@@ -38,9 +38,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * @date 2025-01-13
  */
 
-#include <kcenon/network/config/feature_flags.h>
-
 #include "kcenon/network/core/network_context.h"
+#include "kcenon/network/config/feature_flags.h"
+
 #include <thread>
 #include <mutex>
 
@@ -59,10 +59,7 @@ public:
 
     std::shared_ptr<integration::thread_pool_interface> thread_pool_;
     std::shared_ptr<integration::logger_interface> logger_;
-
-#if KCENON_WITH_MONITORING_SYSTEM
     std::shared_ptr<integration::monitoring_interface> monitoring_;
-#endif
 
     bool initialized_ = false;
     bool owns_thread_pool_ = false;
@@ -140,12 +137,11 @@ void network_context::initialize(size_t thread_count) {
         integration::logger_integration_manager::instance().set_logger(pimpl_->logger_);
     }
 
-#if KCENON_WITH_MONITORING_SYSTEM
     // Initialize monitoring if not already set
+    // Note: Uses basic_monitoring by default. Metrics are also published via EventBus.
     if (!pimpl_->monitoring_) {
-        pimpl_->monitoring_ = std::make_shared<integration::monitoring_system_adapter>("network_system");
+        pimpl_->monitoring_ = integration::monitoring_integration_manager::instance().get_monitoring();
     }
-#endif
 
     pimpl_->initialized_ = true;
 
@@ -168,11 +164,9 @@ void network_context::shutdown() {
         pimpl_->logger_->log(integration::log_level::info, "network_context shutting down");
     }
 
-#if KCENON_WITH_MONITORING_SYSTEM
     if (pimpl_->monitoring_) {
         pimpl_->monitoring_.reset();
     }
-#endif
 
     // Only stop thread pool if we own it
     if (pimpl_->owns_thread_pool_ && pimpl_->thread_pool_) {
@@ -215,16 +209,20 @@ std::shared_ptr<integration::logger_interface> network_context::get_logger() {
     return pimpl_->logger_;
 }
 
-#if KCENON_WITH_MONITORING_SYSTEM
 void network_context::set_monitoring(std::shared_ptr<integration::monitoring_interface> monitoring) {
     std::lock_guard<std::mutex> lock(pimpl_->mutex_);
     pimpl_->monitoring_ = monitoring;
+    // Also update the integration manager for backward compatibility
+    integration::monitoring_integration_manager::instance().set_monitoring(monitoring);
 }
 
 std::shared_ptr<integration::monitoring_interface> network_context::get_monitoring() {
     std::lock_guard<std::mutex> lock(pimpl_->mutex_);
+    if (!pimpl_->monitoring_) {
+        // Return the default from integration manager
+        return integration::monitoring_integration_manager::instance().get_monitoring();
+    }
     return pimpl_->monitoring_;
 }
-#endif
 
 } // namespace kcenon::network::core
