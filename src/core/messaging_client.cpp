@@ -197,35 +197,31 @@ auto messaging_client::stop_client() -> VoidResult {
       }
     }
 
-    // Release work guard AFTER cancelling operations.
-    // This allows io_context::run() to complete naturally once all
-    // cancelled handlers have been invoked.
+    // Release work guard to allow io_context to finish
     if (work_guard_) {
       work_guard_.reset();
     }
 
-    // Wait for io_context::run() to complete. After work_guard is released
-    // and operations are cancelled, run() will return once all pending
-    // handlers (including cancellation callbacks) have been processed.
-    // We do NOT call io_context::stop() here because that would prevent
-    // cancelled handlers from running, causing heap corruption when
-    // resolver/socket destructors run after io_context destruction.
+    // Stop io_context BEFORE waiting. This ensures io_context::run() returns
+    // promptly without waiting for pending async operations to complete.
+    // This is safe because io_context uses intentional leak pattern (no-op deleter),
+    // so any handlers that don't run won't cause heap corruption since
+    // io_context won't be destroyed.
+    if (io_context_) {
+      integration::io_context_thread_manager::instance().stop_io_context(
+          io_context_);
+    }
+
+    // Wait for io_context task to complete - should return immediately after stop()
     if (io_context_future_.valid()) {
       io_context_future_.wait();
     }
 
-    // Clear pending resources. At this point, handlers should have already
-    // reset these via the identity check, but clear them explicitly just in case.
+    // Clear pending resources after io_context is stopped
     {
       std::lock_guard<std::mutex> lock(pending_mutex_);
       pending_resolver_.reset();
       pending_socket_.reset();
-    }
-
-    // Now stop io_context to prevent any further work from being posted
-    if (io_context_) {
-      integration::io_context_thread_manager::instance().stop_io_context(
-          io_context_);
     }
     // Note: io_context uses intentional leak pattern (no-op deleter),
     // so reset() just clears the shared_ptr without destroying io_context
