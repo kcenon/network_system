@@ -264,6 +264,24 @@ namespace kcenon::network::core
 				io_context_future_.wait();
 			}
 
+			// Step 5.5: Run remaining handlers to clean up pending async operations.
+			// When io_context::stop() is called, pending handlers may not have
+			// executed yet. Running poll() ensures all handlers are invoked and
+			// their captured resources (resolver/socket) are properly destroyed
+			// before io_context is destroyed, preventing heap corruption.
+			if (io_context_)
+			{
+				try
+				{
+					io_context_->restart();
+					io_context_->poll();
+				}
+				catch (...)
+				{
+					// Ignore exceptions during cleanup
+				}
+			}
+
 			// Step 6: NOW it's safe to clear sessions - all async operations are done
 			{
 				std::lock_guard<std::mutex> lock(sessions_mutex_);

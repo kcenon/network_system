@@ -265,6 +265,14 @@ namespace kcenon::network::core
 		 */
 		auto on_error(std::error_code ec) -> void;
 
+		/*!
+		 * \brief Handles connection failure during async resolve or connect.
+		 * \param ec The error code from the failed operation.
+		 *
+		 * Cleans up resources and signals stop to prevent hangs in destructor.
+		 */
+		auto on_connection_failed(std::error_code ec) -> void;
+
 	private:
 		std::string client_id_; /*!< Identifier or name for this client. */
 
@@ -294,6 +302,16 @@ namespace kcenon::network::core
 		mutable std::mutex socket_mutex_; /*!< Protects socket_ from data races. */
 		std::shared_ptr<internal::tcp_socket>
 			socket_;   /*!< The \c tcp_socket wrapper once connected. */
+
+		/*!
+		 * \brief Pending connection resources that need explicit cleanup.
+		 * These are stored as members to allow cancellation during stop_client(),
+		 * preventing heap corruption when io_context is destroyed with pending
+		 * async operations.
+		 */
+		mutable std::mutex pending_mutex_; /*!< Protects pending connection state. */
+		std::shared_ptr<asio::ip::tcp::resolver> pending_resolver_;
+		std::shared_ptr<asio::ip::tcp::socket> pending_socket_;
 
 		internal::pipeline
 			pipeline_; /*!< Pipeline for optional compression/encryption. */

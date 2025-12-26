@@ -86,6 +86,13 @@
 //==============================================================================
 // Monitoring System Integration
 //==============================================================================
+// DEPRECATED: Since issue #342, network_system uses EventBus-based metric
+// publishing instead of compile-time monitoring_system dependency.
+// External consumers should subscribe to network_metric_event via EventBus.
+//
+// This macro is kept for backward compatibility but is no longer used
+// in network_system headers. It will be removed in a future version.
+//==============================================================================
 
 #ifndef KCENON_WITH_MONITORING_SYSTEM
     #if defined(ENABLE_MONITORING_INTEGRATION) || defined(WITH_MONITORING_SYSTEM)

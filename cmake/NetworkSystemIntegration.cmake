@@ -156,27 +156,16 @@ endfunction()
 
 ##################################################
 # Configure monitoring_system integration
+# DEPRECATED: Since issue #342, monitoring uses EventBus pattern
+# This function is kept for backward compatibility but has no effect.
 ##################################################
 function(setup_monitoring_system_integration target)
-    if(NOT BUILD_WITH_MONITORING_SYSTEM)
-        return()
-    endif()
-
-    # First check for CMake target
-    if(MONITORING_SYSTEM_TARGET)
-        target_link_libraries(${target} PUBLIC ${MONITORING_SYSTEM_TARGET})
-        target_compile_definitions(${target} PUBLIC WITH_MONITORING_SYSTEM)
-        message(STATUS "Linked ${target} with monitoring_system target: ${MONITORING_SYSTEM_TARGET}")
-    elseif(MONITORING_SYSTEM_INCLUDE_DIR)
-        target_include_directories(${target} PUBLIC ${MONITORING_SYSTEM_INCLUDE_DIR})
-        if(MONITORING_SYSTEM_LIBRARY)
-            target_link_libraries(${target} PUBLIC ${MONITORING_SYSTEM_LIBRARY})
-        endif()
-        target_compile_definitions(${target} PUBLIC WITH_MONITORING_SYSTEM)
-        message(STATUS "Configured ${target} with monitoring_system paths")
-    else()
-        message(WARNING "BUILD_WITH_MONITORING_SYSTEM is ON but monitoring_system not found")
-        set(BUILD_WITH_MONITORING_SYSTEM OFF PARENT_SCOPE)
+    # DEPRECATED: No compile-time monitoring_system dependency needed
+    # Metrics are published via common_system's EventBus
+    # External consumers subscribe to network_metric_event
+    if(BUILD_WITH_MONITORING_SYSTEM)
+        message(STATUS "NOTE: BUILD_WITH_MONITORING_SYSTEM is deprecated")
+        message(STATUS "      Monitoring uses EventBus pattern - no compile-time dependency")
     endif()
 endfunction()
 

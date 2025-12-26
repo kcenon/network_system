@@ -32,14 +32,16 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
-#include <kcenon/network/config/feature_flags.h>
-
 /**
  * @file monitoring_integration.h
  * @brief Monitoring system integration interface for network_system
  *
  * This interface provides integration with monitoring_system for metrics
  * collection and performance monitoring capabilities.
+ *
+ * Since issue #342, this module uses EventBus-based metric publishing
+ * instead of compile-time monitoring_system dependency. External consumers
+ * (like monitoring_system) can subscribe to network_metric_event via EventBus.
  *
  * @author kcenon
  * @date 2025-01-26
@@ -167,54 +169,16 @@ namespace kcenon::network::integration
 		std::unique_ptr<impl> pimpl_;
 	};
 
-#if KCENON_WITH_MONITORING_SYSTEM
-	/**
-	 * @class monitoring_system_adapter
-	 * @brief Adapter for monitoring_system integration
-	 *
-	 * This adapter wraps monitoring_system to provide
-	 * the monitoring_interface implementation.
-	 */
-	class monitoring_system_adapter : public monitoring_interface
-	{
-	public:
-		/**
-		 * @brief Constructor
-		 * @param service_name Name of the service being monitored
-		 */
-		explicit monitoring_system_adapter(const std::string& service_name = "network_system");
-
-		~monitoring_system_adapter() override;
-
-		// monitoring_interface implementation
-		void report_counter(const std::string& name, double value,
-							const std::map<std::string, std::string>& labels = {}) override;
-
-		void report_gauge(const std::string& name, double value,
-						  const std::map<std::string, std::string>& labels = {}) override;
-
-		void report_histogram(const std::string& name, double value,
-							  const std::map<std::string, std::string>& labels = {}) override;
-
-		void report_health(const std::string& connection_id, bool is_alive,
-						   double response_time_ms, size_t missed_heartbeats,
-						   double packet_loss_rate) override;
-
-		/**
-		 * @brief Start the monitoring system
-		 */
-		void start();
-
-		/**
-		 * @brief Stop the monitoring system
-		 */
-		void stop();
-
-	private:
-		class impl;
-		std::unique_ptr<impl> pimpl_;
-	};
-#endif // KCENON_WITH_MONITORING_SYSTEM
+	// Note: monitoring_system_adapter has been removed in favor of EventBus-based
+	// metric publishing. See issue #342 for details.
+	//
+	// External consumers (like monitoring_system) should subscribe to
+	// network_metric_event via common_system's EventBus:
+	//
+	//   auto& bus = common::get_event_bus();
+	//   bus.subscribe<network::events::network_metric_event>(
+	//       [](const auto& event) { /* process metric */ }
+	//   );
 
 	/**
 	 * @class monitoring_integration_manager

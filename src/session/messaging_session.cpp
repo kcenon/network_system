@@ -74,6 +74,10 @@ namespace kcenon::network::session
 
 	auto messaging_session::start_session() -> void
 	{
+		// NOTE: No logging in session methods to prevent heap corruption during
+		// static destruction. These methods may run in async handlers when
+		// GlobalLoggerRegistry is already destroyed.
+
 		if (is_stopped_.load())
 		{
 			return;
@@ -100,8 +104,6 @@ namespace kcenon::network::session
 
 		// Begin reading
 		socket_->start_read();
-
-		NETWORK_LOG_INFO("[messaging_session] Started session on server: " + server_id_);
 	}
 
 	auto messaging_session::stop_session() -> void
@@ -120,10 +122,7 @@ namespace kcenon::network::session
 		{
 			std::error_code ec;
 			socket_->socket().close(ec);
-			if (ec)
-			{
-				NETWORK_LOG_ERROR("[messaging_session] Error closing socket: " + ec.message());
-			}
+			// Ignore close errors silently - no logging during potential static destruction
 		}
 
 		// Invoke disconnection callback if set
@@ -135,15 +134,12 @@ namespace kcenon::network::session
 				{
 					disconnection_callback_(server_id_);
 				}
-				catch (const std::exception& e)
+				catch (...)
 				{
-					NETWORK_LOG_ERROR("[messaging_session] Exception in disconnection callback: "
-					                  + std::string(e.what()));
+					// Silently ignore exceptions - no logging during potential static destruction
 				}
 			}
 		}
-
-		NETWORK_LOG_INFO("[messaging_session] Stopped.");
 	}
 
 	auto messaging_session::send_packet(std::vector<uint8_t>&& data) -> void
@@ -170,16 +166,13 @@ if constexpr (std::is_same_v<decltype(socket_->socket().get_executor()), asio::i
 {
 #ifdef USE_STD_COROUTINE
 		// Coroutine-based approach
+		// NOTE: No logging in async callbacks to prevent heap corruption during static destruction
 		asio::co_spawn(socket_->socket().get_executor(),
 					   internal::async_send_with_pipeline_co(socket_, std::move(data),
 												   pipeline_, compress_mode,
 												   encrypt_mode),
-					   [](std::error_code ec)
-					   {
-						   if (ec)
-						   {
-							   NETWORK_LOG_ERROR("[messaging_session] Send error: " + ec.message());
-						   }
+					   [](std::error_code) {
+						   // Silently ignore errors - no logging during potential static destruction
 					   });
 #else
 		// Fallback approach
@@ -188,13 +181,9 @@ if constexpr (std::is_same_v<decltype(socket_->socket().get_executor()), asio::i
 
 		// Use structured binding with try/catch for better error handling (C++17)
 		try {
-			auto result_ec = fut.get();
-			if (result_ec)
-			{
-				NETWORK_LOG_ERROR("[messaging_session] Send error: " + result_ec.message());
-			}
-		} catch (const std::exception& e) {
-			NETWORK_LOG_ERROR("[messaging_session] Exception while waiting for send: " + std::string(e.what()));
+			(void)fut.get();  // Ignore result - no logging during potential static destruction
+		} catch (...) {
+			// Silently ignore exceptions - no logging during potential static destruction
 		}
 #endif
 }
@@ -202,6 +191,9 @@ if constexpr (std::is_same_v<decltype(socket_->socket().get_executor()), asio::i
 
 	auto messaging_session::on_receive(std::span<const uint8_t> data) -> void
 	{
+		// NOTE: No logging in async handlers to prevent heap corruption during
+		// static destruction.
+
 		if (is_stopped_.load())
 		{
 			return;
@@ -210,29 +202,17 @@ if constexpr (std::is_same_v<decltype(socket_->socket().get_executor()), asio::i
 		// Report bytes received metric
 		metrics::metric_reporter::report_bytes_received(data.size());
 
-		NETWORK_LOG_DEBUG("[messaging_session] Received " + std::to_string(data.size())
-				+ " bytes.");
-
 		// Check queue size before adding
 		{
 			std::lock_guard<std::mutex> lock(queue_mutex_);
 			size_t queue_size = pending_messages_.size();
 
 			// Apply backpressure if queue is getting full
-			if (queue_size >= max_pending_messages_)
+			// If queue is severely overflowing, disconnect the session
+			if (queue_size >= max_pending_messages_ * 2)
 			{
-				NETWORK_LOG_WARN("[messaging_session] Queue size (" +
-					std::to_string(queue_size) + ") reached limit (" +
-					std::to_string(max_pending_messages_) + "). Applying backpressure.");
-
-				// If queue is severely overflowing, disconnect the session
-				if (queue_size >= max_pending_messages_ * 2)
-				{
-					NETWORK_LOG_ERROR("[messaging_session] Queue overflow (" +
-						std::to_string(queue_size) + "). Disconnecting abusive client.");
-					stop_session();
-					return;
-				}
+				stop_session();
+				return;
 			}
 
 			// Copy span data into vector only when adding to queue (single copy point)
@@ -246,16 +226,8 @@ if constexpr (std::is_same_v<decltype(socket_->socket().get_executor()), asio::i
 
 	auto messaging_session::on_error(std::error_code ec) -> void
 	{
-		// Differentiate between graceful shutdown (EOF) and actual errors
-		if (ec == asio::error::eof || ec == asio::error::operation_aborted)
-		{
-			NETWORK_LOG_INFO("[messaging_session] Peer closed connection gracefully: "
-			                 + ec.message());
-		}
-		else
-		{
-			NETWORK_LOG_ERROR("[messaging_session] Socket error: " + ec.message());
-		}
+		// NOTE: No logging in async handlers to prevent heap corruption during
+		// static destruction.
 
 		// Invoke error callback if set
 		{
@@ -266,10 +238,9 @@ if constexpr (std::is_same_v<decltype(socket_->socket().get_executor()), asio::i
 				{
 					error_callback_(ec);
 				}
-				catch (const std::exception& e)
+				catch (...)
 				{
-					NETWORK_LOG_ERROR("[messaging_session] Exception in error callback: "
-					                  + std::string(e.what()));
+					// Silently ignore exceptions - no logging during potential static destruction
 				}
 			}
 		}
@@ -279,6 +250,9 @@ if constexpr (std::is_same_v<decltype(socket_->socket().get_executor()), asio::i
 
 	auto messaging_session::process_next_message() -> void
 	{
+		// NOTE: No logging in message processing to prevent heap corruption during
+		// static destruction.
+
 		std::vector<uint8_t> message;
 
 		// Dequeue one message
@@ -293,14 +267,10 @@ if constexpr (std::is_same_v<decltype(socket_->socket().get_executor()), asio::i
 			pending_messages_.pop_front();
 		}
 
-		// Process the message
-		// For now, just log it. In a real implementation, you would:
+		// Process the message:
 		// 1. Decompress + decrypt using pipeline_ if needed
 		// 2. Parse message format (length-prefixed, framed, etc.)
 		// 3. Dispatch to application-level handler
-		NETWORK_LOG_DEBUG("[messaging_session] Processing message of " +
-			std::to_string(message.size()) + " bytes. Queue remaining: " +
-			std::to_string(pending_messages_.size()));
 
 		// Invoke receive callback if set
 		{
@@ -311,10 +281,9 @@ if constexpr (std::is_same_v<decltype(socket_->socket().get_executor()), asio::i
 				{
 					receive_callback_(message);
 				}
-				catch (const std::exception& e)
+				catch (...)
 				{
-					NETWORK_LOG_ERROR("[messaging_session] Exception in receive callback: "
-					                  + std::string(e.what()));
+					// Silently ignore exceptions - no logging during potential static destruction
 				}
 			}
 		}
