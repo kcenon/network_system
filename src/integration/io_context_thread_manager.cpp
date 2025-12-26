@@ -52,11 +52,32 @@ public:
         std::string component_name;
     };
 
-    impl() : total_started_(0), total_completed_(0) {}
+    impl() : total_started_(0), total_completed_(0), shutting_down_(false) {}
 
     ~impl() {
+        shutdown();
+    }
+
+    void shutdown() {
+        // Prevent re-entry and mark shutdown state
+        bool expected = false;
+        if (!shutting_down_.compare_exchange_strong(expected, true)) {
+            return; // Already shutting down
+        }
+
         stop_all();
         wait_all();
+
+        // Stop the thread pool to join worker threads
+        // This is critical to prevent heap corruption during static destruction
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (thread_pool_) {
+            // Cast to basic_thread_pool if possible to call stop()
+            if (auto* basic_pool = dynamic_cast<basic_thread_pool*>(thread_pool_.get())) {
+                basic_pool->stop(true); // wait for pending tasks
+            }
+            thread_pool_.reset();
+        }
     }
 
     std::shared_ptr<thread_pool_interface> get_thread_pool() {
@@ -144,7 +165,10 @@ public:
 
     void stop_io_context(std::shared_ptr<asio::io_context> io_context) {
         if (io_context) {
-            NETWORK_LOG_DEBUG("[io_context_thread_manager] Stopping io_context");
+            // Skip logging during static destruction to avoid heap corruption
+            if (detail::static_destruction_guard::is_logging_safe()) {
+                NETWORK_LOG_DEBUG("[io_context_thread_manager] Stopping io_context");
+            }
             io_context->stop();
         }
     }
@@ -154,7 +178,10 @@ public:
         for (auto& entry : entries_) {
             auto ctx = entry.context.lock();
             if (ctx) {
-                NETWORK_LOG_DEBUG("[io_context_thread_manager] Stopping: " + entry.component_name);
+                // Skip logging during static destruction to avoid heap corruption
+                if (detail::static_destruction_guard::is_logging_safe()) {
+                    NETWORK_LOG_DEBUG("[io_context_thread_manager] Stopping: " + entry.component_name);
+                }
                 ctx->stop();
             }
         }
@@ -247,6 +274,7 @@ private:
     std::vector<context_entry> entries_;
     std::atomic<size_t> total_started_;
     std::atomic<size_t> total_completed_;
+    std::atomic<bool> shutting_down_;
 };
 
 io_context_thread_manager& io_context_thread_manager::instance() {
@@ -262,7 +290,15 @@ io_context_thread_manager::io_context_thread_manager()
     : pimpl_(new impl(), [](impl*) { /* no-op deleter - intentional leak */ }) {
 }
 
-io_context_thread_manager::~io_context_thread_manager() = default;
+io_context_thread_manager::~io_context_thread_manager() {
+    // Explicitly shutdown before static destruction continues.
+    // This is critical because even with no-op deleter on pimpl_, we must ensure
+    // all threads have finished before other static objects are destroyed.
+    // The shutdown() stops io_contexts, waits for them, and joins thread pool workers.
+    if (pimpl_) {
+        pimpl_->shutdown();
+    }
+}
 
 std::future<void> io_context_thread_manager::run_io_context(
     std::shared_ptr<asio::io_context> io_context,
