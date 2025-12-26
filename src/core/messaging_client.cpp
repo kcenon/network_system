@@ -220,8 +220,7 @@ auto messaging_client::wait_for_stop() -> void {
 auto messaging_client::on_connection_failed(std::error_code ec) -> void {
   NETWORK_LOG_ERROR("[messaging_client] Connection failed: " + ec.message());
 
-  // Mark as not running/connected
-  is_running_.store(false);
+  // Mark as not connected (but keep is_running_ true so destructor calls stop_client)
   is_connected_.store(false);
 
   // Invoke error callback if set
@@ -238,20 +237,9 @@ auto messaging_client::on_connection_failed(std::error_code ec) -> void {
     }
   }
 
-  // Release work guard to allow io_context to finish
-  if (work_guard_) {
-    work_guard_.reset();
-  }
-
-  // Signal stop so wait_for_stop() doesn't hang
-  if (stop_promise_.has_value()) {
-    try {
-      stop_promise_->set_value();
-    } catch (const std::future_error &) {
-      // Promise already satisfied, ignore
-    }
-    stop_promise_.reset();
-  }
+  // Note: Do NOT release work_guard_ or signal stop_promise_ here.
+  // The destructor will call stop_client() which handles all cleanup properly.
+  // This avoids race conditions between callback cleanup and destructor cleanup.
 }
 
 auto messaging_client::do_connect(std::string_view host, unsigned short port)
