@@ -265,6 +265,14 @@ namespace kcenon::network::core
 		 */
 		auto on_error(std::error_code ec) -> void;
 
+		/*!
+		 * \brief Handles connection failure during async resolve or connect.
+		 * \param ec The error code from the failed operation.
+		 *
+		 * Cleans up resources and signals stop to prevent hangs in destructor.
+		 */
+		auto on_connection_failed(std::error_code ec) -> void;
+
 	private:
 		std::string client_id_; /*!< Identifier or name for this client. */
 

@@ -217,6 +217,43 @@ auto messaging_client::wait_for_stop() -> void {
   }
 }
 
+auto messaging_client::on_connection_failed(std::error_code ec) -> void {
+  NETWORK_LOG_ERROR("[messaging_client] Connection failed: " + ec.message());
+
+  // Mark as not running/connected
+  is_running_.store(false);
+  is_connected_.store(false);
+
+  // Invoke error callback if set
+  {
+    std::lock_guard<std::mutex> lock(callback_mutex_);
+    if (error_callback_) {
+      try {
+        error_callback_(ec);
+      } catch (const std::exception &e) {
+        NETWORK_LOG_ERROR(
+            "[messaging_client] Exception in error callback: " +
+            std::string(e.what()));
+      }
+    }
+  }
+
+  // Release work guard to allow io_context to finish
+  if (work_guard_) {
+    work_guard_.reset();
+  }
+
+  // Signal stop so wait_for_stop() doesn't hang
+  if (stop_promise_.has_value()) {
+    try {
+      stop_promise_->set_value();
+    } catch (const std::future_error &) {
+      // Promise already satisfied, ignore
+    }
+    stop_promise_.reset();
+  }
+}
+
 auto messaging_client::do_connect(std::string_view host, unsigned short port)
     -> void {
   // Use resolver to get endpoints
@@ -233,8 +270,7 @@ auto messaging_client::do_connect(std::string_view host, unsigned short port)
                              tcp::resolver::results_type results) {
         NETWORK_LOG_INFO("[messaging_client] Resolve callback invoked");
         if (ec) {
-          NETWORK_LOG_ERROR("[messaging_client] Resolve error: " +
-                            ec.message());
+          on_connection_failed(ec);
           return;
         }
         NETWORK_LOG_INFO(
@@ -249,8 +285,7 @@ auto messaging_client::do_connect(std::string_view host, unsigned short port)
                          [[maybe_unused]] const tcp::endpoint &endpoint) {
               NETWORK_LOG_INFO("[messaging_client] Connect callback invoked");
               if (connect_ec) {
-                NETWORK_LOG_ERROR("[messaging_client] Connect error: " +
-                                  connect_ec.message());
+                on_connection_failed(connect_ec);
                 return;
               }
               NETWORK_LOG_INFO(
