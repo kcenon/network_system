@@ -30,113 +30,131 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *****************************************************************************/
 
-#include <kcenon/network/config/feature_flags.h>
-
 #include "kcenon/network/metrics/network_metrics.h"
-#include "kcenon/network/core/network_context.h"
-
-#if KCENON_WITH_MONITORING_SYSTEM
+#include "kcenon/network/events/network_metric_event.h"
 #include "kcenon/network/integration/monitoring_integration.h"
-#endif
+
+#include <kcenon/common/patterns/event_bus.h>
 
 namespace kcenon::network::metrics {
 
-void metric_reporter::report_connection_accepted() {
-#if KCENON_WITH_MONITORING_SYSTEM
-    auto monitoring = core::network_context::instance().get_monitoring();
-    if (monitoring) {
-        monitoring->report_counter(metric_names::CONNECTIONS_TOTAL, 1);
-    }
-#endif
+namespace {
+
+/**
+ * @brief Publish a metric event to the EventBus
+ * @param name Metric name
+ * @param value Metric value
+ * @param type Metric type
+ * @param labels Additional labels
+ */
+void publish_metric(const std::string& name, double value,
+					events::network_metric_type type,
+					const std::map<std::string, std::string>& labels = {})
+{
+	auto& bus = kcenon::common::get_event_bus();
+	bus.publish(events::network_metric_event{name, value, type, labels});
 }
 
-void metric_reporter::report_connection_failed(const std::string& reason) {
-#if KCENON_WITH_MONITORING_SYSTEM
-    auto monitoring = core::network_context::instance().get_monitoring();
-    if (monitoring) {
-        monitoring->report_counter(metric_names::CONNECTIONS_FAILED, 1);
-    }
-#else
-    (void)reason; // Suppress unused parameter warning
-#endif
+} // anonymous namespace
+
+void metric_reporter::report_connection_accepted()
+{
+	// Publish via EventBus for external consumers (e.g., monitoring_system)
+	publish_metric(metric_names::CONNECTIONS_TOTAL, 1.0,
+				   events::network_metric_type::counter,
+				   {{"event", "accepted"}});
+
+	// Also report to local monitoring integration for backward compatibility
+	integration::monitoring_integration_manager::instance().report_counter(
+		metric_names::CONNECTIONS_TOTAL, 1.0);
 }
 
-void metric_reporter::report_bytes_sent(size_t bytes) {
-#if KCENON_WITH_MONITORING_SYSTEM
-    auto monitoring = core::network_context::instance().get_monitoring();
-    if (monitoring) {
-        monitoring->report_counter(metric_names::BYTES_SENT, static_cast<double>(bytes));
-        monitoring->report_counter(metric_names::PACKETS_SENT, 1);
-    }
-#else
-    (void)bytes; // Suppress unused parameter warning
-#endif
+void metric_reporter::report_connection_failed(const std::string& reason)
+{
+	publish_metric(metric_names::CONNECTIONS_FAILED, 1.0,
+				   events::network_metric_type::counter,
+				   {{"reason", reason}});
+
+	integration::monitoring_integration_manager::instance().report_counter(
+		metric_names::CONNECTIONS_FAILED, 1.0, {{"reason", reason}});
 }
 
-void metric_reporter::report_bytes_received(size_t bytes) {
-#if KCENON_WITH_MONITORING_SYSTEM
-    auto monitoring = core::network_context::instance().get_monitoring();
-    if (monitoring) {
-        monitoring->report_counter(metric_names::BYTES_RECEIVED, static_cast<double>(bytes));
-        monitoring->report_counter(metric_names::PACKETS_RECEIVED, 1);
-    }
-#else
-    (void)bytes; // Suppress unused parameter warning
-#endif
+void metric_reporter::report_bytes_sent(size_t bytes)
+{
+	auto byte_value = static_cast<double>(bytes);
+
+	publish_metric(metric_names::BYTES_SENT, byte_value,
+				   events::network_metric_type::counter);
+	publish_metric(metric_names::PACKETS_SENT, 1.0,
+				   events::network_metric_type::counter);
+
+	integration::monitoring_integration_manager::instance().report_counter(
+		metric_names::BYTES_SENT, byte_value);
+	integration::monitoring_integration_manager::instance().report_counter(
+		metric_names::PACKETS_SENT, 1.0);
 }
 
-void metric_reporter::report_latency(double ms) {
-#if KCENON_WITH_MONITORING_SYSTEM
-    auto monitoring = core::network_context::instance().get_monitoring();
-    if (monitoring) {
-        monitoring->report_histogram(metric_names::LATENCY_MS, ms);
-    }
-#else
-    (void)ms; // Suppress unused parameter warning
-#endif
+void metric_reporter::report_bytes_received(size_t bytes)
+{
+	auto byte_value = static_cast<double>(bytes);
+
+	publish_metric(metric_names::BYTES_RECEIVED, byte_value,
+				   events::network_metric_type::counter);
+	publish_metric(metric_names::PACKETS_RECEIVED, 1.0,
+				   events::network_metric_type::counter);
+
+	integration::monitoring_integration_manager::instance().report_counter(
+		metric_names::BYTES_RECEIVED, byte_value);
+	integration::monitoring_integration_manager::instance().report_counter(
+		metric_names::PACKETS_RECEIVED, 1.0);
 }
 
-void metric_reporter::report_error(const std::string& error_type) {
-#if KCENON_WITH_MONITORING_SYSTEM
-    auto monitoring = core::network_context::instance().get_monitoring();
-    if (monitoring) {
-        monitoring->report_counter(metric_names::ERRORS_TOTAL, 1);
-    }
-    (void)error_type; // Suppress unused parameter warning
-#else
-    (void)error_type; // Suppress unused parameter warning
-#endif
+void metric_reporter::report_latency(double ms)
+{
+	publish_metric(metric_names::LATENCY_MS, ms,
+				   events::network_metric_type::histogram);
+
+	integration::monitoring_integration_manager::instance().report_histogram(
+		metric_names::LATENCY_MS, ms);
 }
 
-void metric_reporter::report_timeout() {
-#if KCENON_WITH_MONITORING_SYSTEM
-    auto monitoring = core::network_context::instance().get_monitoring();
-    if (monitoring) {
-        monitoring->report_counter(metric_names::TIMEOUTS_TOTAL, 1);
-    }
-#endif
+void metric_reporter::report_error(const std::string& error_type)
+{
+	publish_metric(metric_names::ERRORS_TOTAL, 1.0,
+				   events::network_metric_type::counter,
+				   {{"error_type", error_type}});
+
+	integration::monitoring_integration_manager::instance().report_counter(
+		metric_names::ERRORS_TOTAL, 1.0, {{"error_type", error_type}});
 }
 
-void metric_reporter::report_active_connections(size_t count) {
-#if KCENON_WITH_MONITORING_SYSTEM
-    auto monitoring = core::network_context::instance().get_monitoring();
-    if (monitoring) {
-        monitoring->report_gauge(metric_names::CONNECTIONS_ACTIVE, static_cast<double>(count));
-    }
-#else
-    (void)count; // Suppress unused parameter warning
-#endif
+void metric_reporter::report_timeout()
+{
+	publish_metric(metric_names::TIMEOUTS_TOTAL, 1.0,
+				   events::network_metric_type::counter);
+
+	integration::monitoring_integration_manager::instance().report_counter(
+		metric_names::TIMEOUTS_TOTAL, 1.0);
 }
 
-void metric_reporter::report_session_duration(double ms) {
-#if KCENON_WITH_MONITORING_SYSTEM
-    auto monitoring = core::network_context::instance().get_monitoring();
-    if (monitoring) {
-        monitoring->report_histogram(metric_names::SESSION_DURATION_MS, ms);
-    }
-#else
-    (void)ms; // Suppress unused parameter warning
-#endif
+void metric_reporter::report_active_connections(size_t count)
+{
+	auto count_value = static_cast<double>(count);
+
+	publish_metric(metric_names::CONNECTIONS_ACTIVE, count_value,
+				   events::network_metric_type::gauge);
+
+	integration::monitoring_integration_manager::instance().report_gauge(
+		metric_names::CONNECTIONS_ACTIVE, count_value);
+}
+
+void metric_reporter::report_session_duration(double ms)
+{
+	publish_metric(metric_names::SESSION_DURATION_MS, ms,
+				   events::network_metric_type::histogram);
+
+	integration::monitoring_integration_manager::instance().report_histogram(
+		metric_names::SESSION_DURATION_MS, ms);
 }
 
 } // namespace kcenon::network::metrics
