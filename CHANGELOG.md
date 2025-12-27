@@ -12,6 +12,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Session Idle Timeout Cleanup**: Implemented automatic idle session detection and cleanup in `session_manager` (#353)
+  - Added `session_info` struct with `last_activity` timestamp tracking
+  - Implemented `cleanup_idle_sessions()` to detect and remove sessions idle beyond `idle_timeout`
+  - Added `update_activity()` method for external activity timestamp updates
+  - Added `get_session_info()` and `get_idle_duration()` helper methods
+  - Added `total_cleaned_up` metric to session statistics
+  - Sessions are gracefully stopped before removal to ensure proper resource cleanup
+  - Comprehensive unit tests covering activity tracking, cleanup, and thread safety
 - **Messaging Zero-Copy Receive**: Migrated messaging components to use `std::span<const uint8_t>` callbacks (#319)
   - `messaging_session` uses `tcp_socket::set_receive_callback_view()` for zero-copy receive
   - `messaging_client` uses `tcp_socket::set_receive_callback_view()` for zero-copy receive
