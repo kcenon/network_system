@@ -410,6 +410,7 @@ thread_integration_manager::instance().set_thread_pool(adapted);
 - 🔒 [TLS Setup Guide](docs/TLS_SETUP_GUIDE.md) - TLS/SSL configuration
 - 🔍 [Troubleshooting](docs/TROUBLESHOOTING.md) - Common issues and solutions
 - 🧪 [Load Test Guide](docs/LOAD_TEST_GUIDE.md) - Load testing procedures
+- 📝 [Design Decisions](docs/DESIGN_DECISIONS.md) - Architectural patterns and rationale
 
 ### Development
 - 🔄 [Integration Guide](docs/INTEGRATION.md) - Ecosystem integration patterns
