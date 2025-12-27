@@ -20,5 +20,13 @@
 # 2. Destructor order of statics is non-deterministic
 # 3. ~100-200 bytes leaked per singleton, reclaimed by OS on process exit
 
+# Thread integration classes
 leak:kcenon::network::integration::basic_thread_pool
 leak:kcenon::network::integration::thread_integration_manager
+
+# IO context management classes
+leak:kcenon::network::integration::io_context_thread_manager
+leak:kcenon::network::core::network_context
+
+# Client io_context (uses same intentional leak pattern)
+leak:kcenon::network::core::messaging_client

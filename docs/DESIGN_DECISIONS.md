@@ -20,12 +20,22 @@ This document explains key design decisions in network_system, particularly patt
 
 ### Overview
 
-The `basic_thread_pool` and `thread_integration_manager` classes in `thread_integration.h` use an **Intentional Leak pattern** where memory is deliberately not freed during destruction. This is not a bug but a carefully considered design decision.
+Several core classes in network_system use an **Intentional Leak pattern** where memory is deliberately not freed during destruction. This is not a bug but a carefully considered design decision.
 
 ### Location
 
-- `include/kcenon/network/integration/thread_integration.h:139-144` (basic_thread_pool)
-- `include/kcenon/network/integration/thread_integration.h:211-216` (thread_integration_manager)
+The following classes use this pattern:
+
+**Thread Integration:**
+- `include/kcenon/network/integration/thread_integration.h` - `basic_thread_pool`
+- `include/kcenon/network/integration/thread_integration.h` - `thread_integration_manager`
+
+**IO Context Management:**
+- `include/kcenon/network/integration/io_context_thread_manager.h` - `io_context_thread_manager`
+- `include/kcenon/network/core/network_context.h` - `network_context`
+
+**Client Components:**
+- `src/core/messaging_client.cpp` - `messaging_client` (io_context)
 
 ### Problem
 
