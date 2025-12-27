@@ -369,6 +369,26 @@ int main() {
 }
 ```
 
+### Thread Pool Adapters
+
+Bidirectional adapters enable interoperability between network_system's thread pool and common_system's executor:
+
+```cpp
+#include <kcenon/network/integration/thread_pool_adapters.h>
+
+using namespace kcenon::network::integration;
+
+// Use network_system pool where IExecutor is expected
+auto network_pool = thread_integration_manager::instance().get_thread_pool();
+auto executor = std::make_shared<network_to_common_thread_adapter>(network_pool);
+// Pass executor to messaging_system, database_system, etc.
+
+// Use external IExecutor in network_system
+auto external_executor = container.resolve<common::interfaces::IExecutor>();
+auto adapted = std::make_shared<common_to_network_thread_adapter>(external_executor);
+thread_integration_manager::instance().set_thread_pool(adapted);
+```
+
 🌐 **[Full Integration Guide →](docs/INTEGRATION.md)**
 
 ---
