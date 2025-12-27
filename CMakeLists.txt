@@ -71,6 +71,11 @@ option(BUILD_WITH_CONTAINER_SYSTEM "Build with container_system integration" ON)
 # compatibility but has no effect. It will be removed in a future version.
 option(BUILD_WITH_MONITORING_SYSTEM "DEPRECATED - monitoring uses EventBus pattern (no compile-time dep)" OFF)
 
+# Official gRPC library integration (issue #360)
+# When enabled, wraps the official grpc++ library for production use.
+# When disabled, uses the existing prototype implementation.
+option(NETWORK_ENABLE_GRPC_OFFICIAL "Use official gRPC library (grpc++) for production" OFF)
+
 ##################################################
 # Dependency Validation (Advisory)
 #
@@ -409,6 +414,101 @@ if(BUILD_ZLIB_COMPRESSION)
     endif()
 endif()
 
+# Official gRPC library support (conditional)
+# See ADR-001 for architecture decision details
+if(NETWORK_ENABLE_GRPC_OFFICIAL)
+    message(STATUS "")
+    message(STATUS "========================================")
+    message(STATUS "Official gRPC Integration (Issue #360)")
+    message(STATUS "========================================")
+
+    # Find gRPC package
+    find_package(gRPC CONFIG QUIET)
+
+    if(gRPC_FOUND)
+        message(STATUS "Found gRPC via CMake config")
+
+        # Find Protobuf (required by gRPC)
+        find_package(Protobuf CONFIG QUIET)
+        if(NOT Protobuf_FOUND)
+            find_package(Protobuf REQUIRED)
+        endif()
+
+        # Add gRPC wrapper sources
+        target_sources(NetworkSystem PRIVATE
+            src/protocols/grpc/grpc_official_wrapper.cpp
+        )
+
+        # Link gRPC libraries
+        target_link_libraries(NetworkSystem PRIVATE
+            gRPC::grpc++
+            gRPC::grpc++_reflection
+            protobuf::libprotobuf
+        )
+
+        # Define compile-time flag
+        target_compile_definitions(NetworkSystem PUBLIC NETWORK_GRPC_OFFICIAL=1)
+
+        message(STATUS "  gRPC++: Enabled")
+        message(STATUS "  Reflection: Enabled")
+        message(STATUS "  Protobuf: ${Protobuf_VERSION}")
+        message(STATUS "")
+        message(STATUS "Note: Existing gRPC API (grpc_server, grpc_client) remains unchanged.")
+        message(STATUS "      Internal implementation now uses official gRPC library.")
+        message(STATUS "========================================")
+    else()
+        # Try pkg-config as fallback
+        find_package(PkgConfig QUIET)
+        if(PkgConfig_FOUND)
+            pkg_check_modules(GRPCPP QUIET grpc++)
+            pkg_check_modules(PROTOBUF QUIET protobuf)
+
+            if(GRPCPP_FOUND AND PROTOBUF_FOUND)
+                target_sources(NetworkSystem PRIVATE
+                    src/protocols/grpc/grpc_official_wrapper.cpp
+                )
+
+                target_include_directories(NetworkSystem PRIVATE
+                    ${GRPCPP_INCLUDE_DIRS}
+                    ${PROTOBUF_INCLUDE_DIRS}
+                )
+
+                target_link_libraries(NetworkSystem PRIVATE
+                    ${GRPCPP_LIBRARIES}
+                    ${PROTOBUF_LIBRARIES}
+                )
+
+                target_compile_definitions(NetworkSystem PUBLIC NETWORK_GRPC_OFFICIAL=1)
+
+                message(STATUS "  gRPC++ (via pkg-config): ${GRPCPP_VERSION}")
+                message(STATUS "  Protobuf (via pkg-config): ${PROTOBUF_VERSION}")
+                message(STATUS "========================================")
+            else()
+                message(WARNING "")
+                message(WARNING "NETWORK_ENABLE_GRPC_OFFICIAL is ON but gRPC not found.")
+                message(WARNING "Falling back to prototype implementation.")
+                message(WARNING "")
+                message(WARNING "Install gRPC:")
+                message(WARNING "  macOS:  brew install grpc")
+                message(WARNING "  Ubuntu: apt-get install libgrpc++-dev protobuf-compiler-grpc")
+                message(WARNING "  vcpkg:  vcpkg install grpc")
+                message(WARNING "========================================")
+                set(NETWORK_ENABLE_GRPC_OFFICIAL OFF)
+            endif()
+        else()
+            message(WARNING "")
+            message(WARNING "NETWORK_ENABLE_GRPC_OFFICIAL is ON but gRPC not found.")
+            message(WARNING "Falling back to prototype implementation.")
+            message(WARNING "")
+            message(WARNING "Install gRPC and ensure it's discoverable via CMake or pkg-config.")
+            message(WARNING "========================================")
+            set(NETWORK_ENABLE_GRPC_OFFICIAL OFF)
+        endif()
+    endif()
+else()
+    message(STATUS "Official gRPC: Disabled (using prototype implementation)")
+endif()
+
 # Set target properties
 set_target_properties(NetworkSystem PROPERTIES
     CXX_STANDARD 20
@@ -574,4 +674,5 @@ message(STATUS "  TLS/SSL support: ${BUILD_TLS_SUPPORT}")
 message(STATUS "  WebSocket support: ${BUILD_WEBSOCKET_SUPPORT}")
 message(STATUS "  Messaging bridge: ${BUILD_MESSAGING_BRIDGE}")
 message(STATUS "  Benchmarks: ${NETWORK_BUILD_BENCHMARKS}")
+message(STATUS "  Official gRPC: ${NETWORK_ENABLE_GRPC_OFFICIAL}")
 message(STATUS "========================================")
