@@ -11,13 +11,12 @@ All rights reserved.
 #include <chrono>
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <shared_mutex>
 #include <unordered_map>
 #include <vector>
 
-namespace kcenon::network::session {
-    class messaging_session;
-}
+#include "kcenon/network/session/messaging_session.h"
 
 namespace kcenon::network::core {
 
@@ -31,6 +30,23 @@ struct session_config {
     std::chrono::milliseconds cleanup_interval{std::chrono::seconds(30)};
     bool enable_backpressure{true};
     double backpressure_threshold{0.8};
+};
+
+/**
+ * @struct session_info
+ * @brief Information about a managed session including activity tracking
+ */
+struct session_info {
+    std::shared_ptr<kcenon::network::session::messaging_session> session;
+    std::chrono::steady_clock::time_point created_at;
+    std::chrono::steady_clock::time_point last_activity;
+
+    explicit session_info(std::shared_ptr<kcenon::network::session::messaging_session> sess)
+        : session(std::move(sess))
+        , created_at(std::chrono::steady_clock::now())
+        , last_activity(created_at)
+    {
+    }
 };
 
 /**
@@ -78,6 +94,7 @@ public:
         , session_count_(0)
         , total_accepted_(0)
         , total_rejected_(0)
+        , total_cleaned_up_(0)
     {
     }
 
@@ -136,7 +153,7 @@ public:
             generate_session_id() : session_id;
 
         // Add to active sessions
-        active_sessions_[id] = session;
+        active_sessions_.emplace(id, session_info(session));
         session_count_.fetch_add(1, std::memory_order_release);
         total_accepted_.fetch_add(1, std::memory_order_relaxed);
 
@@ -169,10 +186,26 @@ public:
 
         auto it = active_sessions_.find(session_id);
         if (it != active_sessions_.end()) {
-            return it->second;
+            return it->second.session;
         }
 
         return nullptr;
+    }
+
+    /**
+     * @brief Update session activity timestamp (thread-safe)
+     * @param session_id Session ID to update
+     *
+     * Call this method when a session sends or receives data
+     * to keep the session alive and prevent idle timeout.
+     */
+    void update_activity(const std::string& session_id) {
+        std::unique_lock<std::shared_mutex> lock(sessions_mutex_);
+
+        auto it = active_sessions_.find(session_id);
+        if (it != active_sessions_.end()) {
+            it->second.last_activity = std::chrono::steady_clock::now();
+        }
     }
 
     /**
@@ -184,8 +217,8 @@ public:
         std::vector<session_ptr> sessions;
         sessions.reserve(active_sessions_.size());
 
-        for (const auto& [id, session] : active_sessions_) {
-            sessions.push_back(session);
+        for (const auto& [id, info] : active_sessions_) {
+            sessions.push_back(info.session);
         }
 
         return sessions;
@@ -201,16 +234,17 @@ public:
             std::shared_lock<std::shared_mutex> lock(sessions_mutex_);
             sessions.reserve(active_sessions_.size());
 
-            for (const auto& [id, session] : active_sessions_) {
-                sessions.push_back(session);
+            for (const auto& [id, info] : active_sessions_) {
+                sessions.push_back(info.session);
             }
         }
 
         // Stop sessions without holding lock
-        for ([[maybe_unused]] auto& session : sessions) {
+        for (auto& session : sessions) {
             try {
-                // TODO: Assuming session has stop() method
-                // session->stop();
+                if (session) {
+                    session->stop_session();
+                }
             } catch (...) {
                 // Ignore errors during shutdown
             }
@@ -225,30 +259,88 @@ public:
     /**
      * @brief Cleanup idle sessions
      * @return Number of sessions cleaned up
+     *
+     * Identifies sessions that have been idle longer than the configured
+     * idle_timeout, gracefully stops them, and removes them from the manager.
+     *
+     * This method should be called periodically, either manually or via
+     * a timer mechanism.
      */
     size_t cleanup_idle_sessions() {
-        [[maybe_unused]] auto now = std::chrono::steady_clock::now();  // TODO: Use for idle check
-        std::vector<std::string> to_remove;
+        auto now = std::chrono::steady_clock::now();
+        std::vector<std::pair<std::string, session_ptr>> to_remove;
 
+        // Identify idle sessions under read lock
         {
             std::shared_lock<std::shared_mutex> lock(sessions_mutex_);
 
-            for ([[maybe_unused]] const auto& [id, session] : active_sessions_) {
-                // TODO: Check if session is idle
-                // This requires session to track last activity time
-                // For now, we'll skip implementation details
+            for (const auto& [id, info] : active_sessions_) {
+                auto idle_duration = std::chrono::duration_cast<std::chrono::milliseconds>(
+                    now - info.last_activity);
+
+                if (idle_duration > config_.idle_timeout) {
+                    to_remove.emplace_back(id, info.session);
+                }
             }
         }
 
-        // Remove idle sessions
+        // Gracefully stop and remove idle sessions
         size_t removed = 0;
-        for (const auto& id : to_remove) {
+        for (const auto& [id, session] : to_remove) {
+            // Stop session gracefully before removal
+            if (session) {
+                try {
+                    session->stop_session();
+                } catch (...) {
+                    // Ignore errors during cleanup
+                }
+            }
+
             if (remove_session(id)) {
                 removed++;
             }
         }
 
+        if (removed > 0) {
+            total_cleaned_up_.fetch_add(removed, std::memory_order_relaxed);
+        }
+
         return removed;
+    }
+
+    /**
+     * @brief Get session info including activity timestamps (thread-safe)
+     * @param session_id Session ID to query
+     * @return Optional session_info if found
+     */
+    [[nodiscard]] std::optional<session_info> get_session_info(const std::string& session_id) const {
+        std::shared_lock<std::shared_mutex> lock(sessions_mutex_);
+
+        auto it = active_sessions_.find(session_id);
+        if (it != active_sessions_.end()) {
+            return it->second;
+        }
+
+        return std::nullopt;
+    }
+
+    /**
+     * @brief Get idle duration for a session (thread-safe)
+     * @param session_id Session ID to query
+     * @return Idle duration, or nullopt if session not found
+     */
+    [[nodiscard]] std::optional<std::chrono::milliseconds> get_idle_duration(
+        const std::string& session_id) const {
+        std::shared_lock<std::shared_mutex> lock(sessions_mutex_);
+
+        auto it = active_sessions_.find(session_id);
+        if (it != active_sessions_.end()) {
+            auto now = std::chrono::steady_clock::now();
+            return std::chrono::duration_cast<std::chrono::milliseconds>(
+                now - it->second.last_activity);
+        }
+
+        return std::nullopt;
     }
 
     /**
@@ -259,8 +351,10 @@ public:
         size_t max_sessions;
         size_t total_accepted;
         size_t total_rejected;
+        size_t total_cleaned_up;
         double utilization;
         bool backpressure_active;
+        std::chrono::milliseconds idle_timeout;
     };
 
     [[nodiscard]] stats get_stats() const {
@@ -269,8 +363,10 @@ public:
         s.max_sessions = config_.max_sessions;
         s.total_accepted = total_accepted_.load(std::memory_order_acquire);
         s.total_rejected = total_rejected_.load(std::memory_order_acquire);
+        s.total_cleaned_up = total_cleaned_up_.load(std::memory_order_acquire);
         s.utilization = get_utilization();
         s.backpressure_active = is_backpressure_active();
+        s.idle_timeout = config_.idle_timeout;
 
         return s;
     }
@@ -299,11 +395,12 @@ private:
     session_config config_;
 
     mutable std::shared_mutex sessions_mutex_;
-    std::unordered_map<std::string, session_ptr> active_sessions_;
+    std::unordered_map<std::string, session_info> active_sessions_;
 
     std::atomic<size_t> session_count_;
     std::atomic<uint64_t> total_accepted_;
     std::atomic<uint64_t> total_rejected_;
+    std::atomic<uint64_t> total_cleaned_up_;
 };
 
 } // namespace kcenon::network::core
