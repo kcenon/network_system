@@ -416,95 +416,64 @@ endif()
 
 # Official gRPC library support (conditional)
 # See ADR-001 for architecture decision details
-if(NETWORK_ENABLE_GRPC_OFFICIAL)
+# gRPC detection is done in NetworkSystemDependencies.cmake via find_grpc_library()
+if(NETWORK_ENABLE_GRPC_OFFICIAL AND GRPC_FOUND)
     message(STATUS "")
     message(STATUS "========================================")
     message(STATUS "Official gRPC Integration (Issue #360)")
     message(STATUS "========================================")
 
-    # Find gRPC package
-    find_package(gRPC CONFIG QUIET)
+    # Add gRPC wrapper sources
+    target_sources(NetworkSystem PRIVATE
+        src/protocols/grpc/grpc_official_wrapper.cpp
+    )
 
-    if(gRPC_FOUND)
-        message(STATUS "Found gRPC via CMake config")
-
-        # Find Protobuf (required by gRPC)
-        find_package(Protobuf CONFIG QUIET)
-        if(NOT Protobuf_FOUND)
-            find_package(Protobuf REQUIRED)
-        endif()
-
-        # Add gRPC wrapper sources
-        target_sources(NetworkSystem PRIVATE
-            src/protocols/grpc/grpc_official_wrapper.cpp
-        )
-
-        # Link gRPC libraries
+    if(GRPC_CMAKE_CONFIG)
+        # Use CMake config targets (preferred)
         target_link_libraries(NetworkSystem PRIVATE
             gRPC::grpc++
             gRPC::grpc++_reflection
             protobuf::libprotobuf
         )
 
-        # Define compile-time flag
-        target_compile_definitions(NetworkSystem PUBLIC NETWORK_GRPC_OFFICIAL=1)
-
-        message(STATUS "  gRPC++: Enabled")
-        message(STATUS "  Reflection: Enabled")
-        message(STATUS "  Protobuf: ${Protobuf_VERSION}")
-        message(STATUS "")
-        message(STATUS "Note: Existing gRPC API (grpc_server, grpc_client) remains unchanged.")
-        message(STATUS "      Internal implementation now uses official gRPC library.")
-        message(STATUS "========================================")
-    else()
-        # Try pkg-config as fallback
-        find_package(PkgConfig QUIET)
-        if(PkgConfig_FOUND)
-            pkg_check_modules(GRPCPP QUIET grpc++)
-            pkg_check_modules(PROTOBUF QUIET protobuf)
-
-            if(GRPCPP_FOUND AND PROTOBUF_FOUND)
-                target_sources(NetworkSystem PRIVATE
-                    src/protocols/grpc/grpc_official_wrapper.cpp
-                )
-
-                target_include_directories(NetworkSystem PRIVATE
-                    ${GRPCPP_INCLUDE_DIRS}
-                    ${PROTOBUF_INCLUDE_DIRS}
-                )
-
-                target_link_libraries(NetworkSystem PRIVATE
-                    ${GRPCPP_LIBRARIES}
-                    ${PROTOBUF_LIBRARIES}
-                )
-
-                target_compile_definitions(NetworkSystem PUBLIC NETWORK_GRPC_OFFICIAL=1)
-
-                message(STATUS "  gRPC++ (via pkg-config): ${GRPCPP_VERSION}")
-                message(STATUS "  Protobuf (via pkg-config): ${PROTOBUF_VERSION}")
-                message(STATUS "========================================")
-            else()
-                message(WARNING "")
-                message(WARNING "NETWORK_ENABLE_GRPC_OFFICIAL is ON but gRPC not found.")
-                message(WARNING "Falling back to prototype implementation.")
-                message(WARNING "")
-                message(WARNING "Install gRPC:")
-                message(WARNING "  macOS:  brew install grpc")
-                message(WARNING "  Ubuntu: apt-get install libgrpc++-dev protobuf-compiler-grpc")
-                message(WARNING "  vcpkg:  vcpkg install grpc")
-                message(WARNING "========================================")
-                set(NETWORK_ENABLE_GRPC_OFFICIAL OFF)
-            endif()
-        else()
-            message(WARNING "")
-            message(WARNING "NETWORK_ENABLE_GRPC_OFFICIAL is ON but gRPC not found.")
-            message(WARNING "Falling back to prototype implementation.")
-            message(WARNING "")
-            message(WARNING "Install gRPC and ensure it's discoverable via CMake or pkg-config.")
-            message(WARNING "========================================")
-            set(NETWORK_ENABLE_GRPC_OFFICIAL OFF)
+        # Link abseil if found separately (gRPC 1.50+ requirement)
+        if(ABSEIL_FOUND)
+            # abseil is typically linked transitively through gRPC::grpc++
+            # but explicit linking may be needed for some configurations
+            message(STATUS "  Abseil: Linked via gRPC")
         endif()
+
+        message(STATUS "  gRPC++: Enabled (CMake config)")
+        message(STATUS "  Reflection: Enabled")
+        if(DEFINED Protobuf_VERSION)
+            message(STATUS "  Protobuf: ${Protobuf_VERSION}")
+        endif()
+    elseif(GRPC_PKGCONFIG)
+        # Use pkg-config libraries
+        target_include_directories(NetworkSystem PRIVATE
+            ${GRPCPP_INCLUDE_DIRS}
+            ${PROTOBUF_INCLUDE_DIRS}
+        )
+
+        target_link_libraries(NetworkSystem PRIVATE
+            ${GRPCPP_LIBRARIES}
+            ${PROTOBUF_LIBRARIES}
+        )
+
+        message(STATUS "  gRPC++: Enabled (pkg-config)")
+        message(STATUS "  Reflection: Manual linking required")
     endif()
+
+    # Define compile-time flag
+    target_compile_definitions(NetworkSystem PUBLIC NETWORK_GRPC_OFFICIAL=1)
+
+    message(STATUS "")
+    message(STATUS "Note: Existing gRPC API (grpc_server, grpc_client) remains unchanged.")
+    message(STATUS "      Internal implementation now uses official gRPC library.")
+    message(STATUS "========================================")
+elseif(NETWORK_ENABLE_GRPC_OFFICIAL AND NOT GRPC_FOUND)
+    # gRPC was requested but not found - warning already printed by find_grpc_library()
+    message(STATUS "Official gRPC: Disabled (gRPC not found, using prototype)")
 else()
     message(STATUS "Official gRPC: Disabled (using prototype implementation)")
 endif()

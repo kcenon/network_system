@@ -577,6 +577,124 @@ function(find_monitoring_system)
 endfunction()
 
 ##################################################
+# Find gRPC library (optional - for NETWORK_ENABLE_GRPC_OFFICIAL)
+#
+# gRPC is a complex library with many dependencies (protobuf, abseil, etc.)
+# FetchContent is not recommended due to long build times (~30+ minutes).
+# Instead, we recommend using a package manager:
+#   - macOS:  brew install grpc
+#   - Ubuntu: apt-get install libgrpc++-dev protobuf-compiler-grpc
+#   - vcpkg:  vcpkg install grpc
+#
+# Required versions:
+#   - grpc++ >= 1.50.0
+#   - protobuf >= 3.21.0
+#   - abseil (bundled with grpc, but may need explicit linking)
+##################################################
+function(find_grpc_library)
+    if(NOT NETWORK_ENABLE_GRPC_OFFICIAL)
+        set(GRPC_FOUND FALSE PARENT_SCOPE)
+        return()
+    endif()
+
+    message(STATUS "Looking for gRPC library (official)...")
+
+    # Try CMake config package first (preferred - works with vcpkg, brew, etc.)
+    find_package(gRPC CONFIG QUIET)
+    if(gRPC_FOUND)
+        message(STATUS "Found gRPC via CMake config")
+
+        # Get version if available
+        if(DEFINED gRPC_VERSION)
+            message(STATUS "  gRPC version: ${gRPC_VERSION}")
+            if(gRPC_VERSION VERSION_LESS "1.50.0")
+                message(WARNING "gRPC version ${gRPC_VERSION} is below recommended 1.50.0")
+            endif()
+        endif()
+
+        # Find Protobuf (required by gRPC)
+        find_package(Protobuf CONFIG QUIET)
+        if(NOT Protobuf_FOUND)
+            find_package(Protobuf REQUIRED)
+        endif()
+        message(STATUS "  Protobuf version: ${Protobuf_VERSION}")
+
+        if(Protobuf_VERSION VERSION_LESS "3.21.0")
+            message(WARNING "Protobuf version ${Protobuf_VERSION} is below recommended 3.21.0")
+        endif()
+
+        # Find absl (required by gRPC >= 1.50)
+        # gRPC 1.50+ requires abseil, which is usually bundled or installed alongside
+        find_package(absl CONFIG QUIET)
+        if(absl_FOUND)
+            message(STATUS "  Abseil: Found")
+            set(ABSEIL_FOUND TRUE PARENT_SCOPE)
+        else()
+            # abseil might be bundled with gRPC installation
+            message(STATUS "  Abseil: Not found separately (may be bundled with gRPC)")
+            set(ABSEIL_FOUND FALSE PARENT_SCOPE)
+        endif()
+
+        set(GRPC_FOUND TRUE PARENT_SCOPE)
+        set(GRPC_CMAKE_CONFIG TRUE PARENT_SCOPE)
+        return()
+    endif()
+
+    # Try pkg-config as fallback
+    find_package(PkgConfig QUIET)
+    if(PkgConfig_FOUND)
+        pkg_check_modules(GRPCPP QUIET grpc++)
+        pkg_check_modules(PROTOBUF QUIET protobuf)
+        pkg_check_modules(ABSL_BASE QUIET absl_base)
+
+        if(GRPCPP_FOUND AND PROTOBUF_FOUND)
+            message(STATUS "Found gRPC via pkg-config")
+            message(STATUS "  gRPC++ version: ${GRPCPP_VERSION}")
+            message(STATUS "  Protobuf version: ${PROTOBUF_VERSION}")
+
+            if(ABSL_BASE_FOUND)
+                message(STATUS "  Abseil: Found")
+                set(ABSEIL_FOUND TRUE PARENT_SCOPE)
+            else()
+                message(STATUS "  Abseil: Not found separately")
+                set(ABSEIL_FOUND FALSE PARENT_SCOPE)
+            endif()
+
+            set(GRPC_FOUND TRUE PARENT_SCOPE)
+            set(GRPC_PKGCONFIG TRUE PARENT_SCOPE)
+            set(GRPCPP_INCLUDE_DIRS ${GRPCPP_INCLUDE_DIRS} PARENT_SCOPE)
+            set(GRPCPP_LIBRARIES ${GRPCPP_LIBRARIES} PARENT_SCOPE)
+            set(PROTOBUF_INCLUDE_DIRS ${PROTOBUF_INCLUDE_DIRS} PARENT_SCOPE)
+            set(PROTOBUF_LIBRARIES ${PROTOBUF_LIBRARIES} PARENT_SCOPE)
+            return()
+        endif()
+    endif()
+
+    # gRPC not found
+    message(WARNING "")
+    message(WARNING "========================================")
+    message(WARNING "gRPC not found")
+    message(WARNING "========================================")
+    message(WARNING "")
+    message(WARNING "NETWORK_ENABLE_GRPC_OFFICIAL is ON but gRPC was not found.")
+    message(WARNING "The prototype implementation will be used instead.")
+    message(WARNING "")
+    message(WARNING "To use the official gRPC library, install it using:")
+    message(WARNING "  macOS:   brew install grpc")
+    message(WARNING "  Ubuntu:  apt-get install libgrpc++-dev protobuf-compiler-grpc")
+    message(WARNING "  vcpkg:   vcpkg install grpc")
+    message(WARNING "  Windows: vcpkg install grpc:x64-windows")
+    message(WARNING "")
+    message(WARNING "Required versions:")
+    message(WARNING "  grpc++ >= 1.50.0")
+    message(WARNING "  protobuf >= 3.21.0")
+    message(WARNING "========================================")
+
+    set(GRPC_FOUND FALSE PARENT_SCOPE)
+    set(NETWORK_ENABLE_GRPC_OFFICIAL OFF PARENT_SCOPE)
+endfunction()
+
+##################################################
 # Main dependency finding function
 ##################################################
 function(find_network_system_dependencies)
@@ -589,6 +707,7 @@ function(find_network_system_dependencies)
     find_logger_system()
     find_monitoring_system()
     find_common_system()
+    find_grpc_library()
 
     # Export all variables to parent scope
     # ASIO variables (standalone only - Boost.ASIO not supported)
@@ -627,12 +746,23 @@ function(find_network_system_dependencies)
     set(COMMON_SYSTEM_FOUND ${COMMON_SYSTEM_FOUND} PARENT_SCOPE)
     set(COMMON_SYSTEM_INCLUDE_DIR ${COMMON_SYSTEM_INCLUDE_DIR} PARENT_SCOPE)
 
+    # gRPC variables (optional - for NETWORK_ENABLE_GRPC_OFFICIAL)
+    set(GRPC_FOUND ${GRPC_FOUND} PARENT_SCOPE)
+    set(GRPC_CMAKE_CONFIG ${GRPC_CMAKE_CONFIG} PARENT_SCOPE)
+    set(GRPC_PKGCONFIG ${GRPC_PKGCONFIG} PARENT_SCOPE)
+    set(GRPCPP_INCLUDE_DIRS ${GRPCPP_INCLUDE_DIRS} PARENT_SCOPE)
+    set(GRPCPP_LIBRARIES ${GRPCPP_LIBRARIES} PARENT_SCOPE)
+    set(PROTOBUF_INCLUDE_DIRS ${PROTOBUF_INCLUDE_DIRS} PARENT_SCOPE)
+    set(PROTOBUF_LIBRARIES ${PROTOBUF_LIBRARIES} PARENT_SCOPE)
+    set(ABSEIL_FOUND ${ABSEIL_FOUND} PARENT_SCOPE)
+
     # Update BUILD_WITH_* flags if systems not found
     set(BUILD_WITH_CONTAINER_SYSTEM ${BUILD_WITH_CONTAINER_SYSTEM} PARENT_SCOPE)
     set(BUILD_WITH_THREAD_SYSTEM ${BUILD_WITH_THREAD_SYSTEM} PARENT_SCOPE)
     set(BUILD_WITH_LOGGER_SYSTEM ${BUILD_WITH_LOGGER_SYSTEM} PARENT_SCOPE)
     set(BUILD_WITH_MONITORING_SYSTEM ${BUILD_WITH_MONITORING_SYSTEM} PARENT_SCOPE)
     set(BUILD_WITH_COMMON_SYSTEM ${BUILD_WITH_COMMON_SYSTEM} PARENT_SCOPE)
+    set(NETWORK_ENABLE_GRPC_OFFICIAL ${NETWORK_ENABLE_GRPC_OFFICIAL} PARENT_SCOPE)
 
     message(STATUS "Dependency detection complete")
 endfunction()

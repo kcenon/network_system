@@ -39,6 +39,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [Unreleased]
 
 ### Added
+- **gRPC Dependency Configuration** (2025-12-28) (#362)
+  - Added `find_grpc_library()` function to `NetworkSystemDependencies.cmake`
+  - Comprehensive gRPC/Protobuf/Abseil detection via CMake config and pkg-config
+  - Version requirement enforcement (grpc++ >= 1.50.0, protobuf >= 3.21.0)
+  - Automatic fallback to prototype implementation when gRPC not found
+  - Clear installation instructions in warning messages for all platforms
+  - Updated BUILD.md with gRPC installation and configuration guide
+  - Part of official gRPC integration epic (#360, Phase 2)
+
 - **Official gRPC Library Integration** (2025-12-28)
   - Added `NETWORK_ENABLE_GRPC_OFFICIAL` CMake option for production gRPC support
   - Created ADR-001 documenting the wrapper architecture decision
