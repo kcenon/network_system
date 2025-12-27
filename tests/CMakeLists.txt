@@ -283,6 +283,38 @@ if(GTest_FOUND OR GTEST_FOUND)
     )
     message(STATUS "TCP socket tests enabled")
 
+    # Session manager idle timeout tests
+    add_executable(network_session_manager_test
+        unit/session_manager_test.cpp
+    )
+
+    target_link_libraries(network_session_manager_test PRIVATE
+        NetworkSystem
+        GTest::gtest
+        GTest::gtest_main
+        Threads::Threads
+    )
+
+    # Setup ASIO integration
+    setup_asio_integration(network_session_manager_test)
+
+    # Add system integration paths
+    if(COMMON_SYSTEM_INCLUDE_DIR)
+        target_include_directories(network_session_manager_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(network_session_manager_test PRIVATE WITH_COMMON_SYSTEM)
+    endif()
+
+    set_target_properties(network_session_manager_test PROPERTIES
+        CXX_STANDARD 20
+        CXX_STANDARD_REQUIRED ON
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+    )
+
+    gtest_discover_tests(network_session_manager_test
+        DISCOVERY_TIMEOUT 60
+    )
+    message(STATUS "Session manager tests enabled")
+
     # WebSocket frame tests
     if(BUILD_WEBSOCKET_SUPPORT)
         add_executable(network_websocket_frame_test

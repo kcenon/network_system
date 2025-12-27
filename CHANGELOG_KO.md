@@ -12,6 +12,14 @@ Network System 프로젝트의 모든 주요 변경 사항이 이 파일에 문�
 ## [미배포]
 
 ### 추가됨
+- **세션 유휴 타임아웃 정리**: `session_manager`에 자동 유휴 세션 감지 및 정리 구현 (#353)
+  - `last_activity` 타임스탬프 추적이 포함된 `session_info` 구조체 추가
+  - `idle_timeout`을 초과한 유휴 세션을 감지하고 제거하는 `cleanup_idle_sessions()` 구현
+  - 외부에서 활동 타임스탬프를 업데이트할 수 있는 `update_activity()` 메서드 추가
+  - `get_session_info()` 및 `get_idle_duration()` 헬퍼 메서드 추가
+  - 세션 통계에 `total_cleaned_up` 메트릭 추가
+  - 적절한 리소스 정리를 위해 제거 전 세션을 정상 종료
+  - 활동 추적, 정리, 스레드 안전성을 다루는 포괄적인 단위 테스트
 - **Messaging Zero-Copy 수신**: 메시징 컴포넌트를 `std::span<const uint8_t>` 콜백으로 마이그레이션 (#319)
   - `messaging_session`이 `tcp_socket::set_receive_callback_view()`를 사용하여 zero-copy 수신
   - `messaging_client`가 `tcp_socket::set_receive_callback_view()`를 사용하여 zero-copy 수신
