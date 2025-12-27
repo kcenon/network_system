@@ -41,7 +41,13 @@ namespace kcenon::network::internal
 {
 
 	tcp_socket::tcp_socket(asio::ip::tcp::socket socket)
-		: socket_(std::move(socket))
+		: socket_(std::move(socket)), config_{}
+	{
+		// constructor body empty
+	}
+
+	tcp_socket::tcp_socket(asio::ip::tcp::socket socket, const socket_config& config)
+		: socket_(std::move(socket)), config_(config)
 	{
 		// constructor body empty
 	}
@@ -166,12 +172,65 @@ auto tcp_socket::async_send(
     std::function<void(std::error_code, std::size_t)> handler) -> void
 {
     auto self = shared_from_this();
+    std::size_t data_size = data.size();
+
+    // Track pending bytes
+    std::size_t new_pending = pending_bytes_.fetch_add(data_size) + data_size;
+    metrics_.current_pending_bytes.store(new_pending);
+
+    // Update peak pending bytes
+    std::size_t peak = metrics_.peak_pending_bytes.load();
+    while (new_pending > peak &&
+           !metrics_.peak_pending_bytes.compare_exchange_weak(peak, new_pending))
+    {
+        // Loop until we successfully update or find a higher value
+    }
+
+    // Check high water mark for backpressure
+    if (config_.high_water_mark > 0 && !backpressure_active_.load() &&
+        new_pending >= config_.high_water_mark)
+    {
+        backpressure_active_.store(true);
+        metrics_.backpressure_events.fetch_add(1);
+
+        // Invoke backpressure callback
+        auto bp_cb = std::atomic_load(&backpressure_callback_);
+        if (bp_cb && *bp_cb)
+        {
+            (*bp_cb)(true);
+        }
+    }
+
     // Move data into shared_ptr for lifetime management
     auto buffer = std::make_shared<std::vector<uint8_t>>(std::move(data));
     asio::async_write(
         socket_, asio::buffer(*buffer),
-        [handler = std::move(handler), self, buffer](std::error_code ec, std::size_t bytes_transferred)
+        [handler = std::move(handler), self, buffer, data_size](std::error_code ec, std::size_t bytes_transferred)
         {
+            // Update pending bytes on completion
+            std::size_t remaining = self->pending_bytes_.fetch_sub(data_size) - data_size;
+            self->metrics_.current_pending_bytes.store(remaining);
+
+            if (!ec)
+            {
+                self->metrics_.total_bytes_sent.fetch_add(bytes_transferred);
+                self->metrics_.send_count.fetch_add(1);
+            }
+
+            // Check low water mark to release backpressure
+            if (self->config_.low_water_mark > 0 && self->backpressure_active_.load() &&
+                remaining <= self->config_.low_water_mark)
+            {
+                self->backpressure_active_.store(false);
+
+                // Invoke backpressure callback
+                auto bp_cb = std::atomic_load(&self->backpressure_callback_);
+                if (bp_cb && *bp_cb)
+                {
+                    (*bp_cb)(false);
+                }
+            }
+
             if constexpr (std::is_invocable_v<decltype(handler), std::error_code, std::size_t>)
             {
                 if (handler)
@@ -180,6 +239,58 @@ auto tcp_socket::async_send(
                 }
             }
         });
+}
+
+auto tcp_socket::set_backpressure_callback(backpressure_callback callback) -> void
+{
+    auto new_cb = std::make_shared<backpressure_callback>(std::move(callback));
+    std::lock_guard<std::mutex> lock(callback_mutex_);
+    std::atomic_store(&backpressure_callback_, new_cb);
+}
+
+auto tcp_socket::try_send(
+    std::vector<uint8_t>&& data,
+    std::function<void(std::error_code, std::size_t)> handler) -> bool
+{
+    std::size_t data_size = data.size();
+    std::size_t current = pending_bytes_.load();
+
+    // Check if max_pending_bytes limit would be exceeded
+    if (config_.max_pending_bytes > 0 &&
+        current + data_size > config_.max_pending_bytes)
+    {
+        metrics_.rejected_sends.fetch_add(1);
+        return false;
+    }
+
+    // Proceed with async_send
+    async_send(std::move(data), std::move(handler));
+    return true;
+}
+
+auto tcp_socket::pending_bytes() const -> std::size_t
+{
+    return pending_bytes_.load();
+}
+
+auto tcp_socket::is_backpressure_active() const -> bool
+{
+    return backpressure_active_.load();
+}
+
+auto tcp_socket::metrics() const -> const socket_metrics&
+{
+    return metrics_;
+}
+
+auto tcp_socket::reset_metrics() -> void
+{
+    metrics_.reset();
+}
+
+auto tcp_socket::config() const -> const socket_config&
+{
+    return config_;
 }
 
 } // namespace kcenon::network::internal

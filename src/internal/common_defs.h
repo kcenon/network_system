@@ -32,12 +32,87 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
+#include <atomic>
+#include <chrono>
 #include <cstdint>
 #include <string_view>
 
 // Use nested namespace definition (C++17)
 namespace kcenon::network::internal
 {
+	/*!
+	 * \struct socket_config
+	 * \brief Configuration for TCP socket backpressure control.
+	 *
+	 * ### Backpressure Overview
+	 * Backpressure prevents memory exhaustion when sending to slow receivers.
+	 * When pending bytes exceed high_water_mark, the backpressure callback
+	 * is invoked. When bytes drop below low_water_mark, sending can resume.
+	 *
+	 * ### Default Behavior
+	 * With max_pending_bytes=0, backpressure is disabled (unlimited buffering).
+	 */
+	struct socket_config
+	{
+		/*!
+		 * \brief Maximum bytes allowed in pending send buffer.
+		 *
+		 * When this limit is reached, try_send() returns false and
+		 * new sends are rejected until buffer drains.
+		 * Set to 0 for unlimited (default, backward compatible).
+		 */
+		std::size_t max_pending_bytes{0};
+
+		/*!
+		 * \brief High water mark - trigger backpressure callback.
+		 *
+		 * When pending bytes reach this threshold, the backpressure
+		 * callback is invoked with `true` to signal the sender to slow down.
+		 * Default: 1MB
+		 */
+		std::size_t high_water_mark{1024 * 1024};
+
+		/*!
+		 * \brief Low water mark - resume sending.
+		 *
+		 * When pending bytes drop to this threshold after being above
+		 * high_water_mark, the backpressure callback is invoked with
+		 * `false` to signal that sending can resume.
+		 * Default: 256KB
+		 */
+		std::size_t low_water_mark{256 * 1024};
+	};
+
+	/*!
+	 * \struct socket_metrics
+	 * \brief Runtime metrics for socket monitoring.
+	 *
+	 * All counters are atomic for thread-safe access.
+	 * These metrics help diagnose performance issues and tune backpressure.
+	 */
+	struct socket_metrics
+	{
+		std::atomic<std::size_t> total_bytes_sent{0};
+		std::atomic<std::size_t> total_bytes_received{0};
+		std::atomic<std::size_t> current_pending_bytes{0};
+		std::atomic<std::size_t> peak_pending_bytes{0};
+		std::atomic<std::size_t> backpressure_events{0};
+		std::atomic<std::size_t> rejected_sends{0};
+		std::atomic<std::size_t> send_count{0};
+		std::atomic<std::size_t> receive_count{0};
+
+		void reset()
+		{
+			total_bytes_sent.store(0);
+			total_bytes_received.store(0);
+			current_pending_bytes.store(0);
+			peak_pending_bytes.store(0);
+			backpressure_events.store(0);
+			rejected_sends.store(0);
+			send_count.store(0);
+			receive_count.store(0);
+		}
+	};
 	/*!
 	 * \enum data_mode
 	 * \brief Represents a simple enumeration for differentiating data
