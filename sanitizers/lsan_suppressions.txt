@@ -1,0 +1,32 @@
+# LeakSanitizer Suppressions for network_system
+#
+# This file contains intentional leak suppressions for known safe patterns.
+# See docs/DESIGN_DECISIONS.md for detailed explanation of these patterns.
+#
+# Usage:
+#   LSAN_OPTIONS=suppressions=sanitizers/lsan_suppressions.txt ./your_test
+#
+# Or set in CMake (see CMakeLists.txt for automatic configuration).
+
+# =============================================================================
+# Intentional Leak Pattern in Thread Integration
+# =============================================================================
+#
+# The following leaks are intentional to prevent heap corruption during
+# static destruction phase. See docs/DESIGN_DECISIONS.md#intentional-leak-pattern
+#
+# These classes use shared_ptr with no-op deleter because:
+# 1. Worker threads may still be accessing impl members during shutdown
+# 2. Destructor order of statics is non-deterministic
+# 3. ~100-200 bytes leaked per singleton, reclaimed by OS on process exit
+
+# Thread integration classes
+leak:kcenon::network::integration::basic_thread_pool
+leak:kcenon::network::integration::thread_integration_manager
+
+# IO context management classes
+leak:kcenon::network::integration::io_context_thread_manager
+leak:kcenon::network::core::network_context
+
+# Client io_context (uses same intentional leak pattern)
+leak:kcenon::network::core::messaging_client

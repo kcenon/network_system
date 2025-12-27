@@ -185,9 +185,24 @@ private:
     io_context_thread_manager& operator=(io_context_thread_manager&&) = delete;
 
     class impl;
-    // Use shared_ptr with no-op deleter (Intentional Leak pattern) to prevent
-    // heap corruption during static destruction phase when thread pool tasks
-    // may still reference the impl's members.
+
+    /**
+     * @brief PIMPL pointer with intentional leak pattern
+     *
+     * Uses shared_ptr with no-op deleter to prevent heap corruption during
+     * static destruction. This is intentional - see docs/DESIGN_DECISIONS.md
+     * for detailed rationale.
+     *
+     * @note Memory is intentionally not freed. This is safe because:
+     *       - Only ~100-200 bytes per singleton instance
+     *       - Process terminates immediately after static destruction
+     *       - OS reclaims all process memory on exit
+     *
+     * @warning Do not "fix" this by changing to unique_ptr or adding a real
+     *          deleter. Doing so will cause heap corruption on shutdown.
+     *
+     * @see docs/DESIGN_DECISIONS.md#intentional-leak-pattern
+     */
     std::shared_ptr<impl> pimpl_;
 };
 

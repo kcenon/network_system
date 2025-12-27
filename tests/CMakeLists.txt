@@ -5,6 +5,26 @@
 # Enable testing
 enable_testing()
 
+##################################################
+# Sanitizer Suppression Configuration
+##################################################
+#
+# Configure LSAN (LeakSanitizer) to use suppression file for intentional leaks.
+# This prevents false positives from the intentional leak pattern in thread
+# integration. See docs/DESIGN_DECISIONS.md for details.
+
+set(NETWORK_LSAN_SUPPRESSIONS "${CMAKE_CURRENT_SOURCE_DIR}/../sanitizers/lsan_suppressions.txt")
+
+if(EXISTS "${NETWORK_LSAN_SUPPRESSIONS}")
+    # Set LSAN options for all tests via CTest environment
+    set(NETWORK_LSAN_OPTIONS "suppressions=${NETWORK_LSAN_SUPPRESSIONS}")
+
+    # Define a CMake variable for setting test environment
+    set(NETWORK_SANITIZER_ENV "LSAN_OPTIONS=${NETWORK_LSAN_OPTIONS}")
+
+    message(STATUS "LSAN suppressions configured: ${NETWORK_LSAN_SUPPRESSIONS}")
+endif()
+
 # Find test dependencies
 find_package(GTest QUIET)
 find_package(benchmark QUIET)
