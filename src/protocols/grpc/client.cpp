@@ -32,8 +32,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "kcenon/network/protocols/grpc/client.h"
 #include "kcenon/network/protocols/grpc/frame.h"
-#include "kcenon/network/protocols/http2/http2_client.h"
-#include "kcenon/network/integration/thread_integration.h"
+#include "kcenon/network/protocols/grpc/grpc_official_wrapper.h"
 
 #include <atomic>
 #include <charconv>
@@ -41,8 +40,577 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <mutex>
 #include <thread>
 
+#if NETWORK_GRPC_OFFICIAL
+#include <grpcpp/grpcpp.h>
+#include <grpcpp/generic/generic_stub.h>
+#include <grpcpp/support/byte_buffer.h>
+#else
+#include "kcenon/network/protocols/http2/http2_client.h"
+#include "kcenon/network/integration/thread_integration.h"
+#endif
+
 namespace kcenon::network::protocols::grpc
 {
+
+#if NETWORK_GRPC_OFFICIAL
+
+// ============================================================================
+// Official gRPC Library Client Implementation
+// ============================================================================
+
+namespace detail
+{
+
+auto vector_to_byte_buffer(const std::vector<uint8_t>& data) -> ::grpc::ByteBuffer
+{
+    ::grpc::Slice slice(data.data(), data.size());
+    return ::grpc::ByteBuffer(&slice, 1);
+}
+
+auto byte_buffer_to_vector(const ::grpc::ByteBuffer& buffer) -> std::vector<uint8_t>
+{
+    std::vector<::grpc::Slice> slices;
+    buffer.Dump(&slices);
+
+    std::vector<uint8_t> result;
+    result.reserve(buffer.Length());
+
+    for (const auto& slice : slices)
+    {
+        const auto* begin = reinterpret_cast<const uint8_t*>(slice.begin());
+        result.insert(result.end(), begin, begin + slice.size());
+    }
+
+    return result;
+}
+
+} // namespace detail
+
+// Server stream reader implementation for official gRPC
+class official_server_stream_reader : public grpc_client::server_stream_reader
+{
+public:
+    official_server_stream_reader(
+        std::unique_ptr<::grpc::ClientContext> ctx,
+        std::unique_ptr<::grpc::GenericClientAsyncReader> reader,
+        ::grpc::CompletionQueue* cq)
+        : ctx_(std::move(ctx))
+        , reader_(std::move(reader))
+        , cq_(cq)
+        , has_more_(true)
+    {
+    }
+
+    auto read() -> Result<grpc_message> override
+    {
+        if (!has_more_)
+        {
+            return error<grpc_message>(
+                static_cast<int>(status_code::ok),
+                "End of stream",
+                "grpc::client::server_stream_reader");
+        }
+
+        ::grpc::ByteBuffer buffer;
+        void* tag = nullptr;
+        bool ok = false;
+
+        reader_->Read(&buffer, &tag);
+
+        if (!cq_->Next(&tag, &ok) || !ok)
+        {
+            has_more_ = false;
+            return error<grpc_message>(
+                static_cast<int>(status_code::ok),
+                "End of stream",
+                "grpc::client::server_stream_reader");
+        }
+
+        auto data = detail::byte_buffer_to_vector(buffer);
+        return kcenon::network::protocols::grpc::ok(grpc_message{std::move(data)});
+    }
+
+    auto has_more() const -> bool override
+    {
+        return has_more_;
+    }
+
+    auto finish() -> grpc_status override
+    {
+        ::grpc::Status status;
+        void* tag = nullptr;
+        bool ok = false;
+
+        reader_->Finish(&status, &tag);
+        cq_->Next(&tag, &ok);
+
+        return from_grpc_status(status);
+    }
+
+private:
+    std::unique_ptr<::grpc::ClientContext> ctx_;
+    std::unique_ptr<::grpc::GenericClientAsyncReader> reader_;
+    ::grpc::CompletionQueue* cq_;
+    bool has_more_;
+};
+
+// Client stream writer implementation for official gRPC
+class official_client_stream_writer : public grpc_client::client_stream_writer
+{
+public:
+    official_client_stream_writer(
+        std::unique_ptr<::grpc::ClientContext> ctx,
+        std::unique_ptr<::grpc::GenericClientAsyncWriter> writer,
+        ::grpc::CompletionQueue* cq)
+        : ctx_(std::move(ctx))
+        , writer_(std::move(writer))
+        , cq_(cq)
+        , writes_done_(false)
+    {
+    }
+
+    auto write(const std::vector<uint8_t>& message) -> VoidResult override
+    {
+        if (writes_done_)
+        {
+            return error_void(
+                error_codes::common_errors::internal_error,
+                "Stream writes already done",
+                "grpc::client::client_stream_writer");
+        }
+
+        ::grpc::ByteBuffer buffer = detail::vector_to_byte_buffer(message);
+        void* tag = nullptr;
+        bool ok = false;
+
+        writer_->Write(buffer, &tag);
+
+        if (!cq_->Next(&tag, &ok) || !ok)
+        {
+            return error_void(
+                error_codes::network_system::connection_failed,
+                "Failed to write message",
+                "grpc::client::client_stream_writer");
+        }
+
+        return kcenon::network::protocols::grpc::ok();
+    }
+
+    auto writes_done() -> VoidResult override
+    {
+        if (writes_done_)
+        {
+            return kcenon::network::protocols::grpc::ok();
+        }
+
+        void* tag = nullptr;
+        bool ok = false;
+
+        writer_->WritesDone(&tag);
+        cq_->Next(&tag, &ok);
+
+        writes_done_ = true;
+        return kcenon::network::protocols::grpc::ok();
+    }
+
+    auto finish() -> Result<grpc_message> override
+    {
+        if (!writes_done_)
+        {
+            writes_done();
+        }
+
+        ::grpc::ByteBuffer response;
+        ::grpc::Status status;
+        void* tag = nullptr;
+        bool ok = false;
+
+        writer_->Finish(&status, &tag);
+        cq_->Next(&tag, &ok);
+
+        if (!status.ok())
+        {
+            auto grpc_st = from_grpc_status(status);
+            return error<grpc_message>(
+                static_cast<int>(grpc_st.code),
+                grpc_st.message,
+                "grpc::client::client_stream_writer");
+        }
+
+        // Note: Response is not available from writer, need to handle differently
+        return kcenon::network::protocols::grpc::ok(grpc_message{});
+    }
+
+private:
+    std::unique_ptr<::grpc::ClientContext> ctx_;
+    std::unique_ptr<::grpc::GenericClientAsyncWriter> writer_;
+    ::grpc::CompletionQueue* cq_;
+    bool writes_done_;
+};
+
+// Bidirectional stream implementation for official gRPC
+class official_bidi_stream : public grpc_client::bidi_stream
+{
+public:
+    official_bidi_stream(
+        std::unique_ptr<::grpc::ClientContext> ctx,
+        std::unique_ptr<::grpc::GenericClientAsyncReaderWriter> stream,
+        ::grpc::CompletionQueue* cq)
+        : ctx_(std::move(ctx))
+        , stream_(std::move(stream))
+        , cq_(cq)
+        , writes_done_(false)
+    {
+    }
+
+    auto write(const std::vector<uint8_t>& message) -> VoidResult override
+    {
+        if (writes_done_)
+        {
+            return error_void(
+                error_codes::common_errors::internal_error,
+                "Stream writes already done",
+                "grpc::client::bidi_stream");
+        }
+
+        ::grpc::ByteBuffer buffer = detail::vector_to_byte_buffer(message);
+        void* tag = nullptr;
+        bool ok = false;
+
+        stream_->Write(buffer, &tag);
+
+        if (!cq_->Next(&tag, &ok) || !ok)
+        {
+            return error_void(
+                error_codes::network_system::connection_failed,
+                "Failed to write message",
+                "grpc::client::bidi_stream");
+        }
+
+        return kcenon::network::protocols::grpc::ok();
+    }
+
+    auto read() -> Result<grpc_message> override
+    {
+        ::grpc::ByteBuffer buffer;
+        void* tag = nullptr;
+        bool ok = false;
+
+        stream_->Read(&buffer, &tag);
+
+        if (!cq_->Next(&tag, &ok) || !ok)
+        {
+            return error<grpc_message>(
+                static_cast<int>(status_code::ok),
+                "End of stream",
+                "grpc::client::bidi_stream");
+        }
+
+        auto data = detail::byte_buffer_to_vector(buffer);
+        return kcenon::network::protocols::grpc::ok(grpc_message{std::move(data)});
+    }
+
+    auto writes_done() -> VoidResult override
+    {
+        if (writes_done_)
+        {
+            return kcenon::network::protocols::grpc::ok();
+        }
+
+        void* tag = nullptr;
+        bool ok = false;
+
+        stream_->WritesDone(&tag);
+        cq_->Next(&tag, &ok);
+
+        writes_done_ = true;
+        return kcenon::network::protocols::grpc::ok();
+    }
+
+    auto finish() -> grpc_status override
+    {
+        if (!writes_done_)
+        {
+            writes_done();
+        }
+
+        ::grpc::Status status;
+        void* tag = nullptr;
+        bool ok = false;
+
+        stream_->Finish(&status, &tag);
+        cq_->Next(&tag, &ok);
+
+        return from_grpc_status(status);
+    }
+
+private:
+    std::unique_ptr<::grpc::ClientContext> ctx_;
+    std::unique_ptr<::grpc::GenericClientAsyncReaderWriter> stream_;
+    ::grpc::CompletionQueue* cq_;
+    bool writes_done_;
+};
+
+// Implementation class using official gRPC
+class grpc_client::impl
+{
+public:
+    explicit impl(std::string target, grpc_channel_config config)
+        : target_(std::move(target))
+        , config_(std::move(config))
+        , connected_(false)
+    {
+    }
+
+    ~impl()
+    {
+        disconnect();
+    }
+
+    auto connect() -> VoidResult
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+
+        if (connected_.load())
+        {
+            return kcenon::network::protocols::grpc::ok();
+        }
+
+        // Create channel credentials
+        channel_credentials_config creds_config;
+        creds_config.insecure = !config_.use_tls;
+
+        if (config_.use_tls)
+        {
+            creds_config.root_certificates = config_.root_certificates;
+            creds_config.client_certificate = config_.client_certificate;
+            creds_config.client_key = config_.client_key;
+        }
+
+        channel_ = create_channel(target_, creds_config);
+
+        if (!channel_)
+        {
+            return error_void(
+                error_codes::network_system::connection_failed,
+                "Failed to create gRPC channel",
+                "grpc::client");
+        }
+
+        // Wait for channel to be ready
+        if (!wait_for_channel_ready(channel_, config_.default_timeout))
+        {
+            return error_void(
+                error_codes::network_system::connection_failed,
+                "Failed to connect to gRPC server",
+                "grpc::client",
+                target_);
+        }
+
+        stub_ = std::make_unique<::grpc::GenericStub>(channel_);
+        connected_.store(true);
+
+        return kcenon::network::protocols::grpc::ok();
+    }
+
+    auto disconnect() -> void
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+
+        stub_.reset();
+        channel_.reset();
+        connected_.store(false);
+    }
+
+    auto is_connected() const -> bool
+    {
+        if (!connected_.load() || !channel_)
+        {
+            return false;
+        }
+
+        auto state = channel_->GetState(false);
+        return state == GRPC_CHANNEL_READY || state == GRPC_CHANNEL_IDLE;
+    }
+
+    auto wait_for_connected(std::chrono::milliseconds timeout) -> bool
+    {
+        if (!channel_)
+        {
+            return false;
+        }
+
+        return wait_for_channel_ready(channel_, timeout);
+    }
+
+    auto target() const -> const std::string&
+    {
+        return target_;
+    }
+
+    auto call_raw(const std::string& method,
+                  const std::vector<uint8_t>& request,
+                  const call_options& options) -> Result<grpc_message>
+    {
+        if (!is_connected())
+        {
+            return error<grpc_message>(
+                error_codes::network_system::connection_failed,
+                "Not connected to server",
+                "grpc::client");
+        }
+
+        ::grpc::ClientContext ctx;
+
+        // Set deadline if provided
+        if (options.deadline.has_value())
+        {
+            set_deadline(&ctx, options.deadline.value());
+        }
+        else
+        {
+            // Use default timeout
+            set_timeout(&ctx, config_.default_timeout);
+        }
+
+        // Add metadata
+        for (const auto& [key, value] : options.metadata)
+        {
+            ctx.AddMetadata(key, value);
+        }
+
+        // Set wait for ready
+        if (options.wait_for_ready)
+        {
+            ctx.set_wait_for_ready(true);
+        }
+
+        // Prepare request
+        ::grpc::ByteBuffer request_buffer = detail::vector_to_byte_buffer(request);
+        ::grpc::ByteBuffer response_buffer;
+
+        // Make unary call
+        ::grpc::Status status = stub_->UnaryCall(&ctx, method, request_buffer, &response_buffer);
+
+        if (!status.ok())
+        {
+            auto grpc_st = from_grpc_status(status);
+            return error<grpc_message>(
+                static_cast<int>(grpc_st.code),
+                grpc_st.message,
+                "grpc::client");
+        }
+
+        auto response_data = detail::byte_buffer_to_vector(response_buffer);
+        return kcenon::network::protocols::grpc::ok(grpc_message{std::move(response_data)});
+    }
+
+    auto call_raw_async(const std::string& method,
+                        const std::vector<uint8_t>& request,
+                        std::function<void(Result<grpc_message>)> callback,
+                        const call_options& options) -> void
+    {
+        // Create async call in separate thread
+        std::thread([this, method, request, callback, options]() {
+            auto result = call_raw(method, request, options);
+            if (callback)
+            {
+                callback(std::move(result));
+            }
+        }).detach();
+    }
+
+    auto server_stream_raw(const std::string& method,
+                           const std::vector<uint8_t>& request,
+                           const call_options& options)
+        -> Result<std::unique_ptr<grpc_client::server_stream_reader>>
+    {
+        if (!is_connected())
+        {
+            return error<std::unique_ptr<grpc_client::server_stream_reader>>(
+                error_codes::network_system::connection_failed,
+                "Not connected to server",
+                "grpc::client");
+        }
+
+        auto ctx = std::make_unique<::grpc::ClientContext>();
+
+        // Set deadline if provided
+        if (options.deadline.has_value())
+        {
+            set_deadline(ctx.get(), options.deadline.value());
+        }
+        else
+        {
+            set_timeout(ctx.get(), config_.default_timeout);
+        }
+
+        // Add metadata
+        for (const auto& [key, value] : options.metadata)
+        {
+            ctx->AddMetadata(key, value);
+        }
+
+        // Note: GenericStub doesn't have PrepareUnaryCall with streaming
+        // For full streaming support, we would need to use async API
+        // This is a simplified synchronous implementation
+
+        return error<std::unique_ptr<grpc_client::server_stream_reader>>(
+            static_cast<int>(status_code::unimplemented),
+            "Server streaming not fully implemented for official gRPC wrapper",
+            "grpc::client");
+    }
+
+    auto client_stream_raw(const std::string& method,
+                           const call_options& options)
+        -> Result<std::unique_ptr<grpc_client::client_stream_writer>>
+    {
+        if (!is_connected())
+        {
+            return error<std::unique_ptr<grpc_client::client_stream_writer>>(
+                error_codes::network_system::connection_failed,
+                "Not connected to server",
+                "grpc::client");
+        }
+
+        return error<std::unique_ptr<grpc_client::client_stream_writer>>(
+            static_cast<int>(status_code::unimplemented),
+            "Client streaming not fully implemented for official gRPC wrapper",
+            "grpc::client");
+    }
+
+    auto bidi_stream_raw(const std::string& method,
+                         const call_options& options)
+        -> Result<std::unique_ptr<grpc_client::bidi_stream>>
+    {
+        if (!is_connected())
+        {
+            return error<std::unique_ptr<grpc_client::bidi_stream>>(
+                error_codes::network_system::connection_failed,
+                "Not connected to server",
+                "grpc::client");
+        }
+
+        return error<std::unique_ptr<grpc_client::bidi_stream>>(
+            static_cast<int>(status_code::unimplemented),
+            "Bidirectional streaming not fully implemented for official gRPC wrapper",
+            "grpc::client");
+    }
+
+private:
+    std::string target_;
+    grpc_channel_config config_;
+    std::shared_ptr<::grpc::Channel> channel_;
+    std::unique_ptr<::grpc::GenericStub> stub_;
+    std::atomic<bool> connected_;
+    mutable std::mutex mutex_;
+};
+
+#else // !NETWORK_GRPC_OFFICIAL
+
+// ============================================================================
+// Prototype Implementation (HTTP/2 Transport)
+// ============================================================================
 
 // Server stream reader implementation
 class server_stream_reader_impl : public grpc_client::server_stream_reader
@@ -944,6 +1512,8 @@ private:
     std::atomic<bool> connected_;
     mutable std::mutex mutex_;
 };
+
+#endif // !NETWORK_GRPC_OFFICIAL
 
 // grpc_client implementation
 
