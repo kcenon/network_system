@@ -68,6 +68,14 @@ namespace kcenon::network::internal
 	{
 	public:
 		/*!
+		 * \brief Callback type for backpressure notifications.
+		 * \param apply_backpressure True when backpressure should be applied
+		 *        (high water mark reached), false when it can be released
+		 *        (low water mark reached).
+		 */
+		using backpressure_callback = std::function<void(bool apply_backpressure)>;
+
+		/*!
 		 * \brief Constructs a \c tcp_socket by taking ownership of a moved \p
 		 * socket.
 		 * \param socket An \c asio::ip::tcp::socket that must be open/connected
@@ -77,6 +85,13 @@ namespace kcenon::network::internal
 		 * receiving data. For sending, call \c async_send().
 		 */
 		tcp_socket(asio::ip::tcp::socket socket);
+
+		/*!
+		 * \brief Constructs a \c tcp_socket with custom configuration.
+		 * \param socket An \c asio::ip::tcp::socket that must be open/connected.
+		 * \param config Socket configuration including backpressure settings.
+		 */
+		tcp_socket(asio::ip::tcp::socket socket, const socket_config& config);
 
 		/*!
 		 * \brief Default destructor (no special cleanup needed).
@@ -185,6 +200,67 @@ namespace kcenon::network::internal
 			std::function<void(std::error_code, std::size_t)> handler) -> void;
 
 		/*!
+		 * \brief Sets a callback for backpressure notifications.
+		 * \param callback Function invoked when backpressure state changes.
+		 *
+		 * The callback receives `true` when pending bytes exceed high_water_mark
+		 * (apply backpressure), and `false` when they drop below low_water_mark
+		 * (release backpressure).
+		 */
+		auto set_backpressure_callback(backpressure_callback callback) -> void;
+
+		/*!
+		 * \brief Attempts to send data without blocking.
+		 * \param data The buffer to send (moved for efficiency).
+		 * \param handler Completion handler for async operation.
+		 * \return true if send was initiated, false if backpressure is active.
+		 *
+		 * Unlike async_send(), this method checks backpressure limits before
+		 * initiating the send. Returns false immediately if:
+		 * - max_pending_bytes is set and would be exceeded
+		 * - Backpressure is currently active
+		 *
+		 * ### Example
+		 * \code
+		 * if (!sock->try_send(std::move(data), handler)) {
+		 *     // Queue data for later or drop it
+		 * }
+		 * \endcode
+		 */
+		[[nodiscard]] auto try_send(
+			std::vector<uint8_t>&& data,
+			std::function<void(std::error_code, std::size_t)> handler) -> bool;
+
+		/*!
+		 * \brief Returns current pending bytes count.
+		 * \return Number of bytes currently pending in send buffer.
+		 */
+		[[nodiscard]] auto pending_bytes() const -> std::size_t;
+
+		/*!
+		 * \brief Checks if backpressure is currently active.
+		 * \return true if pending bytes exceed high_water_mark.
+		 */
+		[[nodiscard]] auto is_backpressure_active() const -> bool;
+
+		/*!
+		 * \brief Returns socket metrics for monitoring.
+		 * \return Const reference to socket_metrics struct.
+		 */
+		[[nodiscard]] auto metrics() const -> const socket_metrics&;
+
+		/*!
+		 * \brief Resets socket metrics to zero.
+		 */
+		auto reset_metrics() -> void;
+
+		/*!
+		 * \brief Returns the current socket configuration.
+		 * \return Const reference to socket_config struct.
+		 */
+		[[nodiscard]] auto config() const -> const socket_config&;
+
+		/*!
 		 * \brief Provides direct access to the underlying \c
 		 * asio::ip::tcp::socket in case advanced operations are needed.
 		 * \return A reference to the wrapped \c asio::ip::tcp::socket.
@@ -228,5 +304,20 @@ namespace kcenon::network::internal
 		std::mutex callback_mutex_; /*!< Protects callback registration only. */
 
 		std::atomic<bool> is_reading_{false}; /*!< Flag to prevent read after stop. */
+
+		/*! \brief Backpressure configuration */
+		socket_config config_;
+
+		/*! \brief Socket runtime metrics */
+		mutable socket_metrics metrics_;
+
+		/*! \brief Current pending bytes in send buffer */
+		std::atomic<std::size_t> pending_bytes_{0};
+
+		/*! \brief Backpressure state flag */
+		std::atomic<bool> backpressure_active_{false};
+
+		/*! \brief Backpressure notification callback */
+		std::shared_ptr<backpressure_callback> backpressure_callback_;
 	};
 } // namespace kcenon::network::internal

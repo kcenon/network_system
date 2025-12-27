@@ -365,3 +365,250 @@ TEST_F(TcpSocketCallbackTest, ConcurrentCallbackRegistration)
 
 	EXPECT_EQ(registration_count.load(), num_registrations);
 }
+
+// ============================================================================
+// Socket Configuration Tests
+// ============================================================================
+
+TEST_F(TcpSocketCallbackTest, SocketConfig_DefaultValues)
+{
+	socket_config config;
+
+	// Default values should be backward compatible (unlimited)
+	EXPECT_EQ(config.max_pending_bytes, 0);
+	EXPECT_EQ(config.high_water_mark, 1024 * 1024);  // 1MB
+	EXPECT_EQ(config.low_water_mark, 256 * 1024);    // 256KB
+}
+
+TEST_F(TcpSocketCallbackTest, SocketWithConfig_CustomValues)
+{
+	asio::ip::tcp::socket raw_socket(*io_context_);
+	socket_config config;
+	config.max_pending_bytes = 1024 * 1024;  // 1MB
+	config.high_water_mark = 512 * 1024;     // 512KB
+	config.low_water_mark = 128 * 1024;      // 128KB
+
+	auto socket = std::make_shared<tcp_socket>(std::move(raw_socket), config);
+
+	EXPECT_EQ(socket->config().max_pending_bytes, 1024 * 1024);
+	EXPECT_EQ(socket->config().high_water_mark, 512 * 1024);
+	EXPECT_EQ(socket->config().low_water_mark, 128 * 1024);
+}
+
+// ============================================================================
+// Pending Bytes Tracking Tests
+// ============================================================================
+
+TEST_F(TcpSocketCallbackTest, PendingBytes_InitiallyZero)
+{
+	auto [server, client] = create_connected_socket_pair();
+	ASSERT_NE(server, nullptr);
+	ASSERT_NE(client, nullptr);
+
+	EXPECT_EQ(server->pending_bytes(), 0);
+	EXPECT_EQ(client->pending_bytes(), 0);
+}
+
+TEST_F(TcpSocketCallbackTest, PendingBytes_TrackedDuringSend)
+{
+	auto [server, client] = create_connected_socket_pair();
+	ASSERT_NE(server, nullptr);
+	ASSERT_NE(client, nullptr);
+
+	std::promise<bool> send_promise;
+	auto send_future = send_promise.get_future();
+
+	// Create large buffer to ensure we can observe pending bytes
+	std::vector<uint8_t> test_data(4096, 0xAA);
+	std::size_t data_size = test_data.size();
+
+	// Start reading to consume data
+	server->start_read();
+
+	client->async_send(std::move(test_data),
+					   [&send_promise](std::error_code ec, std::size_t)
+					   {
+						   send_promise.set_value(!ec);
+					   });
+
+	// Wait for send to complete
+	ASSERT_TRUE(send_future.wait_for(std::chrono::seconds(5)) == std::future_status::ready);
+	ASSERT_TRUE(send_future.get());
+
+	// After completion, pending bytes should be 0
+	// (Note: might need a small delay for completion handler to run)
+	std::this_thread::sleep_for(std::chrono::milliseconds(100));
+	EXPECT_EQ(client->pending_bytes(), 0);
+
+	server->stop_read();
+}
+
+// ============================================================================
+// Socket Metrics Tests
+// ============================================================================
+
+TEST_F(TcpSocketCallbackTest, Metrics_InitiallyZero)
+{
+	auto [server, client] = create_connected_socket_pair();
+	ASSERT_NE(server, nullptr);
+
+	const auto& metrics = server->metrics();
+	EXPECT_EQ(metrics.total_bytes_sent.load(), 0);
+	EXPECT_EQ(metrics.total_bytes_received.load(), 0);
+	EXPECT_EQ(metrics.current_pending_bytes.load(), 0);
+	EXPECT_EQ(metrics.backpressure_events.load(), 0);
+	EXPECT_EQ(metrics.rejected_sends.load(), 0);
+	EXPECT_EQ(metrics.send_count.load(), 0);
+}
+
+TEST_F(TcpSocketCallbackTest, Metrics_TrackedAfterSend)
+{
+	auto [server, client] = create_connected_socket_pair();
+	ASSERT_NE(server, nullptr);
+	ASSERT_NE(client, nullptr);
+
+	// Start reading to consume data
+	server->start_read();
+
+	// Send some data
+	std::vector<uint8_t> test_data = {0x01, 0x02, 0x03, 0x04};
+	std::promise<bool> send_promise;
+	auto send_future = send_promise.get_future();
+
+	client->async_send(std::move(test_data),
+					   [&send_promise](std::error_code ec, std::size_t)
+					   {
+						   send_promise.set_value(!ec);
+					   });
+
+	ASSERT_TRUE(send_future.wait_for(std::chrono::seconds(5)) == std::future_status::ready);
+	ASSERT_TRUE(send_future.get());
+
+	// Give time for completion handler
+	std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+	const auto& metrics = client->metrics();
+	EXPECT_EQ(metrics.total_bytes_sent.load(), 4);
+	EXPECT_EQ(metrics.send_count.load(), 1);
+
+	server->stop_read();
+}
+
+TEST_F(TcpSocketCallbackTest, Metrics_Reset)
+{
+	auto [server, client] = create_connected_socket_pair();
+	ASSERT_NE(server, nullptr);
+	ASSERT_NE(client, nullptr);
+
+	server->start_read();
+
+	// Send some data
+	std::vector<uint8_t> test_data = {0x01, 0x02, 0x03, 0x04};
+	std::promise<bool> send_promise;
+	auto send_future = send_promise.get_future();
+
+	client->async_send(std::move(test_data),
+					   [&send_promise](std::error_code ec, std::size_t)
+					   {
+						   send_promise.set_value(!ec);
+					   });
+
+	ASSERT_TRUE(send_future.wait_for(std::chrono::seconds(5)) == std::future_status::ready);
+	std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+	// Reset metrics
+	client->reset_metrics();
+
+	const auto& metrics = client->metrics();
+	EXPECT_EQ(metrics.total_bytes_sent.load(), 0);
+	EXPECT_EQ(metrics.send_count.load(), 0);
+
+	server->stop_read();
+}
+
+// ============================================================================
+// try_send Tests
+// ============================================================================
+
+TEST_F(TcpSocketCallbackTest, TrySend_SucceedsWhenUnderLimit)
+{
+	asio::ip::tcp::socket raw_socket(*io_context_);
+	std::error_code ec;
+	raw_socket.connect(
+		asio::ip::tcp::endpoint(asio::ip::make_address("127.0.0.1"), test_port_), ec);
+
+	// Create socket with limit
+	socket_config config;
+	config.max_pending_bytes = 10 * 1024;  // 10KB limit
+
+	// Wait for server to accept
+	std::promise<std::shared_ptr<tcp_socket>> server_promise;
+	auto server_future = server_promise.get_future();
+	acceptor_->async_accept(
+		[&server_promise](std::error_code ec, asio::ip::tcp::socket socket)
+		{
+			if (!ec)
+			{
+				server_promise.set_value(std::make_shared<tcp_socket>(std::move(socket)));
+			}
+			else
+			{
+				server_promise.set_value(nullptr);
+			}
+		});
+
+	auto client = std::make_shared<tcp_socket>(std::move(raw_socket), config);
+	auto server = server_future.get();
+	ASSERT_NE(server, nullptr);
+
+	server->start_read();
+
+	// try_send with data under limit should succeed
+	std::vector<uint8_t> test_data(1024, 0xAA);  // 1KB, under 10KB limit
+	std::promise<bool> send_promise;
+	auto send_future = send_promise.get_future();
+
+	bool result = client->try_send(std::move(test_data),
+								   [&send_promise](std::error_code ec, std::size_t)
+								   {
+									   send_promise.set_value(!ec);
+								   });
+
+	EXPECT_TRUE(result);
+	ASSERT_TRUE(send_future.wait_for(std::chrono::seconds(5)) == std::future_status::ready);
+	EXPECT_TRUE(send_future.get());
+
+	server->stop_read();
+}
+
+// ============================================================================
+// Backpressure Callback Tests
+// ============================================================================
+
+TEST_F(TcpSocketCallbackTest, BackpressureCallback_SetAndGet)
+{
+	auto [server, client] = create_connected_socket_pair();
+	ASSERT_NE(server, nullptr);
+
+	std::atomic<bool> callback_invoked{false};
+	std::atomic<bool> backpressure_value{false};
+
+	server->set_backpressure_callback(
+		[&callback_invoked, &backpressure_value](bool apply)
+		{
+			callback_invoked.store(true);
+			backpressure_value.store(apply);
+		});
+
+	// Initially, backpressure should not be active
+	EXPECT_FALSE(server->is_backpressure_active());
+}
+
+TEST_F(TcpSocketCallbackTest, BackpressureActive_InitiallyFalse)
+{
+	auto [server, client] = create_connected_socket_pair();
+	ASSERT_NE(server, nullptr);
+
+	EXPECT_FALSE(server->is_backpressure_active());
+	EXPECT_FALSE(client->is_backpressure_active());
+}
