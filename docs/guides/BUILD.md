@@ -175,7 +175,42 @@ ninja
 | `BUILD_WITH_CONTAINER_SYSTEM` | ON | Enable container_system integration |
 | `BUILD_WITH_THREAD_SYSTEM` | ON | Enable thread_system integration |
 | `BUILD_MESSAGING_BRIDGE` | ON | Build messaging_system compatibility bridge |
+| `BUILD_TLS_SUPPORT` | ON | Enable TLS/SSL support |
+| `BUILD_WEBSOCKET_SUPPORT` | ON | Enable WebSocket protocol support |
+| `NETWORK_ENABLE_GRPC_OFFICIAL` | OFF | Use official gRPC library (grpc++) |
 | `CMAKE_BUILD_TYPE` | Debug | Build configuration (Debug/Release/RelWithDebInfo/MinSizeRel) |
+
+### gRPC Official Library Integration
+
+The `NETWORK_ENABLE_GRPC_OFFICIAL` option enables integration with the official gRPC library (grpc++) for production-ready gRPC support. When disabled, a prototype implementation is used.
+
+**Required Versions:**
+- grpc++ >= 1.50.0
+- protobuf >= 3.21.0
+- abseil (bundled with gRPC)
+
+**Installation:**
+
+```bash
+# Ubuntu/Debian
+sudo apt install libgrpc++-dev protobuf-compiler-grpc
+
+# macOS
+brew install grpc
+
+# Windows (vcpkg)
+vcpkg install grpc:x64-windows
+
+# vcpkg (cross-platform)
+vcpkg install grpc
+```
+
+**Build with gRPC:**
+```bash
+cmake .. -DNETWORK_ENABLE_GRPC_OFFICIAL=ON
+```
+
+If gRPC is not found, the build will automatically fall back to the prototype implementation with a warning message. See [ADR-001](../adr/ADR-001-grpc-official-library-wrapper.md) for the architectural decision details.
 
 ### Example Configurations
 
