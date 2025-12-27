@@ -38,6 +38,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added
+- **Official gRPC Library Integration** (2025-12-28)
+  - Added `NETWORK_ENABLE_GRPC_OFFICIAL` CMake option for production gRPC support
+  - Created ADR-001 documenting the wrapper architecture decision
+  - Implemented `grpc_server` wrapper using official grpc++ library
+  - Added server context adapter for seamless API compatibility
+  - Enabled gRPC reflection and health check services when using official library
+  - Support for both insecure and TLS server configurations
+  - Existing prototype implementation remains available as fallback
+  - Part of official gRPC integration epic (#360)
+
 ### Performance
 - **Messaging Zero-Copy Receive Path** (2025-12-19)
   - `messaging_session` uses `tcp_socket::set_receive_callback_view()` for zero-copy receive

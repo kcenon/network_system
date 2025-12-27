@@ -11,9 +11,20 @@ This document explains key design decisions in network_system, particularly patt
 
 ## Table of Contents
 
+- [Architecture Decision Records](#architecture-decision-records)
 - [Intentional Leak Pattern in Thread Integration](#intentional-leak-pattern-in-thread-integration)
 - [Send-Side Backpressure Mechanism](#send-side-backpressure-mechanism)
 - [References](#references)
+
+---
+
+## Architecture Decision Records
+
+For significant architectural decisions, we maintain detailed ADR (Architecture Decision Record) documents in the `docs/adr/` directory.
+
+| ADR | Title | Status | Date |
+|-----|-------|--------|------|
+| [ADR-001](adr/ADR-001-grpc-official-library-wrapper.md) | gRPC Official Library Wrapper Strategy | Accepted | 2024-12-28 |
 
 ---
 
