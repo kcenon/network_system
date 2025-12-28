@@ -434,11 +434,13 @@ TEST_F(ErrorHandlingIntegrationTest, MethodRegistrationErrors)
 TEST_F(ErrorHandlingIntegrationTest, MessageParsingErrors)
 {
     // Empty data
-    auto result1 = grpc::grpc_message::parse({});
+    std::vector<uint8_t> empty_data;
+    auto result1 = grpc::grpc_message::parse(empty_data);
     EXPECT_TRUE(result1.is_err());
 
     // Truncated header
-    auto result2 = grpc::grpc_message::parse({0, 0, 0});
+    std::vector<uint8_t> truncated_data = {0, 0, 0};
+    auto result2 = grpc::grpc_message::parse(truncated_data);
     EXPECT_TRUE(result2.is_err());
 
     // Length mismatch (header says 100 bytes, only 5 available)
