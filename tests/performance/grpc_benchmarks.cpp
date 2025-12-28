@@ -35,6 +35,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <kcenon/network/protocols/grpc/status.h>
 #include <kcenon/network/protocols/grpc/service_registry.h>
 
+#include <numeric>
 #include <random>
 #include <vector>
 
