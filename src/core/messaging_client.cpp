@@ -178,7 +178,12 @@ auto messaging_client::stop_client() -> VoidResult {
       }
       if (pending_socket_) {
         asio::error_code ec;
-        pending_socket_->cancel(ec);
+        // Only call cancel() if socket is open - calling cancel() on a socket
+        // that hasn't been fully registered with the reactor can cause SEGV
+        // in epoll_reactor::cancel_ops when accessing uninitialized op_queue.
+        if (pending_socket_->is_open()) {
+          pending_socket_->cancel(ec);
+        }
         pending_socket_->close(ec);
       }
     }
