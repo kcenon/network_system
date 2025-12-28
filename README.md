@@ -191,13 +191,21 @@ int main() {
   - Routing, cookies, multipart/form-data, chunked encoding
   - Automatic compression (gzip/deflate)
 
-- **QUIC**: RFC 9000/9001/9002 compliant (NEW)
+- **QUIC**: RFC 9000/9001/9002 compliant
   - UDP-based multiplexed transport with TLS 1.3 encryption
   - Stream multiplexing, 0-RTT connection resumption
   - Loss detection and congestion control
   - Connection migration support
 
+- **gRPC**: High-performance RPC framework (NEW)
+  - Official gRPC library wrapper with network_system integration
+  - Service registry with dynamic method registration
+  - All streaming modes (unary, server, client, bidirectional)
+  - Health checking and reflection support
+  - Result<T> to gRPC Status conversion
+
 📖 **[Detailed Protocol Documentation →](docs/FEATURES.md)**
+📖 **[gRPC Guide →](docs/guides/GRPC_GUIDE.md)**
 
 ### Asynchronous Model
 
@@ -528,6 +536,7 @@ Complete examples are available in the `samples/` directory:
 - **websocket_example.cpp** - WebSocket server and client
 - **quic_server_example.cpp** - QUIC server with multi-stream support
 - **quic_client_example.cpp** - QUIC client with stream multiplexing
+- **grpc_service_example.cpp** - gRPC service registration and management
 
 Build and run examples:
 ```bash
@@ -542,6 +551,7 @@ cmake --build build --target samples
 
 ### Recently Completed
 - ✅ **QUIC Protocol Support**: RFC 9000/9001/9002 compliant implementation
+- ✅ **gRPC Integration**: Official gRPC library wrapper with full streaming support
 
 ### Current Focus
 - 🚧 Real network load test validation and baseline establishment
@@ -552,7 +562,6 @@ cmake --build build --target samples
 - 🚧 **Connection Pooling**: Enterprise-grade connection management
 - 🚧 **Zero-Copy Pipelines**: Eliminate unnecessary buffer copies
 - 🚧 **HTTP/2 Client**: Modern HTTP/2 protocol support
-- 🚧 **gRPC Integration**: High-performance RPC framework
 
 See [IMPROVEMENTS.md](IMPROVEMENTS.md) for detailed roadmap and tracking.
 

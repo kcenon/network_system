@@ -69,6 +69,32 @@ namespace kcenon::network::protocols::grpc
 {
 
 // ============================================================================
+// Channel Credentials Configuration
+// ============================================================================
+
+/*!
+ * \struct channel_credentials_config
+ * \brief Configuration for gRPC channel credentials
+ *
+ * This structure is available regardless of whether the official gRPC
+ * library is present, allowing configuration to be prepared in advance.
+ */
+struct channel_credentials_config
+{
+    //! Use insecure credentials (no TLS)
+    bool insecure = false;
+
+    //! Root certificates for TLS (PEM format)
+    std::string root_certificates;
+
+    //! Client certificate for mutual TLS (PEM format)
+    std::optional<std::string> client_certificate;
+
+    //! Client private key for mutual TLS (PEM format)
+    std::optional<std::string> client_key;
+};
+
+// ============================================================================
 // Status Conversion Utilities
 // ============================================================================
 
@@ -179,25 +205,6 @@ auto get_remaining_time(const ::grpc::ServerContext* ctx)
 // ============================================================================
 // Channel Management
 // ============================================================================
-
-/*!
- * \struct channel_credentials_config
- * \brief Configuration for gRPC channel credentials
- */
-struct channel_credentials_config
-{
-    //! Use insecure credentials (no TLS)
-    bool insecure = false;
-
-    //! Root certificates for TLS (PEM format)
-    std::string root_certificates;
-
-    //! Client certificate for mutual TLS (PEM format)
-    std::optional<std::string> client_certificate;
-
-    //! Client private key for mutual TLS (PEM format)
-    std::optional<std::string> client_key;
-};
 
 /*!
  * \brief Create gRPC channel with specified credentials

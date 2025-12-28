@@ -39,6 +39,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [Unreleased]
 
 ### Added
+- **gRPC Phase 5: Testing and Documentation** (2025-12-28) (#365)
+  - Added comprehensive unit tests for `grpc_official_wrapper` (status codes, messages, timeouts)
+  - Added integration tests for full gRPC stack (service registry, health check, streaming, thread safety)
+  - Added performance benchmarks for message serialization and service lookup
+  - Added gRPC guide documentation (`docs/guides/GRPC_GUIDE.md`)
+  - Added `grpc_service_example.cpp` sample demonstrating all gRPC features
+  - Updated README with gRPC in protocols and roadmap sections
+  - All acceptance criteria met: unit test coverage, integration tests, documentation complete
 - **gRPC Service Registration Mechanism** (2025-12-28) (#364)
   - Added `service_registry` class for centralized service management
   - Added `generic_service` for dynamic method registration at runtime

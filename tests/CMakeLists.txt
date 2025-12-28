@@ -599,6 +599,70 @@ if(GTest_FOUND OR GTEST_FOUND)
     )
     message(STATUS "gRPC service registry tests enabled")
 
+    # gRPC official wrapper tests
+    add_executable(network_grpc_official_wrapper_test
+        test_grpc_official_wrapper.cpp
+    )
+
+    target_link_libraries(network_grpc_official_wrapper_test PRIVATE
+        NetworkSystem
+        GTest::gtest
+        GTest::gtest_main
+        Threads::Threads
+    )
+
+    # Setup ASIO integration
+    setup_asio_integration(network_grpc_official_wrapper_test)
+
+    # Add system integration paths
+    if(COMMON_SYSTEM_INCLUDE_DIR)
+        target_include_directories(network_grpc_official_wrapper_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(network_grpc_official_wrapper_test PRIVATE WITH_COMMON_SYSTEM)
+    endif()
+
+    set_target_properties(network_grpc_official_wrapper_test PROPERTIES
+        CXX_STANDARD 20
+        CXX_STANDARD_REQUIRED ON
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+    )
+
+    gtest_discover_tests(network_grpc_official_wrapper_test
+        DISCOVERY_TIMEOUT 60
+    )
+    message(STATUS "gRPC official wrapper tests enabled")
+
+    # gRPC integration tests
+    add_executable(network_grpc_integration_test
+        test_grpc_integration.cpp
+    )
+
+    target_link_libraries(network_grpc_integration_test PRIVATE
+        NetworkSystem
+        GTest::gtest
+        GTest::gtest_main
+        Threads::Threads
+    )
+
+    # Setup ASIO integration
+    setup_asio_integration(network_grpc_integration_test)
+
+    # Add system integration paths
+    if(COMMON_SYSTEM_INCLUDE_DIR)
+        target_include_directories(network_grpc_integration_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(network_grpc_integration_test PRIVATE WITH_COMMON_SYSTEM)
+    endif()
+
+    set_target_properties(network_grpc_integration_test PROPERTIES
+        CXX_STANDARD 20
+        CXX_STANDARD_REQUIRED ON
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+    )
+
+    gtest_discover_tests(network_grpc_integration_test
+        DISCOVERY_TIMEOUT 60
+    )
+    message(STATUS "gRPC integration tests enabled")
+
     ##################################################
     # QUIC Protocol Tests
     ##################################################
@@ -995,6 +1059,57 @@ if(FALSE AND benchmark_FOUND)
     endif()
 else()
     message(WARNING "Google Benchmark not found - benchmark tests will not be built")
+endif()
+
+##################################################
+# gRPC Benchmark Tests
+##################################################
+
+if(benchmark_FOUND)
+    # gRPC benchmarks
+    add_executable(network_grpc_benchmarks
+        performance/grpc_benchmarks.cpp
+    )
+
+    target_link_libraries(network_grpc_benchmarks PRIVATE
+        NetworkSystem
+        benchmark::benchmark
+        benchmark::benchmark_main
+        Threads::Threads
+    )
+
+    # Setup ASIO integration
+    setup_asio_integration(network_grpc_benchmarks)
+
+    # Add system integration paths
+    if(COMMON_SYSTEM_INCLUDE_DIR)
+        target_include_directories(network_grpc_benchmarks PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(network_grpc_benchmarks PRIVATE WITH_COMMON_SYSTEM)
+    endif()
+
+    # Set properties
+    set_target_properties(network_grpc_benchmarks PROPERTIES
+        CXX_STANDARD 20
+        CXX_STANDARD_REQUIRED ON
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+    )
+
+    # Platform-specific optimizations (Release builds only)
+    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+        target_compile_options(network_grpc_benchmarks PRIVATE
+            $<$<CONFIG:Release>:-O3>
+            $<$<CONFIG:Release>:-march=native>
+            $<$<CONFIG:RelWithDebInfo>:-O2>
+        )
+    elseif(MSVC)
+        # Only add /O2 in Release builds to avoid conflict with /RTC1 in Debug
+        target_compile_options(network_grpc_benchmarks PRIVATE
+            $<$<CONFIG:Release>:/O2>
+            $<$<CONFIG:RelWithDebInfo>:/O2>
+        )
+    endif()
+
+    message(STATUS "gRPC benchmarks enabled")
 endif()
 
 ##################################################
