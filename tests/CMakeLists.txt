@@ -1094,15 +1094,18 @@ if(benchmark_FOUND)
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
     )
 
-    # Platform-specific optimizations
+    # Platform-specific optimizations (Release builds only)
     if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
         target_compile_options(network_grpc_benchmarks PRIVATE
-            -O3
-            -march=native
+            $<$<CONFIG:Release>:-O3>
+            $<$<CONFIG:Release>:-march=native>
+            $<$<CONFIG:RelWithDebInfo>:-O2>
         )
     elseif(MSVC)
+        # Only add /O2 in Release builds to avoid conflict with /RTC1 in Debug
         target_compile_options(network_grpc_benchmarks PRIVATE
-            /O2
+            $<$<CONFIG:Release>:/O2>
+            $<$<CONFIG:RelWithDebInfo>:/O2>
         )
     endif()
 
