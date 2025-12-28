@@ -41,6 +41,7 @@ set(SAMPLE_PROGRAMS
     quic_client_example
     quic_server_example
     concepts_example
+    grpc_service_example
 )
 
 # Add UDP sample if UDP support is enabled
