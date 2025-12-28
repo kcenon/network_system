@@ -567,6 +567,38 @@ if(GTest_FOUND OR GTEST_FOUND)
     )
     message(STATUS "gRPC client/server tests enabled")
 
+    # gRPC service registry tests
+    add_executable(network_grpc_service_registry_test
+        test_grpc_service_registry.cpp
+    )
+
+    target_link_libraries(network_grpc_service_registry_test PRIVATE
+        NetworkSystem
+        GTest::gtest
+        GTest::gtest_main
+        Threads::Threads
+    )
+
+    # Setup ASIO integration
+    setup_asio_integration(network_grpc_service_registry_test)
+
+    # Add system integration paths
+    if(COMMON_SYSTEM_INCLUDE_DIR)
+        target_include_directories(network_grpc_service_registry_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(network_grpc_service_registry_test PRIVATE WITH_COMMON_SYSTEM)
+    endif()
+
+    set_target_properties(network_grpc_service_registry_test PROPERTIES
+        CXX_STANDARD 20
+        CXX_STANDARD_REQUIRED ON
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+    )
+
+    gtest_discover_tests(network_grpc_service_registry_test
+        DISCOVERY_TIMEOUT 60
+    )
+    message(STATUS "gRPC service registry tests enabled")
+
     ##################################################
     # QUIC Protocol Tests
     ##################################################

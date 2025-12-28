@@ -178,7 +178,12 @@ auto messaging_client::stop_client() -> VoidResult {
       }
       if (pending_socket_) {
         asio::error_code ec;
-        pending_socket_->cancel(ec);
+        // Only use close() - do NOT call cancel() on pending_socket_.
+        // When async_connect() is in progress, the socket may be open but
+        // not fully registered with the reactor. Calling cancel() on such
+        // a socket causes SEGV in epoll_reactor::cancel_ops() when accessing
+        // uninitialized op_queue. close() is sufficient as it cancels all
+        // pending async operations and is safe in any socket state.
         pending_socket_->close(ec);
       }
     }

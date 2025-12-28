@@ -39,6 +39,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [Unreleased]
 
 ### Added
+- **gRPC Service Registration Mechanism** (2025-12-28) (#364)
+  - Added `service_registry` class for centralized service management
+  - Added `generic_service` for dynamic method registration at runtime
+  - Added `protoc_service_adapter` for wrapping protoc-generated services
+  - Added `health_service` implementing standard gRPC health checking protocol
+  - Added service/method descriptor types for reflection support
+  - Added utility functions for method path parsing and building
+  - All four RPC types supported: unary, server streaming, client streaming, bidirectional streaming
+  - Thread-safe service registration and lookup operations
+  - 47 unit tests covering all components
 - **gRPC Wrapper Layer Implementation** (2025-12-28) (#363)
   - Created `grpc_official_wrapper.h` with public API definitions
   - Implemented comprehensive `Result<T>` to `grpc::Status` conversion utilities
