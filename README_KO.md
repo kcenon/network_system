@@ -850,15 +850,16 @@ Network System은 향상된 모듈성과 재사용성을 제공하기 위해 mes
 ## 🔧 의존성
 
 ### 필수
-- **C++20** 호환 컴파일러
-- **CMake** 3.16+
+- **C++20** 호환 컴파일러 (GCC 11+, Clang 14+, MSVC 2022+, Apple Clang 14+)
+- **CMake** 3.20+
 - **ASIO** 또는 **Boost.ASIO** 1.28+
-- **OpenSSL** 1.1.1+ (TLS/SSL 및 WebSocket 지원용)
-
-### 선택 사항
-- **container_system** (고급 직렬화용)
-- **thread_system** (thread pool 통합용)
-- **logger_system** (구조화된 로깅용)
+- **OpenSSL** 3.x 권장 / 1.1.1+ 최소 (TLS/SSL 및 WebSocket 지원용)
+- **[common_system](https://github.com/kcenon/common_system)** (Result<T> 패턴, 공통 인터페이스)
+- **[thread_system](https://github.com/kcenon/thread_system)** (thread pool 통합)
+- **[logger_system](https://github.com/kcenon/logger_system)** (구조화된 로깅)
+- **[container_system](https://github.com/kcenon/container_system)** (데이터 컨테이너 연산)
+- **fmt** 10.0.0+ (포매팅 라이브러리)
+- **zlib** (압축 지원)
 
 ## 🎯 플랫폼 지원
 
