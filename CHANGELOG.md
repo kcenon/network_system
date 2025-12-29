@@ -65,6 +65,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Concepts improve error messages and serve as self-documenting type constraints
 
 ### Changed
+- **vcpkg Manifest**: Added ecosystem dependencies for vcpkg registry distribution (#371)
+  - Added `kcenon-common-system`, `kcenon-thread-system`, `kcenon-logger-system`, `kcenon-container-system`
+  - These dependencies are required as documented in README but were missing from vcpkg.json
+  - Enables proper vcpkg manifest mode builds with all ecosystem dependencies declared
 - **Logging System**: Migrated from direct logger_system dependency to common_system's ILogger interface (#285)
   - `NETWORK_LOG_*` macros now delegate to common_system's `LOG_*` macros
   - Added `common_system_logger_adapter` for bridging legacy `logger_interface`

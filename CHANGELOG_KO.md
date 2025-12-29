@@ -64,6 +64,12 @@ Network System 프로젝트의 모든 주요 변경 사항이 이 파일에 문�
   - common_system의 Result/Optional concepts와 통합 (사용 가능 시)
   - Concepts는 에러 메시지를 개선하고 자기 문서화 타입 제약 역할
 
+### 변경됨
+- **vcpkg 매니페스트**: vcpkg 레지스트리 배포를 위한 생태계 의존성 추가 (#371)
+  - `kcenon-common-system`, `kcenon-thread-system`, `kcenon-logger-system`, `kcenon-container-system` 추가
+  - README에 문서화되어 있지만 vcpkg.json에서 누락되었던 의존성
+  - 모든 생태계 의존성이 선언된 상태로 vcpkg 매니페스트 모드 빌드 가능
+
 ### 수정됨
 - **messaging_server 리소스 정리**: `start_server()` 실패 시 힙 손상 수정 (#335)
   - 포트 바인딩 실패 시(예: 주소가 이미 사용 중) 부분적으로 생성된 리소스(`io_context_`, `work_guard_`)가 정리되지 않음
