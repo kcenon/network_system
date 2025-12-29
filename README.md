@@ -487,12 +487,13 @@ thread_integration_manager::instance().set_thread_pool(adapted);
 - **C++20** compatible compiler (GCC 11+, Clang 14+, MSVC 2022+, Apple Clang 14+)
 - **CMake** 3.20+
 - **ASIO** or **Boost.ASIO** 1.28+
-- **OpenSSL** 1.1.1+ (for TLS/SSL and WebSocket)
-
-### Optional
-- **container_system** (advanced serialization)
-- **thread_system** (thread pool integration)
-- **logger_system** (structured logging)
+- **OpenSSL** 3.x recommended / 1.1.1+ minimum (for TLS/SSL and WebSocket)
+- **[common_system](https://github.com/kcenon/common_system)** (Result<T> pattern, common interfaces)
+- **[thread_system](https://github.com/kcenon/thread_system)** (thread pool integration)
+- **[logger_system](https://github.com/kcenon/logger_system)** (structured logging)
+- **[container_system](https://github.com/kcenon/container_system)** (data container operations)
+- **fmt** 10.0.0+ (formatting library)
+- **zlib** (compression support)
 
 ---
 
