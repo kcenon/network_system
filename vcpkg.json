@@ -16,6 +16,15 @@
     "zlib"
   ],
   "features": {
+    "ecosystem": {
+      "description": "Enable kcenon ecosystem dependencies (requires vcpkg registry registration)",
+      "dependencies": [
+        "kcenon-common-system",
+        "kcenon-thread-system",
+        "kcenon-logger-system",
+        "kcenon-container-system"
+      ]
+    },
     "ssl": {
       "description": "Enable SSL/TLS support",
       "dependencies": [
