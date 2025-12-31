@@ -497,10 +497,41 @@ thread_integration_manager::instance().set_thread_pool(adapted);
 
 ## Build Options
 
+### Using CMake Presets (Recommended)
+
+CMake presets provide standardized build configurations:
+
+```bash
+# List available presets
+cmake --list-presets
+
+# Configure with a preset
+cmake --preset debug          # Debug build
+cmake --preset release        # Release build
+cmake --preset asan           # AddressSanitizer
+cmake --preset tsan           # ThreadSanitizer
+cmake --preset ubsan          # UndefinedBehaviorSanitizer
+cmake --preset coverage       # Code coverage
+
+# Build
+cmake --build --preset debug
+
+# Test with sanitizer-specific environment
+ctest --preset asan           # Runs with ASAN_OPTIONS configured
+ctest --preset tsan           # Runs with TSAN_OPTIONS configured
+```
+
+### Manual CMake Configuration
+
 ```bash
 # Basic build
 cmake -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build -j
+
+# With sanitizers (mutually exclusive)
+cmake -B build -DCMAKE_BUILD_TYPE=Debug -DENABLE_ASAN=ON   # AddressSanitizer
+cmake -B build -DCMAKE_BUILD_TYPE=Debug -DENABLE_TSAN=ON   # ThreadSanitizer
+cmake -B build -DCMAKE_BUILD_TYPE=Debug -DENABLE_UBSAN=ON  # UndefinedBehaviorSanitizer
 
 # With benchmarks
 cmake -B build -DCMAKE_BUILD_TYPE=Release \
@@ -520,6 +551,21 @@ cmake -B build -DCMAKE_BUILD_TYPE=Release \
 cmake --build build -j
 cd build && ctest --output-on-failure
 ```
+
+### Available CMake Options
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `BUILD_TESTS` | ON | Build unit tests |
+| `BUILD_SAMPLES` | ON | Build sample applications |
+| `BUILD_TLS_SUPPORT` | ON | Enable TLS/SSL support |
+| `BUILD_WEBSOCKET_SUPPORT` | ON | Enable WebSocket protocol |
+| `NETWORK_BUILD_BENCHMARKS` | OFF | Build performance benchmarks |
+| `ENABLE_ASAN` | OFF | Enable AddressSanitizer |
+| `ENABLE_TSAN` | OFF | Enable ThreadSanitizer |
+| `ENABLE_UBSAN` | OFF | Enable UndefinedBehaviorSanitizer |
+| `ENABLE_COVERAGE` | OFF | Enable code coverage |
+| `NETWORK_ENABLE_GRPC_OFFICIAL` | OFF | Use official gRPC library |
 
 ---
 
