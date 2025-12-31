@@ -1,0 +1,221 @@
+{
+    "version": 6,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 21,
+        "patch": 0
+    },
+    "configurePresets": [
+        {
+            "name": "base",
+            "hidden": true,
+            "binaryDir": "${sourceDir}/build/${presetName}",
+            "cacheVariables": {
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+            }
+        },
+        {
+            "name": "debug",
+            "inherits": "base",
+            "displayName": "Debug",
+            "description": "Debug build with full debugging information",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug"
+            }
+        },
+        {
+            "name": "release",
+            "inherits": "base",
+            "displayName": "Release",
+            "description": "Release build with optimizations",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release"
+            }
+        },
+        {
+            "name": "relwithdebinfo",
+            "inherits": "base",
+            "displayName": "RelWithDebInfo",
+            "description": "Release build with debug information",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "RelWithDebInfo"
+            }
+        },
+        {
+            "name": "asan",
+            "inherits": "debug",
+            "displayName": "AddressSanitizer",
+            "description": "Debug build with AddressSanitizer enabled",
+            "cacheVariables": {
+                "ENABLE_ASAN": "ON"
+            }
+        },
+        {
+            "name": "tsan",
+            "inherits": "debug",
+            "displayName": "ThreadSanitizer",
+            "description": "Debug build with ThreadSanitizer enabled",
+            "cacheVariables": {
+                "ENABLE_TSAN": "ON"
+            }
+        },
+        {
+            "name": "ubsan",
+            "inherits": "debug",
+            "displayName": "UndefinedBehaviorSanitizer",
+            "description": "Debug build with UndefinedBehaviorSanitizer enabled",
+            "cacheVariables": {
+                "ENABLE_UBSAN": "ON"
+            }
+        },
+        {
+            "name": "coverage",
+            "inherits": "debug",
+            "displayName": "Coverage",
+            "description": "Debug build with code coverage enabled",
+            "cacheVariables": {
+                "ENABLE_COVERAGE": "ON"
+            }
+        },
+        {
+            "name": "ci-standalone",
+            "inherits": "debug",
+            "displayName": "CI Standalone",
+            "description": "CI build without external dependencies",
+            "cacheVariables": {
+                "BUILD_WITH_COMMON_SYSTEM": "OFF",
+                "BUILD_WITH_LOGGER_SYSTEM": "OFF",
+                "BUILD_WITH_THREAD_SYSTEM": "OFF",
+                "BUILD_WITH_CONTAINER_SYSTEM": "OFF",
+                "BUILD_MESSAGING_BRIDGE": "OFF",
+                "BUILD_TESTS": "ON",
+                "BUILD_SAMPLES": "OFF"
+            }
+        },
+        {
+            "name": "ci-full",
+            "inherits": "debug",
+            "displayName": "CI Full",
+            "description": "CI build with all external dependencies",
+            "cacheVariables": {
+                "BUILD_WITH_COMMON_SYSTEM": "ON",
+                "BUILD_WITH_LOGGER_SYSTEM": "ON",
+                "BUILD_WITH_THREAD_SYSTEM": "ON",
+                "BUILD_WITH_CONTAINER_SYSTEM": "ON",
+                "BUILD_MESSAGING_BRIDGE": "OFF",
+                "BUILD_TESTS": "ON",
+                "BUILD_SAMPLES": "OFF"
+            }
+        },
+        {
+            "name": "ci-asan",
+            "inherits": ["ci-standalone", "asan"],
+            "displayName": "CI AddressSanitizer",
+            "description": "CI build with AddressSanitizer"
+        },
+        {
+            "name": "ci-tsan",
+            "inherits": ["ci-standalone", "tsan"],
+            "displayName": "CI ThreadSanitizer",
+            "description": "CI build with ThreadSanitizer"
+        },
+        {
+            "name": "ci-ubsan",
+            "inherits": ["ci-standalone", "ubsan"],
+            "displayName": "CI UndefinedBehaviorSanitizer",
+            "description": "CI build with UndefinedBehaviorSanitizer"
+        },
+        {
+            "name": "grpc",
+            "inherits": "release",
+            "displayName": "gRPC Official",
+            "description": "Release build with official gRPC library",
+            "cacheVariables": {
+                "NETWORK_ENABLE_GRPC_OFFICIAL": "ON"
+            }
+        },
+        {
+            "name": "minimal",
+            "inherits": "release",
+            "displayName": "Minimal",
+            "description": "Minimal build without optional features",
+            "cacheVariables": {
+                "BUILD_TESTS": "OFF",
+                "BUILD_SAMPLES": "OFF",
+                "BUILD_WEBSOCKET_SUPPORT": "OFF",
+                "BUILD_MESSAGING_BRIDGE": "OFF",
+                "NETWORK_BUILD_BENCHMARKS": "OFF",
+                "NETWORK_BUILD_INTEGRATION_TESTS": "OFF"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "debug",
+            "configurePreset": "debug"
+        },
+        {
+            "name": "release",
+            "configurePreset": "release"
+        },
+        {
+            "name": "asan",
+            "configurePreset": "asan"
+        },
+        {
+            "name": "tsan",
+            "configurePreset": "tsan"
+        },
+        {
+            "name": "ubsan",
+            "configurePreset": "ubsan"
+        },
+        {
+            "name": "coverage",
+            "configurePreset": "coverage"
+        }
+    ],
+    "testPresets": [
+        {
+            "name": "debug",
+            "configurePreset": "debug",
+            "output": {
+                "outputOnFailure": true,
+                "verbosity": "default"
+            }
+        },
+        {
+            "name": "asan",
+            "configurePreset": "asan",
+            "output": {
+                "outputOnFailure": true,
+                "verbosity": "verbose"
+            },
+            "environment": {
+                "ASAN_OPTIONS": "detect_leaks=1:strict_string_checks=1:detect_stack_use_after_return=1:check_initialization_order=1:strict_init_order=1"
+            }
+        },
+        {
+            "name": "tsan",
+            "configurePreset": "tsan",
+            "output": {
+                "outputOnFailure": true,
+                "verbosity": "verbose"
+            },
+            "environment": {
+                "TSAN_OPTIONS": "second_deadlock_stack=1"
+            }
+        },
+        {
+            "name": "ubsan",
+            "configurePreset": "ubsan",
+            "output": {
+                "outputOnFailure": true,
+                "verbosity": "verbose"
+            },
+            "environment": {
+                "UBSAN_OPTIONS": "print_stacktrace=1:halt_on_error=0"
+            }
+        }
+    ]
+}

@@ -34,6 +34,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "kcenon/network/integration/logger_integration.h"
 #include "kcenon/network/integration/io_context_thread_manager.h"
 #include "kcenon/network/internal/send_coroutine.h"
+#include <chrono>
 #include <span>
 #include <string_view>
 #include <type_traits>
@@ -119,23 +120,43 @@ auto messaging_client::do_stop() -> VoidResult {
       local_socket->socket().close(ec);
     }
 
-    // Cancel pending connection operations FIRST to trigger handler callbacks
-    // with operation_aborted error. This ensures handlers run and clean up
-    // their captured resources (resolver/socket) properly.
-    {
-      std::lock_guard<std::mutex> lock(pending_mutex_);
-      if (pending_resolver_) {
-        pending_resolver_->cancel();
+    // Cancel pending connection operations by posting to io_context.
+    // This ensures socket operations happen on the same thread as async_connect,
+    // preventing data races detected by ThreadSanitizer.
+    if (io_context_) {
+      std::shared_ptr<asio::ip::tcp::resolver> resolver_to_cancel;
+      std::shared_ptr<asio::ip::tcp::socket> socket_to_close;
+      {
+        std::lock_guard<std::mutex> lock(pending_mutex_);
+        resolver_to_cancel = pending_resolver_;
+        socket_to_close = pending_socket_;
       }
-      if (pending_socket_) {
-        asio::error_code ec;
-        // Only use close() - do NOT call cancel() on pending_socket_.
-        // When async_connect() is in progress, the socket may be open but
-        // not fully registered with the reactor. Calling cancel() on such
-        // a socket causes SEGV in epoll_reactor::cancel_ops() when accessing
-        // uninitialized op_queue. close() is sufficient as it cancels all
-        // pending async operations and is safe in any socket state.
-        pending_socket_->close(ec);
+
+      if (resolver_to_cancel || socket_to_close) {
+        // Use promise/future to wait for the close operation to complete
+        auto close_promise = std::make_shared<std::promise<void>>();
+        auto close_future = close_promise->get_future();
+
+        asio::post(*io_context_,
+                   [resolver_to_cancel, socket_to_close, close_promise]() {
+                     if (resolver_to_cancel) {
+                       resolver_to_cancel->cancel();
+                     }
+                     if (socket_to_close) {
+                       asio::error_code ec;
+                       // Only use close() - do NOT call cancel() on pending_socket_.
+                       // When async_connect() is in progress, the socket may be open but
+                       // not fully registered with the reactor. Calling cancel() on such
+                       // a socket causes SEGV in epoll_reactor::cancel_ops() when accessing
+                       // uninitialized op_queue. close() is sufficient as it cancels all
+                       // pending async operations and is safe in any socket state.
+                       socket_to_close->close(ec);
+                     }
+                     close_promise->set_value();
+                   });
+
+        // Wait with timeout in case io_context is already stopped
+        close_future.wait_for(std::chrono::milliseconds(100));
       }
     }
 
@@ -217,6 +238,12 @@ auto messaging_client::do_connect(std::string_view host, unsigned short port)
       std::string(host), std::to_string(port),
       [this, self, resolver](std::error_code ec,
                              tcp::resolver::results_type results) {
+        // Check if stop was initiated before proceeding with socket operations.
+        // This prevents race conditions when do_stop() is called during connection.
+        if (stop_initiated_.load(std::memory_order_acquire)) {
+          return;
+        }
+
         // Clear pending resolver only if it's still the same resolver
         // (prevents race when rapid connect/disconnect overwrites pending_resolver_)
         {
@@ -229,6 +256,12 @@ auto messaging_client::do_connect(std::string_view host, unsigned short port)
           on_connection_failed(ec);
           return;
         }
+
+        // Check again after clearing resolver
+        if (stop_initiated_.load(std::memory_order_acquire)) {
+          return;
+        }
+
         // Attempt to connect to one of the resolved endpoints
         // Store socket as member so we can cancel it during stop_client()
         auto raw_socket = std::make_shared<tcp::socket>(*io_context_);
@@ -241,6 +274,12 @@ auto messaging_client::do_connect(std::string_view host, unsigned short port)
             [this, self,
              raw_socket](std::error_code connect_ec,
                          [[maybe_unused]] const tcp::endpoint &endpoint) {
+              // Check if stop was initiated before proceeding with socket operations.
+              // This prevents race conditions when do_stop() is called during connection.
+              if (stop_initiated_.load(std::memory_order_acquire)) {
+                return;
+              }
+
               // Clear pending socket only if it's still the same socket
               // (prevents race when rapid connect/disconnect overwrites pending_socket_)
               {
@@ -253,6 +292,12 @@ auto messaging_client::do_connect(std::string_view host, unsigned short port)
                 on_connection_failed(connect_ec);
                 return;
               }
+
+              // Check again after clearing socket
+              if (stop_initiated_.load(std::memory_order_acquire)) {
+                return;
+              }
+
               // On success, wrap it in our tcp_socket with mutex protection
               {
                 std::lock_guard<std::mutex> lock(socket_mutex_);
