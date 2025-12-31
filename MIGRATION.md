@@ -54,7 +54,7 @@ The network module has been separated from `messaging_system` into an independen
 
 | Aspect | Before (messaging_system) | After (network_system) |
 |--------|---------------------------|------------------------|
-| **Namespace** | `messaging::network` | `network_system::core` |
+| **Namespace** | `messaging::network` | `kcenon::network::core` |
 | **Header Path** | `<messaging/network/*>` | `<network_system/*>` |
 | **CMake Target** | `messaging_system` | `NetworkSystem::NetworkSystem` |
 | **Repository** | Part of messaging_system | Independent repository |
@@ -115,9 +115,9 @@ Use this checklist for a high-level overview of migration tasks:
 ### Code Migration
 - [ ] **Update include paths** (change header locations)
 - [ ] **Update namespaces** (or use compatibility layer)
-- [ ] **Add initialization code** (network_system::compat::initialize())
+- [ ] **Add initialization code** (kcenon::network::compat::initialize())
 - [ ] **Update API calls** (if using modern API)
-- [ ] **Add shutdown code** (network_system::compat::shutdown())
+- [ ] **Add shutdown code** (kcenon::network::compat::shutdown())
 
 ### Testing & Validation
 - [ ] **Compile test** (ensure zero compilation errors)
@@ -390,7 +390,7 @@ using namespace messaging::network;
 auto server = create_server("server_id");
 
 // After
-using namespace network_system::core;
+using namespace kcenon::network::core;
 auto server = std::make_shared<messaging_server>("server_id");
 ```
 
@@ -401,7 +401,7 @@ Add initialization at application startup:
 ```cpp
 int main() {
     // Initialize network system
-    network_system::compat::initialize();
+    kcenon::network::compat::initialize();
 
     // Your existing application code
     try {
@@ -413,12 +413,12 @@ int main() {
         server->stop_server();
     } catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << std::endl;
-        network_system::compat::shutdown();
+        kcenon::network::compat::shutdown();
         return 1;
     }
 
     // Cleanup
-    network_system::compat::shutdown();
+    kcenon::network::compat::shutdown();
     return 0;
 }
 ```
@@ -522,7 +522,7 @@ int main() {
     std::cout << "======================================\n\n";
 
     // Initialize
-    network_system::compat::initialize();
+    kcenon::network::compat::initialize();
 
     // Test 1: Server creation and startup
     std::cout << "Test 1: Server creation and startup..." << std::flush;
@@ -554,7 +554,7 @@ int main() {
     std::cout << "Test 4: Cleanup..." << std::flush;
     client->stop_client();
     server->stop_server();
-    network_system::compat::shutdown();
+    kcenon::network::compat::shutdown();
     std::cout << " PASSED\n";
 
     std::cout << "\n======================================\n";
@@ -675,7 +675,7 @@ void setup_network() {
 
 **After (Modern API):**
 ```cpp
-using namespace network_system::core;
+using namespace kcenon::network::core;
 
 void setup_network() {
     auto server = std::make_shared<messaging_server>("server");
@@ -707,7 +707,7 @@ void start_server() {
 #include <network_system/compatibility.h>
 
 void start_server() {
-    network_system::compat::initialize();
+    kcenon::network::compat::initialize();
 
     // Use legacy factory function
     auto server = network_module::create_server("my_server");
@@ -765,7 +765,7 @@ void connect_and_send() {
 #include <network_system/compatibility.h>
 
 void connect_and_send() {
-    network_system::compat::initialize();
+    kcenon::network::compat::initialize();
 
     auto client = network_module::create_client("client");
 
@@ -781,7 +781,7 @@ void connect_and_send() {
         client->stop_client();
     }
 
-    network_system::compat::shutdown();
+    kcenon::network::compat::shutdown();
 }
 ```
 
@@ -921,14 +921,14 @@ Application crashes when calling `start_server()`.
 ```cpp
 // Always initialize before use
 int main() {
-    network_system::compat::initialize();
+    kcenon::network::compat::initialize();
 
     auto server = network_module::create_server("server");
     auto result = server->start_server(8080);
 
     // ... your code ...
 
-    network_system::compat::shutdown();
+    kcenon::network::compat::shutdown();
 }
 ```
 
@@ -972,14 +972,14 @@ void cleanup() {
     server->stop_server();
 
     // Call shutdown to clean up resources
-    network_system::compat::shutdown();
+    kcenon::network::compat::shutdown();
 }
 
 // Or use RAII pattern
 class NetworkGuard {
 public:
-    NetworkGuard() { network_system::compat::initialize(); }
-    ~NetworkGuard() { network_system::compat::shutdown(); }
+    NetworkGuard() { kcenon::network::compat::initialize(); }
+    ~NetworkGuard() { kcenon::network::compat::shutdown(); }
 };
 
 int main() {
@@ -1144,7 +1144,7 @@ cmake .. -DCMAKE_BUILD_TYPE=Debug \
 #include <chrono>
 
 int main() {
-    network_system::compat::initialize();
+    kcenon::network::compat::initialize();
 
     auto server = network_module::create_server("test_server");
     assert(server->start_server(8888).is_ok());
@@ -1159,7 +1159,7 @@ int main() {
 
     client->stop_client();
     server->stop_server();
-    network_system::compat::shutdown();
+    kcenon::network::compat::shutdown();
 
     std::cout << "Basic connectivity test PASSED\n";
     return 0;
@@ -1176,7 +1176,7 @@ int main() {
 #include <atomic>
 
 int main() {
-    network_system::compat::initialize();
+    kcenon::network::compat::initialize();
 
     auto server = network_module::create_server("concurrent_server");
     server->start_server(9000);
@@ -1204,7 +1204,7 @@ int main() {
     }
 
     server->stop_server();
-    network_system::compat::shutdown();
+    kcenon::network::compat::shutdown();
 
     std::cout << "Concurrent test: " << success_count << "/" << NUM_CLIENTS
               << " clients connected successfully\n";
@@ -1224,7 +1224,7 @@ int main() {
 #include <iostream>
 
 int main() {
-    network_system::compat::initialize();
+    kcenon::network::compat::initialize();
 
     auto server = network_module::create_server("perf_server");
     server->start_server(9090);
@@ -1254,7 +1254,7 @@ int main() {
 
     client->stop_client();
     server->stop_server();
-    network_system::compat::shutdown();
+    kcenon::network::compat::shutdown();
 
     return 0;
 }
@@ -1303,7 +1303,7 @@ Create a complete workflow test that mirrors your production use case:
 
 int main() {
     // Simulate your production workflow
-    network_system::compat::initialize();
+    kcenon::network::compat::initialize();
 
     // 1. Server setup
     auto server = network_module::create_server("production_server");
@@ -1328,7 +1328,7 @@ int main() {
     client2->stop_client();
     server->stop_server();
 
-    network_system::compat::shutdown();
+    kcenon::network::compat::shutdown();
 
     std::cout << "End-to-end scenario test PASSED\n";
     return 0;
@@ -1378,7 +1378,7 @@ git checkout HEAD -- src/network/problematic_file.cpp
 // Switch from modern API back to compatibility mode
 // Change this:
 #include <network_system/core/messaging_server.h>
-using namespace network_system::core;
+using namespace kcenon::network::core;
 
 // Back to this:
 #include <network_system/compatibility.h>
