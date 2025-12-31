@@ -34,7 +34,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "kcenon/network/integration/logger_integration.h"
 #include "kcenon/network/integration/io_context_thread_manager.h"
 #include "kcenon/network/internal/send_coroutine.h"
-#include <optional>
 #include <span>
 #include <string_view>
 #include <type_traits>
@@ -46,51 +45,20 @@ using tcp = asio::ip::tcp;
 
 // Use string_view for better efficiency (C++17)
 messaging_client::messaging_client(std::string_view client_id)
-    : client_id_(client_id) {
+    : messaging_client_base<messaging_client>(client_id) {
   // Optionally configure pipeline or modes here:
   pipeline_ = internal::make_default_pipeline();
   compress_mode_ = false; // set true if you want to compress
   encrypt_mode_ = false;  // set true if you want to encrypt
 }
 
-messaging_client::~messaging_client() noexcept {
-  // NOTE: No logging in destructor to prevent heap corruption during static
-  // destruction. When common_system's GlobalLoggerRegistry is destroyed before
-  // this destructor runs, any logging causes heap corruption.
-  try {
-    // Early exit if already stopped (optimization)
-    if (!is_running_.load(std::memory_order_acquire)) {
-      return;
-    }
+// Destructor is defaulted in header - base class handles stop_client() call
 
-    // Ensure client is properly stopped before destruction
-    // Ignore the return value in destructor to avoid throwing
-    (void)stop_client();
-  } catch (...) {
-    // Destructor must not throw - swallow all exceptions silently
-  }
-}
-
-// Use string_view for more efficient string handling (C++17)
-auto messaging_client::start_client(std::string_view host, unsigned short port)
+// TCP-specific implementation of client start
+// Called by base class start_client() after common validation
+auto messaging_client::do_start(std::string_view host, unsigned short port)
     -> VoidResult {
-  if (is_running_.load()) {
-    return error_void(
-        error_codes::common_errors::already_exists, "Client is already running",
-        "messaging_client::start_client", "Client ID: " + client_id_);
-  }
-
-  if (host.empty()) {
-    return error_void(error_codes::common_errors::invalid_argument,
-                      "Host cannot be empty", "messaging_client::start_client",
-                      "Client ID: " + client_id_);
-  }
-
   try {
-    is_running_.store(true);
-    is_connected_.store(false);
-    stop_initiated_.store(false);
-
     {
       std::lock_guard<std::mutex> lock(socket_mutex_);
       socket_.reset();
@@ -108,14 +76,10 @@ auto messaging_client::start_client(std::string_view host, unsigned short port)
     work_guard_ = std::make_unique<
         asio::executor_work_guard<asio::io_context::executor_type>>(
         asio::make_work_guard(*io_context_));
-    // For wait_for_stop()
-    stop_future_ = std::future<void>();
-    stop_promise_.emplace();
-    stop_future_ = stop_promise_->get_future();
 
     // Use io_context_thread_manager for unified thread management
     io_context_future_ = integration::io_context_thread_manager::instance()
-        .run_io_context(io_context_, "messaging_client:" + client_id_);
+        .run_io_context(io_context_, "messaging_client:" + client_id());
 
     do_connect(host, port);
 
@@ -126,35 +90,22 @@ auto messaging_client::start_client(std::string_view host, unsigned short port)
 
     return ok();
   } catch (const std::exception &e) {
-    is_running_.store(false);
     return error_void(error_codes::common_errors::internal_error,
                       "Failed to start client: " + std::string(e.what()),
-                      "messaging_client::start_client",
-                      "Client ID: " + client_id_ +
+                      "messaging_client::do_start",
+                      "Client ID: " + client_id() +
                           ", Host: " + std::string(host));
   }
 }
 
-auto messaging_client::stop_client() -> VoidResult {
-  // NOTE: No logging in stop_client to prevent heap corruption during static
+// TCP-specific implementation of client stop
+// Called by base class stop_client() after common cleanup
+auto messaging_client::do_stop() -> VoidResult {
+  // NOTE: No logging in do_stop to prevent heap corruption during static
   // destruction. This method may be called from destructor when
   // GlobalLoggerRegistry is already destroyed.
 
-  // Use compare_exchange to ensure only one thread executes cleanup
-  bool expected = false;
-  if (!stop_initiated_.compare_exchange_strong(expected, true)) {
-    // Another thread is already stopping or has stopped
-    return ok();
-  }
-
-  if (!is_running_.load()) {
-    return ok(); // Already stopped, not an error
-  }
-
   try {
-    is_running_.store(false);
-    is_connected_.store(false);
-
     // Swap out socket with mutex protection and close outside lock
     std::shared_ptr<internal::tcp_socket> local_socket;
     {
@@ -217,32 +168,17 @@ auto messaging_client::stop_client() -> VoidResult {
     // Note: io_context uses intentional leak pattern (no-op deleter),
     // so reset() just clears the shared_ptr without destroying io_context
     io_context_.reset();
-    // Signal stop
-    if (stop_promise_.has_value()) {
-      try {
-        stop_promise_->set_value();
-      } catch (const std::future_error &) {
-        // Promise already satisfied, ignore silently
-      }
-      stop_promise_.reset();
-    }
-    stop_future_ = std::future<void>();
 
     return ok();
   } catch (const std::exception &e) {
-    stop_initiated_.store(false);
     return error_void(error_codes::common_errors::internal_error,
                       "Failed to stop client: " + std::string(e.what()),
-                      "messaging_client::stop_client",
-                      "Client ID: " + client_id_);
+                      "messaging_client::do_stop",
+                      "Client ID: " + client_id());
   }
 }
 
-auto messaging_client::wait_for_stop() -> void {
-  if (stop_future_.valid()) {
-    stop_future_.wait();
-  }
-}
+// wait_for_stop() is provided by base class
 
 auto messaging_client::on_connection_failed(std::error_code ec) -> void {
   // NOTE: No logging here to prevent heap corruption during static destruction.
@@ -250,22 +186,12 @@ auto messaging_client::on_connection_failed(std::error_code ec) -> void {
   // completes, any logging (even with is_logging_safe() check) causes heap
   // corruption because the check cannot synchronize with common_system's
   // static destruction order.
-  (void)ec;  // Suppress unused parameter warning
 
   // Mark as not connected (but keep is_running_ true so destructor calls stop_client)
-  is_connected_.store(false);
+  set_connected(false);
 
-  // Invoke error callback if set
-  {
-    std::lock_guard<std::mutex> lock(callback_mutex_);
-    if (error_callback_) {
-      try {
-        error_callback_(ec);
-      } catch (...) {
-        // Silently ignore exceptions in callback during potential static destruction
-      }
-    }
-  }
+  // Invoke error callback using base class method
+  invoke_error_callback(ec);
 
   // Note: Do NOT release work_guard_ or signal stop_promise_ here.
   // The destructor will call stop_client() which handles all cleanup properly.
@@ -345,19 +271,10 @@ auto messaging_client::on_connect(std::error_code ec) -> void {
   if (ec) {
     return;
   }
-  is_connected_.store(true);
+  set_connected(true);
 
-  // Invoke connected callback if set
-  {
-    std::lock_guard<std::mutex> lock(callback_mutex_);
-    if (connected_callback_) {
-      try {
-        connected_callback_();
-      } catch (...) {
-        // Silently ignore exceptions in callback during potential static destruction
-      }
-    }
-  }
+  // Invoke connected callback using base class method
+  invoke_connected_callback();
 
   // set callbacks and start read loop with mutex protection
   // Use span-based callback for zero-copy receive path (no per-read allocation)
@@ -373,27 +290,17 @@ auto messaging_client::on_connect(std::error_code ec) -> void {
   }
 }
 
-auto messaging_client::send_packet(std::vector<uint8_t> &&data) -> VoidResult {
-  if (!is_running_.load()) {
-    return error_void(error_codes::network_system::connection_closed,
-                      "Client is not running", "messaging_client::send_packet",
-                      "Client ID: " + client_id_);
-  }
-
-  if (data.empty()) {
-    return error_void(error_codes::common_errors::invalid_argument,
-                      "Data cannot be empty", "messaging_client::send_packet",
-                      "Client ID: " + client_id_);
-  }
-
+// TCP-specific implementation of data send
+// Called by base class send_packet() after common validation
+auto messaging_client::do_send(std::vector<uint8_t> &&data) -> VoidResult {
   // Get a local copy of socket with mutex protection
   auto local_socket = get_socket();
 
-  if (!is_connected_.load() || !local_socket) {
+  if (!local_socket) {
     return error_void(error_codes::network_system::connection_closed,
-                      "Client is not connected",
-                      "messaging_client::send_packet",
-                      "Client ID: " + client_id_);
+                      "Socket not available",
+                      "messaging_client::do_send",
+                      "Client ID: " + client_id());
   }
 
   // Using if constexpr for compile-time branching (C++17)
@@ -428,24 +335,14 @@ auto messaging_client::send_packet(std::vector<uint8_t> &&data) -> VoidResult {
 auto messaging_client::on_receive(std::span<const uint8_t> data) -> void {
   // NOTE: No logging in async handlers to prevent heap corruption during
   // static destruction.
-  if (!is_connected_.load()) {
+  if (!is_connected()) {
     return;
   }
 
-  // Invoke receive callback if set
+  // Invoke receive callback using base class method
   // Copy span to vector only at API boundary to maintain external callback compatibility
-  {
-    std::lock_guard<std::mutex> lock(callback_mutex_);
-    if (receive_callback_) {
-      try {
-        // Single copy point: span -> vector for external callback
-        std::vector<uint8_t> data_copy(data.begin(), data.end());
-        receive_callback_(data_copy);
-      } catch (...) {
-        // Silently ignore exceptions in callback during potential static destruction
-      }
-    }
-  }
+  std::vector<uint8_t> data_copy(data.begin(), data.end());
+  invoke_receive_callback(data_copy);
 
   // Decompress/Decrypt if needed?
   // For demonstration, ignoring. In real usage:
@@ -457,36 +354,18 @@ auto messaging_client::on_receive(std::span<const uint8_t> data) -> void {
 auto messaging_client::on_error(std::error_code ec) -> void {
   // NOTE: No logging in async handlers to prevent heap corruption during
   // static destruction.
-  (void)ec;  // Suppress unused parameter warning
 
-  // Invoke error callback if set
-  {
-    std::lock_guard<std::mutex> lock(callback_mutex_);
-    if (error_callback_) {
-      try {
-        error_callback_(ec);
-      } catch (...) {
-        // Silently ignore exceptions in callback during potential static destruction
-      }
-    }
-  }
+  // Invoke error callback using base class method
+  invoke_error_callback(ec);
 
   // Invoke disconnected callback if was connected
-  if (is_connected_.load()) {
-    std::lock_guard<std::mutex> lock(callback_mutex_);
-    if (disconnected_callback_) {
-      try {
-        disconnected_callback_();
-      } catch (...) {
-        // Silently ignore exceptions in callback during potential static destruction
-      }
-    }
+  if (is_connected()) {
+    invoke_disconnected_callback();
   }
 
-  // Mark connection as lost but don't call stop_client from callback thread
-  // to avoid race conditions with destructor or explicit stop_client calls
-  is_connected_.store(false);
-  is_running_.store(false);
+  // Mark connection as lost using base class method
+  // Note: We don't modify is_running_ here - the base class stop_client() handles that
+  set_connected(false);
 }
 
 auto messaging_client::get_socket() const
@@ -495,28 +374,6 @@ auto messaging_client::get_socket() const
   return socket_;
 }
 
-auto messaging_client::set_receive_callback(
-    std::function<void(const std::vector<uint8_t> &)> callback) -> void {
-  std::lock_guard<std::mutex> lock(callback_mutex_);
-  receive_callback_ = std::move(callback);
-}
-
-auto messaging_client::set_connected_callback(std::function<void()> callback)
-    -> void {
-  std::lock_guard<std::mutex> lock(callback_mutex_);
-  connected_callback_ = std::move(callback);
-}
-
-auto messaging_client::set_disconnected_callback(std::function<void()> callback)
-    -> void {
-  std::lock_guard<std::mutex> lock(callback_mutex_);
-  disconnected_callback_ = std::move(callback);
-}
-
-auto messaging_client::set_error_callback(
-    std::function<void(std::error_code)> callback) -> void {
-  std::lock_guard<std::mutex> lock(callback_mutex_);
-  error_callback_ = std::move(callback);
-}
+// Callback setters are provided by base class
 
 } // namespace kcenon::network::core
