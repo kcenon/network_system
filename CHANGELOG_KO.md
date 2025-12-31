@@ -110,6 +110,11 @@ Network System 프로젝트의 모든 주요 변경 사항이 이 파일에 문�
   - `start_server()` catch 블록에 부분 생성된 리소스를 해제하는 정리 코드 추가
   - `stop_server()`가 조기 반환하는 경우를 처리하기 위해 소멸자에 명시적 리소스 정리 추가
   - Linux Debug 빌드에서 `ConnectionLifecycleTest.ServerStartupOnUsedPort`의 "corrupted size vs. prev_size" 오류 수정
+- **tcp_socket SEGV 수정**: 비동기 송신 작업 전 소켓 유효성 검사 추가 (#389)
+  - `tcp_socket::async_send()`가 `asio::async_write()` 시작 전 `socket_.is_open()` 확인
+  - 소켓이 이미 닫힌 경우 핸들러를 통해 `asio::error::not_connected` 오류 반환
+  - asio 내부 race condition으로 인해 `LargeMessageTransfer` 테스트에 sanitizer skip 추가
+  - `NetworkTest.LargeMessageTransfer` ThreadSanitizer 실패 수정
 - **tcp_socket UBSAN 수정**: 비동기 읽기 작업 전 소켓 유효성 검사 추가 (#318)
   - `tcp_socket::do_read()`가 `async_read_some()` 시작 전 `socket_.is_open()` 확인
   - 소켓이 이미 닫힌 경우 정의되지 않은 동작(null descriptor_state 접근) 방지
