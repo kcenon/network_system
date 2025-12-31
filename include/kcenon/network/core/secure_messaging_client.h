@@ -32,19 +32,19 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
-#include <atomic>
 #include <functional>
+#include <future>
 #include <memory>
 #include <mutex>
 #include <string>
-#include <thread>
+#include <string_view>
 #include <vector>
 
 #include <asio.hpp>
 #include <asio/ssl.hpp>
 
+#include "kcenon/network/core/messaging_client_base.h"
 #include "kcenon/network/internal/secure_tcp_socket.h"
-#include "kcenon/network/utils/result_types.h"
 #include "kcenon/network/integration/thread_integration.h"
 
 namespace kcenon::network::core
@@ -53,6 +53,9 @@ namespace kcenon::network::core
 	/*!
 	 * \class secure_messaging_client
 	 * \brief A secure client for establishing TLS/SSL encrypted TCP connections to a server.
+	 *
+	 * This class inherits from messaging_client_base using the CRTP pattern,
+	 * which provides common lifecycle management and callback handling.
 	 *
 	 * ### Thread Safety
 	 * - All public methods are thread-safe.
@@ -63,7 +66,8 @@ namespace kcenon::network::core
 	 * - Establishes encrypted connection to a remote server using TLS/SSL.
 	 * - Performs SSL handshake after TCP connection.
 	 * - Manages \c asio::io_context and runs it in a background thread.
-	 * - Provides \c start_client() to connect and \c stop_client() to disconnect.
+	 * - Provides \c start_client() to connect and \c stop_client() to disconnect
+	 *   (inherited from messaging_client_base).
 	 * - Sends encrypted data via \c send_packet().
 	 * - Optionally verifies server certificate.
 	 *
@@ -83,89 +87,62 @@ namespace kcenon::network::core
 	 * \endcode
 	 */
 	class secure_messaging_client
-		: public std::enable_shared_from_this<secure_messaging_client>
+		: public messaging_client_base<secure_messaging_client>
 	{
 	public:
+		//! \brief Allow base class to access protected methods
+		friend class messaging_client_base<secure_messaging_client>;
+
 		/*!
 		 * \brief Constructs a secure messaging client.
 		 * \param client_id A descriptive identifier for this client instance.
 		 * \param verify_cert Whether to verify server certificate (default: true)
 		 */
-		explicit secure_messaging_client(const std::string& client_id,
+		explicit secure_messaging_client(std::string_view client_id,
 										 bool verify_cert = true);
 
 		/*!
-		 * \brief Destructor. Calls \c stop_client() if still connected.
+		 * \brief Destructor. Calls \c stop_client() if still connected
+		 *        (handled by base class).
 		 */
-		~secure_messaging_client() noexcept;
+		~secure_messaging_client() noexcept override = default;
 
+	protected:
 		/*!
-		 * \brief Initiates an encrypted connection to the specified server.
+		 * \brief Secure TCP-specific implementation of client start.
 		 * \param host The server hostname or IP address.
 		 * \param port The server port number.
 		 * \return Result<void> - Success if connected, or error with code:
-		 *         - error_codes::kcenon::network::connection_failed
-		 *         - error_codes::kcenon::network::connection_timeout
+		 *         - error_codes::network_system::connection_failed
+		 *         - error_codes::network_system::connection_timeout
 		 *         - error_codes::common_errors::internal_error
 		 *
+		 * Called by base class start_client() after common validation.
 		 * This method:
 		 * 1. Creates io_context and secure socket
 		 * 2. Establishes TCP connection
 		 * 3. Performs SSL handshake
 		 * 4. Starts background thread for I/O
 		 */
-		auto start_client(const std::string& host, unsigned short port)
-			-> VoidResult;
+		auto do_start(std::string_view host, unsigned short port) -> VoidResult;
 
 		/*!
-		 * \brief Stops the client and disconnects from the server.
+		 * \brief Secure TCP-specific implementation of client stop.
 		 * \return Result<void> - Success if stopped, or error
+		 *
+		 * Called by base class stop_client() after common cleanup.
 		 */
-		auto stop_client() -> VoidResult;
+		auto do_stop() -> VoidResult;
 
 		/*!
-		 * \brief Sends encrypted data to the server.
+		 * \brief Secure TCP-specific implementation of data send.
 		 * \param data The data to send (moved for efficiency).
 		 * \return Result<void> - Success if sent, or error
 		 *
-		 * \note Data is encrypted before transmission.
-		 * \note The original vector will be empty after this call.
+		 * Called by base class send_packet() after common validation.
+		 * Data is encrypted before transmission.
 		 */
-		auto send_packet(std::vector<uint8_t>&& data) -> VoidResult;
-
-		/*!
-		 * \brief Checks if the client is currently connected.
-		 * \return true if connected and SSL handshake completed, false otherwise.
-		 */
-		[[nodiscard]] auto is_connected() const noexcept -> bool
-		{
-			return is_connected_.load(std::memory_order_relaxed);
-		}
-
-		/*!
-		 * \brief Sets the callback for received data.
-		 * \param callback Function called when data is received from the server.
-		 */
-		auto set_receive_callback(
-			std::function<void(const std::vector<uint8_t>&)> callback) -> void;
-
-		/*!
-		 * \brief Sets the callback for connection established.
-		 * \param callback Function called when connection and SSL handshake succeed.
-		 */
-		auto set_connected_callback(std::function<void()> callback) -> void;
-
-		/*!
-		 * \brief Sets the callback for disconnection.
-		 * \param callback Function called when disconnected from server.
-		 */
-		auto set_disconnected_callback(std::function<void()> callback) -> void;
-
-		/*!
-		 * \brief Sets the callback for errors.
-		 * \param callback Function called when an error occurs.
-		 */
-		auto set_error_callback(std::function<void(std::error_code)> callback) -> void;
+		auto do_send(std::vector<uint8_t>&& data) -> VoidResult;
 
 	private:
 		/*!
@@ -181,7 +158,9 @@ namespace kcenon::network::core
 		auto on_error(std::error_code ec) -> void;
 
 	private:
-		std::string client_id_; /*!< Identifier for this client instance. */
+		// Secure TCP protocol-specific members (base class provides client_id_,
+		// is_running_, is_connected_, stop_initiated_, stop_promise_, stop_future_,
+		// and callbacks)
 
 		std::unique_ptr<asio::io_context>
 			io_context_;	/*!< The I/O context for async ops. */
@@ -199,21 +178,7 @@ namespace kcenon::network::core
 		std::shared_ptr<internal::secure_tcp_socket>
 			socket_;		/*!< The secure TCP socket for this connection. */
 
-		std::atomic<bool> is_connected_{false}; /*!< Connection state flag. */
 		bool verify_cert_{true};		/*!< Whether to verify server certificate. */
-
-		/*!
-		 * \brief Callbacks for client events
-		 */
-		std::function<void(const std::vector<uint8_t>&)> receive_callback_;
-		std::function<void()> connected_callback_;
-		std::function<void()> disconnected_callback_;
-		std::function<void(std::error_code)> error_callback_;
-
-		/*!
-		 * \brief Mutex protecting callback access
-		 */
-		mutable std::mutex callback_mutex_;
 	};
 
 } // namespace kcenon::network::core

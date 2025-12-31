@@ -34,20 +34,18 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <kcenon/network/config/feature_flags.h>
 
-#include <atomic>
 #include <functional>
 #include <future>
 #include <memory>
 #include <mutex>
-#include <optional>
 #include <string>
-#include <thread>
+#include <string_view>
 #include <vector>
 
 #include <asio.hpp>
 #include <asio/ssl.hpp>
 
-#include "kcenon/network/utils/result_types.h"
+#include "kcenon/network/core/messaging_server_base.h"
 #include "kcenon/network/integration/thread_integration.h"
 
 // Optional monitoring support via common_system
@@ -67,6 +65,9 @@ namespace kcenon::network::core
 	 * \brief A secure server class that manages incoming TLS/SSL encrypted TCP connections,
 	 *        creating \c secure_session instances for each accepted socket.
 	 *
+	 * This class inherits from messaging_server_base using the CRTP pattern,
+	 * which provides common lifecycle management and callback handling.
+	 *
 	 * ### Thread Safety
 	 * - All public methods are thread-safe.
 	 * - Internal state (is_running_, sessions_) is protected by atomics and mutex.
@@ -81,7 +82,7 @@ namespace kcenon::network::core
 	 * - For each incoming connection, performs SSL handshake and instantiates a
 	 * \c secure_session to handle encrypted communication.
 	 * - Allows external control via \c start_server(), \c stop_server(), and \c
-	 * wait_for_stop().
+	 * wait_for_stop() (inherited from messaging_server_base).
 	 *
 	 * ### Thread Model
 	 * - A single background thread calls \c io_context.run() to process I/O
@@ -102,53 +103,29 @@ namespace kcenon::network::core
 	 * \endcode
 	 */
 	class secure_messaging_server
-		: public std::enable_shared_from_this<secure_messaging_server>
+		: public messaging_server_base<secure_messaging_server,
+		                               kcenon::network::session::secure_session>
 	{
 	public:
+		//! \brief Allow base class to access protected methods
+		friend class messaging_server_base<secure_messaging_server,
+		                                   kcenon::network::session::secure_session>;
+
 		/*!
 		 * \brief Constructs a \c secure_messaging_server with SSL/TLS support.
 		 * \param server_id A descriptive identifier for this server instance
 		 * \param cert_file Path to the SSL certificate file (.crt or .pem)
 		 * \param key_file Path to the SSL private key file (.key or .pem)
 		 */
-		secure_messaging_server(const std::string& server_id,
+		secure_messaging_server(std::string_view server_id,
 								const std::string& cert_file,
 								const std::string& key_file);
 
 		/*!
 		 * \brief Destructor. If the server is still running, \c stop_server()
-		 * is invoked.
+		 * is invoked (handled by base class).
 		 */
-		~secure_messaging_server() noexcept;
-
-		/*!
-		 * \brief Begins listening on the specified TCP \p port, creates a
-		 * background thread to run I/O operations, and starts accepting
-		 * connections.
-		 *
-		 * \param port The TCP port to bind and listen on (e.g., 5555).
-		 * \return Result<void> - Success if server started, or error with code:
-		 *         - error_codes::kcenon::network::server_already_running if already running
-		 *         - error_codes::kcenon::network::bind_failed if port binding failed
-		 *         - error_codes::common_errors::internal_error for other failures
-		 */
-		auto start_server(unsigned short port) -> VoidResult;
-
-		/*!
-		 * \brief Stops the server, closing the acceptor and all active
-		 * sessions, then stops the \c io_context and joins the internal thread.
-		 *
-		 * \return Result<void> - Success if server stopped, or error with code:
-		 *         - error_codes::kcenon::network::server_not_started if not running
-		 *         - error_codes::common_errors::internal_error for other failures
-		 */
-		auto stop_server() -> VoidResult;
-
-		/*!
-		 * \brief Blocks until \c stop_server() is called, allowing the caller
-		 *        to wait for a graceful shutdown in another context.
-		 */
-		auto wait_for_stop() -> void;
+		~secure_messaging_server() noexcept override = default;
 
 #if KCENON_WITH_COMMON_SYSTEM
 		/*!
@@ -164,36 +141,28 @@ namespace kcenon::network::core
 		auto get_monitor() const -> kcenon::common::interfaces::IMonitor*;
 #endif // KCENON_WITH_COMMON_SYSTEM
 
+	protected:
 		/*!
-		 * \brief Sets the callback for new client connections.
-		 * \param callback Function called when a client connects.
+		 * \brief Secure TCP-specific implementation of server start.
+		 * \param port The TCP port to bind and listen on.
+		 * \return Result<void> - Success if server started, or error with code:
+		 *         - error_codes::network_system::bind_failed if port binding failed
+		 *         - error_codes::common_errors::internal_error for other failures
+		 *
+		 * Called by base class start_server() after common validation.
+		 * Creates io_context, acceptor, and starts accepting connections.
 		 */
-		auto set_connection_callback(
-			std::function<void(std::shared_ptr<kcenon::network::session::secure_session>)> callback)
-			-> void;
+		auto do_start(unsigned short port) -> VoidResult;
 
 		/*!
-		 * \brief Sets the callback for client disconnections.
-		 * \param callback Function called when a client disconnects.
+		 * \brief Secure TCP-specific implementation of server stop.
+		 * \return Result<void> - Success if server stopped, or error with code:
+		 *         - error_codes::common_errors::internal_error for failures
+		 *
+		 * Called by base class stop_server() after common cleanup.
+		 * Closes acceptor, stops sessions, and releases resources.
 		 */
-		auto set_disconnection_callback(
-			std::function<void(const std::string&)> callback) -> void;
-
-		/*!
-		 * \brief Sets the callback for received messages.
-		 * \param callback Function called when data is received from a client.
-		 */
-		auto set_receive_callback(
-			std::function<void(std::shared_ptr<kcenon::network::session::secure_session>,
-			                   const std::vector<uint8_t>&)> callback) -> void;
-
-		/*!
-		 * \brief Sets the callback for session errors.
-		 * \param callback Function called when an error occurs on a session.
-		 */
-		auto set_error_callback(
-			std::function<void(std::shared_ptr<kcenon::network::session::secure_session>,
-			                   std::error_code)> callback) -> void;
+		auto do_stop() -> VoidResult;
 
 	private:
 		/*!
@@ -233,8 +202,8 @@ namespace kcenon::network::core
 		auto start_cleanup_timer() -> void;
 
 	private:
-		std::string
-			server_id_;		/*!< Name or identifier for this server instance. */
+		// Secure TCP protocol-specific members (base class provides server_id_,
+		// is_running_, stop_initiated_, stop_promise_, stop_future_, and callbacks)
 
 		std::unique_ptr<asio::io_context>
 			io_context_;	/*!< The I/O context for async ops. */
@@ -250,15 +219,6 @@ namespace kcenon::network::core
 
 		std::unique_ptr<asio::ssl::context>
 			ssl_context_;	/*!< SSL context for encryption. */
-
-		std::optional<std::promise<void>>
-			stop_promise_;	/*!< Used to signal \c wait_for_stop(). */
-		std::future<void>
-			stop_future_;	/*!< Future that \c wait_for_stop() waits on. */
-
-		std::atomic<bool> is_running_{
-			false
-		}; /*!< Indicates whether the server is active. */
 
 		/*!
 		 * \brief Holds all active secure sessions.
@@ -288,25 +248,6 @@ namespace kcenon::network::core
 		std::atomic<uint64_t> messages_sent_{0};
 		std::atomic<uint64_t> connection_errors_{0};
 #endif // KCENON_WITH_COMMON_SYSTEM
-
-		/*!
-		 * \brief Callbacks for server events
-		 */
-		std::function<void(std::shared_ptr<kcenon::network::session::secure_session>)>
-			connection_callback_;
-		std::function<void(const std::string&)>
-			disconnection_callback_;
-		std::function<void(std::shared_ptr<kcenon::network::session::secure_session>,
-		                   const std::vector<uint8_t>&)>
-			receive_callback_;
-		std::function<void(std::shared_ptr<kcenon::network::session::secure_session>,
-		                   std::error_code)>
-			error_callback_;
-
-		/*!
-		 * \brief Mutex protecting callback access
-		 */
-		mutable std::mutex callback_mutex_;
 	};
 
 } // namespace kcenon::network::core
