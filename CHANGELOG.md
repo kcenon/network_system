@@ -93,6 +93,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Reduces compile-time coupling and enables flexible logger configuration
 
 ### Fixed
+- **PartialMessageRecovery Test Fix**: Fixed use-after-move bug in ErrorHandlingTest.PartialMessageRecovery (#389)
+  - Created separate message instances instead of reusing a moved-from object
+  - The original code moved `valid_message` in the first `SendMessage` call, then attempted to move it again, causing undefined behavior and test crashes across all platforms
 - **tcp_socket AddressSanitizer Fix**: Fixed SEGV in do_read callback when socket closes during async operation (#388)
   - Added `socket_.is_open()` check before recursive `do_read()` call to prevent race condition
   - Socket could close between `is_reading_.load()` check and `do_read()` invocation

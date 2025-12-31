@@ -87,6 +87,9 @@ Network System 프로젝트의 모든 주요 변경 사항이 이 파일에 문�
   - 패키지 등록 후 `vcpkg install --feature ecosystem`으로 활성화
 
 ### 수정됨
+- **PartialMessageRecovery 테스트 수정**: ErrorHandlingTest.PartialMessageRecovery의 use-after-move 버그 수정 (#389)
+  - 이동된 객체를 재사용하는 대신 별도의 메시지 인스턴스 생성
+  - 원래 코드는 첫 번째 `SendMessage` 호출에서 `valid_message`를 이동한 후 다시 이동을 시도하여 정의되지 않은 동작과 모든 플랫폼에서의 테스트 크래시를 유발
 - **tcp_socket AddressSanitizer 수정**: 비동기 작업 중 소켓 종료 시 do_read 콜백에서 발생하는 SEGV 수정 (#388)
   - 재귀적 `do_read()` 호출 전 `socket_.is_open()` 검사 추가하여 레이스 컨디션 방지
   - `is_reading_.load()` 검사와 `do_read()` 호출 사이에 소켓이 닫힐 수 있는 문제 해결
