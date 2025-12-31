@@ -12,6 +12,14 @@ Network System 프로젝트의 모든 주요 변경 사항이 이 파일에 문�
 ## [미배포]
 
 ### 추가됨
+- **메시징용 CRTP 기본 클래스**: 메시징 클라이언트 및 서버를 위한 템플릿 기본 클래스 추가 (#376)
+  - `messaging_client_base<Derived>`: 클라이언트를 위한 공통 생명주기 관리 및 콜백 처리 제공
+  - `messaging_server_base<Derived, SessionType>`: 서버를 위한 공통 생명주기 관리 제공
+  - atomic 플래그를 사용한 스레드 안전 상태 관리
+  - mutex 보호를 통한 통합 콜백 관리
+  - 표준 생명주기 메서드 (`start`, `stop`, `wait_for_stop`)
+  - CRTP 패턴을 통한 제로 오버헤드 추상화
+  - 기존 메시징 클래스 향후 마이그레이션을 위한 기반
 - **gRPC 서비스 등록 메커니즘**: 공식 gRPC 라이브러리 지원을 포함한 서비스 등록 메커니즘 구현 (#364)
   - 중앙 집중식 서비스 관리를 위한 `service_registry` 클래스 추가
   - 런타임에 동적 메서드 등록을 위한 `generic_service` 추가
@@ -72,6 +80,12 @@ Network System 프로젝트의 모든 주요 변경 사항이 이 파일에 문�
   - 패키지 등록 후 `vcpkg install --feature ecosystem`으로 활성화
 
 ### 수정됨
+- **통합 테스트 불안정성**: macOS CI에서 간헐적인 `ProtocolIntegrationTest.RepeatingPatternData` 실패 수정 (#376)
+  - 소켓 정리를 위한 실제 sleep을 `wait_for_ready()`에 추가 (TIME_WAIT 처리)
+  - 이전 구현은 `yield()`만 사용하여 포트 해제를 보장하지 못함
+  - CI 환경에서 50ms, 로컬에서 10ms 지연 사용
+- **Result 검사 일관성**: `messaging_server_base`에서 VoidResult 검사 시 `operator!` 대신 `is_err()` 사용 (#376)
+  - `messaging_client_base` 및 common_system 에러 처리 패턴과 일치
 - **messaging_server 리소스 정리**: `start_server()` 실패 시 힙 손상 수정 (#335)
   - 포트 바인딩 실패 시(예: 주소가 이미 사용 중) 부분적으로 생성된 리소스(`io_context_`, `work_guard_`)가 정리되지 않음
   - `start_server()` catch 블록에 부분 생성된 리소스를 해제하는 정리 코드 추가
