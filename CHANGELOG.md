@@ -73,6 +73,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Concepts improve error messages and serve as self-documenting type constraints
 
 ### Changed
+- **secure_messaging CRTP Migration**: Migrated all secure messaging classes to use CRTP base classes (#383)
+  - `secure_messaging_client` now inherits from `messaging_client_base<secure_messaging_client>`
+  - `secure_messaging_server` now inherits from `messaging_server_base<secure_messaging_server, secure_session>`
+  - `secure_messaging_udp_client` now inherits from `messaging_client_base<secure_messaging_udp_client>`
+  - `secure_messaging_udp_server` maintains manual lifecycle management due to UDP-specific callbacks
+  - Added `set_udp_receive_callback()` for UDP clients with endpoint-aware callback signature
+  - All TLS/DTLS-specific behavior preserved in `do_start()`, `do_stop()`, `do_send()` methods
+  - Common callback setters and lifecycle methods now provided by base classes
+  - Maintains full backward compatibility with existing API
 - **messaging_server CRTP Migration**: Migrated `messaging_server` to use `messaging_server_base` CRTP pattern (#382)
   - Inherits from `messaging_server_base<messaging_server>` for common lifecycle management
   - Implements `do_start()`, `do_stop()` for TCP-specific server behavior
