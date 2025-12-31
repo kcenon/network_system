@@ -38,6 +38,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Fixed
+- **ThreadSanitizer Data Race in Socket Close Operations** (2026-01-01) (#389)
+  - Added atomic `close()` method to `tcp_socket` and `secure_tcp_socket` classes
+  - Introduced `is_closed_` atomic flag to track socket close state thread-safely
+  - Replaced `socket_.is_open()` checks with atomic `is_closed_` flag checks in `do_read()` and `async_send()`
+  - Updated all callers to use `close()` instead of `socket().close()` for thread-safe socket closure
+  - Prevents data races between socket close operations and concurrent async read/write operations
+  - Affected components: `tcp_socket`, `secure_tcp_socket`, `messaging_session`, `secure_session`, `messaging_client`, `secure_messaging_client`
+
 ### Added
 - **gRPC Phase 5: Testing and Documentation** (2025-12-28) (#365)
   - Added comprehensive unit tests for `grpc_official_wrapper` (status codes, messages, timeouts)
