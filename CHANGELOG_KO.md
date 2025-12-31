@@ -87,6 +87,10 @@ Network System 프로젝트의 모든 주요 변경 사항이 이 파일에 문�
   - 패키지 등록 후 `vcpkg install --feature ecosystem`으로 활성화
 
 ### 수정됨
+- **messaging_client ThreadSanitizer 수정**: `do_stop()`과 `async_connect()` 작업 간의 데이터 레이스 수정 (#388)
+  - `asio::post()`를 통해 pending 소켓 close 작업을 io_context 스레드에서 실행하여 async_connect와 같은 스레드에서 소켓 작업이 이루어지도록 함
+  - stop 시작 후 소켓 작업을 방지하기 위해 async 핸들러에 `stop_initiated_` 검사 추가
+  - CI에서 `do_stop()`이 async_connect가 소켓 내부 상태를 수정하는 동안 다른 스레드에서 `pending_socket_`을 닫을 때 발생하는 ThreadSanitizer 실패 해결
 - **통합 테스트 불안정성**: macOS CI에서 간헐적인 `ProtocolIntegrationTest.RepeatingPatternData` 실패 수정 (#376)
   - 소켓 정리를 위한 실제 sleep을 `wait_for_ready()`에 추가 (TIME_WAIT 처리)
   - 이전 구현은 `yield()`만 사용하여 포트 해제를 보장하지 못함
