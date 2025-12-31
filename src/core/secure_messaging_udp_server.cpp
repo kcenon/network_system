@@ -34,17 +34,27 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "kcenon/network/core/network_context.h"
 #include "kcenon/network/internal/dtls_socket.h"
 
+#include <string_view>
+
 namespace kcenon::network::core
 {
 
-secure_messaging_udp_server::secure_messaging_udp_server(const std::string& server_id)
+secure_messaging_udp_server::secure_messaging_udp_server(std::string_view server_id)
 	: server_id_(server_id)
 {
 }
 
 secure_messaging_udp_server::~secure_messaging_udp_server() noexcept
 {
-	stop_server();
+	try
+	{
+		// Ignore the return value in destructor to avoid throwing
+		(void)stop_server();
+	}
+	catch (...)
+	{
+		// Destructor must not throw - swallow all exceptions
+	}
 }
 
 auto secure_messaging_udp_server::set_certificate_chain_file(
@@ -119,7 +129,7 @@ auto secure_messaging_udp_server::init_ssl_context() -> VoidResult
 
 auto secure_messaging_udp_server::start_server(uint16_t port) -> VoidResult
 {
-	if (is_running_.load())
+	if (is_running_.load(std::memory_order_acquire))
 	{
 		return error_void(error_codes::network_system::server_already_running,
 		                  "Server already running",
@@ -167,6 +177,10 @@ auto secure_messaging_udp_server::start_server(uint16_t port) -> VoidResult
 		thread_pool_ = std::make_shared<integration::basic_thread_pool>(std::thread::hardware_concurrency());
 	}
 
+	// Prepare promise/future for wait_for_stop()
+	stop_promise_.emplace();
+	stop_future_ = stop_promise_->get_future();
+
 	// Start io_context in background
 	io_context_future_ = thread_pool_->submit(
 		[this]()
@@ -175,7 +189,7 @@ auto secure_messaging_udp_server::start_server(uint16_t port) -> VoidResult
 			io_context_->run();
 		});
 
-	is_running_.store(true);
+	is_running_.store(true, std::memory_order_release);
 
 	// Start receiving
 	do_receive();
@@ -185,7 +199,7 @@ auto secure_messaging_udp_server::start_server(uint16_t port) -> VoidResult
 
 auto secure_messaging_udp_server::stop_server() -> VoidResult
 {
-	if (!is_running_.exchange(false))
+	if (!is_running_.exchange(false, std::memory_order_acq_rel))
 	{
 		// Already stopped
 		if (ssl_ctx_)
@@ -236,20 +250,34 @@ auto secure_messaging_udp_server::stop_server() -> VoidResult
 		ssl_ctx_ = nullptr;
 	}
 
+	// Signal the promise for wait_for_stop()
+	if (stop_promise_.has_value())
+	{
+		try
+		{
+			stop_promise_->set_value();
+		}
+		catch (const std::future_error&)
+		{
+			// Promise already satisfied - this is OK during shutdown
+		}
+		stop_promise_.reset();
+	}
+
 	return ok();
 }
 
 auto secure_messaging_udp_server::wait_for_stop() -> void
 {
-	if (io_context_future_.valid())
+	if (stop_future_.valid())
 	{
-		io_context_future_.wait();
+		stop_future_.wait();
 	}
 }
 
 auto secure_messaging_udp_server::do_receive() -> void
 {
-	if (!is_running_.load() || !socket_)
+	if (!is_running_.load(std::memory_order_acquire) || !socket_)
 	{
 		return;
 	}
@@ -260,7 +288,7 @@ auto secure_messaging_udp_server::do_receive() -> void
 		sender_endpoint_,
 		[this, self](std::error_code ec, std::size_t length)
 		{
-			if (!is_running_.load())
+			if (!is_running_.load(std::memory_order_acquire))
 			{
 				return;
 			}
@@ -290,7 +318,7 @@ auto secure_messaging_udp_server::do_receive() -> void
 			}
 
 			// Continue receiving
-			if (is_running_.load())
+			if (is_running_.load(std::memory_order_acquire))
 			{
 				do_receive();
 			}

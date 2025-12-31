@@ -38,15 +38,20 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "kcenon/network/integration/logger_integration.h"
 #include "kcenon/network/session/secure_session.h"
 
+#include <algorithm>
+#include <chrono>
+#include <string_view>
+
 namespace kcenon::network::core
 {
 
 	using tcp = asio::ip::tcp;
 
-	secure_messaging_server::secure_messaging_server(const std::string& server_id,
+	secure_messaging_server::secure_messaging_server(std::string_view server_id,
 													 const std::string& cert_file,
 													 const std::string& key_file)
-		: server_id_(server_id)
+		: messaging_server_base<secure_messaging_server,
+		                        kcenon::network::session::secure_session>(server_id)
 	{
 		// Initialize SSL context with TLS 1.3 support (TICKET-009: TLS 1.3 only by default)
 		ssl_context_ = std::make_unique<asio::ssl::context>(
@@ -94,32 +99,12 @@ namespace kcenon::network::core
 		}
 	}
 
-	secure_messaging_server::~secure_messaging_server() noexcept
-	{
-		try
-		{
-			// Ignore the return value in destructor to avoid throwing
-			(void)stop_server();
-		}
-		catch (...)
-		{
-			// Destructor must not throw - swallow all exceptions
-		}
-	}
+	// Destructor is defaulted in header - base class handles stop_server() call
 
-	auto secure_messaging_server::start_server(unsigned short port) -> VoidResult
+	// Secure TCP-specific implementation of server start
+	// Called by base class start_server() after common validation
+	auto secure_messaging_server::do_start(unsigned short port) -> VoidResult
 	{
-		// If already running, return error
-		if (is_running_.load())
-		{
-			return error_void(
-				error_codes::network_system::server_already_running,
-				"Secure server is already running",
-				"secure_messaging_server::start_server",
-				"Server ID: " + server_id_
-			);
-		}
-
 		try
 		{
 			// Create io_context and acceptor
@@ -133,12 +118,6 @@ namespace kcenon::network::core
 
 			// Create cleanup timer
 			cleanup_timer_ = std::make_unique<asio::steady_timer>(*io_context_);
-
-			is_running_.store(true);
-
-			// Prepare promise/future for wait_for_stop()
-			stop_promise_.emplace();
-			stop_future_ = stop_promise_->get_future();
 
 			// Begin accepting connections
 			do_accept();
@@ -177,8 +156,6 @@ namespace kcenon::network::core
 		}
 		catch (const std::system_error& e)
 		{
-			is_running_.store(false);
-
 			// Check for specific error codes
 			if (e.code() == asio::error::address_in_use ||
 			    e.code() == std::errc::address_in_use)
@@ -186,7 +163,7 @@ namespace kcenon::network::core
 				return error_void(
 					error_codes::network_system::bind_failed,
 					"Failed to bind to port: address already in use",
-					"secure_messaging_server::start_server",
+					"secure_messaging_server::do_start",
 					"Port: " + std::to_string(port)
 				);
 			}
@@ -196,7 +173,7 @@ namespace kcenon::network::core
 				return error_void(
 					error_codes::network_system::bind_failed,
 					"Failed to bind to port: permission denied",
-					"secure_messaging_server::start_server",
+					"secure_messaging_server::do_start",
 					"Port: " + std::to_string(port)
 				);
 			}
@@ -204,38 +181,27 @@ namespace kcenon::network::core
 			return error_void(
 				error_codes::common_errors::internal_error,
 				"Failed to start secure server: " + std::string(e.what()),
-				"secure_messaging_server::start_server",
+				"secure_messaging_server::do_start",
 				"Port: " + std::to_string(port)
 			);
 		}
 		catch (const std::exception& e)
 		{
-			is_running_.store(false);
 			return error_void(
 				error_codes::common_errors::internal_error,
 				"Failed to start secure server: " + std::string(e.what()),
-				"secure_messaging_server::start_server",
+				"secure_messaging_server::do_start",
 				"Port: " + std::to_string(port)
 			);
 		}
 	}
 
-	auto secure_messaging_server::stop_server() -> VoidResult
+	// Secure TCP-specific implementation of server stop
+	// Called by base class stop_server() after common cleanup
+	auto secure_messaging_server::do_stop() -> VoidResult
 	{
-		if (!is_running_.load())
-		{
-			return error_void(
-				error_codes::network_system::server_not_started,
-				"Secure server is not running",
-				"secure_messaging_server::stop_server",
-				"Server ID: " + server_id_
-			);
-		}
-
 		try
 		{
-			is_running_.store(false);
-
 			// Step 1: Cancel and close the acceptor to stop accepting new connections
 			if (acceptor_)
 			{
@@ -304,20 +270,6 @@ namespace kcenon::network::core
 			thread_pool_.reset();
 			io_context_.reset();
 
-			// Step 8: Signal the promise for wait_for_stop()
-			if (stop_promise_.has_value())
-			{
-				try
-				{
-					stop_promise_->set_value();
-				}
-				catch (const std::future_error&)
-				{
-					// Promise already satisfied - this is OK during shutdown
-				}
-				stop_promise_.reset();
-			}
-
 			NETWORK_LOG_INFO("[secure_messaging_server] Stopped.");
 			return ok();
 		}
@@ -326,17 +278,9 @@ namespace kcenon::network::core
 			return error_void(
 				error_codes::common_errors::internal_error,
 				"Failed to stop secure server: " + std::string(e.what()),
-				"secure_messaging_server::stop_server",
-				"Server ID: " + server_id_
+				"secure_messaging_server::do_stop",
+				"Server ID: " + server_id()
 			);
-		}
-	}
-
-	auto secure_messaging_server::wait_for_stop() -> void
-	{
-		if (stop_future_.valid())
-		{
-			stop_future_.wait();
 		}
 	}
 
@@ -351,7 +295,7 @@ namespace kcenon::network::core
 	auto secure_messaging_server::on_accept(std::error_code ec, tcp::socket socket)
 		-> void
 	{
-		if (!is_running_.load())
+		if (!is_running())
 		{
 			return;
 		}
@@ -373,50 +317,39 @@ namespace kcenon::network::core
 
 		// Create a new secure_session
 		auto new_session = std::make_shared<kcenon::network::session::secure_session>(
-			std::move(socket), *ssl_context_, server_id_);
+			std::move(socket), *ssl_context_, server_id());
 
-		// Set up session callbacks to forward to server callbacks
+		// Set up session callbacks using base class methods
 		auto self = shared_from_this();
+		auto receive_cb = get_receive_callback();
+		auto disconnection_cb = get_disconnection_callback();
+		auto error_cb = get_error_callback();
+
+		if (receive_cb)
 		{
-			std::lock_guard<std::mutex> lock(callback_mutex_);
-			if (receive_callback_)
-			{
-				new_session->set_receive_callback(
-					[this, self, new_session](const std::vector<uint8_t>& data)
-					{
-						std::lock_guard<std::mutex> cb_lock(callback_mutex_);
-						if (receive_callback_)
-						{
-							receive_callback_(new_session, data);
-						}
-					});
-			}
+			new_session->set_receive_callback(
+				[this, self, new_session, receive_cb](const std::vector<uint8_t>& data)
+				{
+					receive_cb(new_session, data);
+				});
+		}
 
-			if (disconnection_callback_)
-			{
-				new_session->set_disconnection_callback(
-					[this, self, new_session](const std::string& session_id)
-					{
-						std::lock_guard<std::mutex> cb_lock(callback_mutex_);
-						if (disconnection_callback_)
-						{
-							disconnection_callback_(session_id);
-						}
-					});
-			}
+		if (disconnection_cb)
+		{
+			new_session->set_disconnection_callback(
+				[this, self, new_session, disconnection_cb](const std::string& session_id)
+				{
+					disconnection_cb(session_id);
+				});
+		}
 
-			if (error_callback_)
-			{
-				new_session->set_error_callback(
-					[this, self, new_session](std::error_code ec)
-					{
-						std::lock_guard<std::mutex> cb_lock(callback_mutex_);
-						if (error_callback_)
-						{
-							error_callback_(new_session, ec);
-						}
-					});
-			}
+		if (error_cb)
+		{
+			new_session->set_error_callback(
+				[this, self, new_session, error_cb](std::error_code err)
+				{
+					error_cb(new_session, err);
+				});
 		}
 
 		// Track it in our sessions_ vector (protected by mutex)
@@ -428,22 +361,8 @@ namespace kcenon::network::core
 		// Start the session (this will trigger SSL handshake)
 		new_session->start_session();
 
-		// Invoke connection callback
-		{
-			std::lock_guard<std::mutex> lock(callback_mutex_);
-			if (connection_callback_)
-			{
-				try
-				{
-					connection_callback_(new_session);
-				}
-				catch (const std::exception& e)
-				{
-					NETWORK_LOG_ERROR("[secure_messaging_server] Exception in connection callback: "
-					                  + std::string(e.what()));
-				}
-			}
-		}
+		// Invoke connection callback using base class method
+		invoke_connection_callback(new_session);
 
 #if KCENON_WITH_COMMON_SYSTEM
 		// Record active connections metric
@@ -485,7 +404,7 @@ namespace kcenon::network::core
 
 	auto secure_messaging_server::start_cleanup_timer() -> void
 	{
-		if (!cleanup_timer_ || !is_running_.load())
+		if (!cleanup_timer_ || !is_running())
 		{
 			return;
 		}
@@ -497,7 +416,7 @@ namespace kcenon::network::core
 		cleanup_timer_->async_wait(
 			[this, self](const std::error_code& ec)
 			{
-				if (!ec && is_running_.load())
+				if (!ec && is_running())
 				{
 					cleanup_dead_sessions();
 					start_cleanup_timer(); // Reschedule
@@ -518,35 +437,6 @@ namespace kcenon::network::core
 	}
 #endif
 
-	auto secure_messaging_server::set_connection_callback(
-		std::function<void(std::shared_ptr<kcenon::network::session::secure_session>)> callback)
-		-> void
-	{
-		std::lock_guard<std::mutex> lock(callback_mutex_);
-		connection_callback_ = std::move(callback);
-	}
-
-	auto secure_messaging_server::set_disconnection_callback(
-		std::function<void(const std::string&)> callback) -> void
-	{
-		std::lock_guard<std::mutex> lock(callback_mutex_);
-		disconnection_callback_ = std::move(callback);
-	}
-
-	auto secure_messaging_server::set_receive_callback(
-		std::function<void(std::shared_ptr<kcenon::network::session::secure_session>,
-		                   const std::vector<uint8_t>&)> callback) -> void
-	{
-		std::lock_guard<std::mutex> lock(callback_mutex_);
-		receive_callback_ = std::move(callback);
-	}
-
-	auto secure_messaging_server::set_error_callback(
-		std::function<void(std::shared_ptr<kcenon::network::session::secure_session>,
-		                   std::error_code)> callback) -> void
-	{
-		std::lock_guard<std::mutex> lock(callback_mutex_);
-		error_callback_ = std::move(callback);
-	}
+	// Callback setters are provided by base class
 
 } // namespace kcenon::network::core

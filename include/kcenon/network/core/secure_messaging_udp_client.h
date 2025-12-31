@@ -32,17 +32,18 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
+#include <functional>
+#include <future>
 #include <memory>
+#include <mutex>
 #include <string>
 #include <string_view>
-#include <atomic>
-#include <functional>
-#include <mutex>
+#include <vector>
 
 #include <asio.hpp>
 #include <openssl/ssl.h>
 
-#include "kcenon/network/utils/result_types.h"
+#include "kcenon/network/core/messaging_client_base.h"
 #include "kcenon/network/integration/thread_integration.h"
 
 namespace kcenon::network::internal
@@ -55,6 +56,9 @@ namespace kcenon::network::core
 	/*!
 	 * \class secure_messaging_udp_client
 	 * \brief A secure UDP client using DTLS (Datagram TLS) for encrypted communication.
+	 *
+	 * This class inherits from messaging_client_base using the CRTP pattern,
+	 * which provides common lifecycle management and callback handling.
 	 *
 	 * ### Thread Safety
 	 * - All public methods are thread-safe.
@@ -71,8 +75,8 @@ namespace kcenon::network::core
 	 * \code
 	 * auto client = std::make_shared<secure_messaging_udp_client>("SecureUDPClient");
 	 *
-	 * // Set callback to handle received datagrams
-	 * client->set_receive_callback(
+	 * // Set callback to handle received datagrams (UDP-specific with endpoint)
+	 * client->set_udp_receive_callback(
 	 *     [](const std::vector<uint8_t>& data, const asio::ip::udp::endpoint& sender) {
 	 *         std::cout << "Received " << data.size() << " encrypted bytes\n";
 	 *     });
@@ -92,9 +96,17 @@ namespace kcenon::network::core
 	 * client->stop_client();
 	 * \endcode
 	 */
-	class secure_messaging_udp_client : public std::enable_shared_from_this<secure_messaging_udp_client>
+	class secure_messaging_udp_client
+		: public messaging_client_base<secure_messaging_udp_client>
 	{
 	public:
+		//! \brief Allow base class to access protected methods
+		friend class messaging_client_base<secure_messaging_udp_client>;
+
+		//! \brief UDP-specific receive callback type with sender endpoint
+		using udp_receive_callback_t = std::function<void(const std::vector<uint8_t>&,
+		                                                   const asio::ip::udp::endpoint&)>;
+
 		/*!
 		 * \brief Constructs a secure_messaging_udp_client with an identifier.
 		 * \param client_id A string identifier for this client instance.
@@ -103,35 +115,12 @@ namespace kcenon::network::core
 		secure_messaging_udp_client(std::string_view client_id, bool verify_cert = true);
 
 		/*!
-		 * \brief Destructor. Automatically calls stop_client() if still running.
+		 * \brief Destructor. Automatically calls stop_client() if still running
+		 *        (handled by base class).
 		 */
-		~secure_messaging_udp_client() noexcept;
+		~secure_messaging_udp_client() noexcept override = default;
 
-		// Non-copyable
-		secure_messaging_udp_client(const secure_messaging_udp_client&) = delete;
-		secure_messaging_udp_client& operator=(const secure_messaging_udp_client&) = delete;
-
-		/*!
-		 * \brief Starts the client and establishes DTLS connection.
-		 * \param host The target hostname or IP address.
-		 * \param port The target port number.
-		 * \return Result<void> - Success if client started and handshake completed.
-		 *
-		 * Creates a UDP socket, resolves the target endpoint, and performs
-		 * DTLS handshake. Spawns a background thread for I/O operations.
-		 */
-		auto start_client(std::string_view host, uint16_t port) -> VoidResult;
-
-		/*!
-		 * \brief Stops the client and releases resources.
-		 * \return Result<void> - Success if client stopped.
-		 */
-		auto stop_client() -> VoidResult;
-
-		/*!
-		 * \brief Blocks the calling thread until the client is stopped.
-		 */
-		auto wait_for_stop() -> void;
+		// Non-copyable (handled by base class)
 
 		/*!
 		 * \brief Sends an encrypted datagram to the server.
@@ -139,48 +128,47 @@ namespace kcenon::network::core
 		 * \param handler Optional completion handler.
 		 * \return Result<void> - Success if send initiated.
 		 */
-		auto send_packet(
+		auto send_packet_with_handler(
 			std::vector<uint8_t>&& data,
-			std::function<void(std::error_code, std::size_t)> handler = nullptr) -> VoidResult;
+			std::function<void(std::error_code, std::size_t)> handler) -> VoidResult;
 
 		/*!
-		 * \brief Sets a callback to handle received decrypted datagrams.
+		 * \brief Sets a UDP-specific callback to handle received decrypted datagrams.
 		 * \param callback Function with signature
 		 *        void(const std::vector<uint8_t>&, const asio::ip::udp::endpoint&)
+		 *
+		 * \note This is UDP-specific and includes sender endpoint information.
+		 *       Use this instead of the base class set_receive_callback().
 		 */
-		auto set_receive_callback(
-			std::function<void(const std::vector<uint8_t>&,
-			                   const asio::ip::udp::endpoint&)> callback) -> void;
+		auto set_udp_receive_callback(udp_receive_callback_t callback) -> void;
+
+	protected:
+		/*!
+		 * \brief DTLS-specific implementation of client start.
+		 * \param host The target hostname or IP address.
+		 * \param port The target port number.
+		 * \return Result<void> - Success if client started and handshake completed.
+		 *
+		 * Called by base class start_client() after common validation.
+		 */
+		auto do_start(std::string_view host, unsigned short port) -> VoidResult;
 
 		/*!
-		 * \brief Sets a callback to handle errors.
-		 * \param callback Function with signature void(std::error_code)
+		 * \brief DTLS-specific implementation of client stop.
+		 * \return Result<void> - Success if client stopped.
+		 *
+		 * Called by base class stop_client() after common cleanup.
 		 */
-		auto set_error_callback(std::function<void(std::error_code)> callback) -> void;
+		auto do_stop() -> VoidResult;
 
 		/*!
-		 * \brief Sets a callback for connection established event.
-		 * \param callback Function called when DTLS handshake completes.
+		 * \brief DTLS-specific implementation of data send.
+		 * \param data The plaintext data to encrypt and send (moved for efficiency).
+		 * \return Result<void> - Success if send initiated.
+		 *
+		 * Called by base class send_packet() after common validation.
 		 */
-		auto set_connected_callback(std::function<void()> callback) -> void;
-
-		/*!
-		 * \brief Sets a callback for disconnection event.
-		 * \param callback Function called when client disconnects.
-		 */
-		auto set_disconnected_callback(std::function<void()> callback) -> void;
-
-		/*!
-		 * \brief Returns whether the client is currently connected.
-		 * \return true if connected and DTLS handshake completed.
-		 */
-		auto is_connected() const -> bool { return is_connected_.load(); }
-
-		/*!
-		 * \brief Returns the client identifier.
-		 * \return The client_id string provided at construction.
-		 */
-		auto client_id() const -> const std::string& { return client_id_; }
+		auto do_send(std::vector<uint8_t>&& data) -> VoidResult;
 
 	private:
 		/*!
@@ -196,8 +184,10 @@ namespace kcenon::network::core
 		auto do_handshake() -> VoidResult;
 
 	private:
-		std::string client_id_;                          /*!< Client identifier. */
-		std::atomic<bool> is_connected_{false};          /*!< Connection state flag. */
+		// DTLS protocol-specific members (base class provides client_id_,
+		// is_running_, is_connected_, stop_initiated_, stop_promise_, stop_future_,
+		// and standard callbacks)
+
 		bool verify_cert_{true};                         /*!< Certificate verification flag. */
 
 		std::unique_ptr<asio::io_context> io_context_;   /*!< ASIO I/O context. */
@@ -211,12 +201,9 @@ namespace kcenon::network::core
 		std::mutex endpoint_mutex_;                      /*!< Protects target endpoint. */
 		asio::ip::udp::endpoint target_endpoint_;        /*!< Target endpoint. */
 
-		std::mutex callback_mutex_;                      /*!< Protects callbacks. */
-		std::function<void(const std::vector<uint8_t>&, const asio::ip::udp::endpoint&)>
-			receive_callback_;
-		std::function<void(std::error_code)> error_callback_;
-		std::function<void()> connected_callback_;
-		std::function<void()> disconnected_callback_;
+		//! \brief UDP-specific receive callback (includes sender endpoint)
+		std::mutex udp_callback_mutex_;
+		udp_receive_callback_t udp_receive_callback_;
 	};
 
 } // namespace kcenon::network::core

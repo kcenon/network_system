@@ -32,12 +32,17 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
-#include <memory>
-#include <string>
+#include <array>
 #include <atomic>
 #include <functional>
+#include <future>
+#include <memory>
 #include <mutex>
+#include <optional>
+#include <string>
+#include <string_view>
 #include <unordered_map>
+#include <vector>
 
 #include <asio.hpp>
 #include <openssl/ssl.h>
@@ -55,6 +60,10 @@ namespace kcenon::network::core
 	/*!
 	 * \class secure_messaging_udp_server
 	 * \brief A secure UDP server using DTLS (Datagram TLS) for encrypted communication.
+	 *
+	 * This class uses the same lifecycle management pattern as other messaging
+	 * classes (is_running_, stop_promise_, etc.) but with UDP-specific callbacks
+	 * that include endpoint information.
 	 *
 	 * ### Thread Safety
 	 * - All public methods are thread-safe.
@@ -98,11 +107,16 @@ namespace kcenon::network::core
 	class secure_messaging_udp_server : public std::enable_shared_from_this<secure_messaging_udp_server>
 	{
 	public:
+		//! \brief UDP-specific callback types with endpoint information
+		using udp_receive_callback_t = std::function<void(const std::vector<uint8_t>&,
+		                                                   const asio::ip::udp::endpoint&)>;
+		using udp_client_callback_t = std::function<void(const asio::ip::udp::endpoint&)>;
+
 		/*!
 		 * \brief Constructs a secure_messaging_udp_server with an identifier.
 		 * \param server_id A descriptive identifier for this server instance.
 		 */
-		explicit secure_messaging_udp_server(const std::string& server_id);
+		explicit secure_messaging_udp_server(std::string_view server_id);
 
 		/*!
 		 * \brief Destructor. Automatically calls stop_server() if still running.
@@ -164,13 +178,11 @@ namespace kcenon::network::core
 			std::function<void(std::error_code, std::size_t)> handler = nullptr) -> void;
 
 		/*!
-		 * \brief Sets a callback to handle received decrypted datagrams.
+		 * \brief Sets a UDP-specific callback to handle received decrypted datagrams.
 		 * \param callback Function with signature
 		 *        void(const std::vector<uint8_t>&, const asio::ip::udp::endpoint&)
 		 */
-		auto set_receive_callback(
-			std::function<void(const std::vector<uint8_t>&,
-			                   const asio::ip::udp::endpoint&)> callback) -> void;
+		auto set_receive_callback(udp_receive_callback_t callback) -> void;
 
 		/*!
 		 * \brief Sets a callback to handle errors.
@@ -179,30 +191,31 @@ namespace kcenon::network::core
 		auto set_error_callback(std::function<void(std::error_code)> callback) -> void;
 
 		/*!
-		 * \brief Sets a callback for new client connection.
+		 * \brief Sets a UDP-specific callback for new client connection.
 		 * \param callback Function called when a new client completes DTLS handshake.
 		 */
-		auto set_client_connected_callback(
-			std::function<void(const asio::ip::udp::endpoint&)> callback) -> void;
+		auto set_client_connected_callback(udp_client_callback_t callback) -> void;
 
 		/*!
-		 * \brief Sets a callback for client disconnection.
+		 * \brief Sets a UDP-specific callback for client disconnection.
 		 * \param callback Function called when a client session ends.
 		 */
-		auto set_client_disconnected_callback(
-			std::function<void(const asio::ip::udp::endpoint&)> callback) -> void;
+		auto set_client_disconnected_callback(udp_client_callback_t callback) -> void;
 
 		/*!
 		 * \brief Returns whether the server is currently running.
 		 * \return true if server is running.
 		 */
-		auto is_running() const -> bool { return is_running_.load(); }
+		[[nodiscard]] auto is_running() const noexcept -> bool
+		{
+			return is_running_.load(std::memory_order_acquire);
+		}
 
 		/*!
 		 * \brief Returns the server identifier.
 		 * \return The server_id string provided at construction.
 		 */
-		auto server_id() const -> const std::string& { return server_id_; }
+		[[nodiscard]] auto server_id() const -> const std::string& { return server_id_; }
 
 	private:
 		/*!
@@ -251,9 +264,13 @@ namespace kcenon::network::core
 		};
 
 	private:
+		// Lifecycle management (consistent with other messaging classes)
 		std::string server_id_;                          /*!< Server identifier. */
 		std::atomic<bool> is_running_{false};            /*!< Running state flag. */
+		std::optional<std::promise<void>> stop_promise_; /*!< Used to signal wait_for_stop(). */
+		std::future<void> stop_future_;                  /*!< Future that wait_for_stop() waits on. */
 
+		// DTLS protocol-specific members
 		std::unique_ptr<asio::io_context> io_context_;   /*!< ASIO I/O context. */
 		std::unique_ptr<asio::ip::udp::socket> socket_;  /*!< Main UDP socket. */
 
@@ -271,12 +288,12 @@ namespace kcenon::network::core
 		std::unordered_map<asio::ip::udp::endpoint, std::shared_ptr<dtls_session>, endpoint_hash>
 			sessions_;                                   /*!< Active DTLS sessions. */
 
-		std::mutex callback_mutex_;                      /*!< Protects callbacks. */
-		std::function<void(const std::vector<uint8_t>&, const asio::ip::udp::endpoint&)>
-			receive_callback_;
+		// UDP-specific callbacks (different signature from TCP servers)
+		mutable std::mutex callback_mutex_;              /*!< Protects callbacks. */
+		udp_receive_callback_t receive_callback_;
 		std::function<void(std::error_code)> error_callback_;
-		std::function<void(const asio::ip::udp::endpoint&)> client_connected_callback_;
-		std::function<void(const asio::ip::udp::endpoint&)> client_disconnected_callback_;
+		udp_client_callback_t client_connected_callback_;
+		udp_client_callback_t client_disconnected_callback_;
 	};
 
 } // namespace kcenon::network::core
