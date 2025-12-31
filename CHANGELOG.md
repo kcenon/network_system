@@ -73,6 +73,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Concepts improve error messages and serve as self-documenting type constraints
 
 ### Changed
+- **messaging_client CRTP Migration**: Migrated `messaging_client` to use `messaging_client_base` CRTP pattern (#381)
+  - Inherits from `messaging_client_base<messaging_client>` for common lifecycle management
+  - Implements `do_start()`, `do_stop()`, `do_send()` for TCP-specific behavior
+  - Removes duplicated code (~265 lines reduction)
+  - All callback setters and lifecycle methods now provided by base class
+  - Maintains full backward compatibility with existing API
+  - First proof-of-concept for messaging class hierarchy migration
 - **vcpkg Manifest**: Added ecosystem dependencies as optional feature for vcpkg registry distribution (#371)
   - Added `ecosystem` feature containing `kcenon-common-system`, `kcenon-thread-system`, `kcenon-logger-system`, `kcenon-container-system`
   - These dependencies are required as documented in README, now declared in vcpkg.json
