@@ -83,9 +83,6 @@ secure_messaging_client::secure_messaging_client(const std::string &client_id,
     NETWORK_LOG_WARN("[secure_messaging_client] SSL context initialized with "
                      "TLS 1.3 only WITHOUT certificate verification");
   }
-
-  // Initialize pipeline
-  pipeline_ = internal::make_default_pipeline();
 }
 
 secure_messaging_client::~secure_messaging_client() noexcept {
@@ -307,9 +304,7 @@ auto secure_messaging_client::send_packet(std::vector<uint8_t> &&data)
         "secure_messaging_client::send_packet", "Client ID: " + client_id_);
   }
 
-  // For now, just send directly without pipeline processing
-  // In a real implementation, you would apply pipeline transformations here
-  // Mode flags (compress_mode_, encrypt_mode_) would be used here
+  // Send data directly over the secure connection
   socket_->async_send(
       std::move(data), [](std::error_code ec, std::size_t bytes_transferred) {
         if (ec) {

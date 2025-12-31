@@ -142,6 +142,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Simplifies code by ~70 lines and removes priority queue, mutex, condition variable
   - Maintains fallback for builds without common_system integration
 
+### Removed
+- **Unused Pipeline Compression/Encryption Code**: Removed dead code following Simple Design principle (#378)
+  - Removed `internal::pipeline` struct and `make_default_pipeline()` function
+  - Removed `pipeline_`, `compress_mode_`, `encrypt_mode_` members from `messaging_client`, `messaging_session`, `secure_session`, `secure_messaging_client`
+  - Removed `send_coroutine.h/cpp` and `pipeline.h/cpp` files
+  - These members were always set to `false` and the pipeline functions were no-op stubs
+  - Simplifies code by ~300 lines across multiple files
+  - `utils::compression_pipeline` (actual LZ4/gzip implementation) remains available as standalone utility
+
 ### Refactored
 - **Memory Profiler**: Migrated from `std::thread` to `thread_integration_manager::submit_delayed_task()` (#277)
   - Removed dedicated `std::thread worker_` member

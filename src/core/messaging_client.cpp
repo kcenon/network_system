@@ -33,11 +33,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "kcenon/network/core/messaging_client.h"
 #include "kcenon/network/integration/logger_integration.h"
 #include "kcenon/network/integration/io_context_thread_manager.h"
-#include "kcenon/network/internal/send_coroutine.h"
 #include <chrono>
 #include <span>
 #include <string_view>
-#include <type_traits>
 
 // Use nested namespace definition (C++17)
 namespace kcenon::network::core {
@@ -47,10 +45,6 @@ using tcp = asio::ip::tcp;
 // Use string_view for better efficiency (C++17)
 messaging_client::messaging_client(std::string_view client_id)
     : messaging_client_base<messaging_client>(client_id) {
-  // Optionally configure pipeline or modes here:
-  pipeline_ = internal::make_default_pipeline();
-  compress_mode_ = false; // set true if you want to compress
-  encrypt_mode_ = false;  // set true if you want to encrypt
 }
 
 // Destructor is defaulted in header - base class handles stop_client() call
@@ -348,32 +342,14 @@ auto messaging_client::do_send(std::vector<uint8_t> &&data) -> VoidResult {
                       "Client ID: " + client_id());
   }
 
-  // Using if constexpr for compile-time branching (C++17)
+  // Send data directly without pipeline transformation
   // NOTE: No logging in send callbacks to prevent heap corruption during
   // static destruction.
-  if constexpr (std::is_same_v<decltype(local_socket->socket().get_executor()),
-                               asio::io_context::executor_type>) {
-#ifdef USE_STD_COROUTINE
-    // Coroutine approach
-    asio::co_spawn(
-        local_socket->socket().get_executor(),
-        async_send_with_pipeline_co(local_socket, std::move(data), pipeline_,
-                                    compress_mode_, encrypt_mode_),
-        [](std::error_code) {
-          // Silently ignore errors - no logging during potential static destruction
-        });
-#else
-    // Fallback approach
-    auto fut =
-        async_send_with_pipeline_no_co(local_socket, std::move(data), pipeline_,
-                                       compress_mode_, encrypt_mode_);
-    try {
-      (void)fut.get();  // Ignore result - no logging during potential static destruction
-    } catch (...) {
-      // Silently ignore exceptions - no logging during potential static destruction
-    }
-#endif
-  }
+  local_socket->async_send(std::move(data),
+      [](std::error_code, std::size_t) {
+        // Silently ignore errors - no logging during potential static destruction
+      });
+
   return ok();
 }
 
@@ -388,12 +364,6 @@ auto messaging_client::on_receive(std::span<const uint8_t> data) -> void {
   // Copy span to vector only at API boundary to maintain external callback compatibility
   std::vector<uint8_t> data_copy(data.begin(), data.end());
   invoke_receive_callback(data_copy);
-
-  // Decompress/Decrypt if needed?
-  // For demonstration, ignoring. In real usage:
-  //   auto uncompressed = pipeline_.decompress(...);
-  //   auto decrypted = pipeline_.decrypt(...);
-  //   parse or handle...
 }
 
 auto messaging_client::on_error(std::error_code ec) -> void {

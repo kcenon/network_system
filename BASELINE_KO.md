@@ -62,7 +62,6 @@
 - ✅ WebSocket 프로토콜 지원(RFC 6455)이 클라이언트/서버 API와 함께 구현됨
 - ⚠️ 실제 네트워크 지연시간/처리량 및 메모리 기준선이 아직 캡처되지 않음 (TCP, UDP, WebSocket)
 - ⚠️ Zero-copy 파이프라인 및 connection pooling은 로드맵 항목으로 남아있음 (`IMPROVEMENTS.md` 참조)
-- ✅ C++20 coroutine 지원 전송 파이프라인(`src/internal/send_coroutine.*`)이 준비됨
 
 ---
 

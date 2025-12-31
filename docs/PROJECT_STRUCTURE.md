@@ -76,9 +76,7 @@ include/network_system/
 │   ├── udp_socket.h               # UDP socket wrapper
 │   ├── secure_tcp_socket.h        # SSL stream wrapper
 │   ├── websocket_socket.h         # WebSocket protocol
-│   ├── websocket_protocol.h       # WebSocket framing/handshake
-│   ├── pipeline.h                 # Data processing pipeline
-│   └── send_coroutine.h           # C++20 coroutine send
+│   └── websocket_protocol.h       # WebSocket framing/handshake
 │
 ├── 📁 integration/                # External system integration
 │   ├── messaging_bridge.h         # Legacy messaging_system bridge
@@ -201,9 +199,7 @@ src/
 │   ├── udp_socket.cpp
 │   ├── secure_tcp_socket.cpp
 │   ├── websocket_socket.cpp
-│   ├── websocket_protocol.cpp
-│   ├── pipeline.cpp
-│   └── send_coroutine.cpp
+│   └── websocket_protocol.cpp
 │
 ├── 📁 integration/                # Integration implementations
 │   ├── messaging_bridge.cpp

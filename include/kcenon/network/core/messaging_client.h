@@ -45,7 +45,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "kcenon/network/core/messaging_client_base.h"
 #include "kcenon/network/internal/tcp_socket.h"
-#include "kcenon/network/internal/pipeline.h"
 #include "kcenon/network/integration/io_context_thread_manager.h"
 
 // Use nested namespace definition in C++17
@@ -203,15 +202,6 @@ namespace kcenon::network::core
 		mutable std::mutex pending_mutex_; /*!< Protects pending connection state. */
 		std::shared_ptr<asio::ip::tcp::resolver> pending_resolver_;
 		std::shared_ptr<asio::ip::tcp::socket> pending_socket_;
-
-		internal::pipeline
-			pipeline_; /*!< Pipeline for optional compression/encryption. */
-		bool compress_mode_{
-			false
-		}; /*!< If true, compress data before sending. */
-		bool encrypt_mode_{
-			false
-		}; /*!< If true, encrypt data before sending. */
 	};
 
 } // namespace kcenon::network::core

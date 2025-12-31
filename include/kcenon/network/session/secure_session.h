@@ -44,7 +44,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <asio.hpp>
 #include <asio/ssl.hpp>
 
-#include "kcenon/network/internal/pipeline.h"
 #include "kcenon/network/internal/secure_tcp_socket.h"
 
 namespace kcenon::network::session
@@ -187,16 +186,6 @@ namespace kcenon::network::session
 
 		std::shared_ptr<internal::secure_tcp_socket>
 			socket_;			/*!< The wrapped secure TCP socket for this session. */
-		internal::pipeline
-			pipeline_; /*!< Pipeline for compress/encrypt transformations. */
-
-		mutable std::mutex mode_mutex_; /*!< Protects pipeline mode flags. */
-		bool compress_mode_{
-			false
-		}; /*!< If true, compress data before sending. */
-		bool encrypt_mode_{
-			false
-		}; /*!< If true, encrypt data before sending. */
 
 		std::atomic<bool> is_stopped_{
 			false

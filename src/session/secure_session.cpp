@@ -43,13 +43,6 @@ secure_session::secure_session(asio::ip::tcp::socket socket,
   // Create the secure_tcp_socket wrapper
   socket_ = std::make_shared<internal::secure_tcp_socket>(std::move(socket),
                                                           ssl_context);
-
-  // Initialize the pipeline (stub)
-  pipeline_ = internal::make_default_pipeline();
-
-  // Default modes
-  compress_mode_ = false;
-  encrypt_mode_ = false;
 }
 
 secure_session::~secure_session() noexcept {
@@ -135,9 +128,7 @@ auto secure_session::send_packet(std::vector<uint8_t> &&data) -> void {
     return;
   }
 
-  // For now, just send directly without pipeline processing
-  // In a real implementation, you would apply pipeline transformations here
-  // Mode flags (compress_mode_, encrypt_mode_) would be used here
+  // Send data directly over the secure connection
   socket_->async_send(
       std::move(data), [](std::error_code ec, std::size_t bytes_transferred) {
         if (ec) {

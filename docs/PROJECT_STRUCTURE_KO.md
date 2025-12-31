@@ -74,9 +74,7 @@ include/network_system/
 │   ├── udp_socket.h               # UDP 소켓 래퍼
 │   ├── secure_tcp_socket.h        # SSL 스트림 래퍼
 │   ├── websocket_socket.h         # WebSocket 프로토콜
-│   ├── websocket_protocol.h       # WebSocket 프레이밍/핸드셰이크
-│   ├── pipeline.h                 # 데이터 처리 파이프라인
-│   └── send_coroutine.h           # C++20 코루틴 전송
+│   └── websocket_protocol.h       # WebSocket 프레이밍/핸드셰이크
 │
 ├── 📁 integration/                # 외부 시스템 통합
 │   ├── messaging_bridge.h         # 레거시 messaging_system 브릿지
@@ -156,9 +154,7 @@ src/
 │   ├── udp_socket.cpp
 │   ├── secure_tcp_socket.cpp
 │   ├── websocket_socket.cpp
-│   ├── websocket_protocol.cpp
-│   ├── pipeline.cpp
-│   └── send_coroutine.cpp
+│   └── websocket_protocol.cpp
 │
 ├── 📁 integration/                # 통합 구현
 │   ├── messaging_bridge.cpp
