@@ -73,6 +73,15 @@ Network System 프로젝트의 모든 주요 변경 사항이 이 파일에 문�
   - Concepts는 에러 메시지를 개선하고 자기 문서화 타입 제약 역할
 
 ### 변경됨
+- **secure_messaging CRTP 마이그레이션**: 모든 secure messaging 클래스를 CRTP 기본 클래스를 사용하도록 마이그레이션 (#383)
+  - `secure_messaging_client`가 이제 `messaging_client_base<secure_messaging_client>`를 상속
+  - `secure_messaging_server`가 이제 `messaging_server_base<secure_messaging_server, secure_session>`을 상속
+  - `secure_messaging_udp_client`가 이제 `messaging_client_base<secure_messaging_udp_client>`를 상속
+  - `secure_messaging_udp_server`는 UDP 특화 콜백으로 인해 수동 생명주기 관리 유지
+  - 엔드포인트 인식 콜백 시그니처를 가진 UDP 클라이언트용 `set_udp_receive_callback()` 추가
+  - 모든 TLS/DTLS 특화 동작은 `do_start()`, `do_stop()`, `do_send()` 메서드에 보존
+  - 공통 콜백 설정자 및 생명주기 메서드가 이제 기본 클래스에서 제공됨
+  - 기존 API와의 완전한 하위 호환성 유지
 - **messaging_server CRTP 마이그레이션**: `messaging_server`를 `messaging_server_base` CRTP 패턴을 사용하도록 마이그레이션 (#382)
   - 공통 생명주기 관리를 위해 `messaging_server_base<messaging_server>`를 상속
   - TCP 특화 서버 동작을 위한 `do_start()`, `do_stop()` 구현
