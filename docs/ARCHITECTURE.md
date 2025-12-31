@@ -46,7 +46,7 @@ Network_system provides a high-performance networking foundation that:
 | **Async-First** | Coroutine-based async operations (C++20) | ✅ Achieved |
 | **Integration-Friendly** | Pluggable thread, logger, container systems | ✅ Achieved |
 | **Connection Pooling** | Efficient connection reuse | 🔄 In Progress |
-| **TLS/SSL Support** | Secure communication | 📋 Planned |
+| **TLS/SSL Support** | Secure communication (TLS 1.3, DTLS) | ✅ Achieved |
 
 ---
 
@@ -750,7 +750,7 @@ Session Pool → Acquire → Use → Release → Pool
 
 | Feature | Status | Priority | ETA |
 |---------|--------|----------|-----|
-| TLS/SSL Support | 📋 Planned | P1 | Q1 2026 |
+| TLS/SSL Support | ✅ Achieved | P1 | - |
 | Connection Pooling | 🔄 In Progress | P1 | Q4 2025 |
 | HTTP/2 Support | 📋 Planned | P2 | Q2 2026 |
 | WebSocket Support | 📋 Planned | P2 | Q2 2026 |
