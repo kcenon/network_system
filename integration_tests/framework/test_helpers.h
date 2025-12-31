@@ -49,11 +49,23 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace kcenon::network::integration_tests::test_helpers {
 
-// Free function for yielding to allow async operations to complete
+/**
+ * @brief Wait for async operations to complete
+ *
+ * Includes a small actual sleep to ensure port cleanup completes,
+ * especially important in CI environments where TIME_WAIT states
+ * can cause flaky test failures.
+ */
 inline void wait_for_ready() {
+  // Yield to allow pending async operations to complete
   for (int i = 0; i < 1000; ++i) {
     std::this_thread::yield();
   }
+  // Small sleep to ensure socket cleanup (TIME_WAIT handling)
+  // CI environments, especially macOS, may need this to avoid port conflicts
+  const bool is_ci = std::getenv("CI") != nullptr ||
+                     std::getenv("GITHUB_ACTIONS") != nullptr;
+  std::this_thread::sleep_for(std::chrono::milliseconds(is_ci ? 50 : 10));
 }
 
 /**
