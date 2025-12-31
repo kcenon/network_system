@@ -35,12 +35,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <memory>
 #include <vector>
 #include <functional>
-#include <thread>
-#include <atomic>
+#include <future>
 #include <string>
 
 #include <asio.hpp>
 
+#include "kcenon/network/core/messaging_udp_server_base.h"
 #include "kcenon/network/utils/result_types.h"
 #include "kcenon/network/integration/thread_integration.h"
 
@@ -54,6 +54,9 @@ namespace kcenon::network::core
 	/*!
 	 * \class messaging_udp_server
 	 * \brief A UDP server that receives datagrams and routes them based on sender endpoint.
+	 *
+	 * This class inherits from messaging_udp_server_base using the CRTP pattern,
+	 * which provides common lifecycle management and callback handling.
 	 *
 	 * ### Thread Safety
 	 * - All public methods are thread-safe.
@@ -98,65 +101,24 @@ namespace kcenon::network::core
 	 * server->stop_server();
 	 * \endcode
 	 */
-	class messaging_udp_server : public std::enable_shared_from_this<messaging_udp_server>
+	class messaging_udp_server
+		: public messaging_udp_server_base<messaging_udp_server>
 	{
 	public:
+		//! \brief Allow base class to access protected methods
+		friend class messaging_udp_server_base<messaging_udp_server>;
+
 		/*!
 		 * \brief Constructs a messaging_udp_server with an identifier.
 		 * \param server_id A descriptive identifier for this server instance.
 		 */
-		messaging_udp_server(const std::string& server_id);
+		explicit messaging_udp_server(std::string_view server_id);
 
 		/*!
-		 * \brief Destructor. If the server is still running, stop_server() is invoked.
+		 * \brief Destructor. If the server is still running, stop_server() is invoked
+		 *        (handled by base class).
 		 */
-		~messaging_udp_server() noexcept;
-
-		/*!
-		 * \brief Begins listening on the specified UDP port.
-		 * \param port The UDP port to bind and listen on (e.g., 5555).
-		 * \return Result<void> - Success if server started, or error with code:
-		 *         - error_codes::kcenon::network::server_already_running if already running
-		 *         - error_codes::kcenon::network::bind_failed if port binding failed
-		 *         - error_codes::common_errors::internal_error for other failures
-		 *
-		 * Creates an io_context and UDP socket, binds to the specified port,
-		 * and spawns a background thread to run io_context.run().
-		 */
-		auto start_server(uint16_t port) -> VoidResult;
-
-		/*!
-		 * \brief Stops the server and releases resources.
-		 * \return Result<void> - Always returns success.
-		 *
-		 * Stops receiving datagrams, closes the socket, and joins the background thread.
-		 */
-		auto stop_server() -> VoidResult;
-
-		/*!
-		 * \brief Blocks the calling thread until the server is stopped.
-		 *
-		 * Useful for main threads that want to wait until the server shuts down.
-		 */
-		auto wait_for_stop() -> void;
-
-		/*!
-		 * \brief Sets a callback to handle received datagrams.
-		 * \param callback Function with signature
-		 *        void(const std::vector<uint8_t>&, const asio::ip::udp::endpoint&)
-		 *        called whenever a datagram is received.
-		 *        First parameter is the data, second is the sender's endpoint.
-		 */
-		auto set_receive_callback(
-			std::function<void(const std::vector<uint8_t>&,
-			                   const asio::ip::udp::endpoint&)> callback) -> void;
-
-		/*!
-		 * \brief Sets a callback to handle errors.
-		 * \param callback Function with signature void(std::error_code)
-		 *        called when an error occurs during receive operations.
-		 */
-		auto set_error_callback(std::function<void(std::error_code)> callback) -> void;
+		~messaging_udp_server() noexcept override = default;
 
 		/*!
 		 * \brief Sends a datagram to a specific endpoint.
@@ -171,22 +133,27 @@ namespace kcenon::network::core
 			const asio::ip::udp::endpoint& endpoint,
 			std::function<void(std::error_code, std::size_t)> handler) -> void;
 
+	protected:
 		/*!
-		 * \brief Returns whether the server is currently running.
-		 * \return true if server is running, false otherwise.
+		 * \brief UDP-specific implementation of server start.
+		 * \param port The UDP port to bind and listen on.
+		 * \return Result<void> - Success if server started, or error with code.
+		 *
+		 * Called by base class start_server() after common validation.
+		 * Creates io_context, binds socket, and starts worker thread.
 		 */
-		auto is_running() const -> bool { return is_running_.load(); }
+		auto do_start(uint16_t port) -> VoidResult;
 
 		/*!
-		 * \brief Returns the server identifier.
-		 * \return The server_id string provided at construction.
+		 * \brief UDP-specific implementation of server stop.
+		 * \return Result<void> - Success if server stopped, or error with code.
+		 *
+		 * Called by base class stop_server() after common cleanup.
+		 * Stops receiving, closes socket, and releases resources.
 		 */
-		auto server_id() const -> const std::string& { return server_id_; }
+		auto do_stop() -> VoidResult;
 
 	private:
-		std::string server_id_;                          /*!< Server identifier. */
-		std::atomic<bool> is_running_{false};            /*!< Running state flag. */
-
 		std::unique_ptr<asio::io_context> io_context_;   /*!< ASIO I/O context. */
 		std::shared_ptr<internal::udp_socket> socket_;   /*!< UDP socket wrapper. */
 
