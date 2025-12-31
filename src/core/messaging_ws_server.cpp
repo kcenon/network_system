@@ -38,14 +38,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "kcenon/network/internal/websocket_socket.h"
 #include "kcenon/network/integration/logger_integration.h"
 
-#include <asio.hpp>
-
-#include <atomic>
-#include <future>
-#include <map>
-#include <mutex>
-#include <thread>
-
 namespace kcenon::network::core
 {
 	using tcp = asio::ip::tcp;
@@ -166,616 +158,339 @@ namespace kcenon::network::core
 	}
 
 	// ========================================================================
-	// messaging_ws_server::impl
-	// ========================================================================
-
-	class messaging_ws_server::impl
-	{
-	public:
-		impl(const std::string& server_id) : server_id_(server_id) {}
-
-		~impl()
-		{
-			try
-			{
-				if (is_running_.load())
-				{
-					stop();
-				}
-			}
-			catch (...)
-			{
-				// Swallow exceptions in destructor
-			}
-		}
-
-		auto start(const ws_server_config& config) -> VoidResult
-		{
-			if (is_running_.load())
-			{
-				return error_void(error_codes::common_errors::already_exists,
-								  "Server is already running");
-			}
-
-			config_ = config;
-
-			try
-			{
-				is_running_.store(true);
-
-				// Create session manager
-				session_config sess_config;
-				sess_config.max_sessions = config_.max_connections;
-				session_mgr_ = std::make_shared<ws_session_manager>(sess_config);
-
-				// Create io_context and work guard
-				io_context_ = std::make_unique<asio::io_context>();
-				work_guard_ = std::make_unique<
-					asio::executor_work_guard<asio::io_context::executor_type>>(
-					asio::make_work_guard(*io_context_));
-
-				// Create acceptor
-				acceptor_ = std::make_unique<tcp::acceptor>(
-					*io_context_, tcp::endpoint(tcp::v4(), config_.port));
-
-				// Setup stop promise/future
-				stop_promise_.emplace();
-				stop_future_ = stop_promise_->get_future();
-
-				// Get thread pool from network context
-				thread_pool_ = network_context::instance().get_thread_pool();
-				if (!thread_pool_) {
-					// Fallback: create a temporary thread pool if network_context is not initialized
-					NETWORK_LOG_WARN("[messaging_ws_server] network_context not initialized, creating temporary thread pool");
-					thread_pool_ = std::make_shared<integration::basic_thread_pool>(std::thread::hardware_concurrency());
-				}
-
-				// Start io_context on thread pool
-				io_context_future_ = thread_pool_->submit([this]() {
-					try {
-						NETWORK_LOG_DEBUG("[messaging_ws_server] io_context started");
-						io_context_->run();
-						NETWORK_LOG_DEBUG("[messaging_ws_server] io_context stopped");
-					} catch (const std::exception& e) {
-						NETWORK_LOG_ERROR("[messaging_ws_server] Exception in io_context: " +
-										  std::string(e.what()));
-					}
-				});
-
-				// Start accepting connections
-				do_accept();
-
-				NETWORK_LOG_INFO("[messaging_ws_server] Server started on port " +
-								 std::to_string(config_.port) + " (ID: " +
-								 server_id_ + ")");
-
-				return ok();
-			}
-			catch (const std::exception& e)
-			{
-				is_running_.store(false);
-				return error_void(error_codes::network_system::bind_failed,
-								  std::string("Failed to start server: ") + e.what());
-			}
-		}
-
-		auto stop() -> VoidResult
-		{
-			if (!is_running_.load())
-			{
-				return error_void(error_codes::common_errors::not_initialized,
-								  "Server is not running");
-			}
-
-			try
-			{
-				// Close all connections
-				if (session_mgr_)
-				{
-					auto conns = session_mgr_->get_all_connections();
-					for (auto& conn : conns)
-					{
-						conn->close();
-					}
-					session_mgr_->clear_all_connections();
-				}
-
-				// Stop acceptor
-				if (acceptor_)
-				{
-					acceptor_->close();
-				}
-
-				// Stop io_context
-				work_guard_.reset();
-				if (io_context_)
-				{
-					io_context_->stop();
-				}
-
-				// Wait for io_context task to complete
-				if (io_context_future_.valid())
-				{
-					try {
-						io_context_future_.wait();
-					} catch (const std::exception& e) {
-						NETWORK_LOG_ERROR("[messaging_ws_server] Exception while waiting for io_context: " +
-										  std::string(e.what()));
-					}
-				}
-
-				is_running_.store(false);
-
-				// Notify stop_future
-				if (stop_promise_)
-				{
-					stop_promise_->set_value();
-				}
-
-				NETWORK_LOG_INFO("[messaging_ws_server] Server stopped (ID: " +
-								 server_id_ + ")");
-
-				return ok();
-			}
-			catch (const std::exception& e)
-			{
-				return error_void(error_codes::common_errors::internal_error,
-								  std::string("Failed to stop server: ") + e.what());
-			}
-		}
-
-		auto wait_for_stop() -> void
-		{
-			if (stop_future_.valid())
-			{
-				stop_future_.wait();
-			}
-		}
-
-		auto is_running() const -> bool { return is_running_.load(); }
-
-		auto broadcast_text(const std::string& message) -> void
-		{
-			if (!session_mgr_)
-			{
-				return;
-			}
-
-			auto conns = session_mgr_->get_all_connections();
-			for (auto& conn : conns)
-			{
-				conn->send_text(std::string(message), nullptr);
-			}
-		}
-
-		auto broadcast_binary(const std::vector<uint8_t>& data) -> void
-		{
-			if (!session_mgr_)
-			{
-				return;
-			}
-
-			auto conns = session_mgr_->get_all_connections();
-			for (auto& conn : conns)
-			{
-				conn->send_binary(std::vector<uint8_t>(data), nullptr);
-			}
-		}
-
-		auto get_connection(const std::string& connection_id)
-			-> std::shared_ptr<ws_connection>
-		{
-			if (!session_mgr_)
-			{
-				return nullptr;
-			}
-			return session_mgr_->get_connection(connection_id);
-		}
-
-		auto get_all_connections() -> std::vector<std::string>
-		{
-			if (!session_mgr_)
-			{
-				return {};
-			}
-			return session_mgr_->get_all_connection_ids();
-		}
-
-		auto connection_count() const -> size_t
-		{
-			if (!session_mgr_)
-			{
-				return 0;
-			}
-			return session_mgr_->get_connection_count();
-		}
-
-		auto set_connection_callback(
-			std::function<void(std::shared_ptr<ws_connection>)> callback) -> void
-		{
-			std::lock_guard<std::mutex> lock(callback_mutex_);
-			connection_callback_ = std::move(callback);
-		}
-
-		auto set_disconnection_callback(
-			std::function<void(const std::string&, internal::ws_close_code,
-							   const std::string&)>
-				callback) -> void
-		{
-			std::lock_guard<std::mutex> lock(callback_mutex_);
-			disconnection_callback_ = std::move(callback);
-		}
-
-		auto set_message_callback(
-			std::function<void(std::shared_ptr<ws_connection>,
-							   const internal::ws_message&)>
-				callback) -> void
-		{
-			std::lock_guard<std::mutex> lock(callback_mutex_);
-			message_callback_ = std::move(callback);
-		}
-
-		auto set_text_message_callback(
-			std::function<void(std::shared_ptr<ws_connection>, const std::string&)>
-				callback) -> void
-		{
-			std::lock_guard<std::mutex> lock(callback_mutex_);
-			text_message_callback_ = std::move(callback);
-		}
-
-		auto set_binary_message_callback(
-			std::function<void(std::shared_ptr<ws_connection>,
-							   const std::vector<uint8_t>&)>
-				callback) -> void
-		{
-			std::lock_guard<std::mutex> lock(callback_mutex_);
-			binary_message_callback_ = std::move(callback);
-		}
-
-		auto set_error_callback(
-			std::function<void(const std::string&, std::error_code)> callback)
-			-> void
-		{
-			std::lock_guard<std::mutex> lock(callback_mutex_);
-			error_callback_ = std::move(callback);
-		}
-
-		auto server_id() const -> const std::string& { return server_id_; }
-
-	private:
-		auto do_accept() -> void
-		{
-			auto socket = std::make_shared<tcp::socket>(*io_context_);
-
-			acceptor_->async_accept(*socket,
-									[this, socket](std::error_code ec)
-									{
-										if (!ec)
-										{
-											handle_new_connection(socket);
-										}
-										else
-										{
-											NETWORK_LOG_ERROR(
-												"[messaging_ws_server] Accept error: " +
-												ec.message());
-										}
-
-										// Continue accepting
-										if (is_running_.load())
-										{
-											do_accept();
-										}
-									});
-		}
-
-		auto handle_new_connection(std::shared_ptr<tcp::socket> socket) -> void
-		{
-			// Check connection limit using session manager
-			if (!session_mgr_ || !session_mgr_->can_accept_connection())
-			{
-				NETWORK_LOG_WARN("[messaging_ws_server] Connection limit reached");
-				return;
-			}
-
-			// Generate connection ID
-			auto remote_ep = socket->remote_endpoint();
-			std::string conn_id = remote_ep.address().to_string() + ":" +
-								  std::to_string(remote_ep.port());
-			std::string remote_addr = conn_id;
-
-			// Wrap in tcp_socket
-			auto tcp_sock = std::make_shared<internal::tcp_socket>(std::move(*socket));
-
-			// Wrap in websocket_socket
-			auto ws_socket =
-				std::make_shared<internal::websocket_socket>(tcp_sock, false);
-
-			// Create connection wrapper
-			auto conn_impl = std::make_shared<ws_connection::impl>(conn_id, ws_socket,
-																	remote_addr);
-			auto conn = std::make_shared<ws_connection>(conn_impl);
-
-			// Set WebSocket callbacks
-			ws_socket->set_message_callback(
-				[this, conn](const internal::ws_message& msg)
-				{ on_message(conn, msg); });
-
-			ws_socket->set_ping_callback(
-				[this, ws_socket](const std::vector<uint8_t>& payload)
-				{
-					if (config_.auto_pong)
-					{
-						ws_socket->async_send_ping(std::vector<uint8_t>(payload),
-												   [](std::error_code) {});
-					}
-				});
-
-			ws_socket->set_close_callback(
-				[this, conn_id](internal::ws_close_code code,
-								const std::string& reason)
-				{ on_close(conn_id, code, reason); });
-
-			ws_socket->set_error_callback(
-				[this, conn_id](std::error_code ec) { on_error(conn_id, ec); });
-
-			// Accept WebSocket handshake
-			ws_socket->async_accept(
-				[this, conn_id, conn](std::error_code ec)
-				{
-					if (ec)
-					{
-						NETWORK_LOG_ERROR("[messaging_ws_server] Handshake failed: " +
-										  ec.message());
-						return;
-					}
-
-					// Add to session manager
-					auto added_id = session_mgr_->add_connection(conn, conn_id);
-					if (added_id.empty())
-					{
-						NETWORK_LOG_WARN(
-							"[messaging_ws_server] Failed to add connection");
-						return;
-					}
-
-					NETWORK_LOG_INFO("[messaging_ws_server] Client connected: " +
-									 conn_id);
-
-					// Start reading frames
-					auto ws_sock = conn->pimpl_->get_socket();
-					if (ws_sock)
-					{
-						ws_sock->start_read();
-					}
-
-					// Invoke connection callback
-					invoke_connection_callback(conn);
-				});
-		}
-
-		auto on_message(std::shared_ptr<ws_connection> conn,
-						const internal::ws_message& msg) -> void
-		{
-			std::lock_guard<std::mutex> lock(callback_mutex_);
-
-			if (message_callback_)
-			{
-				message_callback_(conn, msg);
-			}
-
-			if (msg.type == internal::ws_message_type::text &&
-				text_message_callback_)
-			{
-				text_message_callback_(conn, msg.as_text());
-			}
-			else if (msg.type == internal::ws_message_type::binary &&
-					 binary_message_callback_)
-			{
-				binary_message_callback_(conn, msg.as_binary());
-			}
-		}
-
-		auto on_close(const std::string& conn_id, internal::ws_close_code code,
-					  const std::string& reason) -> void
-		{
-			// Remove from session manager
-			if (session_mgr_)
-			{
-				auto conn = session_mgr_->get_connection(conn_id);
-				if (conn)
-				{
-					conn->pimpl_->invalidate();
-				}
-				session_mgr_->remove_connection(conn_id);
-			}
-
-			NETWORK_LOG_INFO("[messaging_ws_server] Client disconnected: " +
-							 conn_id);
-
-			invoke_disconnection_callback(conn_id, code, reason);
-		}
-
-		auto on_error(const std::string& conn_id, std::error_code ec) -> void
-		{
-			NETWORK_LOG_ERROR("[messaging_ws_server] Connection error (" + conn_id +
-							  "): " + ec.message());
-			invoke_error_callback(conn_id, ec);
-		}
-
-		auto invoke_connection_callback(std::shared_ptr<ws_connection> conn) -> void
-		{
-			std::lock_guard<std::mutex> lock(callback_mutex_);
-			if (connection_callback_)
-			{
-				connection_callback_(conn);
-			}
-		}
-
-		auto invoke_disconnection_callback(const std::string& conn_id,
-										   internal::ws_close_code code,
-										   const std::string& reason) -> void
-		{
-			std::lock_guard<std::mutex> lock(callback_mutex_);
-			if (disconnection_callback_)
-			{
-				disconnection_callback_(conn_id, code, reason);
-			}
-		}
-
-		auto invoke_error_callback(const std::string& conn_id, std::error_code ec)
-			-> void
-		{
-			std::lock_guard<std::mutex> lock(callback_mutex_);
-			if (error_callback_)
-			{
-				error_callback_(conn_id, ec);
-			}
-		}
-
-	private:
-		std::string server_id_;
-		ws_server_config config_;
-
-		std::unique_ptr<asio::io_context> io_context_;
-		std::unique_ptr<asio::executor_work_guard<asio::io_context::executor_type>>
-			work_guard_;
-		std::unique_ptr<tcp::acceptor> acceptor_;
-
-		std::shared_ptr<integration::thread_pool_interface> thread_pool_;
-		std::future<void> io_context_future_;
-
-		std::shared_ptr<ws_session_manager> session_mgr_;
-
-		std::atomic<bool> is_running_{false};
-
-		std::optional<std::promise<void>> stop_promise_;
-		std::future<void> stop_future_;
-
-		std::mutex callback_mutex_;
-		std::function<void(std::shared_ptr<ws_connection>)> connection_callback_;
-		std::function<void(const std::string&, internal::ws_close_code,
-						   const std::string&)>
-			disconnection_callback_;
-		std::function<void(std::shared_ptr<ws_connection>,
-						   const internal::ws_message&)>
-			message_callback_;
-		std::function<void(std::shared_ptr<ws_connection>, const std::string&)>
-			text_message_callback_;
-		std::function<void(std::shared_ptr<ws_connection>,
-						   const std::vector<uint8_t>&)>
-			binary_message_callback_;
-		std::function<void(const std::string&, std::error_code)> error_callback_;
-	};
-
-	// ========================================================================
 	// messaging_ws_server
 	// ========================================================================
 
-	messaging_ws_server::messaging_ws_server(const std::string& server_id)
-		: pimpl_(std::make_unique<impl>(server_id))
+	messaging_ws_server::messaging_ws_server(std::string_view server_id)
+		: messaging_ws_server_base<messaging_ws_server>(server_id)
 	{
 	}
 
-	messaging_ws_server::~messaging_ws_server() = default;
+	// Destructor is defaulted in header - base class handles stop_server() call
 
-	auto messaging_ws_server::start_server(const ws_server_config& config)
-		-> VoidResult
+	auto messaging_ws_server::start_server(const ws_server_config& config) -> VoidResult
 	{
-		return pimpl_->start(config);
+		config_ = config;
+		// Use the base class start_server with config values
+		return messaging_ws_server_base<messaging_ws_server>::start_server(
+			config.port, config.path);
 	}
 
-	auto messaging_ws_server::start_server(uint16_t port, std::string_view path)
-		-> VoidResult
+	// WebSocket-specific implementation of server start
+	// Called by base class start_server() after common validation
+	auto messaging_ws_server::do_start(uint16_t port, std::string_view path) -> VoidResult
 	{
-		ws_server_config config;
-		config.port = port;
-		config.path = std::string(path);
-		return pimpl_->start(config);
+		try
+		{
+			// Store config if not already set
+			if (config_.port == 0 || config_.port != port)
+			{
+				config_.port = port;
+				config_.path = std::string(path);
+			}
+
+			// Create session manager
+			session_config sess_config;
+			sess_config.max_sessions = config_.max_connections;
+			session_mgr_ = std::make_shared<ws_session_manager>(sess_config);
+
+			// Create io_context and work guard
+			io_context_ = std::make_unique<asio::io_context>();
+			work_guard_ = std::make_unique<
+				asio::executor_work_guard<asio::io_context::executor_type>>(
+				asio::make_work_guard(*io_context_));
+
+			// Create acceptor
+			acceptor_ = std::make_unique<tcp::acceptor>(
+				*io_context_, tcp::endpoint(tcp::v4(), config_.port));
+
+			// Get thread pool from network context
+			thread_pool_ = network_context::instance().get_thread_pool();
+			if (!thread_pool_) {
+				// Fallback: create a temporary thread pool if network_context is not initialized
+				NETWORK_LOG_WARN("[messaging_ws_server] network_context not initialized, creating temporary thread pool");
+				thread_pool_ = std::make_shared<integration::basic_thread_pool>(std::thread::hardware_concurrency());
+			}
+
+			// Start io_context on thread pool
+			io_context_future_ = thread_pool_->submit([this]() {
+				try {
+					NETWORK_LOG_DEBUG("[messaging_ws_server] io_context started");
+					io_context_->run();
+					NETWORK_LOG_DEBUG("[messaging_ws_server] io_context stopped");
+				} catch (const std::exception& e) {
+					NETWORK_LOG_ERROR("[messaging_ws_server] Exception in io_context: " +
+									  std::string(e.what()));
+				}
+			});
+
+			// Start accepting connections
+			do_accept();
+
+			NETWORK_LOG_INFO("[messaging_ws_server] Server started on port " +
+							 std::to_string(config_.port) + " (ID: " +
+							 std::string(server_id()) + ")");
+
+			return ok();
+		}
+		catch (const std::exception& e)
+		{
+			return error_void(error_codes::network_system::bind_failed,
+							  std::string("Failed to start server: ") + e.what());
+		}
 	}
 
-	auto messaging_ws_server::stop_server() -> VoidResult { return pimpl_->stop(); }
-
-	auto messaging_ws_server::wait_for_stop() -> void { pimpl_->wait_for_stop(); }
-
-	auto messaging_ws_server::is_running() const -> bool
+	// WebSocket-specific implementation of server stop
+	// Called by base class stop_server() after common cleanup
+	auto messaging_ws_server::do_stop() -> VoidResult
 	{
-		return pimpl_->is_running();
+		try
+		{
+			// Close all connections
+			if (session_mgr_)
+			{
+				auto conns = session_mgr_->get_all_connections();
+				for (auto& conn : conns)
+				{
+					conn->close();
+				}
+				session_mgr_->clear_all_connections();
+			}
+
+			// Stop acceptor
+			if (acceptor_)
+			{
+				acceptor_->close();
+			}
+
+			// Stop io_context
+			work_guard_.reset();
+			if (io_context_)
+			{
+				io_context_->stop();
+			}
+
+			// Wait for io_context task to complete
+			if (io_context_future_.valid())
+			{
+				try {
+					io_context_future_.wait();
+				} catch (const std::exception& e) {
+					NETWORK_LOG_ERROR("[messaging_ws_server] Exception while waiting for io_context: " +
+									  std::string(e.what()));
+				}
+			}
+
+			NETWORK_LOG_INFO("[messaging_ws_server] Server stopped (ID: " +
+							 std::string(server_id()) + ")");
+
+			return ok();
+		}
+		catch (const std::exception& e)
+		{
+			return error_void(error_codes::common_errors::internal_error,
+							  std::string("Failed to stop server: ") + e.what());
+		}
 	}
 
 	auto messaging_ws_server::broadcast_text(const std::string& message) -> void
 	{
-		pimpl_->broadcast_text(message);
+		if (!session_mgr_)
+		{
+			return;
+		}
+
+		auto conns = session_mgr_->get_all_connections();
+		for (auto& conn : conns)
+		{
+			conn->send_text(std::string(message), nullptr);
+		}
 	}
 
-	auto messaging_ws_server::broadcast_binary(const std::vector<uint8_t>& data)
-		-> void
+	auto messaging_ws_server::broadcast_binary(const std::vector<uint8_t>& data) -> void
 	{
-		pimpl_->broadcast_binary(data);
+		if (!session_mgr_)
+		{
+			return;
+		}
+
+		auto conns = session_mgr_->get_all_connections();
+		for (auto& conn : conns)
+		{
+			conn->send_binary(std::vector<uint8_t>(data), nullptr);
+		}
 	}
 
 	auto messaging_ws_server::get_connection(const std::string& connection_id)
 		-> std::shared_ptr<ws_connection>
 	{
-		return pimpl_->get_connection(connection_id);
+		if (!session_mgr_)
+		{
+			return nullptr;
+		}
+		return session_mgr_->get_connection(connection_id);
 	}
 
 	auto messaging_ws_server::get_all_connections() -> std::vector<std::string>
 	{
-		return pimpl_->get_all_connections();
+		if (!session_mgr_)
+		{
+			return {};
+		}
+		return session_mgr_->get_all_connection_ids();
 	}
 
 	auto messaging_ws_server::connection_count() const -> size_t
 	{
-		return pimpl_->connection_count();
+		if (!session_mgr_)
+		{
+			return 0;
+		}
+		return session_mgr_->get_connection_count();
 	}
 
-	auto messaging_ws_server::set_connection_callback(
-		std::function<void(std::shared_ptr<ws_connection>)> callback) -> void
+	auto messaging_ws_server::do_accept() -> void
 	{
-		pimpl_->set_connection_callback(std::move(callback));
+		auto socket = std::make_shared<tcp::socket>(*io_context_);
+
+		acceptor_->async_accept(*socket,
+								[this, socket](std::error_code ec)
+								{
+									if (!ec)
+									{
+										handle_new_connection(socket);
+									}
+									else
+									{
+										NETWORK_LOG_ERROR(
+											"[messaging_ws_server] Accept error: " +
+											ec.message());
+									}
+
+									// Continue accepting
+									if (is_running())
+									{
+										do_accept();
+									}
+								});
 	}
 
-	auto messaging_ws_server::set_disconnection_callback(
-		std::function<void(const std::string&, internal::ws_close_code,
-						   const std::string&)>
-			callback) -> void
+	auto messaging_ws_server::handle_new_connection(std::shared_ptr<tcp::socket> socket) -> void
 	{
-		pimpl_->set_disconnection_callback(std::move(callback));
+		// Check connection limit using session manager
+		if (!session_mgr_ || !session_mgr_->can_accept_connection())
+		{
+			NETWORK_LOG_WARN("[messaging_ws_server] Connection limit reached");
+			return;
+		}
+
+		// Generate connection ID
+		auto remote_ep = socket->remote_endpoint();
+		std::string conn_id = remote_ep.address().to_string() + ":" +
+							  std::to_string(remote_ep.port());
+		std::string remote_addr = conn_id;
+
+		// Wrap in tcp_socket
+		auto tcp_sock = std::make_shared<internal::tcp_socket>(std::move(*socket));
+
+		// Wrap in websocket_socket
+		auto ws_socket =
+			std::make_shared<internal::websocket_socket>(tcp_sock, false);
+
+		// Create connection wrapper
+		auto conn_impl = std::make_shared<ws_connection::impl>(conn_id, ws_socket, remote_addr);
+		auto conn = std::make_shared<ws_connection>(conn_impl);
+
+		// Set WebSocket callbacks
+		ws_socket->set_message_callback(
+			[this, conn](const internal::ws_message& msg)
+			{ on_message(conn, msg); });
+
+		ws_socket->set_ping_callback(
+			[this, ws_socket](const std::vector<uint8_t>& payload)
+			{
+				if (config_.auto_pong)
+				{
+					ws_socket->async_send_ping(std::vector<uint8_t>(payload),
+											   [](std::error_code) {});
+				}
+			});
+
+		ws_socket->set_close_callback(
+			[this, conn_id](internal::ws_close_code code,
+							const std::string& reason)
+			{ on_close(conn_id, code, reason); });
+
+		ws_socket->set_error_callback(
+			[this, conn_id](std::error_code ec) { on_error(conn_id, ec); });
+
+		// Accept WebSocket handshake
+		ws_socket->async_accept(
+			[this, conn_id, conn](std::error_code ec)
+			{
+				if (ec)
+				{
+					NETWORK_LOG_ERROR("[messaging_ws_server] Handshake failed: " +
+									  ec.message());
+					return;
+				}
+
+				// Add to session manager
+				auto added_id = session_mgr_->add_connection(conn, conn_id);
+				if (added_id.empty())
+				{
+					NETWORK_LOG_WARN(
+						"[messaging_ws_server] Failed to add connection");
+					return;
+				}
+
+				NETWORK_LOG_INFO("[messaging_ws_server] Client connected: " +
+								 conn_id);
+
+				// Start reading frames
+				auto ws_sock = conn->pimpl_->get_socket();
+				if (ws_sock)
+				{
+					ws_sock->start_read();
+				}
+
+				// Invoke connection callback
+				invoke_connection_callback(conn);
+			});
 	}
 
-	auto messaging_ws_server::set_message_callback(
-		std::function<void(std::shared_ptr<ws_connection>,
-						   const internal::ws_message&)>
-			callback) -> void
+	auto messaging_ws_server::on_message(std::shared_ptr<ws_connection> conn,
+										 const internal::ws_message& msg) -> void
 	{
-		pimpl_->set_message_callback(std::move(callback));
+		invoke_message_callback(conn, msg);
 	}
 
-	auto messaging_ws_server::set_text_message_callback(
-		std::function<void(std::shared_ptr<ws_connection>, const std::string&)>
-			callback) -> void
+	auto messaging_ws_server::on_close(const std::string& conn_id,
+									   internal::ws_close_code code,
+									   const std::string& reason) -> void
 	{
-		pimpl_->set_text_message_callback(std::move(callback));
+		// Remove from session manager
+		if (session_mgr_)
+		{
+			auto conn = session_mgr_->get_connection(conn_id);
+			if (conn)
+			{
+				conn->pimpl_->invalidate();
+			}
+			session_mgr_->remove_connection(conn_id);
+		}
+
+		NETWORK_LOG_INFO("[messaging_ws_server] Client disconnected: " + conn_id);
+
+		invoke_disconnection_callback(conn_id, code, reason);
 	}
 
-	auto messaging_ws_server::set_binary_message_callback(
-		std::function<void(std::shared_ptr<ws_connection>,
-						   const std::vector<uint8_t>&)>
-			callback) -> void
+	auto messaging_ws_server::on_error(const std::string& conn_id,
+									   std::error_code ec) -> void
 	{
-		pimpl_->set_binary_message_callback(std::move(callback));
-	}
-
-	auto messaging_ws_server::set_error_callback(
-		std::function<void(const std::string&, std::error_code)> callback) -> void
-	{
-		pimpl_->set_error_callback(std::move(callback));
-	}
-
-	auto messaging_ws_server::server_id() const -> const std::string&
-	{
-		return pimpl_->server_id();
+		NETWORK_LOG_ERROR("[messaging_ws_server] Connection error (" + conn_id +
+						  "): " + ec.message());
+		invoke_error_callback(conn_id, ec);
 	}
 
 } // namespace kcenon::network::core

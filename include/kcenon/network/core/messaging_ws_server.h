@@ -32,20 +32,33 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
+#include "kcenon/network/core/messaging_ws_server_base.h"
 #include "kcenon/network/internal/websocket_protocol.h"
 #include "kcenon/network/utils/result_types.h"
+#include "kcenon/network/integration/thread_integration.h"
 
 #include <chrono>
 #include <cstdint>
 #include <functional>
+#include <future>
 #include <memory>
+#include <mutex>
 #include <string>
 #include <string_view>
 #include <system_error>
 #include <vector>
 
+#include <asio.hpp>
+
+namespace kcenon::network::internal
+{
+	class websocket_socket;
+}
+
 namespace kcenon::network::core
 {
+	class ws_session_manager;
+
 	/*!
 	 * \struct ws_server_config
 	 * \brief Configuration for WebSocket server.
@@ -62,9 +75,6 @@ namespace kcenon::network::core
 		bool auto_pong = true;                           ///< Auto-respond to pings
 		size_t max_message_size = 10 * 1024 * 1024;     ///< Max message size (10MB)
 	};
-
-	// Forward declaration
-	class messaging_ws_server;
 
 	/*!
 	 * \class ws_connection
@@ -83,56 +93,40 @@ namespace kcenon::network::core
 	public:
 		/*!
 		 * \brief Sends a text message to the client.
-		 *
-		 * Uses move semantics for zero-copy operation. The message must be
-		 * valid UTF-8. The handler is called when the message is sent or
-		 * if an error occurs.
-		 *
-		 * \param message The text message to send
-		 * \param handler Optional callback invoked with send result
-		 * \return VoidResult indicating validation success
+		 * \param message The text message to send.
+		 * \param handler Optional callback invoked with send result.
+		 * \return VoidResult indicating validation success.
 		 */
 		auto send_text(std::string&& message,
-					   std::function<void(std::error_code, std::size_t)> handler =
-						   nullptr) -> VoidResult;
+					   std::function<void(std::error_code, std::size_t)> handler = nullptr) -> VoidResult;
 
 		/*!
 		 * \brief Sends a binary message to the client.
-		 *
-		 * Uses move semantics for zero-copy operation. The handler is called
-		 * when the message is sent or if an error occurs.
-		 *
-		 * \param data The binary data to send
-		 * \param handler Optional callback invoked with send result
-		 * \return VoidResult indicating success
+		 * \param data The binary data to send.
+		 * \param handler Optional callback invoked with send result.
+		 * \return VoidResult indicating success.
 		 */
 		auto send_binary(std::vector<uint8_t>&& data,
-						 std::function<void(std::error_code, std::size_t)> handler =
-							 nullptr) -> VoidResult;
+						 std::function<void(std::error_code, std::size_t)> handler = nullptr) -> VoidResult;
 
 		/*!
 		 * \brief Closes the connection gracefully.
-		 *
-		 * Sends a close frame with the specified code and reason.
-		 *
-		 * \param code The close status code (default: normal)
-		 * \param reason Optional human-readable reason
-		 * \return VoidResult indicating success
+		 * \param code The close status code (default: normal).
+		 * \param reason Optional human-readable reason.
+		 * \return VoidResult indicating success.
 		 */
 		auto close(internal::ws_close_code code = internal::ws_close_code::normal,
 				   const std::string& reason = "") -> VoidResult;
 
 		/*!
 		 * \brief Gets the connection ID.
-		 *
-		 * \return The unique connection identifier
+		 * \return The unique connection identifier.
 		 */
 		auto connection_id() const -> const std::string&;
 
 		/*!
 		 * \brief Gets the remote endpoint address.
-		 *
-		 * \return String representation of remote address (e.g., "192.168.1.1:54321")
+		 * \return String representation of remote address (e.g., "192.168.1.1:54321").
 		 */
 		auto remote_endpoint() const -> std::string;
 
@@ -151,8 +145,10 @@ namespace kcenon::network::core
 	 * \class messaging_ws_server
 	 * \brief High-level WebSocket server with connection management.
 	 *
-	 * This class provides a simple, easy-to-use interface for WebSocket server
-	 * applications. It handles:
+	 * This class inherits from messaging_ws_server_base using the CRTP pattern,
+	 * which provides common lifecycle management and callback handling.
+	 *
+	 * It handles:
 	 * - Accepting incoming connections
 	 * - Connection management (tracking, limits)
 	 * - Message broadcasting
@@ -182,173 +178,121 @@ namespace kcenon::network::core
 	 * \endcode
 	 */
 	class messaging_ws_server
-		: public std::enable_shared_from_this<messaging_ws_server>
+		: public messaging_ws_server_base<messaging_ws_server>
 	{
 	public:
+		//! \brief Allow base class to access protected methods
+		friend class messaging_ws_server_base<messaging_ws_server>;
+
 		/*!
 		 * \brief Constructs a WebSocket server.
-		 *
-		 * \param server_id A unique identifier for this server instance
+		 * \param server_id A unique identifier for this server instance.
 		 */
-		explicit messaging_ws_server(const std::string& server_id);
+		explicit messaging_ws_server(std::string_view server_id);
 
 		/*!
 		 * \brief Destructor.
-		 *
-		 * Automatically stops the server if still running.
+		 * Automatically stops the server if still running (handled by base class).
 		 */
-		~messaging_ws_server();
+		~messaging_ws_server() noexcept override = default;
 
 		/*!
 		 * \brief Starts the server with full configuration.
-		 *
-		 * Binds to the specified port and begins accepting connections.
-		 * Returns immediately; server runs in background thread.
-		 *
-		 * \param config The server configuration
-		 * \return VoidResult indicating success or error
+		 * \param config The server configuration.
+		 * \return VoidResult indicating success or error.
 		 */
 		auto start_server(const ws_server_config& config) -> VoidResult;
 
-		/*!
-		 * \brief Starts the server with simple parameters.
-		 *
-		 * Convenience method that uses default configuration with specified
-		 * port and path.
-		 *
-		 * \param port Server port number
-		 * \param path WebSocket path (default: "/")
-		 * \return VoidResult indicating success or error
-		 */
-		auto start_server(uint16_t port, std::string_view path = "/") -> VoidResult;
-
-		/*!
-		 * \brief Stops the server.
-		 *
-		 * Closes all connections and stops accepting new ones. Returns
-		 * immediately; use wait_for_stop() to block until fully stopped.
-		 *
-		 * \return VoidResult indicating success or error
-		 */
-		auto stop_server() -> VoidResult;
-
-		/*!
-		 * \brief Waits for the server to stop completely.
-		 *
-		 * Blocks the calling thread until the server has fully stopped.
-		 */
-		auto wait_for_stop() -> void;
-
-		/*!
-		 * \brief Checks if the server is running.
-		 *
-		 * \return True if the server is accepting connections
-		 */
-		auto is_running() const -> bool;
+		// start_server(port, path), stop_server(), wait_for_stop(),
+		// is_running(), server_id() are provided by base class
 
 		/*!
 		 * \brief Broadcasts a text message to all connected clients.
-		 *
-		 * \param message The text message to broadcast
+		 * \param message The text message to broadcast.
 		 */
 		auto broadcast_text(const std::string& message) -> void;
 
 		/*!
 		 * \brief Broadcasts a binary message to all connected clients.
-		 *
-		 * \param data The binary data to broadcast
+		 * \param data The binary data to broadcast.
 		 */
 		auto broadcast_binary(const std::vector<uint8_t>& data) -> void;
 
 		/*!
 		 * \brief Gets a connection by ID.
-		 *
-		 * \param connection_id The connection identifier
-		 * \return Shared pointer to connection, or nullptr if not found
+		 * \param connection_id The connection identifier.
+		 * \return Shared pointer to connection, or nullptr if not found.
 		 */
-		auto get_connection(const std::string& connection_id)
-			-> std::shared_ptr<ws_connection>;
+		auto get_connection(const std::string& connection_id) -> std::shared_ptr<ws_connection>;
 
 		/*!
 		 * \brief Gets all connection IDs.
-		 *
-		 * \return Vector of connection identifiers
+		 * \return Vector of connection identifiers.
 		 */
 		auto get_all_connections() -> std::vector<std::string>;
 
 		/*!
 		 * \brief Gets the current connection count.
-		 *
-		 * \return Number of active connections
+		 * \return Number of active connections.
 		 */
 		auto connection_count() const -> size_t;
 
+	protected:
 		/*!
-		 * \brief Sets the callback for new connections.
+		 * \brief WebSocket-specific implementation of server start.
+		 * \param port The port number to listen on.
+		 * \param path The WebSocket path.
+		 * \return Result<void> - Success if server started, or error with code.
 		 *
-		 * \param callback Function called when a client connects
+		 * Called by base class start_server() after common validation.
 		 */
-		auto set_connection_callback(
-			std::function<void(std::shared_ptr<ws_connection>)> callback) -> void;
+		auto do_start(uint16_t port, std::string_view path) -> VoidResult;
 
 		/*!
-		 * \brief Sets the callback for disconnections.
+		 * \brief WebSocket-specific implementation of server stop.
+		 * \return Result<void> - Success if server stopped, or error with code.
 		 *
-		 * \param callback Function called when a client disconnects
+		 * Called by base class stop_server() after common cleanup.
 		 */
-		auto set_disconnection_callback(
-			std::function<void(const std::string&, internal::ws_close_code,
-							   const std::string&)>
-				callback) -> void;
-
-		/*!
-		 * \brief Sets the callback for all message types.
-		 *
-		 * \param callback Function called when a message is received
-		 */
-		auto set_message_callback(
-			std::function<void(std::shared_ptr<ws_connection>,
-							   const internal::ws_message&)>
-				callback) -> void;
-
-		/*!
-		 * \brief Sets the callback for text messages only.
-		 *
-		 * \param callback Function called when a text message is received
-		 */
-		auto set_text_message_callback(
-			std::function<void(std::shared_ptr<ws_connection>, const std::string&)>
-				callback) -> void;
-
-		/*!
-		 * \brief Sets the callback for binary messages only.
-		 *
-		 * \param callback Function called when a binary message is received
-		 */
-		auto set_binary_message_callback(
-			std::function<void(std::shared_ptr<ws_connection>,
-							   const std::vector<uint8_t>&)>
-				callback) -> void;
-
-		/*!
-		 * \brief Sets the callback for errors.
-		 *
-		 * \param callback Function called when an error occurs
-		 */
-		auto set_error_callback(
-			std::function<void(const std::string&, std::error_code)> callback)
-			-> void;
-
-		/*!
-		 * \brief Gets the server ID.
-		 *
-		 * \return The server identifier
-		 */
-		auto server_id() const -> const std::string&;
+		auto do_stop() -> VoidResult;
 
 	private:
-		class impl;
-		std::unique_ptr<impl> pimpl_;
+		/*!
+		 * \brief Starts accepting new connections.
+		 */
+		auto do_accept() -> void;
+
+		/*!
+		 * \brief Handles a new connection.
+		 */
+		auto handle_new_connection(std::shared_ptr<asio::ip::tcp::socket> socket) -> void;
+
+		/*!
+		 * \brief Handles received WebSocket messages.
+		 */
+		auto on_message(std::shared_ptr<ws_connection> conn, const internal::ws_message& msg) -> void;
+
+		/*!
+		 * \brief Handles connection close.
+		 */
+		auto on_close(const std::string& conn_id, internal::ws_close_code code, const std::string& reason) -> void;
+
+		/*!
+		 * \brief Handles errors.
+		 */
+		auto on_error(const std::string& conn_id, std::error_code ec) -> void;
+
+	private:
+		ws_server_config config_;                        /*!< Server configuration. */
+
+		std::unique_ptr<asio::io_context> io_context_;   /*!< ASIO I/O context. */
+		std::unique_ptr<asio::executor_work_guard<asio::io_context::executor_type>> work_guard_; /*!< Work guard. */
+		std::unique_ptr<asio::ip::tcp::acceptor> acceptor_; /*!< TCP acceptor. */
+
+		std::shared_ptr<integration::thread_pool_interface> thread_pool_;   /*!< Thread pool for async operations. */
+		std::future<void> io_context_future_;            /*!< Future for io_context run task. */
+
+		std::shared_ptr<ws_session_manager> session_mgr_; /*!< Session manager. */
 	};
 
 } // namespace kcenon::network::core

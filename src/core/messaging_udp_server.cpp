@@ -39,35 +39,17 @@ namespace kcenon::network::core
 {
 	using udp = asio::ip::udp;
 
-	messaging_udp_server::messaging_udp_server(const std::string& server_id)
-		: server_id_(server_id)
+	messaging_udp_server::messaging_udp_server(std::string_view server_id)
+		: messaging_udp_server_base<messaging_udp_server>(server_id)
 	{
 	}
 
-	messaging_udp_server::~messaging_udp_server() noexcept
-	{
-		try
-		{
-			(void)stop_server();
-		}
-		catch (...)
-		{
-			// Destructor must not throw
-		}
-	}
+	// Destructor is defaulted in header - base class handles stop_server() call
 
-	auto messaging_udp_server::start_server(uint16_t port) -> VoidResult
+	// UDP-specific implementation of server start
+	// Called by base class start_server() after common validation
+	auto messaging_udp_server::do_start(uint16_t port) -> VoidResult
 	{
-		if (is_running_.load())
-		{
-			return error_void(
-				error_codes::network_system::server_already_running,
-				"UDP server is already running",
-				"messaging_udp_server::start_server",
-				"Server ID: " + server_id_
-			);
-		}
-
 		try
 		{
 			// Create io_context
@@ -79,10 +61,21 @@ namespace kcenon::network::core
 			// Wrap in our udp_socket
 			socket_ = std::make_shared<internal::udp_socket>(std::move(raw_socket));
 
+			// Set callbacks from base class to socket
+			auto receive_cb = get_receive_callback();
+			if (receive_cb)
+			{
+				socket_->set_receive_callback(std::move(receive_cb));
+			}
+
+			auto error_cb = get_error_callback();
+			if (error_cb)
+			{
+				socket_->set_error_callback(std::move(error_cb));
+			}
+
 			// Start receiving
 			socket_->start_receive();
-
-			is_running_.store(true);
 
 			// Get thread pool from network context
 			thread_pool_ = network_context::instance().get_thread_pool();
@@ -114,37 +107,30 @@ namespace kcenon::network::core
 		}
 		catch (const std::system_error& e)
 		{
-			is_running_.store(false);
 			return error_void(
 				error_codes::network_system::bind_failed,
 				std::string("Failed to bind UDP socket: ") + e.what(),
-				"messaging_udp_server::start_server",
+				"messaging_udp_server::do_start",
 				"Port: " + std::to_string(port)
 			);
 		}
 		catch (const std::exception& e)
 		{
-			is_running_.store(false);
 			return error_void(
 				error_codes::common_errors::internal_error,
 				std::string("Failed to start UDP server: ") + e.what(),
-				"messaging_udp_server::start_server",
+				"messaging_udp_server::do_start",
 				"Port: " + std::to_string(port)
 			);
 		}
 	}
 
-	auto messaging_udp_server::stop_server() -> VoidResult
+	// UDP-specific implementation of server stop
+	// Called by base class stop_server() after common cleanup
+	auto messaging_udp_server::do_stop() -> VoidResult
 	{
-		if (!is_running_.load())
-		{
-			return ok();
-		}
-
 		try
 		{
-			is_running_.store(false);
-
 			// Stop receiving
 			if (socket_)
 			{
@@ -181,39 +167,15 @@ namespace kcenon::network::core
 			return error_void(
 				error_codes::common_errors::internal_error,
 				std::string("Failed to stop UDP server: ") + e.what(),
-				"messaging_udp_server::stop_server",
+				"messaging_udp_server::do_stop",
 				""
 			);
 		}
 	}
 
-	auto messaging_udp_server::wait_for_stop() -> void
-	{
-		// Simple busy wait - in production, use condition variable
-		while (is_running_.load())
-		{
-			std::this_thread::sleep_for(std::chrono::milliseconds(100));
-		}
-	}
+	// wait_for_stop() is provided by base class
 
-	auto messaging_udp_server::set_receive_callback(
-		std::function<void(const std::vector<uint8_t>&,
-		                   const asio::ip::udp::endpoint&)> callback) -> void
-	{
-		if (socket_)
-		{
-			socket_->set_receive_callback(std::move(callback));
-		}
-	}
-
-	auto messaging_udp_server::set_error_callback(
-		std::function<void(std::error_code)> callback) -> void
-	{
-		if (socket_)
-		{
-			socket_->set_error_callback(std::move(callback));
-		}
-	}
+	// set_receive_callback and set_error_callback are provided by base class
 
 	auto messaging_udp_server::async_send_to(
 		std::vector<uint8_t>&& data,

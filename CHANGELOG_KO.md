@@ -73,6 +73,18 @@ Network System 프로젝트의 모든 주요 변경 사항이 이 파일에 문�
   - Concepts는 에러 메시지를 개선하고 자기 문서화 타입 제약 역할
 
 ### 변경됨
+- **UDP/WebSocket CRTP 마이그레이션**: UDP 및 WebSocket 클래스를 프로토콜 특화 CRTP 기본 클래스를 사용하도록 마이그레이션 (#384)
+  - `messaging_udp_client`가 이제 `messaging_udp_client_base<messaging_udp_client>`를 상속
+  - `messaging_udp_server`가 이제 `messaging_udp_server_base<messaging_udp_server>`를 상속
+  - `messaging_ws_client`가 이제 `messaging_ws_client_base<messaging_ws_client>`를 상속
+  - `messaging_ws_server`가 이제 `messaging_ws_server_base<messaging_ws_server>`를 상속
+  - 프로토콜 특화 기본 클래스가 고유한 요구사항 처리:
+    - UDP 기본 클래스: 엔드포인트 인식 콜백을 가진 비연결형 시맨틱스
+    - WebSocket 기본 클래스: WS 특화 메시지 타입(text/binary/ping/pong/close)을 가진 연결 인식
+  - 직접 CRTP 상속을 위해 `messaging_ws_client`에서 pimpl 패턴 제거
+  - 세션 관리를 위해 서버의 `ws_connection`에는 pimpl 패턴 유지
+  - 공통 생명주기 메서드(`start`/`stop`/`wait_for_stop`)가 기본 클래스에서 제공됨
+  - 기존 API와의 완전한 하위 호환성 유지
 - **secure_messaging CRTP 마이그레이션**: 모든 secure messaging 클래스를 CRTP 기본 클래스를 사용하도록 마이그레이션 (#383)
   - `secure_messaging_client`가 이제 `messaging_client_base<secure_messaging_client>`를 상속
   - `secure_messaging_server`가 이제 `messaging_server_base<secure_messaging_server, secure_session>`을 상속

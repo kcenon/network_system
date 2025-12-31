@@ -40,44 +40,16 @@ namespace kcenon::network::core
 	using udp = asio::ip::udp;
 
 	messaging_udp_client::messaging_udp_client(std::string_view client_id)
-		: client_id_(client_id)
+		: messaging_udp_client_base<messaging_udp_client>(client_id)
 	{
 	}
 
-	messaging_udp_client::~messaging_udp_client() noexcept
+	// Destructor is defaulted in header - base class handles stop_client() call
+
+	// UDP-specific implementation of client start
+	// Called by base class start_client() after common validation
+	auto messaging_udp_client::do_start(std::string_view host, uint16_t port) -> VoidResult
 	{
-		try
-		{
-			(void)stop_client();
-		}
-		catch (...)
-		{
-			// Destructor must not throw
-		}
-	}
-
-	auto messaging_udp_client::start_client(std::string_view host, uint16_t port) -> VoidResult
-	{
-		if (is_running_.load())
-		{
-			return error_void(
-				error_codes::common_errors::already_exists,
-				"UDP client is already running",
-				"messaging_udp_client::start_client",
-				"Client ID: " + client_id_
-			);
-		}
-
-		if (host.empty())
-		{
-			return error_void(
-				error_codes::common_errors::invalid_argument,
-				"Host cannot be empty",
-				"messaging_udp_client::start_client",
-				""
-			);
-		}
-
 		try
 		{
 			// Create io_context
@@ -92,7 +64,7 @@ namespace kcenon::network::core
 				return error_void(
 					error_codes::common_errors::internal_error,
 					"Failed to resolve host",
-					"messaging_udp_client::start_client",
+					"messaging_udp_client::do_start",
 					"Host: " + std::string(host)
 				);
 			}
@@ -108,10 +80,21 @@ namespace kcenon::network::core
 			// Wrap in our udp_socket
 			socket_ = std::make_shared<internal::udp_socket>(std::move(raw_socket));
 
+			// Set callbacks from base class to socket
+			auto receive_cb = get_receive_callback();
+			if (receive_cb)
+			{
+				socket_->set_receive_callback(std::move(receive_cb));
+			}
+
+			auto error_cb = get_error_callback();
+			if (error_cb)
+			{
+				socket_->set_error_callback(std::move(error_cb));
+			}
+
 			// Start receiving
 			socket_->start_receive();
-
-			is_running_.store(true);
 
 			// Get thread pool from network context
 			thread_pool_ = network_context::instance().get_thread_pool();
@@ -143,37 +126,30 @@ namespace kcenon::network::core
 		}
 		catch (const std::system_error& e)
 		{
-			is_running_.store(false);
 			return error_void(
 				error_codes::common_errors::internal_error,
 				std::string("Failed to create UDP socket: ") + e.what(),
-				"messaging_udp_client::start_client",
+				"messaging_udp_client::do_start",
 				"Host: " + std::string(host) + ":" + std::to_string(port)
 			);
 		}
 		catch (const std::exception& e)
 		{
-			is_running_.store(false);
 			return error_void(
 				error_codes::common_errors::internal_error,
 				std::string("Failed to start UDP client: ") + e.what(),
-				"messaging_udp_client::start_client",
+				"messaging_udp_client::do_start",
 				"Host: " + std::string(host) + ":" + std::to_string(port)
 			);
 		}
 	}
 
-	auto messaging_udp_client::stop_client() -> VoidResult
+	// UDP-specific implementation of client stop
+	// Called by base class stop_client() after common cleanup
+	auto messaging_udp_client::do_stop() -> VoidResult
 	{
-		if (!is_running_.load())
-		{
-			return ok();
-		}
-
 		try
 		{
-			is_running_.store(false);
-
 			// Stop receiving
 			if (socket_)
 			{
@@ -210,26 +186,19 @@ namespace kcenon::network::core
 			return error_void(
 				error_codes::common_errors::internal_error,
 				std::string("Failed to stop UDP client: ") + e.what(),
-				"messaging_udp_client::stop_client",
+				"messaging_udp_client::do_stop",
 				""
 			);
 		}
 	}
 
-	auto messaging_udp_client::wait_for_stop() -> void
-	{
-		// Simple busy wait - in production, use condition variable
-		while (is_running_.load())
-		{
-			std::this_thread::sleep_for(std::chrono::milliseconds(100));
-		}
-	}
+	// wait_for_stop() is provided by base class
 
 	auto messaging_udp_client::send_packet(
 		std::vector<uint8_t>&& data,
 		std::function<void(std::error_code, std::size_t)> handler) -> VoidResult
 	{
-		if (!is_running_.load())
+		if (!is_running())
 		{
 			return error_void(
 				error_codes::common_errors::internal_error,
@@ -256,28 +225,11 @@ namespace kcenon::network::core
 		return ok();
 	}
 
-	auto messaging_udp_client::set_receive_callback(
-		std::function<void(const std::vector<uint8_t>&,
-		                   const asio::ip::udp::endpoint&)> callback) -> void
-	{
-		if (socket_)
-		{
-			socket_->set_receive_callback(std::move(callback));
-		}
-	}
-
-	auto messaging_udp_client::set_error_callback(
-		std::function<void(std::error_code)> callback) -> void
-	{
-		if (socket_)
-		{
-			socket_->set_error_callback(std::move(callback));
-		}
-	}
+	// set_receive_callback and set_error_callback are provided by base class
 
 	auto messaging_udp_client::set_target(std::string_view host, uint16_t port) -> VoidResult
 	{
-		if (!is_running_.load())
+		if (!is_running())
 		{
 			return error_void(
 				error_codes::common_errors::internal_error,

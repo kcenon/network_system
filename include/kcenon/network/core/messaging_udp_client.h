@@ -35,13 +35,13 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <memory>
 #include <string>
 #include <string_view>
-#include <atomic>
-#include <thread>
 #include <functional>
 #include <mutex>
+#include <future>
 
 #include <asio.hpp>
 
+#include "kcenon/network/core/messaging_udp_client_base.h"
 #include "kcenon/network/utils/result_types.h"
 #include "kcenon/network/integration/thread_integration.h"
 
@@ -55,6 +55,9 @@ namespace kcenon::network::core
 	/*!
 	 * \class messaging_udp_client
 	 * \brief A UDP client that sends datagrams to a target endpoint and can receive responses.
+	 *
+	 * This class inherits from messaging_udp_client_base using the CRTP pattern,
+	 * which provides common lifecycle management and callback handling.
 	 *
 	 * ### Thread Safety
 	 * - All public methods are thread-safe.
@@ -99,48 +102,24 @@ namespace kcenon::network::core
 	 * client->stop_client();
 	 * \endcode
 	 */
-	class messaging_udp_client : public std::enable_shared_from_this<messaging_udp_client>
+	class messaging_udp_client
+		: public messaging_udp_client_base<messaging_udp_client>
 	{
 	public:
+		//! \brief Allow base class to access protected methods
+		friend class messaging_udp_client_base<messaging_udp_client>;
+
 		/*!
 		 * \brief Constructs a messaging_udp_client with an identifier.
 		 * \param client_id A string identifier for this client instance.
 		 */
-		messaging_udp_client(std::string_view client_id);
+		explicit messaging_udp_client(std::string_view client_id);
 
 		/*!
-		 * \brief Destructor. Automatically calls stop_client() if the client is still running.
+		 * \brief Destructor. Automatically calls stop_client() if the client is still running
+		 *        (handled by base class).
 		 */
-		~messaging_udp_client() noexcept;
-
-		/*!
-		 * \brief Starts the client by resolving target host and port, creating socket,
-		 *        and spawning a thread to run io_context.
-		 * \param host The target hostname or IP address.
-		 * \param port The target port number.
-		 * \return Result<void> - Success if client started, or error with code:
-		 *         - error_codes::common_errors::already_exists if already running
-		 *         - error_codes::common_errors::invalid_argument if empty host
-		 *         - error_codes::common_errors::internal_error for other failures
-		 *
-		 * Creates an io_context, resolves the target endpoint, creates a UDP socket,
-		 * and spawns a background thread to run io_context.run().
-		 */
-		auto start_client(std::string_view host, uint16_t port) -> VoidResult;
-
-		/*!
-		 * \brief Stops the client and releases resources.
-		 * \return Result<void> - Success if client stopped, or error with code:
-		 *         - error_codes::common_errors::internal_error for failures
-		 *
-		 * Stops receiving datagrams, closes the socket, and joins the background thread.
-		 */
-		auto stop_client() -> VoidResult;
-
-		/*!
-		 * \brief Blocks the calling thread until the client is stopped.
-		 */
-		auto wait_for_stop() -> void;
+		~messaging_udp_client() noexcept override = default;
 
 		/*!
 		 * \brief Sends a datagram to the configured target endpoint.
@@ -153,23 +132,6 @@ namespace kcenon::network::core
 			std::function<void(std::error_code, std::size_t)> handler) -> VoidResult;
 
 		/*!
-		 * \brief Sets a callback to handle received datagrams.
-		 * \param callback Function with signature
-		 *        void(const std::vector<uint8_t>&, const asio::ip::udp::endpoint&)
-		 *        called whenever a datagram is received.
-		 */
-		auto set_receive_callback(
-			std::function<void(const std::vector<uint8_t>&,
-			                   const asio::ip::udp::endpoint&)> callback) -> void;
-
-		/*!
-		 * \brief Sets a callback to handle errors.
-		 * \param callback Function with signature void(std::error_code)
-		 *        called when an error occurs during receive operations.
-		 */
-		auto set_error_callback(std::function<void(std::error_code)> callback) -> void;
-
-		/*!
 		 * \brief Changes the target endpoint for future sends.
 		 * \param host The new target hostname or IP address.
 		 * \param port The new target port number.
@@ -177,22 +139,28 @@ namespace kcenon::network::core
 		 */
 		auto set_target(std::string_view host, uint16_t port) -> VoidResult;
 
+	protected:
 		/*!
-		 * \brief Returns whether the client is currently running.
-		 * \return true if client is running, false otherwise.
+		 * \brief UDP-specific implementation of client start.
+		 * \param host The target hostname or IP address.
+		 * \param port The target port number.
+		 * \return Result<void> - Success if client started, or error with code.
+		 *
+		 * Called by base class start_client() after common validation.
+		 * Creates io_context, resolves target, creates socket, and starts worker thread.
 		 */
-		auto is_running() const -> bool { return is_running_.load(); }
+		auto do_start(std::string_view host, uint16_t port) -> VoidResult;
 
 		/*!
-		 * \brief Returns the client identifier.
-		 * \return The client_id string provided at construction.
+		 * \brief UDP-specific implementation of client stop.
+		 * \return Result<void> - Success if client stopped, or error with code.
+		 *
+		 * Called by base class stop_client() after common cleanup.
+		 * Stops receiving, closes socket, and releases resources.
 		 */
-		auto client_id() const -> const std::string& { return client_id_; }
+		auto do_stop() -> VoidResult;
 
 	private:
-		std::string client_id_;                          /*!< Client identifier. */
-		std::atomic<bool> is_running_{false};            /*!< Running state flag. */
-
 		std::unique_ptr<asio::io_context> io_context_;   /*!< ASIO I/O context. */
 		std::shared_ptr<internal::udp_socket> socket_;   /*!< UDP socket wrapper. */
 
