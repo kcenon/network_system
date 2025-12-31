@@ -180,6 +180,78 @@ Network_system follows a layered architecture with clear separation of concerns:
 
 ## Core Components
 
+### CRTP Base Class Hierarchy
+
+Network_system uses the Curiously Recurring Template Pattern (CRTP) to provide zero-overhead base classes for consistent lifecycle management across all messaging classes.
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    CRTP Base Class Hierarchy                            │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  TCP (Connection-Oriented)                                              │
+│  ─────────────────────────                                              │
+│  messaging_client_base<Derived>                                         │
+│      └── messaging_client                                               │
+│      └── secure_messaging_client                                        │
+│                                                                         │
+│  messaging_server_base<Derived>                                         │
+│      └── messaging_server                                               │
+│      └── secure_messaging_server                                        │
+│                                                                         │
+│  UDP (Connectionless)                                                   │
+│  ────────────────────                                                   │
+│  messaging_udp_client_base<Derived>                                     │
+│      └── messaging_udp_client                                           │
+│      └── secure_messaging_udp_client                                    │
+│                                                                         │
+│  messaging_udp_server_base<Derived>                                     │
+│      └── messaging_udp_server                                           │
+│      └── secure_messaging_udp_server                                    │
+│                                                                         │
+│  WebSocket (Full-duplex over TCP)                                       │
+│  ───────────────────────────────                                        │
+│  messaging_ws_client_base<Derived>                                      │
+│      └── messaging_ws_client                                            │
+│                                                                         │
+│  messaging_ws_server_base<Derived>                                      │
+│      └── messaging_ws_server                                            │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+#### Base Class Responsibilities
+
+| Base Class | Lifecycle | Callbacks | Protocol-Specific |
+|------------|-----------|-----------|-------------------|
+| `messaging_client_base` | start/stop/wait_for_stop | connect, disconnect, receive, error | TCP connection state |
+| `messaging_server_base` | start/stop/wait_for_stop | connection, disconnection, receive, error | Session management |
+| `messaging_udp_client_base` | start/stop/wait_for_stop | receive (with endpoint), error | Connectionless, endpoint-aware |
+| `messaging_udp_server_base` | start/stop/wait_for_stop | receive (with endpoint), error | Connectionless, endpoint-aware |
+| `messaging_ws_client_base` | start/stop/wait_for_stop | connected, disconnected, message, error | WS message types, close codes |
+| `messaging_ws_server_base` | start/stop/wait_for_stop | connection, disconnection, message, error | Per-connection handling |
+
+#### CRTP Pattern Usage
+
+Derived classes implement protocol-specific `do_start()` and `do_stop()` methods:
+
+```cpp
+// Example: messaging_ws_client
+class messaging_ws_client
+    : public messaging_ws_client_base<messaging_ws_client>
+{
+public:
+    friend class messaging_ws_client_base<messaging_ws_client>;
+
+protected:
+    // Called by base class start_client() after common validation
+    auto do_start(std::string_view host, uint16_t port, std::string_view path) -> VoidResult;
+
+    // Called by base class stop_client() after common cleanup
+    auto do_stop() -> VoidResult;
+};
+```
+
 ### MessagingServer
 
 **Purpose**: High-performance TCP server supporting multiple clients

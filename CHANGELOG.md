@@ -73,6 +73,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Concepts improve error messages and serve as self-documenting type constraints
 
 ### Changed
+- **UDP/WebSocket CRTP Migration**: Migrated UDP and WebSocket classes to use protocol-specific CRTP base classes (#384)
+  - `messaging_udp_client` now inherits from `messaging_udp_client_base<messaging_udp_client>`
+  - `messaging_udp_server` now inherits from `messaging_udp_server_base<messaging_udp_server>`
+  - `messaging_ws_client` now inherits from `messaging_ws_client_base<messaging_ws_client>`
+  - `messaging_ws_server` now inherits from `messaging_ws_server_base<messaging_ws_server>`
+  - Protocol-specific base classes handle unique requirements:
+    - UDP base classes: connectionless semantics with endpoint-aware callbacks
+    - WebSocket base classes: connection-aware with WS-specific message types (text/binary/ping/pong/close)
+  - Removed pimpl pattern from `messaging_ws_client` for direct CRTP inheritance
+  - Kept pimpl pattern for `ws_connection` in server for session management
+  - Common lifecycle methods (`start`/`stop`/`wait_for_stop`) provided by base classes
+  - Maintains full backward compatibility with existing API
 - **secure_messaging CRTP Migration**: Migrated all secure messaging classes to use CRTP base classes (#383)
   - `secure_messaging_client` now inherits from `messaging_client_base<secure_messaging_client>`
   - `secure_messaging_server` now inherits from `messaging_server_base<secure_messaging_server, secure_session>`

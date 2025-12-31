@@ -13,6 +13,34 @@ network_system은 재사용과 모듈성을 위해 messaging_system에서 추출
 - **Internal**: tcp_socket, pipeline, send_coroutine, common_defs
 - **Integration**: thread_integration (스레드 풀 추상화), logger_integration (로깅 추상화)
 
+## CRTP 기본 클래스 계층
+
+network_system은 Curiously Recurring Template Pattern (CRTP)을 사용하여 모든 메시징 클래스에 일관된 생명주기 관리를 제공하는 제로 오버헤드 기본 클래스를 제공합니다.
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    CRTP 기본 클래스 계층                                 │
+├─────────────────────────────────────────────────────────────────────────┤
+│  TCP (연결 지향)                                                         │
+│  messaging_client_base<Derived> → messaging_client, secure_messaging_*  │
+│  messaging_server_base<Derived> → messaging_server, secure_messaging_*  │
+│                                                                         │
+│  UDP (비연결형)                                                          │
+│  messaging_udp_client_base<Derived> → messaging_udp_client              │
+│  messaging_udp_server_base<Derived> → messaging_udp_server              │
+│                                                                         │
+│  WebSocket (TCP 위 전이중 통신)                                          │
+│  messaging_ws_client_base<Derived> → messaging_ws_client                │
+│  messaging_ws_server_base<Derived> → messaging_ws_server                │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+| 기본 클래스 | 생명주기 | 프로토콜 특화 |
+|------------|---------|--------------|
+| `messaging_client_base` | start/stop/wait_for_stop | TCP 연결 상태 |
+| `messaging_udp_client_base` | start/stop/wait_for_stop | 비연결형, 엔드포인트 인식 |
+| `messaging_ws_client_base` | start/stop/wait_for_stop | WS 메시지 타입, close 코드 |
+
 ## 통합 플래그
 
 | 플래그 | 설명 |
