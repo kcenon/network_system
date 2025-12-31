@@ -73,6 +73,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Concepts improve error messages and serve as self-documenting type constraints
 
 ### Changed
+- **QUIC CRTP Migration**: Migrated QUIC classes to use protocol-specific CRTP base classes (#385)
+  - `messaging_quic_client` now inherits from `messaging_quic_client_base<messaging_quic_client>`
+  - `messaging_quic_server` now inherits from `messaging_quic_server_base<messaging_quic_server>`
+  - Common lifecycle management (start/stop, wait_for_stop) in base classes
+  - Thread-safe callback handling with mutex protection
+  - State tracking with atomic flags (is_running, is_connected)
+  - Consistent error handling with Result<T>
+  - Note: gRPC classes use pimpl pattern and are excluded from CRTP migration
 - **UDP/WebSocket CRTP Migration**: Migrated UDP and WebSocket classes to use protocol-specific CRTP base classes (#384)
   - `messaging_udp_client` now inherits from `messaging_udp_client_base<messaging_udp_client>`
   - `messaging_udp_server` now inherits from `messaging_udp_server_base<messaging_udp_server>`
