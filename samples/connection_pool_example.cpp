@@ -29,9 +29,9 @@ All rights reserved.
 #include <thread>
 #include <vector>
 
-#include "network_system/core/connection_pool.h"
-#include "network_system/core/messaging_server.h"
-#include "network_system/session/messaging_session.h"
+#include "kcenon/network/core/connection_pool.h"
+#include "kcenon/network/core/messaging_server.h"
+#include "kcenon/network/session/messaging_session.h"
 
 using namespace kcenon::network::core;
 

@@ -185,7 +185,7 @@ void test_feature_detection(TestResults &results) {
   std::cout << "\n=== Testing Feature Detection ===" << std::endl;
 
   // Test has_container_support
-  bool container_support = network_system::compat::has_container_support();
+  bool container_support = kcenon::network::compat::has_container_support();
   std::cout << "Container support: " << (container_support ? "YES" : "NO")
             << std::endl;
 
@@ -206,7 +206,7 @@ void test_feature_detection(TestResults &results) {
 #endif
 
   // Test has_thread_support
-  bool thread_support = network_system::compat::has_thread_support();
+  bool thread_support = kcenon::network::compat::has_thread_support();
   std::cout << "Thread support: " << (thread_support ? "YES" : "NO")
             << std::endl;
 
@@ -233,8 +233,8 @@ void test_init_shutdown(TestResults &results) {
 
   try {
     // Initialize
-    network_system::compat::initialize();
-    results.record_pass("network_system::compat::initialize");
+    kcenon::network::compat::initialize();
+    results.record_pass("kcenon::network::compat::initialize");
 
     // Verify thread pool is initialized
     auto &thread_mgr = network_module::thread_integration_manager::instance();
@@ -255,8 +255,8 @@ void test_init_shutdown(TestResults &results) {
     }
 
     // Shutdown
-    network_system::compat::shutdown();
-    results.record_pass("network_system::compat::shutdown");
+    kcenon::network::compat::shutdown();
+    results.record_pass("kcenon::network::compat::shutdown");
 
   } catch (const std::exception &e) {
     results.record_fail("Init/Shutdown", e.what());
@@ -451,7 +451,7 @@ int main() {
   TestResults results;
 
   // Initialize system
-  network_system::compat::initialize();
+  kcenon::network::compat::initialize();
 
   // Run all tests
   test_legacy_namespaces(results);
@@ -464,7 +464,7 @@ int main() {
   test_legacy_thread_integration(results);
 
   // Cleanup
-  network_system::compat::shutdown();
+  kcenon::network::compat::shutdown();
 
   // Print results
   results.print_summary();
