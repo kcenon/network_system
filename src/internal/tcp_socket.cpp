@@ -94,6 +94,23 @@ namespace kcenon::network::internal
 		is_reading_.store(false);
 	}
 
+	auto tcp_socket::close() -> void
+	{
+		// Atomically mark socket as closed before actual close
+		// This prevents data races with concurrent async operations
+		is_closed_.store(true);
+		is_reading_.store(false);
+
+		std::error_code ec;
+		socket_.close(ec);
+		// Ignore close errors - socket may already be closed
+	}
+
+	auto tcp_socket::is_closed() const -> bool
+	{
+		return is_closed_.load();
+	}
+
 	auto tcp_socket::do_read() -> void
 	{
 		// Check if reading has been stopped before initiating new async operation
@@ -102,9 +119,9 @@ namespace kcenon::network::internal
 			return;
 		}
 
-		// Check if socket is still open before starting async operation
-		// This prevents UBSAN errors from accessing null descriptor_state
-		if (!socket_.is_open())
+		// Check if socket has been closed before starting async operation
+		// This prevents data races and UBSAN errors from accessing null descriptor_state
+		if (is_closed_.load())
 		{
 			is_reading_.store(false);
 			return;
@@ -159,10 +176,9 @@ namespace kcenon::network::internal
 					}
 				}
 
-				// Continue reading only if still active and socket is open
-				// Double-check socket state to prevent race condition where
-				// socket closes between callback execution and do_read() call
-				if (is_reading_.load() && socket_.is_open())
+				// Continue reading only if still active and socket is not closed
+				// Use atomic is_closed_ flag to prevent data race with close()
+				if (is_reading_.load() && !is_closed_.load())
 				{
 					do_read();
 				}
@@ -173,9 +189,9 @@ auto tcp_socket::async_send(
     std::vector<uint8_t>&& data,
     std::function<void(std::error_code, std::size_t)> handler) -> void
 {
-    // Check if socket is still open before starting async operation
-    // This prevents SEGV from accessing null descriptor_state
-    if (!socket_.is_open())
+    // Check if socket has been closed before starting async operation
+    // Use atomic is_closed_ flag to prevent data race with close()
+    if (is_closed_.load())
     {
         if (handler)
         {

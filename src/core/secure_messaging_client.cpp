@@ -239,19 +239,10 @@ auto secure_messaging_client::stop_client() -> VoidResult {
   }
 
   try {
-    // Stop reading
+    // Close socket safely using atomic close() method
+    // This prevents data races between close and async read operations
     if (socket_) {
-      socket_->stop_read();
-    }
-
-    // Close socket
-    if (socket_) {
-      std::error_code ec;
-      socket_->socket().close(ec);
-      if (ec) {
-        NETWORK_LOG_WARN("[secure_messaging_client] Error closing socket: " +
-                         ec.message());
-      }
+      socket_->close();
     }
 
     // Release work guard

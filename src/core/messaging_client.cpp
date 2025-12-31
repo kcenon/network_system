@@ -107,11 +107,10 @@ auto messaging_client::do_stop() -> VoidResult {
       std::lock_guard<std::mutex> lock(socket_mutex_);
       local_socket = std::move(socket_);
     }
+    // Close socket safely using atomic close() method
+    // This prevents data races between close and async read operations
     if (local_socket) {
-      // Stop reading first to prevent new async operations
-      local_socket->stop_read();
-      asio::error_code ec;
-      local_socket->socket().close(ec);
+      local_socket->close();
     }
 
     // Cancel pending connection operations by posting to io_context.

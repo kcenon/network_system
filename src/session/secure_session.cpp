@@ -92,18 +92,10 @@ auto secure_session::stop_session() -> void {
   if (is_stopped_.exchange(true)) {
     return;
   }
-  // Stop reading first to prevent new async operations
+  // Close socket safely using atomic close() method
+  // This prevents data races between close and async read operations
   if (socket_) {
-    socket_->stop_read();
-  }
-  // Close socket safely
-  if (socket_) {
-    std::error_code ec;
-    socket_->socket().close(ec);
-    if (ec) {
-      NETWORK_LOG_ERROR("[secure_session] Error closing socket: " +
-                        ec.message());
-    }
+    socket_->close();
   }
 
   // Invoke disconnection callback if set
