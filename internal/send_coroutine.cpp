@@ -30,9 +30,9 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *****************************************************************************/
 
-#include "network_system/internal/send_coroutine.h"
-#include "network_system/integration/logger_integration.h"
-#include "network_system/integration/thread_integration.h"
+#include "kcenon/network/internal/send_coroutine.h"
+#include "kcenon/network/integration/logger_integration.h"
+#include "kcenon/network/integration/thread_integration.h"
 
 #include <asio/associated_executor.hpp>
 #include <asio/experimental/as_tuple.hpp>
@@ -42,7 +42,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <system_error>
 #include <type_traits>
 
-namespace network_system::internal {
+namespace kcenon::network::internal {
 namespace {
 
 std::vector<uint8_t> apply_pipeline(std::vector<uint8_t> data,
@@ -177,4 +177,4 @@ auto async_send_with_pipeline_no_co(std::shared_ptr<tcp_socket> sock,
 
 #endif
 
-} // namespace network_system::internal
+} // namespace kcenon::network::internal

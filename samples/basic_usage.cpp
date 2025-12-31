@@ -12,7 +12,7 @@
 #include <chrono>
 #include <vector>
 
-using namespace network_system;
+using namespace kcenon::network;
 
 int main() {
     std::cout << "=== Network System - Basic Usage Example ===" << std::endl;

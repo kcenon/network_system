@@ -47,7 +47,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "kcenon/network/utils/result_types.h"
 
 using namespace network_module;
-using namespace network_system; // For error_codes and Result types
+using namespace kcenon::network; // For error_codes and Result types
 using namespace std::chrono_literals;
 
 // Free function for tests without fixtures - yields to allow async operations

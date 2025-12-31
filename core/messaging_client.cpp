@@ -30,16 +30,16 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *****************************************************************************/
 
-#include "network_system/core/messaging_client.h"
-#include "network_system/internal/send_coroutine.h"
-#include "network_system/integration/logger_integration.h"
-#include "network_system/integration/io_context_thread_manager.h"
+#include "kcenon/network/core/messaging_client.h"
+#include "kcenon/network/internal/send_coroutine.h"
+#include "kcenon/network/integration/logger_integration.h"
+#include "kcenon/network/integration/io_context_thread_manager.h"
 #include <string_view>
 #include <type_traits>
 #include <optional>
 
 // Use nested namespace definition (C++17)
-namespace network_system::core
+namespace kcenon::network::core
 {
 
 	using tcp = asio::ip::tcp;
@@ -263,4 +263,4 @@ if constexpr (std::is_same_v<decltype(socket_->socket().get_executor()), asio::i
 		stop_client();
 	}
 
-} // namespace network_system::core
+} // namespace kcenon::network::core

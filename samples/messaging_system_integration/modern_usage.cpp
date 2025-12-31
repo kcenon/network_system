@@ -56,7 +56,7 @@
 // Include modern network_system API
 #include "kcenon/network/network_system.h"
 
-using namespace network_system;
+using namespace kcenon::network;
 using namespace std::chrono_literals;
 
 /**

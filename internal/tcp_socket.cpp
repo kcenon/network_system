@@ -30,13 +30,13 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *****************************************************************************/
 
-#include "network_system/internal/tcp_socket.h"
+#include "kcenon/network/internal/tcp_socket.h"
 
 #include <iostream> // for debugging/logging
 #include <type_traits>
 
 // Use nested namespace definition (C++17)
-namespace network_system::internal
+namespace kcenon::network::internal
 {
 
 	tcp_socket::tcp_socket(asio::ip::tcp::socket socket)
@@ -118,4 +118,4 @@ namespace network_system::internal
 			});
 	}
 
-} // namespace network_system::internal
+} // namespace kcenon::network::internal
