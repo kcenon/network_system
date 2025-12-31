@@ -34,6 +34,13 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <kcenon/network/config/feature_flags.h>
 
+#include "kcenon/network/core/messaging_quic_server_base.h"
+#include "kcenon/network/core/messaging_quic_client.h"
+#include "kcenon/network/integration/thread_integration.h"
+#include "kcenon/network/protocols/quic/connection_id.h"
+#include "kcenon/network/utils/result_types.h"
+
+#include <array>
 #include <atomic>
 #include <functional>
 #include <future>
@@ -47,11 +54,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <vector>
 
 #include <asio.hpp>
-
-#include "kcenon/network/core/messaging_quic_client.h"
-#include "kcenon/network/integration/thread_integration.h"
-#include "kcenon/network/protocols/quic/connection_id.h"
-#include "kcenon/network/utils/result_types.h"
 
 // Optional monitoring support via common_system
 #if KCENON_WITH_COMMON_SYSTEM
@@ -121,6 +123,9 @@ namespace kcenon::network::core
 	 * \class messaging_quic_server
 	 * \brief A QUIC server that manages incoming client connections
 	 *
+	 * This class inherits from messaging_quic_server_base using the CRTP pattern,
+	 * which provides common lifecycle management and callback handling.
+	 *
 	 * ### Overview
 	 * Implements a QUIC (RFC 9000) server with an API consistent with the
 	 * existing TCP-based messaging_server, while exposing QUIC-specific
@@ -136,7 +141,7 @@ namespace kcenon::network::core
 	 * - Uses \c asio::io_context for UDP I/O operations.
 	 * - Manages multiple QUIC sessions concurrently.
 	 * - Supports broadcast/multicast to connected clients.
-	 * - Provides session lifecycle callbacks.
+	 * - Provides session lifecycle callbacks (inherited from base).
 	 *
 	 * ### Comparison with messaging_server (TCP)
 	 * | Feature                  | messaging_server (TCP) | messaging_quic_server |
@@ -149,9 +154,12 @@ namespace kcenon::network::core
 	 * | Session management       | Basic                  | Advanced             |
 	 */
 	class messaging_quic_server
-	    : public std::enable_shared_from_this<messaging_quic_server>
+	    : public messaging_quic_server_base<messaging_quic_server>
 	{
 	public:
+		//! \brief Allow base class to access protected methods
+		friend class messaging_quic_server_base<messaging_quic_server>;
+
 		/*!
 		 * \brief Constructs a QUIC server with a given identifier.
 		 * \param server_id A string identifier for logging/debugging.
@@ -160,34 +168,28 @@ namespace kcenon::network::core
 
 		/*!
 		 * \brief Destructor; automatically calls \c stop_server() if running.
+		 * (Handled by base class)
 		 */
-		~messaging_quic_server() noexcept;
+		~messaging_quic_server() noexcept override = default;
 
-		// Disable copy
+		// Disable copy (inherited from base)
 		messaging_quic_server(const messaging_quic_server&) = delete;
 		messaging_quic_server& operator=(const messaging_quic_server&) = delete;
 
 		// =====================================================================
-		// Server Lifecycle
+		// Server Lifecycle (Extended)
 		// =====================================================================
 
+		// stop_server(), wait_for_stop(), is_running(),
+		// server_id() are provided by base class
+
+		//! \brief Bring base class start_server into scope
+		using messaging_quic_server_base<messaging_quic_server>::start_server;
+
 		/*!
-		 * \brief Start the server on the specified port.
+		 * \brief Start the server with default configuration.
 		 * \param port UDP port to listen on.
 		 * \return VoidResult indicating success or error.
-		 *
-		 * ### Errors
-		 * - \c server_already_running if already running
-		 * - \c bind_failed if port binding failed
-		 * - \c internal_error for other failures
-		 *
-		 * \code
-		 * auto result = server->start_server(443);
-		 * if (!result) {
-		 *     std::cerr << "Failed: " << result.error().message << "\n";
-		 *     return 1;
-		 * }
-		 * \endcode
 		 */
 		[[nodiscard]] auto start_server(unsigned short port) -> VoidResult;
 
@@ -200,23 +202,6 @@ namespace kcenon::network::core
 		[[nodiscard]] auto start_server(unsigned short port,
 		                                const quic_server_config& config)
 		    -> VoidResult;
-
-		/*!
-		 * \brief Stop the server and close all connections.
-		 * \return VoidResult indicating success or error.
-		 */
-		[[nodiscard]] auto stop_server() -> VoidResult;
-
-		/*!
-		 * \brief Block until the server stops.
-		 */
-		auto wait_for_stop() -> void;
-
-		/*!
-		 * \brief Check if the server is running.
-		 * \return true if running.
-		 */
-		[[nodiscard]] auto is_running() const noexcept -> bool;
 
 		// =====================================================================
 		// Session Management
@@ -280,51 +265,11 @@ namespace kcenon::network::core
 		                             std::vector<uint8_t>&& data) -> VoidResult;
 
 		// =====================================================================
-		// Callbacks
+		// Callbacks (Extended from Base)
 		// =====================================================================
 
-		/*!
-		 * \brief Set callback when a new client connects.
-		 * \param callback Function called with the new session.
-		 */
-		auto set_connection_callback(
-		    std::function<void(std::shared_ptr<session::quic_session>)> callback)
-		    -> void;
-
-		/*!
-		 * \brief Set callback when a client disconnects.
-		 * \param callback Function called with the disconnected session.
-		 */
-		auto set_disconnection_callback(
-		    std::function<void(std::shared_ptr<session::quic_session>)> callback)
-		    -> void;
-
-		/*!
-		 * \brief Set callback for received data from any session.
-		 * \param callback Function called with session and received data.
-		 */
-		auto set_receive_callback(
-		    std::function<void(std::shared_ptr<session::quic_session>,
-		                       const std::vector<uint8_t>&)>
-		        callback) -> void;
-
-		/*!
-		 * \brief Set callback for stream data from any session.
-		 * \param callback Function with session, stream_id, data, and fin flag.
-		 */
-		auto set_stream_receive_callback(
-		    std::function<void(std::shared_ptr<session::quic_session>,
-		                       uint64_t stream_id,
-		                       const std::vector<uint8_t>&,
-		                       bool fin)>
-		        callback) -> void;
-
-		/*!
-		 * \brief Set callback for server errors.
-		 * \param callback Function called when errors occur.
-		 */
-		auto set_error_callback(std::function<void(std::error_code)> callback)
-		    -> void;
+		// set_connection_callback, set_disconnection_callback, set_receive_callback,
+		// set_stream_receive_callback, set_error_callback are provided by base class
 
 #if KCENON_WITH_COMMON_SYSTEM
 		/*!
@@ -339,6 +284,28 @@ namespace kcenon::network::core
 		 */
 		auto get_monitor() const -> kcenon::common::interfaces::IMonitor*;
 #endif // KCENON_WITH_COMMON_SYSTEM
+
+	protected:
+		// =====================================================================
+		// CRTP Implementation Methods
+		// =====================================================================
+
+		/*!
+		 * \brief QUIC-specific implementation of server start.
+		 * \param port The UDP port to listen on.
+		 * \return VoidResult - Success if server started, or error with code.
+		 *
+		 * Called by base class start_server() after common validation.
+		 */
+		auto do_start(unsigned short port) -> VoidResult;
+
+		/*!
+		 * \brief QUIC-specific implementation of server stop.
+		 * \return VoidResult - Success if server stopped, or error with code.
+		 *
+		 * Called by base class stop_server() after common cleanup.
+		 */
+		auto do_stop() -> VoidResult;
 
 	private:
 		// =====================================================================
@@ -367,19 +334,12 @@ namespace kcenon::network::core
 		// Member Variables
 		// =====================================================================
 
-		std::string server_id_;
-
 		std::unique_ptr<asio::io_context> io_context_;
 		std::unique_ptr<asio::executor_work_guard<asio::io_context::executor_type>>
 		    work_guard_;
 		std::unique_ptr<asio::ip::udp::socket> udp_socket_;
 		std::shared_ptr<integration::thread_pool_interface> thread_pool_;
 		std::future<void> io_context_future_;
-
-		std::optional<std::promise<void>> stop_promise_;
-		std::future<void> stop_future_;
-
-		std::atomic<bool> is_running_{false};
 
 		quic_server_config config_;
 
@@ -396,23 +356,6 @@ namespace kcenon::network::core
 
 		// Session ID counter
 		std::atomic<uint64_t> session_counter_{0};
-
-		// Callbacks
-		std::function<void(std::shared_ptr<session::quic_session>)>
-		    connection_callback_;
-		std::function<void(std::shared_ptr<session::quic_session>)>
-		    disconnection_callback_;
-		std::function<void(std::shared_ptr<session::quic_session>,
-		                   const std::vector<uint8_t>&)>
-		    receive_callback_;
-		std::function<void(std::shared_ptr<session::quic_session>,
-		                   uint64_t,
-		                   const std::vector<uint8_t>&,
-		                   bool)>
-		    stream_receive_callback_;
-		std::function<void(std::error_code)> error_callback_;
-
-		mutable std::mutex callback_mutex_;
 
 #if KCENON_WITH_COMMON_SYSTEM
 		kcenon::common::interfaces::IMonitor* monitor_ = nullptr;
