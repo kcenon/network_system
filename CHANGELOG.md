@@ -12,6 +12,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **CRTP Base Classes for Messaging**: Added template base classes for messaging clients and servers (#376)
+  - `messaging_client_base<Derived>` provides common lifecycle management and callback handling for clients
+  - `messaging_server_base<Derived, SessionType>` provides common lifecycle management for servers
+  - Thread-safe state management with atomic flags
+  - Unified callback management with mutex protection
+  - Standard lifecycle methods (`start`, `stop`, `wait_for_stop`)
+  - Zero-overhead abstraction through CRTP pattern
+  - Foundation for future migration of existing messaging classes
 - **gRPC Service Registration Mechanism**: Implemented service registration for gRPC with official library support (#364)
   - Added `service_registry` class for centralized service management
   - Added `generic_service` for dynamic method registration at runtime
@@ -78,6 +86,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Reduces compile-time coupling and enables flexible logger configuration
 
 ### Fixed
+- **Integration Test Flakiness**: Fixed intermittent `ProtocolIntegrationTest.RepeatingPatternData` failures on macOS CI (#376)
+  - Added actual sleep to `wait_for_ready()` for socket cleanup (TIME_WAIT handling)
+  - Previous implementation only used `yield()` which didn't guarantee port release
+  - Uses 50ms delay in CI environments, 10ms locally
+- **Result Check Consistency**: Fixed `messaging_server_base` to use `is_err()` instead of `operator!` for VoidResult (#376)
+  - Aligns with `messaging_client_base` and common_system error handling patterns
 - **messaging_server Resource Cleanup**: Fixed heap corruption when `start_server()` fails (#335)
   - When port binding fails (e.g., address already in use), partially created resources (`io_context_`, `work_guard_`) were not cleaned up
   - Added resource cleanup in `start_server()` catch blocks to release partially created resources
