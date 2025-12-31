@@ -73,6 +73,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Concepts improve error messages and serve as self-documenting type constraints
 
 ### Changed
+- **messaging_server CRTP Migration**: Migrated `messaging_server` to use `messaging_server_base` CRTP pattern (#382)
+  - Inherits from `messaging_server_base<messaging_server>` for common lifecycle management
+  - Implements `do_start()`, `do_stop()` for TCP-specific server behavior
+  - Removes duplicated code (~200 lines reduction)
+  - All callback setters and lifecycle methods now provided by base class
+  - Added callback getter methods to base class for derived class access
 - **messaging_client CRTP Migration**: Migrated `messaging_client` to use `messaging_client_base` CRTP pattern (#381)
   - Inherits from `messaging_client_base<messaging_client>` for common lifecycle management
   - Implements `do_start()`, `do_stop()`, `do_send()` for TCP-specific behavior
