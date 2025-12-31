@@ -311,7 +311,7 @@ jobs:
 
   # Phase 0: Allow failures, just collect data
   sanitizers:
-    name: Sanitizers (${{ matrix.sanitizer }})
+    name: Sanitizers (${{ matrix.sanitizer.name }})
     runs-on: ubuntu-24.04
     continue-on-error: true
     timeout-minutes: 60
@@ -321,14 +321,17 @@ jobs:
       matrix:
         sanitizer:
           - name: ThreadSanitizer
-            flags: "-fsanitize=thread -g -O1"
-            env: "TSAN_OPTIONS=second_deadlock_stack=1"
+            option: ENABLE_TSAN
+            env_var: TSAN_OPTIONS
+            env_value: "second_deadlock_stack=1"
           - name: AddressSanitizer
-            flags: "-fsanitize=address -fno-omit-frame-pointer -g -O1"
-            env: "ASAN_OPTIONS=detect_leaks=1:strict_string_checks=1:detect_stack_use_after_return=1:check_initialization_order=1:strict_init_order=1"
+            option: ENABLE_ASAN
+            env_var: ASAN_OPTIONS
+            env_value: "detect_leaks=1:strict_string_checks=1:detect_stack_use_after_return=1:check_initialization_order=1:strict_init_order=1"
           - name: UndefinedBehaviorSanitizer
-            flags: "-fsanitize=undefined -fno-omit-frame-pointer -g -O1"
-            env: "UBSAN_OPTIONS=print_stacktrace=1:halt_on_error=0"
+            option: ENABLE_UBSAN
+            env_var: UBSAN_OPTIONS
+            env_value: "print_stacktrace=1:halt_on_error=0"
 
     steps:
     - name: Checkout code
@@ -417,13 +420,14 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y cmake ninja-build clang libgtest-dev libgmock-dev libasio-dev libfmt-dev
+        sudo apt-get install -y cmake ninja-build clang libgtest-dev libgmock-dev libasio-dev libfmt-dev libssl-dev liblz4-dev zlib1g-dev
 
     - name: Configure CMake with ${{ matrix.sanitizer.name }}
       run: |
         cmake -B build -G Ninja \
           -DCMAKE_BUILD_TYPE=Debug \
           -DCMAKE_PREFIX_PATH=${{ github.workspace }}/deps/install \
+          -D${{ matrix.sanitizer.option }}=ON \
           -DBUILD_WITH_COMMON_SYSTEM=ON \
           -DBUILD_WITH_LOGGER_SYSTEM=ON \
           -DBUILD_WITH_THREAD_SYSTEM=ON \
@@ -432,11 +436,7 @@ jobs:
           -DBUILD_TESTS=ON \
           -DBUILD_SAMPLES=OFF \
           -DCMAKE_C_COMPILER=clang \
-          -DCMAKE_CXX_COMPILER=clang++ \
-          -DCMAKE_C_FLAGS="${{ matrix.sanitizer.flags }}" \
-          -DCMAKE_CXX_FLAGS="${{ matrix.sanitizer.flags }}" \
-          -DCMAKE_EXE_LINKER_FLAGS="${{ matrix.sanitizer.flags }}" \
-          -DCMAKE_SHARED_LINKER_FLAGS="${{ matrix.sanitizer.flags }}"
+          -DCMAKE_CXX_COMPILER=clang++
 
     - name: Build with ${{ matrix.sanitizer.name }}
       run: cmake --build build --config Debug
@@ -444,8 +444,9 @@ jobs:
     - name: Run tests with ${{ matrix.sanitizer.name }}
       run: |
         cd build
-        export ${{ matrix.sanitizer.env }}
         ctest -C Debug --output-on-failure --verbose || echo "${{ matrix.sanitizer.name }} detected issues (expected in Phase 0)"
+      env:
+        ${{ matrix.sanitizer.env_var }}: ${{ matrix.sanitizer.env_value }}
 
     - name: Upload sanitizer logs
       if: always()
