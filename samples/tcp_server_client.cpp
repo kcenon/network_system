@@ -13,7 +13,7 @@
 #include <future>
 #include "../network.h"
 
-using namespace network_system;
+using namespace kcenon::network;
 
 class tcp_demo_server {
 public:

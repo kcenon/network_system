@@ -30,12 +30,12 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *****************************************************************************/
 
-#include "network_system/core/messaging_server.h"
-#include "network_system/session/messaging_session.h"
-#include "network_system/integration/logger_integration.h"
-#include "network_system/integration/io_context_thread_manager.h"
+#include "kcenon/network/core/messaging_server.h"
+#include "kcenon/network/session/messaging_session.h"
+#include "kcenon/network/integration/logger_integration.h"
+#include "kcenon/network/integration/io_context_thread_manager.h"
 
-namespace network_system::core
+namespace kcenon::network::core
 {
 
 	using tcp = asio::ip::tcp;
@@ -178,4 +178,4 @@ namespace network_system::core
 		do_accept();
 	}
 
-} // namespace network_system::core
+} // namespace kcenon::network::core

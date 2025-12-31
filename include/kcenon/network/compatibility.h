@@ -118,21 +118,6 @@ namespace messaging {
     using namespace network_module;
 }
 
-// Legacy network_system namespace for backward compatibility
-// DEPRECATED: Use kcenon::network directly in new code
-namespace network_system {
-    // Import all kcenon::network types
-    using namespace kcenon::network;
-
-    // Explicit namespace aliases for sub-namespaces
-    namespace core = kcenon::network::core;
-    namespace session = kcenon::network::session;
-    namespace integration = kcenon::network::integration;
-    namespace config = kcenon::network::config;
-    namespace internal = kcenon::network::internal;
-    namespace utils = kcenon::network::utils;
-}
-
 // Feature detection macros
 #if KCENON_WITH_CONTAINER_SYSTEM
     #define HAS_CONTAINER_INTEGRATION 1

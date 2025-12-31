@@ -52,7 +52,7 @@
 
 #include "kcenon/network/network_system.h"
 
-using namespace network_system;
+using namespace kcenon::network;
 using namespace std::chrono_literals;
 
 // Free function for yielding to allow async operations to complete
@@ -467,7 +467,7 @@ int main(int argc, [[maybe_unused]] char *argv[]) {
             << " | Build: " << (argc > 1 ? "Debug" : "Standard") << std::endl;
 
   // Initialize system
-  network_system::compat::initialize();
+  compat::initialize();
   std::cout << "\nSystem initialized" << std::endl;
 
   TestResults results;
@@ -487,7 +487,7 @@ int main(int argc, [[maybe_unused]] char *argv[]) {
   results.print();
 
   // Cleanup
-  network_system::compat::shutdown();
+  compat::shutdown();
   std::cout << "\nSystem shutdown complete" << std::endl;
 
   // Determine success

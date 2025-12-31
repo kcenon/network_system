@@ -24,7 +24,7 @@
 #include <iomanip>
 #include "kcenon/network/network_system.h"
 
-using namespace network_system;
+using namespace kcenon::network;
 
 class http_demo {
 public:

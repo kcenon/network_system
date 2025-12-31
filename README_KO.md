@@ -155,7 +155,7 @@ cmake --build build
 
 ### 🔧 **개발자 생산성**
 - **직관적인 API 설계**: 깨끗하고 자체 문서화된 인터페이스로 학습 곡선 감소
-- **하위 호환성**: 레거시 messaging_system 코드 마이그레이션을 위한 호환성 브리지 및 네임스페이스 별칭 (예: `include/network_system/integration/messaging_bridge.h` 참조)
+- **하위 호환성**: 레거시 messaging_system 코드 마이그레이션을 위한 호환성 브리지 및 네임스페이스 별칭 (예: `include/kcenon/network/integration/messaging_bridge.h` 참조)
 - **풍부한 통합**: thread, container 및 logger system과의 원활한 통합
 - **최신 C++ 기능**: C++20 coroutine, concept 및 range 지원
 
@@ -342,7 +342,7 @@ MessageThroughput/8KB           48000 ns  47998 ns        14583   # ~21K msg/s
 ### 디렉토리 구성
 ```
 network_system/
-├── 📁 include/network_system/   # 공개 헤더 파일
+├── 📁 include/kcenon/network/   # 공개 헤더 파일
 │   ├── 📁 core/                 # 핵심 구성 요소
 │   │   ├── messaging_server.h   # TCP 서버 구현
 │   │   └── messaging_client.h   # TCP 클라이언트 구현
@@ -381,13 +381,13 @@ cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release && cmake --build .
 
 **2단계: 첫 번째 TCP Server (60초)**
 ```cpp
-#include <network_system/core/messaging_server.h>
+#include <kcenon/network/core/messaging_server.h>
 #include <iostream>
 #include <memory>
 
 int main() {
 // 서버 ID로 TCP 서버 생성
-auto server = std::make_shared<network_system::core::messaging_server>("MyServer");
+auto server = std::make_shared<kcenon::network::core::messaging_server>("MyServer");
 
 // 포트 8080에서 서버 시작
 auto result = server->start_server(8080);
@@ -410,7 +410,7 @@ if (result.is_err()) {
 
 **3단계: TCP Client로 연결**
 ```cpp
-#include <network_system/core/messaging_client.h>
+#include <kcenon/network/core/messaging_client.h>
 #include <iostream>
 #include <memory>
 #include <vector>
@@ -420,7 +420,7 @@ if (result.is_err()) {
 
 int main() {
     // 클라이언트 ID로 TCP 클라이언트 생성
-    auto client = std::make_shared<network_system::core::messaging_client>("MyClient");
+    auto client = std::make_shared<kcenon::network::core::messaging_client>("MyClient");
 
 // 클라이언트 시작 및 서버에 연결
 auto result = client->start_client("localhost", 8080);
@@ -505,11 +505,11 @@ cmake --build .
 ### TCP API 사용법
 
 ```cpp
-#include <network_system/core/messaging_server.h>
-#include <network_system/core/messaging_client.h>
+#include <kcenon/network/core/messaging_server.h>
+#include <kcenon/network/core/messaging_client.h>
 
 // 오류 처리를 포함한 서버 예제
-auto server = std::make_shared<network_system::core::messaging_server>("server_id");
+auto server = std::make_shared<kcenon::network::core::messaging_server>("server_id");
 auto server_result = server->start_server(8080);
 if (!server_result) {
     std::cerr << "서버 실패: " << server_result.error().message << std::endl;
@@ -517,7 +517,7 @@ if (!server_result) {
 }
 
 // 오류 처리를 포함한 클라이언트 예제
-auto client = std::make_shared<network_system::core::messaging_client>("client_id");
+auto client = std::make_shared<kcenon::network::core::messaging_client>("client_id");
 auto client_result = client->start_client("localhost", 8080);
 if (!client_result) {
     std::cerr << "클라이언트 실패: " << client_result.error().message << std::endl;
@@ -537,11 +537,11 @@ if (send_result.is_err()) {
 ### WebSocket API 사용법
 
 ```cpp
-#include <network_system/core/messaging_ws_server.h>
-#include <network_system/core/messaging_ws_client.h>
+#include <kcenon/network/core/messaging_ws_server.h>
+#include <kcenon/network/core/messaging_ws_client.h>
 
 // WebSocket 서버
-using namespace network_system::core;
+using namespace kcenon::network::core;
 
 auto server = std::make_shared<messaging_ws_server>("ws_server");
 
@@ -596,7 +596,7 @@ if (!binary_result) {
 ### 레거시 API 호환성
 
 ```cpp
-#include <network_system/compatibility.h>
+#include <kcenon/network/compatibility.h>
 
 // Use legacy namespace - fully compatible
 auto server = network_module::create_server("legacy_server");
@@ -610,7 +610,7 @@ client->start_client("127.0.0.1", 8080);
 
 ```
 network_system/
-├── include/network_system/
+├── include/kcenon/network/
 │   ├── core/                    # Core networking components
 │   │   ├── messaging_client.h
 │   │   └── messaging_server.h
@@ -638,11 +638,11 @@ network_system/
 
 #### TCP Server
 ```cpp
-#include <network_system/core/messaging_server.h>
+#include <kcenon/network/core/messaging_server.h>
 #include <memory>
 
 // 식별자로 서버 생성
-auto server = std::make_shared<network_system::core::messaging_server>("MyServer");
+auto server = std::make_shared<kcenon::network::core::messaging_server>("MyServer");
 
 // 특정 포트에서 서버 시작
 auto result = server->start_server(8080);
@@ -658,12 +658,12 @@ server->stop_server();                        // 우아한 종료
 
 #### TCP Client
 ```cpp
-#include <network_system/core/messaging_client.h>
+#include <kcenon/network/core/messaging_client.h>
 #include <memory>
 #include <vector>
 
 // 식별자로 클라이언트 생성
-auto client = std::make_shared<network_system::core::messaging_client>("MyClient");
+auto client = std::make_shared<kcenon::network::core::messaging_client>("MyClient");
 
 // 서버에 연결
 auto result = client->start_client("hostname", 8080);
@@ -690,7 +690,7 @@ client->stop_client();
 
 #### Result<T>를 사용한 오류 처리
 ```cpp
-#include <network_system/utils/result_types.h>
+#include <kcenon/network/utils/result_types.h>
 
 // Result 기반 오류 처리 (예외 없음)
 auto result = client->start_client("hostname", 8080);
@@ -811,10 +811,10 @@ Network System은 향상된 모듈성과 재사용성을 제공하기 위해 mes
 #### **완전한 독립성** ✅
 - 빌드 타임 의존성 제로로 messaging_system으로부터 완전히 분리
 - 모든 C++ 프로젝트에 통합하기에 적합한 독립적인 라이브러리
-- 깨끗한 namespace 격리 (`network_system::`)
+- 깨끗한 namespace 격리 (`kcenon::network::`)
 
 #### **하위 호환성** ♻️
-- 호환성 브리지(`include/network_system/integration/messaging_bridge.h`) 및 네임스페이스 별칭으로 레거시 messaging_system 코드 빌드 유지
+- 호환성 브리지(`include/kcenon/network/integration/messaging_bridge.h`) 및 네임스페이스 별칭으로 레거시 messaging_system 코드 빌드 유지
 - 통합 테스트(예: `integration_tests/scenarios/connection_lifecycle_test.cpp`)가 마이그레이션 플로우 실행
 - 완전한 패리티를 선언하기 전 대규모 검증이 진행 중
 

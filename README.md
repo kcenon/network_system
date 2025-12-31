@@ -131,8 +131,6 @@ int main() {
 }
 ```
 
-> **Note**: Legacy `network_system::` namespace is still supported via `<kcenon/network/compatibility.h>` for backward compatibility.
-
 ### Your First Client
 
 ```cpp

@@ -54,7 +54,7 @@
 
 #include "kcenon/network/network_system.h"
 
-using namespace network_system;
+using namespace kcenon::network;
 using namespace std::chrono_literals;
 
 // Free function for yielding to allow async operations to complete
@@ -413,7 +413,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Initialize system
-    network_system::compat::initialize();
+    compat::initialize();
     std::cout << "\nSystem initialized" << std::endl;
 
     StressMetrics metrics;
@@ -434,7 +434,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Cleanup
-    network_system::compat::shutdown();
+    compat::shutdown();
     std::cout << "\nSystem shutdown complete" << std::endl;
 
     // Final verdict

@@ -148,9 +148,9 @@ bool test_compatibility_api() {
 
     // Test feature detection
     std::cout << "✓ Container support: "
-              << (network_system::compat::has_container_support() ? "yes" : "no") << std::endl;
+              << (kcenon::network::compat::has_container_support() ? "yes" : "no") << std::endl;
     std::cout << "✓ Thread support: "
-              << (network_system::compat::has_thread_support() ? "yes" : "no") << std::endl;
+              << (kcenon::network::compat::has_thread_support() ? "yes" : "no") << std::endl;
 
     return true;
 }
@@ -202,7 +202,7 @@ int main() {
     int tests_failed = 0;
 
     // Initialize the system
-    network_system::compat::initialize();
+    kcenon::network::compat::initialize();
     std::cout << "\n✓ Network system initialized" << std::endl;
 
     // Run tests
@@ -237,7 +237,7 @@ int main() {
     }
 
     // Shutdown
-    network_system::compat::shutdown();
+    kcenon::network::compat::shutdown();
     std::cout << "\n✓ Network system shutdown" << std::endl;
 
     // Results

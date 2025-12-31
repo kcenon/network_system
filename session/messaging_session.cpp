@@ -30,14 +30,14 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *****************************************************************************/
 
-#include "network_system/session/messaging_session.h"
-#include "network_system/internal/send_coroutine.h" // for async_send_with_pipeline_co / no_co
-#include "network_system/integration/logger_integration.h"
+#include "kcenon/network/session/messaging_session.h"
+#include "kcenon/network/internal/send_coroutine.h" // for async_send_with_pipeline_co / no_co
+#include "kcenon/network/integration/logger_integration.h"
 #include <string_view>
 #include <type_traits>
 
 // Use nested namespace definition (C++17)
-namespace network_system::session
+namespace kcenon::network::session
 {
 
 	// Use string_view in constructor for efficiency (C++17)
@@ -156,4 +156,4 @@ if constexpr (std::is_same_v<decltype(socket_->socket().get_executor()), asio::i
 		stop_session();
 	}
 
-} // namespace network_system::session
+} // namespace kcenon::network::session
