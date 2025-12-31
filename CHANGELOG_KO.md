@@ -87,6 +87,11 @@ Network System 프로젝트의 모든 주요 변경 사항이 이 파일에 문�
   - 패키지 등록 후 `vcpkg install --feature ecosystem`으로 활성화
 
 ### 수정됨
+- **tcp_socket AddressSanitizer 수정**: 비동기 작업 중 소켓 종료 시 do_read 콜백에서 발생하는 SEGV 수정 (#388)
+  - 재귀적 `do_read()` 호출 전 `socket_.is_open()` 검사 추가하여 레이스 컨디션 방지
+  - `is_reading_.load()` 검사와 `do_read()` 호출 사이에 소켓이 닫힐 수 있는 문제 해결
+  - tcp_socket.h에 누락된 `<atomic>` 및 `<mutex>` 헤더 추가
+  - Ubuntu 24.04에서 AddressSanitizer 하의 E2ETests 실패 수정
 - **messaging_client ThreadSanitizer 수정**: `do_stop()`과 `async_connect()` 작업 간의 데이터 레이스 수정 (#388)
   - `asio::post()`를 통해 pending 소켓 close 작업을 io_context 스레드에서 실행하여 async_connect와 같은 스레드에서 소켓 작업이 이루어지도록 함
   - stop 시작 후 소켓 작업을 방지하기 위해 async 핸들러에 `stop_initiated_` 검사 추가
