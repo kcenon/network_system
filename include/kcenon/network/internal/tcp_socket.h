@@ -32,13 +32,16 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
-#include <asio.hpp>
+#include <array>
+#include <atomic>
 #include <functional>
 #include <memory>
-#include <vector>
-#include <array>
+#include <mutex>
 #include <span>
 #include <system_error>
+#include <vector>
+
+#include <asio.hpp>
 
 #include "kcenon/network/internal/common_defs.h"
 
@@ -272,6 +275,21 @@ namespace kcenon::network::internal
 		 */
 		auto stop_read() -> void;
 
+		/*!
+		 * \brief Safely closes the socket and stops all async operations.
+		 *
+		 * This method atomically sets the closed flag before closing the socket,
+		 * preventing data races between the close operation and async read operations.
+		 * Thread-safe with respect to concurrent async operations.
+		 */
+		auto close() -> void;
+
+		/*!
+		 * \brief Checks if the socket has been closed.
+		 * \return true if close() has been called on this socket.
+		 */
+		[[nodiscard]] auto is_closed() const -> bool;
+
 	private:
 		/*!
 		 * \brief Internal function to handle the read logic with \c
@@ -304,6 +322,7 @@ namespace kcenon::network::internal
 		std::mutex callback_mutex_; /*!< Protects callback registration only. */
 
 		std::atomic<bool> is_reading_{false}; /*!< Flag to prevent read after stop. */
+		std::atomic<bool> is_closed_{false};  /*!< Flag to indicate socket is closed. */
 
 		/*! \brief Backpressure configuration */
 		socket_config config_;

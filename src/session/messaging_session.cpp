@@ -33,10 +33,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "kcenon/network/session/messaging_session.h"
 
 #include <span>
-#include <type_traits>
 
 #include "kcenon/network/integration/logger_integration.h"
-#include "kcenon/network/internal/send_coroutine.h"
 #include "kcenon/network/metrics/network_metrics.h"
 
 // Use nested namespace definition (C++17)
@@ -50,13 +48,6 @@ namespace kcenon::network::session
 	{
 		// Create the tcp_socket wrapper
 		socket_ = std::make_shared<internal::tcp_socket>(std::move(socket));
-
-		// Initialize the pipeline (stub)
-		pipeline_ = internal::make_default_pipeline();
-
-		// Default modes - could use inline initialization in header with C++17
-		compress_mode_ = false;
-		encrypt_mode_ = false;
 	}
 
 	messaging_session::~messaging_session() noexcept
@@ -112,17 +103,11 @@ namespace kcenon::network::session
 		{
 			return;
 		}
-		// Stop reading first to prevent new async operations
+		// Close socket safely using atomic close() method
+		// This prevents data races between close and async read operations
 		if (socket_)
 		{
-			socket_->stop_read();
-		}
-		// Close socket safely
-		if (socket_)
-		{
-			std::error_code ec;
-			socket_->socket().close(ec);
-			// Ignore close errors silently - no logging during potential static destruction
+			socket_->close();
 		}
 
 		// Invoke disconnection callback if set
@@ -152,41 +137,12 @@ namespace kcenon::network::session
 		// Report bytes sent metric
 		metrics::metric_reporter::report_bytes_sent(data.size());
 
-		// Capture mode flags atomically
-		bool compress_mode;
-		bool encrypt_mode;
-		{
-			std::lock_guard<std::mutex> lock(mode_mutex_);
-			compress_mode = compress_mode_;
-			encrypt_mode = encrypt_mode_;
-		}
-
-// Using if constexpr for compile-time branching (C++17)
-if constexpr (std::is_same_v<decltype(socket_->socket().get_executor()), asio::io_context::executor_type>)
-{
-#ifdef USE_STD_COROUTINE
-		// Coroutine-based approach
+		// Send data directly without pipeline transformation
 		// NOTE: No logging in async callbacks to prevent heap corruption during static destruction
-		asio::co_spawn(socket_->socket().get_executor(),
-					   internal::async_send_with_pipeline_co(socket_, std::move(data),
-												   pipeline_, compress_mode,
-												   encrypt_mode),
-					   [](std::error_code) {
-						   // Silently ignore errors - no logging during potential static destruction
-					   });
-#else
-		// Fallback approach
-		auto fut = internal::async_send_with_pipeline_no_co(
-			socket_, std::move(data), pipeline_, compress_mode, encrypt_mode);
-
-		// Use structured binding with try/catch for better error handling (C++17)
-		try {
-			(void)fut.get();  // Ignore result - no logging during potential static destruction
-		} catch (...) {
-			// Silently ignore exceptions - no logging during potential static destruction
-		}
-#endif
-}
+		socket_->async_send(std::move(data),
+			[](std::error_code, std::size_t) {
+				// Silently ignore errors - no logging during potential static destruction
+			});
 	}
 
 	auto messaging_session::on_receive(std::span<const uint8_t> data) -> void
@@ -266,11 +222,6 @@ if constexpr (std::is_same_v<decltype(socket_->socket().get_executor()), asio::i
 			message = std::move(pending_messages_.front());
 			pending_messages_.pop_front();
 		}
-
-		// Process the message:
-		// 1. Decompress + decrypt using pipeline_ if needed
-		// 2. Parse message format (length-prefixed, framed, etc.)
-		// 3. Dispatch to application-level handler
 
 		// Invoke receive callback if set
 		{

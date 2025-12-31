@@ -260,8 +260,6 @@ add_library(NetworkSystem
     # Internal implementation
     src/internal/tcp_socket.cpp
     src/internal/udp_socket.cpp
-    src/internal/send_coroutine.cpp
-    src/internal/pipeline.cpp
     src/internal/http_types.cpp
     src/internal/http_parser.cpp
     src/internal/http_error.cpp

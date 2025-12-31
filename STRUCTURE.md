@@ -25,8 +25,6 @@ network_system/
 │   │   └── messaging_bridge.h      # Messaging system bridge
 │   ├── 📁 internal/                # Internal implementation details
 │   │   ├── tcp_socket.h            # TCP socket wrapper
-│   │   ├── pipeline.h              # Message pipeline
-│   │   ├── send_coroutine.h        # Async send operations
 │   │   └── common_defs.h           # Common definitions
 │   ├── 📁 utils/                   # Public utilities
 │   │   ├── result_types.h          # Result/error types
@@ -48,9 +46,7 @@ network_system/
 │   │   ├── container_integration.cpp # DI container integration
 │   │   └── messaging_bridge.cpp    # Messaging bridge implementation
 │   ├── 📁 internal/                # Internal implementations
-│   │   ├── tcp_socket.cpp          # TCP socket implementation
-│   │   ├── pipeline.cpp            # Message pipeline implementation
-│   │   └── send_coroutine.cpp      # Async operations
+│   │   └── tcp_socket.cpp          # TCP socket implementation
 │   └── 📁 utils/                   # Utility implementations
 │       └── memory_profiler.cpp     # Memory profiling implementation
 ├── 📁 tests/                       # Comprehensive test suite
@@ -163,8 +159,6 @@ network_system/
 | Component | File | Purpose |
 |-----------|------|---------|
 | **TCP Socket** | `tcp_socket.h` | Low-level socket wrapper |
-| **Pipeline** | `pipeline.h` | Message processing pipeline |
-| **Send Coroutine** | `send_coroutine.h` | Asynchronous send operations |
 | **Common Definitions** | `common_defs.h` | Shared constants and types |
 
 ## 📊 Performance Characteristics
