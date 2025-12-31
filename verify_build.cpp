@@ -34,11 +34,11 @@
 
 #include <kcenon/network/config/feature_flags.h>
 
-#include "network_system/core/messaging_client.h"
-#include "network_system/core/messaging_server.h"
-#include "network_system/session/messaging_session.h"
+#include "kcenon/network/core/messaging_client.h"
+#include "kcenon/network/core/messaging_server.h"
+#include "kcenon/network/session/messaging_session.h"
 #ifdef BUILD_MESSAGING_BRIDGE
-#include "network_system/integration/messaging_bridge.h"
+#include "kcenon/network/integration/messaging_bridge.h"
 #endif
 
 #include <iostream>
