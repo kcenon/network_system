@@ -36,21 +36,19 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <chrono>
 #include <condition_variable>
+#include <string_view>
 
 namespace kcenon::network::core
 {
 
 secure_messaging_udp_client::secure_messaging_udp_client(
 	std::string_view client_id, bool verify_cert)
-	: client_id_(client_id)
+	: messaging_client_base<secure_messaging_udp_client>(client_id)
 	, verify_cert_(verify_cert)
 {
 }
 
-secure_messaging_udp_client::~secure_messaging_udp_client() noexcept
-{
-	stop_client();
-}
+// Destructor is defaulted in header - base class handles stop_client() call
 
 auto secure_messaging_udp_client::init_ssl_context() -> VoidResult
 {
@@ -81,23 +79,11 @@ auto secure_messaging_udp_client::init_ssl_context() -> VoidResult
 	return ok();
 }
 
-auto secure_messaging_udp_client::start_client(
-	std::string_view host, uint16_t port) -> VoidResult
+// DTLS-specific implementation of client start
+// Called by base class start_client() after common validation
+auto secure_messaging_udp_client::do_start(
+	std::string_view host, unsigned short port) -> VoidResult
 {
-	if (is_connected_.load())
-	{
-		return error_void(error_codes::common_errors::already_exists,
-		                  "Client already running",
-		                  "secure_messaging_udp_client::start_client");
-	}
-
-	if (host.empty())
-	{
-		return error_void(error_codes::common_errors::invalid_argument,
-		                  "Host cannot be empty",
-		                  "secure_messaging_udp_client::start_client");
-	}
-
 	// Initialize SSL context
 	auto ssl_result = init_ssl_context();
 	if (!ssl_result.is_ok())
@@ -123,7 +109,7 @@ auto secure_messaging_udp_client::start_client(
 		ssl_ctx_ = nullptr;
 		return error_void(error_codes::common_errors::internal_error,
 		                  "Failed to resolve host: " + std::string(host),
-		                  "secure_messaging_udp_client::start_client");
+		                  "secure_messaging_udp_client::do_start");
 	}
 
 	{
@@ -144,14 +130,15 @@ auto secure_messaging_udp_client::start_client(
 		socket_->set_peer_endpoint(target_endpoint_);
 	}
 
-	// Set callbacks
+	// Set callbacks - use UDP-specific callback for receive
+	auto self = shared_from_this();
 	socket_->set_receive_callback(
-		[this](const std::vector<uint8_t>& data, const asio::ip::udp::endpoint& sender)
+		[this, self](const std::vector<uint8_t>& data, const asio::ip::udp::endpoint& sender)
 		{
-			std::function<void(const std::vector<uint8_t>&, const asio::ip::udp::endpoint&)> callback;
+			udp_receive_callback_t callback;
 			{
-				std::lock_guard<std::mutex> lock(callback_mutex_);
-				callback = receive_callback_;
+				std::lock_guard<std::mutex> lock(udp_callback_mutex_);
+				callback = udp_receive_callback_;
 			}
 			if (callback)
 			{
@@ -160,17 +147,10 @@ auto secure_messaging_udp_client::start_client(
 		});
 
 	socket_->set_error_callback(
-		[this](std::error_code ec)
+		[this, self](std::error_code ec)
 		{
-			std::function<void(std::error_code)> callback;
-			{
-				std::lock_guard<std::mutex> lock(callback_mutex_);
-				callback = error_callback_;
-			}
-			if (callback)
-			{
-				callback(ec);
-			}
+			// Use base class method to invoke error callback
+			invoke_error_callback(ec);
 		});
 
 	// Get thread pool from network context
@@ -192,22 +172,14 @@ auto secure_messaging_udp_client::start_client(
 	auto handshake_result = do_handshake();
 	if (!handshake_result.is_ok())
 	{
-		stop_client();
 		return handshake_result;
 	}
 
-	is_connected_.store(true);
+	// Mark as connected using base class method
+	set_connected(true);
 
-	// Notify connected
-	std::function<void()> connected_cb;
-	{
-		std::lock_guard<std::mutex> lock(callback_mutex_);
-		connected_cb = connected_callback_;
-	}
-	if (connected_cb)
-	{
-		connected_cb();
-	}
+	// Notify connected using base class method
+	invoke_connected_callback();
 
 	return ok();
 }
@@ -253,19 +225,10 @@ auto secure_messaging_udp_client::do_handshake() -> VoidResult
 	return ok();
 }
 
-auto secure_messaging_udp_client::stop_client() -> VoidResult
+// DTLS-specific implementation of client stop
+// Called by base class stop_client() after common cleanup
+auto secure_messaging_udp_client::do_stop() -> VoidResult
 {
-	if (!is_connected_.exchange(false))
-	{
-		// Already stopped
-		if (ssl_ctx_)
-		{
-			SSL_CTX_free(ssl_ctx_);
-			ssl_ctx_ = nullptr;
-		}
-		return ok();
-	}
-
 	// Stop socket
 	if (socket_)
 	{
@@ -292,77 +255,53 @@ auto secure_messaging_udp_client::stop_client() -> VoidResult
 		ssl_ctx_ = nullptr;
 	}
 
-	// Notify disconnected
-	std::function<void()> disconnected_cb;
-	{
-		std::lock_guard<std::mutex> lock(callback_mutex_);
-		disconnected_cb = disconnected_callback_;
-	}
-	if (disconnected_cb)
-	{
-		disconnected_cb();
-	}
-
 	return ok();
 }
 
-auto secure_messaging_udp_client::wait_for_stop() -> void
+// DTLS-specific implementation of data send
+// Called by base class send_packet() after common validation
+auto secure_messaging_udp_client::do_send(std::vector<uint8_t>&& data) -> VoidResult
 {
-	if (io_context_future_.valid())
+	if (!socket_)
 	{
-		io_context_future_.wait();
+		return error_void(error_codes::common_errors::internal_error,
+		                  "Socket not available",
+		                  "secure_messaging_udp_client::do_send");
 	}
+
+	socket_->async_send(std::move(data), nullptr);
+	return ok();
 }
 
-auto secure_messaging_udp_client::send_packet(
+auto secure_messaging_udp_client::send_packet_with_handler(
 	std::vector<uint8_t>&& data,
 	std::function<void(std::error_code, std::size_t)> handler) -> VoidResult
 {
-	if (!is_connected_.load())
+	if (!is_connected())
 	{
 		return error_void(error_codes::common_errors::internal_error,
 		                  "Client not connected",
-		                  "secure_messaging_udp_client::send_packet");
+		                  "secure_messaging_udp_client::send_packet_with_handler");
 	}
 
 	if (!socket_)
 	{
 		return error_void(error_codes::common_errors::internal_error,
 		                  "Socket not available",
-		                  "secure_messaging_udp_client::send_packet");
+		                  "secure_messaging_udp_client::send_packet_with_handler");
 	}
 
 	socket_->async_send(std::move(data), std::move(handler));
 	return ok();
 }
 
-auto secure_messaging_udp_client::set_receive_callback(
-	std::function<void(const std::vector<uint8_t>&,
-	                   const asio::ip::udp::endpoint&)> callback) -> void
+auto secure_messaging_udp_client::set_udp_receive_callback(
+	udp_receive_callback_t callback) -> void
 {
-	std::lock_guard<std::mutex> lock(callback_mutex_);
-	receive_callback_ = std::move(callback);
+	std::lock_guard<std::mutex> lock(udp_callback_mutex_);
+	udp_receive_callback_ = std::move(callback);
 }
 
-auto secure_messaging_udp_client::set_error_callback(
-	std::function<void(std::error_code)> callback) -> void
-{
-	std::lock_guard<std::mutex> lock(callback_mutex_);
-	error_callback_ = std::move(callback);
-}
-
-auto secure_messaging_udp_client::set_connected_callback(
-	std::function<void()> callback) -> void
-{
-	std::lock_guard<std::mutex> lock(callback_mutex_);
-	connected_callback_ = std::move(callback);
-}
-
-auto secure_messaging_udp_client::set_disconnected_callback(
-	std::function<void()> callback) -> void
-{
-	std::lock_guard<std::mutex> lock(callback_mutex_);
-	disconnected_callback_ = std::move(callback);
-}
+// Other callback setters are provided by base class
 
 } // namespace kcenon::network::core
