@@ -73,6 +73,12 @@ Network System 프로젝트의 모든 주요 변경 사항이 이 파일에 문�
   - Concepts는 에러 메시지를 개선하고 자기 문서화 타입 제약 역할
 
 ### 변경됨
+- **messaging_server CRTP 마이그레이션**: `messaging_server`를 `messaging_server_base` CRTP 패턴을 사용하도록 마이그레이션 (#382)
+  - 공통 생명주기 관리를 위해 `messaging_server_base<messaging_server>`를 상속
+  - TCP 특화 서버 동작을 위한 `do_start()`, `do_stop()` 구현
+  - 중복 코드 제거 (~200줄 감소)
+  - 모든 콜백 설정자 및 생명주기 메서드가 이제 기본 클래스에서 제공됨
+  - 파생 클래스 접근을 위한 콜백 getter 메서드를 기본 클래스에 추가
 - **messaging_client CRTP 마이그레이션**: `messaging_client`를 `messaging_client_base` CRTP 패턴을 사용하도록 마이그레이션 (#381)
   - 공통 생명주기 관리를 위해 `messaging_client_base<messaging_client>`를 상속
   - TCP 특화 동작을 위한 `do_start()`, `do_stop()`, `do_send()` 구현

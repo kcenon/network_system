@@ -44,19 +44,18 @@ namespace kcenon::network::core
 	using tcp = asio::ip::tcp;
 
 	messaging_server::messaging_server(const std::string& server_id)
-		: server_id_(server_id)
+		: messaging_server_base<messaging_server>(server_id)
 	{
 	}
 
 	messaging_server::~messaging_server() noexcept
 	{
+		// Base class destructor will call stop_server() if still running.
+		// Additional cleanup is handled here for resources not managed by base.
 		try
 		{
-			// Ignore the return value in destructor to avoid throwing
-			(void)stop_server();
-
 			// Ensure all resources are cleaned up even if stop_server() returned early
-			// This handles the case where start_server() failed and is_running_ is false
+			// This handles the case where start_server() failed and is_running() is false
 			// but resources were partially created
 			if (acceptor_)
 			{
@@ -92,19 +91,10 @@ namespace kcenon::network::core
 		}
 	}
 
-	auto messaging_server::start_server(unsigned short port) -> VoidResult
+	auto messaging_server::do_start(unsigned short port) -> VoidResult
 	{
-		// If already running, return error
-		if (is_running_.load())
-		{
-			return error_void(
-				error_codes::network_system::server_already_running,
-				"Server is already running",
-				"messaging_server::start_server",
-				"Server ID: " + server_id_
-			);
-		}
-
+		// Base class has already checked is_running() and set state.
+		// This method handles TCP-specific initialization.
 		try
 		{
 			// Create io_context and acceptor
@@ -119,12 +109,6 @@ namespace kcenon::network::core
 			// Create cleanup timer
 			cleanup_timer_ = std::make_unique<asio::steady_timer>(*io_context_);
 
-			is_running_.store(true);
-
-			// Prepare promise/future for wait_for_stop()
-			stop_promise_.emplace();
-			stop_future_ = stop_promise_->get_future();
-
 			// Begin accepting connections
 			do_accept();
 
@@ -133,15 +117,13 @@ namespace kcenon::network::core
 
 			// Use io_context_thread_manager for unified thread management
 			io_context_future_ = integration::io_context_thread_manager::instance()
-				.run_io_context(io_context_, "messaging_server:" + server_id_);
+				.run_io_context(io_context_, "messaging_server:" + server_id());
 
 			NETWORK_LOG_INFO("[messaging_server] Started listening on port " + std::to_string(port));
 			return ok();
 		}
 		catch (const std::system_error& e)
 		{
-			is_running_.store(false);
-
 			// Cleanup partially created resources to prevent memory corruption
 			// Resources may have been created before the exception was thrown
 			acceptor_.reset();
@@ -156,7 +138,7 @@ namespace kcenon::network::core
 				return error_void(
 					error_codes::network_system::bind_failed,
 					"Failed to bind to port: address already in use",
-					"messaging_server::start_server",
+					"messaging_server::do_start",
 					"Port: " + std::to_string(port)
 				);
 			}
@@ -166,7 +148,7 @@ namespace kcenon::network::core
 				return error_void(
 					error_codes::network_system::bind_failed,
 					"Failed to bind to port: permission denied",
-					"messaging_server::start_server",
+					"messaging_server::do_start",
 					"Port: " + std::to_string(port)
 				);
 			}
@@ -174,14 +156,12 @@ namespace kcenon::network::core
 			return error_void(
 				error_codes::common_errors::internal_error,
 				"Failed to start server: " + std::string(e.what()),
-				"messaging_server::start_server",
+				"messaging_server::do_start",
 				"Port: " + std::to_string(port)
 			);
 		}
 		catch (const std::exception& e)
 		{
-			is_running_.store(false);
-
 			// Cleanup partially created resources to prevent memory corruption
 			acceptor_.reset();
 			cleanup_timer_.reset();
@@ -191,28 +171,18 @@ namespace kcenon::network::core
 			return error_void(
 				error_codes::common_errors::internal_error,
 				"Failed to start server: " + std::string(e.what()),
-				"messaging_server::start_server",
+				"messaging_server::do_start",
 				"Port: " + std::to_string(port)
 			);
 		}
 	}
 
-	auto messaging_server::stop_server() -> VoidResult
+	auto messaging_server::do_stop() -> VoidResult
 	{
-		if (!is_running_.load())
-		{
-			return error_void(
-				error_codes::network_system::server_not_started,
-				"Server is not running",
-				"messaging_server::stop_server",
-				"Server ID: " + server_id_
-			);
-		}
-
+		// Base class has already checked is_running() and set state.
+		// This method handles TCP-specific cleanup.
 		try
 		{
-			is_running_.store(false);
-
 			// Step 1: Cancel and close the acceptor to stop accepting new connections
 			if (acceptor_)
 			{
@@ -293,20 +263,6 @@ namespace kcenon::network::core
 			cleanup_timer_.reset();
 			io_context_.reset();
 
-			// Step 8: Signal the promise for wait_for_stop()
-			if (stop_promise_.has_value())
-			{
-				try
-				{
-					stop_promise_->set_value();
-				}
-				catch (const std::future_error&)
-				{
-					// Promise already satisfied - this is OK during shutdown
-				}
-				stop_promise_.reset();
-			}
-
 			NETWORK_LOG_INFO("[messaging_server] Stopped.");
 			return ok();
 		}
@@ -315,17 +271,9 @@ namespace kcenon::network::core
 			return error_void(
 				error_codes::common_errors::internal_error,
 				"Failed to stop server: " + std::string(e.what()),
-				"messaging_server::stop_server",
-				"Server ID: " + server_id_
+				"messaging_server::do_stop",
+				"Server ID: " + server_id()
 			);
-		}
-	}
-
-	auto messaging_server::wait_for_stop() -> void
-	{
-		if (stop_future_.valid())
-		{
-			stop_future_.wait();
 		}
 	}
 
@@ -340,7 +288,7 @@ namespace kcenon::network::core
 	auto messaging_server::on_accept(std::error_code ec, tcp::socket socket)
 		-> void
 	{
-		if (!is_running_.load())
+		if (!is_running())
 		{
 			return;
 		}
@@ -367,23 +315,16 @@ namespace kcenon::network::core
 
 		// Create a new messaging_session
 		auto new_session = std::make_shared<kcenon::network::session::messaging_session>(
-			std::move(socket), server_id_);
+			std::move(socket), server_id());
 
 		// Set up session callbacks to forward to server callbacks
-		// Copy callbacks to local variables to avoid holding mutex during callback setup
+		// Use base class getters to avoid direct member access
 		auto self = shared_from_this();
 
-		// Copy callbacks while holding lock, then release before calling set_*_callback
-		std::function<void(std::shared_ptr<kcenon::network::session::messaging_session>, const std::vector<uint8_t>&)> local_receive_callback;
-		std::function<void(const std::string&)> local_disconnection_callback;
-		std::function<void(std::shared_ptr<kcenon::network::session::messaging_session>, std::error_code)> local_error_callback;
-
-		{
-			std::lock_guard<std::mutex> lock(callback_mutex_);
-			local_receive_callback = receive_callback_;
-			local_disconnection_callback = disconnection_callback_;
-			local_error_callback = error_callback_;
-		}
+		// Get copies of callbacks via thread-safe getters from base class
+		auto local_receive_callback = get_receive_callback();
+		auto local_disconnection_callback = get_disconnection_callback();
+		auto local_error_callback = get_error_callback();
 
 		// Set up callbacks without holding any locks to avoid lock-order-inversion
 		// Lambdas use captured local callbacks directly to avoid locking callback_mutex_
@@ -426,22 +367,8 @@ namespace kcenon::network::core
 		// Start the session
 		new_session->start_session();
 
-		// Invoke connection callback
-		{
-			std::lock_guard<std::mutex> lock(callback_mutex_);
-			if (connection_callback_)
-			{
-				try
-				{
-					connection_callback_(new_session);
-				}
-				catch (const std::exception& e)
-				{
-					NETWORK_LOG_ERROR("[messaging_server] Exception in connection callback: "
-					                  + std::string(e.what()));
-				}
-			}
-		}
+		// Invoke connection callback via base class helper
+		invoke_connection_callback(new_session);
 
 #if KCENON_WITH_COMMON_SYSTEM
 		// Record active connections metric
@@ -489,7 +416,7 @@ namespace kcenon::network::core
 
 	auto messaging_server::start_cleanup_timer() -> void
 	{
-		if (!cleanup_timer_ || !is_running_.load())
+		if (!cleanup_timer_ || !is_running())
 		{
 			return;
 		}
@@ -501,7 +428,7 @@ namespace kcenon::network::core
 		cleanup_timer_->async_wait(
 			[this, self](const std::error_code& ec)
 			{
-				if (!ec && is_running_.load())
+				if (!ec && is_running())
 				{
 					cleanup_dead_sessions();
 					start_cleanup_timer(); // Reschedule
@@ -522,35 +449,6 @@ namespace kcenon::network::core
 	}
 #endif
 
-	auto messaging_server::set_connection_callback(
-		std::function<void(std::shared_ptr<kcenon::network::session::messaging_session>)> callback)
-		-> void
-	{
-		std::lock_guard<std::mutex> lock(callback_mutex_);
-		connection_callback_ = std::move(callback);
-	}
-
-	auto messaging_server::set_disconnection_callback(
-		std::function<void(const std::string&)> callback) -> void
-	{
-		std::lock_guard<std::mutex> lock(callback_mutex_);
-		disconnection_callback_ = std::move(callback);
-	}
-
-	auto messaging_server::set_receive_callback(
-		std::function<void(std::shared_ptr<kcenon::network::session::messaging_session>,
-		                   const std::vector<uint8_t>&)> callback) -> void
-	{
-		std::lock_guard<std::mutex> lock(callback_mutex_);
-		receive_callback_ = std::move(callback);
-	}
-
-	auto messaging_server::set_error_callback(
-		std::function<void(std::shared_ptr<kcenon::network::session::messaging_session>,
-		                   std::error_code)> callback) -> void
-	{
-		std::lock_guard<std::mutex> lock(callback_mutex_);
-		error_callback_ = std::move(callback);
-	}
+	// Callback setters are inherited from messaging_server_base
 
 } // namespace kcenon::network::core

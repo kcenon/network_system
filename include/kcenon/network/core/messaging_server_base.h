@@ -291,6 +291,54 @@ namespace kcenon::network::core
 		}
 
 		/*!
+		 * \brief Gets a copy of the connection callback.
+		 * \return Copy of the connection callback (may be empty).
+		 *
+		 * Thread-safe. Used by derived classes to get callback for session setup.
+		 */
+		[[nodiscard]] auto get_connection_callback() const -> connection_callback_t
+		{
+			std::lock_guard<std::mutex> lock(callback_mutex_);
+			return connection_callback_;
+		}
+
+		/*!
+		 * \brief Gets a copy of the disconnection callback.
+		 * \return Copy of the disconnection callback (may be empty).
+		 *
+		 * Thread-safe. Used by derived classes to get callback for session setup.
+		 */
+		[[nodiscard]] auto get_disconnection_callback() const -> disconnection_callback_t
+		{
+			std::lock_guard<std::mutex> lock(callback_mutex_);
+			return disconnection_callback_;
+		}
+
+		/*!
+		 * \brief Gets a copy of the receive callback.
+		 * \return Copy of the receive callback (may be empty).
+		 *
+		 * Thread-safe. Used by derived classes to get callback for session setup.
+		 */
+		[[nodiscard]] auto get_receive_callback() const -> receive_callback_t
+		{
+			std::lock_guard<std::mutex> lock(callback_mutex_);
+			return receive_callback_;
+		}
+
+		/*!
+		 * \brief Gets a copy of the error callback.
+		 * \return Copy of the error callback (may be empty).
+		 *
+		 * Thread-safe. Used by derived classes to get callback for session setup.
+		 */
+		[[nodiscard]] auto get_error_callback() const -> error_callback_t
+		{
+			std::lock_guard<std::mutex> lock(callback_mutex_);
+			return error_callback_;
+		}
+
+		/*!
 		 * \brief Invokes the connection callback with the given session.
 		 * \param session The newly connected session.
 		 *
