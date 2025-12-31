@@ -101,6 +101,23 @@ namespace kcenon::network::internal
 		is_reading_.store(false);
 	}
 
+	auto secure_tcp_socket::close() -> void
+	{
+		// Atomically mark socket as closed before actual close
+		// This prevents data races with concurrent async operations
+		is_closed_.store(true);
+		is_reading_.store(false);
+
+		std::error_code ec;
+		ssl_stream_.lowest_layer().close(ec);
+		// Ignore close errors - socket may already be closed
+	}
+
+	auto secure_tcp_socket::is_closed() const -> bool
+	{
+		return is_closed_.load();
+	}
+
 	auto secure_tcp_socket::do_read() -> void
 	{
 		// Check if reading has been stopped before initiating new async operation

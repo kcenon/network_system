@@ -360,17 +360,18 @@ TEST_F(ErrorHandlingTest, PartialMessageRecovery) {
   ASSERT_TRUE(StartServer());
   ASSERT_TRUE(ConnectClient());
 
-  // Send valid message
-  auto valid_message = CreateTestMessage(512);
-  EXPECT_TRUE(SendMessage(std::move(valid_message)));
+  // Send first valid message
+  auto valid_message1 = CreateTestMessage(512);
+  EXPECT_TRUE(SendMessage(std::move(valid_message1)));
 
   // Try to send invalid message
   std::vector<uint8_t> invalid;
   auto result = client_->send_packet(std::move(invalid));
   EXPECT_FALSE(result.is_ok());
 
-  // Send another valid message
-  EXPECT_TRUE(SendMessage(std::move(valid_message)));
+  // Send another valid message (create new message)
+  auto valid_message2 = CreateTestMessage(512);
+  EXPECT_TRUE(SendMessage(std::move(valid_message2)));
 }
 
 } // namespace kcenon::network::integration_tests

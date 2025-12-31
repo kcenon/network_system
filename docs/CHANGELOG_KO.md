@@ -88,6 +88,14 @@ Network System 프로젝트의 모든 주목할 만한 변경 사항은 이 파�
   - #335 종료
 
 ### 수정됨
+- **ThreadSanitizer 소켓 닫기 작업의 데이터 레이스 수정** (2026-01-01) (#389)
+  - `tcp_socket` 및 `secure_tcp_socket` 클래스에 원자적 `close()` 메서드 추가
+  - 소켓 닫기 상태를 스레드 안전하게 추적하는 `is_closed_` 원자적 플래그 도입
+  - `do_read()` 및 `async_send()`에서 `socket_.is_open()` 검사를 원자적 `is_closed_` 플래그 검사로 대체
+  - 스레드 안전한 소켓 닫기를 위해 모든 호출자가 `socket().close()` 대신 `close()` 사용하도록 업데이트
+  - 소켓 닫기 작업과 동시 비동기 읽기/쓰기 작업 간의 데이터 레이스 방지
+  - 영향받은 컴포넌트: `tcp_socket`, `secure_tcp_socket`, `messaging_session`, `secure_session`, `messaging_client`, `secure_messaging_client`
+
 - **tcp_socket UBSAN 수정** (2025-12-19)
   - `tcp_socket::do_read()`에서 `async_read_some()` 시작 전 `socket_.is_open()` 확인 추가
   - 소켓이 이미 닫힌 경우 정의되지 않은 동작(null descriptor_state 접근) 방지

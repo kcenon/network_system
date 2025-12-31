@@ -87,6 +87,9 @@ Network System 프로젝트의 모든 주요 변경 사항이 이 파일에 문�
   - 패키지 등록 후 `vcpkg install --feature ecosystem`으로 활성화
 
 ### 수정됨
+- **PartialMessageRecovery 테스트 수정**: ErrorHandlingTest.PartialMessageRecovery의 use-after-move 버그 수정 (#389)
+  - 이동된 객체를 재사용하는 대신 별도의 메시지 인스턴스 생성
+  - 원래 코드는 첫 번째 `SendMessage` 호출에서 `valid_message`를 이동한 후 다시 이동을 시도하여 정의되지 않은 동작과 모든 플랫폼에서의 테스트 크래시를 유발
 - **tcp_socket AddressSanitizer 수정**: 비동기 작업 중 소켓 종료 시 do_read 콜백에서 발생하는 SEGV 수정 (#388)
   - 재귀적 `do_read()` 호출 전 `socket_.is_open()` 검사 추가하여 레이스 컨디션 방지
   - `is_reading_.load()` 검사와 `do_read()` 호출 사이에 소켓이 닫힐 수 있는 문제 해결
@@ -107,6 +110,11 @@ Network System 프로젝트의 모든 주요 변경 사항이 이 파일에 문�
   - `start_server()` catch 블록에 부분 생성된 리소스를 해제하는 정리 코드 추가
   - `stop_server()`가 조기 반환하는 경우를 처리하기 위해 소멸자에 명시적 리소스 정리 추가
   - Linux Debug 빌드에서 `ConnectionLifecycleTest.ServerStartupOnUsedPort`의 "corrupted size vs. prev_size" 오류 수정
+- **tcp_socket SEGV 수정**: 비동기 송신 작업 전 소켓 유효성 검사 추가 (#389)
+  - `tcp_socket::async_send()`가 `asio::async_write()` 시작 전 `socket_.is_open()` 확인
+  - 소켓이 이미 닫힌 경우 핸들러를 통해 `asio::error::not_connected` 오류 반환
+  - asio 내부 race condition으로 인해 `LargeMessageTransfer` 테스트에 sanitizer skip 추가
+  - `NetworkTest.LargeMessageTransfer` ThreadSanitizer 실패 수정
 - **tcp_socket UBSAN 수정**: 비동기 읽기 작업 전 소켓 유효성 검사 추가 (#318)
   - `tcp_socket::do_read()`가 `async_read_some()` 시작 전 `socket_.is_open()` 확인
   - 소켓이 이미 닫힌 경우 정의되지 않은 동작(null descriptor_state 접근) 방지

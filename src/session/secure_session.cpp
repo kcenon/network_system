@@ -43,13 +43,6 @@ secure_session::secure_session(asio::ip::tcp::socket socket,
   // Create the secure_tcp_socket wrapper
   socket_ = std::make_shared<internal::secure_tcp_socket>(std::move(socket),
                                                           ssl_context);
-
-  // Initialize the pipeline (stub)
-  pipeline_ = internal::make_default_pipeline();
-
-  // Default modes
-  compress_mode_ = false;
-  encrypt_mode_ = false;
 }
 
 secure_session::~secure_session() noexcept {
@@ -99,18 +92,10 @@ auto secure_session::stop_session() -> void {
   if (is_stopped_.exchange(true)) {
     return;
   }
-  // Stop reading first to prevent new async operations
+  // Close socket safely using atomic close() method
+  // This prevents data races between close and async read operations
   if (socket_) {
-    socket_->stop_read();
-  }
-  // Close socket safely
-  if (socket_) {
-    std::error_code ec;
-    socket_->socket().close(ec);
-    if (ec) {
-      NETWORK_LOG_ERROR("[secure_session] Error closing socket: " +
-                        ec.message());
-    }
+    socket_->close();
   }
 
   // Invoke disconnection callback if set
@@ -135,9 +120,7 @@ auto secure_session::send_packet(std::vector<uint8_t> &&data) -> void {
     return;
   }
 
-  // For now, just send directly without pipeline processing
-  // In a real implementation, you would apply pipeline transformations here
-  // Mode flags (compress_mode_, encrypt_mode_) would be used here
+  // Send data directly over the secure connection
   socket_->async_send(
       std::move(data), [](std::error_code ec, std::size_t bytes_transferred) {
         if (ec) {

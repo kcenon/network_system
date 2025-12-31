@@ -62,7 +62,6 @@ Connection and session benchmarks (`benchmarks/connection_bench.cpp`, `benchmark
 - ✅ WebSocket protocol support (RFC 6455) implemented with client/server API
 - ⚠️ Real network latency/throughput and memory baselines have not yet been captured (TCP, UDP, WebSocket)
 - ⚠️ Zero-copy pipelines and connection pooling remain roadmap items (see `IMPROVEMENTS.md`)
-- ✅ C++20 coroutine-ready send pipeline (`src/internal/send_coroutine.*`) is in place
 
 ---
 

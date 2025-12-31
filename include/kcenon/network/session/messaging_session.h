@@ -45,7 +45,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <asio.hpp>
 
 #include "kcenon/network/internal/tcp_socket.h"
-#include "kcenon/network/internal/pipeline.h"
 
 // Use nested namespace definition in C++17
 namespace kcenon::network::session
@@ -205,16 +204,6 @@ namespace kcenon::network::session
 
 		std::shared_ptr<internal::tcp_socket>
 			socket_;			/*!< The wrapped TCP socket for this session. */
-		internal::pipeline
-			pipeline_; /*!< Pipeline for compress/encrypt transformations. */
-
-		mutable std::mutex mode_mutex_; /*!< Protects pipeline mode flags. */
-		bool compress_mode_{
-			false
-		}; /*!< If true, compress data before sending. */
-		bool encrypt_mode_{
-			false
-		}; /*!< If true, encrypt data before sending. */
 
 		std::atomic<bool> is_stopped_{
 			false
