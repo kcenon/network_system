@@ -9,7 +9,7 @@ on:
 
 jobs:
   sanitizer-tests:
-    name: ${{ matrix.sanitizer }} on ${{ matrix.os }}
+    name: ${{ matrix.sanitizer.name }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30
 
@@ -17,8 +17,19 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-24.04]
-        sanitizer: [thread, address, undefined]
-        build_type: [Debug]
+        sanitizer:
+          - name: AddressSanitizer
+            option: ENABLE_ASAN
+            env_var: ASAN_OPTIONS
+            env_value: "halt_on_error=0:detect_leaks=1"
+          - name: ThreadSanitizer
+            option: ENABLE_TSAN
+            env_var: TSAN_OPTIONS
+            env_value: "halt_on_error=0:second_deadlock_stack=1"
+          - name: UndefinedBehaviorSanitizer
+            option: ENABLE_UBSAN
+            env_var: UBSAN_OPTIONS
+            env_value: "halt_on_error=0:print_stacktrace=1"
 
     steps:
     - name: Checkout network_system
@@ -37,24 +48,20 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y cmake ninja-build clang libgtest-dev libfmt-dev libasio-dev
+        sudo apt-get install -y cmake ninja-build clang libgtest-dev libfmt-dev libasio-dev libssl-dev liblz4-dev zlib1g-dev
 
     - name: Set up compiler
       run: |
         echo "CC=clang" >> $GITHUB_ENV
         echo "CXX=clang++" >> $GITHUB_ENV
 
-    - name: Configure CMake with ${{ matrix.sanitizer }} sanitizer
+    - name: Configure CMake with ${{ matrix.sanitizer.name }}
       run: |
         cd network_system
-        SANITIZER_FLAGS="-fsanitize=${{ matrix.sanitizer }} -fno-omit-frame-pointer -g"
         cmake -B build -S . \
           -GNinja \
-          -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
-          -DCMAKE_CXX_FLAGS="${SANITIZER_FLAGS}" \
-          -DCMAKE_C_FLAGS="${SANITIZER_FLAGS}" \
-          -DCMAKE_EXE_LINKER_FLAGS="-fsanitize=${{ matrix.sanitizer }}" \
-          -DCMAKE_SHARED_LINKER_FLAGS="-fsanitize=${{ matrix.sanitizer }}" \
+          -DCMAKE_BUILD_TYPE=Debug \
+          -D${{ matrix.sanitizer.option }}=ON \
           -DBUILD_WITH_COMMON_SYSTEM=OFF \
           -DBUILD_WITH_LOGGER_SYSTEM=OFF \
           -DBUILD_WITH_THREAD_SYSTEM=OFF \
@@ -63,27 +70,24 @@ jobs:
           -DBUILD_TESTS=ON \
           -DBUILD_SAMPLES=OFF
 
-    - name: Build with ${{ matrix.sanitizer }} sanitizer
+    - name: Build with ${{ matrix.sanitizer.name }}
       run: |
         cd network_system
         cmake --build build -j
 
-    - name: Run tests with ${{ matrix.sanitizer }} sanitizer
+    - name: Run tests with ${{ matrix.sanitizer.name }}
       run: |
         cd network_system/build
         ctest --output-on-failure --verbose -LE no_sanitizer
       env:
-        NETWORK_SYSTEM_SANITIZER: ${{ matrix.sanitizer }}
-        TSAN_OPTIONS: "halt_on_error=0 second_deadlock_stack=1 suppressions=${{ github.workspace }}/network_system/tsan_suppressions.txt"
-        ASAN_OPTIONS: "halt_on_error=0"
-        UBSAN_OPTIONS: "halt_on_error=0 print_stacktrace=1"
+        ${{ matrix.sanitizer.env_var }}: ${{ matrix.sanitizer.env_value }}
 
     - name: Upload sanitizer logs
       if: failure()
       uses: actions/upload-artifact@v4
       continue-on-error: true
       with:
-        name: sanitizer-logs-${{ matrix.sanitizer }}-${{ matrix.os }}
+        name: sanitizer-logs-${{ matrix.sanitizer.name }}-${{ matrix.os }}
         path: |
           network_system/build/Testing/Temporary/LastTest.log
           network_system/build/**/*.log
@@ -100,7 +104,7 @@ jobs:
       run: |
         echo "# Sanitizer Test Results" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "## Phase 0: Baseline Establishment" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "Sanitizer tests configured and running." >> $GITHUB_STEP_SUMMARY
-        echo "Warnings allowed in Phase 0 for baseline establishment." >> $GITHUB_STEP_SUMMARY
+        echo "Sanitizer tests completed using CMake options:" >> $GITHUB_STEP_SUMMARY
+        echo "- ENABLE_ASAN: AddressSanitizer" >> $GITHUB_STEP_SUMMARY
+        echo "- ENABLE_TSAN: ThreadSanitizer" >> $GITHUB_STEP_SUMMARY
+        echo "- ENABLE_UBSAN: UndefinedBehaviorSanitizer" >> $GITHUB_STEP_SUMMARY

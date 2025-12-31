@@ -93,6 +93,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Reduces compile-time coupling and enables flexible logger configuration
 
 ### Fixed
+- **tcp_socket AddressSanitizer Fix**: Fixed SEGV in do_read callback when socket closes during async operation (#388)
+  - Added `socket_.is_open()` check before recursive `do_read()` call to prevent race condition
+  - Socket could close between `is_reading_.load()` check and `do_read()` invocation
+  - Added missing `<atomic>` and `<mutex>` headers to tcp_socket.h for proper type declarations
+  - Fixes E2ETests failure under AddressSanitizer on Ubuntu 24.04
+- **messaging_client ThreadSanitizer Fix**: Fixed data race between `do_stop()` and `async_connect()` operations (#388)
+  - Post pending socket close operations to io_context thread via `asio::post()` to ensure socket operations happen on the same thread as async_connect
+  - Added `stop_initiated_` checks in async handlers to prevent socket operations after stop has been initiated
+  - Resolves ThreadSanitizer failure in CI where `do_stop()` was closing `pending_socket_` from a different thread while async_connect was still modifying socket internal state
 - **Integration Test Flakiness**: Fixed intermittent `ProtocolIntegrationTest.RepeatingPatternData` failures on macOS CI (#376)
   - Added actual sleep to `wait_for_ready()` for socket cleanup (TIME_WAIT handling)
   - Previous implementation only used `yield()` which didn't guarantee port release

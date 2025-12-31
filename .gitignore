@@ -57,6 +57,9 @@ compile_commands.json
 !cmake/*.cmake
 !cmake/*.cmake.in
 
+# CMake presets (user-specific)
+CMakeUserPresets.json
+
 # Test results
 Testing/
 CTestTestfile.cmake
