@@ -157,7 +157,7 @@ namespace kcenon::network::core
 
 			// Call derived class implementation
 			auto result = derived().do_start(host, port);
-			if (!result)
+			if (result.is_err())
 			{
 				is_running_.store(false);
 				if (stop_promise_.has_value())
