@@ -47,6 +47,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "kcenon/network/utils/result_types.h"
 #include "kcenon/network/core/network_context.h"
+#include "kcenon/network/core/messaging_server_base.h"
 #include "kcenon/network/integration/thread_integration.h"
 #include "kcenon/network/integration/io_context_thread_manager.h"
 
@@ -111,83 +112,24 @@ namespace kcenon::network::core {
 	 * \endcode
 	 */
 	class messaging_server
-		: public std::enable_shared_from_this<messaging_server>
+		: public messaging_server_base<messaging_server>
 	{
 	public:
+		//! \brief Allow base class to access protected methods
+		friend class messaging_server_base<messaging_server>;
 		/*!
 		 * \brief Constructs a \c messaging_server with an optional string \p
 		 * server_id.
 		 * \param server_id A descriptive identifier for this server instance
 		 * (e.g., "main_server").
 		 */
-		messaging_server(const std::string& server_id);
+		explicit messaging_server(const std::string& server_id);
 
 		/*!
 		 * \brief Destructor. If the server is still running, \c stop_server()
-		 * is invoked.
+		 * is invoked (handled by base class).
 		 */
-		~messaging_server() noexcept;
-
-		/*!
-		 * \brief Begins listening on the specified TCP \p port, creates a
-		 * background thread to run I/O operations, and starts accepting
-		 * connections.
-		 *
-		 * \param port The TCP port to bind and listen on (e.g., 5555).
-		 * \return Result<void> - Success if server started, or error with code:
-		 *         - error_codes::kcenon::network::server_already_running if already running
-		 *         - error_codes::kcenon::network::bind_failed if port binding failed
-		 *         - error_codes::common_errors::internal_error for other failures
-		 *
-		 * #### Behavior
-		 * - If the server is already running (\c is_running_ is \c true), returns error.
-		 * - Otherwise, an \c io_context and \c acceptor are created, \c
-		 * do_accept() is invoked, and a new thread is spawned to run \c
-		 * io_context->run().
-		 *
-		 * #### Example
-		 * \code
-		 * auto result = server->start_server(5555);
-		 * if (!result) {
-		 *     std::cerr << "Server start failed: " << result.error().message << "\n";
-		 *     return -1;
-		 * }
-		 * \endcode
-		 */
-		auto start_server(unsigned short port) -> VoidResult;
-
-		/*!
-		 * \brief Stops the server, closing the acceptor and all active
-		 * sessions, then stops the \c io_context and joins the internal thread.
-		 *
-		 * \return Result<void> - Success if server stopped, or error with code:
-		 *         - error_codes::kcenon::network::server_not_started if not running
-		 *         - error_codes::common_errors::internal_error for other failures
-		 *
-		 * #### Steps:
-		 * 1. Set \c is_running_ to \c false.
-		 * 2. Close the \c acceptor if open.
-		 * 3. Iterate through all active sessions, calling \c stop_session().
-		 * 4. \c io_context->stop() to halt asynchronous operations.
-		 * 5. Join the background thread if it's joinable.
-		 * 6. Fulfill the \c stop_promise_ so that \c wait_for_stop() can
-		 * return.
-		 *
-		 * #### Example
-		 * \code
-		 * auto result = server->stop_server();
-		 * if (!result) {
-		 *     std::cerr << "Server stop failed: " << result.error().message << "\n";
-		 * }
-		 * \endcode
-		 */
-		auto stop_server() -> VoidResult;
-
-		/*!
-		 * \brief Blocks until \c stop_server() is called, allowing the caller
-		 *        to wait for a graceful shutdown in another context.
-		 */
-		auto wait_for_stop() -> void;
+		~messaging_server() noexcept override;
 
 #if KCENON_WITH_COMMON_SYSTEM
 		/*!
@@ -209,83 +151,28 @@ namespace kcenon::network::core {
 		auto get_monitor() const -> kcenon::common::interfaces::IMonitor*;
 #endif // KCENON_WITH_COMMON_SYSTEM
 
+	protected:
 		/*!
-		 * \brief Sets the callback for new client connections.
+		 * \brief TCP-specific implementation of server start.
+		 * \param port The TCP port to bind and listen on.
+		 * \return Result<void> - Success if server started, or error with code:
+		 *         - error_codes::network_system::bind_failed if port binding failed
+		 *         - error_codes::common_errors::internal_error for other failures
 		 *
-		 * \param callback Function called when a client connects.
-		 *        Receives shared_ptr to the messaging_session.
-		 *
-		 * The callback is invoked on the I/O thread when a new connection
-		 * is accepted and the session is created.
-		 *
-		 * \code
-		 * server->set_connection_callback([](auto session) {
-		 *     std::cout << "New client connected\n";
-		 * });
-		 * \endcode
+		 * Called by base class start_server() after common validation.
+		 * Creates io_context, acceptor, and starts accepting connections.
 		 */
-		auto set_connection_callback(
-			std::function<void(std::shared_ptr<kcenon::network::session::messaging_session>)> callback)
-			-> void;
+		auto do_start(unsigned short port) -> VoidResult;
 
 		/*!
-		 * \brief Sets the callback for client disconnections.
+		 * \brief TCP-specific implementation of server stop.
+		 * \return Result<void> - Success if server stopped, or error with code:
+		 *         - error_codes::common_errors::internal_error for failures
 		 *
-		 * \param callback Function called when a client disconnects.
-		 *        Receives the session ID as a string.
-		 *
-		 * The callback is invoked when a session stops, either due to
-		 * client disconnect, error, or explicit stop.
-		 *
-		 * \code
-		 * server->set_disconnection_callback([](const std::string& session_id) {
-		 *     std::cout << "Client disconnected: " << session_id << "\n";
-		 * });
-		 * \endcode
+		 * Called by base class stop_server() after common cleanup.
+		 * Closes acceptor, stops sessions, and releases resources.
 		 */
-		auto set_disconnection_callback(
-			std::function<void(const std::string&)> callback) -> void;
-
-		/*!
-		 * \brief Sets the callback for received messages.
-		 *
-		 * \param callback Function called when data is received from a client.
-		 *        First parameter is shared_ptr to the session.
-		 *        Second parameter is the received data.
-		 *
-		 * The callback is invoked on the I/O thread when data arrives.
-		 * Use the session pointer to identify the client and send responses.
-		 *
-		 * \code
-		 * server->set_receive_callback([](auto session, const auto& data) {
-		 *     std::cout << "Received " << data.size() << " bytes\n";
-		 *     // Echo back
-		 *     session->send_packet(std::vector<uint8_t>(data));
-		 * });
-		 * \endcode
-		 */
-		auto set_receive_callback(
-			std::function<void(std::shared_ptr<kcenon::network::session::messaging_session>,
-			                   const std::vector<uint8_t>&)> callback) -> void;
-
-		/*!
-		 * \brief Sets the callback for session errors.
-		 *
-		 * \param callback Function called when an error occurs on a session.
-		 *        First parameter is shared_ptr to the session (may be null).
-		 *        Second parameter is the error code.
-		 *
-		 * The callback is invoked when errors occur during accept, read, or write.
-		 *
-		 * \code
-		 * server->set_error_callback([](auto session, std::error_code ec) {
-		 *     std::cerr << "Session error: " << ec.message() << "\n";
-		 * });
-		 * \endcode
-		 */
-		auto set_error_callback(
-			std::function<void(std::shared_ptr<kcenon::network::session::messaging_session>,
-			                   std::error_code)> callback) -> void;
+		auto do_stop() -> VoidResult;
 
 	private:
 		/*!
@@ -329,25 +216,17 @@ namespace kcenon::network::core {
 		auto start_cleanup_timer() -> void;
 
 	private:
-		std::string
-			server_id_;		/*!< Name or identifier for this server instance. */
+		// TCP protocol-specific members (base class provides server_id_, is_running_,
+		// stop_initiated_, stop_promise_, stop_future_, and callbacks)
 
 		std::shared_ptr<asio::io_context>
 			io_context_;	/*!< The I/O context for async ops. */
-	std::unique_ptr<asio::executor_work_guard<asio::io_context::executor_type>> work_guard_; /*!< Keeps io_context running. */
+		std::unique_ptr<asio::executor_work_guard<asio::io_context::executor_type>>
+			work_guard_; /*!< Keeps io_context running. */
 		std::unique_ptr<asio::ip::tcp::acceptor>
 			acceptor_;		/*!< Acceptor to listen for new connections. */
 		std::future<void>
 			io_context_future_; /*!< Future for the io_context run task. */
-
-		std::optional<std::promise<void>>
-			stop_promise_;	/*!< Used to signal \c wait_for_stop(). */
-		std::future<void>
-			stop_future_;	/*!< Future that \c wait_for_stop() waits on. */
-
-		std::atomic<bool> is_running_{
-			false
-		}; /*!< Indicates whether the server is active. */
 
 		/*!
 		 * \brief Holds all active sessions. When \c stop_server() is invoked,
@@ -379,25 +258,6 @@ namespace kcenon::network::core {
 		std::atomic<uint64_t> messages_sent_{0};
 		std::atomic<uint64_t> connection_errors_{0};
 #endif // KCENON_WITH_COMMON_SYSTEM
-
-		/*!
-		 * \brief Callbacks for server events
-		 */
-		std::function<void(std::shared_ptr<kcenon::network::session::messaging_session>)>
-			connection_callback_;
-		std::function<void(const std::string&)>
-			disconnection_callback_;
-		std::function<void(std::shared_ptr<kcenon::network::session::messaging_session>,
-		                   const std::vector<uint8_t>&)>
-			receive_callback_;
-		std::function<void(std::shared_ptr<kcenon::network::session::messaging_session>,
-		                   std::error_code)>
-			error_callback_;
-
-		/*!
-		 * \brief Mutex protecting callback access
-		 */
-		mutable std::mutex callback_mutex_;
 	};
 
 } // namespace kcenon::network::core
