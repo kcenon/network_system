@@ -173,6 +173,17 @@ auto tcp_socket::async_send(
     std::vector<uint8_t>&& data,
     std::function<void(std::error_code, std::size_t)> handler) -> void
 {
+    // Check if socket is still open before starting async operation
+    // This prevents SEGV from accessing null descriptor_state
+    if (!socket_.is_open())
+    {
+        if (handler)
+        {
+            handler(asio::error::not_connected, 0);
+        }
+        return;
+    }
+
     auto self = shared_from_this();
     std::size_t data_size = data.size();
 
