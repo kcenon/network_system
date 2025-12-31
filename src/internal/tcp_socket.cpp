@@ -159,8 +159,10 @@ namespace kcenon::network::internal
 					}
 				}
 
-				// Continue reading only if still active
-				if (is_reading_.load())
+				// Continue reading only if still active and socket is open
+				// Double-check socket state to prevent race condition where
+				// socket closes between callback execution and do_read() call
+				if (is_reading_.load() && socket_.is_open())
 				{
 					do_read();
 				}

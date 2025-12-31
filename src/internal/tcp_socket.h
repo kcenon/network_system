@@ -33,8 +33,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 
 #include <asio.hpp>
+#include <atomic>
 #include <functional>
 #include <memory>
+#include <mutex>
 #include <vector>
 #include <array>
 #include <span>
