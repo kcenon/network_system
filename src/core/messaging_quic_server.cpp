@@ -48,45 +48,29 @@ namespace kcenon::network::core
 {
 
 	messaging_quic_server::messaging_quic_server(std::string_view server_id)
-	    : server_id_(server_id)
+	    : messaging_quic_server_base<messaging_quic_server>(server_id)
 	{
-	}
-
-	messaging_quic_server::~messaging_quic_server() noexcept
-	{
-		try
-		{
-			(void)stop_server();
-		}
-		catch (...)
-		{
-			// Destructor must not throw
-		}
 	}
 
 	auto messaging_quic_server::start_server(unsigned short port) -> VoidResult
 	{
 		// Use default config with no TLS (for development/testing only)
-		quic_server_config config;
-		return start_server(port, config);
+		return start_server(port, quic_server_config{});
 	}
 
 	auto messaging_quic_server::start_server(unsigned short port,
 	                                         const quic_server_config& config)
 	    -> VoidResult
 	{
-		if (is_running_.load())
-		{
-			return error_void(error_codes::network_system::server_already_running,
-			                  "Server is already running",
-			                  "messaging_quic_server::start_server",
-			                  "Server ID: " + server_id_);
-		}
+		config_ = config;
+		// Use base class start_server which calls do_start
+		return messaging_quic_server_base<messaging_quic_server>::start_server(port);
+	}
 
+	auto messaging_quic_server::do_start(unsigned short port) -> VoidResult
+	{
 		try
 		{
-			config_ = config;
-
 			// Create io_context
 			io_context_ = std::make_unique<asio::io_context>();
 			work_guard_ = std::make_unique<
@@ -100,12 +84,6 @@ namespace kcenon::network::core
 
 			// Create cleanup timer
 			cleanup_timer_ = std::make_unique<asio::steady_timer>(*io_context_);
-
-			is_running_.store(true);
-
-			// Prepare promise/future for wait_for_stop()
-			stop_promise_.emplace();
-			stop_future_ = stop_promise_->get_future();
 
 			// Start receiving packets
 			start_receive();
@@ -146,14 +124,12 @@ namespace kcenon::network::core
 		}
 		catch (const std::system_error& e)
 		{
-			is_running_.store(false);
-
 			if (e.code() == asio::error::address_in_use ||
 			    e.code() == std::errc::address_in_use)
 			{
 				return error_void(error_codes::network_system::bind_failed,
 				                  "Failed to bind to port: address already in use",
-				                  "messaging_quic_server::start_server",
+				                  "messaging_quic_server::do_start",
 				                  "Port: " + std::to_string(port));
 			}
 			else if (e.code() == asio::error::access_denied ||
@@ -161,39 +137,28 @@ namespace kcenon::network::core
 			{
 				return error_void(error_codes::network_system::bind_failed,
 				                  "Failed to bind to port: permission denied",
-				                  "messaging_quic_server::start_server",
+				                  "messaging_quic_server::do_start",
 				                  "Port: " + std::to_string(port));
 			}
 
 			return error_void(error_codes::common_errors::internal_error,
 			                  "Failed to start server: " + std::string(e.what()),
-			                  "messaging_quic_server::start_server",
+			                  "messaging_quic_server::do_start",
 			                  "Port: " + std::to_string(port));
 		}
 		catch (const std::exception& e)
 		{
-			is_running_.store(false);
 			return error_void(error_codes::common_errors::internal_error,
 			                  "Failed to start server: " + std::string(e.what()),
-			                  "messaging_quic_server::start_server",
+			                  "messaging_quic_server::do_start",
 			                  "Port: " + std::to_string(port));
 		}
 	}
 
-	auto messaging_quic_server::stop_server() -> VoidResult
+	auto messaging_quic_server::do_stop() -> VoidResult
 	{
-		if (!is_running_.load())
-		{
-			return error_void(error_codes::network_system::server_not_started,
-			                  "Server is not running",
-			                  "messaging_quic_server::stop_server",
-			                  "Server ID: " + server_id_);
-		}
-
 		try
 		{
-			is_running_.store(false);
-
 			// Cancel cleanup timer
 			if (cleanup_timer_)
 			{
@@ -238,20 +203,6 @@ namespace kcenon::network::core
 			thread_pool_.reset();
 			io_context_.reset();
 
-			// Signal promise
-			if (stop_promise_.has_value())
-			{
-				try
-				{
-					stop_promise_->set_value();
-				}
-				catch (const std::future_error&)
-				{
-					// Promise already satisfied
-				}
-				stop_promise_.reset();
-			}
-
 			NETWORK_LOG_INFO("[messaging_quic_server] Stopped.");
 			return ok();
 		}
@@ -259,22 +210,9 @@ namespace kcenon::network::core
 		{
 			return error_void(error_codes::common_errors::internal_error,
 			                  "Failed to stop server: " + std::string(e.what()),
-			                  "messaging_quic_server::stop_server",
+			                  "messaging_quic_server::do_stop",
 			                  "Server ID: " + server_id_);
 		}
-	}
-
-	auto messaging_quic_server::wait_for_stop() -> void
-	{
-		if (stop_future_.valid())
-		{
-			stop_future_.wait();
-		}
-	}
-
-	auto messaging_quic_server::is_running() const noexcept -> bool
-	{
-		return is_running_.load(std::memory_order_relaxed);
 	}
 
 	auto messaging_quic_server::sessions() const
@@ -399,49 +337,6 @@ namespace kcenon::network::core
 		return ok();
 	}
 
-	auto messaging_quic_server::set_connection_callback(
-	    std::function<void(std::shared_ptr<session::quic_session>)> callback)
-	    -> void
-	{
-		std::lock_guard<std::mutex> lock(callback_mutex_);
-		connection_callback_ = std::move(callback);
-	}
-
-	auto messaging_quic_server::set_disconnection_callback(
-	    std::function<void(std::shared_ptr<session::quic_session>)> callback)
-	    -> void
-	{
-		std::lock_guard<std::mutex> lock(callback_mutex_);
-		disconnection_callback_ = std::move(callback);
-	}
-
-	auto messaging_quic_server::set_receive_callback(
-	    std::function<void(std::shared_ptr<session::quic_session>,
-	                       const std::vector<uint8_t>&)>
-	        callback) -> void
-	{
-		std::lock_guard<std::mutex> lock(callback_mutex_);
-		receive_callback_ = std::move(callback);
-	}
-
-	auto messaging_quic_server::set_stream_receive_callback(
-	    std::function<void(std::shared_ptr<session::quic_session>,
-	                       uint64_t stream_id,
-	                       const std::vector<uint8_t>&,
-	                       bool fin)>
-	        callback) -> void
-	{
-		std::lock_guard<std::mutex> lock(callback_mutex_);
-		stream_receive_callback_ = std::move(callback);
-	}
-
-	auto messaging_quic_server::set_error_callback(
-	    std::function<void(std::error_code)> callback) -> void
-	{
-		std::lock_guard<std::mutex> lock(callback_mutex_);
-		error_callback_ = std::move(callback);
-	}
-
 #if KCENON_WITH_COMMON_SYSTEM
 	auto messaging_quic_server::set_monitor(
 	    kcenon::common::interfaces::IMonitor* monitor) -> void
@@ -458,7 +353,7 @@ namespace kcenon::network::core
 
 	auto messaging_quic_server::start_receive() -> void
 	{
-		if (!is_running_.load() || !udp_socket_)
+		if (!is_running() || !udp_socket_)
 		{
 			return;
 		}
@@ -469,7 +364,7 @@ namespace kcenon::network::core
 		    recv_endpoint_,
 		    [this, self](std::error_code ec, std::size_t bytes_received)
 		    {
-			    if (!is_running_.load())
+			    if (!is_running())
 			    {
 				    return;
 			    }
@@ -481,11 +376,7 @@ namespace kcenon::network::core
 					    NETWORK_LOG_ERROR(
 					        "[messaging_quic_server] Receive error: " + ec.message());
 
-					    std::lock_guard<std::mutex> lock(callback_mutex_);
-					    if (error_callback_)
-					    {
-						    error_callback_(ec);
-					    }
+					    invoke_error_callback(ec);
 				    }
 				    return;
 			    }
@@ -601,14 +492,10 @@ namespace kcenon::network::core
 		    {
 			    if (auto server = self.lock())
 			    {
-				    std::lock_guard<std::mutex> lock(server->callback_mutex_);
-				    if (server->receive_callback_)
+				    auto sess = server->get_session(session_id);
+				    if (sess)
 				    {
-					    auto sess = server->get_session(session_id);
-					    if (sess)
-					    {
-						    server->receive_callback_(sess, data);
-					    }
+					    server->invoke_receive_callback(sess, data);
 				    }
 			    }
 		    });
@@ -620,14 +507,10 @@ namespace kcenon::network::core
 		    {
 			    if (auto server = self.lock())
 			    {
-				    std::lock_guard<std::mutex> lock(server->callback_mutex_);
-				    if (server->stream_receive_callback_)
+				    auto sess = server->get_session(session_id);
+				    if (sess)
 				    {
-					    auto sess = server->get_session(session_id);
-					    if (sess)
-					    {
-						    server->stream_receive_callback_(sess, stream_id, data, fin);
-					    }
+					    server->invoke_stream_receive_callback(sess, stream_id, data, fin);
 				    }
 			    }
 		    });
@@ -654,23 +537,8 @@ namespace kcenon::network::core
 		metrics::metric_reporter::report_connection_accepted();
 		metrics::metric_reporter::report_active_connections(session_count());
 
-		// Invoke connection callback
-		{
-			std::lock_guard<std::mutex> lock(callback_mutex_);
-			if (connection_callback_)
-			{
-				try
-				{
-					connection_callback_(session);
-				}
-				catch (const std::exception& e)
-				{
-					NETWORK_LOG_ERROR(
-					    "[messaging_quic_server] Exception in connection callback: "
-					    + std::string(e.what()));
-				}
-			}
-		}
+		// Invoke connection callback via base class
+		invoke_connection_callback(session);
 
 #if KCENON_WITH_COMMON_SYSTEM
 		if (monitor_)
@@ -713,23 +581,8 @@ namespace kcenon::network::core
 			// Report metrics
 			metrics::metric_reporter::report_active_connections(session_count());
 
-			// Invoke disconnection callback
-			{
-				std::lock_guard<std::mutex> lock(callback_mutex_);
-				if (disconnection_callback_)
-				{
-					try
-					{
-						disconnection_callback_(session);
-					}
-					catch (const std::exception& e)
-					{
-						NETWORK_LOG_ERROR(
-						    "[messaging_quic_server] Exception in disconnection callback: "
-						    + std::string(e.what()));
-					}
-				}
-			}
+			// Invoke disconnection callback via base class
+			invoke_disconnection_callback(session);
 
 #if KCENON_WITH_COMMON_SYSTEM
 			if (monitor_)
@@ -746,7 +599,7 @@ namespace kcenon::network::core
 
 	auto messaging_quic_server::start_cleanup_timer() -> void
 	{
-		if (!cleanup_timer_ || !is_running_.load())
+		if (!cleanup_timer_ || !is_running())
 		{
 			return;
 		}
@@ -758,7 +611,7 @@ namespace kcenon::network::core
 		cleanup_timer_->async_wait(
 		    [this, self](const std::error_code& ec)
 		    {
-			    if (!ec && is_running_.load())
+			    if (!ec && is_running())
 			    {
 				    cleanup_dead_sessions();
 				    start_cleanup_timer(); // Reschedule

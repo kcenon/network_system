@@ -39,6 +39,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [Unreleased]
 
 ### Fixed
+- **UndefinedBehaviorSanitizer Null Pointer Access in Socket Operations** (2026-01-01) (#385)
+  - Added `socket_.is_open()` check in `tcp_socket::do_read()` before initiating async operations
+  - Added same checks to `secure_tcp_socket::do_read()` for SSL streams
+  - Added `is_closed_` check to `secure_tcp_socket::async_send()` to prevent write to closed socket
+  - Callback handlers now check `is_closed_` flag to prevent accessing invalid socket state
+  - Added missing `<atomic>` header to `secure_tcp_socket.h`
+  - Fixes UBSAN "member access within null pointer" error in Multi-Client Concurrent Test
+
+- **gRPC Service Example Build Error** (2026-01-01) (#385)
+  - Added `mock_server_context` class implementing `grpc::server_context` interface
+  - `grpc::server_context` is an abstract class and cannot be instantiated directly
+  - Enables handler invocation demonstration in example code
+
 - **ThreadSanitizer Data Race in Socket Close Operations** (2026-01-01) (#389)
   - Added atomic `close()` method to `tcp_socket` and `secure_tcp_socket` classes
   - Introduced `is_closed_` atomic flag to track socket close state thread-safely
@@ -46,6 +59,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   - Updated all callers to use `close()` instead of `socket().close()` for thread-safe socket closure
   - Prevents data races between socket close operations and concurrent async read/write operations
   - Affected components: `tcp_socket`, `secure_tcp_socket`, `messaging_session`, `secure_session`, `messaging_client`, `secure_messaging_client`
+
+- **Flaky Multi-Client Connection Test on macOS** (2026-01-01) (#385)
+  - Changed `ConnectAllClients()` from sequential waiting to round-robin polling
+  - Previous implementation blocked on first slow client, causing all subsequent clients to timeout
+  - New implementation polls all clients each iteration, counting any that have connected
+  - Increased CI timeout from 5 to 10 seconds for many-client scenarios
+  - Adds early exit when all clients are connected
+  - Fixes intermittent `MultiConnectionLifecycleTest.ConnectionScaling` failures on macOS Release CI
 
 ### Added
 - **gRPC Phase 5: Testing and Documentation** (2025-12-28) (#365)

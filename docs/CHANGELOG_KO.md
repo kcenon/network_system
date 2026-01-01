@@ -88,6 +88,19 @@ Network System 프로젝트의 모든 주목할 만한 변경 사항은 이 파�
   - #335 종료
 
 ### 수정됨
+- **UndefinedBehaviorSanitizer 소켓 작업의 널 포인터 접근 수정** (2026-01-01) (#385)
+  - `tcp_socket::do_read()`에서 비동기 작업 시작 전 `socket_.is_open()` 검사 추가
+  - SSL 스트림을 위해 `secure_tcp_socket::do_read()`에도 동일한 검사 추가
+  - 닫힌 소켓에 쓰기를 방지하기 위해 `secure_tcp_socket::async_send()`에 `is_closed_` 검사 추가
+  - 콜백 핸들러에서 `is_closed_` 플래그 검사로 유효하지 않은 소켓 상태 접근 방지
+  - `secure_tcp_socket.h`에 누락된 `<atomic>` 헤더 추가
+  - Multi-Client Concurrent Test에서 UBSAN "member access within null pointer" 오류 수정
+
+- **gRPC 서비스 예제 빌드 오류 수정** (2026-01-01) (#385)
+  - `grpc::server_context` 인터페이스를 구현하는 `mock_server_context` 클래스 추가
+  - `grpc::server_context`는 추상 클래스로 직접 인스턴스화 불가능
+  - 예제 코드에서 핸들러 호출 데모 활성화
+
 - **ThreadSanitizer 소켓 닫기 작업의 데이터 레이스 수정** (2026-01-01) (#389)
   - `tcp_socket` 및 `secure_tcp_socket` 클래스에 원자적 `close()` 메서드 추가
   - 소켓 닫기 상태를 스레드 안전하게 추적하는 `is_closed_` 원자적 플래그 도입
@@ -95,6 +108,14 @@ Network System 프로젝트의 모든 주목할 만한 변경 사항은 이 파�
   - 스레드 안전한 소켓 닫기를 위해 모든 호출자가 `socket().close()` 대신 `close()` 사용하도록 업데이트
   - 소켓 닫기 작업과 동시 비동기 읽기/쓰기 작업 간의 데이터 레이스 방지
   - 영향받은 컴포넌트: `tcp_socket`, `secure_tcp_socket`, `messaging_session`, `secure_session`, `messaging_client`, `secure_messaging_client`
+
+- **macOS에서 불안정한 다중 클라이언트 연결 테스트 수정** (2026-01-01) (#385)
+  - `ConnectAllClients()`를 순차적 대기에서 라운드 로빈 폴링으로 변경
+  - 이전 구현은 첫 번째 느린 클라이언트에서 블록되어 모든 후속 클라이언트가 타임아웃됨
+  - 새로운 구현은 각 반복에서 모든 클라이언트를 폴링하여 연결된 클라이언트를 카운트
+  - 다수의 클라이언트 시나리오를 위해 CI 타임아웃을 5초에서 10초로 증가
+  - 모든 클라이언트가 연결되면 조기 종료
+  - macOS Release CI에서 간헐적인 `MultiConnectionLifecycleTest.ConnectionScaling` 실패 수정
 
 - **tcp_socket UBSAN 수정** (2025-12-19)
   - `tcp_socket::do_read()`에서 `async_read_some()` 시작 전 `socket_.is_open()` 확인 추가

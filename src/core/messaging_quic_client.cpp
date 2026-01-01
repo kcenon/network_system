@@ -38,52 +38,14 @@ namespace kcenon::network::core
 {
 
 messaging_quic_client::messaging_quic_client(std::string_view client_id)
-	: client_id_(client_id)
+	: messaging_quic_client_base<messaging_quic_client>(client_id)
 {
-}
-
-messaging_quic_client::~messaging_quic_client() noexcept
-{
-	try
-	{
-		if (!is_running_.load(std::memory_order_acquire))
-		{
-			return;
-		}
-
-		auto result = stop_client();
-		if (result.is_err())
-		{
-			NETWORK_LOG_WARN("[messaging_quic_client::~messaging_quic_client] "
-			                 "Failed to stop client cleanly: " +
-			                 result.error().message + " (Client ID: " + client_id_ +
-			                 ")");
-		}
-		else
-		{
-			NETWORK_LOG_DEBUG("[messaging_quic_client::~messaging_quic_client] "
-			                  "Client stopped successfully (Client ID: " +
-			                  client_id_ + ")");
-		}
-	}
-	catch (const std::exception& e)
-	{
-		NETWORK_LOG_ERROR("[messaging_quic_client::~messaging_quic_client] "
-		                  "Exception during cleanup: " +
-		                  std::string(e.what()) + " (Client ID: " + client_id_ +
-		                  ")");
-	}
-	catch (...)
-	{
-		NETWORK_LOG_ERROR("[messaging_quic_client::~messaging_quic_client] "
-		                  "Unknown exception during cleanup (Client ID: " +
-		                  client_id_ + ")");
-	}
 }
 
 auto messaging_quic_client::start_client(std::string_view host,
                                          unsigned short port) -> VoidResult
 {
+	// Use default config
 	return start_client(host, port, quic_client_config{});
 }
 
@@ -91,31 +53,16 @@ auto messaging_quic_client::start_client(std::string_view host,
                                          unsigned short port,
                                          const quic_client_config& config) -> VoidResult
 {
-	if (is_running_.load())
-	{
-		return error_void(
-			error_codes::common_errors::already_exists,
-			"Client is already running",
-			"messaging_quic_client::start_client",
-			"Client ID: " + client_id_);
-	}
+	config_ = config;
+	// Use base class start_client which calls do_start
+	return messaging_quic_client_base<messaging_quic_client>::start_client(host, port);
+}
 
-	if (host.empty())
-	{
-		return error_void(
-			error_codes::common_errors::invalid_argument,
-			"Host cannot be empty",
-			"messaging_quic_client::start_client",
-			"Client ID: " + client_id_);
-	}
-
+auto messaging_quic_client::do_start(std::string_view host,
+                                     unsigned short port) -> VoidResult
+{
 	try
 	{
-		is_running_.store(true);
-		is_connected_.store(false);
-		stop_initiated_.store(false);
-		config_ = config;
-
 		{
 			std::lock_guard<std::mutex> lock(socket_mutex_);
 			socket_.reset();
@@ -125,10 +72,6 @@ auto messaging_quic_client::start_client(std::string_view host,
 		work_guard_ = std::make_unique<
 			asio::executor_work_guard<asio::io_context::executor_type>>(
 			asio::make_work_guard(*io_context_));
-
-		stop_future_ = std::future<void>();
-		stop_promise_.emplace();
-		stop_future_ = stop_promise_->get_future();
 
 		thread_pool_ = network_context::instance().get_thread_pool();
 		if (!thread_pool_)
@@ -161,35 +104,18 @@ auto messaging_quic_client::start_client(std::string_view host,
 	}
 	catch (const std::exception& e)
 	{
-		is_running_.store(false);
 		return error_void(
 			error_codes::common_errors::internal_error,
 			"Failed to start client: " + std::string(e.what()),
-			"messaging_quic_client::start_client",
+			"messaging_quic_client::do_start",
 			"Client ID: " + client_id_ + ", Host: " + std::string(host));
 	}
 }
 
-auto messaging_quic_client::stop_client() -> VoidResult
+auto messaging_quic_client::do_stop() -> VoidResult
 {
-	bool expected = false;
-	if (!stop_initiated_.compare_exchange_strong(expected, true))
-	{
-		NETWORK_LOG_DEBUG(
-			"[messaging_quic_client] stop_client already called, returning success");
-		return ok();
-	}
-
-	if (!is_running_.load())
-	{
-		return ok();
-	}
-
 	try
 	{
-		is_running_.store(false);
-		is_connected_.store(false);
-
 		std::shared_ptr<internal::quic_socket> local_socket;
 		{
 			std::lock_guard<std::mutex> lock(socket_mutex_);
@@ -221,45 +147,19 @@ auto messaging_quic_client::stop_client() -> VoidResult
 		thread_pool_.reset();
 		io_context_.reset();
 
-		if (stop_promise_.has_value())
-		{
-			try
-			{
-				stop_promise_->set_value();
-			}
-			catch (const std::future_error&)
-			{
-				NETWORK_LOG_DEBUG("[messaging_quic_client] Promise already satisfied");
-			}
-			stop_promise_.reset();
-		}
-		stop_future_ = std::future<void>();
+		handshake_complete_.store(false);
 
 		NETWORK_LOG_INFO("[messaging_quic_client] stopped.");
 		return ok();
 	}
 	catch (const std::exception& e)
 	{
-		stop_initiated_.store(false);
 		return error_void(
 			error_codes::common_errors::internal_error,
 			"Failed to stop client: " + std::string(e.what()),
-			"messaging_quic_client::stop_client",
+			"messaging_quic_client::do_stop",
 			"Client ID: " + client_id_);
 	}
-}
-
-auto messaging_quic_client::wait_for_stop() -> void
-{
-	if (stop_future_.valid())
-	{
-		stop_future_.wait();
-	}
-}
-
-auto messaging_quic_client::is_connected() const noexcept -> bool
-{
-	return is_connected_.load(std::memory_order_acquire);
 }
 
 auto messaging_quic_client::is_handshake_complete() const noexcept -> bool
@@ -274,7 +174,7 @@ auto messaging_quic_client::is_handshake_complete() const noexcept -> bool
 
 auto messaging_quic_client::send_packet(std::vector<uint8_t>&& data) -> VoidResult
 {
-	if (!is_running_.load())
+	if (!is_running())
 	{
 		return error_void(
 			error_codes::network_system::connection_closed,
@@ -293,7 +193,7 @@ auto messaging_quic_client::send_packet(std::vector<uint8_t>&& data) -> VoidResu
 	}
 
 	auto local_socket = get_socket();
-	if (!is_connected_.load() || !local_socket)
+	if (!is_connected() || !local_socket)
 	{
 		return error_void(
 			error_codes::network_system::connection_closed,
@@ -389,43 +289,6 @@ auto messaging_quic_client::close_stream(uint64_t stream_id) -> VoidResult
 	}
 
 	return local_socket->close_stream(stream_id);
-}
-
-auto messaging_quic_client::set_receive_callback(
-	std::function<void(const std::vector<uint8_t>&)> callback) -> void
-{
-	std::lock_guard<std::mutex> lock(callback_mutex_);
-	receive_callback_ = std::move(callback);
-}
-
-auto messaging_quic_client::set_stream_receive_callback(
-	std::function<void(uint64_t stream_id,
-	                   const std::vector<uint8_t>& data,
-	                   bool fin)> callback) -> void
-{
-	std::lock_guard<std::mutex> lock(callback_mutex_);
-	stream_receive_callback_ = std::move(callback);
-}
-
-auto messaging_quic_client::set_connected_callback(
-	std::function<void()> callback) -> void
-{
-	std::lock_guard<std::mutex> lock(callback_mutex_);
-	connected_callback_ = std::move(callback);
-}
-
-auto messaging_quic_client::set_disconnected_callback(
-	std::function<void()> callback) -> void
-{
-	std::lock_guard<std::mutex> lock(callback_mutex_);
-	disconnected_callback_ = std::move(callback);
-}
-
-auto messaging_quic_client::set_error_callback(
-	std::function<void(std::error_code)> callback) -> void
-{
-	std::lock_guard<std::mutex> lock(callback_mutex_);
-	error_callback_ = std::move(callback);
 }
 
 auto messaging_quic_client::set_alpn_protocols(
@@ -545,7 +408,8 @@ auto messaging_quic_client::do_connect(std::string_view host,
 auto messaging_quic_client::on_connect() -> void
 {
 	NETWORK_LOG_INFO("[messaging_quic_client] Connected successfully.");
-	is_connected_.store(true);
+	set_connected(true);
+	handshake_complete_.store(true);
 
 	// Create default stream for send_packet()
 	auto local_socket = get_socket();
@@ -560,30 +424,15 @@ auto messaging_quic_client::on_connect() -> void
 		}
 	}
 
-	// Invoke connected callback
-	{
-		std::lock_guard<std::mutex> lock(callback_mutex_);
-		if (connected_callback_)
-		{
-			try
-			{
-				connected_callback_();
-			}
-			catch (const std::exception& e)
-			{
-				NETWORK_LOG_ERROR(
-					"[messaging_quic_client] Exception in connected callback: " +
-					std::string(e.what()));
-			}
-		}
-	}
+	// Invoke connected callback via base class
+	invoke_connected_callback();
 }
 
 auto messaging_quic_client::on_stream_data(uint64_t stream_id,
                                            std::span<const uint8_t> data,
                                            bool fin) -> void
 {
-	if (!is_connected_.load())
+	if (!is_connected())
 	{
 		return;
 	}
@@ -594,37 +443,13 @@ auto messaging_quic_client::on_stream_data(uint64_t stream_id,
 
 	std::vector<uint8_t> data_copy(data.begin(), data.end());
 
-	// Invoke stream receive callback
-	{
-		std::lock_guard<std::mutex> lock(callback_mutex_);
-		if (stream_receive_callback_)
-		{
-			try
-			{
-				stream_receive_callback_(stream_id, data_copy, fin);
-			}
-			catch (const std::exception& e)
-			{
-				NETWORK_LOG_ERROR(
-					"[messaging_quic_client] Exception in stream receive callback: " +
-					std::string(e.what()));
-			}
-		}
+	// Invoke stream receive callback via base class
+	invoke_stream_receive_callback(stream_id, data_copy, fin);
 
-		// Also invoke default receive callback for default stream
-		if (stream_id == default_stream_id_ && receive_callback_)
-		{
-			try
-			{
-				receive_callback_(data_copy);
-			}
-			catch (const std::exception& e)
-			{
-				NETWORK_LOG_ERROR(
-					"[messaging_quic_client] Exception in receive callback: " +
-					std::string(e.what()));
-			}
-		}
+	// Also invoke default receive callback for default stream
+	if (stream_id == default_stream_id_)
+	{
+		invoke_receive_callback(data_copy);
 	}
 }
 
@@ -632,43 +457,16 @@ auto messaging_quic_client::on_error(std::error_code ec) -> void
 {
 	NETWORK_LOG_ERROR("[messaging_quic_client] Error: " + ec.message());
 
+	// Invoke error callback via base class
+	invoke_error_callback(ec);
+
+	if (is_connected())
 	{
-		std::lock_guard<std::mutex> lock(callback_mutex_);
-		if (error_callback_)
-		{
-			try
-			{
-				error_callback_(ec);
-			}
-			catch (const std::exception& e)
-			{
-				NETWORK_LOG_ERROR(
-					"[messaging_quic_client] Exception in error callback: " +
-					std::string(e.what()));
-			}
-		}
+		// Invoke disconnected callback via base class
+		invoke_disconnected_callback();
 	}
 
-	if (is_connected_.load())
-	{
-		std::lock_guard<std::mutex> lock(callback_mutex_);
-		if (disconnected_callback_)
-		{
-			try
-			{
-				disconnected_callback_();
-			}
-			catch (const std::exception& e)
-			{
-				NETWORK_LOG_ERROR(
-					"[messaging_quic_client] Exception in disconnected callback: " +
-					std::string(e.what()));
-			}
-		}
-	}
-
-	is_connected_.store(false);
-	is_running_.store(false);
+	set_connected(false);
 }
 
 auto messaging_quic_client::on_close(uint64_t error_code,
@@ -677,26 +475,13 @@ auto messaging_quic_client::on_close(uint64_t error_code,
 	NETWORK_LOG_INFO("[messaging_quic_client] Connection closed. Error code: " +
 	                 std::to_string(error_code) + ", reason: " + reason);
 
-	if (is_connected_.load())
+	if (is_connected())
 	{
-		std::lock_guard<std::mutex> lock(callback_mutex_);
-		if (disconnected_callback_)
-		{
-			try
-			{
-				disconnected_callback_();
-			}
-			catch (const std::exception& e)
-			{
-				NETWORK_LOG_ERROR(
-					"[messaging_quic_client] Exception in disconnected callback: " +
-					std::string(e.what()));
-			}
-		}
+		// Invoke disconnected callback via base class
+		invoke_disconnected_callback();
 	}
 
-	is_connected_.store(false);
-	is_running_.store(false);
+	set_connected(false);
 }
 
 auto messaging_quic_client::get_socket() const

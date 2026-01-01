@@ -45,6 +45,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <kcenon/network/protocols/grpc/service_registry.h>
 #include <kcenon/network/protocols/grpc/frame.h>
 #include <kcenon/network/protocols/grpc/status.h>
+#include <kcenon/network/protocols/grpc/server.h>
 
 #include <iostream>
 #include <string>
@@ -53,6 +54,64 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <thread>
 
 namespace grpc = kcenon::network::protocols::grpc;
+
+// ============================================================================
+// Mock server_context for example demonstration
+// ============================================================================
+
+/**
+ * @brief Simple mock implementation of server_context for testing/examples
+ *
+ * In production, this would be provided by the gRPC server infrastructure.
+ */
+class mock_server_context : public grpc::server_context
+{
+public:
+    auto client_metadata() const -> const grpc::grpc_metadata& override
+    {
+        return metadata_;
+    }
+
+    auto add_trailing_metadata(const std::string& key,
+                               const std::string& value) -> void override
+    {
+        trailing_metadata_.emplace_back(key, value);
+    }
+
+    auto set_trailing_metadata(grpc::grpc_metadata metadata) -> void override
+    {
+        trailing_metadata_ = std::move(metadata);
+    }
+
+    auto is_cancelled() const -> bool override
+    {
+        return cancelled_;
+    }
+
+    auto deadline() const
+        -> std::optional<std::chrono::system_clock::time_point> override
+    {
+        return deadline_;
+    }
+
+    auto peer() const -> std::string override
+    {
+        return peer_;
+    }
+
+    auto auth_context() const -> std::string override
+    {
+        return auth_context_;
+    }
+
+private:
+    grpc::grpc_metadata metadata_;
+    grpc::grpc_metadata trailing_metadata_;
+    bool cancelled_ = false;
+    std::optional<std::chrono::system_clock::time_point> deadline_;
+    std::string peer_ = "127.0.0.1:12345";
+    std::string auth_context_;
+};
 
 // ============================================================================
 // Example Handlers
@@ -304,7 +363,7 @@ void demo_handler_invocation()
     // Get and invoke handler
     auto* handler = service.get_unary_handler("Echo");
     if (handler) {
-        grpc::server_context ctx;
+        mock_server_context ctx;
         auto [status, response] = (*handler)(ctx, request);
 
         if (status.is_ok()) {
@@ -315,7 +374,7 @@ void demo_handler_invocation()
 
     handler = service.get_unary_handler("Reverse");
     if (handler) {
-        grpc::server_context ctx;
+        mock_server_context ctx;
         auto [status, response] = (*handler)(ctx, request);
 
         if (status.is_ok()) {
