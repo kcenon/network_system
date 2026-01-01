@@ -119,9 +119,10 @@ namespace kcenon::network::internal
 			return;
 		}
 
-		// Check if socket has been closed before starting async operation
+		// Check if socket has been closed or is no longer open before starting async operation
 		// This prevents data races and UBSAN errors from accessing null descriptor_state
-		if (is_closed_.load())
+		// Both checks are needed: is_closed_ for explicit close() calls, is_open() for ASIO state
+		if (is_closed_.load() || !socket_.is_open())
 		{
 			is_reading_.store(false);
 			return;
@@ -132,8 +133,9 @@ namespace kcenon::network::internal
 			asio::buffer(read_buffer_),
 			[this, self](std::error_code ec, std::size_t length)
 			{
-				// Check if reading has been stopped at callback time
-				if (!is_reading_.load())
+				// Check if reading has been stopped or socket closed at callback time
+				// This prevents accessing invalid socket state after close()
+				if (!is_reading_.load() || is_closed_.load())
 				{
 					return;
 				}
