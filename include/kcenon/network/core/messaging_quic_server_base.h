@@ -129,14 +129,17 @@ namespace kcenon::network::core
 		/*!
 		 * \brief Starts the server on the specified port.
 		 * \param port The UDP port to listen on.
-		 * \return Result<void> - Success if server started, or error with code.
+		 * \return Result<void> - Success if server started, or error with code:
+		 *         - error_codes::network_system::server_already_running if already running
+		 *         - error_codes::network_system::bind_failed if port binding failed
+		 *         - error_codes::common_errors::internal_error for other failures
 		 */
 		auto start_server(unsigned short port) -> VoidResult
 		{
 			if (is_running_.load())
 			{
 				return error_void(
-					error_codes::common_errors::already_exists,
+					error_codes::network_system::server_already_running,
 					"QUIC server is already running",
 					"messaging_quic_server_base");
 			}
@@ -165,13 +168,18 @@ namespace kcenon::network::core
 
 		/*!
 		 * \brief Stops the server and closes all connections.
-		 * \return Result<void> - Success if server stopped, or error with code.
+		 * \return Result<void> - Success if server stopped, or error with code:
+		 *         - error_codes::network_system::server_not_started if not running
+		 *         - error_codes::common_errors::internal_error for other failures
 		 */
 		auto stop_server() -> VoidResult
 		{
 			if (!is_running_.load())
 			{
-				return ok();
+				return error_void(
+					error_codes::network_system::server_not_started,
+					"QUIC server is not running",
+					"messaging_quic_server_base");
 			}
 
 			// Prevent multiple stop calls
