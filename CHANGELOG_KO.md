@@ -114,6 +114,11 @@ Network System 프로젝트의 모든 주요 변경 사항이 이 파일에 문�
   - 패키지 등록 후 `vcpkg install --feature ecosystem`으로 활성화
 
 ### 수정됨
+- **QUIC 서버 에러 코드 일관성**: TCP 서버 패턴과 일치하도록 `messaging_quic_server_base`의 에러 코드 수정 (#385)
+  - 서버가 이미 실행 중일 때 `already_exists` 대신 `server_already_running` 반환하도록 `start_server()` 변경
+  - 서버가 실행 중이 아닐 때 `ok()` 대신 `server_not_started` 에러 반환하도록 `stop_server()` 변경
+  - `messaging_server_base` 에러 코드 명세와 일치하도록 문서 업데이트
+  - `MessagingQuicServerTest.DoubleStart`, `StopWhenNotRunning`, `MultipleStop` 테스트 실패 수정
 - **PartialMessageRecovery 테스트 수정**: ErrorHandlingTest.PartialMessageRecovery의 use-after-move 버그 수정 (#389)
   - 이동된 객체를 재사용하는 대신 별도의 메시지 인스턴스 생성
   - 원래 코드는 첫 번째 `SendMessage` 호출에서 `valid_message`를 이동한 후 다시 이동을 시도하여 정의되지 않은 동작과 모든 플랫폼에서의 테스트 크래시를 유발

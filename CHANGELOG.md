@@ -128,6 +128,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Reduces compile-time coupling and enables flexible logger configuration
 
 ### Fixed
+- **QUIC Server Error Code Consistency**: Fixed error codes in `messaging_quic_server_base` to align with TCP server patterns (#385)
+  - Changed `start_server()` to return `server_already_running` instead of `already_exists` when server is already running
+  - Changed `stop_server()` to return `server_not_started` error instead of `ok()` when server is not running
+  - Updated documentation to match `messaging_server_base` error code specifications
+  - Fixes test failures in `MessagingQuicServerTest.DoubleStart`, `StopWhenNotRunning`, and `MultipleStop`
 - **PartialMessageRecovery Test Fix**: Fixed use-after-move bug in ErrorHandlingTest.PartialMessageRecovery (#389)
   - Created separate message instances instead of reusing a moved-from object
   - The original code moved `valid_message` in the first `SendMessage` call, then attempted to move it again, causing undefined behavior and test crashes across all platforms
