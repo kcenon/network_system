@@ -88,6 +88,19 @@ Network System 프로젝트의 모든 주목할 만한 변경 사항은 이 파�
   - #335 종료
 
 ### 수정됨
+- **UndefinedBehaviorSanitizer 소켓 작업의 널 포인터 접근 수정** (2026-01-01) (#385)
+  - `tcp_socket::do_read()`에서 비동기 작업 시작 전 `socket_.is_open()` 검사 추가
+  - SSL 스트림을 위해 `secure_tcp_socket::do_read()`에도 동일한 검사 추가
+  - 닫힌 소켓에 쓰기를 방지하기 위해 `secure_tcp_socket::async_send()`에 `is_closed_` 검사 추가
+  - 콜백 핸들러에서 `is_closed_` 플래그 검사로 유효하지 않은 소켓 상태 접근 방지
+  - `secure_tcp_socket.h`에 누락된 `<atomic>` 헤더 추가
+  - Multi-Client Concurrent Test에서 UBSAN "member access within null pointer" 오류 수정
+
+- **gRPC 서비스 예제 빌드 오류 수정** (2026-01-01) (#385)
+  - `grpc::server_context` 인터페이스를 구현하는 `mock_server_context` 클래스 추가
+  - `grpc::server_context`는 추상 클래스로 직접 인스턴스화 불가능
+  - 예제 코드에서 핸들러 호출 데모 활성화
+
 - **ThreadSanitizer 소켓 닫기 작업의 데이터 레이스 수정** (2026-01-01) (#389)
   - `tcp_socket` 및 `secure_tcp_socket` 클래스에 원자적 `close()` 메서드 추가
   - 소켓 닫기 상태를 스레드 안전하게 추적하는 `is_closed_` 원자적 플래그 도입

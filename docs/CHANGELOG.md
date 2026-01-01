@@ -39,6 +39,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [Unreleased]
 
 ### Fixed
+- **UndefinedBehaviorSanitizer Null Pointer Access in Socket Operations** (2026-01-01) (#385)
+  - Added `socket_.is_open()` check in `tcp_socket::do_read()` before initiating async operations
+  - Added same checks to `secure_tcp_socket::do_read()` for SSL streams
+  - Added `is_closed_` check to `secure_tcp_socket::async_send()` to prevent write to closed socket
+  - Callback handlers now check `is_closed_` flag to prevent accessing invalid socket state
+  - Added missing `<atomic>` header to `secure_tcp_socket.h`
+  - Fixes UBSAN "member access within null pointer" error in Multi-Client Concurrent Test
+
+- **gRPC Service Example Build Error** (2026-01-01) (#385)
+  - Added `mock_server_context` class implementing `grpc::server_context` interface
+  - `grpc::server_context` is an abstract class and cannot be instantiated directly
+  - Enables handler invocation demonstration in example code
+
 - **ThreadSanitizer Data Race in Socket Close Operations** (2026-01-01) (#389)
   - Added atomic `close()` method to `tcp_socket` and `secure_tcp_socket` classes
   - Introduced `is_closed_` atomic flag to track socket close state thread-safely

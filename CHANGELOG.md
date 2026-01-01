@@ -128,6 +128,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Reduces compile-time coupling and enables flexible logger configuration
 
 ### Fixed
+- **Socket UndefinedBehaviorSanitizer Fix**: Fixed null pointer access in async read operations (#385)
+  - Added `socket_.is_open()` check in `tcp_socket::do_read()` before initiating async operations
+  - Added same checks to `secure_tcp_socket::do_read()` for SSL streams
+  - Added `is_closed_` check to `secure_tcp_socket::async_send()` to prevent write to closed socket
+  - Callback handlers now check `is_closed_` flag to prevent accessing invalid socket state
+  - Added missing `<atomic>` header to `secure_tcp_socket.h`
+  - Fixes UBSAN "member access within null pointer" error in Multi-Client Concurrent Test
+- **gRPC Service Example Build Fix**: Fixed abstract class instantiation error in grpc_service_example (#385)
+  - Added `mock_server_context` class implementing `grpc::server_context` interface
+  - Replaced direct `grpc::server_context` instantiation with mock implementation
+  - Enables handler invocation demonstration in example code
 - **QUIC Server Error Code Consistency**: Fixed error codes in `messaging_quic_server_base` to align with TCP server patterns (#385)
   - Changed `start_server()` to return `server_already_running` instead of `already_exists` when server is already running
   - Changed `stop_server()` to return `server_not_started` error instead of `ok()` when server is not running

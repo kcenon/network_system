@@ -114,6 +114,17 @@ Network System 프로젝트의 모든 주요 변경 사항이 이 파일에 문�
   - 패키지 등록 후 `vcpkg install --feature ecosystem`으로 활성화
 
 ### 수정됨
+- **Socket UndefinedBehaviorSanitizer 수정**: 비동기 읽기 작업에서 null 포인터 접근 수정 (#385)
+  - `tcp_socket::do_read()`에서 비동기 작업 시작 전 `socket_.is_open()` 검사 추가
+  - SSL 스트림을 위해 `secure_tcp_socket::do_read()`에도 동일한 검사 추가
+  - 닫힌 소켓에 쓰기를 방지하기 위해 `secure_tcp_socket::async_send()`에 `is_closed_` 검사 추가
+  - 콜백 핸들러에서 `is_closed_` 플래그 검사로 유효하지 않은 소켓 상태 접근 방지
+  - `secure_tcp_socket.h`에 누락된 `<atomic>` 헤더 추가
+  - Multi-Client Concurrent Test에서 UBSAN "member access within null pointer" 오류 수정
+- **gRPC 서비스 예제 빌드 수정**: grpc_service_example에서 추상 클래스 인스턴스화 오류 수정 (#385)
+  - `grpc::server_context` 인터페이스를 구현하는 `mock_server_context` 클래스 추가
+  - 직접 `grpc::server_context` 인스턴스화를 mock 구현으로 교체
+  - 예제 코드에서 핸들러 호출 데모 활성화
 - **QUIC 서버 에러 코드 일관성**: TCP 서버 패턴과 일치하도록 `messaging_quic_server_base`의 에러 코드 수정 (#385)
   - 서버가 이미 실행 중일 때 `already_exists` 대신 `server_already_running` 반환하도록 `start_server()` 변경
   - 서버가 실행 중이 아닐 때 `ok()` 대신 `server_not_started` 에러 반환하도록 `stop_server()` 변경
