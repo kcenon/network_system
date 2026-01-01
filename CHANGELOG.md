@@ -73,6 +73,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Concepts improve error messages and serve as self-documenting type constraints
 
 ### Changed
+- **QUIC CRTP Migration**: Migrated QUIC classes to use protocol-specific CRTP base classes (#385)
+  - `messaging_quic_client` now inherits from `messaging_quic_client_base<messaging_quic_client>`
+  - `messaging_quic_server` now inherits from `messaging_quic_server_base<messaging_quic_server>`
+  - Common lifecycle management (start/stop, wait_for_stop) in base classes
+  - Thread-safe callback handling with mutex protection
+  - State tracking with atomic flags (is_running, is_connected)
+  - Consistent error handling with Result<T>
+  - Note: gRPC classes use pimpl pattern and are excluded from CRTP migration
 - **UDP/WebSocket CRTP Migration**: Migrated UDP and WebSocket classes to use protocol-specific CRTP base classes (#384)
   - `messaging_udp_client` now inherits from `messaging_udp_client_base<messaging_udp_client>`
   - `messaging_udp_server` now inherits from `messaging_udp_server_base<messaging_udp_server>`
@@ -120,6 +128,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Reduces compile-time coupling and enables flexible logger configuration
 
 ### Fixed
+- **Socket UndefinedBehaviorSanitizer Fix**: Fixed null pointer access in async read operations (#385)
+  - Added `socket_.is_open()` check in `tcp_socket::do_read()` before initiating async operations
+  - Added same checks to `secure_tcp_socket::do_read()` for SSL streams
+  - Added `is_closed_` check to `secure_tcp_socket::async_send()` to prevent write to closed socket
+  - Callback handlers now check `is_closed_` flag to prevent accessing invalid socket state
+  - Added missing `<atomic>` header to `secure_tcp_socket.h`
+  - Fixes UBSAN "member access within null pointer" error in Multi-Client Concurrent Test
+- **gRPC Service Example Build Fix**: Fixed abstract class instantiation error in grpc_service_example (#385)
+  - Added `mock_server_context` class implementing `grpc::server_context` interface
+  - Replaced direct `grpc::server_context` instantiation with mock implementation
+  - Enables handler invocation demonstration in example code
+- **QUIC Server Error Code Consistency**: Fixed error codes in `messaging_quic_server_base` to align with TCP server patterns (#385)
+  - Changed `start_server()` to return `server_already_running` instead of `already_exists` when server is already running
+  - Changed `stop_server()` to return `server_not_started` error instead of `ok()` when server is not running
+  - Updated documentation to match `messaging_server_base` error code specifications
+  - Fixes test failures in `MessagingQuicServerTest.DoubleStart`, `StopWhenNotRunning`, and `MultipleStop`
+- **Multi-Client Connection Test Fix**: Fixed flaky `MultiConnectionLifecycleTest.ConnectionScaling` on macOS CI (#385)
+  - Changed `ConnectAllClients()` from sequential waiting to round-robin polling
+  - Previous implementation blocked on first slow client, causing all subsequent clients to timeout
+  - New implementation polls all clients each iteration, counting any that have connected
+  - Increased CI timeout from 5 to 10 seconds for many-client scenarios
+  - Adds early exit when all clients are connected
 - **PartialMessageRecovery Test Fix**: Fixed use-after-move bug in ErrorHandlingTest.PartialMessageRecovery (#389)
   - Created separate message instances instead of reusing a moved-from object
   - The original code moved `valid_message` in the first `SendMessage` call, then attempted to move it again, causing undefined behavior and test crashes across all platforms

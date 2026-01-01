@@ -245,13 +245,13 @@ protected:
    * @brief Connect all created clients to the server in parallel
    * @return Number of successfully connected clients
    *
-   * Initiates all connections simultaneously then waits for completion.
-   * This avoids sequential timeout accumulation and significantly reduces
-   * total connection time for multiple clients.
+   * Initiates all connections simultaneously then polls all clients
+   * in a round-robin fashion until timeout. This ensures that one slow
+   * client doesn't block the counting of other already-connected clients.
    */
   size_t ConnectAllClients() {
-    // Use reasonable timeout for CI environments
-    auto timeout = test_helpers::is_ci_environment() ? std::chrono::seconds(5)
+    // Use longer timeout for CI environments with many clients
+    auto timeout = test_helpers::is_ci_environment() ? std::chrono::seconds(10)
                                                      : std::chrono::seconds(5);
 
     // Start all connections in parallel (async operations)
@@ -260,21 +260,27 @@ protected:
       client->start_client("127.0.0.1", test_port_);
     }
 
-    // Wait for all to complete with single timeout period
+    // Track which clients have connected
+    std::vector<bool> client_connected(clients_.size(), false);
     size_t connected = 0;
     auto deadline = std::chrono::steady_clock::now() + timeout;
 
-    for (auto &client : clients_) {
-      auto remaining = deadline - std::chrono::steady_clock::now();
-      if (remaining <= std::chrono::milliseconds(0)) {
-        break; // Timeout reached
+    // Poll all clients in round-robin until timeout or all connected
+    while (std::chrono::steady_clock::now() < deadline) {
+      for (size_t i = 0; i < clients_.size(); ++i) {
+        if (!client_connected[i] && clients_[i] && clients_[i]->is_connected()) {
+          client_connected[i] = true;
+          ++connected;
+        }
       }
 
-      auto client_timeout =
-          std::chrono::duration_cast<std::chrono::seconds>(remaining);
-      if (test_helpers::wait_for_connection(client, client_timeout)) {
-        ++connected;
+      // Early exit if all connected
+      if (connected == clients_.size()) {
+        break;
       }
+
+      // Small delay to avoid busy-waiting
+      test_helpers::wait_for_ready();
     }
 
     return connected;

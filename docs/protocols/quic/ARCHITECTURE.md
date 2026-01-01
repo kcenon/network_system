@@ -2,12 +2,13 @@
 
 ## Layer Structure
 
-The QUIC implementation follows a layered architecture consistent with the existing network_system design:
+The QUIC implementation follows a layered architecture consistent with the existing network_system design. The public API classes use the CRTP (Curiously Recurring Template Pattern) to inherit common functionality from base classes.
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│  Public API                                             │
-│  (messaging_quic_client, messaging_quic_server)         │
+│  Public API (CRTP Pattern)                              │
+│  messaging_quic_client : messaging_quic_client_base<>   │
+│  messaging_quic_server : messaging_quic_server_base<>   │
 ├─────────────────────────────────────────────────────────┤
 │  Session Layer                                          │
 │  (quic_session)                                         │
@@ -37,6 +38,51 @@ The QUIC implementation follows a layered architecture consistent with the exist
 ## Key Components
 
 ### 1. Public API Layer
+
+Both `messaging_quic_client` and `messaging_quic_server` inherit from CRTP base classes that provide common functionality:
+
+#### Base Classes
+
+```cpp
+// Client base class provides:
+template<typename Derived>
+class messaging_quic_client_base {
+    // Common lifecycle management
+    auto start_client(host, port) -> VoidResult;  // Calls derived().do_start()
+    auto stop_client() -> VoidResult;             // Calls derived().do_stop()
+    auto wait_for_stop() -> void;
+    auto is_running() const -> bool;
+    auto is_connected() const -> bool;
+
+    // Thread-safe callback management
+    auto set_receive_callback(callback) -> void;
+    auto set_connected_callback(callback) -> void;
+    auto set_disconnected_callback(callback) -> void;
+    auto set_error_callback(callback) -> void;
+
+protected:
+    // Invoke callbacks from derived class
+    auto invoke_receive_callback(data) -> void;
+    auto invoke_connected_callback() -> void;
+    auto set_connected(bool) -> void;
+};
+
+// Server base class provides:
+template<typename Derived>
+class messaging_quic_server_base {
+    // Common lifecycle management
+    auto start_server(port) -> VoidResult;  // Calls derived().do_start()
+    auto stop_server() -> VoidResult;       // Calls derived().do_stop()
+    auto wait_for_stop() -> void;
+    auto is_running() const -> bool;
+
+    // Thread-safe callback management
+    auto set_connection_callback(callback) -> void;
+    auto set_disconnection_callback(callback) -> void;
+    auto set_receive_callback(callback) -> void;
+    auto set_error_callback(callback) -> void;
+};
+```
 
 #### messaging_quic_client
 

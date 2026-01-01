@@ -32,6 +32,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
+#include "kcenon/network/core/messaging_quic_client_base.h"
+#include "kcenon/network/core/network_context.h"
+#include "kcenon/network/integration/thread_integration.h"
+#include "kcenon/network/utils/result_types.h"
+
 #include <atomic>
 #include <chrono>
 #include <functional>
@@ -45,10 +50,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <vector>
 
 #include <asio.hpp>
-
-#include "kcenon/network/core/network_context.h"
-#include "kcenon/network/integration/thread_integration.h"
-#include "kcenon/network/utils/result_types.h"
 
 // Forward declaration
 namespace kcenon::network::internal
@@ -123,6 +124,9 @@ namespace kcenon::network::core
 	 * \class messaging_quic_client
 	 * \brief A QUIC client that provides reliable, multiplexed communication
 	 *
+	 * This class inherits from messaging_quic_client_base using the CRTP pattern,
+	 * which provides common lifecycle management and callback handling.
+	 *
 	 * ### Overview
 	 * Implements a QUIC (RFC 9000) client with an API consistent with the
 	 * existing TCP-based messaging_client, while exposing QUIC-specific
@@ -138,7 +142,7 @@ namespace kcenon::network::core
 	 * - Uses \c asio::io_context in a dedicated thread for I/O events.
 	 * - Supports multiple concurrent streams (QUIC-specific).
 	 * - Provides \c start_client(), \c stop_client(), and \c wait_for_stop()
-	 *   for lifecycle control.
+	 *   for lifecycle control (inherited from base).
 	 * - Full Result<T> error handling for all fallible operations.
 	 *
 	 * ### Comparison with messaging_client (TCP)
@@ -153,9 +157,12 @@ namespace kcenon::network::core
 	 * | 0-RTT               | ✗                      | ✓ (QUIC specific)    |
 	 */
 	class messaging_quic_client
-		: public std::enable_shared_from_this<messaging_quic_client>
+		: public messaging_quic_client_base<messaging_quic_client>
 	{
 	public:
+		//! \brief Allow base class to access protected methods
+		friend class messaging_quic_client_base<messaging_quic_client>;
+
 		/*!
 		 * \brief Constructs a QUIC client with a given identifier.
 		 * \param client_id A string identifier for logging/debugging.
@@ -164,35 +171,29 @@ namespace kcenon::network::core
 
 		/*!
 		 * \brief Destructor; automatically calls \c stop_client() if running.
+		 * (Handled by base class)
 		 */
-		~messaging_quic_client() noexcept;
+		~messaging_quic_client() noexcept override = default;
 
-		// Disable copy
+		// Disable copy (inherited from base)
 		messaging_quic_client(const messaging_quic_client&) = delete;
 		messaging_quic_client& operator=(const messaging_quic_client&) = delete;
 
 		// =====================================================================
-		// Connection Management
+		// Connection Management (Extended)
 		// =====================================================================
 
+		// stop_client(), wait_for_stop(), is_running(),
+		// is_connected(), client_id() are provided by base class
+
+		//! \brief Bring base class start_client into scope
+		using messaging_quic_client_base<messaging_quic_client>::start_client;
+
 		/*!
-		 * \brief Starts the client and connects to the QUIC server.
+		 * \brief Starts the client with default configuration.
 		 * \param host Server hostname or IP address.
 		 * \param port Server port number.
 		 * \return VoidResult indicating success or error.
-		 *
-		 * ### Errors
-		 * - \c already_exists if already running
-		 * - \c invalid_argument if host is empty
-		 * - \c internal_error for other failures
-		 *
-		 * \code
-		 * auto result = client->start_client("example.com", 443);
-		 * if (!result) {
-		 *     std::cerr << "Failed: " << result.error().message << "\n";
-		 *     return 1;
-		 * }
-		 * \endcode
 		 */
 		[[nodiscard]] auto start_client(std::string_view host,
 		                                unsigned short port) -> VoidResult;
@@ -207,23 +208,6 @@ namespace kcenon::network::core
 		[[nodiscard]] auto start_client(std::string_view host,
 		                                unsigned short port,
 		                                const quic_client_config& config) -> VoidResult;
-
-		/*!
-		 * \brief Stops the client and closes the connection.
-		 * \return VoidResult indicating success or error.
-		 */
-		[[nodiscard]] auto stop_client() -> VoidResult;
-
-		/*!
-		 * \brief Blocks until \c stop_client() is complete.
-		 */
-		auto wait_for_stop() -> void;
-
-		/*!
-		 * \brief Check if connected to the server.
-		 * \return true if connected.
-		 */
-		[[nodiscard]] auto is_connected() const noexcept -> bool;
 
 		/*!
 		 * \brief Check if TLS handshake is complete.
@@ -305,56 +289,11 @@ namespace kcenon::network::core
 		[[nodiscard]] auto close_stream(uint64_t stream_id) -> VoidResult;
 
 		// =====================================================================
-		// Callbacks
+		// Callbacks (Extended from Base)
 		// =====================================================================
 
-		/*!
-		 * \brief Set callback for received data on the default stream.
-		 * \param callback Function called when data is received.
-		 *
-		 * \code
-		 * client->set_receive_callback([](const std::vector<uint8_t>& data) {
-		 *     std::cout << "Received: " << data.size() << " bytes\n";
-		 * });
-		 * \endcode
-		 */
-		auto set_receive_callback(
-			std::function<void(const std::vector<uint8_t>&)> callback) -> void;
-
-		/*!
-		 * \brief Set callback for stream data reception (all streams).
-		 * \param callback Function called with stream ID, data, and FIN flag.
-		 *
-		 * \code
-		 * client->set_stream_receive_callback(
-		 *     [](uint64_t stream_id, const std::vector<uint8_t>& data, bool fin) {
-		 *         std::cout << "Stream " << stream_id << ": "
-		 *                   << data.size() << " bytes (fin=" << fin << ")\n";
-		 *     });
-		 * \endcode
-		 */
-		auto set_stream_receive_callback(
-			std::function<void(uint64_t stream_id,
-			                   const std::vector<uint8_t>& data,
-			                   bool fin)> callback) -> void;
-
-		/*!
-		 * \brief Set callback when connection is established.
-		 * \param callback Function called on successful connection.
-		 */
-		auto set_connected_callback(std::function<void()> callback) -> void;
-
-		/*!
-		 * \brief Set callback when disconnected.
-		 * \param callback Function called on disconnection.
-		 */
-		auto set_disconnected_callback(std::function<void()> callback) -> void;
-
-		/*!
-		 * \brief Set callback for errors.
-		 * \param callback Function called when an error occurs.
-		 */
-		auto set_error_callback(std::function<void(std::error_code)> callback) -> void;
+		// set_receive_callback, set_stream_receive_callback, set_connected_callback,
+		// set_disconnected_callback, set_error_callback are provided by base class
 
 		// =====================================================================
 		// Configuration
@@ -377,6 +316,29 @@ namespace kcenon::network::core
 		 * \return Current connection stats.
 		 */
 		[[nodiscard]] auto stats() const -> quic_connection_stats;
+
+	protected:
+		// =====================================================================
+		// CRTP Implementation Methods
+		// =====================================================================
+
+		/*!
+		 * \brief QUIC-specific implementation of client start.
+		 * \param host The server hostname or IP address.
+		 * \param port The server port number.
+		 * \return VoidResult - Success if client started, or error with code.
+		 *
+		 * Called by base class start_client() after common validation.
+		 */
+		auto do_start(std::string_view host, unsigned short port) -> VoidResult;
+
+		/*!
+		 * \brief QUIC-specific implementation of client stop.
+		 * \return VoidResult - Success if client stopped, or error with code.
+		 *
+		 * Called by base class stop_client() after common cleanup.
+		 */
+		auto do_stop() -> VoidResult;
 
 	private:
 		// =====================================================================
@@ -419,12 +381,6 @@ namespace kcenon::network::core
 		// Member Variables
 		// =====================================================================
 
-		std::string client_id_; //!< Identifier for logging/debugging
-
-		std::atomic<bool> is_running_{false};      //!< True if client is active
-		std::atomic<bool> is_connected_{false};    //!< True if connected
-		std::atomic<bool> stop_initiated_{false};  //!< True if stop was called
-
 		std::unique_ptr<asio::io_context> io_context_;  //!< I/O context
 		std::unique_ptr<asio::executor_work_guard<asio::io_context::executor_type>>
 			work_guard_; //!< Keeps io_context running
@@ -432,27 +388,13 @@ namespace kcenon::network::core
 			thread_pool_;                        //!< Thread pool for async ops
 		std::future<void> io_context_future_;    //!< Future for io_context run
 
-		std::optional<std::promise<void>> stop_promise_; //!< Signals wait_for_stop()
-		std::future<void> stop_future_;                  //!< Used by wait_for_stop()
-
 		mutable std::mutex socket_mutex_;  //!< Protects socket_ from data races
 		std::shared_ptr<internal::quic_socket> socket_; //!< The QUIC socket
 
 		quic_client_config config_;  //!< Client configuration
 		uint64_t default_stream_id_{0}; //!< Default stream for send_packet()
 
-		// =====================================================================
-		// Callbacks
-		// =====================================================================
-
-		std::function<void(const std::vector<uint8_t>&)> receive_callback_;
-		std::function<void(uint64_t, const std::vector<uint8_t>&, bool)>
-			stream_receive_callback_;
-		std::function<void()> connected_callback_;
-		std::function<void()> disconnected_callback_;
-		std::function<void(std::error_code)> error_callback_;
-
-		mutable std::mutex callback_mutex_; //!< Protects callback access
+		std::atomic<bool> handshake_complete_{false}; //!< TLS handshake status
 	};
 
 } // namespace kcenon::network::core

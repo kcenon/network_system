@@ -126,13 +126,23 @@ namespace kcenon::network::internal
 			return;
 		}
 
+		// Check if socket has been closed or is no longer open before starting async operation
+		// This prevents data races and UBSAN errors from accessing null descriptor_state
+		// Both checks are needed: is_closed_ for explicit close() calls, is_open() for ASIO state
+		if (is_closed_.load() || !ssl_stream_.lowest_layer().is_open())
+		{
+			is_reading_.store(false);
+			return;
+		}
+
 		auto self = shared_from_this();
 		ssl_stream_.async_read_some(
 			asio::buffer(read_buffer_),
 			[this, self](std::error_code ec, std::size_t length)
 			{
-				// Check if reading has been stopped at callback time
-				if (!is_reading_.load())
+				// Check if reading has been stopped or socket closed at callback time
+				// This prevents accessing invalid socket state after close()
+				if (!is_reading_.load() || is_closed_.load())
 				{
 					return;
 				}
@@ -175,8 +185,9 @@ namespace kcenon::network::internal
 					}
 				}
 
-				// Continue reading only if still active
-				if (is_reading_.load())
+				// Continue reading only if still active and socket is not closed
+				// Use atomic is_closed_ flag to prevent data race with close()
+				if (is_reading_.load() && !is_closed_.load())
 				{
 					do_read();
 				}
@@ -187,6 +198,17 @@ namespace kcenon::network::internal
 		std::vector<uint8_t>&& data,
 		std::function<void(std::error_code, std::size_t)> handler) -> void
 	{
+		// Check if socket has been closed before starting async operation
+		// Use atomic is_closed_ flag to prevent data race with close()
+		if (is_closed_.load())
+		{
+			if (handler)
+			{
+				handler(asio::error::not_connected, 0);
+			}
+			return;
+		}
+
 		auto self = shared_from_this();
 		// Move data into shared_ptr for lifetime management
 		auto buffer = std::make_shared<std::vector<uint8_t>>(std::move(data));
