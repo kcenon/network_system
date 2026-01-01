@@ -144,6 +144,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Changed `stop_server()` to return `server_not_started` error instead of `ok()` when server is not running
   - Updated documentation to match `messaging_server_base` error code specifications
   - Fixes test failures in `MessagingQuicServerTest.DoubleStart`, `StopWhenNotRunning`, and `MultipleStop`
+- **Multi-Client Connection Test Fix**: Fixed flaky `MultiConnectionLifecycleTest.ConnectionScaling` on macOS CI (#385)
+  - Changed `ConnectAllClients()` from sequential waiting to round-robin polling
+  - Previous implementation blocked on first slow client, causing all subsequent clients to timeout
+  - New implementation polls all clients each iteration, counting any that have connected
+  - Increased CI timeout from 5 to 10 seconds for many-client scenarios
+  - Adds early exit when all clients are connected
 - **PartialMessageRecovery Test Fix**: Fixed use-after-move bug in ErrorHandlingTest.PartialMessageRecovery (#389)
   - Created separate message instances instead of reusing a moved-from object
   - The original code moved `valid_message` in the first `SendMessage` call, then attempted to move it again, causing undefined behavior and test crashes across all platforms

@@ -60,6 +60,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   - Prevents data races between socket close operations and concurrent async read/write operations
   - Affected components: `tcp_socket`, `secure_tcp_socket`, `messaging_session`, `secure_session`, `messaging_client`, `secure_messaging_client`
 
+- **Flaky Multi-Client Connection Test on macOS** (2026-01-01) (#385)
+  - Changed `ConnectAllClients()` from sequential waiting to round-robin polling
+  - Previous implementation blocked on first slow client, causing all subsequent clients to timeout
+  - New implementation polls all clients each iteration, counting any that have connected
+  - Increased CI timeout from 5 to 10 seconds for many-client scenarios
+  - Adds early exit when all clients are connected
+  - Fixes intermittent `MultiConnectionLifecycleTest.ConnectionScaling` failures on macOS Release CI
+
 ### Added
 - **gRPC Phase 5: Testing and Documentation** (2025-12-28) (#365)
   - Added comprehensive unit tests for `grpc_official_wrapper` (status codes, messages, timeouts)
