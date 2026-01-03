@@ -194,6 +194,10 @@ Performance testing fixture:
 Utility functions in `test_helpers.h`:
 - `find_available_port()` - Find free port
 - `wait_for_connection()` - Wait for connection
+- `wait_for_ready()` - Wait for async operations to complete
+- `is_ci_environment()` - Detect CI environment
+- `is_macos()` - Detect macOS platform
+- `is_sanitizer_run()` - Detect sanitizer instrumentation
 - `calculate_statistics()` - Compute performance stats
 - `generate_random_data()` - Create test data
 - `verify_message_data()` - Verify data integrity
@@ -314,6 +318,11 @@ Tests include appropriate timeouts for async operations:
 test_helpers::wait_for_connection(client_, std::chrono::seconds(5));
 ```
 
+**Platform-Specific Timeouts:**
+- macOS CI environments (especially Release builds) use longer timeouts (10s)
+- This accounts for kqueue-based async I/O behavior differences
+- Additional 100ms wait is added after server startup on macOS CI
+
 ### Cleanup
 
 Proper cleanup prevents port exhaustion:
@@ -337,6 +346,19 @@ CI environments may be slower; increase timeout values:
 ```cpp
 EXPECT_LT(stats.p50, 100.0);  // More conservative for CI
 ```
+
+### macOS CI Connection Failures
+
+macOS CI environments (especially Release builds) may experience connection
+timeouts due to:
+- kqueue-based async I/O behavior differences from Linux's epoll
+- GitHub Actions runner resource constraints
+- Slower socket operations under optimization
+
+The test framework automatically applies longer timeouts (10s) and additional
+server startup delays (100ms) on macOS CI environments. If issues persist,
+check for network congestion or consider using `test_helpers::is_macos()` for
+platform-specific handling.
 
 ### Memory Leaks
 

@@ -45,6 +45,22 @@ option(ENABLE_TSAN "Enable ThreadSanitizer" OFF)
 option(ENABLE_UBSAN "Enable UndefinedBehaviorSanitizer" OFF)
 
 ##################################################
+# C++20 Module Support (Experimental)
+#
+# Enable C++20 modules with CMake 3.28+ when building with module-capable compilers.
+# This creates a separate module library target (network_system_modules) that can be
+# used instead of the header-based library.
+#
+# Usage:
+#   cmake -DNETWORK_BUILD_MODULES=ON ..
+#
+# Requirements:
+#   - CMake 3.28+
+#   - Clang 16+ or GCC 14+ or MSVC 17.4+
+##################################################
+option(NETWORK_BUILD_MODULES "Build C++20 module version of network_system" OFF)
+
+##################################################
 # Dependency Configuration (Option A Structure)
 #
 # Tier 4: network_system
@@ -675,6 +691,81 @@ endif()
 # endif()
 
 ##################################################
+# C++20 Module Library Target
+##################################################
+
+if(NETWORK_BUILD_MODULES)
+    if(CMAKE_VERSION VERSION_LESS "3.28")
+        message(WARNING "C++20 modules require CMake 3.28+. Disabling module build.")
+        set(NETWORK_BUILD_MODULES OFF)
+    else()
+        message(STATUS "C++20 module build enabled")
+
+        # Create module library target
+        add_library(network_system_modules)
+        add_library(kcenon::network_modules ALIAS network_system_modules)
+
+        # Set C++20 standard for module target
+        target_compile_features(network_system_modules PUBLIC cxx_std_20)
+
+        # Enable module scanning
+        set_target_properties(network_system_modules PROPERTIES
+            CXX_SCAN_FOR_MODULES ON
+        )
+
+        # Add module source files
+        target_sources(network_system_modules
+            PUBLIC FILE_SET CXX_MODULES
+            FILES
+                # Primary module
+                src/modules/network.cppm
+                # Partitions
+                src/modules/core.cppm
+                src/modules/tcp.cppm
+                src/modules/udp.cppm
+                src/modules/ssl.cppm
+        )
+
+        # Include directories for module target
+        target_include_directories(network_system_modules PUBLIC
+            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+            $<INSTALL_INTERFACE:include>
+        )
+
+        # Link dependencies
+        # Note: Module targets for common_system and thread_system must be available
+        if(TARGET kcenon::common_modules)
+            target_link_libraries(network_system_modules PUBLIC kcenon::common_modules)
+        endif()
+        if(TARGET kcenon::thread_modules)
+            target_link_libraries(network_system_modules PUBLIC kcenon::thread_modules)
+        endif()
+
+        # Link ASIO
+        if(TARGET asio::asio)
+            target_link_libraries(network_system_modules PRIVATE asio::asio)
+        elseif(TARGET asio)
+            target_link_libraries(network_system_modules PRIVATE asio)
+        elseif(ASIO_INCLUDE_DIR)
+            target_include_directories(network_system_modules PRIVATE ${ASIO_INCLUDE_DIR})
+        endif()
+
+        # Link OpenSSL for SSL partition
+        if(BUILD_TLS_SUPPORT AND OPENSSL_FOUND)
+            target_link_libraries(network_system_modules PRIVATE OpenSSL::SSL OpenSSL::Crypto)
+        endif()
+
+        # Define compile-time flags
+        target_compile_definitions(network_system_modules PUBLIC
+            KCENON_NETWORK_MODULES=1
+            KCENON_USE_MODULES=1
+        )
+
+        message(STATUS "C++20 module target: network_system_modules")
+    endif()
+endif()
+
+##################################################
 # Build Summary
 ##################################################
 
@@ -707,6 +798,7 @@ message(STATUS "  WebSocket support: ${BUILD_WEBSOCKET_SUPPORT}")
 message(STATUS "  Messaging bridge: ${BUILD_MESSAGING_BRIDGE}")
 message(STATUS "  Benchmarks: ${NETWORK_BUILD_BENCHMARKS}")
 message(STATUS "  Official gRPC: ${NETWORK_ENABLE_GRPC_OFFICIAL}")
+message(STATUS "  C++20 Modules: ${NETWORK_BUILD_MODULES}")
 message(STATUS "")
 message(STATUS "Sanitizers:")
 message(STATUS "  AddressSanitizer: ${ENABLE_ASAN}")

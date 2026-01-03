@@ -191,9 +191,10 @@ auto tcp_socket::async_send(
     std::vector<uint8_t>&& data,
     std::function<void(std::error_code, std::size_t)> handler) -> void
 {
-    // Check if socket has been closed before starting async operation
-    // Use atomic is_closed_ flag to prevent data race with close()
-    if (is_closed_.load())
+    // Check if socket has been closed or is no longer open before starting async operation
+    // Both checks are needed: is_closed_ for explicit close() calls, is_open() for ASIO state
+    // This prevents UBSAN errors from accessing null descriptor_state in epoll_reactor
+    if (is_closed_.load() || !socket_.is_open())
     {
         if (handler)
         {

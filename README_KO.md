@@ -500,6 +500,27 @@ cmake --build .
 ./build/benchmarks/network_benchmarks
 ```
 
+### C++20 모듈 빌드 (실험적)
+
+C++20 모듈 지원을 위해 (CMake 3.28+ 및 호환 컴파일러 필요):
+
+```bash
+cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release -DNETWORK_BUILD_MODULES=ON
+cmake --build .
+```
+
+모듈 사용 예:
+
+```cpp
+import kcenon.network;
+
+int main() {
+    auto server = std::make_unique<kcenon::network::core::messaging_server>("MyServer");
+    server->start_server(8080);
+    server->wait_for_stop();
+}
+```
+
 ## 📝 API 예제
 
 ### TCP API 사용법

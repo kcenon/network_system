@@ -279,6 +279,18 @@ inline std::string get_platform_name() {
 }
 
 /**
+ * @brief Detect whether tests are running on macOS
+ * @return true when compiled on macOS platform
+ */
+inline bool is_macos() {
+#if defined(__APPLE__)
+  return true;
+#else
+  return false;
+#endif
+}
+
+/**
  * @brief Get compiler identifier
  * @return Compiler name and version string
  */
