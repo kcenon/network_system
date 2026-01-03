@@ -12,6 +12,16 @@ Network System 프로젝트의 모든 주요 변경 사항이 이 파일에 문�
 ## [미배포]
 
 ### 추가됨
+- **C++20 모듈 지원**: kcenon.network용 C++20 모듈 파일 추가 (#395)
+  - 주 모듈: `kcenon.network` (network.cppm)
+  - 모듈 파티션:
+    - `:core` - 핵심 네트워크 인프라 (network_context, connection_pool, 기본 인터페이스)
+    - `:tcp` - TCP 클라이언트/서버 (messaging_client, messaging_server, messaging_session)
+    - `:udp` - UDP 구현 (messaging_udp_client, messaging_udp_server, reliable_udp_client)
+    - `:ssl` - SSL/TLS 지원 (secure_messaging_client, secure_messaging_server, DTLS 변형)
+  - CMake 옵션 `NETWORK_BUILD_MODULES` (기본값 OFF, CMake 3.28+ 필요)
+  - 의존성: kcenon.common (Tier 0), kcenon.thread (Tier 1)
+  - C++20 모듈 마이그레이션 Epic의 일부 (kcenon/common_system#256)
 - **메시징용 CRTP 기본 클래스**: 메시징 클라이언트 및 서버를 위한 템플릿 기본 클래스 추가 (#376)
   - `messaging_client_base<Derived>`: 클라이언트를 위한 공통 생명주기 관리 및 콜백 처리 제공
   - `messaging_server_base<Derived, SessionType>`: 서버를 위한 공통 생명주기 관리 제공

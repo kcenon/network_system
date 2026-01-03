@@ -12,6 +12,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **C++20 Module Support**: Added C++20 module files for kcenon.network (#395)
+  - Primary module: `kcenon.network` (network.cppm)
+  - Module partitions:
+    - `:core` - Core network infrastructure (network_context, connection_pool, base interfaces)
+    - `:tcp` - TCP client/server (messaging_client, messaging_server, messaging_session)
+    - `:udp` - UDP implementations (messaging_udp_client, messaging_udp_server, reliable_udp_client)
+    - `:ssl` - SSL/TLS support (secure_messaging_client, secure_messaging_server, DTLS variants)
+  - CMake option `NETWORK_BUILD_MODULES` (OFF by default, requires CMake 3.28+)
+  - Dependencies: kcenon.common (Tier 0), kcenon.thread (Tier 1)
+  - Part of C++20 Module Migration Epic (kcenon/common_system#256)
 - **CRTP Base Classes for Messaging**: Added template base classes for messaging clients and servers (#376)
   - `messaging_client_base<Derived>` provides common lifecycle management and callback handling for clients
   - `messaging_server_base<Derived, SessionType>` provides common lifecycle management for servers
@@ -71,6 +81,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Duration concept for time-related constraints
   - Integration with common_system's Result/Optional concepts when available
   - Concepts improve error messages and serve as self-documenting type constraints
+
+### Fixed
+- **UBSAN/SEGFAULT in Async Socket Operations**: Fixed null pointer access in tcp_socket async operations (#396)
+  - Added `socket_.is_open()` check to `tcp_socket::async_send()` to prevent accessing null `descriptor_state` in ASIO's `epoll_reactor`
+  - Added sanitizer detection (`is_sanitizer_run()`) to E2E tests to skip concurrent tests under sanitizers
+  - Skipped multi-client and rapid connection tests under UBSan/ASan/TSan due to race conditions in ASIO's epoll_reactor
+  - Fixes CI failures: UndefinedBehaviorSanitizer on ubuntu-24.04, Integration Tests BurstLoad SEGFAULT
 
 ### Changed
 - **QUIC CRTP Migration**: Migrated QUIC classes to use protocol-specific CRTP base classes (#385)

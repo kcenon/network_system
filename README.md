@@ -108,6 +108,27 @@ cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
 cmake --build build -j
 ```
 
+### C++20 Module Build (Experimental)
+
+For C++20 module support (requires CMake 3.28+ and compatible compiler):
+
+```bash
+cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DNETWORK_BUILD_MODULES=ON
+cmake --build build -j
+```
+
+Usage with modules:
+
+```cpp
+import kcenon.network;
+
+int main() {
+    auto server = std::make_unique<kcenon::network::core::messaging_server>("MyServer");
+    server->start_server(8080);
+    server->wait_for_stop();
+}
+```
+
 ### Your First Server (60 seconds)
 
 ```cpp
