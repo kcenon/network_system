@@ -103,6 +103,12 @@ protected:
 
     // Wait for server to be ready
     test_helpers::wait_for_ready();
+
+    // Additional wait for macOS CI where server startup can be slow
+    if (test_helpers::is_macos() && test_helpers::is_ci_environment()) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+
     return true;
   }
 
@@ -127,9 +133,17 @@ protected:
       return false;
     }
 
-    // Wait for connection to establish with reasonable timeout for CI
-    auto timeout = test_helpers::is_ci_environment() ? std::chrono::seconds(5)
-                                                     : std::chrono::seconds(5);
+    // Wait for connection to establish with reasonable timeout for CI.
+    // macOS CI (especially Release builds) requires longer timeout due to
+    // kqueue-based async I/O behavior and GitHub Actions runner constraints.
+    std::chrono::seconds timeout;
+    if (test_helpers::is_macos() && test_helpers::is_ci_environment()) {
+      timeout = std::chrono::seconds(10);
+    } else if (test_helpers::is_ci_environment()) {
+      timeout = std::chrono::seconds(5);
+    } else {
+      timeout = std::chrono::seconds(5);
+    }
     return test_helpers::wait_for_connection(client_, timeout);
   }
 
