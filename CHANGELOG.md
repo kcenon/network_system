@@ -82,6 +82,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Integration with common_system's Result/Optional concepts when available
   - Concepts improve error messages and serve as self-documenting type constraints
 
+### Fixed
+- **UBSAN/SEGFAULT in Async Socket Operations**: Fixed null pointer access in tcp_socket async operations (#396)
+  - Added `socket_.is_open()` check to `tcp_socket::async_send()` to prevent accessing null `descriptor_state` in ASIO's `epoll_reactor`
+  - Added sanitizer detection (`is_sanitizer_run()`) to E2E tests to skip concurrent tests under sanitizers
+  - Skipped multi-client and rapid connection tests under UBSan/ASan/TSan due to race conditions in ASIO's epoll_reactor
+  - Fixes CI failures: UndefinedBehaviorSanitizer on ubuntu-24.04, Integration Tests BurstLoad SEGFAULT
+
 ### Changed
 - **QUIC CRTP Migration**: Migrated QUIC classes to use protocol-specific CRTP base classes (#385)
   - `messaging_quic_client` now inherits from `messaging_quic_client_base<messaging_quic_client>`
