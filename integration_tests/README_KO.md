@@ -194,6 +194,10 @@ xdg-open coverage_html/index.html  # Linux
 `test_helpers.h`의 유틸리티 함수:
 - `find_available_port()` - 사용 가능한 포트 찾기
 - `wait_for_connection()` - 연결 대기
+- `wait_for_ready()` - 비동기 작업 완료 대기
+- `is_ci_environment()` - CI 환경 감지
+- `is_macos()` - macOS 플랫폼 감지
+- `is_sanitizer_run()` - 새니타이저 계측 감지
 - `calculate_statistics()` - 성능 통계 계산
 - `generate_random_data()` - 테스트 데이터 생성
 - `verify_message_data()` - 데이터 무결성 검증
@@ -314,6 +318,11 @@ client_->start_client("localhost", test_port_);
 test_helpers::wait_for_connection(client_, std::chrono::seconds(5));
 ```
 
+**플랫폼별 타임아웃:**
+- macOS CI 환경(특히 Release 빌드)에서는 더 긴 타임아웃(10초) 사용
+- kqueue 기반 비동기 I/O 동작 차이를 고려
+- macOS CI에서 서버 시작 후 추가 100ms 대기
+
 ### 정리
 
 적절한 정리는 포트 고갈을 방지합니다:
@@ -337,6 +346,19 @@ CI 환경은 느릴 수 있으므로 타임아웃 값을 늘립니다:
 ```cpp
 EXPECT_LT(stats.p50, 100.0);  // CI에 대해 더 보수적
 ```
+
+### macOS CI 연결 실패
+
+macOS CI 환경(특히 Release 빌드)에서 다음과 같은 이유로 연결 타임아웃이
+발생할 수 있습니다:
+- Linux의 epoll과 다른 kqueue 기반 비동기 I/O 동작 차이
+- GitHub Actions 러너의 리소스 제약
+- 최적화 환경에서 소켓 작업 속도 저하
+
+테스트 프레임워크는 macOS CI 환경에서 자동으로 더 긴 타임아웃(10초)과
+추가 서버 시작 대기 시간(100ms)을 적용합니다. 문제가 지속되면 네트워크
+혼잡을 확인하거나 플랫폼별 처리를 위해 `test_helpers::is_macos()`를
+사용하는 것을 고려하세요.
 
 ### 메모리 누수
 
