@@ -12,6 +12,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **C++20 Module Support**: Added C++20 module files for kcenon.network (#395)
+  - Primary module: `kcenon.network` (network.cppm)
+  - Module partitions:
+    - `:core` - Core network infrastructure (network_context, connection_pool, base interfaces)
+    - `:tcp` - TCP client/server (messaging_client, messaging_server, messaging_session)
+    - `:udp` - UDP implementations (messaging_udp_client, messaging_udp_server, reliable_udp_client)
+    - `:ssl` - SSL/TLS support (secure_messaging_client, secure_messaging_server, DTLS variants)
+  - CMake option `NETWORK_BUILD_MODULES` (OFF by default, requires CMake 3.28+)
+  - Dependencies: kcenon.common (Tier 0), kcenon.thread (Tier 1)
+  - Part of C++20 Module Migration Epic (kcenon/common_system#256)
 - **CRTP Base Classes for Messaging**: Added template base classes for messaging clients and servers (#376)
   - `messaging_client_base<Derived>` provides common lifecycle management and callback handling for clients
   - `messaging_server_base<Derived, SessionType>` provides common lifecycle management for servers
