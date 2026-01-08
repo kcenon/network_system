@@ -52,13 +52,8 @@ class ErrorHandlingTest : public NetworkSystemFixture {};
 // ============================================================================
 
 TEST_F(ErrorHandlingTest, ConnectToInvalidHost) {
-  // Skip in CI due to static destruction order issue causing heap corruption
-  // during process exit when common_system's GlobalLoggerRegistry is destroyed
-  // before network_system's thread pool tasks complete.
-  // TODO: Fix root cause in io_context lifecycle management (Issue #348)
-  if (test_helpers::is_ci_environment()) {
-    GTEST_SKIP() << "Skipping due to static destruction order issue in CI";
-  }
+  // io_context lifecycle issues fixed via intentional leak pattern (Issue #400)
+  // The no-op deleter on io_context prevents heap corruption during static destruction
 
   // Try to connect to invalid hostname
   auto result = client_->start_client("invalid.host.local", 12345);
@@ -69,13 +64,8 @@ TEST_F(ErrorHandlingTest, ConnectToInvalidHost) {
 }
 
 TEST_F(ErrorHandlingTest, ConnectToInvalidPort) {
-  // Skip in CI due to static destruction order issue causing heap corruption
-  // during process exit when common_system's GlobalLoggerRegistry is destroyed
-  // before network_system's thread pool tasks complete.
-  // TODO: Fix root cause in io_context lifecycle management (Issue #348)
-  if (test_helpers::is_ci_environment()) {
-    GTEST_SKIP() << "Skipping due to static destruction order issue in CI";
-  }
+  // io_context lifecycle issues fixed via intentional leak pattern (Issue #400)
+  // The no-op deleter on io_context prevents heap corruption during static destruction
 
   // Try to connect to port that's not listening
   auto result = client_->start_client("localhost", 1);
@@ -85,13 +75,8 @@ TEST_F(ErrorHandlingTest, ConnectToInvalidPort) {
 }
 
 TEST_F(ErrorHandlingTest, ConnectionRefused) {
-  // Skip in CI due to static destruction order issue causing heap corruption
-  // during process exit when common_system's GlobalLoggerRegistry is destroyed
-  // before network_system's thread pool tasks complete.
-  // TODO: Fix root cause in io_context lifecycle management (Issue #348)
-  if (test_helpers::is_ci_environment()) {
-    GTEST_SKIP() << "Skipping due to static destruction order issue in CI";
-  }
+  // io_context lifecycle issues fixed via intentional leak pattern (Issue #400)
+  // The no-op deleter on io_context prevents heap corruption during static destruction
 
   // Try to connect without starting server
   auto result = client_->start_client("localhost", test_port_);
@@ -323,11 +308,8 @@ TEST_F(ErrorHandlingTest, RecoveryAfterConnectionFailure) {
         << "Skipping under sanitizer due to asio internal false positives";
   }
 
-  // Skip in CI due to static destruction order issue causing heap corruption
-  // TODO: Fix root cause in io_context lifecycle management (Issue #315)
-  if (test_helpers::is_ci_environment()) {
-    GTEST_SKIP() << "Skipping due to static destruction order issue in CI";
-  }
+  // io_context lifecycle issues fixed via intentional leak pattern (Issue #400)
+  // The no-op deleter on io_context prevents heap corruption during static destruction
 
   // Try to connect without server
   auto result = client_->start_client("localhost", test_port_);

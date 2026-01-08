@@ -103,13 +103,8 @@ TEST_F(ConnectionLifecycleTest, ClientConnectionSuccess) {
 }
 
 TEST_F(ConnectionLifecycleTest, ClientConnectionToNonExistentServer) {
-    // Skip in CI due to static destruction order issue causing heap corruption
-    // during process exit when common_system's GlobalLoggerRegistry is destroyed
-    // before network_system's thread pool tasks complete.
-    // TODO: Fix root cause in io_context lifecycle management (Issue #348)
-    if (test_helpers::is_ci_environment()) {
-        GTEST_SKIP() << "Skipping due to static destruction order issue in CI";
-    }
+    // io_context lifecycle issues fixed via intentional leak pattern (Issue #400)
+    // The no-op deleter on io_context prevents heap corruption during static destruction
 
     // Try to connect without starting server
     auto result = client_->start_client("localhost", test_port_);
@@ -220,11 +215,8 @@ TEST_F(MultiConnectionLifecycleTest, MultipleConcurrentConnections) {
 }
 
 TEST_F(MultiConnectionLifecycleTest, SequentialConnections) {
-    // Skip in CI due to static destruction order issue causing heap corruption
-    // TODO: Fix root cause in io_context lifecycle management (Issue #315)
-    if (test_helpers::is_ci_environment()) {
-        GTEST_SKIP() << "Skipping due to static destruction order issue in CI";
-    }
+    // io_context lifecycle issues fixed via intentional leak pattern (Issue #400)
+    // The no-op deleter on io_context prevents heap corruption during static destruction
 
     ASSERT_TRUE(StartServer());
 
