@@ -124,6 +124,11 @@ Network System 프로젝트의 모든 주요 변경 사항이 이 파일에 문�
   - 패키지 등록 후 `vcpkg install --feature ecosystem`으로 활성화
 
 ### 수정됨
+- **io_context 생명주기 테스트 재활성화**: io_context 생명주기 문제로 스킵되던 6개 통합 테스트 재활성화 (#400)
+  - messaging_client의 io_context에 적용된 intentional leak 패턴 덕분에 CI 환경에서도 테스트 통과
+  - Issue #315와 #348을 참조하던 TODO 주석 제거
+  - 재활성화된 테스트: ConnectToInvalidHost, ConnectToInvalidPort, ConnectionRefused, RecoveryAfterConnectionFailure, ClientConnectionToNonExistentServer, SequentialConnections
+  - io_context의 no-op 삭제자로 인해 정적 파괴 시 힙 손상 없음
 - **Socket UndefinedBehaviorSanitizer 수정**: 비동기 읽기 작업에서 null 포인터 접근 수정 (#385)
   - `tcp_socket::do_read()`에서 비동기 작업 시작 전 `socket_.is_open()` 검사 추가
   - SSL 스트림을 위해 `secure_tcp_socket::do_read()`에도 동일한 검사 추가
