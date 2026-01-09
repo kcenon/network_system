@@ -129,6 +129,8 @@ Network System 프로젝트의 모든 주요 변경 사항이 이 파일에 문�
   - Issue #315와 #348을 참조하던 TODO 주석 제거
   - 재활성화된 테스트: ConnectToInvalidHost, ConnectToInvalidPort, ConnectionRefused, RecoveryAfterConnectionFailure, ClientConnectionToNonExistentServer, SequentialConnections
   - io_context의 no-op 삭제자로 인해 정적 파괴 시 힙 손상 없음
+  - 테스트 정리 전 비동기 연결 작업이 완료되도록 `wait_for_connection_attempt()` 헬퍼를 test_helpers.h에 추가
+  - 테스트가 TearDown 전에 연결 실패(error_callback을 통해)를 올바르게 대기하여 대기 중인 비동기 작업으로 인한 힙 손상 방지
 - **Socket UndefinedBehaviorSanitizer 수정**: 비동기 읽기 작업에서 null 포인터 접근 수정 (#385)
   - `tcp_socket::do_read()`에서 비동기 작업 시작 전 `socket_.is_open()` 검사 추가
   - SSL 스트림을 위해 `secure_tcp_socket::do_read()`에도 동일한 검사 추가

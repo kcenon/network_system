@@ -88,6 +88,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Removed TODO comments referencing Issues #315 and #348
   - Re-enabled tests: ConnectToInvalidHost, ConnectToInvalidPort, ConnectionRefused, RecoveryAfterConnectionFailure, ClientConnectionToNonExistentServer, SequentialConnections
   - No heap corruption during static destruction due to no-op deleter on io_context
+  - Added `wait_for_connection_attempt()` helper to test_helpers.h to ensure async connection operations complete before test cleanup
+  - Tests now properly wait for connection failure (via error_callback) before TearDown, preventing heap corruption from pending async operations
 - **UBSAN/SEGFAULT in Async Socket Operations**: Fixed null pointer access in tcp_socket async operations (#396)
   - Added `socket_.is_open()` check to `tcp_socket::async_send()` to prevent accessing null `descriptor_state` in ASIO's `epoll_reactor`
   - Added sanitizer detection (`is_sanitizer_run()`) to E2E tests to skip concurrent tests under sanitizers
