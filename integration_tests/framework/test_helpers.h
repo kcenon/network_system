@@ -146,6 +146,44 @@ wait_for_connection(std::shared_ptr<ClientType> client,
 }
 
 /**
+ * @brief Wait for client connection attempt to complete (success or failure)
+ *
+ * This helper is essential for tests that expect connection failures.
+ * Without waiting for the async connection attempt to complete, the test
+ * may exit while async_resolve/async_connect operations are still in progress,
+ * causing heap corruption during cleanup.
+ *
+ * @param client Client instance to monitor
+ * @param error_flag Atomic flag that will be set true when error_callback is invoked
+ * @param timeout Maximum time to wait for connection attempt to complete
+ * @return true if connection completed (success or failure) within timeout
+ */
+template <typename ClientType>
+inline bool wait_for_connection_attempt(
+    std::shared_ptr<ClientType> client,
+    std::atomic<bool>& error_flag,
+    std::chrono::seconds timeout = std::chrono::seconds(5)) {
+  auto deadline = std::chrono::steady_clock::now() + timeout;
+
+  while (std::chrono::steady_clock::now() < deadline) {
+    // Connection attempt completed successfully
+    if (client && client->is_connected()) {
+      return true;
+    }
+
+    // Connection attempt failed (error_callback was invoked)
+    if (error_flag.load(std::memory_order_acquire)) {
+      return true;
+    }
+
+    // Give time for async operations to complete
+    wait_for_ready();
+  }
+
+  return false;
+}
+
+/**
  * @brief Wait for a condition to become true
  * @param condition Function that returns bool
  * @param timeout Maximum time to wait
