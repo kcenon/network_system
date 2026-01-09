@@ -106,12 +106,22 @@ TEST_F(ConnectionLifecycleTest, ClientConnectionToNonExistentServer) {
     // io_context lifecycle issues fixed via intentional leak pattern (Issue #400)
     // The no-op deleter on io_context prevents heap corruption during static destruction
 
+    // Set up error callback to detect connection failure
+    std::atomic<bool> error_occurred{false};
+    client_->set_error_callback([&error_occurred](std::error_code) {
+        error_occurred.store(true, std::memory_order_release);
+    });
+
     // Try to connect without starting server
     auto result = client_->start_client("localhost", test_port_);
 
-    // Connection should fail or timeout
-    // Note: This might succeed initially but fail during connection establishment
-    // Behavior depends on async connection handling
+    // Wait for the async connection attempt to complete (failure expected)
+    // This prevents heap corruption by ensuring async operations finish before cleanup
+    test_helpers::wait_for_connection_attempt(client_, error_occurred,
+                                              std::chrono::seconds(5));
+
+    // Connection should have failed since no server is running
+    EXPECT_FALSE(client_->is_connected());
 }
 
 TEST_F(ConnectionLifecycleTest, ClientMultipleConnectionAttempts) {
@@ -224,9 +234,11 @@ TEST_F(MultiConnectionLifecycleTest, SequentialConnections) {
     CreateClients(3);
 
     for (auto& client : clients_) {
-        auto result = client->start_client("localhost", test_port_);
+        // Use 127.0.0.1 to avoid IPv6 lookup delays on macOS
+        auto result = client->start_client("127.0.0.1", test_port_);
         EXPECT_TRUE(result.is_ok());
-        WaitFor(50);
+        // Wait for connection to be established
+        EXPECT_TRUE(test_helpers::wait_for_connection(client, std::chrono::seconds(5)));
     }
 }
 

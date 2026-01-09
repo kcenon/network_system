@@ -55,34 +55,66 @@ TEST_F(ErrorHandlingTest, ConnectToInvalidHost) {
   // io_context lifecycle issues fixed via intentional leak pattern (Issue #400)
   // The no-op deleter on io_context prevents heap corruption during static destruction
 
+  // Set up error callback to detect connection failure
+  std::atomic<bool> error_occurred{false};
+  client_->set_error_callback([&error_occurred](std::error_code) {
+    error_occurred.store(true, std::memory_order_release);
+  });
+
   // Try to connect to invalid hostname
   auto result = client_->start_client("invalid.host.local", 12345);
 
-  // Should fail or timeout gracefully
-  // Connection may appear to succeed initially but fail during establishment
-  // The exact behavior depends on async connection handling
+  // Wait for the async connection attempt to complete (success or failure)
+  // This prevents heap corruption by ensuring async operations finish before cleanup
+  test_helpers::wait_for_connection_attempt(client_, error_occurred,
+                                            std::chrono::seconds(10));
+
+  // Connection should have failed
+  EXPECT_FALSE(client_->is_connected());
 }
 
 TEST_F(ErrorHandlingTest, ConnectToInvalidPort) {
   // io_context lifecycle issues fixed via intentional leak pattern (Issue #400)
   // The no-op deleter on io_context prevents heap corruption during static destruction
 
+  // Set up error callback to detect connection failure
+  std::atomic<bool> error_occurred{false};
+  client_->set_error_callback([&error_occurred](std::error_code) {
+    error_occurred.store(true, std::memory_order_release);
+  });
+
   // Try to connect to port that's not listening
   auto result = client_->start_client("localhost", 1);
 
-  // Should fail or timeout gracefully
-  // May succeed initially but fail during connection
+  // Wait for the async connection attempt to complete (success or failure)
+  // This prevents heap corruption by ensuring async operations finish before cleanup
+  test_helpers::wait_for_connection_attempt(client_, error_occurred,
+                                            std::chrono::seconds(5));
+
+  // Connection should have failed
+  EXPECT_FALSE(client_->is_connected());
 }
 
 TEST_F(ErrorHandlingTest, ConnectionRefused) {
   // io_context lifecycle issues fixed via intentional leak pattern (Issue #400)
   // The no-op deleter on io_context prevents heap corruption during static destruction
 
+  // Set up error callback to detect connection failure
+  std::atomic<bool> error_occurred{false};
+  client_->set_error_callback([&error_occurred](std::error_code) {
+    error_occurred.store(true, std::memory_order_release);
+  });
+
   // Try to connect without starting server
   auto result = client_->start_client("localhost", test_port_);
 
-  // Connection should eventually fail
-  // Note: Async operations may return success initially
+  // Wait for the async connection attempt to complete (success or failure)
+  // This prevents heap corruption by ensuring async operations finish before cleanup
+  test_helpers::wait_for_connection_attempt(client_, error_occurred,
+                                            std::chrono::seconds(5));
+
+  // Connection should have failed since no server is running
+  EXPECT_FALSE(client_->is_connected());
 }
 
 TEST_F(ErrorHandlingTest, ServerStartOnInvalidPort) {
@@ -311,8 +343,22 @@ TEST_F(ErrorHandlingTest, RecoveryAfterConnectionFailure) {
   // io_context lifecycle issues fixed via intentional leak pattern (Issue #400)
   // The no-op deleter on io_context prevents heap corruption during static destruction
 
+  // Set up error callback to detect connection failure
+  std::atomic<bool> error_occurred{false};
+  client_->set_error_callback([&error_occurred](std::error_code) {
+    error_occurred.store(true, std::memory_order_release);
+  });
+
   // Try to connect without server
   auto result = client_->start_client("localhost", test_port_);
+
+  // Wait for the async connection attempt to complete (failure expected)
+  // This prevents heap corruption by ensuring async operations finish before cleanup
+  test_helpers::wait_for_connection_attempt(client_, error_occurred,
+                                            std::chrono::seconds(5));
+
+  // Stop the failed client before creating new one
+  client_->stop_client();
 
   // Start server
   ASSERT_TRUE(StartServer());
