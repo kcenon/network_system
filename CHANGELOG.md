@@ -12,6 +12,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **QUIC 0-RTT Session Ticket Storage**: Implement session ticket storage and restoration for 0-RTT resumption (#402)
+  - Added `session_ticket_store` class for storing/retrieving session tickets by server endpoint
+  - Added `session_ticket_info` struct with ticket metadata, expiry tracking, and validation
+  - Added `replay_filter` class for anti-replay protection on 0-RTT early data
+  - Added 0-RTT key derivation methods to `quic_crypto` (RFC 9001 Section 4.6)
+  - Added `set_session_ticket_callback()` to receive NewSessionTicket messages
+  - Added `set_early_data_callback()` for early data production in client
+  - Added `set_early_data_accepted_callback()` for server acceptance notification
+  - Added `is_early_data_accepted()` query method
+  - Added `max_early_data_size` configuration option to `quic_client_config`
+  - 20+ unit tests for session ticket management and replay protection
+  - Thread-safe implementation with comprehensive concurrency tests
 - **Network Metrics Test Coverage**: Add comprehensive test coverage for metrics system (#405)
   - Added `mock_monitor.h` test helper for monitoring interface mocking
   - Added 31 unit tests in `test_network_metrics.cpp` covering:

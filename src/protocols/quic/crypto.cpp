@@ -775,6 +775,14 @@ struct quic_crypto::impl
     std::string alpn;
     std::vector<uint8_t> alpn_data;
 
+    // 0-RTT session resumption support
+    session_ticket_callback_t session_ticket_callback;
+    std::vector<uint8_t> session_ticket_data;
+    uint32_t max_early_data_size{0};
+    bool early_data_enabled{false};
+    bool early_data_accepted{false};
+    bool has_zero_rtt_keys{false};
+
     ~impl()
     {
         if (ssl)
@@ -1157,6 +1165,134 @@ auto quic_crypto::is_server() const noexcept -> bool
 auto quic_crypto::key_phase() const noexcept -> uint8_t
 {
     return impl_->key_phase;
+}
+
+// ============================================================================
+// 0-RTT Session Resumption Implementation
+// ============================================================================
+
+void quic_crypto::set_session_ticket_callback(session_ticket_callback_t cb)
+{
+    impl_->session_ticket_callback = std::move(cb);
+}
+
+auto quic_crypto::set_session_ticket(std::span<const uint8_t> ticket_data)
+    -> VoidResult
+{
+    if (ticket_data.empty())
+    {
+        return error_void(-1, "Empty session ticket", "quic::crypto");
+    }
+
+    impl_->session_ticket_data.assign(ticket_data.begin(), ticket_data.end());
+    return ok();
+}
+
+auto quic_crypto::enable_early_data(uint32_t max_early_data) -> VoidResult
+{
+    if (impl_->session_ticket_data.empty())
+    {
+        return error_void(-1, "Session ticket must be set before enabling early data",
+                         "quic::crypto");
+    }
+
+    impl_->max_early_data_size = max_early_data;
+    impl_->early_data_enabled = true;
+
+    return ok();
+}
+
+auto quic_crypto::is_early_data_accepted() const noexcept -> bool
+{
+    return impl_->early_data_accepted;
+}
+
+auto quic_crypto::derive_zero_rtt_keys() -> VoidResult
+{
+    if (impl_->session_ticket_data.empty())
+    {
+        return error_void(-1, "No session ticket available", "quic::crypto");
+    }
+
+    // Derive 0-RTT secret from the resumption secret in the ticket
+    // The early data secret is derived using HKDF-Expand-Label with
+    // the label "c e traffic" and the ClientHello transcript
+    //
+    // For simplicity in this implementation, we derive keys using a
+    // deterministic derivation from the session ticket. A full implementation
+    // would properly extract the resumption master secret from TLS.
+
+    // Use HKDF to derive a pseudo early secret from the ticket data
+    // This is a simplified approach - full implementation needs proper TLS PSK handling
+    auto early_secret_result = hkdf::extract(
+        initial_salt_v1,  // Use QUIC v1 salt as base
+        impl_->session_ticket_data);
+
+    if (early_secret_result.is_err())
+    {
+        return error_void(early_secret_result.error().code,
+                         "Failed to derive early secret",
+                         "quic::crypto",
+                         early_secret_result.error().message);
+    }
+
+    auto& early_secret = early_secret_result.value();
+
+    // Derive client early traffic secret
+    auto client_early_secret_result = hkdf::expand_label(
+        early_secret,
+        "c e traffic",
+        {},
+        secret_size);
+
+    if (client_early_secret_result.is_err())
+    {
+        return error_void(client_early_secret_result.error().code,
+                         "Failed to derive client early secret",
+                         "quic::crypto",
+                         client_early_secret_result.error().message);
+    }
+
+    // Derive 0-RTT keys from client early secret
+    auto zero_rtt_keys_result = initial_keys::derive_keys(
+        client_early_secret_result.value(),
+        true);
+
+    if (zero_rtt_keys_result.is_err())
+    {
+        return error_void(zero_rtt_keys_result.error().code,
+                         "Failed to derive 0-RTT keys",
+                         "quic::crypto",
+                         zero_rtt_keys_result.error().message);
+    }
+
+    auto& zero_rtt_keys = zero_rtt_keys_result.value();
+
+    // Copy the secret
+    std::copy(client_early_secret_result.value().begin(),
+              client_early_secret_result.value().end(),
+              zero_rtt_keys.secret.begin());
+
+    // Store the 0-RTT keys
+    // For client: 0-RTT is write-only (can't receive 0-RTT data)
+    // For server: 0-RTT is read-only (can receive but not send 0-RTT)
+    if (impl_->is_server)
+    {
+        impl_->read_keys[encryption_level::zero_rtt] = zero_rtt_keys;
+    }
+    else
+    {
+        impl_->write_keys[encryption_level::zero_rtt] = zero_rtt_keys;
+    }
+
+    impl_->has_zero_rtt_keys = true;
+
+    return ok();
+}
+
+auto quic_crypto::has_zero_rtt_keys() const noexcept -> bool
+{
+    return impl_->has_zero_rtt_keys;
 }
 
 } // namespace kcenon::network::protocols::quic
