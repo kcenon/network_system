@@ -185,6 +185,10 @@ Network System 프로젝트의 모든 주요 변경 사항이 이 파일에 문�
   - 패키지 등록 후 `vcpkg install --feature ecosystem`으로 활성화
 
 ### 수정됨
+- **Circuit Breaker 빌드 수정**: fallback 빌드 경로에 error_codes_ext 네임스페이스 추가 (#403)
+  - common_system 의존성 없이 빌드 시 발생하던 빌드 실패 수정
+  - result_types.h의 fallback 블록에 circuit_open 오류 코드를 포함한 error_codes_ext 네임스페이스 추가
+  - KCENON_WITH_COMMON_SYSTEM 및 독립 빌드 간 API 호환성 보장
 - **성능 테스트 CI 안정성**: 모든 성능 테스트에 CI 환경 스킵 체크 추가 (#414)
   - macOS Release CI에서 NetworkPerformanceTest.SmallMessageLatency 타임아웃 실패 수정
   - CI 스킵 추가 테스트: SmallMessageLatency, LargeMessageLatency, MessageThroughput, BandwidthUtilization, ConcurrentMessageSending, SustainedLoad, BurstLoad

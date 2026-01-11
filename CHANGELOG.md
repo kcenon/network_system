@@ -144,6 +144,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Concepts improve error messages and serve as self-documenting type constraints
 
 ### Fixed
+- **Circuit Breaker Build Fix**: Add error_codes_ext namespace to fallback build path (#403)
+  - Fixed build failure when building without common_system dependency
+  - Added error_codes_ext namespace with circuit_open error code to fallback block in result_types.h
+  - Ensures API compatibility between KCENON_WITH_COMMON_SYSTEM and standalone builds
 - **Performance Test CI Stability**: Added CI environment skip checks to all performance tests (#414)
   - Fixed macOS Release CI timeout failure in NetworkPerformanceTest.SmallMessageLatency
   - Added CI skip to: SmallMessageLatency, LargeMessageLatency, MessageThroughput, BandwidthUtilization, ConcurrentMessageSending, SustainedLoad, BurstLoad
