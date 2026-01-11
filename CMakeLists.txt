@@ -324,6 +324,7 @@ add_library(NetworkSystem
     src/protocols/quic/rtt_estimator.cpp
     src/protocols/quic/loss_detector.cpp
     src/protocols/quic/congestion_controller.cpp
+    src/protocols/quic/ecn_tracker.cpp
 
     # QUIC socket (UDP wrapper with packet protection)
     src/internal/quic_socket.cpp
