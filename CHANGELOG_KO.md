@@ -12,6 +12,15 @@ Network System 프로젝트의 모든 주요 변경 사항이 이 파일에 문�
 ## [미배포]
 
 ### 추가됨
+- **QUIC PTO 타임아웃 손실 감지**: RFC 9002 Section 6.2에 따른 완전한 PTO 타임아웃 처리 (#398)
+  - QUIC 연결에 `rtt_estimator`, `loss_detector`, `congestion_controller` 통합 추가
+  - 손실 감지기를 통한 PTO 만료 처리를 위한 `on_timeout()` 구현
+  - ACK를 유도하는 PING 프로브 전송을 위한 `generate_probe_packets()` 추가
+  - 손실된 패킷 프레임 처리를 위한 `queue_frames_for_retransmission()` 구현
+  - ACK 처리와 손실 감지 통합 (`on_ack_received()`)
+  - 패킷 전송과 손실 감지 통합 (`on_packet_sent()`)
+  - 손실 감지 타이머를 고려하도록 `next_timeout()` 업데이트
+  - PTO 타임아웃 시나리오에 대한 단위 테스트 추가
 - **C++20 모듈 지원**: kcenon.network용 C++20 모듈 파일 추가 (#395)
   - 주 모듈: `kcenon.network` (network.cppm)
   - 모듈 파티션:

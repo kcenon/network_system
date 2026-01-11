@@ -12,6 +12,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **QUIC PTO Timeout Loss Detection**: Complete PTO timeout handling per RFC 9002 Section 6.2 (#398)
+  - Added `rtt_estimator`, `loss_detector`, and `congestion_controller` integration to QUIC connection
+  - Implemented `on_timeout()` to handle PTO expiry via loss detector
+  - Added `generate_probe_packets()` for sending ack-eliciting PING probes
+  - Implemented `queue_frames_for_retransmission()` for lost packet frame handling
+  - Integrated loss detection with ACK processing (`on_ack_received()`)
+  - Integrated loss detection with packet sending (`on_packet_sent()`)
+  - Updated `next_timeout()` to consider loss detection timer
+  - Added unit tests for PTO timeout scenarios
 - **C++20 Module Support**: Added C++20 module files for kcenon.network (#395)
   - Primary module: `kcenon.network` (network.cppm)
   - Module partitions:
