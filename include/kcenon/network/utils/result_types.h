@@ -93,6 +93,13 @@ namespace kcenon::network {
 	// Error code namespace (includes common_errors and network_system)
 	namespace error_codes = ::kcenon::common::error::codes;
 
+	// Extended error codes not yet in common_system
+	namespace error_codes_ext {
+		namespace network_system {
+			constexpr int circuit_open = -604; /*!< Circuit breaker is open */
+		}
+	}
+
 	// Helper functions for creating Results
 	template<typename T>
 	inline Result<T> ok(T&& value) {
@@ -170,6 +177,7 @@ namespace kcenon::network {
 			constexpr int connection_refused = -601;
 			constexpr int connection_timeout = -602;
 			constexpr int connection_closed = -603;
+			constexpr int circuit_open = -604;
 			constexpr int send_failed = -640;
 			constexpr int receive_failed = -641;
 			constexpr int server_not_started = -660;

@@ -42,6 +42,18 @@ namespace kcenon::network::utils
 {
 
 	/*!
+	 * \struct circuit_breaker_config
+	 * \brief Configuration parameters for the circuit breaker.
+	 */
+	struct circuit_breaker_config
+	{
+		size_t failure_threshold = 5;                    /*!< Consecutive failures before opening */
+		std::chrono::seconds open_duration{30};          /*!< Duration before attempting half-open */
+		size_t half_open_successes = 2;                  /*!< Successes needed to close */
+		size_t half_open_max_calls = 3;                  /*!< Max calls during half-open */
+	};
+
+	/*!
 	 * \class circuit_breaker
 	 * \brief Implements the Circuit Breaker pattern for fault tolerance.
 	 *
@@ -115,16 +127,9 @@ namespace kcenon::network::utils
 		};
 
 		/*!
-		 * \struct config
-		 * \brief Configuration parameters for the circuit breaker.
+		 * \brief Configuration type alias for convenience.
 		 */
-		struct config
-		{
-			size_t failure_threshold = 5;                    /*!< Consecutive failures before opening */
-			std::chrono::seconds open_duration{30};          /*!< Duration before attempting half-open */
-			size_t half_open_successes = 2;                  /*!< Successes needed to close */
-			size_t half_open_max_calls = 3;                  /*!< Max calls during half-open */
-		};
+		using config = circuit_breaker_config;
 
 		/*!
 		 * \brief State change callback type.
@@ -139,7 +144,7 @@ namespace kcenon::network::utils
 		 * \brief Constructs a circuit breaker with the given configuration.
 		 * \param cfg Configuration parameters (default values used if not specified)
 		 */
-		explicit circuit_breaker(config cfg = {});
+		explicit circuit_breaker(config cfg = config{});
 
 		/*!
 		 * \brief Default destructor.
