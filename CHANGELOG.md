@@ -12,6 +12,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **DTLS Socket Test Coverage**: Add comprehensive test coverage for DTLS socket implementation (#401)
+  - Added `dtls_test_helpers.h` with SSL context wrapper, certificate generator, and DTLS context factory
+  - Added 20 unit tests covering construction, callbacks, handshake, send/receive, and thread safety
+  - Tests validate client-server handshake, bidirectional communication, and large payload handling
+  - Achieves full test coverage for dtls_socket public interface
 - **QUIC Connection ID Management**: Implement Connection ID storage and rotation per RFC 9000 Section 5.1 (#399)
   - Added `connection_id_manager` class for peer CID storage and management
   - Support for NEW_CONNECTION_ID frame processing with sequence tracking
