@@ -900,6 +900,18 @@ auto connection::build_packet(encryption_level level) -> std::vector<uint8_t>
         }
     }
 
+    // Add pending frames (e.g., PING from PTO probing)
+    if (!close_sent_)
+    {
+        while (!pending_frames_.empty())
+        {
+            const auto& f = pending_frames_.front();
+            auto encoded = frame_builder::build(f);
+            payload.insert(payload.end(), encoded.begin(), encoded.end());
+            pending_frames_.pop_front();
+        }
+    }
+
     // Add stream data frames for application level
     if (level == encryption_level::application && !close_sent_)
     {
@@ -997,6 +1009,12 @@ auto connection::has_pending_data() const -> bool
     }
 
     if (close_sent_)
+    {
+        return true;
+    }
+
+    // Check for pending frames (e.g., PING from PTO probing)
+    if (!pending_frames_.empty())
     {
         return true;
     }
