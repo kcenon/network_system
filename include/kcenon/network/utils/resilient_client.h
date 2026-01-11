@@ -40,6 +40,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <vector>
 
 #include "kcenon/network/core/messaging_client.h"
+#include "kcenon/network/utils/circuit_breaker.h"
 #include "kcenon/network/utils/result_types.h"
 
 namespace kcenon::network::utils
@@ -48,7 +49,7 @@ namespace kcenon::network::utils
 	/*!
 	 * \class resilient_client
 	 * \brief Wrapper around messaging_client that adds automatic reconnection
-	 *        with exponential backoff.
+	 *        with exponential backoff and circuit breaker pattern.
 	 *
 	 * ### Thread Safety
 	 * - All public methods are thread-safe
@@ -59,15 +60,25 @@ namespace kcenon::network::utils
 	 * - Automatic reconnection on connection loss
 	 * - Exponential backoff to prevent connection storms
 	 * - Configurable retry behavior (max attempts, backoff)
+	 * - Circuit breaker pattern to prevent cascade failures
 	 * - Callback notifications for reconnection events
 	 * - Graceful degradation on persistent failures
+	 *
+	 * ### Circuit Breaker Integration
+	 * The circuit breaker prevents excessive retry attempts when the backend
+	 * is unavailable. When the circuit opens, send_with_retry() will fail
+	 * immediately without attempting network calls.
 	 *
 	 * ### Usage Example
 	 * \code
 	 * auto client = std::make_shared<resilient_client>(
 	 *     "client_id", "localhost", 8080,
 	 *     3,  // max retries
-	 *     std::chrono::seconds(1)  // initial backoff
+	 *     std::chrono::seconds(1),  // initial backoff
+	 *     circuit_breaker::config{
+	 *         .failure_threshold = 5,
+	 *         .open_duration = std::chrono::seconds(30)
+	 *     }
 	 * );
 	 *
 	 * client->set_reconnect_callback([](size_t attempt) {
@@ -79,9 +90,14 @@ namespace kcenon::network::utils
 	 *     std::cerr << "Failed to connect\n";
 	 * }
 	 *
-	 * // Send with automatic retry
+	 * // Send with automatic retry and circuit breaker protection
 	 * std::vector<uint8_t> data = {1, 2, 3};
 	 * auto send_result = client->send_with_retry(std::move(data));
+	 *
+	 * // Check circuit state
+	 * if (client->circuit_state() == circuit_breaker::state::open) {
+	 *     std::cerr << "Circuit is open, backend unavailable\n";
+	 * }
 	 * \endcode
 	 */
 	class resilient_client
@@ -94,12 +110,14 @@ namespace kcenon::network::utils
 		 * \param port Server port number
 		 * \param max_retries Maximum number of reconnection attempts (default: 3)
 		 * \param initial_backoff Initial backoff duration (default: 1 second)
+		 * \param cb_config Circuit breaker configuration (default values if not specified)
 		 */
 		resilient_client(const std::string& client_id,
 						 const std::string& host,
 						 unsigned short port,
 						 size_t max_retries = 3,
-						 std::chrono::milliseconds initial_backoff = std::chrono::seconds(1));
+						 std::chrono::milliseconds initial_backoff = std::chrono::seconds(1),
+						 circuit_breaker::config cb_config = {});
 
 		/*!
 		 * \brief Destructor - disconnects client if still connected
@@ -157,6 +175,25 @@ namespace kcenon::network::utils
 		 */
 		[[nodiscard]] auto get_client() const -> std::shared_ptr<core::messaging_client>;
 
+		/*!
+		 * \brief Gets the current circuit breaker state
+		 * \return Current state (closed, open, or half_open)
+		 */
+		[[nodiscard]] auto circuit_state() const -> circuit_breaker::state;
+
+		/*!
+		 * \brief Resets the circuit breaker to closed state
+		 *
+		 * Use this to manually reset the circuit after resolving issues.
+		 */
+		auto reset_circuit() -> void;
+
+		/*!
+		 * \brief Sets callback for circuit breaker state changes
+		 * \param callback Function called on state transitions
+		 */
+		auto set_circuit_state_callback(circuit_breaker::state_change_callback callback) -> void;
+
 	private:
 		/*!
 		 * \brief Attempts to reconnect with exponential backoff
@@ -171,7 +208,6 @@ namespace kcenon::network::utils
 		 */
 		auto calculate_backoff(size_t attempt) const -> std::chrono::milliseconds;
 
-	private:
 		std::shared_ptr<core::messaging_client> client_; /*!< Underlying client */
 
 		std::string host_;        /*!< Server hostname */
@@ -183,6 +219,8 @@ namespace kcenon::network::utils
 
 		std::function<void(size_t)> reconnect_callback_; /*!< Reconnection callback */
 		std::function<void()> disconnect_callback_;      /*!< Disconnection callback */
+
+		std::unique_ptr<circuit_breaker> circuit_breaker_; /*!< Circuit breaker instance */
 	};
 
 } // namespace kcenon::network::utils
