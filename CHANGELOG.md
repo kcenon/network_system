@@ -12,6 +12,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **QUIC ECN Feedback Integration**: Integrate ECN feedback into congestion control per RFC 9000/9002 (#404)
+  - Added `ecn_tracker` class for tracking ECN counts from ACK_ECN frames
+  - Added ECN validation during connection establishment
+  - Added `ecn_result` enum for congestion signal, validation failure, or no signal
+  - Integrated ECN processing in `loss_detector` to detect ECN-CE increases
+  - Added `on_ecn_congestion()` to `congestion_controller` for ECN-based congestion response
+  - Connected ECN signals to `connection` for automatic congestion handling
+  - ECN provides faster congestion detection than loss-based methods
+  - Graceful fallback when ECN is not supported by network path
+  - 19 unit tests covering ECN tracking, integration, and full flow scenarios
 - **Circuit Breaker Pattern**: Implement Circuit Breaker for resilient network clients (#403)
   - Added `circuit_breaker` class with three-state pattern (closed, open, half_open)
   - Added `circuit_breaker_config` struct for customizable thresholds and timeouts
