@@ -491,4 +491,31 @@ auto messaging_quic_client::get_socket() const
 	return socket_;
 }
 
+// =============================================================================
+// 0-RTT Session Resumption Implementation
+// =============================================================================
+
+auto messaging_quic_client::set_session_ticket_callback(
+	session_ticket_callback_t cb) -> void
+{
+	session_ticket_cb_ = std::move(cb);
+}
+
+auto messaging_quic_client::set_early_data_callback(
+	early_data_callback_t cb) -> void
+{
+	early_data_cb_ = std::move(cb);
+}
+
+auto messaging_quic_client::set_early_data_accepted_callback(
+	early_data_accepted_callback_t cb) -> void
+{
+	early_data_accepted_cb_ = std::move(cb);
+}
+
+auto messaging_quic_client::is_early_data_accepted() const noexcept -> bool
+{
+	return early_data_accepted_.load();
+}
+
 } // namespace kcenon::network::core

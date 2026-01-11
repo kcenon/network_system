@@ -37,6 +37,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "kcenon/network/utils/result_types.h"
 
 #include <cstdint>
+#include <functional>
 #include <map>
 #include <memory>
 #include <span>
@@ -398,6 +399,77 @@ public:
      * \return Current key phase (0 or 1)
      */
     [[nodiscard]] auto key_phase() const noexcept -> uint8_t;
+
+    // =========================================================================
+    // 0-RTT Session Resumption (RFC 9001 Section 4.6)
+    // =========================================================================
+
+    /*!
+     * \brief Callback type for receiving session tickets
+     *
+     * This callback is invoked when a NewSessionTicket message is received
+     * from the server after handshake completion.
+     *
+     * \param ticket_data Raw session ticket data
+     * \param lifetime_hint Ticket lifetime in seconds
+     * \param ticket_age_add Obfuscation value for ticket age
+     * \param max_early_data Maximum early data size (0 if early data not allowed)
+     */
+    using session_ticket_callback_t = std::function<void(
+        std::vector<uint8_t> ticket_data,
+        uint32_t lifetime_hint,
+        uint32_t ticket_age_add,
+        uint32_t max_early_data)>;
+
+    /*!
+     * \brief Set callback for receiving session tickets
+     * \param cb Callback function
+     *
+     * The callback will be invoked on the I/O thread when a NewSessionTicket
+     * message is received from the server.
+     */
+    void set_session_ticket_callback(session_ticket_callback_t cb);
+
+    /*!
+     * \brief Set a session ticket for 0-RTT resumption
+     * \param ticket_data Session ticket from previous connection
+     * \return Success or error
+     *
+     * Must be called before init_client() for the ticket to be used.
+     */
+    [[nodiscard]] auto set_session_ticket(std::span<const uint8_t> ticket_data)
+        -> VoidResult;
+
+    /*!
+     * \brief Enable 0-RTT early data
+     * \param max_early_data Maximum bytes of early data to send
+     * \return Success or error
+     *
+     * Must be called after set_session_ticket() and before init_client().
+     */
+    [[nodiscard]] auto enable_early_data(uint32_t max_early_data) -> VoidResult;
+
+    /*!
+     * \brief Check if 0-RTT early data was accepted by the server
+     * \return true if server accepted early data, false otherwise
+     *
+     * This value is only meaningful after handshake completion.
+     */
+    [[nodiscard]] auto is_early_data_accepted() const noexcept -> bool;
+
+    /*!
+     * \brief Derive 0-RTT keys from session ticket
+     * \return Success or error
+     *
+     * Called internally when a valid session ticket is set.
+     */
+    [[nodiscard]] auto derive_zero_rtt_keys() -> VoidResult;
+
+    /*!
+     * \brief Check if 0-RTT keys are available
+     * \return true if 0-RTT keys have been derived
+     */
+    [[nodiscard]] auto has_zero_rtt_keys() const noexcept -> bool;
 
 private:
     struct impl;

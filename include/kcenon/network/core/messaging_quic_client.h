@@ -102,6 +102,9 @@ namespace kcenon::network::core
 
 		//! Session ticket for 0-RTT resumption
 		std::optional<std::vector<uint8_t>> session_ticket;
+
+		//! Maximum early data size in bytes (default: 16KB, 0 to disable)
+		uint32_t max_early_data_size{16384};
 	};
 
 	/*!
@@ -317,6 +320,108 @@ namespace kcenon::network::core
 		 */
 		[[nodiscard]] auto stats() const -> quic_connection_stats;
 
+		// =====================================================================
+		// 0-RTT Session Resumption
+		// =====================================================================
+
+		/*!
+		 * \brief Callback type for receiving session tickets
+		 *
+		 * This callback is invoked when a NewSessionTicket is received from
+		 * the server after a successful handshake. The ticket can be stored
+		 * and used for 0-RTT resumption in subsequent connections.
+		 *
+		 * \param ticket_data Raw session ticket data
+		 * \param lifetime_hint Ticket lifetime in seconds
+		 * \param max_early_data Maximum bytes of early data allowed (0 if none)
+		 */
+		using session_ticket_callback_t = std::function<void(
+			std::vector<uint8_t> ticket_data,
+			uint32_t lifetime_hint,
+			uint32_t max_early_data)>;
+
+		/*!
+		 * \brief Callback type for early data production
+		 *
+		 * This callback is invoked when the client is ready to send early data
+		 * (0-RTT data). The callback should return the data to be sent as early
+		 * data, or an empty vector if no early data should be sent.
+		 *
+		 * Early data has restrictions:
+		 * - It may be replayed by an attacker (must be idempotent)
+		 * - Server may reject it (check is_early_data_accepted())
+		 * - Limited in size (check config.max_early_data_size)
+		 */
+		using early_data_callback_t = std::function<std::vector<uint8_t>()>;
+
+		/*!
+		 * \brief Callback type for early data acceptance notification
+		 *
+		 * This callback is invoked when the server's response to early data
+		 * is known. The boolean parameter indicates whether the server accepted
+		 * or rejected the early data.
+		 *
+		 * \param accepted true if server accepted early data, false if rejected
+		 */
+		using early_data_accepted_callback_t = std::function<void(bool accepted)>;
+
+		/*!
+		 * \brief Set callback for receiving session tickets
+		 * \param cb Callback function
+		 *
+		 * Session tickets are received after handshake completion. Store them
+		 * for use with set_session_ticket() in future connections.
+		 *
+		 * \code
+		 * client->set_session_ticket_callback(
+		 *     [](auto ticket, uint32_t lifetime, uint32_t max_early) {
+		 *         // Store ticket for future use
+		 *         save_ticket(ticket, lifetime);
+		 *     });
+		 * \endcode
+		 */
+		auto set_session_ticket_callback(session_ticket_callback_t cb) -> void;
+
+		/*!
+		 * \brief Set callback for producing early data
+		 * \param cb Callback function
+		 *
+		 * The callback is invoked during connection if a valid session ticket
+		 * is configured. It should return the data to send in the 0-RTT phase.
+		 *
+		 * \code
+		 * client->set_early_data_callback([]() {
+		 *     return std::vector<uint8_t>{'H', 'E', 'L', 'L', 'O'};
+		 * });
+		 * \endcode
+		 */
+		auto set_early_data_callback(early_data_callback_t cb) -> void;
+
+		/*!
+		 * \brief Set callback for early data acceptance notification
+		 * \param cb Callback function
+		 *
+		 * Use this to know if early data was accepted by the server.
+		 *
+		 * \code
+		 * client->set_early_data_accepted_callback([](bool accepted) {
+		 *     if (!accepted) {
+		 *         // Resend the data that was in early data
+		 *     }
+		 * });
+		 * \endcode
+		 */
+		auto set_early_data_accepted_callback(early_data_accepted_callback_t cb) -> void;
+
+		/*!
+		 * \brief Check if early data was accepted by the server
+		 * \return true if early data was accepted, false otherwise
+		 *
+		 * This value is only meaningful after handshake completion.
+		 * If false, any data sent as early data should be retransmitted.
+		 */
+		[[nodiscard]] auto is_early_data_accepted() const noexcept -> bool;
+
 	protected:
 		// =====================================================================
 		// CRTP Implementation Methods
@@ -395,6 +500,12 @@ namespace kcenon::network::core
 		uint64_t default_stream_id_{0}; //!< Default stream for send_packet()
 
 		std::atomic<bool> handshake_complete_{false}; //!< TLS handshake status
+
+		// 0-RTT callbacks
+		session_ticket_callback_t session_ticket_cb_; //!< Session ticket callback
+		early_data_callback_t early_data_cb_; //!< Early data production callback
+		early_data_accepted_callback_t early_data_accepted_cb_; //!< Early data acceptance callback
+		std::atomic<bool> early_data_accepted_{false}; //!< Early data acceptance status
 	};
 
 } // namespace kcenon::network::core
