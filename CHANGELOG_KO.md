@@ -133,6 +133,10 @@ Network System 프로젝트의 모든 주요 변경 사항이 이 파일에 문�
   - 패키지 등록 후 `vcpkg install --feature ecosystem`으로 활성화
 
 ### 수정됨
+- **성능 테스트 CI 안정성**: 모든 성능 테스트에 CI 환경 스킵 체크 추가 (#414)
+  - macOS Release CI에서 NetworkPerformanceTest.SmallMessageLatency 타임아웃 실패 수정
+  - CI 스킵 추가 테스트: SmallMessageLatency, LargeMessageLatency, MessageThroughput, BandwidthUtilization, ConcurrentMessageSending, SustainedLoad, BurstLoad
+  - 성능 테스트는 안정적인 타이밍이 필요하며 리소스 제약이 있는 CI 러너에는 적합하지 않음
 - **io_context 생명주기 테스트 재활성화**: io_context 생명주기 문제로 스킵되던 6개 통합 테스트 재활성화 (#400)
   - messaging_client의 io_context에 적용된 intentional leak 패턴 덕분에 CI 환경에서도 테스트 통과
   - Issue #315와 #348을 참조하던 TODO 주석 제거
