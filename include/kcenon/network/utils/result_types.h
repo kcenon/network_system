@@ -207,6 +207,13 @@ namespace kcenon::network {
 		}
 	}
 
+	// Extended error codes (for API compatibility with KCENON_WITH_COMMON_SYSTEM path)
+	namespace error_codes_ext {
+		namespace network_system {
+			constexpr int circuit_open = -604; /*!< Circuit breaker is open */
+		}
+	}
+
 	// Helper functions
 	template<typename T>
 	inline Result<T> ok(T&& value) {
