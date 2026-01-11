@@ -12,6 +12,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Network Metrics Test Coverage**: Add comprehensive test coverage for metrics system (#405)
+  - Added `mock_monitor.h` test helper for monitoring interface mocking
+  - Added 31 unit tests in `test_network_metrics.cpp` covering:
+    - Metric name constants validation
+    - `metric_reporter` static methods
+    - Thread safety with concurrent reporting
+    - Edge cases (zero bytes, large values, empty strings)
+    - `monitoring_integration_manager` singleton behavior
+    - `basic_monitoring` implementation
+  - Added 10 integration tests in `test_metrics_integration.cpp` covering:
+    - Connection lifecycle metrics flow
+    - Error handling metrics
+    - Session metrics with duration tracking
+    - High-volume data transfer scenarios
+    - Concurrent connection tracking
+    - Custom monitoring implementation support
+  - Full test coverage for network metrics public interface
 - **DTLS Socket Test Coverage**: Add comprehensive test coverage for DTLS socket implementation (#401)
   - Added `dtls_test_helpers.h` with SSL context wrapper, certificate generator, and DTLS context factory
   - Added 20 unit tests covering construction, callbacks, handshake, send/receive, and thread safety
