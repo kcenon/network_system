@@ -252,6 +252,57 @@ if(BUILD_QUIC_SUPPORT AND EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/test_quic_e2e.cpp)
     message(STATUS "Integration test configured: test_quic_e2e")
 endif()
 
+# Metrics Integration Test
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/test_metrics_integration.cpp)
+    add_executable(test_metrics_integration test_metrics_integration.cpp)
+
+    target_link_libraries(test_metrics_integration PRIVATE
+        NetworkSystem
+        GTest::gtest
+        GTest::gtest_main
+        Threads::Threads
+    )
+
+    # Setup ASIO integration (required for network_system headers)
+    setup_asio_integration(test_metrics_integration)
+
+    # Add helpers include directory
+    target_include_directories(test_metrics_integration PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/../helpers
+    )
+
+    # Add system integration paths
+    if(CONTAINER_SYSTEM_INCLUDE_DIR)
+        target_include_directories(test_metrics_integration PRIVATE ${CONTAINER_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(test_metrics_integration PRIVATE WITH_CONTAINER_SYSTEM)
+    endif()
+
+    if(THREAD_SYSTEM_INCLUDE_DIR)
+        target_include_directories(test_metrics_integration PRIVATE ${THREAD_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(test_metrics_integration PRIVATE WITH_THREAD_SYSTEM)
+    endif()
+
+    if(LOGGER_SYSTEM_INCLUDE_DIR)
+        target_include_directories(test_metrics_integration PRIVATE ${LOGGER_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(test_metrics_integration PRIVATE WITH_LOGGER_SYSTEM)
+    endif()
+
+    if(COMMON_SYSTEM_INCLUDE_DIR)
+        target_include_directories(test_metrics_integration PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(test_metrics_integration PRIVATE WITH_COMMON_SYSTEM)
+    endif()
+
+    set_target_properties(test_metrics_integration PROPERTIES
+        CXX_STANDARD 20
+        CXX_STANDARD_REQUIRED ON
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+    )
+
+    add_test(NAME MetricsIntegrationTests COMMAND test_metrics_integration)
+
+    message(STATUS "Integration test configured: test_metrics_integration")
+endif()
+
 ##################################################
 # Test Data Setup
 ##################################################
