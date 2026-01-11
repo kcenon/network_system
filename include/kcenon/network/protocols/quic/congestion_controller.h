@@ -128,6 +128,19 @@ public:
     auto on_congestion_event(std::chrono::steady_clock::time_point sent_time) -> void;
 
     /*!
+     * \brief Handle ECN congestion signal (RFC 9002 Section 7.1)
+     * \param sent_time Time the packet was sent that triggered the ECN-CE signal
+     *
+     * Called when ECN-CE marks are detected in ACK_ECN frame.
+     * ECN congestion is treated similarly to packet loss but provides
+     * more responsive congestion detection without waiting for packet loss.
+     *
+     * Only one congestion response is triggered per RTT to avoid
+     * over-reaction to multiple ECN-CE marks within the same round trip.
+     */
+    auto on_ecn_congestion(std::chrono::steady_clock::time_point sent_time) -> void;
+
+    /*!
      * \brief Handle persistent congestion detection (RFC 9002 Section 7.6)
      * \param rtt RTT estimator for PTO calculation
      */
