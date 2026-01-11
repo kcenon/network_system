@@ -12,6 +12,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **QUIC Connection ID Management**: Implement Connection ID storage and rotation per RFC 9000 Section 5.1 (#399)
+  - Added `connection_id_manager` class for peer CID storage and management
+  - Support for NEW_CONNECTION_ID frame processing with sequence tracking
+  - Support for RETIRE_CONNECTION_ID frame generation
+  - Stateless reset token validation for connection migration security
+  - CID rotation API (`rotate_peer_cid()`) for path migration support
+  - Active connection ID limit enforcement from transport parameters
+  - 18 new unit tests for CID management functionality
 - **QUIC PTO Timeout Loss Detection**: Complete PTO timeout handling per RFC 9002 Section 6.2 (#398)
   - Added `rtt_estimator`, `loss_detector`, and `congestion_controller` integration to QUIC connection
   - Implemented `on_timeout()` to handle PTO expiry via loss detector

@@ -87,6 +87,7 @@ auto handshake_state_to_string(handshake_state state) -> const char*
 connection::connection(bool is_server, const connection_id& initial_dcid)
     : is_server_(is_server)
     , initial_dcid_(initial_dcid)
+    , peer_cid_manager_(8)  // Default active_connection_id_limit
     , stream_mgr_(is_server)
     , flow_ctrl_(1048576)  // 1MB default
     , loss_detector_(rtt_estimator_)
@@ -100,6 +101,7 @@ connection::connection(bool is_server, const connection_id& initial_dcid)
     if (!is_server)
     {
         remote_cid_ = initial_dcid;
+        peer_cid_manager_.set_initial_peer_cid(initial_dcid);
     }
 
     // Initialize default transport parameters
@@ -197,6 +199,9 @@ void connection::apply_remote_params()
     // Apply to stream manager
     stream_mgr_.set_peer_max_streams_bidi(remote_params_.initial_max_streams_bidi);
     stream_mgr_.set_peer_max_streams_uni(remote_params_.initial_max_streams_uni);
+
+    // Apply to peer CID manager
+    peer_cid_manager_.set_active_cid_limit(remote_params_.active_connection_id_limit);
 
     // Update idle timeout
     if (remote_params_.max_idle_timeout > 0)
@@ -395,6 +400,7 @@ auto connection::process_long_header_packet(const long_header& hdr,
     if (remote_cid_.length() == 0)
     {
         remote_cid_ = hdr.src_conn_id;
+        peer_cid_manager_.set_initial_peer_cid(hdr.src_conn_id);
     }
 
     // Server: set original DCID for transport parameters
@@ -669,7 +675,24 @@ auto connection::handle_frame(const frame& frm, encryption_level level)
             }
             else if constexpr (std::is_same_v<T, new_connection_id_frame>)
             {
-                // TODO: Store new connection IDs from peer
+                // RFC 9000 Section 19.15: Process NEW_CONNECTION_ID frame
+                // Store the new peer connection ID with its metadata
+                connection_id cid(std::span<const uint8_t>(
+                    f.connection_id.data(), f.connection_id.size()));
+
+                auto result = peer_cid_manager_.add_peer_cid(
+                    cid,
+                    f.sequence_number,
+                    f.retire_prior_to,
+                    f.stateless_reset_token);
+
+                if (result.is_err())
+                {
+                    return error_void(connection_error::protocol_violation,
+                                      "Failed to process NEW_CONNECTION_ID",
+                                      "connection",
+                                      result.error().message);
+                }
                 return ok();
             }
             else if constexpr (std::is_same_v<T, retire_connection_id_frame>)
@@ -860,6 +883,21 @@ auto connection::build_packet(encryption_level level) -> std::vector<uint8_t>
         ccf.is_application_error = application_close_;
         auto encoded = frame_builder::build(ccf);
         payload.insert(payload.end(), encoded.begin(), encoded.end());
+    }
+
+    // Add RETIRE_CONNECTION_ID frames for application level
+    if (level == encryption_level::application && !close_sent_)
+    {
+        auto retire_frames = peer_cid_manager_.get_pending_retire_frames();
+        for (const auto& rf : retire_frames)
+        {
+            auto encoded = frame_builder::build(rf);
+            payload.insert(payload.end(), encoded.begin(), encoded.end());
+        }
+        if (!retire_frames.empty())
+        {
+            peer_cid_manager_.clear_pending_retire_frames();
+        }
     }
 
     // Add stream data frames for application level
@@ -1365,6 +1403,26 @@ auto connection::to_sent_packet(const sent_packet_info& info) const -> sent_pack
     pkt.level = info.level;
     pkt.frames = info.frames;
     return pkt;
+}
+
+// ============================================================================
+// Peer Connection ID Management
+// ============================================================================
+
+auto connection::active_peer_cid() const -> const connection_id&
+{
+    // If peer CID manager has CIDs, use the active one
+    if (peer_cid_manager_.peer_cid_count() > 0)
+    {
+        return peer_cid_manager_.get_active_peer_cid();
+    }
+    // Fall back to remote_cid_ for backward compatibility
+    return remote_cid_;
+}
+
+auto connection::rotate_peer_cid() -> VoidResult
+{
+    return peer_cid_manager_.rotate_peer_cid();
 }
 
 } // namespace kcenon::network::protocols::quic
