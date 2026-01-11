@@ -1023,6 +1023,38 @@ if(GTest_FOUND OR GTEST_FOUND)
     )
     message(STATUS "QUIC loss detection tests enabled")
 
+    # QUIC session ticket tests (0-RTT support)
+    add_executable(network_quic_session_ticket_test
+        test_quic_session_ticket.cpp
+    )
+
+    target_link_libraries(network_quic_session_ticket_test PRIVATE
+        NetworkSystem
+        GTest::gtest
+        GTest::gtest_main
+        Threads::Threads
+    )
+
+    # Setup ASIO integration
+    setup_asio_integration(network_quic_session_ticket_test)
+
+    # Add system integration paths
+    if(COMMON_SYSTEM_INCLUDE_DIR)
+        target_include_directories(network_quic_session_ticket_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(network_quic_session_ticket_test PRIVATE WITH_COMMON_SYSTEM)
+    endif()
+
+    set_target_properties(network_quic_session_ticket_test PROPERTIES
+        CXX_STANDARD 20
+        CXX_STANDARD_REQUIRED ON
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+    )
+
+    gtest_discover_tests(network_quic_session_ticket_test
+        DISCOVERY_TIMEOUT 60
+    )
+    message(STATUS "QUIC session ticket tests enabled")
+
     # QUIC messaging client tests (Phase 4.1)
     add_executable(network_messaging_quic_client_test
         test_messaging_quic_client.cpp
