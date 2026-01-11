@@ -33,6 +33,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <gtest/gtest.h>
 
 #include "kcenon/network/protocols/quic/connection.h"
+#include "kcenon/network/protocols/quic/connection_id_manager.h"
 #include "kcenon/network/protocols/quic/transport_params.h"
 
 #include <chrono>
@@ -644,5 +645,274 @@ TEST_F(ConnectionPtoTest, ClosedConnectionHasNoTimeout)
         auto timeout = conn.next_timeout();
         EXPECT_FALSE(timeout.has_value());
     }
+}
+
+// ============================================================================
+// Connection ID Manager Tests (RFC 9000 Section 5.1)
+// ============================================================================
+
+class ConnectionIdManagerTest : public ::testing::Test
+{
+protected:
+    void SetUp() override {}
+    void TearDown() override {}
+};
+
+TEST_F(ConnectionIdManagerTest, DefaultConstruction)
+{
+    connection_id_manager mgr(8);
+
+    EXPECT_EQ(mgr.active_cid_limit(), 8);
+    EXPECT_EQ(mgr.peer_cid_count(), 0);
+    EXPECT_EQ(mgr.largest_retire_prior_to(), 0);
+}
+
+TEST_F(ConnectionIdManagerTest, SetInitialPeerCid)
+{
+    connection_id_manager mgr(8);
+    auto cid = connection_id::generate();
+
+    mgr.set_initial_peer_cid(cid);
+
+    EXPECT_EQ(mgr.peer_cid_count(), 1);
+    EXPECT_EQ(mgr.get_active_peer_cid(), cid);
+    EXPECT_TRUE(mgr.has_peer_cid(cid));
+}
+
+TEST_F(ConnectionIdManagerTest, AddPeerCid)
+{
+    connection_id_manager mgr(8);
+    auto initial_cid = connection_id::generate();
+    mgr.set_initial_peer_cid(initial_cid);
+
+    auto new_cid = connection_id::generate();
+    std::array<uint8_t, 16> token{};
+    token.fill(0xAB);
+
+    auto result = mgr.add_peer_cid(new_cid, 1, 0, token);
+
+    EXPECT_TRUE(result.is_ok());
+    EXPECT_EQ(mgr.peer_cid_count(), 2);
+    EXPECT_TRUE(mgr.has_peer_cid(new_cid));
+    EXPECT_EQ(mgr.available_peer_cids(), 1);
+}
+
+TEST_F(ConnectionIdManagerTest, AddDuplicateSequenceFails)
+{
+    connection_id_manager mgr(8);
+    auto initial_cid = connection_id::generate();
+    mgr.set_initial_peer_cid(initial_cid);
+
+    auto cid1 = connection_id::generate();
+    auto cid2 = connection_id::generate();
+    std::array<uint8_t, 16> token1{}, token2{};
+    token1.fill(0xAB);
+    token2.fill(0xCD);
+
+    (void)mgr.add_peer_cid(cid1, 1, 0, token1);
+    auto result = mgr.add_peer_cid(cid2, 1, 0, token2);
+
+    EXPECT_TRUE(result.is_err());
+}
+
+TEST_F(ConnectionIdManagerTest, AddIdenticalCidIsIgnored)
+{
+    connection_id_manager mgr(8);
+    auto initial_cid = connection_id::generate();
+    mgr.set_initial_peer_cid(initial_cid);
+
+    auto cid = connection_id::generate();
+    std::array<uint8_t, 16> token{};
+    token.fill(0xAB);
+
+    (void)mgr.add_peer_cid(cid, 1, 0, token);
+    auto result = mgr.add_peer_cid(cid, 1, 0, token);
+
+    EXPECT_TRUE(result.is_ok());
+    EXPECT_EQ(mgr.peer_cid_count(), 2);
+}
+
+TEST_F(ConnectionIdManagerTest, InvalidRetirePriorToFails)
+{
+    connection_id_manager mgr(8);
+    auto initial_cid = connection_id::generate();
+    mgr.set_initial_peer_cid(initial_cid);
+
+    auto cid = connection_id::generate();
+    std::array<uint8_t, 16> token{};
+    token.fill(0xAB);
+
+    // retire_prior_to > sequence is invalid
+    auto result = mgr.add_peer_cid(cid, 1, 2, token);
+
+    EXPECT_TRUE(result.is_err());
+}
+
+TEST_F(ConnectionIdManagerTest, RetireCidsPriorTo)
+{
+    connection_id_manager mgr(8);
+    auto cid0 = connection_id::generate();
+    mgr.set_initial_peer_cid(cid0);
+
+    std::array<uint8_t, 16> token{};
+    auto cid1 = connection_id::generate();
+    auto cid2 = connection_id::generate();
+    (void)mgr.add_peer_cid(cid1, 1, 0, token);
+    (void)mgr.add_peer_cid(cid2, 2, 0, token);
+
+    EXPECT_EQ(mgr.peer_cid_count(), 3);
+
+    mgr.retire_cids_prior_to(2);
+
+    EXPECT_EQ(mgr.largest_retire_prior_to(), 0);  // Not updated here
+    auto retire_frames = mgr.get_pending_retire_frames();
+    EXPECT_EQ(retire_frames.size(), 2);  // CIDs 0 and 1 should be retired
+}
+
+TEST_F(ConnectionIdManagerTest, RotatePeerCid)
+{
+    connection_id_manager mgr(8);
+    auto cid0 = connection_id::generate();
+    mgr.set_initial_peer_cid(cid0);
+
+    std::array<uint8_t, 16> token{};
+    auto cid1 = connection_id::generate();
+    (void)mgr.add_peer_cid(cid1, 1, 0, token);
+
+    EXPECT_EQ(mgr.get_active_peer_cid(), cid0);
+
+    auto result = mgr.rotate_peer_cid();
+    EXPECT_TRUE(result.is_ok());
+    EXPECT_EQ(mgr.get_active_peer_cid(), cid1);
+}
+
+TEST_F(ConnectionIdManagerTest, RotatePeerCidFailsWhenNoneAvailable)
+{
+    connection_id_manager mgr(8);
+    auto cid0 = connection_id::generate();
+    mgr.set_initial_peer_cid(cid0);
+
+    auto result = mgr.rotate_peer_cid();
+
+    EXPECT_TRUE(result.is_err());
+}
+
+TEST_F(ConnectionIdManagerTest, StatelessResetTokenValidation)
+{
+    connection_id_manager mgr(8);
+    auto cid = connection_id::generate();
+    mgr.set_initial_peer_cid(cid);
+
+    std::array<uint8_t, 16> token{};
+    token.fill(0xAB);
+    auto new_cid = connection_id::generate();
+    (void)mgr.add_peer_cid(new_cid, 1, 0, token);
+
+    EXPECT_TRUE(mgr.is_stateless_reset_token(token));
+
+    std::array<uint8_t, 16> unknown_token{};
+    unknown_token.fill(0xFF);
+    EXPECT_FALSE(mgr.is_stateless_reset_token(unknown_token));
+}
+
+TEST_F(ConnectionIdManagerTest, ActiveCidLimitExceeded)
+{
+    connection_id_manager mgr(2);  // Limit of 2
+    auto cid0 = connection_id::generate();
+    mgr.set_initial_peer_cid(cid0);
+
+    std::array<uint8_t, 16> token{};
+    auto cid1 = connection_id::generate();
+    (void)mgr.add_peer_cid(cid1, 1, 0, token);
+
+    auto cid2 = connection_id::generate();
+    auto result = mgr.add_peer_cid(cid2, 2, 0, token);
+
+    EXPECT_TRUE(result.is_err());
+}
+
+TEST_F(ConnectionIdManagerTest, PendingRetireFrames)
+{
+    connection_id_manager mgr(8);
+    auto cid0 = connection_id::generate();
+    mgr.set_initial_peer_cid(cid0);
+
+    std::array<uint8_t, 16> token{};
+    auto cid1 = connection_id::generate();
+    (void)mgr.add_peer_cid(cid1, 1, 0, token);
+
+    auto result = mgr.retire_peer_cid(0);
+    EXPECT_TRUE(result.is_ok());
+
+    auto frames = mgr.get_pending_retire_frames();
+    EXPECT_EQ(frames.size(), 1);
+    EXPECT_EQ(frames[0].sequence_number, 0);
+
+    mgr.clear_pending_retire_frames();
+    EXPECT_TRUE(mgr.get_pending_retire_frames().empty());
+}
+
+TEST_F(ConnectionIdManagerTest, RetireNonexistentCidFails)
+{
+    connection_id_manager mgr(8);
+    auto cid0 = connection_id::generate();
+    mgr.set_initial_peer_cid(cid0);
+
+    auto result = mgr.retire_peer_cid(99);
+
+    EXPECT_TRUE(result.is_err());
+}
+
+// ============================================================================
+// Connection Peer CID Integration Tests
+// ============================================================================
+
+class ConnectionPeerCidTest : public ::testing::Test
+{
+protected:
+    connection_id initial_dcid_ = connection_id::generate();
+};
+
+TEST_F(ConnectionPeerCidTest, ClientHasPeerCidManagerInitialized)
+{
+    connection conn(false, initial_dcid_);
+
+    EXPECT_EQ(conn.peer_cid_manager().peer_cid_count(), 1);
+    EXPECT_EQ(conn.peer_cid_manager().get_active_peer_cid(), initial_dcid_);
+}
+
+TEST_F(ConnectionPeerCidTest, ActivePeerCidReturnsCorrectCid)
+{
+    connection conn(false, initial_dcid_);
+
+    EXPECT_EQ(conn.active_peer_cid(), initial_dcid_);
+}
+
+TEST_F(ConnectionPeerCidTest, RotatePeerCidFailsWithOnlyCid)
+{
+    connection conn(false, initial_dcid_);
+
+    auto result = conn.rotate_peer_cid();
+
+    EXPECT_TRUE(result.is_err());
+}
+
+TEST_F(ConnectionPeerCidTest, PeerCidManagerAccessible)
+{
+    connection conn(false, initial_dcid_);
+
+    auto& mgr = conn.peer_cid_manager();
+    EXPECT_EQ(mgr.active_cid_limit(), 8);
+}
+
+TEST_F(ConnectionPeerCidTest, TransportParamsUpdatesCidLimit)
+{
+    connection conn(false, initial_dcid_);
+
+    transport_parameters params;
+    params.active_connection_id_limit = 4;
+    conn.set_remote_params(params);
+
+    EXPECT_EQ(conn.peer_cid_manager().active_cid_limit(), 4);
 }
 
