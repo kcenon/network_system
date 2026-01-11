@@ -12,6 +12,16 @@ Network System 프로젝트의 모든 주요 변경 사항이 이 파일에 문�
 ## [미배포]
 
 ### 추가됨
+- **Circuit Breaker 패턴**: 회복 탄력적인 네트워크 클라이언트를 위한 Circuit Breaker 구현 (#403)
+  - 세 가지 상태 패턴(closed, open, half_open)을 가진 `circuit_breaker` 클래스 추가
+  - 사용자 정의 가능한 임계값 및 타임아웃을 위한 `circuit_breaker_config` 구조체 추가
+  - 설정 가능한 파라미터: `failure_threshold`, `open_duration`, `half_open_successes`, `half_open_max_calls`
+  - `set_state_change_callback()`을 통한 상태 변경 콜백 지원
+  - atomic 연산과 mutex 보호를 통한 스레드 안전 구현
+  - 자동 서킷 관리를 위해 `resilient_client`와 통합
+  - `resilient_client`에 `circuit_state()`, `reset_circuit()`, `set_circuit_state_callback()` 추가
+  - 빠른 실패 시나리오를 위한 `circuit_open` 오류 코드 추가
+  - 상태 전환, 콜백, 리셋, 스레드 안전성을 다루는 18개의 단위 테스트
 - **QUIC 0-RTT 세션 티켓 저장**: 0-RTT 재개를 위한 세션 티켓 저장 및 복원 구현 (#402)
   - 서버 엔드포인트별 세션 티켓 저장/조회를 위한 `session_ticket_store` 클래스 추가
   - 티켓 메타데이터, 만료 추적 및 검증을 포함한 `session_ticket_info` 구조체 추가
@@ -175,6 +185,10 @@ Network System 프로젝트의 모든 주요 변경 사항이 이 파일에 문�
   - 패키지 등록 후 `vcpkg install --feature ecosystem`으로 활성화
 
 ### 수정됨
+- **Circuit Breaker 빌드 수정**: fallback 빌드 경로에 error_codes_ext 네임스페이스 추가 (#403)
+  - common_system 의존성 없이 빌드 시 발생하던 빌드 실패 수정
+  - result_types.h의 fallback 블록에 circuit_open 오류 코드를 포함한 error_codes_ext 네임스페이스 추가
+  - KCENON_WITH_COMMON_SYSTEM 및 독립 빌드 간 API 호환성 보장
 - **성능 테스트 CI 안정성**: 모든 성능 테스트에 CI 환경 스킵 체크 추가 (#414)
   - macOS Release CI에서 NetworkPerformanceTest.SmallMessageLatency 타임아웃 실패 수정
   - CI 스킵 추가 테스트: SmallMessageLatency, LargeMessageLatency, MessageThroughput, BandwidthUtilization, ConcurrentMessageSending, SustainedLoad, BurstLoad

@@ -43,16 +43,20 @@ namespace kcenon::network::utils
 									   const std::string& host,
 									   unsigned short port,
 									   size_t max_retries,
-									   std::chrono::milliseconds initial_backoff)
+									   std::chrono::milliseconds initial_backoff,
+									   circuit_breaker::config cb_config)
 		: host_(host)
 		, port_(port)
 		, max_retries_(max_retries)
 		, initial_backoff_(initial_backoff)
+		, circuit_breaker_(std::make_unique<circuit_breaker>(cb_config))
 	{
 		client_ = std::make_shared<core::messaging_client>(client_id);
 		NETWORK_LOG_INFO("[resilient_client] Created with max_retries=" +
 			std::to_string(max_retries) + ", initial_backoff=" +
-			std::to_string(initial_backoff.count()) + "ms");
+			std::to_string(initial_backoff.count()) + "ms" +
+			", circuit_breaker failure_threshold=" +
+			std::to_string(cb_config.failure_threshold));
 	}
 
 	resilient_client::~resilient_client() noexcept
@@ -150,6 +154,18 @@ namespace kcenon::network::utils
 
 	auto resilient_client::send_with_retry(std::vector<uint8_t>&& data) -> VoidResult
 	{
+		// Check circuit breaker first
+		if (!circuit_breaker_->allow_call())
+		{
+			NETWORK_LOG_WARN("[resilient_client] Circuit breaker is open, failing fast");
+			return error_void(
+				kcenon::network::error_codes_ext::network_system::circuit_open,
+				"Circuit breaker is open",
+				"resilient_client::send_with_retry",
+				"Circuit state: " + circuit_breaker::state_to_string(circuit_breaker_->current_state())
+			);
+		}
+
 		// Keep a copy of the data for retries
 		auto data_copy = data;
 
@@ -166,6 +182,9 @@ namespace kcenon::network::utils
 				{
 					NETWORK_LOG_ERROR("[resilient_client] Reconnection failed: " +
 						reconnect_result.error().message);
+
+					// Record failure to circuit breaker
+					circuit_breaker_->record_failure();
 
 					// Exponential backoff before next retry
 					if (attempt < max_retries_)
@@ -185,6 +204,9 @@ namespace kcenon::network::utils
 
 			if (!result.is_err())
 			{
+				// Record success to circuit breaker
+				circuit_breaker_->record_success();
+
 				NETWORK_LOG_DEBUG("[resilient_client] Sent " +
 					std::to_string(data_copy.size()) + " bytes successfully");
 				return ok();
@@ -192,6 +214,9 @@ namespace kcenon::network::utils
 
 			NETWORK_LOG_WARN("[resilient_client] Send attempt " +
 				std::to_string(attempt) + " failed: " + result.error().message);
+
+			// Record failure to circuit breaker
+			circuit_breaker_->record_failure();
 
 			// Mark as disconnected if send failed
 			is_connected_.store(false);
@@ -301,6 +326,23 @@ namespace kcenon::network::utils
 			std::chrono::seconds(30));
 
 		return std::min(backoff, max_backoff);
+	}
+
+	auto resilient_client::circuit_state() const -> circuit_breaker::state
+	{
+		return circuit_breaker_->current_state();
+	}
+
+	auto resilient_client::reset_circuit() -> void
+	{
+		circuit_breaker_->reset();
+		NETWORK_LOG_INFO("[resilient_client] Circuit breaker reset");
+	}
+
+	auto resilient_client::set_circuit_state_callback(
+		circuit_breaker::state_change_callback callback) -> void
+	{
+		circuit_breaker_->set_state_change_callback(std::move(callback));
 	}
 
 } // namespace kcenon::network::utils
