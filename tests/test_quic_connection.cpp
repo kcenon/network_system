@@ -35,6 +35,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "kcenon/network/protocols/quic/connection.h"
 #include "kcenon/network/protocols/quic/transport_params.h"
 
+#include <chrono>
+#include <thread>
+
 using namespace kcenon::network::protocols::quic;
 
 // ============================================================================
@@ -557,5 +560,89 @@ TEST_F(PreferredAddressTest, EncodeDecodePreferredAddress)
     EXPECT_EQ(decoded_addr.ipv6_address, addr.ipv6_address);
     EXPECT_EQ(decoded_addr.ipv6_port, addr.ipv6_port);
     EXPECT_EQ(decoded_addr.stateless_reset_token, addr.stateless_reset_token);
+}
+
+// ============================================================================
+// PTO Timeout Tests (RFC 9002)
+// ============================================================================
+
+class ConnectionPtoTest : public ::testing::Test
+{
+protected:
+    connection_id initial_dcid_ = connection_id::generate();
+};
+
+TEST_F(ConnectionPtoTest, OnTimeoutHandlesIdleTimeout)
+{
+    connection conn(false, initial_dcid_);
+
+    // Set a very short idle timeout for testing
+    transport_parameters params;
+    params.max_idle_timeout = 1;  // 1ms
+    conn.set_local_params(params);
+    conn.set_remote_params(params);
+
+    // Wait for idle timeout to expire
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+
+    // on_timeout should transition to closed state
+    conn.on_timeout();
+
+    EXPECT_EQ(conn.state(), connection_state::closed);
+    EXPECT_EQ(conn.close_reason(), "Idle timeout");
+}
+
+TEST_F(ConnectionPtoTest, NextTimeoutReturnsEarliestDeadline)
+{
+    connection conn(false, initial_dcid_);
+
+    // next_timeout should return a valid time point
+    auto timeout = conn.next_timeout();
+    ASSERT_TRUE(timeout.has_value());
+
+    // Timeout should be in the future
+    auto now = std::chrono::steady_clock::now();
+    EXPECT_GT(*timeout, now);
+}
+
+TEST_F(ConnectionPtoTest, OnTimeoutDoesNotCloseBeforeDeadline)
+{
+    connection conn(false, initial_dcid_);
+
+    // Call on_timeout immediately (before idle deadline)
+    conn.on_timeout();
+
+    // Connection should still be in initial state (not closed)
+    EXPECT_NE(conn.state(), connection_state::closed);
+}
+
+TEST_F(ConnectionPtoTest, ClosedConnectionHasNoTimeout)
+{
+    connection conn(false, initial_dcid_);
+
+    // Close the connection
+    (void)conn.close(0, "Test close");
+
+    // Simulate draining period end
+    std::this_thread::sleep_for(std::chrono::milliseconds(5));
+    conn.on_timeout();
+
+    // Wait for drain to complete by repeated on_timeout calls
+    for (int i = 0; i < 100; ++i)
+    {
+        if (conn.is_closed())
+        {
+            break;
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        conn.on_timeout();
+    }
+
+    // After closing, next_timeout should return nullopt
+    if (conn.is_closed())
+    {
+        auto timeout = conn.next_timeout();
+        EXPECT_FALSE(timeout.has_value());
+    }
 }
 
