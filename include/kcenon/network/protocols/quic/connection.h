@@ -32,11 +32,14 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
+#include "kcenon/network/protocols/quic/congestion_controller.h"
 #include "kcenon/network/protocols/quic/connection_id.h"
 #include "kcenon/network/protocols/quic/crypto.h"
 #include "kcenon/network/protocols/quic/flow_control.h"
 #include "kcenon/network/protocols/quic/frame.h"
+#include "kcenon/network/protocols/quic/loss_detector.h"
 #include "kcenon/network/protocols/quic/packet.h"
+#include "kcenon/network/protocols/quic/rtt_estimator.h"
 #include "kcenon/network/protocols/quic/stream_manager.h"
 #include "kcenon/network/protocols/quic/transport_params.h"
 #include "kcenon/network/utils/result_types.h"
@@ -505,6 +508,11 @@ private:
     stream_manager stream_mgr_;
     flow_controller flow_ctrl_;
 
+    // Loss detection and congestion control (RFC 9002)
+    rtt_estimator rtt_estimator_;
+    loss_detector loss_detector_;
+    congestion_controller congestion_controller_;
+
     // Packet number spaces
     packet_number_space initial_space_;
     packet_number_space handshake_space_;
@@ -613,6 +621,29 @@ private:
      */
     [[nodiscard]] auto generate_ack_frame(const packet_number_space& space)
         -> std::optional<ack_frame>;
+
+    /*!
+     * \brief Handle loss detection result (RFC 9002)
+     * \param result Loss detection result from timeout or ACK processing
+     */
+    void handle_loss_detection_result(const loss_detection_result& result);
+
+    /*!
+     * \brief Generate probe packets for PTO (RFC 9002 Section 6.2.4)
+     * Sends one or two ack-eliciting packets to probe for acknowledgment.
+     */
+    void generate_probe_packets();
+
+    /*!
+     * \brief Queue frames from lost packet for retransmission
+     * \param lost_packet The packet that was declared lost
+     */
+    void queue_frames_for_retransmission(const sent_packet& lost_packet);
+
+    /*!
+     * \brief Convert sent_packet_info to sent_packet for loss detector
+     */
+    [[nodiscard]] auto to_sent_packet(const sent_packet_info& info) const -> sent_packet;
 };
 
 } // namespace kcenon::network::protocols::quic

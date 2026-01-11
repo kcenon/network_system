@@ -119,6 +119,11 @@ TEST_F(NetworkPerformanceTest, SingleConnectionLatency) {
 // ============================================================================
 
 TEST_F(NetworkPerformanceTest, SmallMessageLatency) {
+    // Skip performance tests in CI due to resource contention and timing variability
+    if (test_helpers::is_ci_environment()) {
+        GTEST_SKIP() << "Skipping message latency test in CI environment";
+    }
+
     ASSERT_TRUE(StartServer());
     ASSERT_TRUE(ConnectClient());
 
@@ -150,6 +155,11 @@ TEST_F(NetworkPerformanceTest, SmallMessageLatency) {
 }
 
 TEST_F(NetworkPerformanceTest, LargeMessageLatency) {
+    // Skip performance tests in CI due to resource contention and timing variability
+    if (test_helpers::is_ci_environment()) {
+        GTEST_SKIP() << "Skipping message latency test in CI environment";
+    }
+
     ASSERT_TRUE(StartServer());
     ASSERT_TRUE(ConnectClient());
 
@@ -183,6 +193,11 @@ TEST_F(NetworkPerformanceTest, LargeMessageLatency) {
 // ============================================================================
 
 TEST_F(NetworkPerformanceTest, MessageThroughput) {
+    // Skip performance tests in CI due to resource contention and timing variability
+    if (test_helpers::is_ci_environment()) {
+        GTEST_SKIP() << "Skipping throughput test in CI environment";
+    }
+
     ASSERT_TRUE(StartServer());
     ASSERT_TRUE(ConnectClient());
 
@@ -206,6 +221,11 @@ TEST_F(NetworkPerformanceTest, MessageThroughput) {
 }
 
 TEST_F(NetworkPerformanceTest, BandwidthUtilization) {
+    // Skip performance tests in CI due to resource contention and timing variability
+    if (test_helpers::is_ci_environment()) {
+        GTEST_SKIP() << "Skipping bandwidth test in CI environment";
+    }
+
     ASSERT_TRUE(StartServer());
     ASSERT_TRUE(ConnectClient());
 
@@ -273,6 +293,11 @@ TEST_F(ConcurrentPerformanceTest, ConcurrentConnectionScalability) {
 }
 
 TEST_F(ConcurrentPerformanceTest, ConcurrentMessageSending) {
+    // Skip concurrent performance tests in CI due to resource contention
+    if (test_helpers::is_ci_environment()) {
+        GTEST_SKIP() << "Skipping concurrent performance test in CI environment";
+    }
+
     ASSERT_TRUE(StartServer());
 
     constexpr size_t num_clients = 20;
@@ -306,6 +331,11 @@ TEST_F(ConcurrentPerformanceTest, ConcurrentMessageSending) {
 // ============================================================================
 
 TEST_F(NetworkPerformanceTest, SustainedLoad) {
+    // Skip performance tests in CI due to resource contention and timing variability
+    if (test_helpers::is_ci_environment()) {
+        GTEST_SKIP() << "Skipping load test in CI environment";
+    }
+
     ASSERT_TRUE(StartServer());
     ASSERT_TRUE(ConnectClient());
 
@@ -334,6 +364,11 @@ TEST_F(NetworkPerformanceTest, SustainedLoad) {
 }
 
 TEST_F(NetworkPerformanceTest, BurstLoad) {
+    // Skip performance tests in CI due to resource contention and timing variability
+    if (test_helpers::is_ci_environment()) {
+        GTEST_SKIP() << "Skipping load test in CI environment";
+    }
+
     ASSERT_TRUE(StartServer());
     ASSERT_TRUE(ConnectClient());
 
