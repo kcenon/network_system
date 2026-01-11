@@ -12,6 +12,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Circuit Breaker Pattern**: Implement Circuit Breaker for resilient network clients (#403)
+  - Added `circuit_breaker` class with three-state pattern (closed, open, half_open)
+  - Added `circuit_breaker_config` struct for customizable thresholds and timeouts
+  - Configurable parameters: `failure_threshold`, `open_duration`, `half_open_successes`, `half_open_max_calls`
+  - State change callback support via `set_state_change_callback()`
+  - Thread-safe implementation with atomic operations and mutex protection
+  - Integrated with `resilient_client` for automatic circuit management
+  - Added `circuit_state()`, `reset_circuit()`, `set_circuit_state_callback()` to `resilient_client`
+  - Added `circuit_open` error code for fast-fail scenarios
+  - 18 unit tests covering state transitions, callbacks, reset, and thread safety
 - **QUIC 0-RTT Session Ticket Storage**: Implement session ticket storage and restoration for 0-RTT resumption (#402)
   - Added `session_ticket_store` class for storing/retrieving session tickets by server endpoint
   - Added `session_ticket_info` struct with ticket metadata, expiry tracking, and validation
