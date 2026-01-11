@@ -12,6 +12,14 @@ Network System 프로젝트의 모든 주요 변경 사항이 이 파일에 문�
 ## [미배포]
 
 ### 추가됨
+- **QUIC 연결 ID 관리**: RFC 9000 Section 5.1에 따른 연결 ID 저장 및 로테이션 구현 (#399)
+  - 피어 CID 저장 및 관리를 위한 `connection_id_manager` 클래스 추가
+  - 시퀀스 추적이 포함된 NEW_CONNECTION_ID 프레임 처리 지원
+  - RETIRE_CONNECTION_ID 프레임 생성 지원
+  - 연결 마이그레이션 보안을 위한 Stateless reset token 검증
+  - 경로 마이그레이션 지원을 위한 CID 로테이션 API (`rotate_peer_cid()`)
+  - 전송 파라미터의 활성 연결 ID 제한 적용
+  - CID 관리 기능에 대한 18개의 새로운 단위 테스트
 - **QUIC PTO 타임아웃 손실 감지**: RFC 9002 Section 6.2에 따른 완전한 PTO 타임아웃 처리 (#398)
   - QUIC 연결에 `rtt_estimator`, `loss_detector`, `congestion_controller` 통합 추가
   - 손실 감지기를 통한 PTO 만료 처리를 위한 `on_timeout()` 구현

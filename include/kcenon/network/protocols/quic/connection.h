@@ -34,6 +34,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "kcenon/network/protocols/quic/congestion_controller.h"
 #include "kcenon/network/protocols/quic/connection_id.h"
+#include "kcenon/network/protocols/quic/connection_id_manager.h"
 #include "kcenon/network/protocols/quic/crypto.h"
 #include "kcenon/network/protocols/quic/flow_control.h"
 #include "kcenon/network/protocols/quic/frame.h"
@@ -280,6 +281,38 @@ public:
      */
     [[nodiscard]] auto retire_cid(uint64_t sequence) -> VoidResult;
 
+    /*!
+     * \brief Get the peer connection ID manager
+     */
+    [[nodiscard]] auto peer_cid_manager() -> connection_id_manager&
+    {
+        return peer_cid_manager_;
+    }
+
+    /*!
+     * \brief Get the peer connection ID manager (const)
+     */
+    [[nodiscard]] auto peer_cid_manager() const -> const connection_id_manager&
+    {
+        return peer_cid_manager_;
+    }
+
+    /*!
+     * \brief Get the currently active peer connection ID
+     *
+     * This returns the peer CID that should be used in outgoing packets.
+     * It may differ from remote_cid() if CID rotation has occurred.
+     */
+    [[nodiscard]] auto active_peer_cid() const -> const connection_id&;
+
+    /*!
+     * \brief Rotate to a new peer connection ID
+     * \return Success or error if no unused CID is available
+     *
+     * Used for path migration or proactive CID rotation.
+     */
+    [[nodiscard]] auto rotate_peer_cid() -> VoidResult;
+
     // ========================================================================
     // Transport Parameters
     // ========================================================================
@@ -498,6 +531,7 @@ private:
     connection_id initial_dcid_;  // For initial key derivation
     std::vector<std::pair<uint64_t, connection_id>> local_cids_;
     uint64_t next_cid_sequence_{1};
+    connection_id_manager peer_cid_manager_;  // Manages peer CIDs (RFC 9000 Section 5.1)
 
     // Transport parameters
     transport_parameters local_params_;
