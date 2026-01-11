@@ -89,6 +89,7 @@ connection::connection(bool is_server, const connection_id& initial_dcid)
     , initial_dcid_(initial_dcid)
     , stream_mgr_(is_server)
     , flow_ctrl_(1048576)  // 1MB default
+    , loss_detector_(rtt_estimator_)
 {
     // Generate local connection ID
     local_cid_ = connection_id::generate();
@@ -504,14 +505,30 @@ auto connection::handle_frame(const frame& frm, encryption_level level)
             }
             else if constexpr (std::is_same_v<T, ack_frame>)
             {
-                // Process ACK
+                // Process ACK using loss detector (RFC 9002)
+                auto recv_time = std::chrono::steady_clock::now();
+                auto result = loss_detector_.on_ack_received(f, level, recv_time);
+
+                // Handle loss detection result
+                handle_loss_detection_result(result);
+
+                // Reset PTO count on receiving acknowledgment
+                loss_detector_.reset_pto_count();
+
+                // Update handshake confirmation for loss detector
+                if (crypto_.is_handshake_complete())
+                {
+                    loss_detector_.set_handshake_confirmed(true);
+                }
+
+                // Also update our local packet number space tracking
                 auto& space = get_pn_space(level);
                 if (f.largest_acknowledged > space.largest_acked)
                 {
                     space.largest_acked = f.largest_acknowledged;
                 }
 
-                // Mark acknowledged packets
+                // Remove acknowledged packets from local tracking
                 for (auto it = space.sent_packets.begin();
                      it != space.sent_packets.end();)
                 {
@@ -890,7 +907,7 @@ auto connection::build_packet(encryption_level level) -> std::vector<uint8_t>
 
     packet = std::move(protect_result.value());
 
-    // Track sent packet
+    // Track sent packet for local state
     sent_packet_info info;
     info.packet_number = pn;
     info.sent_time = std::chrono::steady_clock::now();
@@ -898,6 +915,27 @@ auto connection::build_packet(encryption_level level) -> std::vector<uint8_t>
     info.ack_eliciting = !payload.empty();
     info.in_flight = true;
     info.level = level;
+    // Note: frames are not stored here as the current implementation
+    // doesn't track individual frames in build_packet.
+    // For full retransmission support, frames would need to be collected
+    // during packet building and stored here.
+
+    // Notify loss detector about sent packet (RFC 9002)
+    sent_packet sent_pkt;
+    sent_pkt.packet_number = info.packet_number;
+    sent_pkt.sent_time = info.sent_time;
+    sent_pkt.sent_bytes = info.sent_bytes;
+    sent_pkt.ack_eliciting = info.ack_eliciting;
+    sent_pkt.in_flight = info.in_flight;
+    sent_pkt.level = info.level;
+    loss_detector_.on_packet_sent(sent_pkt);
+
+    // Notify congestion controller about sent packet
+    if (info.in_flight)
+    {
+        congestion_controller_.on_packet_sent(info.sent_bytes);
+    }
+
     space.sent_packets[pn] = std::move(info);
 
     bytes_sent_ += packet.size();
@@ -1079,6 +1117,13 @@ auto connection::next_timeout() const
         return drain_deadline_;
     }
 
+    // Return the earliest of idle timeout and loss detection timeout
+    auto loss_timeout = loss_detector_.next_timeout();
+    if (loss_timeout.has_value())
+    {
+        return std::min(idle_deadline_, *loss_timeout);
+    }
+
     return idle_deadline_;
 }
 
@@ -1102,7 +1147,13 @@ void connection::on_timeout()
         return;
     }
 
-    // TODO: Handle PTO timeout for loss detection
+    // Handle PTO timeout for loss detection (RFC 9002 Section 6.2)
+    auto loss_timeout = loss_detector_.next_timeout();
+    if (loss_timeout.has_value() && now >= *loss_timeout)
+    {
+        auto result = loss_detector_.on_timeout();
+        handle_loss_detection_result(result);
+    }
 }
 
 // ============================================================================
@@ -1127,6 +1178,193 @@ auto connection::generate_ack_frame(const packet_number_space& space)
     // For simplicity, we don't add any additional ranges
 
     return ack;
+}
+
+// ============================================================================
+// Loss Detection and Congestion Control (RFC 9002)
+// ============================================================================
+
+void connection::handle_loss_detection_result(const loss_detection_result& result)
+{
+    switch (result.event)
+    {
+    case loss_detection_event::pto_expired:
+        // PTO timeout: generate probe packets (RFC 9002 Section 6.2.4)
+        generate_probe_packets();
+        break;
+
+    case loss_detection_event::packet_lost:
+        // Handle lost packets: queue frames for retransmission and update congestion control
+        for (const auto& lost : result.lost_packets)
+        {
+            queue_frames_for_retransmission(lost);
+            congestion_controller_.on_packet_lost(lost);
+        }
+        break;
+
+    case loss_detection_event::none:
+        // No action needed
+        break;
+    }
+
+    // Process acknowledged packets for congestion control
+    auto ack_time = std::chrono::steady_clock::now();
+    for (const auto& acked : result.acked_packets)
+    {
+        congestion_controller_.on_packet_acked(acked, ack_time);
+    }
+}
+
+void connection::generate_probe_packets()
+{
+    // RFC 9002 Section 6.2.4: When PTO expires, send one or two ack-eliciting packets.
+    // Probe packets must be ack-eliciting.
+
+    // Determine which encryption level to use for probes
+    // Priority: Application > Handshake > Initial (use the highest available)
+    encryption_level probe_level = encryption_level::initial;
+
+    if (crypto_.get_write_keys(encryption_level::application).is_ok())
+    {
+        probe_level = encryption_level::application;
+    }
+    else if (crypto_.get_write_keys(encryption_level::handshake).is_ok())
+    {
+        probe_level = encryption_level::handshake;
+    }
+
+    // Generate a PING frame as an ack-eliciting probe
+    // PING frames are the simplest ack-eliciting frames
+    pending_frames_.emplace_back(ping_frame{});
+
+    // Mark that we need to send packets
+    switch (probe_level)
+    {
+    case encryption_level::initial:
+        // For initial space, we might need to retransmit crypto data
+        if (!pending_crypto_initial_.empty())
+        {
+            // Crypto data will be sent as probe
+            break;
+        }
+        // Queue a PING frame
+        break;
+
+    case encryption_level::handshake:
+        if (!pending_crypto_handshake_.empty())
+        {
+            break;
+        }
+        break;
+
+    case encryption_level::application:
+    case encryption_level::zero_rtt:
+        // Application level: PING is sufficient
+        break;
+    }
+}
+
+void connection::queue_frames_for_retransmission(const sent_packet& lost_packet)
+{
+    // Queue frames from the lost packet for retransmission
+    // Note: Some frames should not be retransmitted (ACK, PADDING)
+    const auto level = lost_packet.level;
+
+    for (const auto& f : lost_packet.frames)
+    {
+        std::visit(
+            [this, level](const auto& frm)
+            {
+                using T = std::decay_t<decltype(frm)>;
+
+                // Skip non-retransmittable frames
+                if constexpr (std::is_same_v<T, padding_frame> ||
+                              std::is_same_v<T, ack_frame>)
+                {
+                    // These frames are not retransmitted
+                }
+                else if constexpr (std::is_same_v<T, crypto_frame>)
+                {
+                    // Crypto frames need to be retransmitted with their data
+                    switch (level)
+                    {
+                    case encryption_level::initial:
+                        pending_crypto_initial_.push_back(frm.data);
+                        break;
+                    case encryption_level::handshake:
+                        pending_crypto_handshake_.push_back(frm.data);
+                        break;
+                    case encryption_level::zero_rtt:
+                    case encryption_level::application:
+                        pending_crypto_app_.push_back(frm.data);
+                        break;
+                    }
+                }
+                else if constexpr (std::is_same_v<T, stream_frame>)
+                {
+                    // Stream data retransmission:
+                    // The stream will naturally resend unacknowledged data
+                    // when next_stream_frame() is called, as the data remains
+                    // in the send buffer until acknowledged via acknowledge_data().
+                    // No explicit action needed here.
+                    (void)frm;
+                }
+                else if constexpr (std::is_same_v<T, ping_frame> ||
+                                   std::is_same_v<T, new_token_frame> ||
+                                   std::is_same_v<T, handshake_done_frame>)
+                {
+                    // These frames can be retransmitted
+                    pending_frames_.push_back(frm);
+                }
+                else if constexpr (std::is_same_v<T, max_data_frame> ||
+                                   std::is_same_v<T, max_stream_data_frame> ||
+                                   std::is_same_v<T, max_streams_frame> ||
+                                   std::is_same_v<T, data_blocked_frame> ||
+                                   std::is_same_v<T, stream_data_blocked_frame> ||
+                                   std::is_same_v<T, streams_blocked_frame>)
+                {
+                    // Flow control frames: queue for retransmission
+                    pending_frames_.push_back(frm);
+                }
+                else if constexpr (std::is_same_v<T, reset_stream_frame> ||
+                                   std::is_same_v<T, stop_sending_frame>)
+                {
+                    // Stream control frames: queue for retransmission
+                    pending_frames_.push_back(frm);
+                }
+                else if constexpr (std::is_same_v<T, new_connection_id_frame> ||
+                                   std::is_same_v<T, retire_connection_id_frame>)
+                {
+                    // Connection ID management: queue for retransmission
+                    pending_frames_.push_back(frm);
+                }
+                else if constexpr (std::is_same_v<T, path_challenge_frame> ||
+                                   std::is_same_v<T, path_response_frame>)
+                {
+                    // Path validation: may need fresh challenge, skip retransmission
+                    (void)frm;
+                }
+                else if constexpr (std::is_same_v<T, connection_close_frame>)
+                {
+                    // CONNECTION_CLOSE is handled specially during closing
+                    (void)frm;
+                }
+            },
+            f);
+    }
+}
+
+auto connection::to_sent_packet(const sent_packet_info& info) const -> sent_packet
+{
+    sent_packet pkt;
+    pkt.packet_number = info.packet_number;
+    pkt.sent_time = info.sent_time;
+    pkt.sent_bytes = info.sent_bytes;
+    pkt.ack_eliciting = info.ack_eliciting;
+    pkt.in_flight = info.in_flight;
+    pkt.level = info.level;
+    pkt.frames = info.frames;
+    return pkt;
 }
 
 } // namespace kcenon::network::protocols::quic
