@@ -12,6 +12,16 @@ Network System 프로젝트의 모든 주요 변경 사항이 이 파일에 문�
 ## [미배포]
 
 ### 추가됨
+- **QUIC ECN 피드백 통합**: RFC 9000/9002에 따른 ECN 피드백 혼잡 제어 통합 (#404)
+  - ACK_ECN 프레임에서 ECN 카운트를 추적하는 `ecn_tracker` 클래스 추가
+  - 연결 설정 중 ECN 유효성 검증 추가
+  - 혼잡 신호, 유효성 검증 실패 또는 신호 없음을 위한 `ecn_result` 열거형 추가
+  - ECN-CE 증가 감지를 위해 `loss_detector`에 ECN 처리 통합
+  - ECN 기반 혼잡 응답을 위해 `congestion_controller`에 `on_ecn_congestion()` 추가
+  - 자동 혼잡 처리를 위해 `connection`에 ECN 신호 연결
+  - ECN은 손실 기반 방식보다 빠른 혼잡 감지 제공
+  - 네트워크 경로에서 ECN을 지원하지 않을 때 우아한 폴백
+  - ECN 추적, 통합, 전체 흐름 시나리오를 다루는 19개의 단위 테스트
 - **Circuit Breaker 패턴**: 회복 탄력적인 네트워크 클라이언트를 위한 Circuit Breaker 구현 (#403)
   - 세 가지 상태 패턴(closed, open, half_open)을 가진 `circuit_breaker` 클래스 추가
   - 사용자 정의 가능한 임계값 및 타임아웃을 위한 `circuit_breaker_config` 구조체 추가

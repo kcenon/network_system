@@ -32,6 +32,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
+#include "kcenon/network/protocols/quic/ecn_tracker.h"
 #include "kcenon/network/protocols/quic/frame_types.h"
 #include "kcenon/network/protocols/quic/keys.h"
 #include "kcenon/network/protocols/quic/rtt_estimator.h"
@@ -98,6 +99,13 @@ struct loss_detection_result
 
     //! Packets that were declared lost
     std::vector<sent_packet> lost_packets;
+
+    //! ECN signal from ACK_ECN frame processing
+    ecn_result ecn_signal{ecn_result::none};
+
+    //! Sent time of the packet that triggered ECN congestion signal
+    //! (used for congestion recovery tracking)
+    std::chrono::steady_clock::time_point ecn_congestion_sent_time{};
 };
 
 /*!
@@ -206,6 +214,24 @@ public:
         handshake_confirmed_ = confirmed;
     }
 
+    /*!
+     * \brief Get the ECN tracker
+     * \return Reference to the ECN tracker
+     */
+    [[nodiscard]] auto get_ecn_tracker() noexcept -> class ecn_tracker&
+    {
+        return ecn_tracker_;
+    }
+
+    /*!
+     * \brief Get the ECN tracker (const)
+     * \return Const reference to the ECN tracker
+     */
+    [[nodiscard]] auto get_ecn_tracker() const noexcept -> const class ecn_tracker&
+    {
+        return ecn_tracker_;
+    }
+
 private:
     /*!
      * \struct space_state
@@ -253,6 +279,9 @@ private:
 
     //! Reference to RTT estimator
     rtt_estimator& rtt_;
+
+    //! ECN tracker for ECN feedback processing
+    class ecn_tracker ecn_tracker_;
 
     //! Per packet-number-space state (Initial, Handshake, Application)
     std::array<space_state, 3> spaces_;

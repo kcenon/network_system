@@ -171,6 +171,32 @@ auto congestion_controller::on_congestion_event(
     cwnd_ = std::max(ssthresh_, minimum_window_);
 }
 
+auto congestion_controller::on_ecn_congestion(
+    std::chrono::steady_clock::time_point sent_time) -> void
+{
+    // RFC 9002 Section 7.1: Processing ECN Information
+    // ECN-CE marks indicate congestion without packet loss
+    // Respond same as packet loss, but only once per RTT
+
+    // Only respond to congestion once per RTT
+    if (is_in_recovery(sent_time))
+    {
+        return;
+    }
+
+    // Enter recovery
+    congestion_recovery_start_ = std::chrono::steady_clock::now();
+    state_ = congestion_state::recovery;
+
+    // Reduce cwnd and set ssthresh
+    // RFC 9002 Section 7.1: "a sender that receives an ACK frame with
+    // ECN feedback indicating the CE codepoint MUST enter congestion
+    // avoidance"
+    ssthresh_ = static_cast<size_t>(
+        static_cast<double>(cwnd_) * kLossReductionFactor);
+    cwnd_ = std::max(ssthresh_, minimum_window_);
+}
+
 auto congestion_controller::on_persistent_congestion(const rtt_estimator& rtt) -> void
 {
     // RFC 9002 Section 7.6: Reset cwnd to minimum
