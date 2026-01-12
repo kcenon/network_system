@@ -1269,6 +1269,20 @@ void connection::handle_loss_detection_result(const loss_detection_result& resul
     {
         congestion_controller_.on_packet_acked(acked, ack_time);
     }
+
+    // Handle ECN congestion signal (RFC 9002 Section 7.1)
+    if (result.ecn_signal == ecn_result::congestion_signal)
+    {
+        // ECN-CE marks indicate congestion without packet loss
+        // Trigger congestion response using the sent time of the triggering packet
+        congestion_controller_.on_ecn_congestion(result.ecn_congestion_sent_time);
+    }
+    else if (result.ecn_signal == ecn_result::ecn_failure)
+    {
+        // ECN validation failed - disable ECN for this connection
+        // The ecn_tracker in loss_detector already handles this internally
+        // No additional action needed here
+    }
 }
 
 void connection::generate_probe_packets()

@@ -40,6 +40,7 @@ namespace kcenon::network::protocols::quic
 
 loss_detector::loss_detector(rtt_estimator& rtt)
     : rtt_(rtt)
+    , ecn_tracker_{}
     , spaces_{}
     , pto_count_{0}
     , handshake_confirmed_{false}
@@ -215,6 +216,31 @@ auto loss_detector::on_ack_received(const ack_frame& ack,
     {
         result.event = loss_detection_event::packet_lost;
         result.lost_packets = std::move(lost);
+    }
+
+    // Process ECN counts if present (RFC 9000 Section 13.4, RFC 9002 Section 7.1)
+    if (ack.ecn && !result.acked_packets.empty())
+    {
+        // Find the earliest sent time among acked packets for congestion recovery tracking
+        auto earliest_sent_time = result.acked_packets[0].sent_time;
+        for (const auto& pkt : result.acked_packets)
+        {
+            if (pkt.sent_time < earliest_sent_time)
+            {
+                earliest_sent_time = pkt.sent_time;
+            }
+        }
+
+        auto ecn_signal = ecn_tracker_.process_ecn_counts(
+            *ack.ecn,
+            result.acked_packets.size(),
+            earliest_sent_time);
+
+        result.ecn_signal = ecn_signal;
+        if (ecn_signal == ecn_result::congestion_signal)
+        {
+            result.ecn_congestion_sent_time = ecn_tracker_.last_congestion_sent_time();
+        }
     }
 
     set_loss_detection_timer();
