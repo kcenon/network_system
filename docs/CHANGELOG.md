@@ -69,6 +69,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   - Fixes intermittent `MultiConnectionLifecycleTest.ConnectionScaling` failures on macOS Release CI
 
 ### Added
+- **CRTP to Composition Refactoring Phase 1.1-1.2** (2026-01-12) (#411, #422, #423)
+  - Added comprehensive CRTP analysis document (`docs/design/crtp-analysis.md`)
+    - Documented all 9 CRTP base classes across TCP, UDP, WebSocket, and QUIC protocols
+    - Identified ~60% code duplication in boilerplate patterns
+    - Analyzed dependencies and migration considerations
+  - Added composition-based design specification (`docs/design/composition-design.md`)
+    - Designed new interface hierarchy (INetworkComponent, IClient, IServer, ISession)
+    - Defined utility classes for shared functionality
+    - Outlined migration strategy with backward compatibility plan
+  - Added new interface classes (`include/kcenon/network/interfaces/`)
+    - `i_network_component.h`: Base interface for all network components
+    - `i_client.h`: Client-side interface with lifecycle and callbacks
+    - `i_server.h`: Server-side interface with session management
+    - `i_session.h`: Session interface for server-client connections
+  - Added utility classes to reduce code duplication (`include/kcenon/network/utils/`)
+    - `lifecycle_manager.h`: Thread-safe start/stop state management
+    - `callback_manager.h`: Generic thread-safe callback storage and invocation
+    - `connection_state.h`: Connection status state machine with atomic operations
+  - These components form the foundation for migrating from CRTP to composition pattern
+
 - **gRPC Phase 5: Testing and Documentation** (2025-12-28) (#365)
   - Added comprehensive unit tests for `grpc_official_wrapper` (status codes, messages, timeouts)
   - Added integration tests for full gRPC stack (service registry, health check, streaming, thread safety)
