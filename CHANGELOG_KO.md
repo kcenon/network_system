@@ -12,6 +12,16 @@ Network System 프로젝트의 모든 주요 변경 사항이 이 파일에 문�
 ## [미배포]
 
 ### 추가됨
+- **컴포지션 기반 인터페이스 인프라 (Phase 1.2)**: 컴포지션 패턴을 위한 인터페이스 클래스 추가 (#423)
+  - 핵심 인터페이스 추가: `i_network_component`, `i_client`, `i_server`, `i_session`
+  - 프로토콜별 인터페이스 추가: `i_udp_client`, `i_udp_server`, `i_websocket_client`, `i_websocket_server`, `i_quic_client`, `i_quic_server`
+  - 확장 세션 인터페이스 추가: `i_websocket_session`, `i_quic_session`
+  - 단일 include 접근을 위한 `interfaces.h` 편의 헤더 추가
+  - 유틸리티 클래스 추가: `lifecycle_manager`, `callback_manager`, `connection_state`
+  - 모든 인터페이스는 적절한 다형성을 위해 가상 소멸자를 가진 추상 클래스
+  - 타입 특성, 계층 구조, 콜백 타입에 대한 포괄적인 단위 테스트
+  - 스레드 안전성과 상태 관리를 다루는 유틸리티 클래스 단위 테스트
+  - 비파괴적 변경: 기존 CRTP 코드는 계속 작동
 - **QUIC ECN 피드백 통합**: RFC 9000/9002에 따른 ECN 피드백 혼잡 제어 통합 (#404)
   - ACK_ECN 프레임에서 ECN 카운트를 추적하는 `ecn_tracker` 클래스 추가
   - 연결 설정 중 ECN 유효성 검증 추가
@@ -195,6 +205,12 @@ Network System 프로젝트의 모든 주요 변경 사항이 이 파일에 문�
   - 패키지 등록 후 `vcpkg install --feature ecosystem`으로 활성화
 
 ### 수정됨
+- **ThreadSanitizer 데이터 레이스 수정**: 메시징 서버의 acceptor 접근에 뮤텍스 보호 추가 (#427)
+  - `do_accept()`와 `do_stop()`이 동시에 `acceptor_`에 접근할 때 발생하는 데이터 레이스 수정
+  - `messaging_server`와 `messaging_ws_server` 클래스에 `acceptor_mutex_` 추가
+  - `do_accept()`, `do_stop()`, 소멸자에서 acceptor 접근을 뮤텍스 락으로 보호
+  - `do_accept()`에 `is_running()` 및 `acceptor_->is_open()` 상태 확인을 위한 조기 반환 체크 추가
+  - ThreadSanitizer CI 워크플로우의 E2ETests 실패 수정
 - **Circuit Breaker 빌드 수정**: fallback 빌드 경로에 error_codes_ext 네임스페이스 추가 (#403)
   - common_system 의존성 없이 빌드 시 발생하던 빌드 실패 수정
   - result_types.h의 fallback 블록에 circuit_open 오류 코드를 포함한 error_codes_ext 네임스페이스 추가
