@@ -233,12 +233,24 @@ TEST_F(MultiConnectionLifecycleTest, SequentialConnections) {
     // Connect clients one by one
     CreateClients(3);
 
+    // Use longer timeout for macOS CI where kqueue-based async I/O can be slower
+    std::chrono::seconds timeout;
+    if (test_helpers::is_macos() && test_helpers::is_ci_environment()) {
+        timeout = std::chrono::seconds(10);
+    } else {
+        timeout = std::chrono::seconds(5);
+    }
+
     for (auto& client : clients_) {
         // Use 127.0.0.1 to avoid IPv6 lookup delays on macOS
         auto result = client->start_client("127.0.0.1", test_port_);
         EXPECT_TRUE(result.is_ok());
         // Wait for connection to be established
-        EXPECT_TRUE(test_helpers::wait_for_connection(client, std::chrono::seconds(5)));
+        EXPECT_TRUE(test_helpers::wait_for_connection(client, timeout));
+        // Brief pause between sequential connections for resource cleanup on macOS
+        if (test_helpers::is_macos()) {
+            test_helpers::wait_for_ready();
+        }
     }
 }
 

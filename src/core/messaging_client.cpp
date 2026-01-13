@@ -44,14 +44,136 @@ using tcp = asio::ip::tcp;
 
 // Use string_view for better efficiency (C++17)
 messaging_client::messaging_client(std::string_view client_id)
-    : messaging_client_base<messaging_client>(client_id) {
+    : client_id_(client_id) {
 }
 
-// Destructor is defaulted in header - base class handles stop_client() call
+messaging_client::~messaging_client() noexcept {
+  if (lifecycle_.is_running()) {
+    stop_client();
+  }
+}
+
+auto messaging_client::start_client(std::string_view host, unsigned short port)
+    -> VoidResult {
+  if (lifecycle_.is_running()) {
+    return error_void(error_codes::common_errors::already_exists,
+                      "Client is already running",
+                      "messaging_client::start_client",
+                      "Client ID: " + client_id_);
+  }
+
+  if (host.empty()) {
+    return error_void(error_codes::common_errors::invalid_argument,
+                      "Host cannot be empty",
+                      "messaging_client::start_client");
+  }
+
+  lifecycle_.set_running();
+  is_connected_.store(false, std::memory_order_release);
+  stop_initiated_.store(false, std::memory_order_release);
+
+  auto result = do_start_impl(host, port);
+  if (result.is_err()) {
+    lifecycle_.mark_stopped();
+  }
+
+  return result;
+}
+
+auto messaging_client::stop_client() -> VoidResult {
+  if (!lifecycle_.is_running()) {
+    return ok();
+  }
+
+  // Prevent multiple stop calls
+  bool expected = false;
+  if (!stop_initiated_.compare_exchange_strong(expected, true,
+                                                std::memory_order_acq_rel)) {
+    return ok();
+  }
+
+  is_connected_.store(false, std::memory_order_release);
+
+  auto result = do_stop_impl();
+  lifecycle_.mark_stopped();
+
+  // Invoke disconnected callback
+  callbacks_.invoke<kDisconnectedCallback>();
+
+  return result;
+}
+
+auto messaging_client::wait_for_stop() -> void {
+  lifecycle_.wait_for_stop();
+}
+
+auto messaging_client::is_running() const noexcept -> bool {
+  return lifecycle_.is_running();
+}
+
+auto messaging_client::is_connected() const noexcept -> bool {
+  return is_connected_.load(std::memory_order_acquire);
+}
+
+auto messaging_client::client_id() const -> const std::string& {
+  return client_id_;
+}
+
+auto messaging_client::send_packet(std::vector<uint8_t>&& data) -> VoidResult {
+  if (!is_connected()) {
+    return error_void(error_codes::network_system::connection_closed,
+                      "Client is not connected",
+                      "messaging_client::send_packet",
+                      "Client ID: " + client_id_);
+  }
+
+  if (data.empty()) {
+    return error_void(error_codes::common_errors::invalid_argument,
+                      "Data cannot be empty",
+                      "messaging_client::send_packet");
+  }
+
+  return do_send_impl(std::move(data));
+}
+
+auto messaging_client::set_receive_callback(receive_callback_t callback) -> void {
+  callbacks_.set<kReceiveCallback>(std::move(callback));
+}
+
+auto messaging_client::set_connected_callback(connected_callback_t callback) -> void {
+  callbacks_.set<kConnectedCallback>(std::move(callback));
+}
+
+auto messaging_client::set_disconnected_callback(disconnected_callback_t callback) -> void {
+  callbacks_.set<kDisconnectedCallback>(std::move(callback));
+}
+
+auto messaging_client::set_error_callback(error_callback_t callback) -> void {
+  callbacks_.set<kErrorCallback>(std::move(callback));
+}
+
+auto messaging_client::set_connected(bool connected) -> void {
+  is_connected_.store(connected, std::memory_order_release);
+}
+
+auto messaging_client::invoke_receive_callback(const std::vector<uint8_t>& data) -> void {
+  callbacks_.invoke<kReceiveCallback>(data);
+}
+
+auto messaging_client::invoke_connected_callback() -> void {
+  callbacks_.invoke<kConnectedCallback>();
+}
+
+auto messaging_client::invoke_disconnected_callback() -> void {
+  callbacks_.invoke<kDisconnectedCallback>();
+}
+
+auto messaging_client::invoke_error_callback(std::error_code ec) -> void {
+  callbacks_.invoke<kErrorCallback>(ec);
+}
 
 // TCP-specific implementation of client start
-// Called by base class start_client() after common validation
-auto messaging_client::do_start(std::string_view host, unsigned short port)
+auto messaging_client::do_start_impl(std::string_view host, unsigned short port)
     -> VoidResult {
   try {
     {
@@ -94,8 +216,7 @@ auto messaging_client::do_start(std::string_view host, unsigned short port)
 }
 
 // TCP-specific implementation of client stop
-// Called by base class stop_client() after common cleanup
-auto messaging_client::do_stop() -> VoidResult {
+auto messaging_client::do_stop_impl() -> VoidResult {
   // NOTE: No logging in do_stop to prevent heap corruption during static
   // destruction. This method may be called from destructor when
   // GlobalLoggerRegistry is already destroyed.
@@ -329,8 +450,7 @@ auto messaging_client::on_connect(std::error_code ec) -> void {
 }
 
 // TCP-specific implementation of data send
-// Called by base class send_packet() after common validation
-auto messaging_client::do_send(std::vector<uint8_t> &&data) -> VoidResult {
+auto messaging_client::do_send_impl(std::vector<uint8_t> &&data) -> VoidResult {
   // Get a local copy of socket with mutex protection
   auto local_socket = get_socket();
 
@@ -387,7 +507,5 @@ auto messaging_client::get_socket() const
   std::lock_guard<std::mutex> lock(socket_mutex_);
   return socket_;
 }
-
-// Callback setters are provided by base class
 
 } // namespace kcenon::network::core

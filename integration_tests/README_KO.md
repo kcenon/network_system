@@ -322,6 +322,7 @@ test_helpers::wait_for_connection(client_, std::chrono::seconds(5));
 - macOS CI 환경(특히 Release 빌드)에서는 더 긴 타임아웃(10초) 사용
 - kqueue 기반 비동기 I/O 동작 차이를 고려
 - macOS CI에서 서버 시작 후 추가 100ms 대기
+- macOS에서 순차적 연결 시 적절한 리소스 정리를 위해 연결 사이에 짧은 대기 시간 포함
 
 ### 정리
 
