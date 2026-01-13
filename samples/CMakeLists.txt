@@ -42,6 +42,7 @@ set(SAMPLE_PROGRAMS
     quic_server_example
     concepts_example
     grpc_service_example
+    http2_server_example
 )
 
 # Add UDP sample if UDP support is enabled
@@ -77,6 +78,17 @@ foreach(SAMPLE ${SAMPLE_PROGRAMS})
         NetworkSystem
         Threads::Threads
     )
+
+    # Additional linking for samples requiring TLS (HTTP/2, QUIC)
+    if(SAMPLE MATCHES "http2_server_example|quic")
+        find_package(OpenSSL QUIET)
+        if(OpenSSL_FOUND)
+            target_link_libraries(network_${SAMPLE} PRIVATE
+                OpenSSL::SSL
+                OpenSSL::Crypto
+            )
+        endif()
+    endif()
 
     # Configure ASIO for all samples
     setup_asio_integration(network_${SAMPLE})

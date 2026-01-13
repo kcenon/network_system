@@ -244,7 +244,7 @@ auto post_response = client->post(
 
 **Planned Enhancements**:
 - HTTPS/TLS support (OpenSSL integration ready)
-- HTTP/2 protocol support
+- ✅ HTTP/2 protocol support (see `http2_server` class)
 - WebSocket upgrade support
 - Advanced middleware support
 
@@ -657,10 +657,13 @@ The following features are tracked in [IMPROVEMENTS.md](../IMPROVEMENTS.md):
 
 ### Mid-term
 
-- 🚧 **HTTP/2 Client**: Modern HTTP/2 protocol support
-  - Multiplexing
-  - Server push
-  - Header compression (HPACK)
+- ✅ **HTTP/2 Protocol Support**: Modern HTTP/2 implementation - **COMPLETE**
+  - ✅ HTTP/2 client with TLS and ALPN negotiation
+  - ✅ HTTP/2 server with h2c and TLS support
+  - ✅ Stream multiplexing
+  - ✅ Header compression (HPACK - RFC 7541)
+  - ✅ Flow control with window updates
+  - See `samples/http2_server_example.cpp` for server example
 
 - 🚧 **gRPC Integration**: High-performance RPC framework
   - Protocol Buffers integration
@@ -693,5 +696,5 @@ The following features are tracked in [IMPROVEMENTS.md](../IMPROVEMENTS.md):
 
 ---
 
-**Last Updated**: 2025-12-04
+**Last Updated**: 2026-01-13
 **Maintained by**: kcenon@naver.com

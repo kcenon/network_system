@@ -369,6 +369,9 @@ if(BUILD_TLS_SUPPORT)
         src/core/secure_messaging_udp_server.cpp
         # HTTP/2 client requires TLS (ALPN negotiation)
         src/protocols/http2/http2_client.cpp
+        # HTTP/2 server requires TLS (ALPN negotiation)
+        src/protocols/http2/http2_server.cpp
+        src/protocols/http2/http2_server_stream.cpp
     )
     target_compile_definitions(NetworkSystem PUBLIC BUILD_TLS_SUPPORT)
 

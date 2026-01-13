@@ -69,6 +69,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   - Fixes intermittent `MultiConnectionLifecycleTest.ConnectionScaling` failures on macOS Release CI
 
 ### Added
+- **HTTP/2 Server Implementation** (2026-01-13) (#406, #433-#437)
+  - Added `http2_server` class for creating HTTP/2 servers with TLS and h2c support
+  - Added `http2_server_stream` class for server-side stream handling and response sending
+  - Added `http2_request` structure for parsing HTTP/2 requests with pseudo-headers
+  - Added `tls_config` structure for TLS configuration (cert, key, CA, client verification)
+  - Features:
+    - HTTP/2 protocol support (RFC 7540) with HPACK header compression (RFC 7541)
+    - TLS 1.3 with ALPN "h2" negotiation via `start_tls()`
+    - Cleartext HTTP/2 (h2c) support via `start()`
+    - Stream multiplexing with configurable max concurrent streams
+    - Flow control with window update handling
+    - Customizable HTTP/2 settings (header table size, window size, frame size)
+    - Request handler callback for implementing custom routing
+  - Added comprehensive unit tests (28 tests) covering:
+    - Request header parsing and validation
+    - Server lifecycle management
+    - Settings configuration
+    - Connection handling
+  - Added sample code (`http2_server_example.cpp`) demonstrating basic usage
+
 - **CRTP to Composition Refactoring Phase 1.1-1.2** (2026-01-12) (#411, #422, #423)
   - Added comprehensive CRTP analysis document (`docs/design/crtp-analysis.md`)
     - Documented all 9 CRTP base classes across TCP, UDP, WebSocket, and QUIC protocols
