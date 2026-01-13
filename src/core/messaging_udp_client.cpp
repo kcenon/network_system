@@ -40,15 +40,226 @@ namespace kcenon::network::core
 	using udp = asio::ip::udp;
 
 	messaging_udp_client::messaging_udp_client(std::string_view client_id)
-		: messaging_udp_client_base<messaging_udp_client>(client_id)
+		: client_id_(client_id)
 	{
 	}
 
-	// Destructor is defaulted in header - base class handles stop_client() call
+	messaging_udp_client::~messaging_udp_client() noexcept
+	{
+		if (lifecycle_.is_running())
+		{
+			stop_client();
+		}
+	}
 
-	// UDP-specific implementation of client start
-	// Called by base class start_client() after common validation
-	auto messaging_udp_client::do_start(std::string_view host, uint16_t port) -> VoidResult
+	// ========================================================================
+	// Lifecycle Management
+	// ========================================================================
+
+	auto messaging_udp_client::start_client(std::string_view host, uint16_t port) -> VoidResult
+	{
+		if (lifecycle_.is_running())
+		{
+			return error_void(
+				error_codes::common_errors::already_exists,
+				"UDP client is already running",
+				"messaging_udp_client::start_client");
+		}
+
+		if (host.empty())
+		{
+			return error_void(
+				error_codes::common_errors::invalid_argument,
+				"Host cannot be empty",
+				"messaging_udp_client::start_client");
+		}
+
+		// Mark as running before starting
+		lifecycle_.set_running();
+
+		auto result = do_start_impl(host, port);
+		if (result.is_err())
+		{
+			lifecycle_.mark_stopped();
+		}
+
+		return result;
+	}
+
+	auto messaging_udp_client::stop_client() -> VoidResult
+	{
+		if (!lifecycle_.prepare_stop())
+		{
+			return ok();  // Not running or already stopping
+		}
+
+		auto result = do_stop_impl();
+
+		lifecycle_.mark_stopped();
+
+		return result;
+	}
+
+	auto messaging_udp_client::client_id() const -> const std::string&
+	{
+		return client_id_;
+	}
+
+	// ========================================================================
+	// i_network_component interface implementation
+	// ========================================================================
+
+	auto messaging_udp_client::is_running() const -> bool
+	{
+		return lifecycle_.is_running();
+	}
+
+	auto messaging_udp_client::wait_for_stop() -> void
+	{
+		lifecycle_.wait_for_stop();
+	}
+
+	// ========================================================================
+	// i_udp_client interface implementation
+	// ========================================================================
+
+	auto messaging_udp_client::start(std::string_view host, uint16_t port) -> VoidResult
+	{
+		return start_client(host, port);
+	}
+
+	auto messaging_udp_client::stop() -> VoidResult
+	{
+		return stop_client();
+	}
+
+	auto messaging_udp_client::send(
+		std::vector<uint8_t>&& data,
+		interfaces::i_udp_client::send_callback_t handler) -> VoidResult
+	{
+		return send_packet(std::move(data), std::move(handler));
+	}
+
+	auto messaging_udp_client::set_target(std::string_view host, uint16_t port) -> VoidResult
+	{
+		if (!lifecycle_.is_running())
+		{
+			return error_void(
+				error_codes::common_errors::internal_error,
+				"UDP client is not running",
+				"messaging_udp_client::set_target",
+				""
+			);
+		}
+
+		try
+		{
+			// Resolve new target endpoint
+			udp::resolver resolver(*io_context_);
+			auto endpoints = resolver.resolve(udp::v4(), std::string(host), std::to_string(port));
+
+			if (endpoints.empty())
+			{
+				return error_void(
+					error_codes::common_errors::internal_error,
+					"Failed to resolve host",
+					"messaging_udp_client::set_target",
+					"Host: " + std::string(host)
+				);
+			}
+
+			std::lock_guard<std::mutex> lock(endpoint_mutex_);
+			target_endpoint_ = *endpoints.begin();
+
+			NETWORK_LOG_INFO("Target updated to " + std::string(host) + ":" + std::to_string(port));
+
+			return ok();
+		}
+		catch (const std::exception& e)
+		{
+			return error_void(
+				error_codes::common_errors::internal_error,
+				std::string("Failed to set target: ") + e.what(),
+				"messaging_udp_client::set_target",
+				"Host: " + std::string(host) + ":" + std::to_string(port)
+			);
+		}
+	}
+
+	auto messaging_udp_client::set_receive_callback(
+		interfaces::i_udp_client::receive_callback_t callback) -> void
+	{
+		if (!callback)
+		{
+			// Clear the callback
+			callbacks_.set<kReceiveCallbackIndex>(nullptr);
+			return;
+		}
+
+		// Adapt the interface callback to the internal callback type
+		// Convert asio::ip::udp::endpoint to endpoint_info
+		callbacks_.set<kReceiveCallbackIndex>(
+			[callback = std::move(callback)](
+				const std::vector<uint8_t>& data,
+				const asio::ip::udp::endpoint& endpoint)
+			{
+				interfaces::i_udp_client::endpoint_info info;
+				info.address = endpoint.address().to_string();
+				info.port = endpoint.port();
+				callback(data, info);
+			});
+	}
+
+	auto messaging_udp_client::set_receive_callback(receive_callback_t callback) -> void
+	{
+		callbacks_.set<kReceiveCallbackIndex>(std::move(callback));
+	}
+
+	auto messaging_udp_client::set_error_callback(error_callback_t callback) -> void
+	{
+		callbacks_.set<kErrorCallbackIndex>(std::move(callback));
+	}
+
+	// ========================================================================
+	// Legacy API
+	// ========================================================================
+
+	auto messaging_udp_client::send_packet(
+		std::vector<uint8_t>&& data,
+		std::function<void(std::error_code, std::size_t)> handler) -> VoidResult
+	{
+		if (!lifecycle_.is_running())
+		{
+			return error_void(
+				error_codes::common_errors::internal_error,
+				"UDP client is not running",
+				"messaging_udp_client::send_packet",
+				""
+			);
+		}
+
+		std::lock_guard<std::mutex> socket_lock(socket_mutex_);
+		if (!socket_)
+		{
+			return error_void(
+				error_codes::common_errors::internal_error,
+				"Socket not available",
+				"messaging_udp_client::send_packet",
+				""
+			);
+		}
+
+		std::lock_guard<std::mutex> endpoint_lock(endpoint_mutex_);
+		socket_->async_send_to(std::move(data), target_endpoint_, std::move(handler));
+
+		return ok();
+	}
+
+	// ========================================================================
+	// Internal Implementation Methods
+	// ========================================================================
+
+	auto messaging_udp_client::do_start_impl(std::string_view host, uint16_t port) -> VoidResult
 	{
 		try
 		{
@@ -64,7 +275,7 @@ namespace kcenon::network::core
 				return error_void(
 					error_codes::common_errors::internal_error,
 					"Failed to resolve host",
-					"messaging_udp_client::do_start",
+					"messaging_udp_client::do_start_impl",
 					"Host: " + std::string(host)
 				);
 			}
@@ -80,7 +291,7 @@ namespace kcenon::network::core
 			// Wrap in our udp_socket
 			socket_ = std::make_shared<internal::udp_socket>(std::move(raw_socket));
 
-			// Set callbacks from base class to socket
+			// Set callbacks to socket
 			auto receive_cb = get_receive_callback();
 			if (receive_cb)
 			{
@@ -129,7 +340,7 @@ namespace kcenon::network::core
 			return error_void(
 				error_codes::common_errors::internal_error,
 				std::string("Failed to create UDP socket: ") + e.what(),
-				"messaging_udp_client::do_start",
+				"messaging_udp_client::do_start_impl",
 				"Host: " + std::string(host) + ":" + std::to_string(port)
 			);
 		}
@@ -138,15 +349,13 @@ namespace kcenon::network::core
 			return error_void(
 				error_codes::common_errors::internal_error,
 				std::string("Failed to start UDP client: ") + e.what(),
-				"messaging_udp_client::do_start",
+				"messaging_udp_client::do_start_impl",
 				"Host: " + std::string(host) + ":" + std::to_string(port)
 			);
 		}
 	}
 
-	// UDP-specific implementation of client stop
-	// Called by base class stop_client() after common cleanup
-	auto messaging_udp_client::do_stop() -> VoidResult
+	auto messaging_udp_client::do_stop_impl() -> VoidResult
 	{
 		try
 		{
@@ -186,134 +395,36 @@ namespace kcenon::network::core
 			return error_void(
 				error_codes::common_errors::internal_error,
 				std::string("Failed to stop UDP client: ") + e.what(),
-				"messaging_udp_client::do_stop",
+				"messaging_udp_client::do_stop_impl",
 				""
-			);
-		}
-	}
-
-	// wait_for_stop() is provided by base class
-
-	auto messaging_udp_client::send_packet(
-		std::vector<uint8_t>&& data,
-		std::function<void(std::error_code, std::size_t)> handler) -> VoidResult
-	{
-		if (!is_running())
-		{
-			return error_void(
-				error_codes::common_errors::internal_error,
-				"UDP client is not running",
-				"messaging_udp_client::send_packet",
-				""
-			);
-		}
-
-		std::lock_guard<std::mutex> socket_lock(socket_mutex_);
-		if (!socket_)
-		{
-			return error_void(
-				error_codes::common_errors::internal_error,
-				"Socket not available",
-				"messaging_udp_client::send_packet",
-				""
-			);
-		}
-
-		std::lock_guard<std::mutex> endpoint_lock(endpoint_mutex_);
-		socket_->async_send_to(std::move(data), target_endpoint_, std::move(handler));
-
-		return ok();
-	}
-
-	// set_receive_callback and set_error_callback are provided by base class
-
-	auto messaging_udp_client::set_target(std::string_view host, uint16_t port) -> VoidResult
-	{
-		if (!messaging_udp_client_base::is_running())
-		{
-			return error_void(
-				error_codes::common_errors::internal_error,
-				"UDP client is not running",
-				"messaging_udp_client::set_target",
-				""
-			);
-		}
-
-		try
-		{
-			// Resolve new target endpoint
-			udp::resolver resolver(*io_context_);
-			auto endpoints = resolver.resolve(udp::v4(), std::string(host), std::to_string(port));
-
-			if (endpoints.empty())
-			{
-				return error_void(
-					error_codes::common_errors::internal_error,
-					"Failed to resolve host",
-					"messaging_udp_client::set_target",
-					"Host: " + std::string(host)
-				);
-			}
-
-			std::lock_guard<std::mutex> lock(endpoint_mutex_);
-			target_endpoint_ = *endpoints.begin();
-
-			NETWORK_LOG_INFO("Target updated to " + std::string(host) + ":" + std::to_string(port));
-
-			return ok();
-		}
-		catch (const std::exception& e)
-		{
-			return error_void(
-				error_codes::common_errors::internal_error,
-				std::string("Failed to set target: ") + e.what(),
-				"messaging_udp_client::set_target",
-				"Host: " + std::string(host) + ":" + std::to_string(port)
 			);
 		}
 	}
 
 	// ========================================================================
-	// i_udp_client interface implementation
+	// Internal Callback Helpers
 	// ========================================================================
 
-	auto messaging_udp_client::send(
-		std::vector<uint8_t>&& data,
-		send_callback_t handler) -> VoidResult
+	auto messaging_udp_client::invoke_receive_callback(
+		const std::vector<uint8_t>& data,
+		const asio::ip::udp::endpoint& endpoint) -> void
 	{
-		// Delegate to send_packet
-		return send_packet(std::move(data), std::move(handler));
+		callbacks_.invoke<kReceiveCallbackIndex>(data, endpoint);
 	}
 
-	auto messaging_udp_client::set_receive_callback(
-		interfaces::i_udp_client::receive_callback_t callback) -> void
+	auto messaging_udp_client::invoke_error_callback(std::error_code ec) -> void
 	{
-		if (!callback)
-		{
-			// Clear the callback
-			messaging_udp_client_base::set_receive_callback(nullptr);
-			return;
-		}
-
-		// Adapt the interface callback to the base class callback type
-		// Convert asio::ip::udp::endpoint to endpoint_info
-		messaging_udp_client_base::set_receive_callback(
-			[callback = std::move(callback)](
-				const std::vector<uint8_t>& data,
-				const asio::ip::udp::endpoint& endpoint)
-			{
-				interfaces::i_udp_client::endpoint_info info;
-				info.address = endpoint.address().to_string();
-				info.port = endpoint.port();
-				callback(data, info);
-			});
+		callbacks_.invoke<kErrorCallbackIndex>(ec);
 	}
 
-	auto messaging_udp_client::set_error_callback(
-		interfaces::i_udp_client::error_callback_t callback) -> void
+	auto messaging_udp_client::get_receive_callback() const -> receive_callback_t
 	{
-		// The error callback types are compatible (both use std::error_code)
-		messaging_udp_client_base::set_error_callback(std::move(callback));
+		return callbacks_.get<kReceiveCallbackIndex>();
+	}
+
+	auto messaging_udp_client::get_error_callback() const -> error_callback_t
+	{
+		return callbacks_.get<kErrorCallbackIndex>();
 	}
 
 } // namespace kcenon::network::core
