@@ -44,6 +44,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <asio.hpp>
 
+#include "kcenon/network/interfaces/i_session.h"
 #include "kcenon/network/internal/tcp_socket.h"
 
 // Use nested namespace definition in C++17
@@ -55,6 +56,10 @@ namespace kcenon::network::session
 	 * \brief Manages a single connected client session on the server side,
 	 *        providing asynchronous read/write operations and pipeline
 	 * transformations.
+	 *
+	 * This class implements the i_session interface, providing a composition-based
+	 * design for TCP sessions. It replaces the previous inheritance-heavy approach
+	 * with a cleaner interface-based model.
 	 *
 	 * ### Responsibilities
 	 * - Owns a \c tcp_socket for non-blocking I/O.
@@ -74,9 +79,13 @@ namespace kcenon::network::session
 	 * - Session state (is_stopped_) is protected by atomic operations.
 	 * - Pipeline mode flags are protected by mode_mutex_.
 	 * - Socket operations are serialized through ASIO's io_context.
+	 *
+	 * ### Interface Compliance
+	 * This class implements interfaces::i_session for composition-based usage.
 	 */
 	class messaging_session
-		: public std::enable_shared_from_this<messaging_session>
+		: public interfaces::i_session
+		, public std::enable_shared_from_this<messaging_session>
 	{
 	public:
 		/*!
@@ -91,7 +100,53 @@ namespace kcenon::network::session
 		/*!
 		 * \brief Destructor; calls \c stop_session() if not already stopped.
 		 */
-		~messaging_session() noexcept;
+		~messaging_session() noexcept override;
+
+		// ========================================================================
+		// i_session interface implementation
+		// ========================================================================
+
+		/*!
+		 * \brief Gets the unique identifier for this session.
+		 * \return A string view of the session ID.
+		 *
+		 * Implements i_session::id(). Returns the server_id that was
+		 * provided during construction.
+		 */
+		[[nodiscard]] auto id() const -> std::string_view override {
+			return server_id_;
+		}
+
+		/*!
+		 * \brief Checks if the session is currently connected.
+		 * \return true if connected, false otherwise.
+		 *
+		 * Implements i_session::is_connected(). Returns the opposite
+		 * of is_stopped().
+		 */
+		[[nodiscard]] auto is_connected() const -> bool override {
+			return !is_stopped_.load(std::memory_order_acquire);
+		}
+
+		/*!
+		 * \brief Sends data to the client.
+		 * \param data The data to send.
+		 * \return VoidResult indicating success or failure.
+		 *
+		 * Implements i_session::send(). Wraps send_packet() with Result type.
+		 */
+		[[nodiscard]] auto send(std::vector<uint8_t>&& data) -> VoidResult override;
+
+		/*!
+		 * \brief Closes the session.
+		 *
+		 * Implements i_session::close(). Delegates to stop_session().
+		 */
+		auto close() -> void override { stop_session(); }
+
+		// ========================================================================
+		// Legacy API (maintained for backward compatibility)
+		// ========================================================================
 
 		/*!
 		 * \brief Starts the session: sets up read/error callbacks and begins
@@ -108,6 +163,8 @@ namespace kcenon::network::session
 		/*!
 		 * \brief Checks if the session has been stopped.
 		 * \return true if the session is stopped, false otherwise.
+		 *
+		 * \deprecated Use is_connected() instead (returns opposite value).
 		 */
 		[[nodiscard]] auto is_stopped() const noexcept -> bool {
 			return is_stopped_.load(std::memory_order_relaxed);
@@ -124,6 +181,8 @@ namespace kcenon::network::session
 		 * writing.
 		 * - Data is moved (not copied) to avoid memory allocation overhead.
 		 * - After calling this function, the original vector will be empty.
+		 *
+		 * \deprecated Use send() instead for Result-based error handling.
 		 */
 		auto send_packet(std::vector<uint8_t>&& data) -> void;
 

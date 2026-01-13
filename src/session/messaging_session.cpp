@@ -145,6 +145,30 @@ namespace kcenon::network::session
 			});
 	}
 
+	auto messaging_session::send(std::vector<uint8_t>&& data) -> VoidResult
+	{
+		if (is_stopped_.load())
+		{
+			return error_void(
+				error_codes::network_system::connection_closed,
+				"Session is closed",
+				"messaging_session");
+		}
+
+		if (data.empty())
+		{
+			return error_void(
+				error_codes::common_errors::invalid_argument,
+				"Data cannot be empty",
+				"messaging_session");
+		}
+
+		// Delegate to send_packet for actual sending
+		send_packet(std::move(data));
+
+		return ok();
+	}
+
 	auto messaging_session::on_receive(std::span<const uint8_t> data) -> void
 	{
 		// NOTE: No logging in async handlers to prevent heap corruption during

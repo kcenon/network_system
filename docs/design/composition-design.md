@@ -378,7 +378,37 @@ private:
 3. ✅ Unit tests added for all utility classes and interfaces
 4. ✅ Existing CRTP code continues to work (non-breaking)
 
-### Phase 1.3: Implement Composition Classes
+### Phase 1.3: Implement Composition Classes (🔄 IN PROGRESS)
+
+Migrate existing classes to implement the composition-based interfaces.
+
+#### TCP/UDP Migration ✅ COMPLETE
+
+1. ✅ **messaging_session** → implements `i_session`
+   - Added `id()`, `is_connected()`, `send()`, `close()` interface methods
+   - Maintains backward compatibility with legacy `send_packet()`, `stop_session()`
+
+2. ✅ **messaging_udp_client** → implements `i_udp_client`
+   - Added `start()`, `stop()`, `send()`, `set_target()` interface methods
+   - Added `set_receive_callback()`, `set_error_callback()` with endpoint_info
+   - Uses `using` declarations for backward compatibility with asio endpoints
+
+3. ✅ **messaging_udp_server** → implements `i_udp_server`
+   - Added `start()`, `stop()`, `send_to()` interface methods
+   - Added callback setters with endpoint_info types
+   - Maintains legacy `async_send_to()` with asio endpoints
+
+#### WebSocket Migration (Pending - Issue #428)
+
+To be implemented in a separate issue for better task management.
+
+#### QUIC Migration (Pending - Issue #429)
+
+To be implemented after WebSocket migration.
+
+---
+
+#### Target Structure (reference)
 
 Create new implementations that use composition:
 
