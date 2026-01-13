@@ -34,6 +34,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <kcenon/network/config/feature_flags.h>
 
+#include <atomic>
 #include <functional>
 #include <future>
 #include <memory>
@@ -45,8 +46,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <asio.hpp>
 #include <asio/ssl.hpp>
 
-#include "kcenon/network/core/messaging_server_base.h"
 #include "kcenon/network/integration/thread_integration.h"
+#include "kcenon/network/utils/lifecycle_manager.h"
+#include "kcenon/network/utils/callback_manager.h"
+#include "kcenon/network/utils/result_types.h"
 
 // Optional monitoring support via common_system
 #if KCENON_WITH_COMMON_SYSTEM
@@ -65,8 +68,8 @@ namespace kcenon::network::core
 	 * \brief A secure server class that manages incoming TLS/SSL encrypted TCP connections,
 	 *        creating \c secure_session instances for each accepted socket.
 	 *
-	 * This class inherits from messaging_server_base using the CRTP pattern,
-	 * which provides common lifecycle management and callback handling.
+	 * This class uses composition pattern with lifecycle_manager and
+	 * callback_manager for common lifecycle management and callback handling.
 	 *
 	 * ### Thread Safety
 	 * - All public methods are thread-safe.
@@ -82,7 +85,7 @@ namespace kcenon::network::core
 	 * - For each incoming connection, performs SSL handshake and instantiates a
 	 * \c secure_session to handle encrypted communication.
 	 * - Allows external control via \c start_server(), \c stop_server(), and \c
-	 * wait_for_stop() (inherited from messaging_server_base).
+	 * wait_for_stop().
 	 *
 	 * ### Thread Model
 	 * - A single background thread calls \c io_context.run() to process I/O
@@ -103,13 +106,19 @@ namespace kcenon::network::core
 	 * \endcode
 	 */
 	class secure_messaging_server
-		: public messaging_server_base<secure_messaging_server,
-		                               kcenon::network::session::secure_session>
+		: public std::enable_shared_from_this<secure_messaging_server>
 	{
 	public:
-		//! \brief Allow base class to access protected methods
-		friend class messaging_server_base<secure_messaging_server,
-		                                   kcenon::network::session::secure_session>;
+		//! \brief Callback type for new connection
+		using connection_callback_t = std::function<void(std::shared_ptr<session::secure_session>)>;
+		//! \brief Callback type for disconnection
+		using disconnection_callback_t = std::function<void(const std::string&)>;
+		//! \brief Callback type for received data
+		using receive_callback_t = std::function<void(std::shared_ptr<session::secure_session>,
+		                                              const std::vector<uint8_t>&)>;
+		//! \brief Callback type for errors
+		using error_callback_t = std::function<void(std::shared_ptr<session::secure_session>,
+		                                            std::error_code)>;
 
 		/*!
 		 * \brief Constructs a \c secure_messaging_server with SSL/TLS support.
@@ -123,9 +132,82 @@ namespace kcenon::network::core
 
 		/*!
 		 * \brief Destructor. If the server is still running, \c stop_server()
-		 * is invoked (handled by base class).
+		 * is invoked.
 		 */
-		~secure_messaging_server() noexcept override = default;
+		~secure_messaging_server() noexcept;
+
+		// Non-copyable, non-movable
+		secure_messaging_server(const secure_messaging_server&) = delete;
+		secure_messaging_server& operator=(const secure_messaging_server&) = delete;
+		secure_messaging_server(secure_messaging_server&&) = delete;
+		secure_messaging_server& operator=(secure_messaging_server&&) = delete;
+
+		// =====================================================================
+		// Lifecycle Management
+		// =====================================================================
+
+		/*!
+		 * \brief Starts the server on the specified port.
+		 * \param port The port to listen on.
+		 * \return Result<void> - Success if server started, or error with code:
+		 *         - error_codes::network_system::server_already_running if already running
+		 *         - error_codes::network_system::bind_failed if port binding failed
+		 *         - error_codes::common_errors::internal_error for other failures
+		 */
+		[[nodiscard]] auto start_server(unsigned short port) -> VoidResult;
+
+		/*!
+		 * \brief Stops the server and closes all connections.
+		 * \return Result<void> - Success if server stopped, or error with code:
+		 *         - error_codes::network_system::server_not_started if not running
+		 *         - error_codes::common_errors::internal_error for other failures
+		 */
+		[[nodiscard]] auto stop_server() -> VoidResult;
+
+		/*!
+		 * \brief Blocks until stop_server() is called.
+		 */
+		auto wait_for_stop() -> void;
+
+		/*!
+		 * \brief Check if the server is currently running.
+		 * \return true if running, false otherwise.
+		 */
+		[[nodiscard]] auto is_running() const noexcept -> bool;
+
+		/*!
+		 * \brief Returns the server identifier.
+		 * \return The server_id string.
+		 */
+		[[nodiscard]] auto server_id() const -> const std::string&;
+
+		// =====================================================================
+		// Callback Setters
+		// =====================================================================
+
+		/*!
+		 * \brief Sets the callback for new client connections.
+		 * \param callback Function called when a client connects.
+		 */
+		auto set_connection_callback(connection_callback_t callback) -> void;
+
+		/*!
+		 * \brief Sets the callback for client disconnections.
+		 * \param callback Function called when a client disconnects.
+		 */
+		auto set_disconnection_callback(disconnection_callback_t callback) -> void;
+
+		/*!
+		 * \brief Sets the callback for received messages.
+		 * \param callback Function called when data is received from a client.
+		 */
+		auto set_receive_callback(receive_callback_t callback) -> void;
+
+		/*!
+		 * \brief Sets the callback for session errors.
+		 * \param callback Function called when an error occurs on a session.
+		 */
+		auto set_error_callback(error_callback_t callback) -> void;
 
 #if KCENON_WITH_COMMON_SYSTEM
 		/*!
@@ -141,30 +223,65 @@ namespace kcenon::network::core
 		auto get_monitor() const -> kcenon::common::interfaces::IMonitor*;
 #endif // KCENON_WITH_COMMON_SYSTEM
 
-	protected:
+	private:
+		// =====================================================================
+		// Internal Implementation Methods
+		// =====================================================================
+
 		/*!
 		 * \brief Secure TCP-specific implementation of server start.
 		 * \param port The TCP port to bind and listen on.
 		 * \return Result<void> - Success if server started, or error with code:
 		 *         - error_codes::network_system::bind_failed if port binding failed
 		 *         - error_codes::common_errors::internal_error for other failures
-		 *
-		 * Called by base class start_server() after common validation.
-		 * Creates io_context, acceptor, and starts accepting connections.
 		 */
-		auto do_start(unsigned short port) -> VoidResult;
+		auto do_start_impl(unsigned short port) -> VoidResult;
 
 		/*!
 		 * \brief Secure TCP-specific implementation of server stop.
 		 * \return Result<void> - Success if server stopped, or error with code:
 		 *         - error_codes::common_errors::internal_error for failures
-		 *
-		 * Called by base class stop_server() after common cleanup.
-		 * Closes acceptor, stops sessions, and releases resources.
 		 */
-		auto do_stop() -> VoidResult;
+		auto do_stop_impl() -> VoidResult;
 
-	private:
+		// =====================================================================
+		// Internal Callback Helpers
+		// =====================================================================
+
+		/*!
+		 * \brief Gets a copy of the connection callback.
+		 * \return Copy of the connection callback (may be empty).
+		 */
+		[[nodiscard]] auto get_connection_callback() const -> connection_callback_t;
+
+		/*!
+		 * \brief Gets a copy of the disconnection callback.
+		 * \return Copy of the disconnection callback (may be empty).
+		 */
+		[[nodiscard]] auto get_disconnection_callback() const -> disconnection_callback_t;
+
+		/*!
+		 * \brief Gets a copy of the receive callback.
+		 * \return Copy of the receive callback (may be empty).
+		 */
+		[[nodiscard]] auto get_receive_callback() const -> receive_callback_t;
+
+		/*!
+		 * \brief Gets a copy of the error callback.
+		 * \return Copy of the error callback (may be empty).
+		 */
+		[[nodiscard]] auto get_error_callback() const -> error_callback_t;
+
+		/*!
+		 * \brief Invokes the connection callback with the given session.
+		 * \param session The newly connected session.
+		 */
+		auto invoke_connection_callback(std::shared_ptr<session::secure_session> session) -> void;
+
+		// =====================================================================
+		// Internal Connection Handlers
+		// =====================================================================
+
 		/*!
 		 * \brief Initiates an asynchronous accept operation (\c async_accept).
 		 *
@@ -202,8 +319,29 @@ namespace kcenon::network::core
 		auto start_cleanup_timer() -> void;
 
 	private:
-		// Secure TCP protocol-specific members (base class provides server_id_,
-		// is_running_, stop_initiated_, stop_promise_, stop_future_, and callbacks)
+		// =====================================================================
+		// Callback indices for callback_manager
+		// =====================================================================
+		static constexpr std::size_t kConnectionCallback = 0;
+		static constexpr std::size_t kDisconnectionCallback = 1;
+		static constexpr std::size_t kReceiveCallback = 2;
+		static constexpr std::size_t kErrorCallback = 3;
+
+		//! \brief Callback manager type for this server
+		using callbacks_t = utils::callback_manager<
+			connection_callback_t,
+			disconnection_callback_t,
+			receive_callback_t,
+			error_callback_t
+		>;
+
+		// =====================================================================
+		// Member Variables
+		// =====================================================================
+
+		std::string server_id_;               /*!< Server identifier. */
+		utils::lifecycle_manager lifecycle_;  /*!< Lifecycle state manager. */
+		callbacks_t callbacks_;               /*!< Callback manager. */
 
 		std::unique_ptr<asio::io_context>
 			io_context_;	/*!< The I/O context for async ops. */

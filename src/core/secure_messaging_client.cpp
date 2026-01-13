@@ -44,7 +44,7 @@ using tcp = asio::ip::tcp;
 
 secure_messaging_client::secure_messaging_client(std::string_view client_id,
                                                  bool verify_cert)
-    : messaging_client_base<secure_messaging_client>(client_id),
+    : client_id_(client_id),
       verify_cert_(verify_cert) {
   // Initialize SSL context with TLS 1.3 support (TICKET-009: TLS 1.3 only by default)
   ssl_context_ =
@@ -89,12 +89,161 @@ secure_messaging_client::secure_messaging_client(std::string_view client_id,
   }
 }
 
-// Destructor is defaulted in header - base class handles stop_client() call
+secure_messaging_client::~secure_messaging_client() noexcept {
+  if (lifecycle_.is_running()) {
+    stop_client();
+  }
+}
 
-// Secure TCP-specific implementation of client start
-// Called by base class start_client() after common validation
-auto secure_messaging_client::do_start(std::string_view host,
-                                       unsigned short port) -> VoidResult {
+// =====================================================================
+// Lifecycle Management
+// =====================================================================
+
+auto secure_messaging_client::start_client(std::string_view host, unsigned short port)
+    -> VoidResult {
+  if (lifecycle_.is_running()) {
+    return error_void(
+        error_codes::common_errors::already_exists,
+        "Client is already running",
+        "secure_messaging_client::start_client");
+  }
+
+  if (host.empty()) {
+    return error_void(
+        error_codes::common_errors::invalid_argument,
+        "Host cannot be empty",
+        "secure_messaging_client::start_client");
+  }
+
+  if (!lifecycle_.try_start()) {
+    return error_void(
+        error_codes::common_errors::already_exists,
+        "Client is already starting",
+        "secure_messaging_client::start_client");
+  }
+
+  is_connected_.store(false, std::memory_order_release);
+
+  // Call implementation
+  auto result = do_start_impl(host, port);
+  if (result.is_err()) {
+    lifecycle_.mark_stopped();
+  }
+
+  return result;
+}
+
+auto secure_messaging_client::stop_client() -> VoidResult {
+  if (!lifecycle_.is_running()) {
+    return ok();
+  }
+
+  if (!lifecycle_.prepare_stop()) {
+    return ok(); // Already stopping or not running
+  }
+
+  is_connected_.store(false, std::memory_order_release);
+
+  // Call implementation
+  auto result = do_stop_impl();
+
+  // Signal stop completion
+  lifecycle_.mark_stopped();
+
+  // Invoke disconnected callback
+  invoke_disconnected_callback();
+
+  return result;
+}
+
+auto secure_messaging_client::wait_for_stop() -> void {
+  lifecycle_.wait_for_stop();
+}
+
+auto secure_messaging_client::is_running() const noexcept -> bool {
+  return lifecycle_.is_running();
+}
+
+auto secure_messaging_client::is_connected() const noexcept -> bool {
+  return is_connected_.load(std::memory_order_acquire);
+}
+
+auto secure_messaging_client::client_id() const -> const std::string& {
+  return client_id_;
+}
+
+// =====================================================================
+// Data Transfer
+// =====================================================================
+
+auto secure_messaging_client::send_packet(std::vector<uint8_t>&& data) -> VoidResult {
+  if (!is_connected_.load(std::memory_order_acquire)) {
+    return error_void(
+        error_codes::network_system::connection_closed,
+        "Not connected",
+        "secure_messaging_client::send_packet");
+  }
+
+  if (data.empty()) {
+    return error_void(
+        error_codes::common_errors::invalid_argument,
+        "Data cannot be empty",
+        "secure_messaging_client::send_packet");
+  }
+
+  return do_send_impl(std::move(data));
+}
+
+// =====================================================================
+// Callback Setters
+// =====================================================================
+
+auto secure_messaging_client::set_receive_callback(receive_callback_t callback) -> void {
+  callbacks_.set<kReceiveCallback>(std::move(callback));
+}
+
+auto secure_messaging_client::set_connected_callback(connected_callback_t callback) -> void {
+  callbacks_.set<kConnectedCallback>(std::move(callback));
+}
+
+auto secure_messaging_client::set_disconnected_callback(disconnected_callback_t callback) -> void {
+  callbacks_.set<kDisconnectedCallback>(std::move(callback));
+}
+
+auto secure_messaging_client::set_error_callback(error_callback_t callback) -> void {
+  callbacks_.set<kErrorCallback>(std::move(callback));
+}
+
+// =====================================================================
+// Internal Callback Helpers
+// =====================================================================
+
+auto secure_messaging_client::set_connected(bool connected) -> void {
+  is_connected_.store(connected, std::memory_order_release);
+}
+
+auto secure_messaging_client::invoke_receive_callback(const std::vector<uint8_t>& data) -> void {
+  callbacks_.invoke<kReceiveCallback>(data);
+}
+
+auto secure_messaging_client::invoke_connected_callback() -> void {
+  callbacks_.invoke<kConnectedCallback>();
+}
+
+auto secure_messaging_client::invoke_disconnected_callback() -> void {
+  callbacks_.invoke<kDisconnectedCallback>();
+}
+
+auto secure_messaging_client::invoke_error_callback(std::error_code ec) -> void {
+  callbacks_.invoke<kErrorCallback>(ec);
+}
+
+// =====================================================================
+// Internal Implementation Methods
+// =====================================================================
+
+auto secure_messaging_client::do_start_impl(std::string_view host,
+                                            unsigned short port) -> VoidResult {
   try {
     // Create io_context
     io_context_ = std::make_unique<asio::io_context>();
@@ -118,7 +267,7 @@ auto secure_messaging_client::do_start(std::string_view host,
     if (connect_ec) {
       return error_void(error_codes::network_system::connection_failed,
                         "Failed to connect to server: " + connect_ec.message(),
-                        "secure_messaging_client::do_start",
+                        "secure_messaging_client::do_start_impl",
                         "Host: " + std::string(host) +
                             ", Port: " + std::to_string(port));
     }
@@ -149,7 +298,7 @@ auto secure_messaging_client::do_start(std::string_view host,
       // Fallback: create a temporary thread pool if network_context is not
       // initialized
       NETWORK_LOG_WARN(
-          "[secure_messaging_client::" + client_id() +
+          "[secure_messaging_client::" + client_id_ +
           "] network_context not initialized, creating temporary thread pool");
       thread_pool_ = std::make_shared<integration::basic_thread_pool>(
           std::thread::hardware_concurrency());
@@ -158,14 +307,14 @@ auto secure_messaging_client::do_start(std::string_view host,
     // Start io_context on thread pool for handshake to complete
     io_context_future_ = thread_pool_->submit([this]() {
       try {
-        NETWORK_LOG_DEBUG("[secure_messaging_client::" + client_id() +
+        NETWORK_LOG_DEBUG("[secure_messaging_client::" + client_id_ +
                           "] io_context started");
         io_context_->run();
-        NETWORK_LOG_DEBUG("[secure_messaging_client::" + client_id() +
+        NETWORK_LOG_DEBUG("[secure_messaging_client::" + client_id_ +
                           "] io_context stopped");
       } catch (const std::exception &e) {
         NETWORK_LOG_ERROR(
-            "[secure_messaging_client::" + client_id() +
+            "[secure_messaging_client::" + client_id_ +
             "] Exception in io_context: " + std::string(e.what()));
       }
     });
@@ -176,7 +325,7 @@ auto secure_messaging_client::do_start(std::string_view host,
     if (status == std::future_status::timeout) {
       return error_void(error_codes::network_system::connection_timeout,
                         "SSL handshake timeout",
-                        "secure_messaging_client::do_start",
+                        "secure_messaging_client::do_start_impl",
                         "Host: " + std::string(host) +
                             ", Port: " + std::to_string(port));
     }
@@ -185,7 +334,7 @@ auto secure_messaging_client::do_start(std::string_view host,
     if (handshake_ec) {
       return error_void(error_codes::network_system::connection_failed,
                         "SSL handshake failed: " + handshake_ec.message(),
-                        "secure_messaging_client::do_start",
+                        "secure_messaging_client::do_start_impl",
                         "Host: " + std::string(host) +
                             ", Port: " + std::to_string(port));
     }
@@ -193,35 +342,33 @@ auto secure_messaging_client::do_start(std::string_view host,
     // Begin reading after successful handshake
     socket_->start_read();
 
-    // Mark as connected using base class method
+    // Mark as connected
     set_connected(true);
 
     NETWORK_LOG_INFO("[secure_messaging_client] Connected to " +
                      std::string(host) + ":" + std::to_string(port) +
                      " (TLS/SSL secured)");
 
-    // Invoke connected callback using base class method
+    // Invoke connected callback
     invoke_connected_callback();
 
     return ok();
   } catch (const std::system_error &e) {
     return error_void(error_codes::network_system::connection_failed,
                       "Failed to connect: " + std::string(e.what()),
-                      "secure_messaging_client::do_start",
+                      "secure_messaging_client::do_start_impl",
                       "Host: " + std::string(host) +
                           ", Port: " + std::to_string(port));
   } catch (const std::exception &e) {
     return error_void(error_codes::common_errors::internal_error,
                       "Failed to connect: " + std::string(e.what()),
-                      "secure_messaging_client::do_start",
+                      "secure_messaging_client::do_start_impl",
                       "Host: " + std::string(host) +
                           ", Port: " + std::to_string(port));
   }
 }
 
-// Secure TCP-specific implementation of client stop
-// Called by base class stop_client() after common cleanup
-auto secure_messaging_client::do_stop() -> VoidResult {
+auto secure_messaging_client::do_stop_impl() -> VoidResult {
   try {
     // Close socket safely using atomic close() method
     // This prevents data races between close and async read operations
@@ -244,7 +391,7 @@ auto secure_messaging_client::do_stop() -> VoidResult {
       try {
         io_context_future_.wait();
       } catch (const std::exception &e) {
-        NETWORK_LOG_ERROR("[secure_messaging_client::" + client_id() +
+        NETWORK_LOG_ERROR("[secure_messaging_client::" + client_id_ +
                           "] Exception while waiting for io_context: " +
                           std::string(e.what()));
       }
@@ -260,24 +407,22 @@ auto secure_messaging_client::do_stop() -> VoidResult {
   } catch (const std::exception &e) {
     return error_void(error_codes::common_errors::internal_error,
                       "Failed to stop client: " + std::string(e.what()),
-                      "secure_messaging_client::do_stop",
-                      "Client ID: " + client_id());
+                      "secure_messaging_client::do_stop_impl",
+                      "Client ID: " + client_id_);
   }
 }
 
-// Secure TCP-specific implementation of data send
-// Called by base class send_packet() after common validation
-auto secure_messaging_client::do_send(std::vector<uint8_t> &&data)
+auto secure_messaging_client::do_send_impl(std::vector<uint8_t> &&data)
     -> VoidResult {
   if (!socket_) {
     return error_void(
         error_codes::network_system::send_failed, "Socket is not available",
-        "secure_messaging_client::do_send", "Client ID: " + client_id());
+        "secure_messaging_client::do_send_impl", "Client ID: " + client_id_);
   }
 
   // Send data directly over the secure connection
   socket_->async_send(
-      std::move(data), [](std::error_code ec, std::size_t bytes_transferred) {
+      std::move(data), [this](std::error_code ec, std::size_t bytes_transferred) {
         if (ec) {
           NETWORK_LOG_ERROR("[secure_messaging_client] Send error: " +
                             ec.message());
@@ -290,6 +435,10 @@ auto secure_messaging_client::do_send(std::vector<uint8_t> &&data)
   return ok();
 }
 
+// =====================================================================
+// Internal Socket Handlers
+// =====================================================================
+
 auto secure_messaging_client::on_receive(const std::vector<uint8_t> &data)
     -> void {
   if (!is_connected()) {
@@ -299,14 +448,14 @@ auto secure_messaging_client::on_receive(const std::vector<uint8_t> &data)
   NETWORK_LOG_DEBUG("[secure_messaging_client] Received " +
                     std::to_string(data.size()) + " bytes.");
 
-  // Invoke receive callback using base class method
+  // Invoke receive callback
   invoke_receive_callback(data);
 }
 
 auto secure_messaging_client::on_error(std::error_code ec) -> void {
   NETWORK_LOG_ERROR("[secure_messaging_client] Socket error: " + ec.message());
 
-  // Invoke error callback using base class method
+  // Invoke error callback
   invoke_error_callback(ec);
 
   // Invoke disconnected callback if was connected
@@ -314,10 +463,8 @@ auto secure_messaging_client::on_error(std::error_code ec) -> void {
     invoke_disconnected_callback();
   }
 
-  // Mark connection as lost using base class method
+  // Mark connection as lost
   set_connected(false);
 }
-
-// Callback setters are provided by base class
 
 } // namespace kcenon::network::core

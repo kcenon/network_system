@@ -43,12 +43,218 @@ namespace kcenon::network::core
 
 secure_messaging_udp_client::secure_messaging_udp_client(
 	std::string_view client_id, bool verify_cert)
-	: messaging_client_base<secure_messaging_udp_client>(client_id)
+	: client_id_(client_id)
 	, verify_cert_(verify_cert)
 {
 }
 
-// Destructor is defaulted in header - base class handles stop_client() call
+secure_messaging_udp_client::~secure_messaging_udp_client() noexcept
+{
+	if (lifecycle_.is_running())
+	{
+		stop_client();
+	}
+}
+
+// =====================================================================
+// Lifecycle Management
+// =====================================================================
+
+auto secure_messaging_udp_client::start_client(std::string_view host, unsigned short port)
+	-> VoidResult
+{
+	if (lifecycle_.is_running())
+	{
+		return error_void(
+			error_codes::common_errors::already_exists,
+			"Client is already running",
+			"secure_messaging_udp_client::start_client");
+	}
+
+	if (host.empty())
+	{
+		return error_void(
+			error_codes::common_errors::invalid_argument,
+			"Host cannot be empty",
+			"secure_messaging_udp_client::start_client");
+	}
+
+	if (!lifecycle_.try_start())
+	{
+		return error_void(
+			error_codes::common_errors::already_exists,
+			"Client is already starting",
+			"secure_messaging_udp_client::start_client");
+	}
+
+	is_connected_.store(false, std::memory_order_release);
+
+	// Call implementation
+	auto result = do_start_impl(host, port);
+	if (result.is_err())
+	{
+		lifecycle_.mark_stopped();
+	}
+
+	return result;
+}
+
+auto secure_messaging_udp_client::stop_client() -> VoidResult
+{
+	if (!lifecycle_.is_running())
+	{
+		return ok();
+	}
+
+	if (!lifecycle_.prepare_stop())
+	{
+		return ok(); // Already stopping or not running
+	}
+
+	is_connected_.store(false, std::memory_order_release);
+
+	// Call implementation
+	auto result = do_stop_impl();
+
+	// Signal stop completion
+	lifecycle_.mark_stopped();
+
+	// Invoke disconnected callback
+	invoke_disconnected_callback();
+
+	return result;
+}
+
+auto secure_messaging_udp_client::wait_for_stop() -> void
+{
+	lifecycle_.wait_for_stop();
+}
+
+auto secure_messaging_udp_client::is_running() const noexcept -> bool
+{
+	return lifecycle_.is_running();
+}
+
+auto secure_messaging_udp_client::is_connected() const noexcept -> bool
+{
+	return is_connected_.load(std::memory_order_acquire);
+}
+
+auto secure_messaging_udp_client::client_id() const -> const std::string&
+{
+	return client_id_;
+}
+
+// =====================================================================
+// Data Transfer
+// =====================================================================
+
+auto secure_messaging_udp_client::send_packet(std::vector<uint8_t>&& data) -> VoidResult
+{
+	if (!is_connected_.load(std::memory_order_acquire))
+	{
+		return error_void(
+			error_codes::network_system::connection_closed,
+			"Not connected",
+			"secure_messaging_udp_client::send_packet");
+	}
+
+	if (data.empty())
+	{
+		return error_void(
+			error_codes::common_errors::invalid_argument,
+			"Data cannot be empty",
+			"secure_messaging_udp_client::send_packet");
+	}
+
+	return do_send_impl(std::move(data));
+}
+
+auto secure_messaging_udp_client::send_packet_with_handler(
+	std::vector<uint8_t>&& data,
+	std::function<void(std::error_code, std::size_t)> handler) -> VoidResult
+{
+	if (!is_connected())
+	{
+		return error_void(error_codes::common_errors::internal_error,
+		                  "Client not connected",
+		                  "secure_messaging_udp_client::send_packet_with_handler");
+	}
+
+	if (!socket_)
+	{
+		return error_void(error_codes::common_errors::internal_error,
+		                  "Socket not available",
+		                  "secure_messaging_udp_client::send_packet_with_handler");
+	}
+
+	socket_->async_send(std::move(data), std::move(handler));
+	return ok();
+}
+
+// =====================================================================
+// Callback Setters
+// =====================================================================
+
+auto secure_messaging_udp_client::set_udp_receive_callback(
+	udp_receive_callback_t callback) -> void
+{
+	std::lock_guard<std::mutex> lock(udp_callback_mutex_);
+	udp_receive_callback_ = std::move(callback);
+}
+
+auto secure_messaging_udp_client::set_receive_callback(receive_callback_t callback) -> void
+{
+	callbacks_.set<kReceiveCallback>(std::move(callback));
+}
+
+auto secure_messaging_udp_client::set_connected_callback(connected_callback_t callback) -> void
+{
+	callbacks_.set<kConnectedCallback>(std::move(callback));
+}
+
+auto secure_messaging_udp_client::set_disconnected_callback(disconnected_callback_t callback) -> void
+{
+	callbacks_.set<kDisconnectedCallback>(std::move(callback));
+}
+
+auto secure_messaging_udp_client::set_error_callback(error_callback_t callback) -> void
+{
+	callbacks_.set<kErrorCallback>(std::move(callback));
+}
+
+// =====================================================================
+// Internal Callback Helpers
+// =====================================================================
+
+auto secure_messaging_udp_client::set_connected(bool connected) -> void
+{
+	is_connected_.store(connected, std::memory_order_release);
+}
+
+auto secure_messaging_udp_client::invoke_receive_callback(const std::vector<uint8_t>& data) -> void
+{
+	callbacks_.invoke<kReceiveCallback>(data);
+}
+
+auto secure_messaging_udp_client::invoke_connected_callback() -> void
+{
+	callbacks_.invoke<kConnectedCallback>();
+}
+
+auto secure_messaging_udp_client::invoke_disconnected_callback() -> void
+{
+	callbacks_.invoke<kDisconnectedCallback>();
+}
+
+auto secure_messaging_udp_client::invoke_error_callback(std::error_code ec) -> void
+{
+	callbacks_.invoke<kErrorCallback>(ec);
+}
+
+// =====================================================================
+// Internal Implementation Methods
+// =====================================================================
 
 auto secure_messaging_udp_client::init_ssl_context() -> VoidResult
 {
@@ -79,9 +285,7 @@ auto secure_messaging_udp_client::init_ssl_context() -> VoidResult
 	return ok();
 }
 
-// DTLS-specific implementation of client start
-// Called by base class start_client() after common validation
-auto secure_messaging_udp_client::do_start(
+auto secure_messaging_udp_client::do_start_impl(
 	std::string_view host, unsigned short port) -> VoidResult
 {
 	// Initialize SSL context
@@ -109,7 +313,7 @@ auto secure_messaging_udp_client::do_start(
 		ssl_ctx_ = nullptr;
 		return error_void(error_codes::common_errors::internal_error,
 		                  "Failed to resolve host: " + std::string(host),
-		                  "secure_messaging_udp_client::do_start");
+		                  "secure_messaging_udp_client::do_start_impl");
 	}
 
 	{
@@ -149,7 +353,6 @@ auto secure_messaging_udp_client::do_start(
 	socket_->set_error_callback(
 		[this, self](std::error_code ec)
 		{
-			// Use base class method to invoke error callback
 			invoke_error_callback(ec);
 		});
 
@@ -175,10 +378,10 @@ auto secure_messaging_udp_client::do_start(
 		return handshake_result;
 	}
 
-	// Mark as connected using base class method
+	// Mark as connected
 	set_connected(true);
 
-	// Notify connected using base class method
+	// Notify connected
 	invoke_connected_callback();
 
 	return ok();
@@ -225,9 +428,7 @@ auto secure_messaging_udp_client::do_handshake() -> VoidResult
 	return ok();
 }
 
-// DTLS-specific implementation of client stop
-// Called by base class stop_client() after common cleanup
-auto secure_messaging_udp_client::do_stop() -> VoidResult
+auto secure_messaging_udp_client::do_stop_impl() -> VoidResult
 {
 	// Stop socket
 	if (socket_)
@@ -258,50 +459,17 @@ auto secure_messaging_udp_client::do_stop() -> VoidResult
 	return ok();
 }
 
-// DTLS-specific implementation of data send
-// Called by base class send_packet() after common validation
-auto secure_messaging_udp_client::do_send(std::vector<uint8_t>&& data) -> VoidResult
+auto secure_messaging_udp_client::do_send_impl(std::vector<uint8_t>&& data) -> VoidResult
 {
 	if (!socket_)
 	{
 		return error_void(error_codes::common_errors::internal_error,
 		                  "Socket not available",
-		                  "secure_messaging_udp_client::do_send");
+		                  "secure_messaging_udp_client::do_send_impl");
 	}
 
 	socket_->async_send(std::move(data), nullptr);
 	return ok();
 }
-
-auto secure_messaging_udp_client::send_packet_with_handler(
-	std::vector<uint8_t>&& data,
-	std::function<void(std::error_code, std::size_t)> handler) -> VoidResult
-{
-	if (!is_connected())
-	{
-		return error_void(error_codes::common_errors::internal_error,
-		                  "Client not connected",
-		                  "secure_messaging_udp_client::send_packet_with_handler");
-	}
-
-	if (!socket_)
-	{
-		return error_void(error_codes::common_errors::internal_error,
-		                  "Socket not available",
-		                  "secure_messaging_udp_client::send_packet_with_handler");
-	}
-
-	socket_->async_send(std::move(data), std::move(handler));
-	return ok();
-}
-
-auto secure_messaging_udp_client::set_udp_receive_callback(
-	udp_receive_callback_t callback) -> void
-{
-	std::lock_guard<std::mutex> lock(udp_callback_mutex_);
-	udp_receive_callback_ = std::move(callback);
-}
-
-// Other callback setters are provided by base class
 
 } // namespace kcenon::network::core

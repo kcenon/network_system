@@ -98,6 +98,17 @@ Network System 프로젝트의 모든 주목할 만한 변경 사항은 이 파�
   - #317 종료
 
 ### 변경됨
+- **보안 클래스 Composition 패턴으로 마이그레이션 및 CRTP 베이스 클래스 제거** (2026-01-14) (#444, #449, #450, #451)
+  - `secure_messaging_client`, `secure_messaging_server`, `secure_messaging_udp_client`를 CRTP 기반 상속에서 Composition 패턴으로 마이그레이션
+  - CRTP 베이스 클래스를 `std::enable_shared_from_this`와 `lifecycle_manager`, `callback_manager` Composition으로 교체
+  - 8개의 CRTP 베이스 클래스 헤더 파일 제거:
+    - `messaging_client_base.h`, `messaging_server_base.h`
+    - `messaging_udp_client_base.h`, `messaging_udp_server_base.h`
+    - `messaging_ws_client_base.h`, `messaging_ws_server_base.h`
+    - `messaging_quic_client_base.h`, `messaging_quic_server_base.h`
+  - Phase 1.4 CRTP에서 Composition으로의 리팩토링 완료
+  - 장점: 코드 중복 감소, 명확한 소유권 의미론, 컴파일 시간 개선
+
 - **WebSocket 클래스 Composition 패턴으로 마이그레이션** (2026-01-14) (#442)
   - `messaging_ws_client`와 `messaging_ws_server`를 CRTP 기반 상속에서 Composition 패턴으로 마이그레이션
   - CRTP 베이스 클래스(`messaging_ws_client_base`, `messaging_ws_server_base`)를 `std::enable_shared_from_this`로 교체
