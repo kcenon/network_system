@@ -212,6 +212,53 @@ namespace kcenon::network::core
 		return ok();
 	}
 
+	// ========================================================================
+	// i_websocket_client interface implementation
+	// ========================================================================
+
+	auto messaging_ws_client::close(uint16_t code, std::string_view reason) -> VoidResult
+	{
+		return close(static_cast<internal::ws_close_code>(code), std::string(reason));
+	}
+
+	auto messaging_ws_client::set_text_callback(
+		interfaces::i_websocket_client::text_callback_t callback) -> void
+	{
+		set_text_message_callback(std::move(callback));
+	}
+
+	auto messaging_ws_client::set_binary_callback(
+		interfaces::i_websocket_client::binary_callback_t callback) -> void
+	{
+		set_binary_message_callback(std::move(callback));
+	}
+
+	auto messaging_ws_client::set_connected_callback(
+		interfaces::i_websocket_client::connected_callback_t callback) -> void
+	{
+		messaging_ws_client_base::set_connected_callback(std::move(callback));
+	}
+
+	auto messaging_ws_client::set_disconnected_callback(
+		interfaces::i_websocket_client::disconnected_callback_t callback) -> void
+	{
+		// Adapt interface callback to base class callback
+		if (callback) {
+			messaging_ws_client_base::set_disconnected_callback(
+				[callback = std::move(callback)](internal::ws_close_code code, const std::string& reason) {
+					callback(static_cast<uint16_t>(code), reason);
+				});
+		} else {
+			messaging_ws_client_base::set_disconnected_callback(nullptr);
+		}
+	}
+
+	auto messaging_ws_client::set_error_callback(
+		interfaces::i_websocket_client::error_callback_t callback) -> void
+	{
+		messaging_ws_client_base::set_error_callback(std::move(callback));
+	}
+
 	auto messaging_ws_client::do_connect() -> void
 	{
 		tcp::resolver resolver(*io_context_);

@@ -33,6 +33,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 
 #include "kcenon/network/core/messaging_ws_client_base.h"
+#include "kcenon/network/interfaces/i_websocket_client.h"
 #include "kcenon/network/internal/websocket_protocol.h"
 #include "kcenon/network/utils/result_types.h"
 #include "kcenon/network/integration/thread_integration.h"
@@ -83,8 +84,8 @@ namespace kcenon::network::core
 	 * \class messaging_ws_client
 	 * \brief High-level WebSocket client with automatic connection management.
 	 *
-	 * This class inherits from messaging_ws_client_base using the CRTP pattern,
-	 * which provides common lifecycle management and callback handling.
+	 * This class inherits from messaging_ws_client_base using the CRTP pattern
+	 * and implements the i_websocket_client interface for composition-based usage.
 	 *
 	 * It handles:
 	 * - Asynchronous connection and handshake
@@ -97,6 +98,9 @@ namespace kcenon::network::core
 	 * - All public methods are thread-safe
 	 * - Callbacks are invoked from the internal I/O thread
 	 * - Message sending can be called from any thread
+	 *
+	 * ### Interface Compliance
+	 * This class implements interfaces::i_websocket_client for composition-based usage.
 	 *
 	 * Usage Example:
 	 * \code
@@ -116,6 +120,7 @@ namespace kcenon::network::core
 	 */
 	class messaging_ws_client
 		: public messaging_ws_client_base<messaging_ws_client>
+		, public interfaces::i_websocket_client
 	{
 	public:
 		//! \brief Allow base class to access protected methods
@@ -140,26 +145,11 @@ namespace kcenon::network::core
 		 */
 		auto start_client(const ws_client_config& config) -> VoidResult;
 
-		// start_client(host, port, path), stop_client(), wait_for_stop(),
-		// is_running(), is_connected(), client_id() are provided by base class
+		//! \brief Bring base class start_client overloads into scope
+		using messaging_ws_client_base::start_client;
 
-		/*!
-		 * \brief Sends a text message.
-		 * \param message The text message to send.
-		 * \param handler Optional callback invoked with send result.
-		 * \return VoidResult indicating validation success.
-		 */
-		auto send_text(std::string&& message,
-					   std::function<void(std::error_code, std::size_t)> handler = nullptr) -> VoidResult;
-
-		/*!
-		 * \brief Sends a binary message.
-		 * \param data The binary data to send.
-		 * \param handler Optional callback invoked with send result.
-		 * \return VoidResult indicating success.
-		 */
-		auto send_binary(std::vector<uint8_t>&& data,
-						 std::function<void(std::error_code, std::size_t)> handler = nullptr) -> VoidResult;
+		// stop_client(), wait_for_stop(), is_running(), is_connected(),
+		// client_id() are provided by base class
 
 		/*!
 		 * \brief Sends a ping frame.
@@ -169,13 +159,205 @@ namespace kcenon::network::core
 		auto send_ping(std::vector<uint8_t>&& payload = {}) -> VoidResult;
 
 		/*!
-		 * \brief Closes the connection gracefully.
+		 * \brief Closes the connection gracefully (legacy API).
 		 * \param code The close status code (default: normal).
 		 * \param reason Optional human-readable reason.
 		 * \return VoidResult indicating success.
+		 *
+		 * \deprecated Use close(uint16_t, std::string_view) for interface compliance.
 		 */
-		auto close(internal::ws_close_code code = internal::ws_close_code::normal,
-				   const std::string& reason = "") -> VoidResult;
+		auto close(internal::ws_close_code code,
+				   const std::string& reason) -> VoidResult;
+
+		// ========================================================================
+		// i_websocket_client interface implementation
+		// ========================================================================
+
+		/*!
+		 * \brief Checks if the client is currently running.
+		 * \return true if running, false otherwise.
+		 *
+		 * Implements i_network_component::is_running().
+		 */
+		[[nodiscard]] auto is_running() const -> bool override {
+			return messaging_ws_client_base::is_running();
+		}
+
+		/*!
+		 * \brief Blocks until stop() is called.
+		 *
+		 * Implements i_network_component::wait_for_stop().
+		 */
+		auto wait_for_stop() -> void override {
+			messaging_ws_client_base::wait_for_stop();
+		}
+
+		/*!
+		 * \brief Starts the WebSocket client connecting to the specified endpoint.
+		 * \param host The server hostname or IP address.
+		 * \param port The server port number.
+		 * \param path The WebSocket path (default: "/").
+		 * \return VoidResult indicating success or failure.
+		 *
+		 * Implements i_websocket_client::start(). Delegates to start_client().
+		 */
+		[[nodiscard]] auto start(
+			std::string_view host,
+			uint16_t port,
+			std::string_view path = "/") -> VoidResult override {
+			return start_client(host, port, path);
+		}
+
+		/*!
+		 * \brief Stops the WebSocket client.
+		 * \return VoidResult indicating success or failure.
+		 *
+		 * Implements i_websocket_client::stop(). Delegates to stop_client().
+		 */
+		[[nodiscard]] auto stop() -> VoidResult override {
+			return stop_client();
+		}
+
+		/*!
+		 * \brief Checks if the WebSocket connection is established.
+		 * \return true if connected, false otherwise.
+		 *
+		 * Implements i_websocket_client::is_connected().
+		 */
+		[[nodiscard]] auto is_connected() const -> bool override {
+			return messaging_ws_client_base::is_connected();
+		}
+
+		/*!
+		 * \brief Sends a text message (interface version).
+		 * \param message The text message to send.
+		 * \param handler Optional completion handler.
+		 * \return VoidResult indicating success or failure.
+		 *
+		 * Implements i_websocket_client::send_text().
+		 */
+		[[nodiscard]] auto send_text(
+			std::string&& message,
+			interfaces::i_websocket_client::send_callback_t handler = nullptr) -> VoidResult override;
+
+		/*!
+		 * \brief Sends a binary message (interface version).
+		 * \param data The binary data to send.
+		 * \param handler Optional completion handler.
+		 * \return VoidResult indicating success or failure.
+		 *
+		 * Implements i_websocket_client::send_binary().
+		 */
+		[[nodiscard]] auto send_binary(
+			std::vector<uint8_t>&& data,
+			interfaces::i_websocket_client::send_callback_t handler = nullptr) -> VoidResult override;
+
+		/*!
+		 * \brief Sends a ping frame (interface version).
+		 * \param payload Optional payload data (max 125 bytes).
+		 * \return VoidResult indicating success or failure.
+		 *
+		 * Implements i_websocket_client::ping(). Delegates to send_ping().
+		 */
+		[[nodiscard]] auto ping(std::vector<uint8_t>&& payload = {}) -> VoidResult override {
+			return send_ping(std::move(payload));
+		}
+
+		/*!
+		 * \brief Closes the WebSocket connection gracefully (interface version).
+		 * \param code The close status code.
+		 * \param reason Optional human-readable reason.
+		 * \return VoidResult indicating success or failure.
+		 *
+		 * Implements i_websocket_client::close().
+		 */
+		[[nodiscard]] auto close(
+			uint16_t code = 1000,
+			std::string_view reason = "") -> VoidResult override;
+
+		/*!
+		 * \brief Sets the callback for text messages (interface version).
+		 * \param callback The callback function.
+		 *
+		 * Implements i_websocket_client::set_text_callback().
+		 */
+		auto set_text_callback(interfaces::i_websocket_client::text_callback_t callback) -> void override;
+
+		/*!
+		 * \brief Sets the callback for binary messages (interface version).
+		 * \param callback The callback function.
+		 *
+		 * Implements i_websocket_client::set_binary_callback().
+		 */
+		auto set_binary_callback(interfaces::i_websocket_client::binary_callback_t callback) -> void override;
+
+		/*!
+		 * \brief Sets the callback for connection established (interface version).
+		 * \param callback The callback function.
+		 *
+		 * Implements i_websocket_client::set_connected_callback().
+		 */
+		auto set_connected_callback(interfaces::i_websocket_client::connected_callback_t callback) -> void override;
+
+		/*!
+		 * \brief Sets the callback for disconnection (interface version).
+		 * \param callback The callback function.
+		 *
+		 * Implements i_websocket_client::set_disconnected_callback().
+		 */
+		auto set_disconnected_callback(interfaces::i_websocket_client::disconnected_callback_t callback) -> void override;
+
+		/*!
+		 * \brief Sets the callback for errors (interface version).
+		 * \param callback The callback function.
+		 *
+		 * Implements i_websocket_client::set_error_callback().
+		 */
+		auto set_error_callback(interfaces::i_websocket_client::error_callback_t callback) -> void override;
+
+		// ========================================================================
+		// Legacy API (maintained for backward compatibility)
+		// ========================================================================
+
+		/*!
+		 * \brief Sets the callback for text messages (legacy version).
+		 * \param callback The callback function.
+		 *
+		 * This overload maintains backward compatibility.
+		 */
+		using messaging_ws_client_base::set_text_message_callback;
+
+		/*!
+		 * \brief Sets the callback for binary messages (legacy version).
+		 * \param callback The callback function.
+		 *
+		 * This overload maintains backward compatibility.
+		 */
+		using messaging_ws_client_base::set_binary_message_callback;
+
+		/*!
+		 * \brief Sets the callback for connection established (legacy version).
+		 * \param callback The callback function.
+		 *
+		 * This overload maintains backward compatibility.
+		 */
+		using messaging_ws_client_base::set_connected_callback;
+
+		/*!
+		 * \brief Sets the callback for disconnection (legacy version).
+		 * \param callback The callback function.
+		 *
+		 * This overload maintains backward compatibility.
+		 */
+		using messaging_ws_client_base::set_disconnected_callback;
+
+		/*!
+		 * \brief Sets the callback for errors (legacy version).
+		 * \param callback The callback function.
+		 *
+		 * This overload maintains backward compatibility.
+		 */
+		using messaging_ws_client_base::set_error_callback;
 
 	protected:
 		/*!

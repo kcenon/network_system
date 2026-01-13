@@ -12,6 +12,25 @@ Network System 프로젝트의 모든 주요 변경 사항이 이 파일에 문�
 ## [미배포]
 
 ### 추가됨
+- **WebSocket 클래스 컴포지션 마이그레이션 (Phase 1.3.1)**: WebSocket 클래스에 컴포지션 패턴 인터페이스 구현 (#428)
+  - `messaging_ws_client`에 `i_websocket_client` 인터페이스 추가
+    - `start/stop/is_connected/is_running` 메서드 구현
+    - `send_text/send_binary/ping/close` 메서드 구현
+    - 어댑터 패턴으로 인터페이스 콜백 세터 추가
+    - 레거시 API와 하위 호환성 유지
+  - `messaging_ws_server`에 `i_websocket_server` 인터페이스 추가
+    - `start/stop/connection_count` 메서드 구현
+    - 연결/해제 콜백 세터 추가
+    - 텍스트/바이너리 메시지 콜백을 인터페이스 타입으로 어댑트
+  - `ws_connection`에 `i_websocket_session` 인터페이스 추가
+    - `id/is_connected/send/close/path` 메서드 구현
+    - 인터페이스와 레거시 close 변형 모두 지원
+    - 완료 핸들러 없는 `send_text/send_binary` 추가
+  - `ws_connection` 구현 리팩토링
+    - impl 클래스를 `ws_connection_impl`로 명확히 이름 변경
+    - path 및 is_connected 지원 추가
+    - 서버 통합을 위해 private 접근자 메서드 사용
+  - 모든 기존 WebSocket 테스트 통과
 - **컴포지션 기반 인터페이스 인프라 (Phase 1.2)**: 컴포지션 패턴을 위한 인터페이스 클래스 추가 (#423)
   - 핵심 인터페이스 추가: `i_network_component`, `i_client`, `i_server`, `i_session`
   - 프로토콜별 인터페이스 추가: `i_udp_client`, `i_udp_server`, `i_websocket_client`, `i_websocket_server`, `i_quic_client`, `i_quic_server`
