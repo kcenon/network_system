@@ -32,18 +32,20 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
+#include <functional>
+#include <future>
 #include <memory>
+#include <mutex>
 #include <string>
 #include <string_view>
-#include <functional>
-#include <mutex>
-#include <future>
+#include <vector>
 
 #include <asio.hpp>
 
-#include "kcenon/network/core/messaging_udp_client_base.h"
 #include "kcenon/network/interfaces/i_udp_client.h"
 #include "kcenon/network/utils/result_types.h"
+#include "kcenon/network/utils/lifecycle_manager.h"
+#include "kcenon/network/utils/callback_manager.h"
 #include "kcenon/network/integration/thread_integration.h"
 
 namespace kcenon::network::internal
@@ -57,13 +59,14 @@ namespace kcenon::network::core
 	 * \class messaging_udp_client
 	 * \brief A UDP client that sends datagrams to a target endpoint and can receive responses.
 	 *
-	 * This class inherits from messaging_udp_client_base using the CRTP pattern
-	 * and implements the i_udp_client interface for composition-based usage.
+	 * This class uses composition pattern with lifecycle_manager and
+	 * callback_manager for common lifecycle management and callback handling.
+	 * It also implements the i_udp_client interface for composition-based usage.
 	 *
 	 * ### Thread Safety
 	 * - All public methods are thread-safe.
 	 * - Socket access is protected by socket_mutex_.
-	 * - Atomic flags (is_running_) prevent race conditions.
+	 * - Atomic flags prevent race conditions.
 	 * - send_packet() can be called from any thread safely.
 	 *
 	 * ### Key Characteristics
@@ -107,12 +110,15 @@ namespace kcenon::network::core
 	 * \endcode
 	 */
 	class messaging_udp_client
-		: public messaging_udp_client_base<messaging_udp_client>
+		: public std::enable_shared_from_this<messaging_udp_client>
 		, public interfaces::i_udp_client
 	{
 	public:
-		//! \brief Allow base class to access protected methods
-		friend class messaging_udp_client_base<messaging_udp_client>;
+		//! \brief Callback type for received datagrams with sender endpoint
+		using receive_callback_t = std::function<void(const std::vector<uint8_t>&,
+		                                              const asio::ip::udp::endpoint&)>;
+		//! \brief Callback type for errors
+		using error_callback_t = std::function<void(std::error_code)>;
 
 		/*!
 		 * \brief Constructs a messaging_udp_client with an identifier.
@@ -121,13 +127,46 @@ namespace kcenon::network::core
 		explicit messaging_udp_client(std::string_view client_id);
 
 		/*!
-		 * \brief Destructor. Automatically calls stop_client() if the client is still running
-		 *        (handled by base class).
+		 * \brief Destructor. Automatically calls stop_client() if the client is still running.
 		 */
-		~messaging_udp_client() noexcept override = default;
+		~messaging_udp_client() noexcept override;
+
+		// Non-copyable, non-movable
+		messaging_udp_client(const messaging_udp_client&) = delete;
+		messaging_udp_client& operator=(const messaging_udp_client&) = delete;
+		messaging_udp_client(messaging_udp_client&&) = delete;
+		messaging_udp_client& operator=(messaging_udp_client&&) = delete;
 
 		// ========================================================================
-		// i_udp_client interface implementation
+		// Lifecycle Management
+		// ========================================================================
+
+		/*!
+		 * \brief Starts the client by resolving target host and port.
+		 * \param host The target hostname or IP address.
+		 * \param port The target port number.
+		 * \return Result<void> - Success if client started, or error with code:
+		 *         - error_codes::common_errors::already_exists if already running
+		 *         - error_codes::common_errors::invalid_argument if empty host
+		 *         - error_codes::common_errors::internal_error for other failures
+		 */
+		[[nodiscard]] auto start_client(std::string_view host, uint16_t port) -> VoidResult;
+
+		/*!
+		 * \brief Stops the client and releases all resources.
+		 * \return Result<void> - Success if client stopped, or error with code:
+		 *         - error_codes::common_errors::internal_error for failures
+		 */
+		[[nodiscard]] auto stop_client() -> VoidResult;
+
+		/*!
+		 * \brief Returns the client identifier.
+		 * \return The client_id string.
+		 */
+		[[nodiscard]] auto client_id() const -> const std::string&;
+
+		// ========================================================================
+		// i_network_component interface implementation
 		// ========================================================================
 
 		/*!
@@ -136,18 +175,18 @@ namespace kcenon::network::core
 		 *
 		 * Implements i_network_component::is_running().
 		 */
-		[[nodiscard]] auto is_running() const -> bool override {
-			return messaging_udp_client_base::is_running();
-		}
+		[[nodiscard]] auto is_running() const -> bool override;
 
 		/*!
-		 * \brief Blocks until stop() is called.
+		 * \brief Blocks until stop_client() is called.
 		 *
 		 * Implements i_network_component::wait_for_stop().
 		 */
-		auto wait_for_stop() -> void override {
-			messaging_udp_client_base::wait_for_stop();
-		}
+		auto wait_for_stop() -> void override;
+
+		// ========================================================================
+		// i_udp_client interface implementation
+		// ========================================================================
 
 		/*!
 		 * \brief Starts the UDP client targeting the specified endpoint.
@@ -157,9 +196,7 @@ namespace kcenon::network::core
 		 *
 		 * Implements i_udp_client::start(). Delegates to start_client().
 		 */
-		[[nodiscard]] auto start(std::string_view host, uint16_t port) -> VoidResult override {
-			return start_client(host, port);
-		}
+		[[nodiscard]] auto start(std::string_view host, uint16_t port) -> VoidResult override;
 
 		/*!
 		 * \brief Stops the UDP client.
@@ -167,9 +204,7 @@ namespace kcenon::network::core
 		 *
 		 * Implements i_udp_client::stop(). Delegates to stop_client().
 		 */
-		[[nodiscard]] auto stop() -> VoidResult override {
-			return stop_client();
-		}
+		[[nodiscard]] auto stop() -> VoidResult override;
 
 		/*!
 		 * \brief Sends a datagram to the configured target endpoint.
@@ -181,7 +216,7 @@ namespace kcenon::network::core
 		 */
 		[[nodiscard]] auto send(
 			std::vector<uint8_t>&& data,
-			send_callback_t handler = nullptr) -> VoidResult override;
+			interfaces::i_udp_client::send_callback_t handler = nullptr) -> VoidResult override;
 
 		/*!
 		 * \brief Changes the target endpoint for future sends.
@@ -208,23 +243,16 @@ namespace kcenon::network::core
 		 * This overload maintains backward compatibility with code using
 		 * asio::ip::udp::endpoint directly.
 		 */
-		using messaging_udp_client_base::set_receive_callback;
+		auto set_receive_callback(receive_callback_t callback) -> void;
 
 		/*!
-		 * \brief Sets the callback for errors (interface version).
+		 * \brief Sets the callback for errors.
 		 * \param callback The callback function.
 		 *
 		 * Implements i_udp_client::set_error_callback().
+		 * Also compatible with legacy error_callback_t (same signature).
 		 */
-		auto set_error_callback(interfaces::i_udp_client::error_callback_t callback) -> void override;
-
-		/*!
-		 * \brief Sets the callback for errors (legacy version).
-		 * \param callback The callback function.
-		 *
-		 * This overload maintains backward compatibility.
-		 */
-		using messaging_udp_client_base::set_error_callback;
+		auto set_error_callback(error_callback_t callback) -> void override;
 
 		// ========================================================================
 		// Legacy API (maintained for backward compatibility)
@@ -242,28 +270,79 @@ namespace kcenon::network::core
 			std::vector<uint8_t>&& data,
 			std::function<void(std::error_code, std::size_t)> handler) -> VoidResult;
 
-	protected:
+	private:
+		// =====================================================================
+		// Internal Implementation Methods
+		// =====================================================================
+
 		/*!
 		 * \brief UDP-specific implementation of client start.
 		 * \param host The target hostname or IP address.
 		 * \param port The target port number.
 		 * \return Result<void> - Success if client started, or error with code.
 		 *
-		 * Called by base class start_client() after common validation.
 		 * Creates io_context, resolves target, creates socket, and starts worker thread.
 		 */
-		auto do_start(std::string_view host, uint16_t port) -> VoidResult;
+		auto do_start_impl(std::string_view host, uint16_t port) -> VoidResult;
 
 		/*!
 		 * \brief UDP-specific implementation of client stop.
 		 * \return Result<void> - Success if client stopped, or error with code.
 		 *
-		 * Called by base class stop_client() after common cleanup.
 		 * Stops receiving, closes socket, and releases resources.
 		 */
-		auto do_stop() -> VoidResult;
+		auto do_stop_impl() -> VoidResult;
 
-	private:
+		// =====================================================================
+		// Internal Callback Helpers
+		// =====================================================================
+
+		/*!
+		 * \brief Invokes the receive callback with the given data and endpoint.
+		 * \param data The received data.
+		 * \param endpoint The sender's endpoint.
+		 */
+		auto invoke_receive_callback(const std::vector<uint8_t>& data,
+		                             const asio::ip::udp::endpoint& endpoint) -> void;
+
+		/*!
+		 * \brief Invokes the error callback with the given error code.
+		 * \param ec The error code.
+		 */
+		auto invoke_error_callback(std::error_code ec) -> void;
+
+		/*!
+		 * \brief Gets a copy of the receive callback.
+		 * \return Copy of the receive callback (may be empty).
+		 */
+		[[nodiscard]] auto get_receive_callback() const -> receive_callback_t;
+
+		/*!
+		 * \brief Gets a copy of the error callback.
+		 * \return Copy of the error callback (may be empty).
+		 */
+		[[nodiscard]] auto get_error_callback() const -> error_callback_t;
+
+		// =====================================================================
+		// Callback indices for callback_manager
+		// =====================================================================
+		static constexpr std::size_t kReceiveCallbackIndex = 0;
+		static constexpr std::size_t kErrorCallbackIndex = 1;
+
+		//! \brief Callback manager type for this client
+		using callbacks_t = utils::callback_manager<
+			receive_callback_t,
+			error_callback_t
+		>;
+
+		// =====================================================================
+		// Member Variables
+		// =====================================================================
+
+		std::string client_id_;                          /*!< Client identifier. */
+		utils::lifecycle_manager lifecycle_;             /*!< Lifecycle state manager. */
+		callbacks_t callbacks_;                          /*!< Callback manager. */
+
 		std::unique_ptr<asio::io_context> io_context_;   /*!< ASIO I/O context. */
 		std::shared_ptr<internal::udp_socket> socket_;   /*!< UDP socket wrapper. */
 
@@ -273,7 +352,7 @@ namespace kcenon::network::core
 		std::mutex endpoint_mutex_;                      /*!< Protects target_endpoint_. */
 		asio::ip::udp::endpoint target_endpoint_;        /*!< Target endpoint for sends. */
 
-		std::mutex socket_mutex_;                        /*!< Protects socket access. */
+		mutable std::mutex socket_mutex_;                /*!< Protects socket access. */
 	};
 
 } // namespace kcenon::network::core
