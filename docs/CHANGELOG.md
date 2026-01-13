@@ -69,6 +69,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   - Fixes intermittent `MultiConnectionLifecycleTest.ConnectionScaling` failures on macOS Release CI
 
 ### Changed
+- **Secure Classes Migrated to Composition Pattern and CRTP Base Classes Removed** (2026-01-14) (#444, #449, #450, #451)
+  - Migrated `secure_messaging_client`, `secure_messaging_server`, and `secure_messaging_udp_client` from CRTP-based inheritance to composition pattern
+  - Replaced CRTP base classes with `std::enable_shared_from_this` and composition with `lifecycle_manager` and `callback_manager`
+  - Removed all 8 CRTP base class header files:
+    - `messaging_client_base.h`, `messaging_server_base.h`
+    - `messaging_udp_client_base.h`, `messaging_udp_server_base.h`
+    - `messaging_ws_client_base.h`, `messaging_ws_server_base.h`
+    - `messaging_quic_client_base.h`, `messaging_quic_server_base.h`
+  - Completes the Phase 1.4 CRTP to Composition refactoring initiative
+  - Benefits: Reduced code duplication, clearer ownership semantics, better compile times
+
 - **WebSocket Classes Migrated to Composition Pattern** (2026-01-14) (#442)
   - Migrated `messaging_ws_client` and `messaging_ws_server` from CRTP-based inheritance to composition pattern
   - Replaced CRTP base classes (`messaging_ws_client_base`, `messaging_ws_server_base`) with `std::enable_shared_from_this`

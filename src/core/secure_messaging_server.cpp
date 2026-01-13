@@ -50,8 +50,7 @@ namespace kcenon::network::core
 	secure_messaging_server::secure_messaging_server(std::string_view server_id,
 													 const std::string& cert_file,
 													 const std::string& key_file)
-		: messaging_server_base<secure_messaging_server,
-		                        kcenon::network::session::secure_session>(server_id)
+		: server_id_(server_id)
 	{
 		// Initialize SSL context with TLS 1.3 support (TICKET-009: TLS 1.3 only by default)
 		ssl_context_ = std::make_unique<asio::ssl::context>(
@@ -99,11 +98,144 @@ namespace kcenon::network::core
 		}
 	}
 
-	// Destructor is defaulted in header - base class handles stop_server() call
+	secure_messaging_server::~secure_messaging_server() noexcept
+	{
+		if (lifecycle_.is_running())
+		{
+			stop_server();
+		}
+	}
 
-	// Secure TCP-specific implementation of server start
-	// Called by base class start_server() after common validation
-	auto secure_messaging_server::do_start(unsigned short port) -> VoidResult
+	// =====================================================================
+	// Lifecycle Management
+	// =====================================================================
+
+	auto secure_messaging_server::start_server(unsigned short port) -> VoidResult
+	{
+		if (lifecycle_.is_running())
+		{
+			return error_void(
+				error_codes::network_system::server_already_running,
+				"Server is already running",
+				"secure_messaging_server::start_server");
+		}
+
+		if (!lifecycle_.try_start())
+		{
+			return error_void(
+				error_codes::network_system::server_already_running,
+				"Server is already starting",
+				"secure_messaging_server::start_server");
+		}
+
+		// Call implementation
+		auto result = do_start_impl(port);
+		if (result.is_err())
+		{
+			lifecycle_.mark_stopped();
+		}
+
+		return result;
+	}
+
+	auto secure_messaging_server::stop_server() -> VoidResult
+	{
+		if (!lifecycle_.is_running())
+		{
+			return error_void(
+				error_codes::network_system::server_not_started,
+				"Server is not running",
+				"secure_messaging_server::stop_server");
+		}
+
+		if (!lifecycle_.prepare_stop())
+		{
+			return ok(); // Already stopping
+		}
+
+		// Call implementation
+		auto result = do_stop_impl();
+
+		// Signal stop completion
+		lifecycle_.mark_stopped();
+
+		return result;
+	}
+
+	auto secure_messaging_server::wait_for_stop() -> void
+	{
+		lifecycle_.wait_for_stop();
+	}
+
+	auto secure_messaging_server::is_running() const noexcept -> bool
+	{
+		return lifecycle_.is_running();
+	}
+
+	auto secure_messaging_server::server_id() const -> const std::string&
+	{
+		return server_id_;
+	}
+
+	// =====================================================================
+	// Callback Setters
+	// =====================================================================
+
+	auto secure_messaging_server::set_connection_callback(connection_callback_t callback) -> void
+	{
+		callbacks_.set<kConnectionCallback>(std::move(callback));
+	}
+
+	auto secure_messaging_server::set_disconnection_callback(disconnection_callback_t callback) -> void
+	{
+		callbacks_.set<kDisconnectionCallback>(std::move(callback));
+	}
+
+	auto secure_messaging_server::set_receive_callback(receive_callback_t callback) -> void
+	{
+		callbacks_.set<kReceiveCallback>(std::move(callback));
+	}
+
+	auto secure_messaging_server::set_error_callback(error_callback_t callback) -> void
+	{
+		callbacks_.set<kErrorCallback>(std::move(callback));
+	}
+
+	// =====================================================================
+	// Internal Callback Helpers
+	// =====================================================================
+
+	auto secure_messaging_server::get_connection_callback() const -> connection_callback_t
+	{
+		return callbacks_.get<kConnectionCallback>();
+	}
+
+	auto secure_messaging_server::get_disconnection_callback() const -> disconnection_callback_t
+	{
+		return callbacks_.get<kDisconnectionCallback>();
+	}
+
+	auto secure_messaging_server::get_receive_callback() const -> receive_callback_t
+	{
+		return callbacks_.get<kReceiveCallback>();
+	}
+
+	auto secure_messaging_server::get_error_callback() const -> error_callback_t
+	{
+		return callbacks_.get<kErrorCallback>();
+	}
+
+	auto secure_messaging_server::invoke_connection_callback(
+		std::shared_ptr<session::secure_session> session) -> void
+	{
+		callbacks_.invoke<kConnectionCallback>(session);
+	}
+
+	// =====================================================================
+	// Internal Implementation Methods
+	// =====================================================================
+
+	auto secure_messaging_server::do_start_impl(unsigned short port) -> VoidResult
 	{
 		try
 		{
@@ -163,7 +295,7 @@ namespace kcenon::network::core
 				return error_void(
 					error_codes::network_system::bind_failed,
 					"Failed to bind to port: address already in use",
-					"secure_messaging_server::do_start",
+					"secure_messaging_server::do_start_impl",
 					"Port: " + std::to_string(port)
 				);
 			}
@@ -173,7 +305,7 @@ namespace kcenon::network::core
 				return error_void(
 					error_codes::network_system::bind_failed,
 					"Failed to bind to port: permission denied",
-					"secure_messaging_server::do_start",
+					"secure_messaging_server::do_start_impl",
 					"Port: " + std::to_string(port)
 				);
 			}
@@ -181,7 +313,7 @@ namespace kcenon::network::core
 			return error_void(
 				error_codes::common_errors::internal_error,
 				"Failed to start secure server: " + std::string(e.what()),
-				"secure_messaging_server::do_start",
+				"secure_messaging_server::do_start_impl",
 				"Port: " + std::to_string(port)
 			);
 		}
@@ -190,15 +322,13 @@ namespace kcenon::network::core
 			return error_void(
 				error_codes::common_errors::internal_error,
 				"Failed to start secure server: " + std::string(e.what()),
-				"secure_messaging_server::do_start",
+				"secure_messaging_server::do_start_impl",
 				"Port: " + std::to_string(port)
 			);
 		}
 	}
 
-	// Secure TCP-specific implementation of server stop
-	// Called by base class stop_server() after common cleanup
-	auto secure_messaging_server::do_stop() -> VoidResult
+	auto secure_messaging_server::do_stop_impl() -> VoidResult
 	{
 		try
 		{
@@ -278,11 +408,15 @@ namespace kcenon::network::core
 			return error_void(
 				error_codes::common_errors::internal_error,
 				"Failed to stop secure server: " + std::string(e.what()),
-				"secure_messaging_server::do_stop",
-				"Server ID: " + server_id()
+				"secure_messaging_server::do_stop_impl",
+				"Server ID: " + server_id_
 			);
 		}
 	}
+
+	// =====================================================================
+	// Internal Connection Handlers
+	// =====================================================================
 
 	auto secure_messaging_server::do_accept() -> void
 	{
@@ -317,9 +451,9 @@ namespace kcenon::network::core
 
 		// Create a new secure_session
 		auto new_session = std::make_shared<kcenon::network::session::secure_session>(
-			std::move(socket), *ssl_context_, server_id());
+			std::move(socket), *ssl_context_, server_id_);
 
-		// Set up session callbacks using base class methods
+		// Set up session callbacks
 		auto self = shared_from_this();
 		auto receive_cb = get_receive_callback();
 		auto disconnection_cb = get_disconnection_callback();
@@ -361,7 +495,7 @@ namespace kcenon::network::core
 		// Start the session (this will trigger SSL handshake)
 		new_session->start_session();
 
-		// Invoke connection callback using base class method
+		// Invoke connection callback
 		invoke_connection_callback(new_session);
 
 #if KCENON_WITH_COMMON_SYSTEM
@@ -436,7 +570,5 @@ namespace kcenon::network::core
 		return monitor_;
 	}
 #endif
-
-	// Callback setters are provided by base class
 
 } // namespace kcenon::network::core
