@@ -205,6 +205,12 @@ Network System 프로젝트의 모든 주요 변경 사항이 이 파일에 문�
   - 패키지 등록 후 `vcpkg install --feature ecosystem`으로 활성화
 
 ### 수정됨
+- **ThreadSanitizer 데이터 레이스 수정**: 메시징 서버의 acceptor 접근에 뮤텍스 보호 추가 (#427)
+  - `do_accept()`와 `do_stop()`이 동시에 `acceptor_`에 접근할 때 발생하는 데이터 레이스 수정
+  - `messaging_server`와 `messaging_ws_server` 클래스에 `acceptor_mutex_` 추가
+  - `do_accept()`, `do_stop()`, 소멸자에서 acceptor 접근을 뮤텍스 락으로 보호
+  - `do_accept()`에 `is_running()` 및 `acceptor_->is_open()` 상태 확인을 위한 조기 반환 체크 추가
+  - ThreadSanitizer CI 워크플로우의 E2ETests 실패 수정
 - **Circuit Breaker 빌드 수정**: fallback 빌드 경로에 error_codes_ext 네임스페이스 추가 (#403)
   - common_system 의존성 없이 빌드 시 발생하던 빌드 실패 수정
   - result_types.h의 fallback 블록에 circuit_open 오류 코드를 포함한 error_codes_ext 네임스페이스 추가

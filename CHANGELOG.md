@@ -164,6 +164,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Concepts improve error messages and serve as self-documenting type constraints
 
 ### Fixed
+- **ThreadSanitizer Data Race Fix**: Add mutex protection for acceptor access in messaging servers (#427)
+  - Fixed data race between `do_accept()` and `do_stop()` when accessing `acceptor_` concurrently
+  - Added `acceptor_mutex_` to both `messaging_server` and `messaging_ws_server` classes
+  - Protected acceptor access in `do_accept()`, `do_stop()`, and destructor with mutex locks
+  - Added early return checks in `do_accept()` for `is_running()` and `acceptor_->is_open()` states
+  - Fixes E2ETests failure in ThreadSanitizer CI workflow
 - **Circuit Breaker Build Fix**: Add error_codes_ext namespace to fallback build path (#403)
   - Fixed build failure when building without common_system dependency
   - Added error_codes_ext namespace with circuit_open error code to fallback block in result_types.h
