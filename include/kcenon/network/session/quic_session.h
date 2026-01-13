@@ -43,6 +43,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <asio.hpp>
 
 #include "kcenon/network/core/messaging_quic_client.h"
+#include "kcenon/network/interfaces/i_quic_server.h"
 #include "kcenon/network/protocols/quic/connection_id.h"
 #include "kcenon/network/utils/result_types.h"
 
@@ -74,7 +75,9 @@ namespace kcenon::network::session
 	 * - Provides send/receive callbacks for data handling
 	 * - Thread-safe session management
 	 */
-	class quic_session : public std::enable_shared_from_this<quic_session>
+	class quic_session
+	    : public std::enable_shared_from_this<quic_session>
+	    , public interfaces::i_quic_session
 	{
 	public:
 		/*!
@@ -117,19 +120,8 @@ namespace kcenon::network::session
 		[[nodiscard]] auto is_active() const noexcept -> bool;
 
 		// =====================================================================
-		// Data Transfer (Default Stream)
+		// Data Transfer (Legacy API)
 		// =====================================================================
-
-		/*!
-		 * \brief Send data on the default stream.
-		 * \param data Data to send (moved for efficiency).
-		 * \return VoidResult indicating success or error.
-		 *
-		 * ### Errors
-		 * - \c connection_closed if session is not active
-		 * - \c send_failed for transmission failures
-		 */
-		[[nodiscard]] auto send(std::vector<uint8_t>&& data) -> VoidResult;
 
 		/*!
 		 * \brief Send string data on the default stream.
@@ -139,36 +131,15 @@ namespace kcenon::network::session
 		[[nodiscard]] auto send(std::string_view data) -> VoidResult;
 
 		// =====================================================================
-		// Multi-Stream Support (QUIC Specific)
+		// Session Management (Legacy API)
 		// =====================================================================
 
 		/*!
-		 * \brief Send data on a specific stream.
-		 * \param stream_id Target stream ID.
-		 * \param data Data to send (moved for efficiency).
-		 * \param fin True if this is the final data on the stream.
-		 * \return VoidResult indicating success or error.
-		 */
-		[[nodiscard]] auto send_on_stream(uint64_t stream_id,
-		                                  std::vector<uint8_t>&& data,
-		                                  bool fin = false) -> VoidResult;
-
-		/*!
-		 * \brief Create a new bidirectional stream to the client.
-		 * \return Stream ID or error.
-		 */
-		[[nodiscard]] auto create_stream() -> Result<uint64_t>;
-
-		// =====================================================================
-		// Session Management
-		// =====================================================================
-
-		/*!
-		 * \brief Close the session gracefully.
+		 * \brief Close the session gracefully with error code.
 		 * \param error_code Application error code (0 for no error).
 		 * \return VoidResult indicating success or error.
 		 */
-		[[nodiscard]] auto close(uint64_t error_code = 0) -> VoidResult;
+		[[nodiscard]] auto close(uint64_t error_code) -> VoidResult;
 
 		// =====================================================================
 		// Statistics
@@ -227,6 +198,88 @@ namespace kcenon::network::session
 		 */
 		[[nodiscard]] auto matches_connection_id(
 		    const protocols::quic::connection_id& conn_id) const -> bool;
+
+		// =====================================================================
+		// i_quic_session interface implementation
+		// =====================================================================
+
+		/*!
+		 * \brief Gets the unique session identifier (interface version).
+		 * \return A string view of the session ID.
+		 *
+		 * Implements i_session::id().
+		 */
+		[[nodiscard]] auto id() const -> std::string_view override {
+			return session_id_;
+		}
+
+		/*!
+		 * \brief Checks if the session is currently connected (interface version).
+		 * \return true if connected, false otherwise.
+		 *
+		 * Implements i_session::is_connected().
+		 */
+		[[nodiscard]] auto is_connected() const -> bool override {
+			return is_active();
+		}
+
+		/*!
+		 * \brief Sends data to the client (interface version).
+		 * \param data The data to send.
+		 * \return VoidResult indicating success or failure.
+		 *
+		 * Implements i_session::send().
+		 */
+		[[nodiscard]] auto send(std::vector<uint8_t>&& data) -> VoidResult override;
+
+		/*!
+		 * \brief Closes the session (interface version).
+		 *
+		 * Implements i_session::close().
+		 */
+		auto close() -> void override {
+			auto result = close(0);
+			(void)result;
+		}
+
+		/*!
+		 * \brief Creates a new bidirectional stream (interface version).
+		 * \return Stream ID or error.
+		 *
+		 * Implements i_quic_session::create_stream().
+		 */
+		[[nodiscard]] auto create_stream() -> Result<uint64_t> override;
+
+		/*!
+		 * \brief Creates a new unidirectional stream (interface version).
+		 * \return Stream ID or error.
+		 *
+		 * Implements i_quic_session::create_unidirectional_stream().
+		 */
+		[[nodiscard]] auto create_unidirectional_stream() -> Result<uint64_t> override;
+
+		/*!
+		 * \brief Sends data on a specific stream (interface version).
+		 * \param stream_id The target stream ID.
+		 * \param data The data to send.
+		 * \param fin True if this is the final data on the stream.
+		 * \return VoidResult indicating success or failure.
+		 *
+		 * Implements i_quic_session::send_on_stream().
+		 */
+		[[nodiscard]] auto send_on_stream(
+			uint64_t stream_id,
+			std::vector<uint8_t>&& data,
+			bool fin = false) -> VoidResult override;
+
+		/*!
+		 * \brief Closes a stream (interface version).
+		 * \param stream_id The stream to close.
+		 * \return VoidResult indicating success or failure.
+		 *
+		 * Implements i_quic_session::close_stream().
+		 */
+		[[nodiscard]] auto close_stream(uint64_t stream_id) -> VoidResult override;
 
 	private:
 		// =====================================================================

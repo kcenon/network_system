@@ -36,6 +36,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "kcenon/network/core/messaging_quic_server_base.h"
 #include "kcenon/network/core/messaging_quic_client.h"
+#include "kcenon/network/interfaces/i_quic_server.h"
 #include "kcenon/network/integration/thread_integration.h"
 #include "kcenon/network/protocols/quic/connection_id.h"
 #include "kcenon/network/utils/result_types.h"
@@ -155,6 +156,7 @@ namespace kcenon::network::core
 	 */
 	class messaging_quic_server
 	    : public messaging_quic_server_base<messaging_quic_server>
+	    , public interfaces::i_quic_server
 	{
 	public:
 		//! \brief Allow base class to access protected methods
@@ -265,11 +267,109 @@ namespace kcenon::network::core
 		                             std::vector<uint8_t>&& data) -> VoidResult;
 
 		// =====================================================================
-		// Callbacks (Extended from Base)
+		// i_quic_server interface implementation
 		// =====================================================================
 
-		// set_connection_callback, set_disconnection_callback, set_receive_callback,
-		// set_stream_receive_callback, set_error_callback are provided by base class
+		/*!
+		 * \brief Checks if the server is currently running.
+		 * \return true if running, false otherwise.
+		 *
+		 * Implements i_network_component::is_running().
+		 */
+		[[nodiscard]] auto is_running() const -> bool override {
+			return messaging_quic_server_base::is_running();
+		}
+
+		/*!
+		 * \brief Blocks until stop() is called.
+		 *
+		 * Implements i_network_component::wait_for_stop().
+		 */
+		auto wait_for_stop() -> void override {
+			messaging_quic_server_base::wait_for_stop();
+		}
+
+		/*!
+		 * \brief Starts the QUIC server on the specified port.
+		 * \param port The port number to listen on.
+		 * \return VoidResult indicating success or failure.
+		 *
+		 * Implements i_quic_server::start(). Delegates to start_server().
+		 */
+		[[nodiscard]] auto start(uint16_t port) -> VoidResult override {
+			return start_server(port);
+		}
+
+		/*!
+		 * \brief Stops the QUIC server.
+		 * \return VoidResult indicating success or failure.
+		 *
+		 * Implements i_quic_server::stop(). Delegates to stop_server().
+		 */
+		[[nodiscard]] auto stop() -> VoidResult override {
+			return stop_server();
+		}
+
+		/*!
+		 * \brief Gets the number of active QUIC connections (interface version).
+		 * \return The count of currently connected clients.
+		 *
+		 * Implements i_quic_server::connection_count().
+		 */
+		[[nodiscard]] auto connection_count() const -> size_t override {
+			return session_count();
+		}
+
+		/*!
+		 * \brief Sets the callback for new connections (interface version).
+		 * \param callback The callback function.
+		 *
+		 * Implements i_quic_server::set_connection_callback().
+		 */
+		auto set_connection_callback(interfaces::i_quic_server::connection_callback_t callback) -> void override;
+
+		/*!
+		 * \brief Sets the callback for disconnections (interface version).
+		 * \param callback The callback function.
+		 *
+		 * Implements i_quic_server::set_disconnection_callback().
+		 */
+		auto set_disconnection_callback(interfaces::i_quic_server::disconnection_callback_t callback) -> void override;
+
+		/*!
+		 * \brief Sets the callback for received data on default stream (interface version).
+		 * \param callback The callback function.
+		 *
+		 * Implements i_quic_server::set_receive_callback().
+		 */
+		auto set_receive_callback(interfaces::i_quic_server::receive_callback_t callback) -> void override;
+
+		/*!
+		 * \brief Sets the callback for stream data (interface version).
+		 * \param callback The callback function.
+		 *
+		 * Implements i_quic_server::set_stream_callback().
+		 */
+		auto set_stream_callback(interfaces::i_quic_server::stream_callback_t callback) -> void override;
+
+		/*!
+		 * \brief Sets the callback for errors (interface version).
+		 * \param callback The callback function.
+		 *
+		 * Implements i_quic_server::set_error_callback().
+		 */
+		auto set_error_callback(interfaces::i_quic_server::error_callback_t callback) -> void override;
+
+		// =====================================================================
+		// Legacy API (maintained for backward compatibility)
+		// =====================================================================
+
+		//! \brief Legacy callback setters from base class
+		using messaging_quic_server_base::set_connection_callback;
+		using messaging_quic_server_base::set_disconnection_callback;
+		using messaging_quic_server_base::set_receive_callback;
+		using messaging_quic_server_base::set_stream_receive_callback;
+		using messaging_quic_server_base::set_error_callback;
 
 #if KCENON_WITH_COMMON_SYSTEM
 		/*!
@@ -356,6 +456,9 @@ namespace kcenon::network::core
 
 		// Session ID counter
 		std::atomic<uint64_t> session_counter_{0};
+
+		// Interface callback storage (separate from base class callbacks)
+		interfaces::i_quic_server::error_callback_t interface_error_cb_;
 
 #if KCENON_WITH_COMMON_SYSTEM
 		kcenon::common::interfaces::IMonitor* monitor_ = nullptr;

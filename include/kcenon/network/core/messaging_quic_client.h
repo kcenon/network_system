@@ -34,6 +34,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "kcenon/network/core/messaging_quic_client_base.h"
 #include "kcenon/network/core/network_context.h"
+#include "kcenon/network/interfaces/i_quic_client.h"
 #include "kcenon/network/integration/thread_integration.h"
 #include "kcenon/network/utils/result_types.h"
 
@@ -161,6 +162,7 @@ namespace kcenon::network::core
 	 */
 	class messaging_quic_client
 		: public messaging_quic_client_base<messaging_quic_client>
+		, public interfaces::i_quic_client
 	{
 	public:
 		//! \brief Allow base class to access protected methods
@@ -212,12 +214,6 @@ namespace kcenon::network::core
 		                                unsigned short port,
 		                                const quic_client_config& config) -> VoidResult;
 
-		/*!
-		 * \brief Check if TLS handshake is complete.
-		 * \return true if handshake is done.
-		 */
-		[[nodiscard]] auto is_handshake_complete() const noexcept -> bool;
-
 		// =====================================================================
 		// Data Transfer (Default Stream)
 		// =====================================================================
@@ -250,70 +246,6 @@ namespace kcenon::network::core
 		 */
 		[[nodiscard]] auto send_packet(std::string_view data) -> VoidResult;
 
-		// =====================================================================
-		// Multi-Stream Support (QUIC Specific)
-		// =====================================================================
-
-		/*!
-		 * \brief Create a new bidirectional stream.
-		 * \return Stream ID or error.
-		 *
-		 * \code
-		 * auto stream_id = client->create_stream();
-		 * if (stream_id) {
-		 *     client->send_on_stream(*stream_id, {'d', 'a', 't', 'a'});
-		 * }
-		 * \endcode
-		 */
-		[[nodiscard]] auto create_stream() -> Result<uint64_t>;
-
-		/*!
-		 * \brief Create a new unidirectional stream.
-		 * \return Stream ID or error.
-		 */
-		[[nodiscard]] auto create_unidirectional_stream() -> Result<uint64_t>;
-
-		/*!
-		 * \brief Send data on a specific stream.
-		 * \param stream_id Target stream ID.
-		 * \param data Data to send (moved for efficiency).
-		 * \param fin True if this is the final data on the stream.
-		 * \return VoidResult indicating success or error.
-		 */
-		[[nodiscard]] auto send_on_stream(uint64_t stream_id,
-		                                  std::vector<uint8_t>&& data,
-		                                  bool fin = false) -> VoidResult;
-
-		/*!
-		 * \brief Close a stream.
-		 * \param stream_id Stream to close.
-		 * \return VoidResult indicating success or error.
-		 */
-		[[nodiscard]] auto close_stream(uint64_t stream_id) -> VoidResult;
-
-		// =====================================================================
-		// Callbacks (Extended from Base)
-		// =====================================================================
-
-		// set_receive_callback, set_stream_receive_callback, set_connected_callback,
-		// set_disconnected_callback, set_error_callback are provided by base class
-
-		// =====================================================================
-		// Configuration
-		// =====================================================================
-
-		/*!
-		 * \brief Set ALPN protocols for negotiation.
-		 * \param protocols List of protocol identifiers.
-		 */
-		auto set_alpn_protocols(const std::vector<std::string>& protocols) -> void;
-
-		/*!
-		 * \brief Get the negotiated ALPN protocol.
-		 * \return Protocol string if negotiated, empty optional otherwise.
-		 */
-		[[nodiscard]] auto alpn_protocol() const -> std::optional<std::string>;
-
 		/*!
 		 * \brief Get connection statistics.
 		 * \return Current connection stats.
@@ -321,106 +253,220 @@ namespace kcenon::network::core
 		[[nodiscard]] auto stats() const -> quic_connection_stats;
 
 		// =====================================================================
-		// 0-RTT Session Resumption
+		// i_quic_client interface implementation
 		// =====================================================================
 
 		/*!
-		 * \brief Callback type for receiving session tickets
+		 * \brief Checks if the client is currently running.
+		 * \return true if running, false otherwise.
 		 *
-		 * This callback is invoked when a NewSessionTicket is received from
-		 * the server after a successful handshake. The ticket can be stored
-		 * and used for 0-RTT resumption in subsequent connections.
-		 *
-		 * \param ticket_data Raw session ticket data
-		 * \param lifetime_hint Ticket lifetime in seconds
-		 * \param max_early_data Maximum bytes of early data allowed (0 if none)
+		 * Implements i_network_component::is_running().
 		 */
-		using session_ticket_callback_t = std::function<void(
-			std::vector<uint8_t> ticket_data,
-			uint32_t lifetime_hint,
-			uint32_t max_early_data)>;
+		[[nodiscard]] auto is_running() const -> bool override {
+			return messaging_quic_client_base::is_running();
+		}
 
 		/*!
-		 * \brief Callback type for early data production
+		 * \brief Blocks until stop() is called.
 		 *
-		 * This callback is invoked when the client is ready to send early data
-		 * (0-RTT data). The callback should return the data to be sent as early
-		 * data, or an empty vector if no early data should be sent.
-		 *
-		 * Early data has restrictions:
-		 * - It may be replayed by an attacker (must be idempotent)
-		 * - Server may reject it (check is_early_data_accepted())
-		 * - Limited in size (check config.max_early_data_size)
+		 * Implements i_network_component::wait_for_stop().
 		 */
-		using early_data_callback_t = std::function<std::vector<uint8_t>()>;
+		auto wait_for_stop() -> void override {
+			messaging_quic_client_base::wait_for_stop();
+		}
 
 		/*!
-		 * \brief Callback type for early data acceptance notification
+		 * \brief Starts the QUIC client connecting to the specified server.
+		 * \param host The server hostname or IP address.
+		 * \param port The server port number.
+		 * \return VoidResult indicating success or failure.
 		 *
-		 * This callback is invoked when the server's response to early data
-		 * is known. The boolean parameter indicates whether the server accepted
-		 * or rejected the early data.
-		 *
-		 * \param accepted true if server accepted early data, false if rejected
+		 * Implements i_quic_client::start(). Delegates to start_client().
 		 */
-		using early_data_accepted_callback_t = std::function<void(bool accepted)>;
+		[[nodiscard]] auto start(std::string_view host, uint16_t port) -> VoidResult override {
+			return start_client(host, port);
+		}
 
 		/*!
-		 * \brief Set callback for receiving session tickets
-		 * \param cb Callback function
+		 * \brief Stops the QUIC client.
+		 * \return VoidResult indicating success or failure.
 		 *
-		 * Session tickets are received after handshake completion. Store them
-		 * for use with set_session_ticket() in future connections.
-		 *
-		 * \code
-		 * client->set_session_ticket_callback(
-		 *     [](auto ticket, uint32_t lifetime, uint32_t max_early) {
-		 *         // Store ticket for future use
-		 *         save_ticket(ticket, lifetime);
-		 *     });
-		 * \endcode
+		 * Implements i_quic_client::stop(). Delegates to stop_client().
 		 */
-		auto set_session_ticket_callback(session_ticket_callback_t cb) -> void;
+		[[nodiscard]] auto stop() -> VoidResult override {
+			return stop_client();
+		}
 
 		/*!
-		 * \brief Set callback for producing early data
-		 * \param cb Callback function
+		 * \brief Checks if the client is connected (interface version).
+		 * \return true if connected, false otherwise.
 		 *
-		 * The callback is invoked during connection if a valid session ticket
-		 * is configured. It should return the data to send in the 0-RTT phase.
-		 *
-		 * \code
-		 * client->set_early_data_callback([]() {
-		 *     return std::vector<uint8_t>{'H', 'E', 'L', 'L', 'O'};
-		 * });
-		 * \endcode
+		 * Implements i_quic_client::is_connected().
 		 */
-		auto set_early_data_callback(early_data_callback_t cb) -> void;
+		[[nodiscard]] auto is_connected() const -> bool override {
+			return messaging_quic_client_base::is_connected();
+		}
 
 		/*!
-		 * \brief Set callback for early data acceptance notification
-		 * \param cb Callback function
+		 * \brief Checks if TLS handshake is complete (interface version).
+		 * \return true if handshake is done, false otherwise.
 		 *
-		 * Use this to know if early data was accepted by the server.
-		 *
-		 * \code
-		 * client->set_early_data_accepted_callback([](bool accepted) {
-		 *     if (!accepted) {
-		 *         // Resend the data that was in early data
-		 *     }
-		 * });
-		 * \endcode
+		 * Implements i_quic_client::is_handshake_complete().
 		 */
-		auto set_early_data_accepted_callback(early_data_accepted_callback_t cb) -> void;
+		[[nodiscard]] auto is_handshake_complete() const -> bool override {
+			return is_handshake_complete_impl();
+		}
 
 		/*!
-		 * \brief Check if early data was accepted by the server
-		 * \return true if early data was accepted, false otherwise
+		 * \brief Sends data on the default stream (interface version).
+		 * \param data The data to send.
+		 * \return VoidResult indicating success or failure.
 		 *
-		 * This value is only meaningful after handshake completion.
-		 * If false, any data sent as early data should be retransmitted.
+		 * Implements i_quic_client::send().
 		 */
-		[[nodiscard]] auto is_early_data_accepted() const noexcept -> bool;
+		[[nodiscard]] auto send(std::vector<uint8_t>&& data) -> VoidResult override {
+			return send_packet(std::move(data));
+		}
+
+		/*!
+		 * \brief Creates a new bidirectional stream (interface version).
+		 * \return Stream ID or error.
+		 *
+		 * Implements i_quic_client::create_stream().
+		 */
+		[[nodiscard]] auto create_stream() -> Result<uint64_t> override;
+
+		/*!
+		 * \brief Creates a new unidirectional stream (interface version).
+		 * \return Stream ID or error.
+		 *
+		 * Implements i_quic_client::create_unidirectional_stream().
+		 */
+		[[nodiscard]] auto create_unidirectional_stream() -> Result<uint64_t> override;
+
+		/*!
+		 * \brief Sends data on a specific stream (interface version).
+		 * \param stream_id The target stream ID.
+		 * \param data The data to send.
+		 * \param fin True if this is the final data on the stream.
+		 * \return VoidResult indicating success or failure.
+		 *
+		 * Implements i_quic_client::send_on_stream().
+		 */
+		[[nodiscard]] auto send_on_stream(
+			uint64_t stream_id,
+			std::vector<uint8_t>&& data,
+			bool fin = false) -> VoidResult override;
+
+		/*!
+		 * \brief Closes a stream (interface version).
+		 * \param stream_id The stream to close.
+		 * \return VoidResult indicating success or failure.
+		 *
+		 * Implements i_quic_client::close_stream().
+		 */
+		[[nodiscard]] auto close_stream(uint64_t stream_id) -> VoidResult override;
+
+		/*!
+		 * \brief Sets the ALPN protocols for negotiation (interface version).
+		 * \param protocols List of protocol identifiers.
+		 *
+		 * Implements i_quic_client::set_alpn_protocols().
+		 */
+		auto set_alpn_protocols(const std::vector<std::string>& protocols) -> void override;
+
+		/*!
+		 * \brief Gets the negotiated ALPN protocol (interface version).
+		 * \return Protocol string if negotiated, empty optional otherwise.
+		 *
+		 * Implements i_quic_client::alpn_protocol().
+		 */
+		[[nodiscard]] auto alpn_protocol() const -> std::optional<std::string> override;
+
+		/*!
+		 * \brief Checks if early data was accepted (interface version).
+		 * \return true if accepted, false otherwise.
+		 *
+		 * Implements i_quic_client::is_early_data_accepted().
+		 */
+		[[nodiscard]] auto is_early_data_accepted() const -> bool override {
+			return is_early_data_accepted_impl();
+		}
+
+		/*!
+		 * \brief Sets the callback for received data on default stream (interface version).
+		 * \param callback The callback function.
+		 *
+		 * Implements i_quic_client::set_receive_callback().
+		 */
+		auto set_receive_callback(interfaces::i_quic_client::receive_callback_t callback) -> void override;
+
+		/*!
+		 * \brief Sets the callback for stream data (interface version).
+		 * \param callback The callback function.
+		 *
+		 * Implements i_quic_client::set_stream_callback().
+		 */
+		auto set_stream_callback(interfaces::i_quic_client::stream_callback_t callback) -> void override;
+
+		/*!
+		 * \brief Sets the callback for connection established (interface version).
+		 * \param callback The callback function.
+		 *
+		 * Implements i_quic_client::set_connected_callback().
+		 */
+		auto set_connected_callback(interfaces::i_quic_client::connected_callback_t callback) -> void override;
+
+		/*!
+		 * \brief Sets the callback for disconnection (interface version).
+		 * \param callback The callback function.
+		 *
+		 * Implements i_quic_client::set_disconnected_callback().
+		 */
+		auto set_disconnected_callback(interfaces::i_quic_client::disconnected_callback_t callback) -> void override;
+
+		/*!
+		 * \brief Sets the callback for errors (interface version).
+		 * \param callback The callback function.
+		 *
+		 * Implements i_quic_client::set_error_callback().
+		 */
+		auto set_error_callback(interfaces::i_quic_client::error_callback_t callback) -> void override;
+
+		/*!
+		 * \brief Sets the callback for session tickets (interface version).
+		 * \param callback The callback function.
+		 *
+		 * Implements i_quic_client::set_session_ticket_callback().
+		 */
+		auto set_session_ticket_callback(interfaces::i_quic_client::session_ticket_callback_t callback) -> void override;
+
+		/*!
+		 * \brief Sets the callback for early data production (interface version).
+		 * \param callback The callback function.
+		 *
+		 * Implements i_quic_client::set_early_data_callback().
+		 */
+		auto set_early_data_callback(interfaces::i_quic_client::early_data_callback_t callback) -> void override;
+
+		/*!
+		 * \brief Sets the callback for early data acceptance notification (interface version).
+		 * \param callback The callback function.
+		 *
+		 * Implements i_quic_client::set_early_data_accepted_callback().
+		 */
+		auto set_early_data_accepted_callback(interfaces::i_quic_client::early_data_accepted_callback_t callback) -> void override;
+
+		// =====================================================================
+		// Legacy API (maintained for backward compatibility)
+		// =====================================================================
+
+		//! \brief Legacy callback setters from base class
+		using messaging_quic_client_base::set_receive_callback;
+		using messaging_quic_client_base::set_stream_receive_callback;
+		using messaging_quic_client_base::set_connected_callback;
+		using messaging_quic_client_base::set_disconnected_callback;
+		using messaging_quic_client_base::set_error_callback;
 
 	protected:
 		// =====================================================================
@@ -449,6 +495,16 @@ namespace kcenon::network::core
 		// =====================================================================
 		// Internal Methods
 		// =====================================================================
+
+		/*!
+		 * \brief Internal implementation for is_handshake_complete.
+		 */
+		[[nodiscard]] auto is_handshake_complete_impl() const noexcept -> bool;
+
+		/*!
+		 * \brief Internal implementation for is_early_data_accepted.
+		 */
+		[[nodiscard]] auto is_early_data_accepted_impl() const noexcept -> bool;
 
 		/*!
 		 * \brief Internal connection implementation.
@@ -502,9 +558,9 @@ namespace kcenon::network::core
 		std::atomic<bool> handshake_complete_{false}; //!< TLS handshake status
 
 		// 0-RTT callbacks
-		session_ticket_callback_t session_ticket_cb_; //!< Session ticket callback
-		early_data_callback_t early_data_cb_; //!< Early data production callback
-		early_data_accepted_callback_t early_data_accepted_cb_; //!< Early data acceptance callback
+		interfaces::i_quic_client::session_ticket_callback_t session_ticket_cb_; //!< Session ticket callback
+		interfaces::i_quic_client::early_data_callback_t early_data_cb_; //!< Early data production callback
+		interfaces::i_quic_client::early_data_accepted_callback_t early_data_accepted_cb_; //!< Early data acceptance callback
 		std::atomic<bool> early_data_accepted_{false}; //!< Early data acceptance status
 	};
 

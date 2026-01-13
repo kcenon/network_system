@@ -648,4 +648,75 @@ namespace kcenon::network::core
 		}
 	}
 
+	// =========================================================================
+	// i_quic_server interface callback implementations
+	// =========================================================================
+
+	auto messaging_quic_server::set_connection_callback(
+	    interfaces::i_quic_server::connection_callback_t callback) -> void
+	{
+		// Convert callback to internal type (quic_session to i_quic_session)
+		messaging_quic_server_base::set_connection_callback(
+		    [cb = std::move(callback)](std::shared_ptr<session::quic_session> session) {
+			    if (cb && session)
+			    {
+				    // quic_session implements i_quic_session, so we can pass it directly
+				    // after implementing the interface on quic_session
+				    // For now, we use the session pointer as-is since the interface
+				    // will be implemented on quic_session in the next step
+				    cb(session);
+			    }
+		    });
+	}
+
+	auto messaging_quic_server::set_disconnection_callback(
+	    interfaces::i_quic_server::disconnection_callback_t callback) -> void
+	{
+		messaging_quic_server_base::set_disconnection_callback(
+		    [cb = std::move(callback)](std::shared_ptr<session::quic_session> session) {
+			    if (cb && session)
+			    {
+				    cb(session->session_id());
+			    }
+		    });
+	}
+
+	auto messaging_quic_server::set_receive_callback(
+	    interfaces::i_quic_server::receive_callback_t callback) -> void
+	{
+		messaging_quic_server_base::set_receive_callback(
+		    [cb = std::move(callback)](std::shared_ptr<session::quic_session> session,
+		                                const std::vector<uint8_t>& data) {
+			    if (cb && session)
+			    {
+				    cb(session->session_id(), data);
+			    }
+		    });
+	}
+
+	auto messaging_quic_server::set_stream_callback(
+	    interfaces::i_quic_server::stream_callback_t callback) -> void
+	{
+		messaging_quic_server_base::set_stream_receive_callback(
+		    [cb = std::move(callback)](std::shared_ptr<session::quic_session> session,
+		                                uint64_t stream_id,
+		                                const std::vector<uint8_t>& data,
+		                                bool fin) {
+			    if (cb && session)
+			    {
+				    cb(session->session_id(), stream_id, data, fin);
+			    }
+		    });
+	}
+
+	auto messaging_quic_server::set_error_callback(
+	    interfaces::i_quic_server::error_callback_t callback) -> void
+	{
+		// Store the interface callback and wrap it for base class
+		// Note: Base class error_callback_t only takes error_code, not session
+		// We need to store the interface callback separately and invoke it from
+		// the receive side where we have session context
+		interface_error_cb_ = std::move(callback);
+	}
+
 } // namespace kcenon::network::core
