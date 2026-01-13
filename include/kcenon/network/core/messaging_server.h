@@ -241,6 +241,11 @@ namespace kcenon::network::core {
 		std::mutex sessions_mutex_;
 
 		/*!
+		 * \brief Mutex protecting access to acceptor_ for thread-safe operations.
+		 */
+		mutable std::mutex acceptor_mutex_;
+
+		/*!
 		 * \brief Timer for periodic cleanup of stopped sessions.
 		 */
 		std::unique_ptr<asio::steady_timer> cleanup_timer_;

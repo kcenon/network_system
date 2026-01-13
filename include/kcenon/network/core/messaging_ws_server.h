@@ -288,6 +288,7 @@ namespace kcenon::network::core
 		std::unique_ptr<asio::io_context> io_context_;   /*!< ASIO I/O context. */
 		std::unique_ptr<asio::executor_work_guard<asio::io_context::executor_type>> work_guard_; /*!< Work guard. */
 		std::unique_ptr<asio::ip::tcp::acceptor> acceptor_; /*!< TCP acceptor. */
+		mutable std::mutex acceptor_mutex_;              /*!< Mutex protecting acceptor_ access. */
 
 		std::shared_ptr<integration::thread_pool_interface> thread_pool_;   /*!< Thread pool for async operations. */
 		std::future<void> io_context_future_;            /*!< Future for io_context run task. */

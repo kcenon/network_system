@@ -258,9 +258,13 @@ namespace kcenon::network::core
 			}
 
 			// Stop acceptor
-			if (acceptor_)
+			// Lock to prevent race with do_accept() accessing the acceptor
 			{
-				acceptor_->close();
+				std::lock_guard<std::mutex> lock(acceptor_mutex_);
+				if (acceptor_)
+				{
+					acceptor_->close();
+				}
 			}
 
 			// Stop io_context
@@ -351,6 +355,15 @@ namespace kcenon::network::core
 
 	auto messaging_ws_server::do_accept() -> void
 	{
+		// Lock to prevent race with do_stop() closing the acceptor
+		std::lock_guard<std::mutex> lock(acceptor_mutex_);
+
+		// Early return if server is stopping or acceptor is invalid
+		if (!is_running() || !acceptor_ || !acceptor_->is_open())
+		{
+			return;
+		}
+
 		auto socket = std::make_shared<tcp::socket>(*io_context_);
 
 		acceptor_->async_accept(*socket,

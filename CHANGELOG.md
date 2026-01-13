@@ -12,6 +12,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Composition-Based Interface Infrastructure (Phase 1.2)**: Add interface classes for composition pattern (#423)
+  - Added core interfaces: `i_network_component`, `i_client`, `i_server`, `i_session`
+  - Added protocol-specific interfaces: `i_udp_client`, `i_udp_server`, `i_websocket_client`, `i_websocket_server`, `i_quic_client`, `i_quic_server`
+  - Added extended session interfaces: `i_websocket_session`, `i_quic_session`
+  - Added `interfaces.h` convenience header for single-include access
+  - Added utility classes: `lifecycle_manager`, `callback_manager`, `connection_state`
+  - All interfaces are abstract classes with virtual destructors for proper polymorphism
+  - Comprehensive unit tests for type traits, hierarchy, and callback types
+  - Unit tests for utility classes covering thread safety and state management
+  - Non-breaking change: existing CRTP code continues to work
 - **QUIC ECN Feedback Integration**: Integrate ECN feedback into congestion control per RFC 9000/9002 (#404)
   - Added `ecn_tracker` class for tracking ECN counts from ACK_ECN frames
   - Added ECN validation during connection establishment
@@ -154,6 +164,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Concepts improve error messages and serve as self-documenting type constraints
 
 ### Fixed
+- **ThreadSanitizer Data Race Fix**: Add mutex protection for acceptor access in messaging servers (#427)
+  - Fixed data race between `do_accept()` and `do_stop()` when accessing `acceptor_` concurrently
+  - Added `acceptor_mutex_` to both `messaging_server` and `messaging_ws_server` classes
+  - Protected acceptor access in `do_accept()`, `do_stop()`, and destructor with mutex locks
+  - Added early return checks in `do_accept()` for `is_running()` and `acceptor_->is_open()` states
+  - Fixes E2ETests failure in ThreadSanitizer CI workflow
 - **Circuit Breaker Build Fix**: Add error_codes_ext namespace to fallback build path (#403)
   - Fixed build failure when building without common_system dependency
   - Added error_codes_ext namespace with circuit_open error code to fallback block in result_types.h

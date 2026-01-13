@@ -54,7 +54,16 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * \see i_session
  */
 
+// Core interfaces
 #include "i_network_component.h"
 #include "i_session.h"
 #include "i_client.h"
 #include "i_server.h"
+
+// Protocol-specific interfaces
+#include "i_udp_client.h"
+#include "i_udp_server.h"
+#include "i_websocket_client.h"
+#include "i_websocket_server.h"
+#include "i_quic_client.h"
+#include "i_quic_server.h"
