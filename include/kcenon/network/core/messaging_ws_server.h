@@ -32,10 +32,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
-#include "kcenon/network/core/messaging_ws_server_base.h"
 #include "kcenon/network/interfaces/i_websocket_server.h"
 #include "kcenon/network/internal/websocket_protocol.h"
 #include "kcenon/network/utils/result_types.h"
+#include "kcenon/network/utils/lifecycle_manager.h"
+#include "kcenon/network/utils/callback_manager.h"
 #include "kcenon/network/integration/thread_integration.h"
 
 #include <chrono>
@@ -240,8 +241,9 @@ namespace kcenon::network::core
 	 * \class messaging_ws_server
 	 * \brief High-level WebSocket server with connection management.
 	 *
-	 * This class inherits from messaging_ws_server_base using the CRTP pattern
-	 * and implements the i_websocket_server interface for composition-based usage.
+	 * This class uses composition pattern with lifecycle_manager and
+	 * callback_manager for common lifecycle management and callback handling.
+	 * It also implements the i_websocket_server interface for composition-based usage.
 	 *
 	 * It handles:
 	 * - Accepting incoming connections
@@ -276,12 +278,22 @@ namespace kcenon::network::core
 	 * \endcode
 	 */
 	class messaging_ws_server
-		: public messaging_ws_server_base<messaging_ws_server>
+		: public std::enable_shared_from_this<messaging_ws_server>
 		, public interfaces::i_websocket_server
 	{
 	public:
-		//! \brief Allow base class to access protected methods
-		friend class messaging_ws_server_base<messaging_ws_server>;
+		//! \brief Callback type for new connections
+		using connection_callback_t = std::function<void(std::shared_ptr<ws_connection>)>;
+		//! \brief Callback type for disconnections
+		using disconnection_callback_t = std::function<void(const std::string&, internal::ws_close_code, const std::string&)>;
+		//! \brief Callback type for WebSocket messages
+		using message_callback_t = std::function<void(std::shared_ptr<ws_connection>, const internal::ws_message&)>;
+		//! \brief Callback type for text messages
+		using text_message_callback_t = std::function<void(std::shared_ptr<ws_connection>, const std::string&)>;
+		//! \brief Callback type for binary messages
+		using binary_message_callback_t = std::function<void(std::shared_ptr<ws_connection>, const std::vector<uint8_t>&)>;
+		//! \brief Callback type for errors
+		using error_callback_t = std::function<void(const std::string&, std::error_code)>;
 
 		/*!
 		 * \brief Constructs a WebSocket server.
@@ -291,22 +303,46 @@ namespace kcenon::network::core
 
 		/*!
 		 * \brief Destructor.
-		 * Automatically stops the server if still running (handled by base class).
+		 * Automatically stops the server if still running.
 		 */
-		~messaging_ws_server() noexcept override = default;
+		~messaging_ws_server() noexcept override;
+
+		// Non-copyable, non-movable
+		messaging_ws_server(const messaging_ws_server&) = delete;
+		messaging_ws_server& operator=(const messaging_ws_server&) = delete;
+		messaging_ws_server(messaging_ws_server&&) = delete;
+		messaging_ws_server& operator=(messaging_ws_server&&) = delete;
+
+		// ========================================================================
+		// Lifecycle Management
+		// ========================================================================
 
 		/*!
 		 * \brief Starts the server with full configuration.
 		 * \param config The server configuration.
 		 * \return VoidResult indicating success or error.
 		 */
-		auto start_server(const ws_server_config& config) -> VoidResult;
+		[[nodiscard]] auto start_server(const ws_server_config& config) -> VoidResult;
 
-		//! \brief Bring base class start_server overloads into scope
-		using messaging_ws_server_base::start_server;
+		/*!
+		 * \brief Starts the server on the specified port.
+		 * \param port The port number to listen on.
+		 * \param path The WebSocket path (default: "/").
+		 * \return Result<void> - Success if server started, or error with code.
+		 */
+		[[nodiscard]] auto start_server(uint16_t port, std::string_view path = "/") -> VoidResult;
 
-		// stop_server(), wait_for_stop(), is_running(), server_id()
-		// are provided by base class
+		/*!
+		 * \brief Stops the server and releases all resources.
+		 * \return Result<void> - Success if server stopped, or error with code.
+		 */
+		[[nodiscard]] auto stop_server() -> VoidResult;
+
+		/*!
+		 * \brief Returns the server identifier.
+		 * \return The server_id string.
+		 */
+		[[nodiscard]] auto server_id() const -> const std::string&;
 
 		/*!
 		 * \brief Broadcasts a text message to all connected clients.
@@ -334,7 +370,7 @@ namespace kcenon::network::core
 		auto get_all_connections() -> std::vector<std::string>;
 
 		// ========================================================================
-		// i_websocket_server interface implementation
+		// i_network_component interface implementation
 		// ========================================================================
 
 		/*!
@@ -343,18 +379,18 @@ namespace kcenon::network::core
 		 *
 		 * Implements i_network_component::is_running().
 		 */
-		[[nodiscard]] auto is_running() const -> bool override {
-			return messaging_ws_server_base::is_running();
-		}
+		[[nodiscard]] auto is_running() const -> bool override;
 
 		/*!
 		 * \brief Blocks until stop() is called.
 		 *
 		 * Implements i_network_component::wait_for_stop().
 		 */
-		auto wait_for_stop() -> void override {
-			messaging_ws_server_base::wait_for_stop();
-		}
+		auto wait_for_stop() -> void override;
+
+		// ========================================================================
+		// i_websocket_server interface implementation
+		// ========================================================================
 
 		/*!
 		 * \brief Starts the WebSocket server on the specified port.
@@ -363,9 +399,7 @@ namespace kcenon::network::core
 		 *
 		 * Implements i_websocket_server::start(). Delegates to start_server().
 		 */
-		[[nodiscard]] auto start(uint16_t port) -> VoidResult override {
-			return start_server(port);
-		}
+		[[nodiscard]] auto start(uint16_t port) -> VoidResult override;
 
 		/*!
 		 * \brief Stops the WebSocket server.
@@ -373,9 +407,7 @@ namespace kcenon::network::core
 		 *
 		 * Implements i_websocket_server::stop(). Delegates to stop_server().
 		 */
-		[[nodiscard]] auto stop() -> VoidResult override {
-			return stop_server();
-		}
+		[[nodiscard]] auto stop() -> VoidResult override;
 
 		/*!
 		 * \brief Gets the number of active WebSocket connections.
@@ -432,63 +464,58 @@ namespace kcenon::network::core
 		/*!
 		 * \brief Sets the callback for new connections (legacy version).
 		 * \param callback The callback function.
-		 *
-		 * This overload maintains backward compatibility.
 		 */
-		using messaging_ws_server_base::set_connection_callback;
+		auto set_connection_callback(connection_callback_t callback) -> void;
 
 		/*!
-		 * \brief Sets the callback for disconnections (legacy version).
-		 * \param callback The callback function.
-		 *
-		 * This overload maintains backward compatibility.
+		 * \brief Sets the callback for disconnections (legacy version with internal close code).
+		 * \param callback The callback function using internal::ws_close_code.
 		 */
-		using messaging_ws_server_base::set_disconnection_callback;
+		auto set_disconnection_callback(disconnection_callback_t callback) -> void;
+
+		/*!
+		 * \brief Sets the callback for all message types.
+		 * \param callback Function called when a message is received.
+		 */
+		auto set_message_callback(message_callback_t callback) -> void;
 
 		/*!
 		 * \brief Sets the callback for text messages (legacy version).
 		 * \param callback The callback function.
-		 *
-		 * This overload maintains backward compatibility.
 		 */
-		using messaging_ws_server_base::set_text_message_callback;
+		auto set_text_message_callback(text_message_callback_t callback) -> void;
 
 		/*!
 		 * \brief Sets the callback for binary messages (legacy version).
 		 * \param callback The callback function.
-		 *
-		 * This overload maintains backward compatibility.
 		 */
-		using messaging_ws_server_base::set_binary_message_callback;
+		auto set_binary_message_callback(binary_message_callback_t callback) -> void;
 
 		/*!
 		 * \brief Sets the callback for errors (legacy version).
 		 * \param callback The callback function.
-		 *
-		 * This overload maintains backward compatibility.
 		 */
-		using messaging_ws_server_base::set_error_callback;
+		auto set_error_callback(error_callback_t callback) -> void;
 
-	protected:
+	private:
+		// =====================================================================
+		// Internal Implementation Methods
+		// =====================================================================
+
 		/*!
 		 * \brief WebSocket-specific implementation of server start.
 		 * \param port The port number to listen on.
 		 * \param path The WebSocket path.
 		 * \return Result<void> - Success if server started, or error with code.
-		 *
-		 * Called by base class start_server() after common validation.
 		 */
-		auto do_start(uint16_t port, std::string_view path) -> VoidResult;
+		auto do_start_impl(uint16_t port, std::string_view path) -> VoidResult;
 
 		/*!
 		 * \brief WebSocket-specific implementation of server stop.
 		 * \return Result<void> - Success if server stopped, or error with code.
-		 *
-		 * Called by base class stop_server() after common cleanup.
 		 */
-		auto do_stop() -> VoidResult;
+		auto do_stop_impl() -> VoidResult;
 
-	private:
 		/*!
 		 * \brief Starts accepting new connections.
 		 */
@@ -514,7 +541,69 @@ namespace kcenon::network::core
 		 */
 		auto on_error(const std::string& conn_id, std::error_code ec) -> void;
 
-	private:
+		// =====================================================================
+		// Internal Callback Helpers
+		// =====================================================================
+
+		/*!
+		 * \brief Invokes the connection callback.
+		 * \param conn The new connection.
+		 */
+		auto invoke_connection_callback(std::shared_ptr<ws_connection> conn) -> void;
+
+		/*!
+		 * \brief Invokes the disconnection callback.
+		 * \param conn_id The connection ID.
+		 * \param code The close code.
+		 * \param reason The close reason.
+		 */
+		auto invoke_disconnection_callback(const std::string& conn_id,
+		                                   internal::ws_close_code code,
+		                                   const std::string& reason) -> void;
+
+		/*!
+		 * \brief Invokes the message callback.
+		 * \param conn The connection that received the message.
+		 * \param msg The received message.
+		 */
+		auto invoke_message_callback(std::shared_ptr<ws_connection> conn,
+		                             const internal::ws_message& msg) -> void;
+
+		/*!
+		 * \brief Invokes the error callback.
+		 * \param conn_id The connection ID.
+		 * \param ec The error code.
+		 */
+		auto invoke_error_callback(const std::string& conn_id, std::error_code ec) -> void;
+
+		// =====================================================================
+		// Callback indices for callback_manager
+		// =====================================================================
+		static constexpr std::size_t kConnectionCallbackIndex = 0;
+		static constexpr std::size_t kDisconnectionCallbackIndex = 1;
+		static constexpr std::size_t kMessageCallbackIndex = 2;
+		static constexpr std::size_t kTextMessageCallbackIndex = 3;
+		static constexpr std::size_t kBinaryMessageCallbackIndex = 4;
+		static constexpr std::size_t kErrorCallbackIndex = 5;
+
+		//! \brief Callback manager type for this server
+		using callbacks_t = utils::callback_manager<
+			connection_callback_t,
+			disconnection_callback_t,
+			message_callback_t,
+			text_message_callback_t,
+			binary_message_callback_t,
+			error_callback_t
+		>;
+
+		// =====================================================================
+		// Member Variables
+		// =====================================================================
+
+		std::string server_id_;                          /*!< Server identifier. */
+		utils::lifecycle_manager lifecycle_;             /*!< Lifecycle state manager. */
+		callbacks_t callbacks_;                          /*!< Callback manager. */
+
 		ws_server_config config_;                        /*!< Server configuration. */
 
 		std::unique_ptr<asio::io_context> io_context_;   /*!< ASIO I/O context. */

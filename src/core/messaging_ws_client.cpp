@@ -42,23 +42,251 @@ namespace kcenon::network::core
 	using tcp = asio::ip::tcp;
 
 	messaging_ws_client::messaging_ws_client(std::string_view client_id)
-		: messaging_ws_client_base<messaging_ws_client>(client_id)
+		: client_id_(client_id)
 	{
 	}
 
-	// Destructor is defaulted in header - base class handles stop_client() call
+	messaging_ws_client::~messaging_ws_client() noexcept
+	{
+		if (lifecycle_.is_running())
+		{
+			stop_client();
+		}
+	}
+
+	// ========================================================================
+	// Lifecycle Management
+	// ========================================================================
 
 	auto messaging_ws_client::start_client(const ws_client_config& config) -> VoidResult
 	{
 		config_ = config;
-		// Use the base class start_client with config values
-		return messaging_ws_client_base<messaging_ws_client>::start_client(
-			config.host, config.port, config.path);
+		return start_client(config.host, config.port, config.path);
 	}
 
-	// WebSocket-specific implementation of client start
-	// Called by base class start_client() after common validation
-	auto messaging_ws_client::do_start(std::string_view host, uint16_t port, std::string_view path) -> VoidResult
+	auto messaging_ws_client::start_client(std::string_view host, uint16_t port,
+	                                       std::string_view path) -> VoidResult
+	{
+		if (lifecycle_.is_running())
+		{
+			return error_void(
+				error_codes::common_errors::already_exists,
+				"WebSocket client is already running",
+				"messaging_ws_client");
+		}
+
+		if (host.empty())
+		{
+			return error_void(
+				error_codes::common_errors::invalid_argument,
+				"Host cannot be empty",
+				"messaging_ws_client");
+		}
+
+		lifecycle_.set_running();
+		is_connected_.store(false);
+
+		auto result = do_start_impl(host, port, path);
+		if (result.is_err())
+		{
+			lifecycle_.mark_stopped();
+		}
+
+		return result;
+	}
+
+	auto messaging_ws_client::stop_client() -> VoidResult
+	{
+		if (!lifecycle_.prepare_stop())
+		{
+			return ok();
+		}
+
+		is_connected_.store(false);
+
+		auto result = do_stop_impl();
+
+		lifecycle_.mark_stopped();
+
+		return result;
+	}
+
+	auto messaging_ws_client::client_id() const -> const std::string&
+	{
+		return client_id_;
+	}
+
+	// ========================================================================
+	// i_network_component interface implementation
+	// ========================================================================
+
+	auto messaging_ws_client::is_running() const -> bool
+	{
+		return lifecycle_.is_running();
+	}
+
+	auto messaging_ws_client::wait_for_stop() -> void
+	{
+		lifecycle_.wait_for_stop();
+	}
+
+	// ========================================================================
+	// i_websocket_client interface implementation
+	// ========================================================================
+
+	auto messaging_ws_client::start(std::string_view host, uint16_t port,
+	                                std::string_view path) -> VoidResult
+	{
+		return start_client(host, port, path);
+	}
+
+	auto messaging_ws_client::stop() -> VoidResult
+	{
+		return stop_client();
+	}
+
+	auto messaging_ws_client::is_connected() const -> bool
+	{
+		return is_connected_.load(std::memory_order_relaxed);
+	}
+
+	auto messaging_ws_client::send_text(
+		std::string&& message,
+		interfaces::i_websocket_client::send_callback_t handler) -> VoidResult
+	{
+		std::lock_guard<std::mutex> lock(ws_socket_mutex_);
+		if (!ws_socket_)
+		{
+			return error_void(error_codes::network_system::connection_closed,
+							  "WebSocket not connected");
+		}
+
+		return ws_socket_->async_send_text(std::move(message), std::move(handler));
+	}
+
+	auto messaging_ws_client::send_binary(
+		std::vector<uint8_t>&& data,
+		interfaces::i_websocket_client::send_callback_t handler) -> VoidResult
+	{
+		std::lock_guard<std::mutex> lock(ws_socket_mutex_);
+		if (!ws_socket_)
+		{
+			return error_void(error_codes::network_system::connection_closed,
+							  "WebSocket not connected");
+		}
+
+		return ws_socket_->async_send_binary(std::move(data), std::move(handler));
+	}
+
+	auto messaging_ws_client::send_ping(std::vector<uint8_t>&& payload) -> VoidResult
+	{
+		std::lock_guard<std::mutex> lock(ws_socket_mutex_);
+		if (!ws_socket_)
+		{
+			return error_void(error_codes::network_system::connection_closed,
+							  "WebSocket not connected");
+		}
+
+		ws_socket_->async_send_ping(std::move(payload), [](std::error_code) {});
+		return ok();
+	}
+
+	auto messaging_ws_client::ping(std::vector<uint8_t>&& payload) -> VoidResult
+	{
+		return send_ping(std::move(payload));
+	}
+
+	auto messaging_ws_client::close(internal::ws_close_code code,
+	                                const std::string& reason) -> VoidResult
+	{
+		std::lock_guard<std::mutex> lock(ws_socket_mutex_);
+		if (!ws_socket_)
+		{
+			return error_void(error_codes::network_system::connection_closed,
+							  "WebSocket not connected");
+		}
+
+		ws_socket_->async_close(code, reason, [](std::error_code) {});
+		return ok();
+	}
+
+	auto messaging_ws_client::close(uint16_t code, std::string_view reason) -> VoidResult
+	{
+		return close(static_cast<internal::ws_close_code>(code), std::string(reason));
+	}
+
+	// ========================================================================
+	// Interface callback setters
+	// ========================================================================
+
+	auto messaging_ws_client::set_text_callback(
+		interfaces::i_websocket_client::text_callback_t callback) -> void
+	{
+		set_text_message_callback(std::move(callback));
+	}
+
+	auto messaging_ws_client::set_binary_callback(
+		interfaces::i_websocket_client::binary_callback_t callback) -> void
+	{
+		set_binary_message_callback(std::move(callback));
+	}
+
+	auto messaging_ws_client::set_connected_callback(
+		interfaces::i_websocket_client::connected_callback_t callback) -> void
+	{
+		callbacks_.set<kConnectedCallbackIndex>(std::move(callback));
+	}
+
+	auto messaging_ws_client::set_disconnected_callback(
+		interfaces::i_websocket_client::disconnected_callback_t callback) -> void
+	{
+		// Adapt interface callback to internal callback type
+		if (callback) {
+			callbacks_.set<kDisconnectedCallbackIndex>(
+				[callback = std::move(callback)](internal::ws_close_code code, const std::string& reason) {
+					callback(static_cast<uint16_t>(code), reason);
+				});
+		} else {
+			callbacks_.set<kDisconnectedCallbackIndex>(disconnected_callback_t{});
+		}
+	}
+
+	auto messaging_ws_client::set_error_callback(
+		interfaces::i_websocket_client::error_callback_t callback) -> void
+	{
+		callbacks_.set<kErrorCallbackIndex>(std::move(callback));
+	}
+
+	// ========================================================================
+	// Legacy API callback setters
+	// ========================================================================
+
+	auto messaging_ws_client::set_message_callback(message_callback_t callback) -> void
+	{
+		callbacks_.set<kMessageCallbackIndex>(std::move(callback));
+	}
+
+	auto messaging_ws_client::set_text_message_callback(text_message_callback_t callback) -> void
+	{
+		callbacks_.set<kTextMessageCallbackIndex>(std::move(callback));
+	}
+
+	auto messaging_ws_client::set_binary_message_callback(binary_message_callback_t callback) -> void
+	{
+		callbacks_.set<kBinaryMessageCallbackIndex>(std::move(callback));
+	}
+
+	auto messaging_ws_client::set_disconnected_callback(disconnected_callback_t callback) -> void
+	{
+		callbacks_.set<kDisconnectedCallbackIndex>(std::move(callback));
+	}
+
+	// ========================================================================
+	// Internal Implementation
+	// ========================================================================
+
+	auto messaging_ws_client::do_start_impl(std::string_view host, uint16_t port,
+	                                        std::string_view path) -> VoidResult
 	{
 		try
 		{
@@ -100,7 +328,7 @@ namespace kcenon::network::core
 			do_connect();
 
 			NETWORK_LOG_INFO("[messaging_ws_client] Client started (ID: " +
-							 std::string(client_id()) + ")");
+							 client_id_ + ")");
 
 			return ok();
 		}
@@ -111,9 +339,7 @@ namespace kcenon::network::core
 		}
 	}
 
-	// WebSocket-specific implementation of client stop
-	// Called by base class stop_client() after common cleanup
-	auto messaging_ws_client::do_stop() -> VoidResult
+	auto messaging_ws_client::do_stop_impl() -> VoidResult
 	{
 		try
 		{
@@ -147,7 +373,7 @@ namespace kcenon::network::core
 			}
 
 			NETWORK_LOG_INFO("[messaging_ws_client] Client stopped (ID: " +
-							 std::string(client_id()) + ")");
+							 client_id_ + ")");
 
 			return ok();
 		}
@@ -156,107 +382,6 @@ namespace kcenon::network::core
 			return error_void(error_codes::common_errors::internal_error,
 							  std::string("Failed to stop client: ") + e.what());
 		}
-	}
-
-	auto messaging_ws_client::send_text(
-		std::string&& message,
-		std::function<void(std::error_code, std::size_t)> handler) -> VoidResult
-	{
-		std::lock_guard<std::mutex> lock(ws_socket_mutex_);
-		if (!ws_socket_)
-		{
-			return error_void(error_codes::network_system::connection_closed,
-							  "WebSocket not connected");
-		}
-
-		return ws_socket_->async_send_text(std::move(message), std::move(handler));
-	}
-
-	auto messaging_ws_client::send_binary(
-		std::vector<uint8_t>&& data,
-		std::function<void(std::error_code, std::size_t)> handler) -> VoidResult
-	{
-		std::lock_guard<std::mutex> lock(ws_socket_mutex_);
-		if (!ws_socket_)
-		{
-			return error_void(error_codes::network_system::connection_closed,
-							  "WebSocket not connected");
-		}
-
-		return ws_socket_->async_send_binary(std::move(data), std::move(handler));
-	}
-
-	auto messaging_ws_client::send_ping(std::vector<uint8_t>&& payload) -> VoidResult
-	{
-		std::lock_guard<std::mutex> lock(ws_socket_mutex_);
-		if (!ws_socket_)
-		{
-			return error_void(error_codes::network_system::connection_closed,
-							  "WebSocket not connected");
-		}
-
-		ws_socket_->async_send_ping(std::move(payload), [](std::error_code) {});
-		return ok();
-	}
-
-	auto messaging_ws_client::close(internal::ws_close_code code, const std::string& reason) -> VoidResult
-	{
-		std::lock_guard<std::mutex> lock(ws_socket_mutex_);
-		if (!ws_socket_)
-		{
-			return error_void(error_codes::network_system::connection_closed,
-							  "WebSocket not connected");
-		}
-
-		ws_socket_->async_close(code, reason, [](std::error_code) {});
-		return ok();
-	}
-
-	// ========================================================================
-	// i_websocket_client interface implementation
-	// ========================================================================
-
-	auto messaging_ws_client::close(uint16_t code, std::string_view reason) -> VoidResult
-	{
-		return close(static_cast<internal::ws_close_code>(code), std::string(reason));
-	}
-
-	auto messaging_ws_client::set_text_callback(
-		interfaces::i_websocket_client::text_callback_t callback) -> void
-	{
-		set_text_message_callback(std::move(callback));
-	}
-
-	auto messaging_ws_client::set_binary_callback(
-		interfaces::i_websocket_client::binary_callback_t callback) -> void
-	{
-		set_binary_message_callback(std::move(callback));
-	}
-
-	auto messaging_ws_client::set_connected_callback(
-		interfaces::i_websocket_client::connected_callback_t callback) -> void
-	{
-		messaging_ws_client_base::set_connected_callback(std::move(callback));
-	}
-
-	auto messaging_ws_client::set_disconnected_callback(
-		interfaces::i_websocket_client::disconnected_callback_t callback) -> void
-	{
-		// Adapt interface callback to base class callback
-		if (callback) {
-			messaging_ws_client_base::set_disconnected_callback(
-				[callback = std::move(callback)](internal::ws_close_code code, const std::string& reason) {
-					callback(static_cast<uint16_t>(code), reason);
-				});
-		} else {
-			messaging_ws_client_base::set_disconnected_callback(nullptr);
-		}
-	}
-
-	auto messaging_ws_client::set_error_callback(
-		interfaces::i_websocket_client::error_callback_t callback) -> void
-	{
-		messaging_ws_client_base::set_error_callback(std::move(callback));
 	}
 
 	auto messaging_ws_client::do_connect() -> void
@@ -313,10 +438,10 @@ namespace kcenon::network::core
 								return;
 							}
 
-							set_connected(true);
+							is_connected_.store(true, std::memory_order_release);
 							NETWORK_LOG_INFO(
 								"[messaging_ws_client] Connected (ID: " +
-								std::string(client_id()) + ")");
+								client_id_ + ")");
 
 							// Start reading frames
 							ws_socket_->start_read();
@@ -346,11 +471,12 @@ namespace kcenon::network::core
 		}
 	}
 
-	auto messaging_ws_client::on_close(internal::ws_close_code code, const std::string& reason) -> void
+	auto messaging_ws_client::on_close(internal::ws_close_code code,
+	                                   const std::string& reason) -> void
 	{
-		set_connected(false);
+		is_connected_.store(false, std::memory_order_release);
 		NETWORK_LOG_INFO("[messaging_ws_client] Connection closed (ID: " +
-						 std::string(client_id()) + ")");
+						 client_id_ + ")");
 
 		invoke_disconnected_callback(code, reason);
 	}
@@ -359,6 +485,40 @@ namespace kcenon::network::core
 	{
 		NETWORK_LOG_ERROR("[messaging_ws_client] Error: " + ec.message());
 		invoke_error_callback(ec);
+	}
+
+	// ========================================================================
+	// Internal Callback Helpers
+	// ========================================================================
+
+	auto messaging_ws_client::invoke_message_callback(const internal::ws_message& msg) -> void
+	{
+		callbacks_.invoke<kMessageCallbackIndex>(msg);
+
+		if (msg.type == internal::ws_message_type::text)
+		{
+			callbacks_.invoke<kTextMessageCallbackIndex>(msg.as_text());
+		}
+		else if (msg.type == internal::ws_message_type::binary)
+		{
+			callbacks_.invoke<kBinaryMessageCallbackIndex>(msg.as_binary());
+		}
+	}
+
+	auto messaging_ws_client::invoke_connected_callback() -> void
+	{
+		callbacks_.invoke<kConnectedCallbackIndex>();
+	}
+
+	auto messaging_ws_client::invoke_disconnected_callback(internal::ws_close_code code,
+	                                                       const std::string& reason) -> void
+	{
+		callbacks_.invoke<kDisconnectedCallbackIndex>(code, reason);
+	}
+
+	auto messaging_ws_client::invoke_error_callback(std::error_code ec) -> void
+	{
+		callbacks_.invoke<kErrorCallbackIndex>(ec);
 	}
 
 } // namespace kcenon::network::core

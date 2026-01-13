@@ -68,6 +68,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   - Adds early exit when all clients are connected
   - Fixes intermittent `MultiConnectionLifecycleTest.ConnectionScaling` failures on macOS Release CI
 
+### Changed
+- **WebSocket Classes Migrated to Composition Pattern** (2026-01-14) (#442)
+  - Migrated `messaging_ws_client` and `messaging_ws_server` from CRTP-based inheritance to composition pattern
+  - Replaced CRTP base classes (`messaging_ws_client_base`, `messaging_ws_server_base`) with `std::enable_shared_from_this`
+  - Added `lifecycle_manager` for consistent lifecycle state management
+  - Added `callback_manager` for type-safe callback handling with compile-time index validation
+  - Implemented `i_websocket_client` and `i_websocket_server` interfaces for composition-based usage
+  - Maintained backward compatibility with legacy API methods
+  - Added interface callback adapters for type conversion between interface and internal types
+  - Aligns WebSocket classes with composition pattern already implemented in TCP (#445) and UDP (#446) classes
+
 ### Added
 - **QUIC Path MTU Discovery (PMTUD)** (2026-01-13) (#407)
   - Added `pmtud_controller` class implementing RFC 8899 DPLPMTUD algorithm

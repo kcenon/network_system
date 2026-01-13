@@ -98,6 +98,16 @@ Network System 프로젝트의 모든 주목할 만한 변경 사항은 이 파�
   - #317 종료
 
 ### 변경됨
+- **WebSocket 클래스 Composition 패턴으로 마이그레이션** (2026-01-14) (#442)
+  - `messaging_ws_client`와 `messaging_ws_server`를 CRTP 기반 상속에서 Composition 패턴으로 마이그레이션
+  - CRTP 베이스 클래스(`messaging_ws_client_base`, `messaging_ws_server_base`)를 `std::enable_shared_from_this`로 교체
+  - 일관된 라이프사이클 상태 관리를 위한 `lifecycle_manager` 추가
+  - 컴파일 타임 인덱스 검증이 포함된 타입 안전 콜백 처리를 위한 `callback_manager` 추가
+  - Composition 기반 사용을 위한 `i_websocket_client` 및 `i_websocket_server` 인터페이스 구현
+  - 레거시 API 메서드와의 하위 호환성 유지
+  - 인터페이스와 내부 타입 간 변환을 위한 인터페이스 콜백 어댑터 추가
+  - TCP (#445) 및 UDP (#446) 클래스에서 이미 구현된 Composition 패턴과 정렬
+
 - **KCENON_WITH_* 기능 플래그 통합** (2025-12-23)
   - 통합 플래그를 `BUILD_WITH_*`에서 `KCENON_WITH_*` 매크로로 전환 (#336)
   - network_system 전체에서 통합 기능 감지를 위한 `feature_flags.h` 추가

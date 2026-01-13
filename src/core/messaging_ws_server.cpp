@@ -221,23 +221,223 @@ namespace kcenon::network::core
 	// ========================================================================
 
 	messaging_ws_server::messaging_ws_server(std::string_view server_id)
-		: messaging_ws_server_base<messaging_ws_server>(server_id)
+		: server_id_(server_id)
 	{
 	}
 
-	// Destructor is defaulted in header - base class handles stop_server() call
+	messaging_ws_server::~messaging_ws_server() noexcept
+	{
+		if (lifecycle_.is_running())
+		{
+			stop_server();
+		}
+	}
+
+	// ========================================================================
+	// Lifecycle Management
+	// ========================================================================
 
 	auto messaging_ws_server::start_server(const ws_server_config& config) -> VoidResult
 	{
 		config_ = config;
-		// Use the base class start_server with config values
-		return messaging_ws_server_base<messaging_ws_server>::start_server(
-			config.port, config.path);
+		return start_server(config.port, config.path);
 	}
 
-	// WebSocket-specific implementation of server start
-	// Called by base class start_server() after common validation
-	auto messaging_ws_server::do_start(uint16_t port, std::string_view path) -> VoidResult
+	auto messaging_ws_server::start_server(uint16_t port, std::string_view path) -> VoidResult
+	{
+		if (lifecycle_.is_running())
+		{
+			return error_void(
+				error_codes::common_errors::already_exists,
+				"WebSocket server is already running",
+				"messaging_ws_server");
+		}
+
+		lifecycle_.set_running();
+
+		auto result = do_start_impl(port, path);
+		if (result.is_err())
+		{
+			lifecycle_.mark_stopped();
+		}
+
+		return result;
+	}
+
+	auto messaging_ws_server::stop_server() -> VoidResult
+	{
+		if (!lifecycle_.prepare_stop())
+		{
+			return ok();
+		}
+
+		auto result = do_stop_impl();
+
+		lifecycle_.mark_stopped();
+
+		return result;
+	}
+
+	auto messaging_ws_server::server_id() const -> const std::string&
+	{
+		return server_id_;
+	}
+
+	// ========================================================================
+	// i_network_component interface implementation
+	// ========================================================================
+
+	auto messaging_ws_server::is_running() const -> bool
+	{
+		return lifecycle_.is_running();
+	}
+
+	auto messaging_ws_server::wait_for_stop() -> void
+	{
+		lifecycle_.wait_for_stop();
+	}
+
+	// ========================================================================
+	// i_websocket_server interface implementation
+	// ========================================================================
+
+	auto messaging_ws_server::start(uint16_t port) -> VoidResult
+	{
+		return start_server(port);
+	}
+
+	auto messaging_ws_server::stop() -> VoidResult
+	{
+		return stop_server();
+	}
+
+	auto messaging_ws_server::connection_count() const -> size_t
+	{
+		if (!session_mgr_)
+		{
+			return 0;
+		}
+		return session_mgr_->get_connection_count();
+	}
+
+	// ========================================================================
+	// Interface callback setters
+	// ========================================================================
+
+	auto messaging_ws_server::set_connection_callback(
+		interfaces::i_websocket_server::connection_callback_t callback) -> void
+	{
+		// Adapt interface callback to internal callback type
+		if (callback) {
+			callbacks_.set<kConnectionCallbackIndex>(
+				[callback = std::move(callback)](std::shared_ptr<ws_connection> conn) {
+					// ws_connection already implements i_websocket_session
+					callback(conn);
+				});
+		} else {
+			callbacks_.set<kConnectionCallbackIndex>(connection_callback_t{});
+		}
+	}
+
+	auto messaging_ws_server::set_disconnection_callback(
+		interfaces::i_websocket_server::disconnection_callback_t callback) -> void
+	{
+		// Adapt interface callback to internal callback type
+		if (callback) {
+			callbacks_.set<kDisconnectionCallbackIndex>(
+				[callback = std::move(callback)](const std::string& session_id,
+												 internal::ws_close_code code,
+												 const std::string& reason) {
+					callback(session_id, static_cast<uint16_t>(code), reason);
+				});
+		} else {
+			callbacks_.set<kDisconnectionCallbackIndex>(disconnection_callback_t{});
+		}
+	}
+
+	auto messaging_ws_server::set_text_callback(
+		interfaces::i_websocket_server::text_callback_t callback) -> void
+	{
+		// Adapt interface callback to internal callback type
+		if (callback) {
+			callbacks_.set<kTextMessageCallbackIndex>(
+				[callback = std::move(callback)](std::shared_ptr<ws_connection> conn,
+												 const std::string& message) {
+					callback(conn->id(), message);
+				});
+		} else {
+			callbacks_.set<kTextMessageCallbackIndex>(text_message_callback_t{});
+		}
+	}
+
+	auto messaging_ws_server::set_binary_callback(
+		interfaces::i_websocket_server::binary_callback_t callback) -> void
+	{
+		// Adapt interface callback to internal callback type
+		if (callback) {
+			callbacks_.set<kBinaryMessageCallbackIndex>(
+				[callback = std::move(callback)](std::shared_ptr<ws_connection> conn,
+												 const std::vector<uint8_t>& data) {
+					callback(conn->id(), data);
+				});
+		} else {
+			callbacks_.set<kBinaryMessageCallbackIndex>(binary_message_callback_t{});
+		}
+	}
+
+	auto messaging_ws_server::set_error_callback(
+		interfaces::i_websocket_server::error_callback_t callback) -> void
+	{
+		// Interface and legacy types are compatible
+		if (callback) {
+			callbacks_.set<kErrorCallbackIndex>(
+				[callback = std::move(callback)](const std::string& session_id, std::error_code ec) {
+					callback(session_id, ec);
+				});
+		} else {
+			callbacks_.set<kErrorCallbackIndex>(error_callback_t{});
+		}
+	}
+
+	// ========================================================================
+	// Legacy API callback setters
+	// ========================================================================
+
+	auto messaging_ws_server::set_connection_callback(connection_callback_t callback) -> void
+	{
+		callbacks_.set<kConnectionCallbackIndex>(std::move(callback));
+	}
+
+	auto messaging_ws_server::set_disconnection_callback(disconnection_callback_t callback) -> void
+	{
+		callbacks_.set<kDisconnectionCallbackIndex>(std::move(callback));
+	}
+
+	auto messaging_ws_server::set_message_callback(message_callback_t callback) -> void
+	{
+		callbacks_.set<kMessageCallbackIndex>(std::move(callback));
+	}
+
+	auto messaging_ws_server::set_text_message_callback(text_message_callback_t callback) -> void
+	{
+		callbacks_.set<kTextMessageCallbackIndex>(std::move(callback));
+	}
+
+	auto messaging_ws_server::set_binary_message_callback(binary_message_callback_t callback) -> void
+	{
+		callbacks_.set<kBinaryMessageCallbackIndex>(std::move(callback));
+	}
+
+	auto messaging_ws_server::set_error_callback(error_callback_t callback) -> void
+	{
+		callbacks_.set<kErrorCallbackIndex>(std::move(callback));
+	}
+
+	// ========================================================================
+	// Internal Implementation
+	// ========================================================================
+
+	auto messaging_ws_server::do_start_impl(uint16_t port, std::string_view path) -> VoidResult
 	{
 		try
 		{
@@ -288,7 +488,7 @@ namespace kcenon::network::core
 
 			NETWORK_LOG_INFO("[messaging_ws_server] Server started on port " +
 							 std::to_string(config_.port) + " (ID: " +
-							 std::string(server_id()) + ")");
+							 server_id_ + ")");
 
 			return ok();
 		}
@@ -299,9 +499,7 @@ namespace kcenon::network::core
 		}
 	}
 
-	// WebSocket-specific implementation of server stop
-	// Called by base class stop_server() after common cleanup
-	auto messaging_ws_server::do_stop() -> VoidResult
+	auto messaging_ws_server::do_stop_impl() -> VoidResult
 	{
 		try
 		{
@@ -345,7 +543,7 @@ namespace kcenon::network::core
 			}
 
 			NETWORK_LOG_INFO("[messaging_ws_server] Server stopped (ID: " +
-							 std::string(server_id()) + ")");
+							 server_id_ + ")");
 
 			return ok();
 		}
@@ -403,22 +601,13 @@ namespace kcenon::network::core
 		return session_mgr_->get_all_connection_ids();
 	}
 
-	auto messaging_ws_server::connection_count() const -> size_t
-	{
-		if (!session_mgr_)
-		{
-			return 0;
-		}
-		return session_mgr_->get_connection_count();
-	}
-
 	auto messaging_ws_server::do_accept() -> void
 	{
-		// Lock to prevent race with do_stop() closing the acceptor
+		// Lock to prevent race with do_stop_impl() closing the acceptor
 		std::lock_guard<std::mutex> lock(acceptor_mutex_);
 
 		// Early return if server is stopping or acceptor is invalid
-		if (!is_running() || !acceptor_ || !acceptor_->is_open())
+		if (!lifecycle_.is_running() || !acceptor_ || !acceptor_->is_open())
 		{
 			return;
 		}
@@ -440,7 +629,7 @@ namespace kcenon::network::core
 									}
 
 									// Continue accepting
-									if (is_running())
+									if (lifecycle_.is_running())
 									{
 										do_accept();
 									}
@@ -566,74 +755,40 @@ namespace kcenon::network::core
 	}
 
 	// ========================================================================
-	// i_websocket_server interface implementation
+	// Internal Callback Helpers
 	// ========================================================================
 
-	auto messaging_ws_server::set_connection_callback(
-		interfaces::i_websocket_server::connection_callback_t callback) -> void
+	auto messaging_ws_server::invoke_connection_callback(std::shared_ptr<ws_connection> conn) -> void
 	{
-		// Adapt interface callback to base class callback
-		if (callback) {
-			messaging_ws_server_base::set_connection_callback(
-				[callback = std::move(callback)](std::shared_ptr<ws_connection> conn) {
-					// ws_connection already implements i_websocket_session
-					callback(conn);
-				});
-		} else {
-			messaging_ws_server_base::set_connection_callback(nullptr);
+		callbacks_.invoke<kConnectionCallbackIndex>(conn);
+	}
+
+	auto messaging_ws_server::invoke_disconnection_callback(const std::string& conn_id,
+	                                                        internal::ws_close_code code,
+	                                                        const std::string& reason) -> void
+	{
+		callbacks_.invoke<kDisconnectionCallbackIndex>(conn_id, code, reason);
+	}
+
+	auto messaging_ws_server::invoke_message_callback(std::shared_ptr<ws_connection> conn,
+	                                                  const internal::ws_message& msg) -> void
+	{
+		callbacks_.invoke<kMessageCallbackIndex>(conn, msg);
+
+		if (msg.type == internal::ws_message_type::text)
+		{
+			callbacks_.invoke<kTextMessageCallbackIndex>(conn, msg.as_text());
+		}
+		else if (msg.type == internal::ws_message_type::binary)
+		{
+			callbacks_.invoke<kBinaryMessageCallbackIndex>(conn, msg.as_binary());
 		}
 	}
 
-	auto messaging_ws_server::set_disconnection_callback(
-		interfaces::i_websocket_server::disconnection_callback_t callback) -> void
+	auto messaging_ws_server::invoke_error_callback(const std::string& conn_id,
+	                                                std::error_code ec) -> void
 	{
-		// Adapt interface callback to base class callback
-		if (callback) {
-			messaging_ws_server_base::set_disconnection_callback(
-				[callback = std::move(callback)](const std::string& session_id,
-												 internal::ws_close_code code,
-												 const std::string& reason) {
-					callback(session_id, static_cast<uint16_t>(code), reason);
-				});
-		} else {
-			messaging_ws_server_base::set_disconnection_callback(nullptr);
-		}
-	}
-
-	auto messaging_ws_server::set_text_callback(
-		interfaces::i_websocket_server::text_callback_t callback) -> void
-	{
-		// Adapt interface callback to base class callback
-		if (callback) {
-			messaging_ws_server_base::set_text_message_callback(
-				[callback = std::move(callback)](std::shared_ptr<ws_connection> conn,
-												 const std::string& message) {
-					callback(conn->id(), message);
-				});
-		} else {
-			messaging_ws_server_base::set_text_message_callback(nullptr);
-		}
-	}
-
-	auto messaging_ws_server::set_binary_callback(
-		interfaces::i_websocket_server::binary_callback_t callback) -> void
-	{
-		// Adapt interface callback to base class callback
-		if (callback) {
-			messaging_ws_server_base::set_binary_message_callback(
-				[callback = std::move(callback)](std::shared_ptr<ws_connection> conn,
-												 const std::vector<uint8_t>& data) {
-					callback(conn->id(), data);
-				});
-		} else {
-			messaging_ws_server_base::set_binary_message_callback(nullptr);
-		}
-	}
-
-	auto messaging_ws_server::set_error_callback(
-		interfaces::i_websocket_server::error_callback_t callback) -> void
-	{
-		messaging_ws_server_base::set_error_callback(std::move(callback));
+		callbacks_.invoke<kErrorCallbackIndex>(conn_id, ec);
 	}
 
 } // namespace kcenon::network::core
