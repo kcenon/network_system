@@ -44,14 +44,17 @@ namespace kcenon::network::core
 	using tcp = asio::ip::tcp;
 
 	messaging_server::messaging_server(const std::string& server_id)
-		: messaging_server_base<messaging_server>(server_id)
+		: server_id_(server_id)
 	{
 	}
 
 	messaging_server::~messaging_server() noexcept
 	{
-		// Base class destructor will call stop_server() if still running.
-		// Additional cleanup is handled here for resources not managed by base.
+		if (lifecycle_.is_running())
+		{
+			stop_server();
+		}
+		// Additional cleanup for resources not managed by lifecycle manager.
 		try
 		{
 			// Ensure all resources are cleaned up even if stop_server() returned early
@@ -95,9 +98,133 @@ namespace kcenon::network::core
 		}
 	}
 
-	auto messaging_server::do_start(unsigned short port) -> VoidResult
+	// =========================================================================
+	// Lifecycle Management
+	// =========================================================================
+
+	auto messaging_server::start_server(unsigned short port) -> VoidResult
 	{
-		// Base class has already checked is_running() and set state.
+		if (lifecycle_.is_running())
+		{
+			return error_void(
+				error_codes::network_system::server_already_running,
+				"Server is already running",
+				"messaging_server::start_server",
+				"Server ID: " + server_id_);
+		}
+
+		lifecycle_.set_running();
+		stop_initiated_.store(false, std::memory_order_release);
+
+		auto result = do_start_impl(port);
+		if (result.is_err())
+		{
+			lifecycle_.mark_stopped();
+		}
+
+		return result;
+	}
+
+	auto messaging_server::stop_server() -> VoidResult
+	{
+		if (!lifecycle_.is_running())
+		{
+			return error_void(
+				error_codes::network_system::server_not_started,
+				"Server is not running",
+				"messaging_server::stop_server",
+				"Server ID: " + server_id_);
+		}
+
+		// Prevent multiple stop calls
+		bool expected = false;
+		if (!stop_initiated_.compare_exchange_strong(expected, true,
+		                                              std::memory_order_acq_rel))
+		{
+			return ok();
+		}
+
+		auto result = do_stop_impl();
+		lifecycle_.mark_stopped();
+
+		return result;
+	}
+
+	auto messaging_server::wait_for_stop() -> void
+	{
+		lifecycle_.wait_for_stop();
+	}
+
+	auto messaging_server::is_running() const noexcept -> bool
+	{
+		return lifecycle_.is_running();
+	}
+
+	auto messaging_server::server_id() const -> const std::string&
+	{
+		return server_id_;
+	}
+
+	// =========================================================================
+	// Callback Setters
+	// =========================================================================
+
+	auto messaging_server::set_connection_callback(connection_callback_t callback) -> void
+	{
+		callbacks_.set<kConnectionCallback>(std::move(callback));
+	}
+
+	auto messaging_server::set_disconnection_callback(disconnection_callback_t callback) -> void
+	{
+		callbacks_.set<kDisconnectionCallback>(std::move(callback));
+	}
+
+	auto messaging_server::set_receive_callback(receive_callback_t callback) -> void
+	{
+		callbacks_.set<kReceiveCallback>(std::move(callback));
+	}
+
+	auto messaging_server::set_error_callback(error_callback_t callback) -> void
+	{
+		callbacks_.set<kErrorCallback>(std::move(callback));
+	}
+
+	// =========================================================================
+	// Internal Callback Helpers
+	// =========================================================================
+
+	auto messaging_server::get_connection_callback() const -> connection_callback_t
+	{
+		return callbacks_.get<kConnectionCallback>();
+	}
+
+	auto messaging_server::get_disconnection_callback() const -> disconnection_callback_t
+	{
+		return callbacks_.get<kDisconnectionCallback>();
+	}
+
+	auto messaging_server::get_receive_callback() const -> receive_callback_t
+	{
+		return callbacks_.get<kReceiveCallback>();
+	}
+
+	auto messaging_server::get_error_callback() const -> error_callback_t
+	{
+		return callbacks_.get<kErrorCallback>();
+	}
+
+	auto messaging_server::invoke_connection_callback(
+	    std::shared_ptr<session::messaging_session> session) -> void
+	{
+		callbacks_.invoke<kConnectionCallback>(std::move(session));
+	}
+
+	// =========================================================================
+	// Internal Implementation Methods
+	// =========================================================================
+
+	auto messaging_server::do_start_impl(unsigned short port) -> VoidResult
+	{
 		// This method handles TCP-specific initialization.
 		try
 		{
@@ -181,9 +308,8 @@ namespace kcenon::network::core
 		}
 	}
 
-	auto messaging_server::do_stop() -> VoidResult
+	auto messaging_server::do_stop_impl() -> VoidResult
 	{
-		// Base class has already checked is_running() and set state.
 		// This method handles TCP-specific cleanup.
 		try
 		{
