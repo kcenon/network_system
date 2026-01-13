@@ -40,6 +40,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "kcenon/network/protocols/quic/frame.h"
 #include "kcenon/network/protocols/quic/loss_detector.h"
 #include "kcenon/network/protocols/quic/packet.h"
+#include "kcenon/network/protocols/quic/pmtud_controller.h"
 #include "kcenon/network/protocols/quic/rtt_estimator.h"
 #include "kcenon/network/protocols/quic/stream_manager.h"
 #include "kcenon/network/protocols/quic/transport_params.h"
@@ -490,6 +491,47 @@ public:
     [[nodiscard]] auto crypto() const -> const quic_crypto& { return crypto_; }
 
     // ========================================================================
+    // Path MTU Discovery (RFC 9000 Section 14, RFC 8899)
+    // ========================================================================
+
+    /*!
+     * \brief Get current path MTU
+     * \return Current validated MTU for this connection path
+     */
+    [[nodiscard]] auto path_mtu() const noexcept -> size_t;
+
+    /*!
+     * \brief Enable Path MTU Discovery
+     *
+     * Starts PMTUD probing to discover the maximum MTU on the path.
+     * Uses DPLPMTUD algorithm as specified in RFC 8899.
+     */
+    void enable_pmtud();
+
+    /*!
+     * \brief Disable Path MTU Discovery
+     *
+     * Stops PMTUD probing and reverts to minimum MTU (1200 bytes).
+     */
+    void disable_pmtud();
+
+    /*!
+     * \brief Check if PMTUD is enabled
+     * \return True if PMTUD is enabled
+     */
+    [[nodiscard]] auto pmtud_enabled() const noexcept -> bool;
+
+    /*!
+     * \brief Get the PMTUD controller
+     */
+    [[nodiscard]] auto pmtud() -> pmtud_controller& { return pmtud_controller_; }
+
+    /*!
+     * \brief Get the PMTUD controller (const)
+     */
+    [[nodiscard]] auto pmtud() const -> const pmtud_controller& { return pmtud_controller_; }
+
+    // ========================================================================
     // Statistics
     // ========================================================================
 
@@ -546,6 +588,9 @@ private:
     rtt_estimator rtt_estimator_;
     loss_detector loss_detector_;
     congestion_controller congestion_controller_;
+
+    // Path MTU Discovery (RFC 8899)
+    pmtud_controller pmtud_controller_;
 
     // Packet number spaces
     packet_number_space initial_space_;

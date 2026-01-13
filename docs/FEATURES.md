@@ -272,6 +272,12 @@ See `samples/simple_http_server.cpp` and `samples/simple_http_client.cpp` for co
   - RACK-TLP loss detection algorithm
   - NewReno congestion control
   - RTT estimation
+- **Path MTU Discovery** (RFC 8899):
+  - DPLPMTUD algorithm for optimal packet sizes
+  - Binary search-based MTU probing
+  - Black hole detection and recovery
+  - ICMP Packet Too Big handling
+  - Support for jumbo frames (up to 9000 bytes)
 
 **Classes**:
 - `messaging_quic_server` - QUIC server implementation
