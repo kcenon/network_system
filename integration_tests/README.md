@@ -322,6 +322,7 @@ test_helpers::wait_for_connection(client_, std::chrono::seconds(5));
 - macOS CI environments (especially Release builds) use longer timeouts (10s)
 - This accounts for kqueue-based async I/O behavior differences
 - Additional 100ms wait is added after server startup on macOS CI
+- Sequential connections on macOS include brief pauses between connections for proper resource cleanup
 
 ### Cleanup
 
