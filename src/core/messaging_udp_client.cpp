@@ -229,7 +229,7 @@ namespace kcenon::network::core
 
 	auto messaging_udp_client::set_target(std::string_view host, uint16_t port) -> VoidResult
 	{
-		if (!is_running())
+		if (!messaging_udp_client_base::is_running())
 		{
 			return error_void(
 				error_codes::common_errors::internal_error,
@@ -271,6 +271,49 @@ namespace kcenon::network::core
 				"Host: " + std::string(host) + ":" + std::to_string(port)
 			);
 		}
+	}
+
+	// ========================================================================
+	// i_udp_client interface implementation
+	// ========================================================================
+
+	auto messaging_udp_client::send(
+		std::vector<uint8_t>&& data,
+		send_callback_t handler) -> VoidResult
+	{
+		// Delegate to send_packet
+		return send_packet(std::move(data), std::move(handler));
+	}
+
+	auto messaging_udp_client::set_receive_callback(
+		interfaces::i_udp_client::receive_callback_t callback) -> void
+	{
+		if (!callback)
+		{
+			// Clear the callback
+			messaging_udp_client_base::set_receive_callback(nullptr);
+			return;
+		}
+
+		// Adapt the interface callback to the base class callback type
+		// Convert asio::ip::udp::endpoint to endpoint_info
+		messaging_udp_client_base::set_receive_callback(
+			[callback = std::move(callback)](
+				const std::vector<uint8_t>& data,
+				const asio::ip::udp::endpoint& endpoint)
+			{
+				interfaces::i_udp_client::endpoint_info info;
+				info.address = endpoint.address().to_string();
+				info.port = endpoint.port();
+				callback(data, info);
+			});
+	}
+
+	auto messaging_udp_client::set_error_callback(
+		interfaces::i_udp_client::error_callback_t callback) -> void
+	{
+		// The error callback types are compatible (both use std::error_code)
+		messaging_udp_client_base::set_error_callback(std::move(callback));
 	}
 
 } // namespace kcenon::network::core

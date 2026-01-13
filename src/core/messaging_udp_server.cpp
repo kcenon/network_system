@@ -193,4 +193,86 @@ namespace kcenon::network::core
 		}
 	}
 
+	// ========================================================================
+	// i_udp_server interface implementation
+	// ========================================================================
+
+	auto messaging_udp_server::send_to(
+		const endpoint_info& endpoint,
+		std::vector<uint8_t>&& data,
+		send_callback_t handler) -> VoidResult
+	{
+		if (!messaging_udp_server_base::is_running())
+		{
+			return error_void(
+				error_codes::network_system::server_not_started,
+				"UDP server is not running",
+				"messaging_udp_server::send_to",
+				""
+			);
+		}
+
+		if (!socket_)
+		{
+			return error_void(
+				error_codes::common_errors::internal_error,
+				"Socket not available",
+				"messaging_udp_server::send_to",
+				""
+			);
+		}
+
+		try
+		{
+			// Convert endpoint_info to asio::ip::udp::endpoint
+			asio::ip::udp::endpoint asio_endpoint(
+				asio::ip::make_address(endpoint.address),
+				endpoint.port
+			);
+
+			socket_->async_send_to(std::move(data), asio_endpoint, std::move(handler));
+			return ok();
+		}
+		catch (const std::exception& e)
+		{
+			return error_void(
+				error_codes::common_errors::internal_error,
+				std::string("Failed to send datagram: ") + e.what(),
+				"messaging_udp_server::send_to",
+				"Target: " + endpoint.address + ":" + std::to_string(endpoint.port)
+			);
+		}
+	}
+
+	auto messaging_udp_server::set_receive_callback(
+		interfaces::i_udp_server::receive_callback_t callback) -> void
+	{
+		if (!callback)
+		{
+			// Clear the callback
+			messaging_udp_server_base::set_receive_callback(nullptr);
+			return;
+		}
+
+		// Adapt the interface callback to the base class callback type
+		// Convert asio::ip::udp::endpoint to endpoint_info
+		messaging_udp_server_base::set_receive_callback(
+			[callback = std::move(callback)](
+				const std::vector<uint8_t>& data,
+				const asio::ip::udp::endpoint& endpoint)
+			{
+				interfaces::i_udp_server::endpoint_info info;
+				info.address = endpoint.address().to_string();
+				info.port = endpoint.port();
+				callback(data, info);
+			});
+	}
+
+	auto messaging_udp_server::set_error_callback(
+		interfaces::i_udp_server::error_callback_t callback) -> void
+	{
+		// The error callback types are compatible (both use std::error_code)
+		messaging_udp_server_base::set_error_callback(std::move(callback));
+	}
+
 } // namespace kcenon::network::core
