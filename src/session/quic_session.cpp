@@ -155,6 +155,46 @@ namespace kcenon::network::session
 		return socket_->create_stream(false);
 	}
 
+	auto quic_session::create_unidirectional_stream() -> Result<uint64_t>
+	{
+		if (!is_active_.load())
+		{
+			return error<uint64_t>(error_codes::network_system::connection_closed,
+			                       "Session is not active",
+			                       "quic_session");
+		}
+
+		std::lock_guard<std::mutex> lock(socket_mutex_);
+		if (!socket_)
+		{
+			return error<uint64_t>(error_codes::network_system::connection_closed,
+			                       "Socket is null",
+			                       "quic_session");
+		}
+
+		return socket_->create_stream(true);
+	}
+
+	auto quic_session::close_stream(uint64_t stream_id) -> VoidResult
+	{
+		if (!is_active_.load())
+		{
+			return error_void(error_codes::network_system::connection_closed,
+			                  "Session is not active",
+			                  "quic_session");
+		}
+
+		std::lock_guard<std::mutex> lock(socket_mutex_);
+		if (!socket_)
+		{
+			return error_void(error_codes::network_system::connection_closed,
+			                  "Socket is null",
+			                  "quic_session");
+		}
+
+		return socket_->close_stream(stream_id);
+	}
+
 	auto quic_session::close(uint64_t error_code) -> VoidResult
 	{
 		if (!is_active_.exchange(false))

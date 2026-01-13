@@ -162,7 +162,7 @@ auto messaging_quic_client::do_stop() -> VoidResult
 	}
 }
 
-auto messaging_quic_client::is_handshake_complete() const noexcept -> bool
+auto messaging_quic_client::is_handshake_complete_impl() const noexcept -> bool
 {
 	auto local_socket = get_socket();
 	if (!local_socket)
@@ -491,31 +491,66 @@ auto messaging_quic_client::get_socket() const
 	return socket_;
 }
 
+auto messaging_quic_client::is_early_data_accepted_impl() const noexcept -> bool
+{
+	return early_data_accepted_.load();
+}
+
 // =============================================================================
-// 0-RTT Session Resumption Implementation
+// i_quic_client interface callback implementations
 // =============================================================================
 
-auto messaging_quic_client::set_session_ticket_callback(
-	session_ticket_callback_t cb) -> void
+auto messaging_quic_client::set_receive_callback(
+	interfaces::i_quic_client::receive_callback_t callback) -> void
 {
-	session_ticket_cb_ = std::move(cb);
+	// Delegate to base class with compatible callback
+	messaging_quic_client_base::set_receive_callback(std::move(callback));
+}
+
+auto messaging_quic_client::set_stream_callback(
+	interfaces::i_quic_client::stream_callback_t callback) -> void
+{
+	// Delegate to base class with compatible callback
+	messaging_quic_client_base::set_stream_receive_callback(std::move(callback));
+}
+
+auto messaging_quic_client::set_connected_callback(
+	interfaces::i_quic_client::connected_callback_t callback) -> void
+{
+	// Delegate to base class with compatible callback
+	messaging_quic_client_base::set_connected_callback(std::move(callback));
+}
+
+auto messaging_quic_client::set_disconnected_callback(
+	interfaces::i_quic_client::disconnected_callback_t callback) -> void
+{
+	// Delegate to base class with compatible callback
+	messaging_quic_client_base::set_disconnected_callback(std::move(callback));
+}
+
+auto messaging_quic_client::set_error_callback(
+	interfaces::i_quic_client::error_callback_t callback) -> void
+{
+	// Delegate to base class with compatible callback
+	messaging_quic_client_base::set_error_callback(std::move(callback));
+}
+
+auto messaging_quic_client::set_session_ticket_callback(
+	interfaces::i_quic_client::session_ticket_callback_t callback) -> void
+{
+	session_ticket_cb_ = std::move(callback);
 }
 
 auto messaging_quic_client::set_early_data_callback(
-	early_data_callback_t cb) -> void
+	interfaces::i_quic_client::early_data_callback_t callback) -> void
 {
-	early_data_cb_ = std::move(cb);
+	early_data_cb_ = std::move(callback);
 }
 
 auto messaging_quic_client::set_early_data_accepted_callback(
-	early_data_accepted_callback_t cb) -> void
+	interfaces::i_quic_client::early_data_accepted_callback_t callback) -> void
 {
-	early_data_accepted_cb_ = std::move(cb);
-}
-
-auto messaging_quic_client::is_early_data_accepted() const noexcept -> bool
-{
-	return early_data_accepted_.load();
+	early_data_accepted_cb_ = std::move(callback);
 }
 
 } // namespace kcenon::network::core
