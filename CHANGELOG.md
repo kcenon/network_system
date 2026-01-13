@@ -12,6 +12,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **WebSocket Classes Composition Migration (Phase 1.3.1)**: Implement composition pattern interfaces for WebSocket classes (#428)
+  - Added `i_websocket_client` interface to `messaging_ws_client`
+    - Implement `start/stop/is_connected/is_running` methods
+    - Implement `send_text/send_binary/ping/close` methods
+    - Add interface callback setters with adapter pattern
+    - Maintain backward compatibility with legacy API
+  - Added `i_websocket_server` interface to `messaging_ws_server`
+    - Implement `start/stop/connection_count` methods
+    - Add interface callback setters for connections/disconnections
+    - Adapt text/binary message callbacks to interface types
+  - Added `i_websocket_session` interface to `ws_connection`
+    - Implement `id/is_connected/send/close/path` methods
+    - Support both interface and legacy close variants
+    - Add `send_text/send_binary` without completion handlers
+  - Refactored `ws_connection` implementation
+    - Renamed impl class to `ws_connection_impl` for clarity
+    - Added path and is_connected support
+    - Use private accessor method for server integration
+  - All existing WebSocket tests continue to pass
 - **Composition-Based Interface Infrastructure (Phase 1.2)**: Add interface classes for composition pattern (#423)
   - Added core interfaces: `i_network_component`, `i_client`, `i_server`, `i_session`
   - Added protocol-specific interfaces: `i_udp_client`, `i_udp_server`, `i_websocket_client`, `i_websocket_server`, `i_quic_client`, `i_quic_server`
