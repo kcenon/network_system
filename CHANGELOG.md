@@ -12,6 +12,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **UDP Classes Composition Migration (Phase 1.3.3)**: Migrate UDP classes from CRTP to composition pattern (#446)
+  - Refactored `messaging_udp_client` to implement `i_udp_client` interface
+    - Implement `start/stop/is_running` lifecycle methods
+    - Implement `send` and `set_target` methods
+    - Add interface callback setters with adapter pattern
+    - Maintain backward compatibility with legacy `start_client/stop_client` API
+  - Refactored `messaging_udp_server` to implement `i_udp_server` interface
+    - Implement `start/stop/is_running` lifecycle methods
+    - Implement `send_to` for targeted datagram sending
+    - Add interface callback setters for receive/error events
+    - Maintain backward compatibility with legacy `start_server/stop_server` API
+  - Added ID accessor methods (`client_id`, `server_id`)
+  - Added comprehensive unit tests (31 tests) covering:
+    - Interface API compliance
+    - Lifecycle management
+    - Callback management
+    - Error conditions
+    - Type compatibility
+    - Legacy API backward compatibility
+- **TCP Classes Composition Migration (Phase 1.3.2)**: Migrate TCP classes from CRTP to composition pattern (#445)
+  - Refactored `messaging_client` to implement `i_client` interface
+    - Implement `start/stop/is_running` lifecycle methods
+    - Add interface callback setters with adapter pattern
+    - Maintain backward compatibility with legacy API
+  - Refactored `messaging_server` to implement `i_server` interface
+    - Implement `start/stop/is_running` lifecycle methods
+    - Add interface callback setters for session events
+    - Maintain backward compatibility with legacy API
+  - All existing TCP tests continue to pass
 - **WebSocket Classes Composition Migration (Phase 1.3.1)**: Implement composition pattern interfaces for WebSocket classes (#428)
   - Added `i_websocket_client` interface to `messaging_ws_client`
     - Implement `start/stop/is_connected/is_running` methods
