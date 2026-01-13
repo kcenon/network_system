@@ -43,18 +43,20 @@ namespace kcenon::network::core
 	using tcp = asio::ip::tcp;
 
 	// ========================================================================
-	// ws_connection::impl
+	// ws_connection_impl
 	// ========================================================================
 
-	class ws_connection::impl
+	class ws_connection_impl
 	{
 	public:
-		impl(const std::string& conn_id,
-			 std::shared_ptr<internal::websocket_socket> ws_socket,
-			 const std::string& remote_addr)
+		ws_connection_impl(const std::string& conn_id,
+						   std::shared_ptr<internal::websocket_socket> ws_socket,
+						   const std::string& remote_addr,
+						   const std::string& ws_path = "/")
 			: connection_id_(conn_id)
 			, ws_socket_(ws_socket)
 			, remote_address_(remote_addr)
+			, path_(ws_path)
 		{
 		}
 
@@ -98,9 +100,17 @@ namespace kcenon::network::core
 			return ok();
 		}
 
-		auto connection_id() const -> const std::string& { return connection_id_; }
+		[[nodiscard]] auto connection_id() const -> const std::string& { return connection_id_; }
 
-		auto remote_endpoint() const -> std::string { return remote_address_; }
+		[[nodiscard]] auto remote_endpoint() const -> std::string { return remote_address_; }
+
+		[[nodiscard]] auto path() const -> std::string_view { return path_; }
+
+		[[nodiscard]] auto is_connected() const -> bool
+		{
+			std::lock_guard<std::mutex> lock(socket_mutex_);
+			return ws_socket_ && ws_socket_->is_open();
+		}
 
 		auto get_socket() -> std::shared_ptr<internal::websocket_socket>
 		{
@@ -118,14 +128,63 @@ namespace kcenon::network::core
 		std::string connection_id_;
 		std::shared_ptr<internal::websocket_socket> ws_socket_;
 		std::string remote_address_;
-		std::mutex socket_mutex_;
+		std::string path_;
+		mutable std::mutex socket_mutex_;
 	};
 
 	// ========================================================================
 	// ws_connection
 	// ========================================================================
 
-	ws_connection::ws_connection(std::shared_ptr<impl> impl) : pimpl_(impl) {}
+	ws_connection::ws_connection(std::shared_ptr<ws_connection_impl> impl) : pimpl_(std::move(impl)) {}
+
+	// ========================================================================
+	// i_websocket_session interface implementation
+	// ========================================================================
+
+	auto ws_connection::id() const -> std::string_view
+	{
+		return pimpl_->connection_id();
+	}
+
+	auto ws_connection::is_connected() const -> bool
+	{
+		return pimpl_->is_connected();
+	}
+
+	auto ws_connection::send(std::vector<uint8_t>&& data) -> VoidResult
+	{
+		return pimpl_->send_binary(std::move(data), nullptr);
+	}
+
+	auto ws_connection::close() -> void
+	{
+		pimpl_->close(internal::ws_close_code::normal, "");
+	}
+
+	auto ws_connection::send_text(std::string&& message) -> VoidResult
+	{
+		return pimpl_->send_text(std::move(message), nullptr);
+	}
+
+	auto ws_connection::send_binary(std::vector<uint8_t>&& data) -> VoidResult
+	{
+		return pimpl_->send_binary(std::move(data), nullptr);
+	}
+
+	auto ws_connection::close(uint16_t code, std::string_view reason) -> void
+	{
+		pimpl_->close(static_cast<internal::ws_close_code>(code), std::string(reason));
+	}
+
+	auto ws_connection::path() const -> std::string_view
+	{
+		return pimpl_->path();
+	}
+
+	// ========================================================================
+	// Legacy API
+	// ========================================================================
 
 	auto ws_connection::send_text(
 		std::string&& message,
@@ -411,7 +470,7 @@ namespace kcenon::network::core
 			std::make_shared<internal::websocket_socket>(tcp_sock, false);
 
 		// Create connection wrapper
-		auto conn_impl = std::make_shared<ws_connection::impl>(conn_id, ws_socket, remote_addr);
+		auto conn_impl = std::make_shared<ws_connection_impl>(conn_id, ws_socket, remote_addr, config_.path);
 		auto conn = std::make_shared<ws_connection>(conn_impl);
 
 		// Set WebSocket callbacks
@@ -461,7 +520,7 @@ namespace kcenon::network::core
 								 conn_id);
 
 				// Start reading frames
-				auto ws_sock = conn->pimpl_->get_socket();
+				auto ws_sock = conn->get_impl()->get_socket();
 				if (ws_sock)
 				{
 					ws_sock->start_read();
@@ -488,7 +547,7 @@ namespace kcenon::network::core
 			auto conn = session_mgr_->get_connection(conn_id);
 			if (conn)
 			{
-				conn->pimpl_->invalidate();
+				conn->get_impl()->invalidate();
 			}
 			session_mgr_->remove_connection(conn_id);
 		}
@@ -504,6 +563,77 @@ namespace kcenon::network::core
 		NETWORK_LOG_ERROR("[messaging_ws_server] Connection error (" + conn_id +
 						  "): " + ec.message());
 		invoke_error_callback(conn_id, ec);
+	}
+
+	// ========================================================================
+	// i_websocket_server interface implementation
+	// ========================================================================
+
+	auto messaging_ws_server::set_connection_callback(
+		interfaces::i_websocket_server::connection_callback_t callback) -> void
+	{
+		// Adapt interface callback to base class callback
+		if (callback) {
+			messaging_ws_server_base::set_connection_callback(
+				[callback = std::move(callback)](std::shared_ptr<ws_connection> conn) {
+					// ws_connection already implements i_websocket_session
+					callback(conn);
+				});
+		} else {
+			messaging_ws_server_base::set_connection_callback(nullptr);
+		}
+	}
+
+	auto messaging_ws_server::set_disconnection_callback(
+		interfaces::i_websocket_server::disconnection_callback_t callback) -> void
+	{
+		// Adapt interface callback to base class callback
+		if (callback) {
+			messaging_ws_server_base::set_disconnection_callback(
+				[callback = std::move(callback)](const std::string& session_id,
+												 internal::ws_close_code code,
+												 const std::string& reason) {
+					callback(session_id, static_cast<uint16_t>(code), reason);
+				});
+		} else {
+			messaging_ws_server_base::set_disconnection_callback(nullptr);
+		}
+	}
+
+	auto messaging_ws_server::set_text_callback(
+		interfaces::i_websocket_server::text_callback_t callback) -> void
+	{
+		// Adapt interface callback to base class callback
+		if (callback) {
+			messaging_ws_server_base::set_text_message_callback(
+				[callback = std::move(callback)](std::shared_ptr<ws_connection> conn,
+												 const std::string& message) {
+					callback(conn->id(), message);
+				});
+		} else {
+			messaging_ws_server_base::set_text_message_callback(nullptr);
+		}
+	}
+
+	auto messaging_ws_server::set_binary_callback(
+		interfaces::i_websocket_server::binary_callback_t callback) -> void
+	{
+		// Adapt interface callback to base class callback
+		if (callback) {
+			messaging_ws_server_base::set_binary_message_callback(
+				[callback = std::move(callback)](std::shared_ptr<ws_connection> conn,
+												 const std::vector<uint8_t>& data) {
+					callback(conn->id(), data);
+				});
+		} else {
+			messaging_ws_server_base::set_binary_message_callback(nullptr);
+		}
+	}
+
+	auto messaging_ws_server::set_error_callback(
+		interfaces::i_websocket_server::error_callback_t callback) -> void
+	{
+		messaging_ws_server_base::set_error_callback(std::move(callback));
 	}
 
 } // namespace kcenon::network::core
