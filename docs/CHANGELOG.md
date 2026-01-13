@@ -69,6 +69,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   - Fixes intermittent `MultiConnectionLifecycleTest.ConnectionScaling` failures on macOS Release CI
 
 ### Added
+- **QUIC Path MTU Discovery (PMTUD)** (2026-01-13) (#407)
+  - Added `pmtud_controller` class implementing RFC 8899 DPLPMTUD algorithm
+  - Features:
+    - Binary search-based MTU probing for optimal packet sizes
+    - Black hole detection and automatic recovery
+    - ICMP Packet Too Big (PTB) handling
+    - Periodic MTU re-validation
+    - Configurable min/max MTU (default: 1200-1500 bytes)
+    - Jumbo frame support (up to 9000 bytes)
+  - Integrated with QUIC `connection` class via `enable_pmtud()`/`disable_pmtud()`
+  - Automatically updates congestion controller max datagram size
+  - Comprehensive unit tests (16 test cases)
+
 - **HTTP/2 Server Implementation** (2026-01-13) (#406, #433-#437)
   - Added `http2_server` class for creating HTTP/2 servers with TLS and h2c support
   - Added `http2_server_stream` class for server-side stream handling and response sending

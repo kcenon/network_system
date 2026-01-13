@@ -1457,4 +1457,32 @@ auto connection::rotate_peer_cid() -> VoidResult
     return peer_cid_manager_.rotate_peer_cid();
 }
 
+// ============================================================================
+// Path MTU Discovery
+// ============================================================================
+
+auto connection::path_mtu() const noexcept -> size_t
+{
+    return pmtud_controller_.current_mtu();
+}
+
+void connection::enable_pmtud()
+{
+    pmtud_controller_.enable();
+    // Update congestion controller with current MTU
+    congestion_controller_.set_max_datagram_size(pmtud_controller_.current_mtu());
+}
+
+void connection::disable_pmtud()
+{
+    pmtud_controller_.disable();
+    // Reset congestion controller to minimum MTU
+    congestion_controller_.set_max_datagram_size(pmtud_controller_.min_mtu());
+}
+
+auto connection::pmtud_enabled() const noexcept -> bool
+{
+    return pmtud_controller_.is_enabled();
+}
+
 } // namespace kcenon::network::protocols::quic
