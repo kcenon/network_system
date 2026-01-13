@@ -38,8 +38,32 @@ namespace kcenon::network::core
 {
 
 messaging_quic_client::messaging_quic_client(std::string_view client_id)
-	: messaging_quic_client_base<messaging_quic_client>(client_id)
+	: client_id_(client_id)
 {
+}
+
+messaging_quic_client::~messaging_quic_client() noexcept
+{
+	if (lifecycle_.is_running())
+	{
+		auto result = stop_client();
+		(void)result; // Ignore result in destructor
+	}
+}
+
+auto messaging_quic_client::client_id() const -> const std::string&
+{
+	return client_id_;
+}
+
+auto messaging_quic_client::is_running() const -> bool
+{
+	return lifecycle_.is_running();
+}
+
+auto messaging_quic_client::wait_for_stop() -> void
+{
+	lifecycle_.wait_for_stop();
 }
 
 auto messaging_quic_client::start_client(std::string_view host,
@@ -53,13 +77,51 @@ auto messaging_quic_client::start_client(std::string_view host,
                                          unsigned short port,
                                          const quic_client_config& config) -> VoidResult
 {
+	if (lifecycle_.is_running())
+	{
+		return error_void(
+			error_codes::common_errors::already_exists,
+			"QUIC client is already running",
+			"messaging_quic_client::start_client");
+	}
+
+	if (host.empty())
+	{
+		return error_void(
+			error_codes::common_errors::invalid_argument,
+			"Host cannot be empty",
+			"messaging_quic_client::start_client");
+	}
+
 	config_ = config;
-	// Use base class start_client which calls do_start
-	return messaging_quic_client_base<messaging_quic_client>::start_client(host, port);
+	lifecycle_.set_running();
+	is_connected_.store(false);
+
+	auto result = do_start_impl(host, port);
+	if (result.is_err())
+	{
+		lifecycle_.mark_stopped();
+	}
+
+	return result;
 }
 
-auto messaging_quic_client::do_start(std::string_view host,
-                                     unsigned short port) -> VoidResult
+auto messaging_quic_client::stop_client() -> VoidResult
+{
+	if (!lifecycle_.prepare_stop())
+	{
+		return ok(); // Already stopped or not running
+	}
+
+	is_connected_.store(false);
+	auto result = do_stop_impl();
+	lifecycle_.mark_stopped();
+
+	return result;
+}
+
+auto messaging_quic_client::do_start_impl(std::string_view host,
+                                          unsigned short port) -> VoidResult
 {
 	try
 	{
@@ -107,12 +169,12 @@ auto messaging_quic_client::do_start(std::string_view host,
 		return error_void(
 			error_codes::common_errors::internal_error,
 			"Failed to start client: " + std::string(e.what()),
-			"messaging_quic_client::do_start",
+			"messaging_quic_client::do_start_impl",
 			"Client ID: " + client_id_ + ", Host: " + std::string(host));
 	}
 }
 
-auto messaging_quic_client::do_stop() -> VoidResult
+auto messaging_quic_client::do_stop_impl() -> VoidResult
 {
 	try
 	{
@@ -157,12 +219,17 @@ auto messaging_quic_client::do_stop() -> VoidResult
 		return error_void(
 			error_codes::common_errors::internal_error,
 			"Failed to stop client: " + std::string(e.what()),
-			"messaging_quic_client::do_stop",
+			"messaging_quic_client::do_stop_impl",
 			"Client ID: " + client_id_);
 	}
 }
 
-auto messaging_quic_client::is_handshake_complete_impl() const noexcept -> bool
+auto messaging_quic_client::is_connected() const -> bool
+{
+	return is_connected_.load(std::memory_order_acquire);
+}
+
+auto messaging_quic_client::is_handshake_complete() const -> bool
 {
 	auto local_socket = get_socket();
 	if (!local_socket)
@@ -218,6 +285,21 @@ auto messaging_quic_client::send_packet(std::string_view data) -> VoidResult
 
 	std::vector<uint8_t> byte_data(data.begin(), data.end());
 	return send_packet(std::move(byte_data));
+}
+
+auto messaging_quic_client::start(std::string_view host, uint16_t port) -> VoidResult
+{
+	return start_client(host, port);
+}
+
+auto messaging_quic_client::stop() -> VoidResult
+{
+	return stop_client();
+}
+
+auto messaging_quic_client::send(std::vector<uint8_t>&& data) -> VoidResult
+{
+	return send_packet(std::move(data));
 }
 
 auto messaging_quic_client::create_stream() -> Result<uint64_t>
@@ -301,6 +383,11 @@ auto messaging_quic_client::alpn_protocol() const -> std::optional<std::string>
 {
 	// TODO: Implement ALPN negotiation result retrieval
 	return std::nullopt;
+}
+
+auto messaging_quic_client::is_early_data_accepted() const -> bool
+{
+	return early_data_accepted_.load();
 }
 
 auto messaging_quic_client::stats() const -> quic_connection_stats
@@ -408,7 +495,7 @@ auto messaging_quic_client::do_connect(std::string_view host,
 auto messaging_quic_client::on_connect() -> void
 {
 	NETWORK_LOG_INFO("[messaging_quic_client] Connected successfully.");
-	set_connected(true);
+	is_connected_.store(true, std::memory_order_release);
 	handshake_complete_.store(true);
 
 	// Create default stream for send_packet()
@@ -424,7 +511,7 @@ auto messaging_quic_client::on_connect() -> void
 		}
 	}
 
-	// Invoke connected callback via base class
+	// Invoke connected callback
 	invoke_connected_callback();
 }
 
@@ -443,7 +530,7 @@ auto messaging_quic_client::on_stream_data(uint64_t stream_id,
 
 	std::vector<uint8_t> data_copy(data.begin(), data.end());
 
-	// Invoke stream receive callback via base class
+	// Invoke stream receive callback
 	invoke_stream_receive_callback(stream_id, data_copy, fin);
 
 	// Also invoke default receive callback for default stream
@@ -457,16 +544,16 @@ auto messaging_quic_client::on_error(std::error_code ec) -> void
 {
 	NETWORK_LOG_ERROR("[messaging_quic_client] Error: " + ec.message());
 
-	// Invoke error callback via base class
+	// Invoke error callback
 	invoke_error_callback(ec);
 
 	if (is_connected())
 	{
-		// Invoke disconnected callback via base class
+		// Invoke disconnected callback
 		invoke_disconnected_callback();
 	}
 
-	set_connected(false);
+	is_connected_.store(false, std::memory_order_release);
 }
 
 auto messaging_quic_client::on_close(uint64_t error_code,
@@ -477,11 +564,11 @@ auto messaging_quic_client::on_close(uint64_t error_code,
 
 	if (is_connected())
 	{
-		// Invoke disconnected callback via base class
+		// Invoke disconnected callback
 		invoke_disconnected_callback();
 	}
 
-	set_connected(false);
+	is_connected_.store(false, std::memory_order_release);
 }
 
 auto messaging_quic_client::get_socket() const
@@ -491,9 +578,44 @@ auto messaging_quic_client::get_socket() const
 	return socket_;
 }
 
-auto messaging_quic_client::is_early_data_accepted_impl() const noexcept -> bool
+// =============================================================================
+// Callback invocation helpers
+// =============================================================================
+
+auto messaging_quic_client::invoke_receive_callback(const std::vector<uint8_t>& data) -> void
 {
-	return early_data_accepted_.load();
+	callbacks_.invoke<kReceiveCallbackIndex>(data);
+}
+
+auto messaging_quic_client::invoke_stream_receive_callback(uint64_t stream_id,
+                                                           const std::vector<uint8_t>& data,
+                                                           bool fin) -> void
+{
+	callbacks_.invoke<kStreamReceiveCallbackIndex>(stream_id, data, fin);
+}
+
+auto messaging_quic_client::invoke_connected_callback() -> void
+{
+	callbacks_.invoke<kConnectedCallbackIndex>();
+}
+
+auto messaging_quic_client::invoke_disconnected_callback() -> void
+{
+	callbacks_.invoke<kDisconnectedCallbackIndex>();
+}
+
+auto messaging_quic_client::invoke_error_callback(std::error_code ec) -> void
+{
+	callbacks_.invoke<kErrorCallbackIndex>(ec);
+}
+
+// =============================================================================
+// Legacy callback setters
+// =============================================================================
+
+auto messaging_quic_client::set_stream_receive_callback(stream_receive_callback_t callback) -> void
+{
+	callbacks_.set<kStreamReceiveCallbackIndex>(std::move(callback));
 }
 
 // =============================================================================
@@ -503,36 +625,31 @@ auto messaging_quic_client::is_early_data_accepted_impl() const noexcept -> bool
 auto messaging_quic_client::set_receive_callback(
 	interfaces::i_quic_client::receive_callback_t callback) -> void
 {
-	// Delegate to base class with compatible callback
-	messaging_quic_client_base::set_receive_callback(std::move(callback));
+	callbacks_.set<kReceiveCallbackIndex>(std::move(callback));
 }
 
 auto messaging_quic_client::set_stream_callback(
 	interfaces::i_quic_client::stream_callback_t callback) -> void
 {
-	// Delegate to base class with compatible callback
-	messaging_quic_client_base::set_stream_receive_callback(std::move(callback));
+	callbacks_.set<kStreamReceiveCallbackIndex>(std::move(callback));
 }
 
 auto messaging_quic_client::set_connected_callback(
 	interfaces::i_quic_client::connected_callback_t callback) -> void
 {
-	// Delegate to base class with compatible callback
-	messaging_quic_client_base::set_connected_callback(std::move(callback));
+	callbacks_.set<kConnectedCallbackIndex>(std::move(callback));
 }
 
 auto messaging_quic_client::set_disconnected_callback(
 	interfaces::i_quic_client::disconnected_callback_t callback) -> void
 {
-	// Delegate to base class with compatible callback
-	messaging_quic_client_base::set_disconnected_callback(std::move(callback));
+	callbacks_.set<kDisconnectedCallbackIndex>(std::move(callback));
 }
 
 auto messaging_quic_client::set_error_callback(
 	interfaces::i_quic_client::error_callback_t callback) -> void
 {
-	// Delegate to base class with compatible callback
-	messaging_quic_client_base::set_error_callback(std::move(callback));
+	callbacks_.set<kErrorCallbackIndex>(std::move(callback));
 }
 
 auto messaging_quic_client::set_session_ticket_callback(
