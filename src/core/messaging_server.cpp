@@ -57,15 +57,19 @@ namespace kcenon::network::core
 			// Ensure all resources are cleaned up even if stop_server() returned early
 			// This handles the case where start_server() failed and is_running() is false
 			// but resources were partially created
-			if (acceptor_)
+			// Lock to prevent race with do_accept() accessing the acceptor
 			{
-				asio::error_code ec;
-				acceptor_->cancel(ec);
-				if (acceptor_->is_open())
+				std::lock_guard<std::mutex> lock(acceptor_mutex_);
+				if (acceptor_)
 				{
-					acceptor_->close(ec);
+					asio::error_code ec;
+					acceptor_->cancel(ec);
+					if (acceptor_->is_open())
+					{
+						acceptor_->close(ec);
+					}
+					acceptor_.reset();
 				}
-				acceptor_.reset();
 			}
 
 			if (cleanup_timer_)
@@ -184,14 +188,18 @@ namespace kcenon::network::core
 		try
 		{
 			// Step 1: Cancel and close the acceptor to stop accepting new connections
-			if (acceptor_)
+			// Lock to prevent race with do_accept() accessing the acceptor
 			{
-				asio::error_code ec;
-				// Cancel pending async_accept operations to prevent memory leaks
-				acceptor_->cancel(ec);
-				if (acceptor_->is_open())
+				std::lock_guard<std::mutex> lock(acceptor_mutex_);
+				if (acceptor_)
 				{
-					acceptor_->close(ec);
+					asio::error_code ec;
+					// Cancel pending async_accept operations to prevent memory leaks
+					acceptor_->cancel(ec);
+					if (acceptor_->is_open())
+					{
+						acceptor_->close(ec);
+					}
 				}
 			}
 
@@ -279,6 +287,15 @@ namespace kcenon::network::core
 
 	auto messaging_server::do_accept() -> void
 	{
+		// Lock to prevent race with do_stop() closing the acceptor
+		std::lock_guard<std::mutex> lock(acceptor_mutex_);
+
+		// Early return if server is stopping or acceptor is invalid
+		if (!is_running() || !acceptor_ || !acceptor_->is_open())
+		{
+			return;
+		}
+
 		auto self = shared_from_this();
 		acceptor_->async_accept(
 			[this, self](std::error_code ec, tcp::socket sock)
