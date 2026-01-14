@@ -180,75 +180,118 @@ Network_system follows a layered architecture with clear separation of concerns:
 
 ## Core Components
 
-### CRTP Base Class Hierarchy
+### Composition-Based Architecture
 
-Network_system uses the Curiously Recurring Template Pattern (CRTP) to provide zero-overhead base classes for consistent lifecycle management across all messaging classes.
+Network_system uses a composition-based architecture with interfaces and utility classes for consistent lifecycle management across all messaging classes. This design replaced the previous CRTP (Curiously Recurring Template Pattern) approach, providing:
+
+- **Improved testability**: Easy mocking through interfaces
+- **Reduced code duplication**: Shared utilities via composition
+- **Better flexibility**: Runtime polymorphism where needed
+- **Cleaner dependencies**: Explicit dependency injection
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                    CRTP Base Class Hierarchy                            │
+│                    Composition Architecture                              │
 ├─────────────────────────────────────────────────────────────────────────┤
 │                                                                         │
-│  TCP (Connection-Oriented)                                              │
-│  ─────────────────────────                                              │
-│  messaging_client_base<Derived>                                         │
-│      └── messaging_client                                               │
-│      └── secure_messaging_client                                        │
+│  Interfaces Layer                                                       │
+│  ─────────────────                                                      │
+│  i_network_component (base interface)                                   │
+│      ├── i_client         → messaging_client, secure_messaging_client   │
+│      ├── i_server         → messaging_server, secure_messaging_server   │
+│      ├── i_udp_client     → messaging_udp_client                        │
+│      ├── i_udp_server     → messaging_udp_server                        │
+│      ├── i_websocket_client → messaging_ws_client                       │
+│      ├── i_websocket_server → messaging_ws_server                       │
+│      ├── i_quic_client    → messaging_quic_client                       │
+│      └── i_quic_server    → messaging_quic_server                       │
 │                                                                         │
-│  messaging_server_base<Derived>                                         │
-│      └── messaging_server                                               │
-│      └── secure_messaging_server                                        │
+│  Composition Utilities                                                  │
+│  ─────────────────────                                                  │
+│  lifecycle_manager      → Thread-safe start/stop/wait state management  │
+│  callback_manager<...>  → Type-safe callback storage and invocation     │
 │                                                                         │
-│  UDP (Connectionless)                                                   │
-│  ────────────────────                                                   │
-│  messaging_udp_client_base<Derived>                                     │
-│      └── messaging_udp_client                                           │
-│      └── secure_messaging_udp_client                                    │
-│                                                                         │
-│  messaging_udp_server_base<Derived>                                     │
-│      └── messaging_udp_server                                           │
-│      └── secure_messaging_udp_server                                    │
-│                                                                         │
-│  WebSocket (Full-duplex over TCP)                                       │
-│  ───────────────────────────────                                        │
-│  messaging_ws_client_base<Derived>                                      │
-│      └── messaging_ws_client                                            │
-│                                                                         │
-│  messaging_ws_server_base<Derived>                                      │
-│      └── messaging_ws_server                                            │
+│  Concrete Classes (use std::enable_shared_from_this + composition)      │
+│  ─────────────────────────────────────────────────────────────────────  │
+│  messaging_client       → lifecycle_manager + tcp_client_callbacks      │
+│  messaging_server       → lifecycle_manager + tcp_server_callbacks      │
+│  messaging_ws_client    → lifecycle_manager + websocket_callbacks       │
+│  messaging_udp_client   → lifecycle_manager + udp_client_callbacks      │
+│  ...                                                                    │
 │                                                                         │
 └─────────────────────────────────────────────────────────────────────────┘
 ```
 
-#### Base Class Responsibilities
+#### Interface Hierarchy
 
-| Base Class | Lifecycle | Callbacks | Protocol-Specific |
-|------------|-----------|-----------|-------------------|
-| `messaging_client_base` | start/stop/wait_for_stop | connect, disconnect, receive, error | TCP connection state |
-| `messaging_server_base` | start/stop/wait_for_stop | connection, disconnection, receive, error | Session management |
-| `messaging_udp_client_base` | start/stop/wait_for_stop | receive (with endpoint), error | Connectionless, endpoint-aware |
-| `messaging_udp_server_base` | start/stop/wait_for_stop | receive (with endpoint), error | Connectionless, endpoint-aware |
-| `messaging_ws_client_base` | start/stop/wait_for_stop | connected, disconnected, message, error | WS message types, close codes |
-| `messaging_ws_server_base` | start/stop/wait_for_stop | connection, disconnection, message, error | Per-connection handling |
+| Interface | Purpose | Implementations |
+|-----------|---------|-----------------|
+| `i_network_component` | Base interface for all network components | All clients and servers |
+| `i_client` | TCP client operations | `messaging_client`, `secure_messaging_client` |
+| `i_server` | TCP server operations | `messaging_server`, `secure_messaging_server` |
+| `i_udp_client` | UDP client operations | `messaging_udp_client` |
+| `i_udp_server` | UDP server operations | `messaging_udp_server` |
+| `i_websocket_client` | WebSocket client operations | `messaging_ws_client` |
+| `i_websocket_server` | WebSocket server operations | `messaging_ws_server` |
+| `i_quic_client` | QUIC client operations | `messaging_quic_client` |
+| `i_quic_server` | QUIC server operations | `messaging_quic_server` |
 
-#### CRTP Pattern Usage
+#### Composition Utilities
 
-Derived classes implement protocol-specific `do_start()` and `do_stop()` methods:
+**lifecycle_manager**: Handles thread-safe lifecycle state transitions
 
 ```cpp
-// Example: messaging_ws_client
-class messaging_ws_client
-    : public messaging_ws_client_base<messaging_ws_client>
-{
+class lifecycle_manager {
+    [[nodiscard]] auto is_running() const -> bool;
+    [[nodiscard]] auto try_start() -> bool;
+    auto mark_stopped() -> void;
+    auto wait_for_stop() -> void;
+    [[nodiscard]] auto prepare_stop() -> bool;
+};
+```
+
+**callback_manager**: Type-safe callback storage with thread-safe invocation
+
+```cpp
+// Example: TCP client callback configuration
+using tcp_client_callbacks = callback_manager<
+    std::function<void(const std::vector<uint8_t>&)>,  // receive
+    std::function<void()>,                             // connected
+    std::function<void()>,                             // disconnected
+    std::function<void(std::error_code)>               // error
+>;
+```
+
+#### Usage Example
+
+```cpp
+// Concrete class using composition pattern
+class messaging_client : public std::enable_shared_from_this<messaging_client> {
 public:
-    friend class messaging_ws_client_base<messaging_ws_client>;
+    auto start_client(std::string_view host, uint16_t port) -> VoidResult {
+        if (!lifecycle_.try_start()) {
+            return make_error("Already running");
+        }
+        // ... initialization logic ...
+        return success();
+    }
 
-protected:
-    // Called by base class start_client() after common validation
-    auto do_start(std::string_view host, uint16_t port, std::string_view path) -> VoidResult;
+    auto stop_client() -> VoidResult {
+        if (!lifecycle_.prepare_stop()) {
+            return make_error("Not running");
+        }
+        // ... cleanup logic ...
+        lifecycle_.mark_stopped();
+        return success();
+    }
 
-    // Called by base class stop_client() after common cleanup
-    auto do_stop() -> VoidResult;
+    auto set_receive_callback(receive_callback_t cb) -> void {
+        callbacks_.set<tcp_client_callback_index::receive>(std::move(cb));
+    }
+
+private:
+    lifecycle_manager lifecycle_;
+    tcp_client_callbacks callbacks_;
 };
 ```
 
