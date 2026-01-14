@@ -297,6 +297,7 @@ add_library(NetworkSystem
     # Metrics implementation
     src/metrics/network_metrics.cpp
     src/metrics/histogram.cpp
+    src/metrics/sliding_histogram.cpp
 
     # HTTP/2 protocol implementation (frame and hpack are TLS-independent)
     src/protocols/http2/frame.cpp
