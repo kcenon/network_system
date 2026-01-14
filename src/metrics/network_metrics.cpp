@@ -31,9 +31,13 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *****************************************************************************/
 
 #include "kcenon/network/metrics/network_metrics.h"
+#include "kcenon/network/metrics/histogram.h"
+#include "kcenon/network/metrics/sliding_histogram.h"
 #include "kcenon/network/integration/monitoring_integration.h"
 #include "kcenon/network/integration/logger_integration.h"
 #include "kcenon/network/config/feature_flags.h"
+
+#include <mutex>
 
 #if KCENON_WITH_COMMON_SYSTEM
 #include "kcenon/network/events/network_metric_event.h"
@@ -43,6 +47,21 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace kcenon::network::metrics {
 
 namespace {
+
+// Global histogram instances for metrics tracking
+struct histogram_storage
+{
+	sliding_histogram latency{sliding_histogram_config::default_config()};
+	sliding_histogram connection_time{sliding_histogram_config::default_config()};
+	sliding_histogram request_duration{sliding_histogram_config::default_config()};
+	std::mutex mutex;
+
+	static auto instance() -> histogram_storage&
+	{
+		static histogram_storage storage;
+		return storage;
+	}
+};
 
 #if KCENON_WITH_COMMON_SYSTEM
 /**
@@ -187,6 +206,101 @@ void metric_reporter::report_session_duration(double ms)
 
 	integration::monitoring_integration_manager::instance().report_histogram(
 		metric_names::SESSION_DURATION_MS, ms);
+}
+
+// ============================================================================
+// Histogram-based metrics implementation
+// ============================================================================
+
+void metric_reporter::record_latency(double ms)
+{
+	// Record to sliding histogram for percentile calculations
+	auto& storage = histogram_storage::instance();
+	storage.latency.record(ms);
+
+	// Also report to traditional monitoring integration
+	report_latency(ms);
+}
+
+void metric_reporter::record_connection_time(double ms)
+{
+	auto& storage = histogram_storage::instance();
+	storage.connection_time.record(ms);
+
+#if KCENON_WITH_COMMON_SYSTEM
+	publish_metric(metric_names::CONNECTION_TIME_HISTOGRAM, ms,
+				   events::network_metric_type::histogram);
+#endif
+
+	integration::monitoring_integration_manager::instance().report_histogram(
+		metric_names::CONNECTION_TIME_HISTOGRAM, ms);
+}
+
+void metric_reporter::record_request_duration(double ms)
+{
+	auto& storage = histogram_storage::instance();
+	storage.request_duration.record(ms);
+
+#if KCENON_WITH_COMMON_SYSTEM
+	publish_metric(metric_names::REQUEST_DURATION_HISTOGRAM, ms,
+				   events::network_metric_type::histogram);
+#endif
+
+	integration::monitoring_integration_manager::instance().report_histogram(
+		metric_names::REQUEST_DURATION_HISTOGRAM, ms);
+}
+
+auto metric_reporter::get_latency_p50() -> double
+{
+	auto& storage = histogram_storage::instance();
+	return storage.latency.p50();
+}
+
+auto metric_reporter::get_latency_p95() -> double
+{
+	auto& storage = histogram_storage::instance();
+	return storage.latency.p95();
+}
+
+auto metric_reporter::get_latency_p99() -> double
+{
+	auto& storage = histogram_storage::instance();
+	return storage.latency.p99();
+}
+
+auto metric_reporter::get_connection_time_p99() -> double
+{
+	auto& storage = histogram_storage::instance();
+	return storage.connection_time.p99();
+}
+
+auto metric_reporter::get_request_duration_p99() -> double
+{
+	auto& storage = histogram_storage::instance();
+	return storage.request_duration.p99();
+}
+
+auto metric_reporter::get_all_histograms() -> std::map<std::string, histogram_snapshot>
+{
+	auto& storage = histogram_storage::instance();
+	std::map<std::string, histogram_snapshot> result;
+
+	result[metric_names::LATENCY_HISTOGRAM] =
+		storage.latency.snapshot({{"metric", "latency"}});
+	result[metric_names::CONNECTION_TIME_HISTOGRAM] =
+		storage.connection_time.snapshot({{"metric", "connection_time"}});
+	result[metric_names::REQUEST_DURATION_HISTOGRAM] =
+		storage.request_duration.snapshot({{"metric", "request_duration"}});
+
+	return result;
+}
+
+void metric_reporter::reset_histograms()
+{
+	auto& storage = histogram_storage::instance();
+	storage.latency.reset();
+	storage.connection_time.reset();
+	storage.request_duration.reset();
 }
 
 } // namespace kcenon::network::metrics

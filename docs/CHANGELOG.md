@@ -38,6 +38,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added
+- **Histogram Metrics for Latency Distributions** (2026-01-15) (#409)
+  - Added `histogram` class for capturing value distributions with configurable bucket boundaries
+  - Thread-safe atomic operations for concurrent recording
+  - Percentile calculations (p50, p95, p99, p999) using linear interpolation
+  - Prometheus and JSON export formats via `histogram_snapshot`
+  - Added `sliding_histogram` class for time-windowed percentile tracking
+  - Auto-expiring time buckets for recent-only measurements
+  - Integrated with `metric_reporter` for seamless usage:
+    - `record_latency()`, `record_connection_time()`, `record_request_duration()`
+    - `get_latency_p50()`, `get_latency_p95()`, `get_latency_p99()`
+    - `get_all_histograms()` for bulk export
+  - New metric names: `network.latency.histogram`, `network.connection_time.histogram`, `network.request_duration.histogram`
+  - Comprehensive unit tests (29 tests covering thread safety, edge cases, export formats)
+
 ### Fixed
 - **UndefinedBehaviorSanitizer Null Pointer Access in Socket Operations** (2026-01-01) (#385)
   - Added `socket_.is_open()` check in `tcp_socket::do_read()` before initiating async operations
