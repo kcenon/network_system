@@ -39,6 +39,20 @@ Network System 프로젝트의 모든 주목할 만한 변경 사항은 이 파�
 ## [Unreleased]
 
 ### 추가됨
+- **지연 시간 분포를 위한 히스토그램 메트릭** (2026-01-15) (#409)
+  - 구성 가능한 버킷 경계로 값 분포를 캡처하는 `histogram` 클래스 추가
+  - 동시 기록을 위한 스레드 안전 원자적 연산
+  - 선형 보간을 사용한 백분위수 계산 (p50, p95, p99, p999)
+  - `histogram_snapshot`을 통한 Prometheus 및 JSON 내보내기 형식
+  - 시간 윈도우 백분위수 추적을 위한 `sliding_histogram` 클래스 추가
+  - 최근 측정만을 위한 자동 만료 시간 버킷
+  - 원활한 사용을 위해 `metric_reporter`와 통합:
+    - `record_latency()`, `record_connection_time()`, `record_request_duration()`
+    - `get_latency_p50()`, `get_latency_p95()`, `get_latency_p99()`
+    - 대량 내보내기를 위한 `get_all_histograms()`
+  - 새 메트릭 이름: `network.latency.histogram`, `network.connection_time.histogram`, `network.request_duration.histogram`
+  - 종합 단위 테스트 (스레드 안전성, 엣지 케이스, 내보내기 형식을 다루는 29개 테스트)
+
 - **CRTP에서 Composition으로 리팩토링 Phase 1.1-1.2** (2026-01-12) (#411, #422, #423)
   - 종합적인 CRTP 분석 문서 추가 (`docs/design/crtp-analysis.md`)
     - TCP, UDP, WebSocket, QUIC 프로토콜에 걸친 9개 CRTP 베이스 클래스 문서화

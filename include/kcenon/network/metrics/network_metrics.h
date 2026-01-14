@@ -40,10 +40,15 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
-#include <string>
 #include <cstddef>
+#include <map>
+#include <string>
 
 namespace kcenon::network::metrics {
+
+// Forward declarations
+struct histogram_snapshot;
+class histogram;
 
 /**
  * @brief Standard metric names for network system monitoring
@@ -73,6 +78,11 @@ namespace metric_names {
     constexpr const char* SERVER_START_TIME = "network.server.start_time.ms";
     constexpr const char* SERVER_ACCEPT_COUNT = "network.server.accept.count";
     constexpr const char* SERVER_ACCEPT_FAILED = "network.server.accept.failed";
+
+    // Histogram metrics
+    constexpr const char* LATENCY_HISTOGRAM = "network.latency.histogram";
+    constexpr const char* CONNECTION_TIME_HISTOGRAM = "network.connection_time.histogram";
+    constexpr const char* REQUEST_DURATION_HISTOGRAM = "network.request_duration.histogram";
 }
 
 /**
@@ -135,6 +145,76 @@ public:
      * @param ms Duration in milliseconds
      */
     static void report_session_duration(double ms);
+
+    // ========================================================================
+    // Histogram-based metrics (with percentile support)
+    // ========================================================================
+
+    /**
+     * @brief Record latency to internal histogram
+     * @param ms Latency in milliseconds
+     *
+     * Records latency to a sliding histogram for percentile calculations.
+     * Also reports to the traditional monitoring integration.
+     */
+    static void record_latency(double ms);
+
+    /**
+     * @brief Record connection time to internal histogram
+     * @param ms Connection time in milliseconds
+     */
+    static void record_connection_time(double ms);
+
+    /**
+     * @brief Record request duration to internal histogram
+     * @param ms Request duration in milliseconds
+     */
+    static void record_request_duration(double ms);
+
+    /**
+     * @brief Get latency 50th percentile (median)
+     * @return Estimated median latency in milliseconds
+     */
+    [[nodiscard]] static auto get_latency_p50() -> double;
+
+    /**
+     * @brief Get latency 95th percentile
+     * @return Estimated p95 latency in milliseconds
+     */
+    [[nodiscard]] static auto get_latency_p95() -> double;
+
+    /**
+     * @brief Get latency 99th percentile
+     * @return Estimated p99 latency in milliseconds
+     */
+    [[nodiscard]] static auto get_latency_p99() -> double;
+
+    /**
+     * @brief Get connection time 99th percentile
+     * @return Estimated p99 connection time in milliseconds
+     */
+    [[nodiscard]] static auto get_connection_time_p99() -> double;
+
+    /**
+     * @brief Get request duration 99th percentile
+     * @return Estimated p99 request duration in milliseconds
+     */
+    [[nodiscard]] static auto get_request_duration_p99() -> double;
+
+    /**
+     * @brief Get all histogram snapshots for export
+     * @return Map of histogram name to snapshot
+     */
+    [[nodiscard]] static auto get_all_histograms()
+        -> std::map<std::string, histogram_snapshot>;
+
+    /**
+     * @brief Reset all histogram data
+     *
+     * Clears all histogram observations. Useful for testing or
+     * when starting a new measurement period.
+     */
+    static void reset_histograms();
 };
 
 } // namespace kcenon::network::metrics
