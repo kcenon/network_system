@@ -33,6 +33,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "kcenon/network/protocols/quic/connection.h"
 #include "kcenon/network/protocols/quic/varint.h"
 
+#include "kcenon/network/tracing/span.h"
+#include "kcenon/network/tracing/trace_context.h"
+#include "kcenon/network/tracing/tracing_config.h"
+
 #include <algorithm>
 
 namespace kcenon::network::protocols::quic
@@ -223,8 +227,23 @@ void connection::apply_remote_params()
 auto connection::start_handshake(const std::string& server_name)
     -> Result<std::vector<uint8_t>>
 {
+    auto span = tracing::is_tracing_enabled()
+        ? std::make_optional(tracing::trace_context::create_span("quic.connection.start_handshake"))
+        : std::nullopt;
+    if (span)
+    {
+        span->set_attribute("quic.role", "client")
+             .set_attribute("quic.server_name", server_name)
+             .set_attribute("net.transport", "udp")
+             .set_attribute("quic.version", "1");
+    }
+
     if (is_server_)
     {
+        if (span)
+        {
+            span->set_error("Server cannot start handshake");
+        }
         return error<std::vector<uint8_t>>(connection_error::invalid_state,
                                             "Server cannot start handshake",
                                             "connection");
@@ -232,6 +251,10 @@ auto connection::start_handshake(const std::string& server_name)
 
     if (state_ != connection_state::idle)
     {
+        if (span)
+        {
+            span->set_error("Connection already started");
+        }
         return error<std::vector<uint8_t>>(connection_error::invalid_state,
                                             "Connection already started",
                                             "connection");
@@ -241,6 +264,10 @@ auto connection::start_handshake(const std::string& server_name)
     auto init_result = crypto_.init_client(server_name);
     if (init_result.is_err())
     {
+        if (span)
+        {
+            span->set_error(init_result.error().message);
+        }
         return error<std::vector<uint8_t>>(connection_error::handshake_failed,
                                             "Failed to initialize crypto",
                                             "connection",
@@ -251,6 +278,10 @@ auto connection::start_handshake(const std::string& server_name)
     auto derive_result = crypto_.derive_initial_secrets(initial_dcid_);
     if (derive_result.is_err())
     {
+        if (span)
+        {
+            span->set_error(derive_result.error().message);
+        }
         return error<std::vector<uint8_t>>(connection_error::handshake_failed,
                                             "Failed to derive initial secrets",
                                             "connection",
@@ -261,6 +292,10 @@ auto connection::start_handshake(const std::string& server_name)
     auto hs_result = crypto_.start_handshake();
     if (hs_result.is_err())
     {
+        if (span)
+        {
+            span->set_error(hs_result.error().message);
+        }
         return error<std::vector<uint8_t>>(connection_error::handshake_failed,
                                             "Failed to start TLS handshake",
                                             "connection",
@@ -277,14 +312,33 @@ auto connection::start_handshake(const std::string& server_name)
     state_ = connection_state::handshaking;
     hs_state_ = handshake_state::waiting_server_hello;
 
+    if (span)
+    {
+        span->set_attribute("quic.state", "handshaking");
+    }
+
     return ok(std::vector<uint8_t>{});
 }
 
 auto connection::init_server_handshake(const std::string& cert_file,
                                          const std::string& key_file) -> VoidResult
 {
+    auto span = tracing::is_tracing_enabled()
+        ? std::make_optional(tracing::trace_context::create_span("quic.connection.init_server_handshake"))
+        : std::nullopt;
+    if (span)
+    {
+        span->set_attribute("quic.role", "server")
+             .set_attribute("net.transport", "udp")
+             .set_attribute("quic.version", "1");
+    }
+
     if (!is_server_)
     {
+        if (span)
+        {
+            span->set_error("Not a server connection");
+        }
         return error_void(connection_error::invalid_state,
                           "Not a server connection",
                           "connection");
@@ -293,6 +347,10 @@ auto connection::init_server_handshake(const std::string& cert_file,
     auto result = crypto_.init_server(cert_file, key_file);
     if (result.is_err())
     {
+        if (span)
+        {
+            span->set_error(result.error().message);
+        }
         return error_void(connection_error::handshake_failed,
                           "Failed to initialize server crypto",
                           "connection",
@@ -303,6 +361,10 @@ auto connection::init_server_handshake(const std::string& cert_file,
     auto derive_result = crypto_.derive_initial_secrets(initial_dcid_);
     if (derive_result.is_err())
     {
+        if (span)
+        {
+            span->set_error(derive_result.error().message);
+        }
         return error_void(connection_error::handshake_failed,
                           "Failed to derive initial secrets",
                           "connection",
@@ -310,6 +372,10 @@ auto connection::init_server_handshake(const std::string& cert_file,
     }
 
     state_ = connection_state::handshaking;
+    if (span)
+    {
+        span->set_attribute("quic.state", "handshaking");
+    }
     return ok();
 }
 
@@ -319,8 +385,22 @@ auto connection::init_server_handshake(const std::string& cert_file,
 
 auto connection::receive_packet(std::span<const uint8_t> data) -> VoidResult
 {
+    auto span = tracing::is_tracing_enabled()
+        ? std::make_optional(tracing::trace_context::create_span("quic.connection.receive_packet"))
+        : std::nullopt;
+    if (span)
+    {
+        span->set_attribute("quic.packet.size", static_cast<int64_t>(data.size()))
+             .set_attribute("quic.role", is_server_ ? "server" : "client")
+             .set_attribute("quic.state", connection_state_to_string(state_));
+    }
+
     if (data.empty())
     {
+        if (span)
+        {
+            span->set_error("Empty packet");
+        }
         return error_void(connection_error::protocol_violation,
                           "Empty packet",
                           "connection");
@@ -331,6 +411,10 @@ auto connection::receive_packet(std::span<const uint8_t> data) -> VoidResult
         // In draining/closed state, just count the packet
         packets_received_++;
         bytes_received_ += data.size();
+        if (span)
+        {
+            span->set_attribute("quic.packet.ignored", true);
+        }
         return ok();
     }
 
@@ -1080,9 +1164,24 @@ void connection::update_state()
 
 auto connection::close(uint64_t error_code, const std::string& reason) -> VoidResult
 {
+    auto span = tracing::is_tracing_enabled()
+        ? std::make_optional(tracing::trace_context::create_span("quic.connection.close"))
+        : std::nullopt;
+    if (span)
+    {
+        span->set_attribute("quic.close.error_code", static_cast<int64_t>(error_code))
+             .set_attribute("quic.close.reason", reason)
+             .set_attribute("quic.close.type", "transport")
+             .set_attribute("quic.role", is_server_ ? "server" : "client");
+    }
+
     // Already closing or closed - don't update error state
     if (is_closed() || is_draining())
     {
+        if (span)
+        {
+            span->set_attribute("quic.close.already_closing", true);
+        }
         return ok();
     }
 
@@ -1092,15 +1191,35 @@ auto connection::close(uint64_t error_code, const std::string& reason) -> VoidRe
     application_close_ = false;
     enter_closing();
 
+    if (span)
+    {
+        span->set_attribute("quic.state", "closing");
+    }
+
     return ok();
 }
 
 auto connection::close_application(uint64_t error_code, const std::string& reason)
     -> VoidResult
 {
+    auto span = tracing::is_tracing_enabled()
+        ? std::make_optional(tracing::trace_context::create_span("quic.connection.close_application"))
+        : std::nullopt;
+    if (span)
+    {
+        span->set_attribute("quic.close.error_code", static_cast<int64_t>(error_code))
+             .set_attribute("quic.close.reason", reason)
+             .set_attribute("quic.close.type", "application")
+             .set_attribute("quic.role", is_server_ ? "server" : "client");
+    }
+
     // Already closing or closed - don't update error state
     if (is_closed() || is_draining())
     {
+        if (span)
+        {
+            span->set_attribute("quic.close.already_closing", true);
+        }
         return ok();
     }
 
@@ -1109,6 +1228,11 @@ auto connection::close_application(uint64_t error_code, const std::string& reaso
     close_sent_ = true;
     application_close_ = true;
     enter_closing();
+
+    if (span)
+    {
+        span->set_attribute("quic.state", "closing");
+    }
 
     return ok();
 }
