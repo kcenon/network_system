@@ -32,6 +32,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "kcenon/network/protocols/http2/http2_client.h"
 
+#include "kcenon/network/tracing/span.h"
+#include "kcenon/network/tracing/trace_context.h"
+#include "kcenon/network/tracing/tracing_config.h"
+
 #include <algorithm>
 #include <thread>
 
@@ -89,14 +93,35 @@ namespace kcenon::network::protocols::http2
 
     auto http2_client::connect(const std::string& host, unsigned short port) -> VoidResult
     {
+        // Create tracing span for connect operation
+        auto span = tracing::is_tracing_enabled()
+            ? std::make_optional(tracing::trace_context::create_span("http2.client.connect"))
+            : std::nullopt;
+        if (span)
+        {
+            span->set_attribute("net.peer.name", host)
+                 .set_attribute("net.peer.port", static_cast<int64_t>(port))
+                 .set_attribute("net.transport", "tcp")
+                 .set_attribute("http.flavor", "2.0")
+                 .set_attribute("client.id", client_id_);
+        }
+
         if (is_connected_)
         {
+            if (span)
+            {
+                span->set_error("Already connected");
+            }
             return error_void(error_codes::common_errors::already_exists,
                               "Already connected", "http2_client::connect");
         }
 
         if (host.empty())
         {
+            if (span)
+            {
+                span->set_error("Host cannot be empty");
+            }
             return error_void(error_codes::common_errors::invalid_argument,
                               "Host cannot be empty", "http2_client::connect");
         }
@@ -146,6 +171,10 @@ namespace kcenon::network::protocols::http2
                 std::string(reinterpret_cast<const char*>(alpn_result), alpn_len) != "h2")
             {
                 socket_->lowest_layer().close();
+                if (span)
+                {
+                    span->set_error("Server does not support HTTP/2 via ALPN");
+                }
                 return error_void(error_codes::network_system::connection_failed,
                                   "Server does not support HTTP/2 via ALPN",
                                   "http2_client::connect");
@@ -160,6 +189,10 @@ namespace kcenon::network::protocols::http2
             {
                 is_connected_ = false;
                 is_running_ = false;
+                if (span)
+                {
+                    span->set_error(preface_result.error().message);
+                }
                 return preface_result;
             }
 
@@ -169,6 +202,10 @@ namespace kcenon::network::protocols::http2
             {
                 is_connected_ = false;
                 is_running_ = false;
+                if (span)
+                {
+                    span->set_error(settings_result.error().message);
+                }
                 return settings_result;
             }
 
@@ -178,12 +215,20 @@ namespace kcenon::network::protocols::http2
 
             io_future_ = std::async(std::launch::async, [this]() { run_io(); });
 
+            if (span)
+            {
+                span->set_status(tracing::span_status::ok);
+            }
             return ok();
         }
         catch (const std::exception& e)
         {
             is_connected_ = false;
             is_running_ = false;
+            if (span)
+            {
+                span->set_error(std::string("Connection failed: ") + e.what());
+            }
             return error_void(error_codes::network_system::connection_failed,
                               std::string("Connection failed: ") + e.what(),
                               "http2_client::connect");
@@ -709,8 +754,26 @@ namespace kcenon::network::protocols::http2
                                     const std::vector<uint8_t>& body)
         -> Result<http2_response>
     {
+        // Create tracing span for HTTP request
+        auto span = tracing::is_tracing_enabled()
+            ? std::make_optional(tracing::trace_context::create_span("http2.request"))
+            : std::nullopt;
+        if (span)
+        {
+            span->set_attribute("http.method", method)
+                 .set_attribute("http.url", "https://" + host_ + ":" + std::to_string(port_) + path)
+                 .set_attribute("http.flavor", "2.0")
+                 .set_attribute("http.request.body_size", static_cast<int64_t>(body.size()))
+                 .set_attribute("net.peer.name", host_)
+                 .set_attribute("net.peer.port", static_cast<int64_t>(port_));
+        }
+
         if (!is_connected())
         {
+            if (span)
+            {
+                span->set_error("Not connected");
+            }
             return error<http2_response>(error_codes::network_system::connection_closed,
                                          "Not connected",
                                          "http2_client::send_request");
@@ -719,6 +782,11 @@ namespace kcenon::network::protocols::http2
         // Create stream
         http2_stream& stream = create_stream();
         stream.state = stream_state::open;
+
+        if (span)
+        {
+            span->set_attribute("http2.stream_id", static_cast<int64_t>(stream.stream_id));
+        }
 
         // Build headers
         auto request_headers = build_headers(method, path, headers);
@@ -737,6 +805,10 @@ namespace kcenon::network::protocols::http2
         {
             close_stream(stream.stream_id);
             const auto& err = send_result.error();
+            if (span)
+            {
+                span->set_error(err.message);
+            }
             return error<http2_response>(err.code, err.message,
                                          "http2_client::send_request",
                                          get_error_details(err));
@@ -751,6 +823,10 @@ namespace kcenon::network::protocols::http2
             {
                 close_stream(stream.stream_id);
                 const auto& err = send_result.error();
+                if (span)
+                {
+                    span->set_error(err.message);
+                }
                 return error<http2_response>(err.code, err.message,
                                              "http2_client::send_request",
                                              get_error_details(err));
@@ -769,12 +845,30 @@ namespace kcenon::network::protocols::http2
         if (status == std::future_status::timeout)
         {
             close_stream(stream.stream_id);
+            if (span)
+            {
+                span->set_error("Request timeout");
+            }
             return error<http2_response>(error_codes::common_errors::timeout,
                                          "Request timeout",
                                          "http2_client::send_request");
         }
 
-        return ok(future.get());
+        auto response = future.get();
+        if (span)
+        {
+            span->set_attribute("http.status_code", static_cast<int64_t>(response.status_code))
+                 .set_attribute("http.response.body_size", static_cast<int64_t>(response.body.size()));
+            if (response.status_code >= 400)
+            {
+                span->set_status(tracing::span_status::error, "HTTP " + std::to_string(response.status_code));
+            }
+            else
+            {
+                span->set_status(tracing::span_status::ok);
+            }
+        }
+        return ok(std::move(response));
     }
 
     auto http2_client::build_headers(const std::string& method,
