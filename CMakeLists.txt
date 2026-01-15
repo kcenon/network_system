@@ -299,6 +299,11 @@ add_library(NetworkSystem
     src/metrics/histogram.cpp
     src/metrics/sliding_histogram.cpp
 
+    # Tracing implementation (OpenTelemetry-compatible)
+    src/tracing/trace_context.cpp
+    src/tracing/span.cpp
+    src/tracing/exporters.cpp
+
     # HTTP/2 protocol implementation (frame and hpack are TLS-independent)
     src/protocols/http2/frame.cpp
     src/protocols/http2/hpack.cpp
