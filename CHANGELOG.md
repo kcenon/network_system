@@ -19,6 +19,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Resolved flaky `ErrorHandlingTest.ServerShutdownDuringTransmission` test
 
 ### Added
+- **OpenTelemetry-Compatible Distributed Tracing (#408)**: Add core tracing infrastructure for distributed observability
+  - `trace_context` class for trace ID, span ID, and parent relationship management
+  - `span` class with RAII-based lifecycle, attributes, events, and status
+  - W3C Trace Context format support for HTTP header propagation
+  - Configurable exporters (console, OTLP gRPC/HTTP, Jaeger, Zipkin)
+  - Thread-local context propagation for automatic parent-child relationships
+  - `NETWORK_TRACE_SPAN` macro for convenient span creation
+  - 39 unit tests covering context generation, parsing, span lifecycle, and configuration
+  - Created sub-issues #456, #457, #458, #459 for incremental implementation
 - **UDP Classes Composition Migration (Phase 1.3.3)**: Migrate UDP classes from CRTP to composition pattern (#446)
   - Refactored `messaging_udp_client` to implement `i_udp_client` interface
     - Implement `start/stop/is_running` lifecycle methods

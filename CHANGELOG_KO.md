@@ -19,6 +19,15 @@ Network System 프로젝트의 모든 주요 변경 사항이 이 파일에 문�
   - 불안정한 `ErrorHandlingTest.ServerShutdownDuringTransmission` 테스트 해결
 
 ### 추가됨
+- **OpenTelemetry 호환 분산 트레이싱 (#408)**: 분산 관측성을 위한 핵심 트레이싱 인프라 추가
+  - 트레이스 ID, 스팬 ID, 부모 관계 관리를 위한 `trace_context` 클래스
+  - RAII 기반 생명주기, 속성, 이벤트, 상태를 가진 `span` 클래스
+  - HTTP 헤더 전파를 위한 W3C Trace Context 형식 지원
+  - 구성 가능한 내보내기 (콘솔, OTLP gRPC/HTTP, Jaeger, Zipkin)
+  - 자동 부모-자식 관계를 위한 스레드 로컬 컨텍스트 전파
+  - 편리한 스팬 생성을 위한 `NETWORK_TRACE_SPAN` 매크로
+  - 컨텍스트 생성, 파싱, 스팬 생명주기, 구성을 다루는 39개 단위 테스트
+  - 점진적 구현을 위한 하위 이슈 #456, #457, #458, #459 생성
 - **UDP 클래스 컴포지션 마이그레이션 (Phase 1.3.3)**: UDP 클래스를 CRTP에서 컴포지션 패턴으로 마이그레이션 (#446)
   - `messaging_udp_client`에 `i_udp_client` 인터페이스 구현
     - `start/stop/is_running` 생명주기 메서드 구현
