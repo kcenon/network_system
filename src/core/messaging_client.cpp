@@ -33,6 +33,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "kcenon/network/core/messaging_client.h"
 #include "kcenon/network/integration/logger_integration.h"
 #include "kcenon/network/integration/io_context_thread_manager.h"
+#include "kcenon/network/tracing/span.h"
+#include "kcenon/network/tracing/trace_context.h"
+#include "kcenon/network/tracing/tracing_config.h"
 #include <chrono>
 #include <span>
 #include <string_view>
@@ -55,7 +58,21 @@ messaging_client::~messaging_client() noexcept {
 
 auto messaging_client::start_client(std::string_view host, unsigned short port)
     -> VoidResult {
+  // Create tracing span for client start operation
+  auto span = tracing::is_tracing_enabled()
+      ? std::make_optional(tracing::trace_context::create_span("tcp.client.start"))
+      : std::nullopt;
+  if (span) {
+    span->set_attribute("net.peer.name", host)
+         .set_attribute("net.peer.port", static_cast<int64_t>(port))
+         .set_attribute("net.transport", "tcp")
+         .set_attribute("client.id", client_id_);
+  }
+
   if (lifecycle_.is_running()) {
+    if (span) {
+      span->set_error("Client is already running");
+    }
     return error_void(error_codes::common_errors::already_exists,
                       "Client is already running",
                       "messaging_client::start_client",
@@ -63,6 +80,9 @@ auto messaging_client::start_client(std::string_view host, unsigned short port)
   }
 
   if (host.empty()) {
+    if (span) {
+      span->set_error("Host cannot be empty");
+    }
     return error_void(error_codes::common_errors::invalid_argument,
                       "Host cannot be empty",
                       "messaging_client::start_client");
@@ -75,6 +95,13 @@ auto messaging_client::start_client(std::string_view host, unsigned short port)
   auto result = do_start_impl(host, port);
   if (result.is_err()) {
     lifecycle_.mark_stopped();
+    if (span) {
+      span->set_error(result.error().message);
+    }
+  } else {
+    if (span) {
+      span->set_status(tracing::span_status::ok);
+    }
   }
 
   return result;
@@ -120,7 +147,20 @@ auto messaging_client::client_id() const -> const std::string& {
 }
 
 auto messaging_client::send_packet(std::vector<uint8_t>&& data) -> VoidResult {
+  // Create tracing span for send operation
+  auto span = tracing::is_tracing_enabled()
+      ? std::make_optional(tracing::trace_context::create_span("tcp.client.send"))
+      : std::nullopt;
+  if (span) {
+    span->set_attribute("net.transport", "tcp")
+         .set_attribute("message.size", static_cast<int64_t>(data.size()))
+         .set_attribute("client.id", client_id_);
+  }
+
   if (!is_connected()) {
+    if (span) {
+      span->set_error("Client is not connected");
+    }
     return error_void(error_codes::network_system::connection_closed,
                       "Client is not connected",
                       "messaging_client::send_packet",
@@ -128,12 +168,23 @@ auto messaging_client::send_packet(std::vector<uint8_t>&& data) -> VoidResult {
   }
 
   if (data.empty()) {
+    if (span) {
+      span->set_error("Data cannot be empty");
+    }
     return error_void(error_codes::common_errors::invalid_argument,
                       "Data cannot be empty",
                       "messaging_client::send_packet");
   }
 
-  return do_send_impl(std::move(data));
+  auto result = do_send_impl(std::move(data));
+  if (span) {
+    if (result.is_err()) {
+      span->set_error(result.error().message);
+    } else {
+      span->set_status(tracing::span_status::ok);
+    }
+  }
+  return result;
 }
 
 auto messaging_client::set_receive_callback(receive_callback_t callback) -> void {
