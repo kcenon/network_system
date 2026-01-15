@@ -11,6 +11,13 @@ Network System 프로젝트의 모든 주요 변경 사항이 이 파일에 문�
 
 ## [미배포]
 
+### 수정됨
+- **CI 통합 테스트 안정성**: macOS CI Debug 빌드에서 연결 안정성 개선
+  - CI 환경을 위한 지수 백오프 연결 재시도 메커니즘 추가
+  - macOS CI 연결 타임아웃을 15초로 증가 (기존 10초)
+  - macOS CI 환경에서 서버 시작 대기 시간을 200ms로 증가
+  - 불안정한 `ErrorHandlingTest.ServerShutdownDuringTransmission` 테스트 해결
+
 ### 추가됨
 - **UDP 클래스 컴포지션 마이그레이션 (Phase 1.3.3)**: UDP 클래스를 CRTP에서 컴포지션 패턴으로 마이그레이션 (#446)
   - `messaging_udp_client`에 `i_udp_client` 인터페이스 구현

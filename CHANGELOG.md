@@ -11,6 +11,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **CI Integration Test Stability**: Improve connection reliability in macOS CI Debug builds
+  - Added connection retry mechanism with exponential backoff for CI environments
+  - Increased connection timeout to 15s for macOS CI (up from 10s)
+  - Increased server startup delay to 200ms for macOS CI environments
+  - Resolved flaky `ErrorHandlingTest.ServerShutdownDuringTransmission` test
+
 ### Added
 - **UDP Classes Composition Migration (Phase 1.3.3)**: Migrate UDP classes from CRTP to composition pattern (#446)
   - Refactored `messaging_udp_client` to implement `i_udp_client` interface

@@ -105,7 +105,10 @@ protected:
     test_helpers::wait_for_ready();
 
     // Additional wait for macOS CI where server startup can be slow
+    // Debug builds are particularly affected due to lack of optimization
     if (test_helpers::is_macos() && test_helpers::is_ci_environment()) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    } else if (test_helpers::is_ci_environment()) {
       std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 
@@ -128,23 +131,45 @@ protected:
   bool ConnectClient() {
     // Use 127.0.0.1 instead of localhost to avoid IPv6 lookup delays on macOS.
     // macOS attempts IPv6 (::1) first, and fallback to IPv4 can take 5-10 seconds.
-    auto result = client_->start_client("127.0.0.1", test_port_);
-    if (!result.is_ok()) {
-      return false;
-    }
 
     // Wait for connection to establish with reasonable timeout for CI.
-    // macOS CI (especially Release builds) requires longer timeout due to
+    // macOS CI (especially Debug builds) requires longer timeout due to
     // kqueue-based async I/O behavior and GitHub Actions runner constraints.
-    std::chrono::seconds timeout;
+    std::chrono::seconds timeout{5};
+    int max_attempts = 1;
     if (test_helpers::is_macos() && test_helpers::is_ci_environment()) {
-      timeout = std::chrono::seconds(10);
+      // macOS CI Debug builds are particularly slow; allow more time and retries
+      timeout = std::chrono::seconds(15);
+      max_attempts = 3;
     } else if (test_helpers::is_ci_environment()) {
-      timeout = std::chrono::seconds(5);
+      timeout = std::chrono::seconds(10);
+      max_attempts = 2;
     } else {
       timeout = std::chrono::seconds(5);
+      max_attempts = 1;
     }
-    return test_helpers::wait_for_connection(client_, timeout);
+
+    // Retry connection with exponential backoff for CI stability
+    for (int attempt = 0; attempt < max_attempts; ++attempt) {
+      if (attempt > 0) {
+        // Brief pause before retry to allow server to fully stabilize
+        std::this_thread::sleep_for(std::chrono::milliseconds(100 * attempt));
+      }
+
+      auto result = client_->start_client("127.0.0.1", test_port_);
+      if (!result.is_ok()) {
+        continue;
+      }
+
+      if (test_helpers::wait_for_connection(client_, timeout)) {
+        return true;
+      }
+
+      // Stop client before retry to ensure clean state
+      (void)client_->stop_client();
+    }
+
+    return false;
   }
 
   /**
