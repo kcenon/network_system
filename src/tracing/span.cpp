@@ -58,6 +58,7 @@ struct span::impl
 	std::chrono::steady_clock::time_point end_time;
 	bool ended{false};
 	trace_context previous_context;
+	span* owner{nullptr};
 
 	impl(std::string_view span_name, trace_context ctx, span_kind span_kind_value)
 	    : name(span_name)
@@ -99,29 +100,43 @@ struct span::impl
 			trace_context::clear_current();
 		}
 
-		// Process span (export/log)
-		process_span();
-	}
-
-	void process_span()
-	{
-		// Note: In a full implementation, this would send the span to
-		// the configured exporter. For now, we rely on registered
-		// span processors from tracing_config.
-		// The actual export logic is handled in exporters.cpp
+		// Export the span
+		if (owner)
+		{
+			export_span(*owner);
+		}
 	}
 };
 
 span::span(std::string_view name, trace_context ctx, span_kind kind)
     : impl_(std::make_unique<impl>(name, std::move(ctx), kind))
 {
+	impl_->owner = this;
 }
 
 span::~span() = default;
 
-span::span(span&& other) noexcept = default;
+span::span(span&& other) noexcept
+    : impl_(std::move(other.impl_))
+{
+	if (impl_)
+	{
+		impl_->owner = this;
+	}
+}
 
-auto span::operator=(span&& other) noexcept -> span& = default;
+auto span::operator=(span&& other) noexcept -> span&
+{
+	if (this != &other)
+	{
+		impl_ = std::move(other.impl_);
+		if (impl_)
+		{
+			impl_->owner = this;
+		}
+	}
+	return *this;
+}
 
 auto span::set_attribute(std::string_view key, std::string_view value) -> span&
 {
