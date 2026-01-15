@@ -315,6 +315,96 @@ if(GTest_FOUND OR GTEST_FOUND)
     )
     message(STATUS "Session manager tests enabled")
 
+    # Session manager base template tests (Phase 2.4)
+    add_executable(network_session_manager_base_test
+        unit/session_manager_base_test.cpp
+    )
+
+    target_link_libraries(network_session_manager_base_test PRIVATE
+        NetworkSystem
+        GTest::gtest
+        GTest::gtest_main
+        Threads::Threads
+    )
+
+    setup_asio_integration(network_session_manager_base_test)
+
+    if(COMMON_SYSTEM_INCLUDE_DIR)
+        target_include_directories(network_session_manager_base_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(network_session_manager_base_test PRIVATE WITH_COMMON_SYSTEM)
+    endif()
+
+    set_target_properties(network_session_manager_base_test PROPERTIES
+        CXX_STANDARD 20
+        CXX_STANDARD_REQUIRED ON
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+    )
+
+    gtest_discover_tests(network_session_manager_base_test
+        DISCOVERY_TIMEOUT 60
+    )
+    message(STATUS "Session manager base template tests enabled")
+
+    # WebSocket session manager tests (Phase 2.4)
+    add_executable(network_ws_session_manager_test
+        unit/ws_session_manager_test.cpp
+    )
+
+    target_link_libraries(network_ws_session_manager_test PRIVATE
+        NetworkSystem
+        GTest::gtest
+        GTest::gtest_main
+        Threads::Threads
+    )
+
+    setup_asio_integration(network_ws_session_manager_test)
+
+    if(COMMON_SYSTEM_INCLUDE_DIR)
+        target_include_directories(network_ws_session_manager_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(network_ws_session_manager_test PRIVATE WITH_COMMON_SYSTEM)
+    endif()
+
+    set_target_properties(network_ws_session_manager_test PROPERTIES
+        CXX_STANDARD 20
+        CXX_STANDARD_REQUIRED ON
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+    )
+
+    gtest_discover_tests(network_ws_session_manager_test
+        DISCOVERY_TIMEOUT 60
+    )
+    message(STATUS "WebSocket session manager tests enabled")
+
+    # Session manager integration tests (Phase 2.4)
+    add_executable(network_session_manager_integration_test
+        integration/session_manager_integration_test.cpp
+    )
+
+    target_link_libraries(network_session_manager_integration_test PRIVATE
+        NetworkSystem
+        GTest::gtest
+        GTest::gtest_main
+        Threads::Threads
+    )
+
+    setup_asio_integration(network_session_manager_integration_test)
+
+    if(COMMON_SYSTEM_INCLUDE_DIR)
+        target_include_directories(network_session_manager_integration_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(network_session_manager_integration_test PRIVATE WITH_COMMON_SYSTEM)
+    endif()
+
+    set_target_properties(network_session_manager_integration_test PROPERTIES
+        CXX_STANDARD 20
+        CXX_STANDARD_REQUIRED ON
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+    )
+
+    gtest_discover_tests(network_session_manager_integration_test
+        DISCOVERY_TIMEOUT 60
+    )
+    message(STATUS "Session manager integration tests enabled")
+
     # Circuit breaker tests
     add_executable(network_circuit_breaker_test
         unit/test_circuit_breaker.cpp
