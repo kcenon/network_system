@@ -2,13 +2,13 @@
 
 ## Layer Structure
 
-The QUIC implementation follows a layered architecture consistent with the existing network_system design. The public API classes use the CRTP (Curiously Recurring Template Pattern) to inherit common functionality from base classes.
+The QUIC implementation follows a layered architecture consistent with the existing network_system design. The public API classes use the composition-based pattern with interfaces and utility classes for lifecycle management.
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│  Public API (CRTP Pattern)                              │
-│  messaging_quic_client : messaging_quic_client_base<>   │
-│  messaging_quic_server : messaging_quic_server_base<>   │
+│  Public API (Composition Pattern)                       │
+│  messaging_quic_client : implements i_quic_client       │
+│  messaging_quic_server : implements i_quic_server       │
 ├─────────────────────────────────────────────────────────┤
 │  Session Layer                                          │
 │  (quic_session)                                         │
@@ -39,40 +39,38 @@ The QUIC implementation follows a layered architecture consistent with the exist
 
 ### 1. Public API Layer
 
-Both `messaging_quic_client` and `messaging_quic_server` inherit from CRTP base classes that provide common functionality:
+Both `messaging_quic_client` and `messaging_quic_server` use the composition-based pattern with interfaces and shared utility classes:
 
-#### Base Classes
+#### Composition Components
 
 ```cpp
-// Client base class provides:
-template<typename Derived>
-class messaging_quic_client_base {
-    // Common lifecycle management
-    auto start_client(host, port) -> VoidResult;  // Calls derived().do_start()
-    auto stop_client() -> VoidResult;             // Calls derived().do_stop()
+// Client uses composition with lifecycle_manager and callback_manager:
+class messaging_quic_client : public std::enable_shared_from_this<messaging_quic_client> {
+public:
+    // Lifecycle management (via lifecycle_manager)
+    auto start_client(host, port) -> VoidResult;
+    auto stop_client() -> VoidResult;
     auto wait_for_stop() -> void;
     auto is_running() const -> bool;
     auto is_connected() const -> bool;
 
-    // Thread-safe callback management
+    // Thread-safe callback management (via callback_manager)
     auto set_receive_callback(callback) -> void;
     auto set_connected_callback(callback) -> void;
     auto set_disconnected_callback(callback) -> void;
     auto set_error_callback(callback) -> void;
 
-protected:
-    // Invoke callbacks from derived class
-    auto invoke_receive_callback(data) -> void;
-    auto invoke_connected_callback() -> void;
-    auto set_connected(bool) -> void;
+private:
+    lifecycle_manager lifecycle_;      // Handles start/stop state
+    quic_client_callbacks callbacks_;  // Type-safe callback storage
 };
 
-// Server base class provides:
-template<typename Derived>
-class messaging_quic_server_base {
-    // Common lifecycle management
-    auto start_server(port) -> VoidResult;  // Calls derived().do_start()
-    auto stop_server() -> VoidResult;       // Calls derived().do_stop()
+// Server uses similar composition:
+class messaging_quic_server : public std::enable_shared_from_this<messaging_quic_server> {
+public:
+    // Lifecycle management
+    auto start_server(port) -> VoidResult;
+    auto stop_server() -> VoidResult;
     auto wait_for_stop() -> void;
     auto is_running() const -> bool;
 
@@ -81,6 +79,10 @@ class messaging_quic_server_base {
     auto set_disconnection_callback(callback) -> void;
     auto set_receive_callback(callback) -> void;
     auto set_error_callback(callback) -> void;
+
+private:
+    lifecycle_manager lifecycle_;
+    quic_server_callbacks callbacks_;
 };
 ```
 
