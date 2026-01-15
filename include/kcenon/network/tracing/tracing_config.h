@@ -364,4 +364,13 @@ void flush_tracing();
  */
 void register_span_processor(span_processor_callback callback);
 
+/**
+ * @brief Export a completed span
+ * @param s The span to export
+ *
+ * This function is called automatically when a span ends.
+ * It exports the span according to the configured exporter.
+ */
+void export_span(const span& s);
+
 } // namespace kcenon::network::tracing
