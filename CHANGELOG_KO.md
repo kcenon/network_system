@@ -12,6 +12,9 @@ Network System 프로젝트의 모든 주요 변경 사항이 이 파일에 문�
 ## [미배포]
 
 ### 수정됨
+- **트레이싱 헤더 컴파일 오류 수정**: `trace_context.cpp`에 누락된 `<cstring>` 헤더 추가
+  - Linux/GCC에서 발생하던 `std::memcpy is not a member of std` 컴파일 오류 수정
+  - 트레이스 ID와 스팬 ID 생성 시 랜덤 바이트 생성에 필요
 - **CI 통합 테스트 안정성**: macOS CI Debug 빌드에서 연결 안정성 개선
   - CI 환경을 위한 지수 백오프 연결 재시도 메커니즘 추가
   - macOS CI 연결 타임아웃을 15초로 증가 (기존 10초)

@@ -12,6 +12,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- **Tracing Header Compilation Fix**: Add missing `<cstring>` header in `trace_context.cpp`
+  - Fixed `std::memcpy is not a member of std` compilation error on Linux/GCC
+  - Required for random bytes generation in trace ID and span ID creation
 - **CI Integration Test Stability**: Improve connection reliability in macOS CI Debug builds
   - Added connection retry mechanism with exponential backoff for CI environments
   - Increased connection timeout to 15s for macOS CI (up from 10s)
