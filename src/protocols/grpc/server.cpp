@@ -32,6 +32,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "kcenon/network/protocols/grpc/server.h"
 
+#include "kcenon/network/tracing/span.h"
+#include "kcenon/network/tracing/trace_context.h"
+#include "kcenon/network/tracing/tracing_config.h"
+
 #include <atomic>
 #include <condition_variable>
 #include <mutex>
@@ -169,10 +173,24 @@ public:
 
     auto start(uint16_t port) -> VoidResult
     {
+        auto span = tracing::is_tracing_enabled()
+            ? std::make_optional(tracing::trace_context::create_span("grpc.server.start"))
+            : std::nullopt;
+        if (span)
+        {
+            span->set_attribute("rpc.system", "grpc")
+                 .set_attribute("net.host.port", static_cast<int64_t>(port))
+                 .set_attribute("rpc.grpc.use_tls", false);
+        }
+
         std::lock_guard<std::mutex> lock(mutex_);
 
         if (running_.load())
         {
+            if (span)
+            {
+                span->set_error("Server is already running");
+            }
             return error_void(
                 error_codes::network_system::server_already_running,
                 "Server is already running",
@@ -181,6 +199,10 @@ public:
 
         if (port == 0)
         {
+            if (span)
+            {
+                span->set_error("Invalid port number");
+            }
             return error_void(
                 error_codes::common_errors::invalid_argument,
                 "Invalid port number",
@@ -212,6 +234,10 @@ public:
 
         if (!server_)
         {
+            if (span)
+            {
+                span->set_error("Failed to start gRPC server");
+            }
             return error_void(
                 error_codes::common_errors::internal_error,
                 "Failed to start gRPC server",
@@ -225,6 +251,11 @@ public:
         server_thread_ = std::thread([this]() {
             server_->Wait();
         });
+
+        if (span)
+        {
+            span->set_attribute("net.host.port.bound", static_cast<int64_t>(bound_port_));
+        }
 
         return ok();
     }
@@ -624,10 +655,24 @@ public:
 
     auto start(uint16_t port) -> VoidResult
     {
+        auto span = tracing::is_tracing_enabled()
+            ? std::make_optional(tracing::trace_context::create_span("grpc.server.start"))
+            : std::nullopt;
+        if (span)
+        {
+            span->set_attribute("rpc.system", "grpc")
+                 .set_attribute("net.host.port", static_cast<int64_t>(port))
+                 .set_attribute("rpc.grpc.use_tls", false);
+        }
+
         std::lock_guard<std::mutex> lock(mutex_);
 
         if (running_.load())
         {
+            if (span)
+            {
+                span->set_error("Server is already running");
+            }
             return error_void(
                 error_codes::network_system::server_already_running,
                 "Server is already running",
@@ -636,6 +681,10 @@ public:
 
         if (port == 0)
         {
+            if (span)
+            {
+                span->set_error("Invalid port number");
+            }
             return error_void(
                 error_codes::common_errors::invalid_argument,
                 "Invalid port number",

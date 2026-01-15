@@ -34,6 +34,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "kcenon/network/protocols/grpc/frame.h"
 #include "kcenon/network/protocols/grpc/grpc_official_wrapper.h"
 
+#include "kcenon/network/tracing/span.h"
+#include "kcenon/network/tracing/trace_context.h"
+#include "kcenon/network/tracing/tracing_config.h"
+
 #include <atomic>
 #include <charconv>
 #include <condition_variable>
@@ -369,10 +373,25 @@ public:
 
     auto connect() -> VoidResult
     {
+        auto span = tracing::is_tracing_enabled()
+            ? std::make_optional(tracing::trace_context::create_span("grpc.client.connect"))
+            : std::nullopt;
+        if (span)
+        {
+            span->set_attribute("rpc.system", "grpc")
+                 .set_attribute("rpc.grpc.target", target_)
+                 .set_attribute("net.transport", "tcp")
+                 .set_attribute("rpc.grpc.use_tls", config_.use_tls);
+        }
+
         std::lock_guard<std::mutex> lock(mutex_);
 
         if (connected_.load())
         {
+            if (span)
+            {
+                span->set_attribute("grpc.client.already_connected", true);
+            }
             return kcenon::network::protocols::grpc::ok();
         }
 
@@ -391,6 +410,10 @@ public:
 
         if (!channel_)
         {
+            if (span)
+            {
+                span->set_error("Failed to create gRPC channel");
+            }
             return error_void(
                 error_codes::network_system::connection_failed,
                 "Failed to create gRPC channel",
@@ -400,6 +423,10 @@ public:
         // Wait for channel to be ready
         if (!wait_for_channel_ready(channel_, config_.default_timeout))
         {
+            if (span)
+            {
+                span->set_error("Failed to connect to gRPC server");
+            }
             return error_void(
                 error_codes::network_system::connection_failed,
                 "Failed to connect to gRPC server",
@@ -452,8 +479,23 @@ public:
                   const std::vector<uint8_t>& request,
                   const call_options& options) -> Result<grpc_message>
     {
+        auto span = tracing::is_tracing_enabled()
+            ? std::make_optional(tracing::trace_context::create_span("grpc.client.call"))
+            : std::nullopt;
+        if (span)
+        {
+            span->set_attribute("rpc.system", "grpc")
+                 .set_attribute("rpc.method", method)
+                 .set_attribute("rpc.grpc.target", target_)
+                 .set_attribute("rpc.request.size", static_cast<int64_t>(request.size()));
+        }
+
         if (!is_connected())
         {
+            if (span)
+            {
+                span->set_error("Not connected to server");
+            }
             return error<grpc_message>(
                 error_codes::network_system::connection_failed,
                 "Not connected to server",
@@ -495,6 +537,11 @@ public:
         if (!status.ok())
         {
             auto grpc_st = from_grpc_status(status);
+            if (span)
+            {
+                span->set_error(grpc_st.message)
+                     .set_attribute("rpc.grpc.status_code", static_cast<int64_t>(grpc_st.code));
+            }
             return error<grpc_message>(
                 static_cast<int>(grpc_st.code),
                 grpc_st.message,
@@ -502,6 +549,11 @@ public:
         }
 
         auto response_data = detail::byte_buffer_to_vector(response_buffer);
+        if (span)
+        {
+            span->set_attribute("rpc.response.size", static_cast<int64_t>(response_data.size()))
+                 .set_attribute("rpc.grpc.status_code", static_cast<int64_t>(0));
+        }
         return kcenon::network::protocols::grpc::ok(grpc_message{std::move(response_data)});
     }
 
@@ -996,10 +1048,24 @@ public:
 
     auto connect() -> VoidResult
     {
+        auto span = tracing::is_tracing_enabled()
+            ? std::make_optional(tracing::trace_context::create_span("grpc.client.connect"))
+            : std::nullopt;
+        if (span)
+        {
+            span->set_attribute("rpc.system", "grpc")
+                 .set_attribute("rpc.grpc.target", target_)
+                 .set_attribute("net.transport", "tcp");
+        }
+
         std::lock_guard<std::mutex> lock(mutex_);
 
         if (connected_.load())
         {
+            if (span)
+            {
+                span->set_attribute("grpc.client.already_connected", true);
+            }
             return ok();
         }
 
@@ -1007,6 +1073,10 @@ public:
         auto colon_pos = target_.find(':');
         if (colon_pos == std::string::npos)
         {
+            if (span)
+            {
+                span->set_error("Invalid target address format");
+            }
             return error_void(
                 error_codes::common_errors::invalid_argument,
                 "Invalid target address format",
@@ -1025,10 +1095,20 @@ public:
 
         if (ec != std::errc())
         {
+            if (span)
+            {
+                span->set_error("Invalid port number");
+            }
             return error_void(
                 error_codes::common_errors::invalid_argument,
                 "Invalid port number",
                 "grpc::client");
+        }
+
+        if (span)
+        {
+            span->set_attribute("net.peer.name", host_)
+                 .set_attribute("net.peer.port", static_cast<int64_t>(port));
         }
 
         // Create HTTP/2 client
@@ -1040,6 +1120,10 @@ public:
         if (result.is_err())
         {
             const auto& err = result.error();
+            if (span)
+            {
+                span->set_error(err.message);
+            }
             return error_void(err.code, err.message, "grpc::client",
                               get_error_details(err));
         }
@@ -1091,8 +1175,23 @@ public:
                   const std::vector<uint8_t>& request,
                   const call_options& options) -> Result<grpc_message>
     {
+        auto span = tracing::is_tracing_enabled()
+            ? std::make_optional(tracing::trace_context::create_span("grpc.client.call"))
+            : std::nullopt;
+        if (span)
+        {
+            span->set_attribute("rpc.system", "grpc")
+                 .set_attribute("rpc.method", method)
+                 .set_attribute("rpc.grpc.target", target_)
+                 .set_attribute("rpc.request.size", static_cast<int64_t>(request.size()));
+        }
+
         if (!is_connected())
         {
+            if (span)
+            {
+                span->set_error("Not connected to server");
+            }
             return error<grpc_message>(
                 error_codes::network_system::connection_failed,
                 "Not connected to server",
@@ -1102,6 +1201,10 @@ public:
         // Validate method format
         if (method.empty() || method[0] != '/')
         {
+            if (span)
+            {
+                span->set_error("Invalid method format");
+            }
             return error<grpc_message>(
                 error_codes::common_errors::invalid_argument,
                 "Invalid method format",
@@ -1114,6 +1217,11 @@ public:
         {
             if (std::chrono::system_clock::now() > options.deadline.value())
             {
+                if (span)
+                {
+                    span->set_error("Deadline exceeded before call started")
+                         .set_attribute("rpc.grpc.status_code", static_cast<int64_t>(status_code::deadline_exceeded));
+                }
                 return error<grpc_message>(
                     static_cast<int>(status_code::deadline_exceeded),
                     "Deadline exceeded before call started",
@@ -1157,6 +1265,10 @@ public:
         if (response_result.is_err())
         {
             const auto& err = response_result.error();
+            if (span)
+            {
+                span->set_error(err.message);
+            }
             return error<grpc_message>(err.code, err.message, "grpc::client",
                                        get_error_details(err));
         }
@@ -1166,6 +1278,11 @@ public:
         // Check HTTP status - gRPC always uses 200 OK for successful transport
         if (response.status_code != 200)
         {
+            if (span)
+            {
+                span->set_error("HTTP error: " + std::to_string(response.status_code))
+                     .set_attribute("http.status_code", static_cast<int64_t>(response.status_code));
+            }
             return error<grpc_message>(
                 static_cast<int>(status_code::unavailable),
                 "HTTP error: " + std::to_string(response.status_code),
@@ -1199,6 +1316,12 @@ public:
         // Check gRPC status
         if (grpc_status != status_code::ok)
         {
+            if (span)
+            {
+                span->set_error(grpc_message_str.empty() ?
+                    std::string(status_code_to_string(grpc_status)) : grpc_message_str)
+                     .set_attribute("rpc.grpc.status_code", static_cast<int64_t>(grpc_status));
+            }
             return error<grpc_message>(
                 static_cast<int>(grpc_status),
                 grpc_message_str.empty() ?
@@ -1210,6 +1333,11 @@ public:
         if (response.body.empty())
         {
             // Empty response is valid for some RPCs
+            if (span)
+            {
+                span->set_attribute("rpc.response.size", static_cast<int64_t>(0))
+                     .set_attribute("rpc.grpc.status_code", static_cast<int64_t>(0));
+            }
             return ok(grpc_message{});
         }
 
@@ -1217,10 +1345,19 @@ public:
         if (parse_result.is_err())
         {
             const auto& err = parse_result.error();
+            if (span)
+            {
+                span->set_error(err.message);
+            }
             return error<grpc_message>(err.code, err.message, "grpc::client",
                                        get_error_details(err));
         }
 
+        if (span)
+        {
+            span->set_attribute("rpc.response.size", static_cast<int64_t>(parse_result.value().data.size()))
+                 .set_attribute("rpc.grpc.status_code", static_cast<int64_t>(0));
+        }
         return ok(std::move(parse_result.value()));
     }
 
