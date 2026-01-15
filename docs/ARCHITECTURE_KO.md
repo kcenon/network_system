@@ -13,33 +13,43 @@ network_system은 재사용과 모듈성을 위해 messaging_system에서 추출
 - **Internal**: tcp_socket, pipeline, send_coroutine, common_defs
 - **Integration**: thread_integration (스레드 풀 추상화), logger_integration (로깅 추상화)
 
-## CRTP 기본 클래스 계층
+## Composition 기반 아키텍처
 
-network_system은 Curiously Recurring Template Pattern (CRTP)을 사용하여 모든 메시징 클래스에 일관된 생명주기 관리를 제공하는 제로 오버헤드 기본 클래스를 제공합니다.
+network_system은 모든 메시징 클래스에 일관된 생명주기 관리를 제공하기 위해 인터페이스와 유틸리티 클래스를 사용하는 Composition 기반 아키텍처를 사용합니다. 이 설계는 이전 CRTP (Curiously Recurring Template Pattern) 접근 방식을 대체하여 다음을 제공합니다:
+
+- **향상된 테스트 용이성**: 인터페이스를 통한 쉬운 모킹
+- **코드 중복 감소**: Composition을 통한 공유 유틸리티
+- **유연성 향상**: 필요시 런타임 다형성
+- **명확한 의존성**: 명시적 의존성 주입
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                    CRTP 기본 클래스 계층                                 │
+│                    Composition 아키텍처                                  │
 ├─────────────────────────────────────────────────────────────────────────┤
-│  TCP (연결 지향)                                                         │
-│  messaging_client_base<Derived> → messaging_client, secure_messaging_*  │
-│  messaging_server_base<Derived> → messaging_server, secure_messaging_*  │
+│  인터페이스 계층                                                         │
+│  i_network_component (기본 인터페이스)                                   │
+│      ├── i_client         → messaging_client, secure_messaging_client   │
+│      ├── i_server         → messaging_server, secure_messaging_server   │
+│      ├── i_udp_client     → messaging_udp_client                        │
+│      ├── i_udp_server     → messaging_udp_server                        │
+│      ├── i_websocket_client → messaging_ws_client                       │
+│      ├── i_websocket_server → messaging_ws_server                       │
+│      ├── i_quic_client    → messaging_quic_client                       │
+│      └── i_quic_server    → messaging_quic_server                       │
 │                                                                         │
-│  UDP (비연결형)                                                          │
-│  messaging_udp_client_base<Derived> → messaging_udp_client              │
-│  messaging_udp_server_base<Derived> → messaging_udp_server              │
-│                                                                         │
-│  WebSocket (TCP 위 전이중 통신)                                          │
-│  messaging_ws_client_base<Derived> → messaging_ws_client                │
-│  messaging_ws_server_base<Derived> → messaging_ws_server                │
+│  Composition 유틸리티                                                    │
+│  lifecycle_manager      → 스레드 안전 시작/정지/대기 상태 관리            │
+│  callback_manager<...>  → 타입 안전 콜백 저장 및 호출                    │
 └─────────────────────────────────────────────────────────────────────────┘
 ```
 
-| 기본 클래스 | 생명주기 | 프로토콜 특화 |
-|------------|---------|--------------|
-| `messaging_client_base` | start/stop/wait_for_stop | TCP 연결 상태 |
-| `messaging_udp_client_base` | start/stop/wait_for_stop | 비연결형, 엔드포인트 인식 |
-| `messaging_ws_client_base` | start/stop/wait_for_stop | WS 메시지 타입, close 코드 |
+| 인터페이스 | 용도 | 구현체 |
+|-----------|------|--------|
+| `i_network_component` | 모든 네트워크 컴포넌트의 기본 인터페이스 | 모든 클라이언트/서버 |
+| `i_client` | TCP 클라이언트 작업 | `messaging_client`, `secure_messaging_client` |
+| `i_server` | TCP 서버 작업 | `messaging_server`, `secure_messaging_server` |
+| `i_websocket_client` | WebSocket 클라이언트 작업 | `messaging_ws_client` |
+| `i_quic_client` | QUIC 클라이언트 작업 | `messaging_quic_client` |
 
 ## 통합 플래그
 
