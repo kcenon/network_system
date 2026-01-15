@@ -37,6 +37,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "kcenon/network/integration/logger_integration.h"
 #include "kcenon/network/integration/io_context_thread_manager.h"
 #include "kcenon/network/metrics/network_metrics.h"
+#include "kcenon/network/tracing/span.h"
+#include "kcenon/network/tracing/trace_context.h"
+#include "kcenon/network/tracing/tracing_config.h"
 
 namespace kcenon::network::core
 {
@@ -104,8 +107,23 @@ namespace kcenon::network::core
 
 	auto messaging_server::start_server(unsigned short port) -> VoidResult
 	{
+		// Create tracing span for server start operation
+		auto span = tracing::is_tracing_enabled()
+		    ? std::make_optional(tracing::trace_context::create_span("tcp.server.start"))
+		    : std::nullopt;
+		if (span)
+		{
+			span->set_attribute("net.host.port", static_cast<int64_t>(port))
+			     .set_attribute("net.transport", "tcp")
+			     .set_attribute("server.id", server_id_);
+		}
+
 		if (lifecycle_.is_running())
 		{
+			if (span)
+			{
+				span->set_error("Server is already running");
+			}
 			return error_void(
 				error_codes::network_system::server_already_running,
 				"Server is already running",
@@ -120,6 +138,17 @@ namespace kcenon::network::core
 		if (result.is_err())
 		{
 			lifecycle_.mark_stopped();
+			if (span)
+			{
+				span->set_error(result.error().message);
+			}
+		}
+		else
+		{
+			if (span)
+			{
+				span->set_status(tracing::span_status::ok);
+			}
 		}
 
 		return result;
@@ -435,8 +464,23 @@ namespace kcenon::network::core
 		{
 			return;
 		}
+
+		// Create tracing span for accept operation
+		auto span = tracing::is_tracing_enabled()
+		    ? std::make_optional(tracing::trace_context::create_span("tcp.server.accept"))
+		    : std::nullopt;
+		if (span)
+		{
+			span->set_attribute("net.transport", "tcp")
+			     .set_attribute("server.id", server_id_);
+		}
+
 		if (ec)
 		{
+			if (span)
+			{
+				span->set_error(ec.message());
+			}
 			NETWORK_LOG_ERROR("[messaging_server] Accept error: " + ec.message());
 #if KCENON_WITH_COMMON_SYSTEM
 			// Record connection error
@@ -448,6 +492,21 @@ namespace kcenon::network::core
 			// Report metrics
 			metrics::metric_reporter::report_connection_failed(ec.message());
 			return;
+		}
+
+		// Add peer information to span
+		if (span)
+		{
+			try
+			{
+				auto endpoint = socket.remote_endpoint();
+				span->set_attribute("net.peer.ip", endpoint.address().to_string())
+				     .set_attribute("net.peer.port", static_cast<int64_t>(endpoint.port()));
+			}
+			catch (...)
+			{
+				// Ignore errors getting endpoint info
+			}
 		}
 
 		// Report successful connection
@@ -527,6 +586,12 @@ namespace kcenon::network::core
 		{
 			std::lock_guard<std::mutex> lock(sessions_mutex_);
 			metrics::metric_reporter::report_active_connections(sessions_.size());
+		}
+
+		// Mark span as successful before accepting next connection
+		if (span)
+		{
+			span->set_status(tracing::span_status::ok);
 		}
 
 		// Accept next connection
