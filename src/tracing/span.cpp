@@ -74,10 +74,11 @@ struct span::impl
 
 	~impl()
 	{
-		if (!ended)
-		{
-			do_end();
-		}
+		// Note: do_end() is now called from span::~span() before impl_ destruction
+		// to ensure owner->impl_ is still valid when export_span is called.
+		// This is necessary because libc++'s unique_ptr sets its internal pointer
+		// to null before calling the deleter, which would cause owner->impl_ to
+		// be null when export_span tries to access span data.
 	}
 
 	void do_end()
@@ -114,7 +115,14 @@ span::span(std::string_view name, trace_context ctx, span_kind kind)
 	impl_->owner = this;
 }
 
-span::~span() = default;
+span::~span()
+{
+	// End span before impl_ destruction to ensure owner->impl_ is still valid
+	if (impl_ && !impl_->ended)
+	{
+		impl_->do_end();
+	}
+}
 
 span::span(span&& other) noexcept
     : impl_(std::move(other.impl_))
