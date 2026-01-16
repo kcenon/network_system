@@ -32,6 +32,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "kcenon/network/core/messaging_quic_client.h"
 #include "kcenon/network/integration/logger_integration.h"
+#include "kcenon/network/tracing/span.h"
+#include "kcenon/network/tracing/trace_context.h"
+#include "kcenon/network/tracing/tracing_config.h"
 #include "internal/quic_socket.h"
 
 namespace kcenon::network::core
@@ -77,8 +80,24 @@ auto messaging_quic_client::start_client(std::string_view host,
                                          unsigned short port,
                                          const quic_client_config& config) -> VoidResult
 {
+	// Create tracing span for client start operation
+	auto span = tracing::is_tracing_enabled()
+		? std::make_optional(tracing::trace_context::create_span("quic.client.start"))
+		: std::nullopt;
+	if (span)
+	{
+		span->set_attribute("net.peer.name", host)
+			 .set_attribute("net.peer.port", static_cast<int64_t>(port))
+			 .set_attribute("net.transport", "quic")
+			 .set_attribute("client.id", client_id_);
+	}
+
 	if (lifecycle_.is_running())
 	{
+		if (span)
+		{
+			span->set_error("QUIC client is already running");
+		}
 		return error_void(
 			error_codes::common_errors::already_exists,
 			"QUIC client is already running",
@@ -87,6 +106,10 @@ auto messaging_quic_client::start_client(std::string_view host,
 
 	if (host.empty())
 	{
+		if (span)
+		{
+			span->set_error("Host cannot be empty");
+		}
 		return error_void(
 			error_codes::common_errors::invalid_argument,
 			"Host cannot be empty",
@@ -101,6 +124,17 @@ auto messaging_quic_client::start_client(std::string_view host,
 	if (result.is_err())
 	{
 		lifecycle_.mark_stopped();
+		if (span)
+		{
+			span->set_error(result.error().message);
+		}
+	}
+	else
+	{
+		if (span)
+		{
+			span->set_status(tracing::span_status::ok);
+		}
 	}
 
 	return result;
@@ -241,8 +275,24 @@ auto messaging_quic_client::is_handshake_complete() const -> bool
 
 auto messaging_quic_client::send_packet(std::vector<uint8_t>&& data) -> VoidResult
 {
+	// Create tracing span for send operation
+	auto span = tracing::is_tracing_enabled()
+		? std::make_optional(tracing::trace_context::create_span("quic.client.send"))
+		: std::nullopt;
+	if (span)
+	{
+		span->set_attribute("net.transport", "quic")
+			 .set_attribute("message.size", static_cast<int64_t>(data.size()))
+			 .set_attribute("quic.stream_id", static_cast<int64_t>(default_stream_id_))
+			 .set_attribute("client.id", client_id_);
+	}
+
 	if (!is_running())
 	{
+		if (span)
+		{
+			span->set_error("Client is not running");
+		}
 		return error_void(
 			error_codes::network_system::connection_closed,
 			"Client is not running",
@@ -252,6 +302,10 @@ auto messaging_quic_client::send_packet(std::vector<uint8_t>&& data) -> VoidResu
 
 	if (data.empty())
 	{
+		if (span)
+		{
+			span->set_error("Data cannot be empty");
+		}
 		return error_void(
 			error_codes::common_errors::invalid_argument,
 			"Data cannot be empty",
@@ -262,6 +316,10 @@ auto messaging_quic_client::send_packet(std::vector<uint8_t>&& data) -> VoidResu
 	auto local_socket = get_socket();
 	if (!is_connected() || !local_socket)
 	{
+		if (span)
+		{
+			span->set_error("Client is not connected");
+		}
 		return error_void(
 			error_codes::network_system::connection_closed,
 			"Client is not connected",
@@ -269,7 +327,19 @@ auto messaging_quic_client::send_packet(std::vector<uint8_t>&& data) -> VoidResu
 			"Client ID: " + client_id_);
 	}
 
-	return local_socket->send_stream_data(default_stream_id_, std::move(data));
+	auto result = local_socket->send_stream_data(default_stream_id_, std::move(data));
+	if (span)
+	{
+		if (result.is_err())
+		{
+			span->set_error(result.error().message);
+		}
+		else
+		{
+			span->set_status(tracing::span_status::ok);
+		}
+	}
+	return result;
 }
 
 auto messaging_quic_client::send_packet(std::string_view data) -> VoidResult
@@ -336,8 +406,25 @@ auto messaging_quic_client::send_on_stream(uint64_t stream_id,
                                            std::vector<uint8_t>&& data,
                                            bool fin) -> VoidResult
 {
+	// Create tracing span for stream send operation
+	auto span = tracing::is_tracing_enabled()
+		? std::make_optional(tracing::trace_context::create_span("quic.stream.send"))
+		: std::nullopt;
+	if (span)
+	{
+		span->set_attribute("net.transport", "quic")
+			 .set_attribute("message.size", static_cast<int64_t>(data.size()))
+			 .set_attribute("quic.stream_id", static_cast<int64_t>(stream_id))
+			 .set_attribute("quic.fin", fin)
+			 .set_attribute("client.id", client_id_);
+	}
+
 	if (data.empty())
 	{
+		if (span)
+		{
+			span->set_error("Data cannot be empty");
+		}
 		return error_void(
 			error_codes::common_errors::invalid_argument,
 			"Data cannot be empty",
@@ -348,6 +435,10 @@ auto messaging_quic_client::send_on_stream(uint64_t stream_id,
 	auto local_socket = get_socket();
 	if (!local_socket)
 	{
+		if (span)
+		{
+			span->set_error("Client is not connected");
+		}
 		return error_void(
 			error_codes::network_system::connection_closed,
 			"Client is not connected",
@@ -355,7 +446,19 @@ auto messaging_quic_client::send_on_stream(uint64_t stream_id,
 			"Client ID: " + client_id_);
 	}
 
-	return local_socket->send_stream_data(stream_id, std::move(data), fin);
+	auto result = local_socket->send_stream_data(stream_id, std::move(data), fin);
+	if (span)
+	{
+		if (result.is_err())
+		{
+			span->set_error(result.error().message);
+		}
+		else
+		{
+			span->set_status(tracing::span_status::ok);
+		}
+	}
+	return result;
 }
 
 auto messaging_quic_client::close_stream(uint64_t stream_id) -> VoidResult
