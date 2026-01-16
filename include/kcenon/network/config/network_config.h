@@ -32,7 +32,19 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /**
  * @file network_config.h
- * @brief Configuration structures for network_system initialization
+ * @brief Configuration structures for standalone network_system initialization
+ *
+ * This header provides configuration structures for initializing the network
+ * system with internally managed resources. Use these configurations when you
+ * want the network system to create and manage its own thread pool, logger,
+ * and monitoring components.
+ *
+ * For integration with existing infrastructure where you want to share
+ * resources (thread pools, loggers, etc.) with other components, see
+ * network_system_config.h instead.
+ *
+ * @see network_system_config.h For integration with external dependencies
+ * @see network_system.h For initialization functions
  *
  * @author kcenon
  * @date 2025-01-13
@@ -97,7 +109,29 @@ struct monitoring_config {
 
 /**
  * @struct network_config
- * @brief Complete configuration for network_system
+ * @brief Configuration for standalone network_system initialization
+ *
+ * Use this configuration when you want the network system to manage its own
+ * internal resources (thread pool, logger, monitoring). The network system
+ * will create these components based on the provided settings.
+ *
+ * Example usage:
+ * @code
+ * // Use predefined configurations
+ * auto result = kcenon::network::initialize(network_config::production());
+ *
+ * // Or customize settings
+ * network_config cfg;
+ * cfg.thread_pool.worker_count = 8;
+ * cfg.logger.min_level = integration::log_level::debug;
+ * auto result = kcenon::network::initialize(cfg);
+ * @endcode
+ *
+ * @note For sharing existing thread pools, loggers, or other infrastructure
+ *       with the network system, use network_system_config instead.
+ *
+ * @see network_system_config For integration with external dependencies
+ * @see initialize() For initialization without configuration
  */
 struct network_config {
     /// Thread pool configuration

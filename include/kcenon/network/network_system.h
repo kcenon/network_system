@@ -73,31 +73,84 @@
 namespace kcenon::network {
 
 /**
- * @brief Initialize the network system with default configuration
+ * @brief Initialize the network system with default production configuration
+ *
+ * This is the simplest way to initialize the network system. It uses
+ * production-optimized defaults with internally managed resources.
+ * Equivalent to calling initialize(network_config::production()).
+ *
  * @return VoidResult - ok() on success, error on failure
  *
  * Possible errors:
  * - already_exists: Network system already initialized
  * - internal_error: System initialization failed
+ *
+ * @see initialize(const config::network_config&) For custom settings
+ * @see initialize(const config::network_system_config&) For external dependencies
  */
 VoidResult initialize();
 
 /**
- * @brief Initialize the network system with custom configuration
- * @param config Configuration settings for network system
+ * @brief Initialize the network system with custom settings
+ *
+ * Use this overload to customize thread pool, logger, and monitoring settings
+ * while letting the network system manage these resources internally.
+ *
+ * Example:
+ * @code
+ * // Use predefined configuration
+ * auto result = initialize(network_config::development());
+ *
+ * // Or customize specific settings
+ * network_config cfg;
+ * cfg.thread_pool.worker_count = 8;
+ * cfg.logger.min_level = log_level::debug;
+ * auto result = initialize(cfg);
+ * @endcode
+ *
+ * @param config Configuration settings for internal resource creation
  * @return VoidResult - ok() on success, error on failure
  *
  * Possible errors:
  * - already_exists: Network system already initialized
  * - invalid_argument: Invalid configuration values
  * - internal_error: System initialization failed
+ *
+ * @see network_config For available settings and factory methods
+ * @see initialize(const config::network_system_config&) For external dependencies
  */
 VoidResult initialize(const config::network_config& config);
 
 /**
- * @brief Initialize the network system with dependencies
- * @param config Configuration with external dependencies
+ * @brief Initialize the network system with external dependencies
+ *
+ * Use this overload when integrating the network system with existing
+ * application infrastructure. This allows sharing thread pools, loggers,
+ * and monitoring systems with other components in your application.
+ *
+ * Example:
+ * @code
+ * // Share existing infrastructure
+ * network_system_config cfg;
+ * cfg.executor = my_app_thread_pool;
+ * cfg.logger = my_app_logger;
+ * cfg.runtime = network_config::production();
+ * auto result = initialize(cfg);
+ * @endcode
+ *
+ * @param config Configuration with external dependencies and runtime settings
  * @return VoidResult - ok() on success, error on failure
+ *
+ * Possible errors:
+ * - already_exists: Network system already initialized
+ * - invalid_argument: Invalid configuration or dependencies
+ * - internal_error: System initialization failed
+ *
+ * @note Unset dependencies (nullptr) will be created internally using
+ *       the runtime configuration settings.
+ *
+ * @see network_system_config For dependency injection options
+ * @see initialize(const config::network_config&) For standalone usage
  */
 VoidResult initialize(const config::network_system_config& config);
 
