@@ -24,6 +24,7 @@ All rights reserved.
 #include <gtest/gtest.h>
 
 #include <chrono>
+#include <mutex>
 #include <thread>
 #include <vector>
 
@@ -508,4 +509,236 @@ TEST(SpanTest, NetworkTraceSpanMacro)
 	_span.set_attribute("test", "value");
 	EXPECT_EQ(_span.name(), "macro_test");
 	EXPECT_FALSE(_span.is_ended());
+}
+
+// ============================================================================
+// Exporter Tests
+// ============================================================================
+
+TEST(ExporterTest, ConsoleExporterWithSpan)
+{
+	// Configure console exporter for testing
+	auto config = tracing_config::console();
+	config.service_name = "test_service";
+	config.debug = false; // Disable debug output during test
+
+	configure_tracing(config);
+	EXPECT_TRUE(is_tracing_enabled());
+
+	// Create and complete a span
+	{
+		auto span = trace_context::create_span("test_console_export");
+		span.set_attribute("test.key", "test_value");
+		span.set_attribute("test.number", int64_t{42});
+		span.add_event("test_event");
+		span.set_status(span_status::ok);
+	}
+
+	shutdown_tracing();
+	EXPECT_FALSE(is_tracing_enabled());
+}
+
+TEST(ExporterTest, DisabledExporter)
+{
+	auto config = tracing_config::disabled();
+	configure_tracing(config);
+
+	EXPECT_FALSE(is_tracing_enabled());
+
+	// Spans should still work (just not exported)
+	{
+		auto span = trace_context::create_span("disabled_test");
+		span.set_attribute("key", "value");
+		EXPECT_TRUE(span.context().is_valid());
+	}
+
+	shutdown_tracing();
+}
+
+TEST(ExporterTest, SamplerAlwaysOff)
+{
+	auto config = tracing_config::console();
+	config.sampler = sampler_type::always_off;
+	configure_tracing(config);
+
+	EXPECT_TRUE(is_tracing_enabled());
+
+	// Span is created but won't be sampled
+	{
+		auto span = trace_context::create_span("unsampled_span");
+		EXPECT_TRUE(span.context().is_valid());
+	}
+
+	shutdown_tracing();
+}
+
+TEST(ExporterTest, SamplerTraceIdBased)
+{
+	// Note: The sampling decision is made when exporting, not when creating spans.
+	// All spans are created with is_sampled() = true by default.
+	// The sampler_type::trace_id sampler applies during export.
+	auto config = tracing_config::disabled(); // Use disabled to avoid console output
+	config.sampler = sampler_type::trace_id;
+	config.sample_rate = 0.5; // 50% sampling
+
+	// Verify the configuration is properly set
+	EXPECT_EQ(config.sampler, sampler_type::trace_id);
+	EXPECT_DOUBLE_EQ(config.sample_rate, 0.5);
+
+	// The sampling rate affects export decisions, not span creation
+	// Spans are always created with valid contexts
+	auto span = trace_context::create_span("sampling_test");
+	EXPECT_TRUE(span.context().is_valid());
+}
+
+TEST(ExporterTest, CustomSpanProcessor)
+{
+	// First shutdown any previous tracing state
+	shutdown_tracing();
+
+	auto config = tracing_config::console();
+	config.debug = false;
+	configure_tracing(config);
+
+	std::atomic<int> processed_count{0};
+
+	// Register custom processor
+	// Note: Due to the span's RAII design, the processor receives the span
+	// during destruction. The processor callback is invoked with the span
+	// reference, allowing access to all span data.
+	register_span_processor([&processed_count](const span& /*s*/) { ++processed_count; });
+
+	// Create and end spans explicitly
+	for (int i = 0; i < 5; ++i)
+	{
+		auto span = trace_context::create_span("processor_test_" + std::to_string(i));
+		span.set_attribute("index", int64_t{i});
+		// span will be exported when destroyed
+	}
+
+	// Flush to ensure processing
+	flush_tracing();
+
+	// Verify that processor was called for each span
+	EXPECT_EQ(processed_count.load(), 5);
+
+	shutdown_tracing();
+}
+
+TEST(ExporterTest, BatchConfig)
+{
+	tracing_config config;
+	config.exporter = exporter_type::otlp_http;
+	config.otlp.endpoint = "http://localhost:4318/v1/traces";
+	config.batch.max_queue_size = 1024;
+	config.batch.max_export_batch_size = 256;
+	config.batch.schedule_delay = std::chrono::milliseconds{1000};
+
+	EXPECT_EQ(config.batch.max_queue_size, 1024);
+	EXPECT_EQ(config.batch.max_export_batch_size, 256);
+	EXPECT_EQ(config.batch.schedule_delay, std::chrono::milliseconds{1000});
+}
+
+TEST(ExporterTest, OtlpConfigValues)
+{
+	auto config = tracing_config::otlp_http("http://collector:4318");
+
+	EXPECT_EQ(config.exporter, exporter_type::otlp_http);
+	EXPECT_EQ(config.otlp.endpoint, "http://collector:4318");
+	EXPECT_EQ(config.otlp.timeout, std::chrono::milliseconds{10000});
+	EXPECT_FALSE(config.otlp.insecure);
+}
+
+TEST(ExporterTest, ResourceAttributes)
+{
+	tracing_config config;
+	config.exporter = exporter_type::console;
+	config.service_name = "my-service";
+	config.service_version = "1.0.0";
+	config.service_namespace = "production";
+	config.service_instance_id = "instance-001";
+	config.resource_attributes["deployment.environment"] = "production";
+	config.resource_attributes["host.name"] = "server-01";
+
+	EXPECT_EQ(config.service_name, "my-service");
+	EXPECT_EQ(config.service_version, "1.0.0");
+	EXPECT_EQ(config.resource_attributes.size(), 2);
+}
+
+// ============================================================================
+// Move Semantics Tests
+// ============================================================================
+
+TEST(SpanTest, MoveConstruction)
+{
+	auto span1 = trace_context::create_span("move_test");
+	span1.set_attribute("key", "value");
+	auto ctx = span1.context();
+
+	span span2(std::move(span1));
+
+	EXPECT_EQ(span2.name(), "move_test");
+	EXPECT_EQ(span2.context().trace_id(), ctx.trace_id());
+	EXPECT_FALSE(span2.is_ended());
+}
+
+TEST(SpanTest, MoveAssignment)
+{
+	auto span1 = trace_context::create_span("move_assign_test");
+	auto span2 = trace_context::create_span("to_be_replaced");
+
+	auto original_name = span1.name();
+	span2 = std::move(span1);
+
+	EXPECT_EQ(span2.name(), original_name);
+}
+
+// ============================================================================
+// Edge Case Tests
+// ============================================================================
+
+TEST(TraceContextTest, InvalidContextOperations)
+{
+	trace_context invalid_ctx;
+
+	EXPECT_FALSE(invalid_ctx.is_valid());
+	EXPECT_TRUE(invalid_ctx.to_traceparent().empty());
+	EXPECT_TRUE(invalid_ctx.to_headers().empty());
+}
+
+TEST(SpanTest, SpanWithKinds)
+{
+	// Test client span kind
+	{
+		NETWORK_TRACE_CLIENT_SPAN("client_request");
+		EXPECT_EQ(_span.kind(), span_kind::client);
+	}
+
+	// Test server span kind
+	{
+		NETWORK_TRACE_SERVER_SPAN("server_handler");
+		EXPECT_EQ(_span.kind(), span_kind::server);
+	}
+}
+
+TEST(SpanTest, MultipleAttributeOverwrite)
+{
+	auto span = trace_context::create_span("overwrite_test");
+
+	span.set_attribute("key", "value1");
+	span.set_attribute("key", "value2");
+
+	const auto& attrs = span.attributes();
+	EXPECT_EQ(std::get<std::string>(attrs.at("key")), "value2");
+}
+
+TEST(SpanTest, ConstCharAttributeNotBool)
+{
+	auto span = trace_context::create_span("const_char_test");
+
+	// This should create a string attribute, not bool
+	span.set_attribute("message", "hello world");
+
+	const auto& attrs = span.attributes();
+	EXPECT_EQ(std::get<std::string>(attrs.at("message")), "hello world");
 }
