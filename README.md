@@ -226,6 +226,45 @@ int main() {
 📖 **[Detailed Protocol Documentation →](docs/FEATURES.md)**
 📖 **[gRPC Guide →](docs/guides/GRPC_GUIDE.md)**
 
+### Distributed Tracing
+
+OpenTelemetry-compatible distributed tracing for observability:
+
+- **W3C Trace Context**: Standard context propagation across service boundaries
+- **RAII Spans**: Automatic span lifecycle management with `NETWORK_TRACE_SPAN` macro
+- **Multiple Exporters**: Console, OTLP HTTP/gRPC, Jaeger, Zipkin support
+- **Sampling**: Always-on, always-off, trace-id-based, parent-based samplers
+- **Rich Attributes**: String, integer, double, boolean attributes and events
+
+```cpp
+#include <kcenon/network/tracing/tracing_config.h>
+#include <kcenon/network/tracing/trace_context.h>
+
+// Configure tracing (once at startup)
+auto config = tracing_config::otlp_http("http://localhost:4318/v1/traces");
+config.service_name = "my-service";
+configure_tracing(config);
+
+// Create spans using RAII
+void process_request() {
+    NETWORK_TRACE_SPAN("http.request.process");
+    _span.set_attribute("http.method", "POST");
+    _span.set_attribute("http.url", "/api/orders");
+
+    // Child spans inherit trace context
+    {
+        auto db_span = trace_context::current().create_child_span("database.query");
+        db_span.set_attribute("db.system", "postgresql");
+        // ... perform database operation
+        db_span.set_status(span_status::ok);
+    }
+
+    _span.set_status(span_status::ok);
+}
+```
+
+📖 **[Tracing Guide →](docs/guides/tracing.md)**
+
 ### Asynchronous Model
 
 - **ASIO-Based**: Non-blocking event loop with async operations
