@@ -182,35 +182,6 @@ namespace kcenon::network::core
 		return pimpl_->path();
 	}
 
-	// ========================================================================
-	// Legacy API
-	// ========================================================================
-
-	auto ws_connection::send_text(
-		std::string&& message,
-		std::function<void(std::error_code, std::size_t)> handler) -> VoidResult
-	{
-		return pimpl_->send_text(std::move(message), std::move(handler));
-	}
-
-	auto ws_connection::send_binary(
-		std::vector<uint8_t>&& data,
-		std::function<void(std::error_code, std::size_t)> handler) -> VoidResult
-	{
-		return pimpl_->send_binary(std::move(data), std::move(handler));
-	}
-
-	auto ws_connection::close(internal::ws_close_code code,
-							  const std::string& reason) -> VoidResult
-	{
-		return pimpl_->close(code, reason);
-	}
-
-	auto ws_connection::connection_id() const -> const std::string&
-	{
-		return pimpl_->connection_id();
-	}
-
 	auto ws_connection::remote_endpoint() const -> std::string
 	{
 		return pimpl_->remote_endpoint();
@@ -400,40 +371,6 @@ namespace kcenon::network::core
 	}
 
 	// ========================================================================
-	// Legacy API callback setters
-	// ========================================================================
-
-	auto messaging_ws_server::set_connection_callback(connection_callback_t callback) -> void
-	{
-		callbacks_.set<kConnectionCallbackIndex>(std::move(callback));
-	}
-
-	auto messaging_ws_server::set_disconnection_callback(disconnection_callback_t callback) -> void
-	{
-		callbacks_.set<kDisconnectionCallbackIndex>(std::move(callback));
-	}
-
-	auto messaging_ws_server::set_message_callback(message_callback_t callback) -> void
-	{
-		callbacks_.set<kMessageCallbackIndex>(std::move(callback));
-	}
-
-	auto messaging_ws_server::set_text_message_callback(text_message_callback_t callback) -> void
-	{
-		callbacks_.set<kTextMessageCallbackIndex>(std::move(callback));
-	}
-
-	auto messaging_ws_server::set_binary_message_callback(binary_message_callback_t callback) -> void
-	{
-		callbacks_.set<kBinaryMessageCallbackIndex>(std::move(callback));
-	}
-
-	auto messaging_ws_server::set_error_callback(error_callback_t callback) -> void
-	{
-		callbacks_.set<kErrorCallbackIndex>(std::move(callback));
-	}
-
-	// ========================================================================
 	// Internal Implementation
 	// ========================================================================
 
@@ -564,7 +501,7 @@ namespace kcenon::network::core
 		auto conns = session_mgr_->get_all_connections();
 		for (auto& conn : conns)
 		{
-			conn->send_text(std::string(message), nullptr);
+			(void)conn->send_text(std::string(message));
 		}
 	}
 
@@ -578,7 +515,7 @@ namespace kcenon::network::core
 		auto conns = session_mgr_->get_all_connections();
 		for (auto& conn : conns)
 		{
-			conn->send_binary(std::vector<uint8_t>(data), nullptr);
+			(void)conn->send_binary(std::vector<uint8_t>(data));
 		}
 	}
 

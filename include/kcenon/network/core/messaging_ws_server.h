@@ -176,51 +176,6 @@ namespace kcenon::network::core
 		 */
 		[[nodiscard]] auto path() const -> std::string_view override;
 
-		// ========================================================================
-		// Legacy API (maintained for backward compatibility)
-		// ========================================================================
-
-		/*!
-		 * \brief Sends a text message to the client (legacy version).
-		 * \param message The text message to send.
-		 * \param handler Optional callback invoked with send result.
-		 * \return VoidResult indicating validation success.
-		 *
-		 * \deprecated Use send_text(std::string&&) for interface compliance.
-		 */
-		auto send_text(std::string&& message,
-					   std::function<void(std::error_code, std::size_t)> handler) -> VoidResult;
-
-		/*!
-		 * \brief Sends a binary message to the client (legacy version).
-		 * \param data The binary data to send.
-		 * \param handler Optional callback invoked with send result.
-		 * \return VoidResult indicating success.
-		 *
-		 * \deprecated Use send_binary(std::vector<uint8_t>&&) for interface compliance.
-		 */
-		auto send_binary(std::vector<uint8_t>&& data,
-						 std::function<void(std::error_code, std::size_t)> handler) -> VoidResult;
-
-		/*!
-		 * \brief Closes the connection gracefully (legacy version).
-		 * \param code The close status code (default: normal).
-		 * \param reason Optional human-readable reason.
-		 * \return VoidResult indicating success.
-		 *
-		 * \deprecated Use close(uint16_t, std::string_view) for interface compliance.
-		 */
-		auto close(internal::ws_close_code code,
-				   const std::string& reason) -> VoidResult;
-
-		/*!
-		 * \brief Gets the connection ID.
-		 * \return The unique connection identifier.
-		 *
-		 * \deprecated Use id() for interface compliance.
-		 */
-		auto connection_id() const -> const std::string&;
-
 		/*!
 		 * \brief Gets the remote endpoint address.
 		 * \return String representation of remote address (e.g., "192.168.1.1:54321").
@@ -456,46 +411,6 @@ namespace kcenon::network::core
 		 * Implements i_websocket_server::set_error_callback().
 		 */
 		auto set_error_callback(interfaces::i_websocket_server::error_callback_t callback) -> void override;
-
-		// ========================================================================
-		// Legacy API (maintained for backward compatibility)
-		// ========================================================================
-
-		/*!
-		 * \brief Sets the callback for new connections (legacy version).
-		 * \param callback The callback function.
-		 */
-		auto set_connection_callback(connection_callback_t callback) -> void;
-
-		/*!
-		 * \brief Sets the callback for disconnections (legacy version with internal close code).
-		 * \param callback The callback function using internal::ws_close_code.
-		 */
-		auto set_disconnection_callback(disconnection_callback_t callback) -> void;
-
-		/*!
-		 * \brief Sets the callback for all message types.
-		 * \param callback Function called when a message is received.
-		 */
-		auto set_message_callback(message_callback_t callback) -> void;
-
-		/*!
-		 * \brief Sets the callback for text messages (legacy version).
-		 * \param callback The callback function.
-		 */
-		auto set_text_message_callback(text_message_callback_t callback) -> void;
-
-		/*!
-		 * \brief Sets the callback for binary messages (legacy version).
-		 * \param callback The callback function.
-		 */
-		auto set_binary_message_callback(binary_message_callback_t callback) -> void;
-
-		/*!
-		 * \brief Sets the callback for errors (legacy version).
-		 * \param callback The callback function.
-		 */
-		auto set_error_callback(error_callback_t callback) -> void;
 
 	private:
 		// =====================================================================

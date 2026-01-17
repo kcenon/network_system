@@ -196,17 +196,6 @@ namespace kcenon::network::core
 		 */
 		[[nodiscard]] auto send_ping(std::vector<uint8_t>&& payload = {}) -> VoidResult;
 
-		/*!
-		 * \brief Closes the connection gracefully (legacy API).
-		 * \param code The close status code (default: normal).
-		 * \param reason Optional human-readable reason.
-		 * \return VoidResult indicating success.
-		 *
-		 * \deprecated Use close(uint16_t, std::string_view) for interface compliance.
-		 */
-		[[nodiscard]] auto close(internal::ws_close_code code,
-		                         const std::string& reason) -> VoidResult;
-
 		// ========================================================================
 		// i_network_component interface implementation
 		// ========================================================================
@@ -344,36 +333,6 @@ namespace kcenon::network::core
 		 * Implements i_websocket_client::set_error_callback().
 		 */
 		auto set_error_callback(interfaces::i_websocket_client::error_callback_t callback) -> void override;
-
-		// ========================================================================
-		// Legacy API (maintained for backward compatibility)
-		// ========================================================================
-
-		/*!
-		 * \brief Sets the callback for all message types.
-		 * \param callback Function called when a message is received.
-		 */
-		auto set_message_callback(message_callback_t callback) -> void;
-
-		/*!
-		 * \brief Sets the callback for text messages (legacy version).
-		 * \param callback The callback function.
-		 */
-		auto set_text_message_callback(text_message_callback_t callback) -> void;
-
-		/*!
-		 * \brief Sets the callback for binary messages (legacy version).
-		 * \param callback The callback function.
-		 */
-		auto set_binary_message_callback(binary_message_callback_t callback) -> void;
-
-		/*!
-		 * \brief Sets the callback for disconnection (legacy version with internal close code).
-		 * \param callback The callback function using internal::ws_close_code.
-		 *
-		 * This overload accepts the internal close code type for backward compatibility.
-		 */
-		auto set_disconnected_callback(disconnected_callback_t callback) -> void;
 
 	private:
 		// =====================================================================
