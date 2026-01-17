@@ -196,8 +196,7 @@ namespace kcenon::network::core
 		return send_ping(std::move(payload));
 	}
 
-	auto messaging_ws_client::close(internal::ws_close_code code,
-	                                const std::string& reason) -> VoidResult
+	auto messaging_ws_client::close(uint16_t code, std::string_view reason) -> VoidResult
 	{
 		std::lock_guard<std::mutex> lock(ws_socket_mutex_);
 		if (!ws_socket_)
@@ -206,13 +205,9 @@ namespace kcenon::network::core
 							  "WebSocket not connected");
 		}
 
-		ws_socket_->async_close(code, reason, [](std::error_code) {});
+		ws_socket_->async_close(static_cast<internal::ws_close_code>(code),
+		                        std::string(reason), [](std::error_code) {});
 		return ok();
-	}
-
-	auto messaging_ws_client::close(uint16_t code, std::string_view reason) -> VoidResult
-	{
-		return close(static_cast<internal::ws_close_code>(code), std::string(reason));
 	}
 
 	// ========================================================================
@@ -222,13 +217,13 @@ namespace kcenon::network::core
 	auto messaging_ws_client::set_text_callback(
 		interfaces::i_websocket_client::text_callback_t callback) -> void
 	{
-		set_text_message_callback(std::move(callback));
+		callbacks_.set<kTextMessageCallbackIndex>(std::move(callback));
 	}
 
 	auto messaging_ws_client::set_binary_callback(
 		interfaces::i_websocket_client::binary_callback_t callback) -> void
 	{
-		set_binary_message_callback(std::move(callback));
+		callbacks_.set<kBinaryMessageCallbackIndex>(std::move(callback));
 	}
 
 	auto messaging_ws_client::set_connected_callback(
@@ -255,30 +250,6 @@ namespace kcenon::network::core
 		interfaces::i_websocket_client::error_callback_t callback) -> void
 	{
 		callbacks_.set<kErrorCallbackIndex>(std::move(callback));
-	}
-
-	// ========================================================================
-	// Legacy API callback setters
-	// ========================================================================
-
-	auto messaging_ws_client::set_message_callback(message_callback_t callback) -> void
-	{
-		callbacks_.set<kMessageCallbackIndex>(std::move(callback));
-	}
-
-	auto messaging_ws_client::set_text_message_callback(text_message_callback_t callback) -> void
-	{
-		callbacks_.set<kTextMessageCallbackIndex>(std::move(callback));
-	}
-
-	auto messaging_ws_client::set_binary_message_callback(binary_message_callback_t callback) -> void
-	{
-		callbacks_.set<kBinaryMessageCallbackIndex>(std::move(callback));
-	}
-
-	auto messaging_ws_client::set_disconnected_callback(disconnected_callback_t callback) -> void
-	{
-		callbacks_.set<kDisconnectedCallbackIndex>(std::move(callback));
 	}
 
 	// ========================================================================
