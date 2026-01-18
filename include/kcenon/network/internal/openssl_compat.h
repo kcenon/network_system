@@ -34,17 +34,15 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /*!
  * \file openssl_compat.h
- * \brief OpenSSL version compatibility layer
+ * \brief OpenSSL utilities and version definitions
  *
- * This header provides compatibility macros and utilities for supporting
- * both OpenSSL 1.1.x and OpenSSL 3.x APIs.
+ * This header provides utility macros and functions for working with OpenSSL 3.x.
  *
  * OpenSSL Version Support:
- * - OpenSSL 1.1.1: Minimum supported version (EOL: September 11, 2023)
- * - OpenSSL 3.x: Recommended version with full support
+ * - OpenSSL 3.x: Required (minimum version)
  *
- * Note: OpenSSL 1.1.1 reached End-of-Life on September 11, 2023.
- * Users should upgrade to OpenSSL 3.x for continued security support.
+ * Note: OpenSSL 1.1.x support was removed as it reached End-of-Life on
+ * September 11, 2023. Users must use OpenSSL 3.x or later.
  */
 
 #include <openssl/opensslv.h>
@@ -57,21 +55,20 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // ============================================================================
 
 /*!
- * \brief Check if OpenSSL version is 3.0.0 or newer
+ * \brief Verify OpenSSL 3.x is being used
  *
  * OpenSSL 3.0 introduced significant API changes including:
  * - Provider-based architecture
  * - Deprecated many low-level APIs
  * - New EVP_MAC API replacing HMAC()
+ *
+ * This library requires OpenSSL 3.x. OpenSSL 1.1.x is no longer supported
+ * as it reached End-of-Life on September 11, 2023.
  */
 #if OPENSSL_VERSION_NUMBER >= 0x30000000L
     #define NETWORK_OPENSSL_VERSION_3_X 1
-    #define NETWORK_OPENSSL_VERSION_1_1_X 0
-#elif OPENSSL_VERSION_NUMBER >= 0x10101000L
-    #define NETWORK_OPENSSL_VERSION_3_X 0
-    #define NETWORK_OPENSSL_VERSION_1_1_X 1
 #else
-    #error "OpenSSL version 1.1.1 or newer is required"
+    #error "OpenSSL 3.x or newer is required. OpenSSL 1.1.x reached EOL on September 11, 2023."
 #endif
 
 // ============================================================================
@@ -120,37 +117,7 @@ namespace kcenon::network::internal
  */
 inline const char* openssl_version_string() noexcept
 {
-#if NETWORK_OPENSSL_VERSION_3_X
     return OpenSSL_version(OPENSSL_VERSION);
-#else
-    return OpenSSL_version(OPENSSL_VERSION);
-#endif
-}
-
-/*!
- * \brief Check if running on OpenSSL 3.x
- * \return true if OpenSSL 3.x, false otherwise
- */
-constexpr bool is_openssl_3x() noexcept
-{
-#if NETWORK_OPENSSL_VERSION_3_X
-    return true;
-#else
-    return false;
-#endif
-}
-
-/*!
- * \brief Check if running on deprecated OpenSSL 1.1.x
- * \return true if OpenSSL 1.1.x (EOL), false otherwise
- */
-constexpr bool is_openssl_eol() noexcept
-{
-#if NETWORK_OPENSSL_VERSION_1_1_X
-    return true;
-#else
-    return false;
-#endif
 }
 
 /*!
@@ -195,24 +162,11 @@ inline void clear_openssl_errors() noexcept
  * implementations are loaded from providers. The default provider includes
  * all common algorithms.
  *
- * Key differences from 1.1.x:
- *
- * 1. Providers:
+ * Key providers:
  *    - default: Standard cryptographic algorithms
  *    - legacy: Deprecated algorithms (MD4, RC4, DES, etc.)
  *    - fips: FIPS 140-2 validated algorithms
  *
- * 2. API Changes:
- *    - HMAC() function deprecated -> Use EVP_MAC API
- *    - Low-level cipher APIs deprecated -> Use EVP_Cipher APIs
- *    - Engine API deprecated -> Use Provider API
- *
- * 3. Our Approach:
- *    - Use EVP-based APIs which work on both versions
- *    - Avoid deprecated low-level APIs
- *    - No special provider loading needed for standard operations
- *
- * The code in this library uses EVP-based APIs throughout, which provides
- * seamless compatibility between OpenSSL 1.1.x and 3.x without requiring
- * any runtime detection or conditional code paths.
+ * This library uses EVP-based APIs throughout, following OpenSSL 3.x best
+ * practices. No special provider loading is needed for standard operations.
  */
