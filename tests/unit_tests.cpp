@@ -42,11 +42,13 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <thread>
 #include <vector>
 
-#include "kcenon/network/compatibility.h"
+#include "kcenon/network/core/messaging_server.h"
+#include "kcenon/network/core/messaging_client.h"
 #include "kcenon/network/integration/container_integration.h"
 #include "kcenon/network/utils/result_types.h"
 
-using namespace network_module;
+using messaging_server = kcenon::network::core::messaging_server;
+using messaging_client = kcenon::network::core::messaging_client;
 using namespace kcenon::network; // For error_codes and Result types
 using namespace std::chrono_literals;
 
