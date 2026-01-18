@@ -11,6 +11,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Removed
+- **BREAKING: Removed `compatibility.h` and `network_module` Namespace Aliases (#481)**
+  - Deleted `include/kcenon/network/compatibility.h` header file
+  - Deleted `tests/integration/test_compatibility.cpp` test file
+  - Deleted `samples/messaging_system_integration/legacy_compatibility.cpp` sample
+  - Removed legacy factory functions: `create_server()`, `create_client()`, `create_bridge()`
+  - **Migration**: Replace `network_module::` with `kcenon::network::` namespace
+
+- **BREAKING: Removed Deprecated WebSocket API Methods (#482)**
+  - `messaging_ws_client`:
+    - Removed `close(internal::ws_close_code, const std::string&)` → use `close(uint16_t, string_view)`
+    - Removed legacy callback setters: `set_message_callback()`, `set_text_message_callback()`, `set_binary_message_callback()`, `set_disconnected_callback()`
+  - `ws_connection`:
+    - Removed `send_text(std::string&&, handler)` and `send_binary(std::vector<uint8_t>&&, handler)`
+    - Removed `close(internal::ws_close_code, const std::string&)` → use `close(uint16_t, string_view)`
+    - Removed `connection_id()` → use `id()`
+  - `messaging_ws_server`:
+    - Removed legacy callback setters: `set_connection_callback()`, `set_disconnection_callback()`, `set_message_callback()`, `set_text_message_callback()`, `set_binary_message_callback()`, `set_error_callback()`
+
+- **BREAKING: Removed Deprecated UDP API Methods (#483)**
+  - `messaging_udp_server`: Removed `async_send_to()` → use `send_to(endpoint_info, data, handler)`
+  - `messaging_udp_client`: Removed `send_packet()` → use `send(data, handler)`
+
+- **BREAKING: Removed Deprecated session_manager Method (#484)**
+  - Removed private `generate_session_id()` method (use static `generate_id()` from base class)
+
+- **BREAKING: Transition to OpenSSL 3.x Only (#485)**
+  - Minimum OpenSSL version changed from 1.1.1 to 3.0.0
+  - Removed `NETWORK_OPENSSL_VERSION_1_1_X` macro
+  - Removed `is_openssl_3x()` and `is_openssl_eol()` compatibility functions
+  - Removed OpenSSL 1.1.x RSA key generation code path from `dtls_test_helpers.h`
+  - **Migration**: Upgrade to OpenSSL 3.x (OpenSSL 1.1.1 reached EOL on September 11, 2023)
+
 ### Fixed
 - **Tracing Header Compilation Fix**: Add missing `<cstring>` header in `trace_context.cpp`
   - Fixed `std::memcpy is not a member of std` compilation error on Linux/GCC

@@ -11,6 +11,39 @@ Network System 프로젝트의 모든 주요 변경 사항이 이 파일에 문�
 
 ## [미배포]
 
+### 제거됨
+- **BREAKING: `compatibility.h` 및 `network_module` 네임스페이스 별칭 제거 (#481)**
+  - `include/kcenon/network/compatibility.h` 헤더 파일 삭제
+  - `tests/integration/test_compatibility.cpp` 테스트 파일 삭제
+  - `samples/messaging_system_integration/legacy_compatibility.cpp` 샘플 삭제
+  - 레거시 팩토리 함수 제거: `create_server()`, `create_client()`, `create_bridge()`
+  - **마이그레이션**: `network_module::`을 `kcenon::network::` 네임스페이스로 교체
+
+- **BREAKING: 지원 중단된 WebSocket API 메서드 제거 (#482)**
+  - `messaging_ws_client`:
+    - `close(internal::ws_close_code, const std::string&)` 제거 → `close(uint16_t, string_view)` 사용
+    - 레거시 콜백 세터 제거: `set_message_callback()`, `set_text_message_callback()`, `set_binary_message_callback()`, `set_disconnected_callback()`
+  - `ws_connection`:
+    - `send_text(std::string&&, handler)` 및 `send_binary(std::vector<uint8_t>&&, handler)` 제거
+    - `close(internal::ws_close_code, const std::string&)` 제거 → `close(uint16_t, string_view)` 사용
+    - `connection_id()` 제거 → `id()` 사용
+  - `messaging_ws_server`:
+    - 레거시 콜백 세터 제거: `set_connection_callback()`, `set_disconnection_callback()`, `set_message_callback()`, `set_text_message_callback()`, `set_binary_message_callback()`, `set_error_callback()`
+
+- **BREAKING: 지원 중단된 UDP API 메서드 제거 (#483)**
+  - `messaging_udp_server`: `async_send_to()` 제거 → `send_to(endpoint_info, data, handler)` 사용
+  - `messaging_udp_client`: `send_packet()` 제거 → `send(data, handler)` 사용
+
+- **BREAKING: 지원 중단된 session_manager 메서드 제거 (#484)**
+  - private `generate_session_id()` 메서드 제거 (기본 클래스의 static `generate_id()` 사용)
+
+- **BREAKING: OpenSSL 3.x 전용 전환 (#485)**
+  - 최소 OpenSSL 버전 1.1.1에서 3.0.0으로 변경
+  - `NETWORK_OPENSSL_VERSION_1_1_X` 매크로 제거
+  - `is_openssl_3x()` 및 `is_openssl_eol()` 호환성 함수 제거
+  - `dtls_test_helpers.h`에서 OpenSSL 1.1.x RSA 키 생성 코드 경로 제거
+  - **마이그레이션**: OpenSSL 3.x로 업그레이드 필요 (OpenSSL 1.1.1은 2023년 9월 11일 EOL)
+
 ### 수정됨
 - **트레이싱 헤더 컴파일 오류 수정**: `trace_context.cpp`에 누락된 `<cstring>` 헤더 추가
   - Linux/GCC에서 발생하던 `std::memcpy is not a member of std` 컴파일 오류 수정
