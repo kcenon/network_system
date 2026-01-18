@@ -45,7 +45,6 @@
 #include <chrono>
 
 #include "kcenon/network/network_system.h"
-#include "kcenon/network/compatibility.h"
 
 using namespace std::chrono_literals;
 
@@ -123,34 +122,28 @@ bool test_container_integration() {
     return true;
 }
 
-// Test compatibility API
-bool test_compatibility_api() {
-    std::cout << "\n=== Testing Compatibility API ===" << std::endl;
+// Test modern API
+bool test_modern_api() {
+    std::cout << "\n=== Testing Modern API ===" << std::endl;
 
-    // Test namespace aliases
+    // Test direct instantiation
     {
-        auto server = network_module::create_server("test_server");
+        auto server = std::make_shared<kcenon::network::core::messaging_server>("test_server");
         assert(server != nullptr);
-        std::cout << "✓ Legacy server creation works" << std::endl;
+        std::cout << "✓ Server creation works" << std::endl;
 
-        auto client = network_module::create_client("test_client");
+        auto client = std::make_shared<kcenon::network::core::messaging_client>("test_client");
         assert(client != nullptr);
-        std::cout << "✓ Legacy client creation works" << std::endl;
+        std::cout << "✓ Client creation works" << std::endl;
 
 #ifdef BUILD_MESSAGING_BRIDGE
-        auto bridge = network_module::create_bridge();
+        auto bridge = std::make_shared<kcenon::network::integration::messaging_bridge>();
         assert(bridge != nullptr);
-        std::cout << "✓ Legacy bridge creation works" << std::endl;
+        std::cout << "✓ Bridge creation works" << std::endl;
 #else
         std::cout << "⚠️  Skipping bridge test (BUILD_MESSAGING_BRIDGE=OFF)" << std::endl;
 #endif
     }
-
-    // Test feature detection
-    std::cout << "✓ Container support: "
-              << (kcenon::network::compat::has_container_support() ? "yes" : "no") << std::endl;
-    std::cout << "✓ Thread support: "
-              << (kcenon::network::compat::has_thread_support() ? "yes" : "no") << std::endl;
 
     return true;
 }
@@ -193,6 +186,35 @@ bool test_messaging_bridge() {
 #endif
 }
 
+// Initialize thread and container managers
+void initialize_integration() {
+    // Initialize thread pool
+    auto& thread_mgr = kcenon::network::integration::thread_integration_manager::instance();
+    if (!thread_mgr.get_thread_pool()) {
+        thread_mgr.set_thread_pool(
+            std::make_shared<kcenon::network::integration::basic_thread_pool>()
+        );
+    }
+
+    // Initialize container manager
+    auto& container_mgr = kcenon::network::integration::container_manager::instance();
+    if (!container_mgr.get_default_container()) {
+        container_mgr.set_default_container(
+            std::make_shared<kcenon::network::integration::basic_container>()
+        );
+    }
+}
+
+// Shutdown thread and container managers
+void shutdown_integration() {
+    auto& thread_mgr = kcenon::network::integration::thread_integration_manager::instance();
+    if (auto pool = thread_mgr.get_thread_pool()) {
+        if (auto basic = std::dynamic_pointer_cast<kcenon::network::integration::basic_thread_pool>(pool)) {
+            basic->stop(true);
+        }
+    }
+}
+
 // Main test runner
 int main() {
     std::cout << "=== Network System Integration Tests ===" << std::endl;
@@ -202,7 +224,7 @@ int main() {
     int tests_failed = 0;
 
     // Initialize the system
-    kcenon::network::compat::initialize();
+    initialize_integration();
     std::cout << "\n✓ Network system initialized" << std::endl;
 
     // Run tests
@@ -219,7 +241,7 @@ int main() {
             tests_failed++;
         }
 
-        if (test_compatibility_api()) {
+        if (test_modern_api()) {
             tests_passed++;
         } else {
             tests_failed++;
@@ -237,7 +259,7 @@ int main() {
     }
 
     // Shutdown
-    kcenon::network::compat::shutdown();
+    shutdown_integration();
     std::cout << "\n✓ Network system shutdown" << std::endl;
 
     // Results

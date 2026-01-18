@@ -52,9 +52,6 @@
 #include "kcenon/network/integration/thread_integration.h"
 #include "kcenon/network/integration/container_integration.h"
 
-// Compatibility layer
-#include "kcenon/network/compatibility.h"
-
 // Configuration system
 #include "kcenon/network/config/network_config.h"
 #include "kcenon/network/config/network_system_config.h"

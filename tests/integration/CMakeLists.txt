@@ -104,47 +104,9 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/test_integration.cpp)
     message(STATUS "Integration test configured: stress_test")
 endif()
 
-# Compatibility Test
-if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/test_compatibility.cpp)
-    add_executable(benchmark test_compatibility.cpp)
-
-    target_link_libraries(benchmark PRIVATE
-        NetworkSystem
-        Threads::Threads
-    )
-
-    # Setup ASIO integration (required for network_system headers)
-    setup_asio_integration(benchmark)
-
-    # Add system integration paths
-    if(CONTAINER_SYSTEM_INCLUDE_DIR)
-        target_include_directories(benchmark PRIVATE ${CONTAINER_SYSTEM_INCLUDE_DIR})
-        target_compile_definitions(benchmark PRIVATE WITH_CONTAINER_SYSTEM)
-    endif()
-
-    if(THREAD_SYSTEM_INCLUDE_DIR)
-        target_include_directories(benchmark PRIVATE ${THREAD_SYSTEM_INCLUDE_DIR})
-        target_compile_definitions(benchmark PRIVATE WITH_THREAD_SYSTEM)
-    endif()
-
-    if(LOGGER_SYSTEM_INCLUDE_DIR)
-        target_include_directories(benchmark PRIVATE ${LOGGER_SYSTEM_INCLUDE_DIR})
-        target_compile_definitions(benchmark PRIVATE WITH_LOGGER_SYSTEM)
-    endif()
-
-    if(COMMON_SYSTEM_INCLUDE_DIR)
-        target_include_directories(benchmark PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
-        target_compile_definitions(benchmark PRIVATE WITH_COMMON_SYSTEM)
-    endif()
-
-    set_target_properties(benchmark PROPERTIES
-        CXX_STANDARD 20
-        CXX_STANDARD_REQUIRED ON
-        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
-    )
-
-    message(STATUS "Integration test configured: benchmark")
-endif()
+# NOTE: Compatibility Test (test_compatibility.cpp) removed
+# Legacy namespace aliases (network_module::) have been deprecated
+# See GitHub Issue #481 for details
 
 # WebSocket E2E Test
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/test_websocket_e2e.cpp)

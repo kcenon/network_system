@@ -510,7 +510,23 @@ int main(int argc, [[maybe_unused]] char *argv[]) {
             << " | Build: " << (argc > 1 ? "Debug" : "Standard") << std::endl;
 
   // Initialize system
-  compat::initialize();
+  {
+    // Initialize thread pool
+    auto& thread_mgr = integration::thread_integration_manager::instance();
+    if (!thread_mgr.get_thread_pool()) {
+      thread_mgr.set_thread_pool(
+          std::make_shared<integration::basic_thread_pool>()
+      );
+    }
+
+    // Initialize container manager
+    auto& container_mgr = integration::container_manager::instance();
+    if (!container_mgr.get_default_container()) {
+      container_mgr.set_default_container(
+          std::make_shared<integration::basic_container>()
+      );
+    }
+  }
   std::cout << "\nSystem initialized" << std::endl;
 
   TestResults results;
@@ -530,7 +546,14 @@ int main(int argc, [[maybe_unused]] char *argv[]) {
   results.print();
 
   // Cleanup
-  compat::shutdown();
+  {
+    auto& thread_mgr = integration::thread_integration_manager::instance();
+    if (auto pool = thread_mgr.get_thread_pool()) {
+      if (auto basic = std::dynamic_pointer_cast<integration::basic_thread_pool>(pool)) {
+        basic->stop(true);
+      }
+    }
+  }
   std::cout << "\nSystem shutdown complete" << std::endl;
 
   // Determine success

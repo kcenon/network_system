@@ -138,24 +138,29 @@ EOF
 }
 
 # 네임스페이스 변경 함수
+# NOTE: As of v2.0.0, network_module namespace aliases have been removed.
+# All code should use the canonical kcenon::network namespace directly.
 update_namespaces() {
     local file="$1"
     local temp_file="${file}.tmp"
 
     log_info "Updating namespaces in: $file"
 
-    # namespace network_module -> namespace network_system 변경
-    sed 's/namespace network_module/namespace network_system/g' "$file" > "$temp_file"
+    # Remove compatibility.h include (deprecated)
+    sed 's|#include.*compatibility\.h.*||g' "$file" > "$temp_file"
 
-    # using namespace network_module -> using namespace network_system 변경
-    sed -i.bak 's/using namespace network_module/using namespace network_system/g' "$temp_file"
+    # namespace network_module -> namespace kcenon::network 변경
+    sed -i.bak 's/namespace network_module/namespace kcenon::network/g' "$temp_file"
 
-    # network_module:: -> network_system:: 변경
-    sed -i.bak 's/network_module::/network_system::/g' "$temp_file"
+    # using namespace network_module -> using namespace kcenon::network 변경
+    sed -i.bak 's/using namespace network_module/using namespace kcenon::network/g' "$temp_file"
+
+    # network_module:: -> kcenon::network:: 변경
+    sed -i.bak 's/network_module::/kcenon::network::/g' "$temp_file"
 
     # #include 경로 업데이트
-    sed -i.bak 's|#include "network/|#include "network_system/|g' "$temp_file"
-    sed -i.bak 's|#include <network/|#include <network_system/|g' "$temp_file"
+    sed -i.bak 's|#include "network/|#include "kcenon/network/|g' "$temp_file"
+    sed -i.bak 's|#include <network/|#include <kcenon/network/|g' "$temp_file"
 
     mv "$temp_file" "$file"
     rm -f "${temp_file}.bak"
