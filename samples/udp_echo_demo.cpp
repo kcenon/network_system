@@ -66,21 +66,22 @@ void run_server()
 
     auto server = std::make_shared<messaging_udp_server>("EchoServer");
 
-    // Set up receive callback to echo messages back
+    // Set up receive callback to echo messages back (using interface callback)
     server->set_receive_callback(
-        [server](const std::vector<uint8_t>& data, const asio::ip::udp::endpoint& sender)
+        [server](const std::vector<uint8_t>& data,
+                 const kcenon::network::interfaces::i_udp_server::endpoint_info& sender)
         {
             std::string message(data.begin(), data.end());
             std::cout << "[Server] Received: \"" << message << "\" from "
-                      << sender.address().to_string() << ":" << sender.port() << "\n";
+                      << sender.address << ":" << sender.port << "\n";
 
-            // Echo back
+            // Echo back using interface send_to
             std::string response = "Echo: " + message;
             std::vector<uint8_t> response_data(response.begin(), response.end());
 
-            server->async_send_to(
-                std::move(response_data),
+            auto send_result = server->send_to(
                 sender,
+                std::move(response_data),
                 [](std::error_code ec, std::size_t bytes)
                 {
                     if (!ec)
@@ -92,6 +93,11 @@ void run_server()
                         std::cerr << "[Server] Send error: " << ec.message() << "\n";
                     }
                 });
+
+            if (send_result.is_err())
+            {
+                std::cerr << "[Server] Failed to initiate send: " << send_result.error().message << "\n";
+            }
         });
 
     // Set up error callback
@@ -136,9 +142,10 @@ void run_client()
 
     auto client = std::make_shared<messaging_udp_client>("TestClient");
 
-    // Set up receive callback to handle echo responses
+    // Set up receive callback to handle echo responses (using interface callback)
     client->set_receive_callback(
-        [](const std::vector<uint8_t>& data, const asio::ip::udp::endpoint& sender)
+        [](const std::vector<uint8_t>& data,
+           const kcenon::network::interfaces::i_udp_client::endpoint_info& sender)
         {
             std::string message(data.begin(), data.end());
             std::cout << "[Client] Received response: \"" << message << "\"\n";
@@ -175,7 +182,8 @@ void run_client()
 
         std::cout << "[Client] Sending: \"" << msg << "\"\n";
 
-        auto send_result = client->send_packet(
+        // Use interface send() instead of deprecated send_packet()
+        auto send_result = client->send(
             std::move(data),
             [](std::error_code ec, std::size_t bytes)
             {

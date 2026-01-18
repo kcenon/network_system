@@ -82,11 +82,12 @@ namespace kcenon::network::core
 	 * \code
 	 * auto client = std::make_shared<messaging_udp_client>("UDPClient");
 	 *
-	 * // Set callback to handle received datagrams
+	 * // Set callback to handle received datagrams (using interface callback)
 	 * client->set_receive_callback(
-	 *     [](const std::vector<uint8_t>& data, const asio::ip::udp::endpoint& sender) {
+	 *     [](const std::vector<uint8_t>& data,
+	 *        const interfaces::i_udp_client::endpoint_info& sender) {
 	 *         std::cout << "Received " << data.size() << " bytes from "
-	 *                   << sender.address().to_string() << ":" << sender.port() << "\n";
+	 *                   << sender.address << ":" << sender.port << "\n";
 	 *     });
 	 *
 	 * // Start client targeting localhost:5555
@@ -96,9 +97,9 @@ namespace kcenon::network::core
 	 *     return -1;
 	 * }
 	 *
-	 * // Send a datagram
+	 * // Send a datagram using send()
 	 * std::vector<uint8_t> data = {0x01, 0x02, 0x03};
-	 * client->send_packet(std::move(data),
+	 * client->send(std::move(data),
 	 *     [](std::error_code ec, std::size_t bytes) {
 	 *         if (!ec) {
 	 *             std::cout << "Sent " << bytes << " bytes\n";
@@ -253,22 +254,6 @@ namespace kcenon::network::core
 		 * Also compatible with legacy error_callback_t (same signature).
 		 */
 		auto set_error_callback(error_callback_t callback) -> void override;
-
-		// ========================================================================
-		// Legacy API (maintained for backward compatibility)
-		// ========================================================================
-
-		/*!
-		 * \brief Sends a datagram to the configured target endpoint.
-		 * \param data The data to send (moved for efficiency).
-		 * \param handler Completion handler with signature void(std::error_code, std::size_t).
-		 * \return Result<void> - Success if send initiated, or error if not running.
-		 *
-		 * \deprecated Use send() instead for interface compliance.
-		 */
-		auto send_packet(
-			std::vector<uint8_t>&& data,
-			std::function<void(std::error_code, std::size_t)> handler) -> VoidResult;
 
 	private:
 		// =====================================================================

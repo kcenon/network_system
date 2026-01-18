@@ -111,7 +111,7 @@ TEST_F(UDPLoadTest, Message_Throughput_64B) {
         auto msg_start = std::chrono::steady_clock::now();
 
         std::vector<uint8_t> data(message.begin(), message.end());
-        auto result = client->send_packet(std::move(data), [](auto, auto){});
+        auto result = client->send(std::move(data), [](auto, auto){});
         if (result.is_ok()) {
             sent_count++;
             auto msg_end = std::chrono::steady_clock::now();
@@ -178,7 +178,7 @@ TEST_F(UDPLoadTest, Message_Throughput_512B) {
     for (size_t i = 0; i < num_messages; ++i) {
         auto msg_start = std::chrono::steady_clock::now();
         std::vector<uint8_t> data(message.begin(), message.end());
-        auto result = client->send_packet(std::move(data), [](auto, auto){});
+        auto result = client->send(std::move(data), [](auto, auto){});
         if (result.is_ok()) {
             sent_count++;
             auto msg_end = std::chrono::steady_clock::now();
@@ -226,7 +226,7 @@ TEST_F(UDPLoadTest, Message_Throughput_1KB) {
     for (size_t i = 0; i < num_messages; ++i) {
         auto msg_start = std::chrono::steady_clock::now();
         std::vector<uint8_t> data(message.begin(), message.end());
-        auto result = client->send_packet(std::move(data), [](auto, auto){});
+        auto result = client->send(std::move(data), [](auto, auto){});
         if (result.is_ok()) {
             sent_count++;
             auto msg_end = std::chrono::steady_clock::now();
@@ -287,7 +287,7 @@ TEST_F(UDPLoadTest, Concurrent_Clients_10) {
 
     for (auto& client : clients_) {
         std::vector<uint8_t> data(test_message.begin(), test_message.end());
-        auto result = client->send_packet(std::move(data), [](auto, auto){});
+        auto result = client->send(std::move(data), [](auto, auto){});
         if (result.is_ok()) {
             success_count.fetch_add(1);
         }
@@ -347,7 +347,7 @@ TEST_F(UDPLoadTest, Send_Latency) {
     for (size_t i = 0; i < num_messages; ++i) {
         auto start = std::chrono::steady_clock::now();
         std::vector<uint8_t> data(test_message.begin(), test_message.end());
-        auto result = client->send_packet(std::move(data), [](auto, auto){});
+        auto result = client->send(std::move(data), [](auto, auto){});
         auto end = std::chrono::steady_clock::now();
 
         if (result.is_ok()) {
@@ -394,7 +394,7 @@ TEST_F(UDPLoadTest, Burst_Send_Performance) {
         size_t sent_in_burst = 0;
         for (size_t i = 0; i < burst_size; ++i) {
             std::vector<uint8_t> data(message.begin(), message.end());
-        auto result = client->send_packet(std::move(data), [](auto, auto){});
+        auto result = client->send(std::move(data), [](auto, auto){});
             if (result.is_ok()) {
                 sent_in_burst++;
             }
