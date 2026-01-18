@@ -207,26 +207,6 @@ namespace kcenon::network::core
 	}
 
 	// ========================================================================
-	// Legacy API
-	// ========================================================================
-
-	auto messaging_udp_server::async_send_to(
-		std::vector<uint8_t>&& data,
-		const asio::ip::udp::endpoint& endpoint,
-		std::function<void(std::error_code, std::size_t)> handler) -> void
-	{
-		if (socket_)
-		{
-			socket_->async_send_to(std::move(data), endpoint, std::move(handler));
-		}
-		else if (handler)
-		{
-			// Socket not available, report error
-			handler(asio::error::not_connected, 0);
-		}
-	}
-
-	// ========================================================================
 	// Internal Implementation Methods
 	// ========================================================================
 

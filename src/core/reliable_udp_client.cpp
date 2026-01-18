@@ -271,7 +271,7 @@ namespace kcenon::network::core
 
 			auto packet = create_packet(header, data);
 
-			return udp_client_->send_packet(
+			return udp_client_->send(
 				std::move(packet), [this](std::error_code ec, std::size_t) {
 					if (!ec)
 					{
@@ -312,7 +312,7 @@ namespace kcenon::network::core
 			pending_packets_[seq] = std::move(info);
 
 			// Send packet
-			return udp_client_->send_packet(
+			return udp_client_->send(
 				std::move(packet), [this, seq](std::error_code ec, std::size_t) {
 					if (!ec)
 					{
@@ -341,7 +341,7 @@ namespace kcenon::network::core
 
 			auto packet = create_packet(header, data);
 
-			return udp_client_->send_packet(
+			return udp_client_->send(
 				std::move(packet), [this](std::error_code ec, std::size_t) {
 					if (!ec)
 					{
@@ -474,7 +474,7 @@ namespace kcenon::network::core
 
 			auto packet = create_packet(header, {});
 
-			udp_client_->send_packet(std::move(packet), [this](std::error_code ec, std::size_t) {
+			udp_client_->send(std::move(packet), [this](std::error_code ec, std::size_t) {
 				if (!ec)
 				{
 					std::lock_guard<std::mutex> lock(stats_mutex_);
@@ -655,7 +655,7 @@ namespace kcenon::network::core
 									  " (attempt " + std::to_string(it->second.retransmit_count) +
 									  ")");
 
-					udp_client_->send_packet(std::move(packet_copy),
+					udp_client_->send(std::move(packet_copy),
 											 [](std::error_code, std::size_t) {});
 				}
 

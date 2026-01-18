@@ -137,7 +137,31 @@ namespace kcenon::network::core
 		std::vector<uint8_t>&& data,
 		interfaces::i_udp_client::send_callback_t handler) -> VoidResult
 	{
-		return send_packet(std::move(data), std::move(handler));
+		if (!lifecycle_.is_running())
+		{
+			return error_void(
+				error_codes::common_errors::internal_error,
+				"UDP client is not running",
+				"messaging_udp_client::send",
+				""
+			);
+		}
+
+		std::lock_guard<std::mutex> socket_lock(socket_mutex_);
+		if (!socket_)
+		{
+			return error_void(
+				error_codes::common_errors::internal_error,
+				"Socket not available",
+				"messaging_udp_client::send",
+				""
+			);
+		}
+
+		std::lock_guard<std::mutex> endpoint_lock(endpoint_mutex_);
+		socket_->async_send_to(std::move(data), target_endpoint_, std::move(handler));
+
+		return ok();
 	}
 
 	auto messaging_udp_client::set_target(std::string_view host, uint16_t port) -> VoidResult
@@ -218,41 +242,6 @@ namespace kcenon::network::core
 	auto messaging_udp_client::set_error_callback(error_callback_t callback) -> void
 	{
 		callbacks_.set<kErrorCallbackIndex>(std::move(callback));
-	}
-
-	// ========================================================================
-	// Legacy API
-	// ========================================================================
-
-	auto messaging_udp_client::send_packet(
-		std::vector<uint8_t>&& data,
-		std::function<void(std::error_code, std::size_t)> handler) -> VoidResult
-	{
-		if (!lifecycle_.is_running())
-		{
-			return error_void(
-				error_codes::common_errors::internal_error,
-				"UDP client is not running",
-				"messaging_udp_client::send_packet",
-				""
-			);
-		}
-
-		std::lock_guard<std::mutex> socket_lock(socket_mutex_);
-		if (!socket_)
-		{
-			return error_void(
-				error_codes::common_errors::internal_error,
-				"Socket not available",
-				"messaging_udp_client::send_packet",
-				""
-			);
-		}
-
-		std::lock_guard<std::mutex> endpoint_lock(endpoint_mutex_);
-		socket_->async_send_to(std::move(data), target_endpoint_, std::move(handler));
-
-		return ok();
 	}
 
 	// ========================================================================

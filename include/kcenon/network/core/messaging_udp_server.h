@@ -81,11 +81,21 @@ namespace kcenon::network::core
 	 * \code
 	 * auto server = std::make_shared<messaging_udp_server>("UDPServer");
 	 *
-	 * // Set callback to handle received datagrams
+	 * // Set callback to handle received datagrams (using interface callback)
 	 * server->set_receive_callback(
-	 *     [](const std::vector<uint8_t>& data, const asio::ip::udp::endpoint& sender) {
+	 *     [server](const std::vector<uint8_t>& data,
+	 *              const interfaces::i_udp_server::endpoint_info& sender) {
 	 *         std::cout << "Received " << data.size() << " bytes from "
-	 *                   << sender.address().to_string() << ":" << sender.port() << "\n";
+	 *                   << sender.address << ":" << sender.port << "\n";
+	 *
+	 *         // Send response using send_to()
+	 *         std::vector<uint8_t> response = {0x01, 0x02, 0x03};
+	 *         server->send_to(sender, std::move(response),
+	 *             [](std::error_code ec, std::size_t bytes) {
+	 *                 if (!ec) {
+	 *                     std::cout << "Sent " << bytes << " bytes\n";
+	 *                 }
+	 *             });
 	 *     });
 	 *
 	 * // Start server on port 5555
@@ -94,15 +104,6 @@ namespace kcenon::network::core
 	 *     std::cerr << "Failed to start server: " << result.error().message << "\n";
 	 *     return -1;
 	 * }
-	 *
-	 * // Send response back to client
-	 * std::vector<uint8_t> response = {0x01, 0x02, 0x03};
-	 * server->async_send_to(std::move(response), sender_endpoint,
-	 *     [](std::error_code ec, std::size_t bytes) {
-	 *         if (!ec) {
-	 *             std::cout << "Sent " << bytes << " bytes\n";
-	 *         }
-	 *     });
 	 *
 	 * // Stop server
 	 * server->stop_server();
@@ -242,25 +243,6 @@ namespace kcenon::network::core
 		 * Also compatible with legacy error_callback_t (same signature).
 		 */
 		auto set_error_callback(error_callback_t callback) -> void override;
-
-		// ========================================================================
-		// Legacy API (maintained for backward compatibility)
-		// ========================================================================
-
-		/*!
-		 * \brief Sends a datagram to a specific endpoint.
-		 * \param data The data to send (moved for efficiency).
-		 * \param endpoint The target endpoint to send to.
-		 * \param handler Completion handler with signature void(std::error_code, std::size_t).
-		 *
-		 * This allows the server to send responses back to clients.
-		 *
-		 * \deprecated Use send_to() instead for interface compliance.
-		 */
-		auto async_send_to(
-			std::vector<uint8_t>&& data,
-			const asio::ip::udp::endpoint& endpoint,
-			std::function<void(std::error_code, std::size_t)> handler) -> void;
 
 	private:
 		// =====================================================================

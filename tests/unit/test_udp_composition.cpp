@@ -481,15 +481,6 @@ TEST_F(UdpSendErrorTest, ClientSendBeforeStartFails)
 	EXPECT_FALSE(result.is_ok());
 }
 
-TEST_F(UdpSendErrorTest, ClientSendPacketBeforeStartFails)
-{
-	auto client = std::make_shared<messaging_udp_client>("send_packet_before_start");
-
-	std::vector<uint8_t> data = {0x01, 0x02};
-	auto result = client->send_packet(std::move(data), [](std::error_code, std::size_t) {});
-	EXPECT_FALSE(result.is_ok());
-}
-
 // ============================================================================
 // Type Compatibility Tests
 // ============================================================================
@@ -584,57 +575,6 @@ TEST_F(UdpLegacyApiTest, ServerLegacyStartStop)
 	auto stop_result = server->stop_server();
 	EXPECT_TRUE(stop_result.is_ok());
 	EXPECT_FALSE(server->is_running());
-}
-
-TEST_F(UdpLegacyApiTest, ClientLegacySendPacket)
-{
-	auto server = std::make_shared<messaging_udp_server>("legacy_recv_server");
-	auto server_result = server->start_server(test_port_);
-	ASSERT_TRUE(server_result.is_ok());
-	wait_for_ready();
-
-	auto client = std::make_shared<messaging_udp_client>("legacy_send_client");
-	auto client_result = client->start_client("127.0.0.1", test_port_);
-	ASSERT_TRUE(client_result.is_ok());
-	wait_for_ready();
-
-	// Use legacy send_packet
-	std::vector<uint8_t> data = {0xAA, 0xBB, 0xCC};
-	std::atomic<bool> sent{false};
-
-	auto send_result = client->send_packet(std::move(data), [&sent](std::error_code ec, std::size_t) {
-		if (!ec)
-		{
-			sent.store(true);
-		}
-	});
-	EXPECT_TRUE(send_result.is_ok());
-
-	wait_for_ready();
-	EXPECT_TRUE(sent.load());
-
-	[[maybe_unused]] auto client_stop = client->stop_client();
-	[[maybe_unused]] auto server_stop = server->stop_server();
-}
-
-TEST_F(UdpLegacyApiTest, ServerLegacyAsyncSendTo)
-{
-	auto server = std::make_shared<messaging_udp_server>("legacy_async_server");
-	auto server_result = server->start_server(test_port_);
-	ASSERT_TRUE(server_result.is_ok());
-	wait_for_ready();
-
-	// Use legacy async_send_to
-	asio::ip::udp::endpoint target(asio::ip::make_address("127.0.0.1"), test_port_ + 1);
-	std::vector<uint8_t> data = {0xDD, 0xEE};
-	std::atomic<bool> callback_called{false};
-
-	server->async_send_to(std::move(data), target, [&callback_called](std::error_code, std::size_t) { callback_called.store(true); });
-
-	wait_for_ready();
-	EXPECT_TRUE(callback_called.load());
-
-	[[maybe_unused]] auto stop_result = server->stop_server();
 }
 
 TEST_F(UdpLegacyApiTest, ClientLegacyReceiveCallback)
