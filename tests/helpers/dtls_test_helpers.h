@@ -108,19 +108,11 @@ public:
 	{
 		certificate_pair result;
 
-		// Generate RSA key pair
-		EVP_PKEY* pkey = EVP_PKEY_new();
-		if (!pkey)
-		{
-			throw std::runtime_error("Failed to allocate EVP_PKEY");
-		}
-
-#if OPENSSL_VERSION_NUMBER >= 0x30000000L
-		// OpenSSL 3.x approach
+		// Generate RSA key pair using OpenSSL 3.x EVP API
+		EVP_PKEY* pkey = nullptr;
 		EVP_PKEY_CTX* ctx = EVP_PKEY_CTX_new_id(EVP_PKEY_RSA, nullptr);
 		if (!ctx)
 		{
-			EVP_PKEY_free(pkey);
 			throw std::runtime_error("Failed to create EVP_PKEY_CTX");
 		}
 
@@ -129,34 +121,9 @@ public:
 		    EVP_PKEY_keygen(ctx, &pkey) <= 0)
 		{
 			EVP_PKEY_CTX_free(ctx);
-			EVP_PKEY_free(pkey);
 			throw std::runtime_error("Failed to generate RSA key");
 		}
 		EVP_PKEY_CTX_free(ctx);
-#else
-		// OpenSSL 1.1.x approach
-		RSA* rsa = RSA_new();
-		BIGNUM* bn = BN_new();
-		if (!rsa || !bn)
-		{
-			if (rsa) RSA_free(rsa);
-			if (bn) BN_free(bn);
-			EVP_PKEY_free(pkey);
-			throw std::runtime_error("Failed to allocate RSA/BIGNUM");
-		}
-
-		BN_set_word(bn, RSA_F4);
-		if (RSA_generate_key_ex(rsa, 2048, bn, nullptr) != 1)
-		{
-			RSA_free(rsa);
-			BN_free(bn);
-			EVP_PKEY_free(pkey);
-			throw std::runtime_error("Failed to generate RSA key");
-		}
-		BN_free(bn);
-
-		EVP_PKEY_assign_RSA(pkey, rsa);
-#endif
 
 		// Create X509 certificate
 		X509* x509 = X509_new();

@@ -384,45 +384,16 @@ if(BUILD_TLS_SUPPORT)
     target_compile_definitions(NetworkSystem PUBLIC BUILD_TLS_SUPPORT)
 
     # Find OpenSSL for TLS/SSL
-    # Minimum requirement: OpenSSL 1.1.1 (for TLS 1.3 support)
-    # Recommended: OpenSSL 3.x (1.1.1 reached EOL on September 11, 2023)
-    find_package(OpenSSL 1.1.1 REQUIRED)
+    # Minimum requirement: OpenSSL 3.0.0
+    # OpenSSL 1.1.x reached EOL on September 11, 2023 and is no longer supported
+    find_package(OpenSSL 3.0.0 REQUIRED)
     target_link_libraries(NetworkSystem PUBLIC OpenSSL::SSL OpenSSL::Crypto)
 
     message(STATUS "TLS/SSL support enabled (TLS 1.2/1.3)")
     message(STATUS "  OpenSSL version: ${OPENSSL_VERSION}")
-
-    # OpenSSL version detection and compatibility
-    if(OPENSSL_VERSION VERSION_GREATER_EQUAL "3.0.0")
-        # OpenSSL 3.x - fully supported with modern API
-        message(STATUS "  OpenSSL 3.x: Using modern API")
-        message(STATUS "  TLS 1.3 support: Available")
-        target_compile_definitions(NetworkSystem PRIVATE NETWORK_OPENSSL_3_X)
-    elseif(OPENSSL_VERSION VERSION_GREATER_EQUAL "1.1.1")
-        # OpenSSL 1.1.1 - supported but EOL (September 11, 2023)
-        message(WARNING "")
-        message(WARNING "========================================")
-        message(WARNING "OpenSSL 1.1.1 End-of-Life Warning")
-        message(WARNING "========================================")
-        message(WARNING "")
-        message(WARNING "OpenSSL ${OPENSSL_VERSION} detected.")
-        message(WARNING "OpenSSL 1.1.1 reached End-of-Life on September 11, 2023.")
-        message(WARNING "No security patches are provided for vulnerabilities discovered after EOL.")
-        message(WARNING "")
-        message(WARNING "RECOMMENDATION: Upgrade to OpenSSL 3.x for continued security support.")
-        message(WARNING "")
-        message(WARNING "Installation:")
-        message(WARNING "  macOS:  brew install openssl@3")
-        message(WARNING "  Ubuntu: apt-get install libssl-dev (3.x in Ubuntu 22.04+)")
-        message(WARNING "  vcpkg:  vcpkg install openssl")
-        message(WARNING "========================================")
-        message(WARNING "")
-        message(STATUS "  TLS 1.3 support: Available")
-        target_compile_definitions(NetworkSystem PRIVATE NETWORK_OPENSSL_1_1_X)
-    else()
-        # OpenSSL < 1.1.1 - not supported
-        message(FATAL_ERROR "OpenSSL ${OPENSSL_VERSION} is not supported. Minimum required version is 1.1.1")
-    endif()
+    message(STATUS "  OpenSSL 3.x: Using modern API")
+    message(STATUS "  TLS 1.3 support: Available")
+    target_compile_definitions(NetworkSystem PRIVATE NETWORK_OPENSSL_3_X)
 endif()
 
 # WebSocket support (conditional)
@@ -439,18 +410,10 @@ if(BUILD_WEBSOCKET_SUPPORT)
 
     # Find OpenSSL for SHA-1 hashing in handshake (if not already found)
     if(NOT BUILD_TLS_SUPPORT)
-        find_package(OpenSSL 1.1.1 REQUIRED)
+        find_package(OpenSSL 3.0.0 REQUIRED)
         target_link_libraries(NetworkSystem PRIVATE OpenSSL::Crypto)
         message(STATUS "  OpenSSL version: ${OPENSSL_VERSION}")
-
-        # OpenSSL EOL warning for WebSocket-only builds
-        if(OPENSSL_VERSION VERSION_LESS "3.0.0" AND OPENSSL_VERSION VERSION_GREATER_EQUAL "1.1.1")
-            message(WARNING "OpenSSL ${OPENSSL_VERSION} detected. OpenSSL 1.1.1 reached EOL on September 11, 2023.")
-            message(WARNING "Consider upgrading to OpenSSL 3.x for continued security support.")
-            target_compile_definitions(NetworkSystem PRIVATE NETWORK_OPENSSL_1_1_X)
-        elseif(OPENSSL_VERSION VERSION_GREATER_EQUAL "3.0.0")
-            target_compile_definitions(NetworkSystem PRIVATE NETWORK_OPENSSL_3_X)
-        endif()
+        target_compile_definitions(NetworkSystem PRIVATE NETWORK_OPENSSL_3_X)
     endif()
 
     message(STATUS "WebSocket support enabled")
