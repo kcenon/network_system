@@ -100,14 +100,6 @@ public:
         return std::nullopt;
     }
 
-private:
-    /**
-     * @brief Generate session ID (private, for backward compatibility)
-     * @return Generated session ID
-     *
-     * @deprecated Use the static generate_id() method from base class.
-     */
-    auto generate_session_id() -> std::string { return generate_id(); }
 };
 
 } // namespace kcenon::network::core
