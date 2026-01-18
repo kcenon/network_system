@@ -105,20 +105,24 @@ public:
         // Note: Capture completed_tasks_ by pointer to avoid capturing 'this',
         // which can cause heap corruption during static destruction.
         auto* completed_ptr = &completed_tasks_;
-        bool ok = pool_->submit_task([task = std::move(task), promise, completed_ptr]() mutable {
-            try {
-                if (task) task();
-                promise->set_value();
-                completed_ptr->fetch_add(1, std::memory_order_relaxed);
-            } catch (...) {
-                promise->set_exception(std::current_exception());
-            }
-        });
 
-        if (!ok) {
+        // Use submit_async which returns a future and throws on failure
+        try {
+            pool_->submit_async([task = std::move(task), promise, completed_ptr]() mutable {
+                try {
+                    if (task) task();
+                    promise->set_value();
+                    completed_ptr->fetch_add(1, std::memory_order_relaxed);
+                } catch (...) {
+                    promise->set_exception(std::current_exception());
+                }
+            });
+        } catch (const std::exception& e) {
             promise->set_exception(
                 std::make_exception_ptr(
-                    std::runtime_error("Failed to submit task to thread pool")
+                    std::runtime_error(
+                        std::string("Failed to submit task to thread pool: ") + e.what()
+                    )
                 )
             );
         }
@@ -151,21 +155,25 @@ public:
         // Note: Capture completed_tasks_ by pointer to avoid capturing 'this',
         // which can cause heap corruption during static destruction.
         auto* completed_ptr = &completed_tasks_;
-        bool ok = pool_->submit_task([task = std::move(task), delay, promise, completed_ptr]() mutable {
-            try {
-                std::this_thread::sleep_for(delay);
-                if (task) task();
-                promise->set_value();
-                completed_ptr->fetch_add(1, std::memory_order_relaxed);
-            } catch (...) {
-                promise->set_exception(std::current_exception());
-            }
-        });
 
-        if (!ok) {
+        // Use submit_async which returns a future and throws on failure
+        try {
+            pool_->submit_async([task = std::move(task), delay, promise, completed_ptr]() mutable {
+                try {
+                    std::this_thread::sleep_for(delay);
+                    if (task) task();
+                    promise->set_value();
+                    completed_ptr->fetch_add(1, std::memory_order_relaxed);
+                } catch (...) {
+                    promise->set_exception(std::current_exception());
+                }
+            });
+        } catch (const std::exception& e) {
             promise->set_exception(
                 std::make_exception_ptr(
-                    std::runtime_error("Failed to submit delayed task to thread pool")
+                    std::runtime_error(
+                        std::string("Failed to submit delayed task to thread pool: ") + e.what()
+                    )
                 )
             );
         }
@@ -175,7 +183,7 @@ public:
     }
 
     size_t worker_count() const {
-        return pool_ ? pool_->get_thread_count() : 0;
+        return pool_ ? pool_->get_active_worker_count() : 0;
     }
 
     bool is_running() const {

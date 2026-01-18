@@ -74,19 +74,23 @@ std::future<void> thread_system_pool_adapter::submit(std::function<void()> task)
     auto promise = std::make_shared<std::promise<void>>();
     auto future = promise->get_future();
 
-    bool ok = pool_->submit_task([task = std::move(task), promise]() mutable {
-        try {
-            if (task) task();
-            promise->set_value();
-        } catch (...) {
-            promise->set_exception(std::current_exception());
-        }
-    });
-
-    if (!ok) {
+    // Use submit_async which returns a future and throws on failure
+    try {
+        pool_->submit_async([task = std::move(task), promise]() mutable {
+            try {
+                if (task) task();
+                promise->set_value();
+            } catch (...) {
+                promise->set_exception(std::current_exception());
+            }
+        });
+    } catch (const std::exception& e) {
         promise->set_exception(std::make_exception_ptr(
-            std::runtime_error("thread_system_pool_adapter: submit failed")));
+            std::runtime_error(
+                std::string("thread_system_pool_adapter: submit failed: ") + e.what()
+            )));
     }
+
     return future;
 }
 
@@ -110,19 +114,22 @@ std::future<void> thread_system_pool_adapter::submit_delayed(
         return future;
     }
 
-    bool ok = pool_->submit_task([task = std::move(task), delay, promise]() mutable {
-        try {
-            std::this_thread::sleep_for(delay);
-            if (task) task();
-            promise->set_value();
-        } catch (...) {
-            promise->set_exception(std::current_exception());
-        }
-    });
-
-    if (!ok) {
+    // Use submit_async which returns a future and throws on failure
+    try {
+        pool_->submit_async([task = std::move(task), delay, promise]() mutable {
+            try {
+                std::this_thread::sleep_for(delay);
+                if (task) task();
+                promise->set_value();
+            } catch (...) {
+                promise->set_exception(std::current_exception());
+            }
+        });
+    } catch (const std::exception& e) {
         promise->set_exception(std::make_exception_ptr(
-            std::runtime_error("thread_system_pool_adapter: delayed submit failed")));
+            std::runtime_error(
+                std::string("thread_system_pool_adapter: delayed submit failed: ") + e.what()
+            )));
     }
 
     return future;
@@ -130,7 +137,7 @@ std::future<void> thread_system_pool_adapter::submit_delayed(
 }
 
 size_t thread_system_pool_adapter::worker_count() const {
-    return pool_->get_thread_count();
+    return pool_->get_active_worker_count();
 }
 
 bool thread_system_pool_adapter::is_running() const {
