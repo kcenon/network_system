@@ -106,9 +106,9 @@ public:
         // which can cause heap corruption during static destruction.
         auto* completed_ptr = &completed_tasks_;
 
-        // Use submit_async which returns a future and throws on failure
+        // Use submit which returns a future and throws on failure
         try {
-            pool_->submit_async([task = std::move(task), promise, completed_ptr]() mutable {
+            pool_->submit([task = std::move(task), promise, completed_ptr]() mutable {
                 try {
                     if (task) task();
                     promise->set_value();
@@ -156,9 +156,9 @@ public:
         // which can cause heap corruption during static destruction.
         auto* completed_ptr = &completed_tasks_;
 
-        // Use submit_async which returns a future and throws on failure
+        // Use submit which returns a future and throws on failure
         try {
-            pool_->submit_async([task = std::move(task), delay, promise, completed_ptr]() mutable {
+            pool_->submit([task = std::move(task), delay, promise, completed_ptr]() mutable {
                 try {
                     std::this_thread::sleep_for(delay);
                     if (task) task();
