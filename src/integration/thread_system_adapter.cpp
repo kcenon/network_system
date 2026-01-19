@@ -74,9 +74,9 @@ std::future<void> thread_system_pool_adapter::submit(std::function<void()> task)
     auto promise = std::make_shared<std::promise<void>>();
     auto future = promise->get_future();
 
-    // Use submit_async which returns a future and throws on failure
+    // Use submit which returns a future and throws on failure
     try {
-        pool_->submit_async([task = std::move(task), promise]() mutable {
+        pool_->submit([task = std::move(task), promise]() mutable {
             try {
                 if (task) task();
                 promise->set_value();
@@ -114,9 +114,9 @@ std::future<void> thread_system_pool_adapter::submit_delayed(
         return future;
     }
 
-    // Use submit_async which returns a future and throws on failure
+    // Use submit which returns a future and throws on failure
     try {
-        pool_->submit_async([task = std::move(task), delay, promise]() mutable {
+        pool_->submit([task = std::move(task), delay, promise]() mutable {
             try {
                 std::this_thread::sleep_for(delay);
                 if (task) task();
