@@ -36,7 +36,7 @@ network_system/
 ├── 📄 .gitignore                  # Git ignore rules
 ├── 📄 LICENSE                     # BSD 3-Clause License
 ├── 📄 README.md                   # Main documentation
-├── 📄 README_KO.md                # Korean documentation
+├── 📄 README.kr.md                # Korean documentation
 └── 📄 BASELINE.md                 # Performance baseline
 ```
 
@@ -351,7 +351,7 @@ docs/
     └── 003-websocket-protocol.md
 ```
 
-**Korean Translations**: Each major document has a `*_KO.md` Korean version.
+**Korean Translations**: Each major document has a `*.kr.md` Korean version.
 
 ---
 

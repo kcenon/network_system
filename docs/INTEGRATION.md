@@ -1,6 +1,6 @@
 # Integration Guide
 
-> **Language:** **English** | [한국어](INTEGRATION_KO.md)
+> **Language:** **English** | [한국어](INTEGRATION.kr.md)
 
 This guide explains how to integrate network_system with external systems and libraries.
 

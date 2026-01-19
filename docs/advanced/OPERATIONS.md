@@ -1,6 +1,6 @@
 # Operations Guide
 
-> **Language:** **English** | [한국어](OPERATIONS_KO.md)
+> **Language:** **English** | [한국어](OPERATIONS.kr.md)
 
 This guide covers deployment, configuration, monitoring, and operational best practices for the Network System.
 

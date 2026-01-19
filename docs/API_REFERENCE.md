@@ -1,6 +1,6 @@
 # API Reference
 
-> **Language:** **English** | [한국어](API_REFERENCE_KO.md)
+> **Language:** **English** | [한국어](API_REFERENCE.kr.md)
 
 Comprehensive API documentation for the Network System library.
 

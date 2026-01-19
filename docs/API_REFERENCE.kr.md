@@ -1459,7 +1459,7 @@ void example_thread_system_integration() {
 
 ## 버전 기록
 
-자세한 버전 기록은 [CHANGELOG.md](CHANGELOG_KO.md)를 참조하십시오.
+자세한 버전 기록은 [CHANGELOG.md](CHANGELOG.kr.md)를 참조하십시오.
 
 ## 라이선스
 

@@ -1,6 +1,6 @@
 # Design Decisions
 
-> **Language:** **English** | [한국어](DESIGN_DECISIONS_KO.md)
+> **Language:** **English** | [한국어](DESIGN_DECISIONS.kr.md)
 
 This document explains key design decisions in network_system, particularly patterns that may seem unusual but are intentional and necessary.
 

@@ -2,7 +2,7 @@
 
 > **Part 3 of 4** | [📑 Index](README.md) | [← Previous: Testing](02-dependency-and-testing.md) | [Next: Error Handling →](04-error-handling.md)
 
-> **Language:** **English** | [한국어](03-performance-and-resources_KO.md)
+> **Language:** **English** | [한국어](03-performance-and-resources.kr.md)
 
 This document covers performance monitoring, benchmarking, and resource management patterns (RAII, smart pointers, thread safety).
 

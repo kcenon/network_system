@@ -38,7 +38,7 @@ network_system/
 ├── 📄 .gitignore                  # Git ignore 규칙
 ├── 📄 LICENSE                     # BSD 3-Clause 라이선스
 ├── 📄 README.md                   # 메인 문서
-├── 📄 README_KO.md                # 한국어 문서
+├── 📄 README.kr.md                # 한국어 문서
 └── 📄 BASELINE.md                 # 성능 기준선
 ```
 
@@ -306,7 +306,7 @@ docs/
     └── 003-websocket-protocol.md
 ```
 
-**한국어 번역**: 각 주요 문서에는 `*_KO.md` 한국어 버전이 있습니다.
+**한국어 번역**: 각 주요 문서에는 `*.kr.md` 한국어 버전이 있습니다.
 
 ---
 
@@ -544,11 +544,11 @@ class messaging_server {
 
 ## 참고 문서
 
-- [ARCHITECTURE.md](ARCHITECTURE.md) / [ARCHITECTURE_KO.md](ARCHITECTURE_KO.md) - 시스템 아키텍처 세부사항
+- [ARCHITECTURE.md](ARCHITECTURE.md) / [ARCHITECTURE.kr.md](ARCHITECTURE.kr.md) - 시스템 아키텍처 세부사항
 - [API_REFERENCE.md](API_REFERENCE.md) - 완전한 API 문서
 - [BUILD.md](BUILD.md) - 빌드 지침 및 설정
-- [FEATURES.md](FEATURES.md) / [FEATURES_KO.md](FEATURES_KO.md) - 기능 설명
-- [BENCHMARKS.md](BENCHMARKS.md) / [BENCHMARKS_KO.md](BENCHMARKS_KO.md) - 성능 벤치마크
+- [FEATURES.md](FEATURES.md) / [FEATURES.kr.md](FEATURES.kr.md) - 기능 설명
+- [BENCHMARKS.md](BENCHMARKS.md) / [BENCHMARKS.kr.md](BENCHMARKS.kr.md) - 성능 벤치마크
 
 ---
 

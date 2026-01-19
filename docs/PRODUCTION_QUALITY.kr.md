@@ -154,7 +154,7 @@ server->set_verify_mode(
 server->start_server(8443);
 ```
 
-상세 구성은 [TLS_SETUP_GUIDE.md](TLS_SETUP_GUIDE.md) / [TLS_SETUP_GUIDE_KO.md](TLS_SETUP_GUIDE_KO.md) 참조.
+상세 구성은 [TLS_SETUP_GUIDE.md](TLS_SETUP_GUIDE.md) / [TLS_SETUP_GUIDE.kr.md](TLS_SETUP_GUIDE.kr.md) 참조.
 
 ### WebSocket 보안
 
@@ -303,7 +303,7 @@ if (current_throughput < baseline_throughput * 0.90) {
 | 메시지 처리량 (1KB) | ~128K msg/s | ✅ 합성 |
 | 메시지 처리량 (8KB) | ~21K msg/s | ✅ 합성 |
 
-상세 성능 데이터는 [BENCHMARKS.md](BENCHMARKS.md) / [BENCHMARKS_KO.md](BENCHMARKS_KO.md) 참조.
+상세 성능 데이터는 [BENCHMARKS.md](BENCHMARKS.md) / [BENCHMARKS.kr.md](BENCHMARKS.kr.md) 참조.
 
 ---
 
@@ -401,10 +401,10 @@ ColumnLimit: 100
 ---
 
 **참고 문서**:
-- [TLS_SETUP_GUIDE.md](TLS_SETUP_GUIDE.md) / [TLS_SETUP_GUIDE_KO.md](TLS_SETUP_GUIDE_KO.md) - TLS/SSL 보안 설정
-- [BENCHMARKS.md](BENCHMARKS.md) / [BENCHMARKS_KO.md](BENCHMARKS_KO.md) - 성능 메트릭
-- [ARCHITECTURE.md](ARCHITECTURE.md) / [ARCHITECTURE_KO.md](ARCHITECTURE_KO.md) - 시스템 아키텍처
-- [TROUBLESHOOTING.md](TROUBLESHOOTING.md) / [TROUBLESHOOTING_KO.md](TROUBLESHOOTING_KO.md) - 디버깅 및 문제 해결
+- [TLS_SETUP_GUIDE.md](TLS_SETUP_GUIDE.md) / [TLS_SETUP_GUIDE.kr.md](TLS_SETUP_GUIDE.kr.md) - TLS/SSL 보안 설정
+- [BENCHMARKS.md](BENCHMARKS.md) / [BENCHMARKS.kr.md](BENCHMARKS.kr.md) - 성능 메트릭
+- [ARCHITECTURE.md](ARCHITECTURE.md) / [ARCHITECTURE.kr.md](ARCHITECTURE.kr.md) - 시스템 아키텍처
+- [TROUBLESHOOTING.md](TROUBLESHOOTING.md) / [TROUBLESHOOTING.kr.md](TROUBLESHOOTING.kr.md) - 디버깅 및 문제 해결
 
 ---
 

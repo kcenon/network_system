@@ -1,6 +1,6 @@
 # Changelog
 
-> **Language:** **English** | [한국어](CHANGELOG_KO.md)
+> **Language:** **English** | [한국어](CHANGELOG.kr.md)
 
 ## Table of Contents
 

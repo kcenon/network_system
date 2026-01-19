@@ -1,6 +1,6 @@
 # Build Instructions
 
-> **Language:** **English** | [한국어](BUILD_KO.md)
+> **Language:** **English** | [한국어](BUILD.kr.md)
 
 ## Table of Contents
 - [Prerequisites](#prerequisites)

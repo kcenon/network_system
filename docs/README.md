@@ -1,6 +1,6 @@
 # Network System Documentation
 
-> **Language:** **English** | [한국어](README_KO.md)
+> **Language:** **English** | [한국어](README.kr.md)
 
 **Version:** 0.2.0
 **Last Updated:** 2025-11-28
@@ -42,13 +42,13 @@ Essential documents for understanding the system:
 
 | Document | Description | Korean |
 |----------|-------------|--------|
-| [ARCHITECTURE.md](ARCHITECTURE.md) | System design, ASIO integration, protocol layers | [KO](ARCHITECTURE_KO.md) |
-| [API_REFERENCE.md](API_REFERENCE.md) | Complete API documentation with examples | [KO](API_REFERENCE_KO.md) |
-| [FEATURES.md](FEATURES.md) | Detailed feature descriptions and capabilities | [KO](FEATURES_KO.md) |
-| [BENCHMARKS.md](BENCHMARKS.md) | Performance metrics and methodology | [KO](BENCHMARKS_KO.md) |
-| [PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md) | Codebase organization and directory layout | [KO](PROJECT_STRUCTURE_KO.md) |
-| [PRODUCTION_QUALITY.md](PRODUCTION_QUALITY.md) | Quality metrics and CI/CD status | [KO](PRODUCTION_QUALITY_KO.md) |
-| [CHANGELOG.md](CHANGELOG.md) | Version history and changes | [KO](CHANGELOG_KO.md) |
+| [ARCHITECTURE.md](ARCHITECTURE.md) | System design, ASIO integration, protocol layers | [KO](ARCHITECTURE.kr.md) |
+| [API_REFERENCE.md](API_REFERENCE.md) | Complete API documentation with examples | [KO](API_REFERENCE.kr.md) |
+| [FEATURES.md](FEATURES.md) | Detailed feature descriptions and capabilities | [KO](FEATURES.kr.md) |
+| [BENCHMARKS.md](BENCHMARKS.md) | Performance metrics and methodology | [KO](BENCHMARKS.kr.md) |
+| [PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md) | Codebase organization and directory layout | [KO](PROJECT_STRUCTURE.kr.md) |
+| [PRODUCTION_QUALITY.md](PRODUCTION_QUALITY.md) | Quality metrics and CI/CD status | [KO](PRODUCTION_QUALITY.kr.md) |
+| [CHANGELOG.md](CHANGELOG.md) | Version history and changes | [KO](CHANGELOG.kr.md) |
 
 ### User Guides
 
@@ -56,11 +56,11 @@ Step-by-step guides for users:
 
 | Document | Description | Korean |
 |----------|-------------|--------|
-| [guides/BUILD.md](guides/BUILD.md) | Build instructions for all platforms | [KO](guides/BUILD_KO.md) |
-| [guides/TLS_SETUP_GUIDE.md](guides/TLS_SETUP_GUIDE.md) | TLS/SSL configuration and certificates | [KO](guides/TLS_SETUP_GUIDE_KO.md) |
-| [guides/TROUBLESHOOTING.md](guides/TROUBLESHOOTING.md) | Common problems and solutions | [KO](guides/TROUBLESHOOTING_KO.md) |
-| [INTEGRATION.md](INTEGRATION.md) | Integration with ecosystem systems | [KO](INTEGRATION_KO.md) |
-| [advanced/OPERATIONS.md](advanced/OPERATIONS.md) | Operational guidelines and deployment | [KO](advanced/OPERATIONS_KO.md) |
+| [guides/BUILD.md](guides/BUILD.md) | Build instructions for all platforms | [KO](guides/BUILD.kr.md) |
+| [guides/TLS_SETUP_GUIDE.md](guides/TLS_SETUP_GUIDE.md) | TLS/SSL configuration and certificates | [KO](guides/TLS_SETUP_GUIDE.kr.md) |
+| [guides/TROUBLESHOOTING.md](guides/TROUBLESHOOTING.md) | Common problems and solutions | [KO](guides/TROUBLESHOOTING.kr.md) |
+| [INTEGRATION.md](INTEGRATION.md) | Integration with ecosystem systems | [KO](INTEGRATION.kr.md) |
+| [advanced/OPERATIONS.md](advanced/OPERATIONS.md) | Operational guidelines and deployment | [KO](advanced/OPERATIONS.kr.md) |
 | [guides/LOAD_TEST_GUIDE.md](guides/LOAD_TEST_GUIDE.md) | Load testing methodology and tools | - |
 
 ### Advanced Topics

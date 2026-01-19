@@ -1076,8 +1076,8 @@ int main() {
 - 배포 전 철저한 테스트
 - 해결 방법 또는 사용자 지정 솔루션 문서화
 
-운영 절차는 [운영 가이드](OPERATIONS_KO.md)를 참조하십시오.
-API 문서는 [API 참조](API_REFERENCE_KO.md)를 참조하십시오.
+운영 절차는 [운영 가이드](OPERATIONS.kr.md)를 참조하십시오.
+API 문서는 [API 참조](API_REFERENCE.kr.md)를 참조하십시오.
 
 ---
 
