@@ -1,6 +1,6 @@
 # TLS/SSL Setup Guide for network_system
 
-> **Language:** **English** | [한국어](TLS_SETUP_GUIDE_KO.md)
+> **Language:** **English** | [한국어](TLS_SETUP_GUIDE.kr.md)
 
 ## Table of Contents
 

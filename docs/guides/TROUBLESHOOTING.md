@@ -1,6 +1,6 @@
 # Troubleshooting Guide
 
-> **Language:** **English** | [한국어](TROUBLESHOOTING_KO.md)
+> **Language:** **English** | [한국어](TROUBLESHOOTING.kr.md)
 
 This guide provides solutions for common issues, debugging techniques, and problem resolution strategies for the Network System.
 

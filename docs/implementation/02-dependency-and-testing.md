@@ -2,7 +2,7 @@
 
 > **Part 2 of 4** | [📑 Index](README.md) | [← Previous: Architecture](01-architecture-and-components.md) | [Next: Performance →](03-performance-and-resources.md)
 
-> **Language:** **English** | [한국어](02-dependency-and-testing_KO.md)
+> **Language:** **English** | [한국어](02-dependency-and-testing.kr.md)
 
 This document covers dependency management (CMake, pkg-config) and testing strategies for the network_system.
 

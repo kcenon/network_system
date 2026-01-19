@@ -1,6 +1,6 @@
 # gRPC Integration Guide
 
-> **Language:** **English** | [한국어](GRPC_GUIDE_KO.md)
+> **Language:** **English** | [한국어](GRPC_GUIDE.kr.md)
 
 ---
 

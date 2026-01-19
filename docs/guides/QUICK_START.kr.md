@@ -247,9 +247,9 @@ server->set_connection_handler([](auto session, bool connected) {
 
 ## 다음 단계
 
-- **[빌드 가이드](BUILD_KO.md)** - 상세한 빌드 지침
-- **[TLS 설정 가이드](TLS_SETUP_GUIDE_KO.md)** - 보안 연결 구성
-- **[문제 해결](TROUBLESHOOTING_KO.md)** - 일반적인 문제와 해결책
+- **[빌드 가이드](BUILD.kr.md)** - 상세한 빌드 지침
+- **[TLS 설정 가이드](TLS_SETUP_GUIDE.kr.md)** - 보안 연결 구성
+- **[문제 해결](TROUBLESHOOTING.kr.md)** - 일반적인 문제와 해결책
 - **[부하 테스트 가이드](LOAD_TEST_GUIDE.md)** - 성능 테스트
 - **[예제](../../examples/)** - 더 많은 샘플 애플리케이션
 
@@ -282,7 +282,7 @@ brew install openssl
 - 방화벽 설정 확인
 - 클라이언트의 호스트/포트가 올바른지 확인
 
-더 많은 문제 해결 도움말은 [TROUBLESHOOTING_KO.md](TROUBLESHOOTING_KO.md)를 참조하세요.
+더 많은 문제 해결 도움말은 [TROUBLESHOOTING.kr.md](TROUBLESHOOTING.kr.md)를 참조하세요.
 
 ---
 

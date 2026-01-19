@@ -2,7 +2,7 @@
 
 > **Part 1 of 4** | [📑 Index](README.md) | [Next: Dependency & Testing →](02-dependency-and-testing.md)
 
-> **Language:** **English** | [한국어](01-architecture-and-components_KO.md)
+> **Language:** **English** | [한국어](01-architecture-and-components.kr.md)
 
 This document covers the architectural design and core component implementation of the network_system separation project.
 
