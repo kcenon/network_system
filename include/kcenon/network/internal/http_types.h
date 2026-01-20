@@ -253,7 +253,7 @@ namespace kcenon::network::internal
      * Possible errors:
      * - invalid_argument: Unknown HTTP method string
      */
-    auto string_to_http_method(const std::string& method_str) -> ::kcenon::network::Result<http_method>;
+    auto string_to_http_method(const std::string& method_str) -> ::kcenon::network::internal::Result<http_method>;
 
     /*!
      * \brief Convert HTTP version enum to string
@@ -270,7 +270,7 @@ namespace kcenon::network::internal
      * Possible errors:
      * - invalid_argument: Unknown HTTP version string
      */
-    auto string_to_http_version(const std::string& version_str) -> ::kcenon::network::Result<http_version>;
+    auto string_to_http_version(const std::string& version_str) -> ::kcenon::network::internal::Result<http_version>;
 
     /*!
      * \brief Get HTTP status message for a status code
