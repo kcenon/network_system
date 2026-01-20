@@ -11,6 +11,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **Consolidated Result Type Aliases (#494)**
+  - Clarified that `network::Result<T>`, `network::VoidResult`, and `network::error_info` are deprecated for external use
+  - Internal code continues to use these aliases which now directly map to `kcenon::common` types
+  - Added `kcenon::network::internal` namespace with explicit type aliases for internal implementation
+  - Updated documentation to guide migration to `kcenon::common::Result<T>` for external code
+  - `http_types.h` functions now use `::kcenon::network::internal::Result<T>` for clarity
+
 ### Removed
 - **BREAKING: Removed `compatibility.h` and `network_module` Namespace Aliases (#481)**
   - Deleted `include/kcenon/network/compatibility.h` header file
