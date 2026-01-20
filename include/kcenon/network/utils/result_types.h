@@ -46,49 +46,40 @@ namespace kcenon::network {
 
 #if KCENON_WITH_COMMON_SYSTEM
 	// ============================================================
-	// Primary API: Use common::Result<T> directly
+	// Use common::Result<T> directly for new code
 	// ============================================================
 	//
-	// network_system now uses common_system's Result<T> as the primary
-	// error handling mechanism. While kcenon::network::Result<T> aliases
-	// remain available for backward compatibility, new code should use
-	// kcenon::common::Result<T> directly for ecosystem-wide consistency.
+	// network_system uses common_system's Result<T> as the primary
+	// error handling mechanism. New code should use kcenon::common::Result<T>
+	// directly for ecosystem-wide consistency.
 	//
-	// Migration path:
-	//   Before: kcenon::network::Result<T>
-	//   After:  kcenon::common::Result<T>
+	// The type aliases (network::Result<T>, network::VoidResult,
+	// network::error_info) are provided for internal use and backward
+	// compatibility but are deprecated for external use.
 	//
-	// To enable deprecation warnings for migration preparation, define:
-	//   NETWORK_SYSTEM_ENABLE_DEPRECATION_WARNINGS
+	// Migration path for external code:
+	//   - kcenon::network::Result<T> -> kcenon::common::Result<T>
+	//   - kcenon::network::VoidResult -> kcenon::common::VoidResult
+	//   - kcenon::network::error_info -> kcenon::common::error_info
 	//
-	// See: https://github.com/kcenon/common_system/issues/205
+	// See: https://github.com/kcenon/network_system/issues/494
 	// ============================================================
 
-#ifdef NETWORK_SYSTEM_ENABLE_DEPRECATION_WARNINGS
-	// Deprecated aliases - enable warnings to find usage during migration
-	template<typename T>
-	using Result [[deprecated("Use kcenon::common::Result<T> directly for ecosystem consistency. "
-	                          "See https://github.com/kcenon/common_system/issues/205")]]
-		= ::kcenon::common::Result<T>;
-
-	using VoidResult [[deprecated("Use kcenon::common::VoidResult directly for ecosystem consistency. "
-	                              "See https://github.com/kcenon/common_system/issues/205")]]
-		= ::kcenon::common::VoidResult;
-
-	using error_info [[deprecated("Use kcenon::common::error_info directly for ecosystem consistency. "
-	                              "See https://github.com/kcenon/common_system/issues/205")]]
-		= ::kcenon::common::error_info;
-#else
-	// Backward-compatible aliases (prefer kcenon::common::Result<T> for new code)
-	// These aliases are retained for migration support but may be removed
-	// in a future major version.
+	// Type aliases for internal use (deprecated for external use)
+	// These map directly to common_system types
 	template<typename T>
 	using Result = ::kcenon::common::Result<T>;
-
 	using VoidResult = ::kcenon::common::VoidResult;
-
 	using error_info = ::kcenon::common::error_info;
-#endif
+
+namespace internal {
+	// Internal type aliases - same as namespace-level types
+	// Provided for explicit internal-only usage pattern
+	template<typename T>
+	using Result = ::kcenon::common::Result<T>;
+	using VoidResult = ::kcenon::common::VoidResult;
+	using error_info = ::kcenon::common::error_info;
+} // namespace internal
 
 	// Error code namespace (includes common_errors and network_system)
 	namespace error_codes = ::kcenon::common::error::codes;
@@ -169,6 +160,15 @@ namespace kcenon::network {
 
 	using VoidResult = Result<std::monostate>;
 	using error_info = simple_error;
+
+namespace internal {
+	// Internal type aliases for network_system implementation
+	// These provide a consistent interface regardless of common_system availability
+	template<typename T>
+	using Result = ::kcenon::network::Result<T>;
+	using VoidResult = ::kcenon::network::VoidResult;
+	using error_info = ::kcenon::network::error_info;
+} // namespace internal
 
 	// Minimal error codes (fallback)
 	namespace error_codes {

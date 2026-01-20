@@ -156,7 +156,7 @@ namespace kcenon::network::internal
         }
     }
 
-    auto string_to_http_method(const std::string& method_str) -> ::kcenon::network::Result<http_method>
+    auto string_to_http_method(const std::string& method_str) -> ::kcenon::network::internal::Result<http_method>
     {
         auto upper_method = method_str;
         std::transform(upper_method.begin(), upper_method.end(), upper_method.begin(),
@@ -189,7 +189,7 @@ namespace kcenon::network::internal
         }
     }
 
-    auto string_to_http_version(const std::string& version_str) -> ::kcenon::network::Result<http_version>
+    auto string_to_http_version(const std::string& version_str) -> ::kcenon::network::internal::Result<http_version>
     {
         if (version_str == "HTTP/1.0") return ::kcenon::network::ok(http_version::HTTP_1_0);
         if (version_str == "HTTP/1.1") return ::kcenon::network::ok(http_version::HTTP_1_1);
