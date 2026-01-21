@@ -71,6 +71,23 @@ namespace kcenon::network::internal
 		is_receiving_.store(false);
 	}
 
+	auto udp_socket::close() -> void
+	{
+		// Set closed flag first to prevent new operations
+		is_closed_.store(true);
+		stop_receive();
+
+		// Close the socket
+		std::error_code ec;
+		socket_.close(ec);
+		// Errors during close are intentionally ignored
+	}
+
+	auto udp_socket::is_closed() const -> bool
+	{
+		return is_closed_.load();
+	}
+
 	auto udp_socket::do_receive() -> void
 	{
 		// Check if receiving has been stopped before initiating new async operation
