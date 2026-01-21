@@ -300,13 +300,13 @@ namespace kcenon::network::core
 	{
 		// Adapt interface callback to internal callback type
 		if (callback) {
-			callbacks_.set<kConnectionCallbackIndex>(
+			callbacks_.set<to_index(callback_index::connection)>(
 				[callback = std::move(callback)](std::shared_ptr<ws_connection> conn) {
 					// ws_connection already implements i_websocket_session
 					callback(conn);
 				});
 		} else {
-			callbacks_.set<kConnectionCallbackIndex>(connection_callback_t{});
+			callbacks_.set<to_index(callback_index::connection)>(connection_callback_t{});
 		}
 	}
 
@@ -315,14 +315,14 @@ namespace kcenon::network::core
 	{
 		// Adapt interface callback to internal callback type
 		if (callback) {
-			callbacks_.set<kDisconnectionCallbackIndex>(
+			callbacks_.set<to_index(callback_index::disconnection)>(
 				[callback = std::move(callback)](const std::string& session_id,
 												 internal::ws_close_code code,
 												 const std::string& reason) {
 					callback(session_id, static_cast<uint16_t>(code), reason);
 				});
 		} else {
-			callbacks_.set<kDisconnectionCallbackIndex>(disconnection_callback_t{});
+			callbacks_.set<to_index(callback_index::disconnection)>(disconnection_callback_t{});
 		}
 	}
 
@@ -331,13 +331,13 @@ namespace kcenon::network::core
 	{
 		// Adapt interface callback to internal callback type
 		if (callback) {
-			callbacks_.set<kTextMessageCallbackIndex>(
+			callbacks_.set<to_index(callback_index::text_message)>(
 				[callback = std::move(callback)](std::shared_ptr<ws_connection> conn,
 												 const std::string& message) {
 					callback(conn->id(), message);
 				});
 		} else {
-			callbacks_.set<kTextMessageCallbackIndex>(text_message_callback_t{});
+			callbacks_.set<to_index(callback_index::text_message)>(text_message_callback_t{});
 		}
 	}
 
@@ -346,13 +346,13 @@ namespace kcenon::network::core
 	{
 		// Adapt interface callback to internal callback type
 		if (callback) {
-			callbacks_.set<kBinaryMessageCallbackIndex>(
+			callbacks_.set<to_index(callback_index::binary_message)>(
 				[callback = std::move(callback)](std::shared_ptr<ws_connection> conn,
 												 const std::vector<uint8_t>& data) {
 					callback(conn->id(), data);
 				});
 		} else {
-			callbacks_.set<kBinaryMessageCallbackIndex>(binary_message_callback_t{});
+			callbacks_.set<to_index(callback_index::binary_message)>(binary_message_callback_t{});
 		}
 	}
 
@@ -361,12 +361,12 @@ namespace kcenon::network::core
 	{
 		// Interface and legacy types are compatible
 		if (callback) {
-			callbacks_.set<kErrorCallbackIndex>(
+			callbacks_.set<to_index(callback_index::error)>(
 				[callback = std::move(callback)](const std::string& session_id, std::error_code ec) {
 					callback(session_id, ec);
 				});
 		} else {
-			callbacks_.set<kErrorCallbackIndex>(error_callback_t{});
+			callbacks_.set<to_index(callback_index::error)>(error_callback_t{});
 		}
 	}
 
@@ -697,35 +697,35 @@ namespace kcenon::network::core
 
 	auto messaging_ws_server::invoke_connection_callback(std::shared_ptr<ws_connection> conn) -> void
 	{
-		callbacks_.invoke<kConnectionCallbackIndex>(conn);
+		callbacks_.invoke<to_index(callback_index::connection)>(conn);
 	}
 
 	auto messaging_ws_server::invoke_disconnection_callback(const std::string& conn_id,
 	                                                        internal::ws_close_code code,
 	                                                        const std::string& reason) -> void
 	{
-		callbacks_.invoke<kDisconnectionCallbackIndex>(conn_id, code, reason);
+		callbacks_.invoke<to_index(callback_index::disconnection)>(conn_id, code, reason);
 	}
 
 	auto messaging_ws_server::invoke_message_callback(std::shared_ptr<ws_connection> conn,
 	                                                  const internal::ws_message& msg) -> void
 	{
-		callbacks_.invoke<kMessageCallbackIndex>(conn, msg);
+		callbacks_.invoke<to_index(callback_index::message)>(conn, msg);
 
 		if (msg.type == internal::ws_message_type::text)
 		{
-			callbacks_.invoke<kTextMessageCallbackIndex>(conn, msg.as_text());
+			callbacks_.invoke<to_index(callback_index::text_message)>(conn, msg.as_text());
 		}
 		else if (msg.type == internal::ws_message_type::binary)
 		{
-			callbacks_.invoke<kBinaryMessageCallbackIndex>(conn, msg.as_binary());
+			callbacks_.invoke<to_index(callback_index::binary_message)>(conn, msg.as_binary());
 		}
 	}
 
 	auto messaging_ws_server::invoke_error_callback(const std::string& conn_id,
 	                                                std::error_code ec) -> void
 	{
-		callbacks_.invoke<kErrorCallbackIndex>(conn_id, ec);
+		callbacks_.invoke<to_index(callback_index::error)>(conn_id, ec);
 	}
 
 } // namespace kcenon::network::core

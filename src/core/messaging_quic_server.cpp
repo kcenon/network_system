@@ -732,20 +732,20 @@ auto messaging_quic_server::cleanup_dead_sessions() -> void
 auto messaging_quic_server::invoke_connection_callback(
 	std::shared_ptr<session::quic_session> session) -> void
 {
-	callbacks_.invoke<kConnectionCallbackIndex>(session);
+	callbacks_.invoke<to_index(callback_index::connection)>(session);
 }
 
 auto messaging_quic_server::invoke_disconnection_callback(
 	std::shared_ptr<session::quic_session> session) -> void
 {
-	callbacks_.invoke<kDisconnectionCallbackIndex>(session);
+	callbacks_.invoke<to_index(callback_index::disconnection)>(session);
 }
 
 auto messaging_quic_server::invoke_receive_callback(
 	std::shared_ptr<session::quic_session> session,
 	const std::vector<uint8_t>& data) -> void
 {
-	callbacks_.invoke<kReceiveCallbackIndex>(session, data);
+	callbacks_.invoke<to_index(callback_index::receive)>(session, data);
 }
 
 auto messaging_quic_server::invoke_stream_receive_callback(
@@ -754,12 +754,12 @@ auto messaging_quic_server::invoke_stream_receive_callback(
 	const std::vector<uint8_t>& data,
 	bool fin) -> void
 {
-	callbacks_.invoke<kStreamReceiveCallbackIndex>(session, stream_id, data, fin);
+	callbacks_.invoke<to_index(callback_index::stream_receive)>(session, stream_id, data, fin);
 }
 
 auto messaging_quic_server::invoke_error_callback(std::error_code ec) -> void
 {
-	callbacks_.invoke<kErrorCallbackIndex>(ec);
+	callbacks_.invoke<to_index(callback_index::error)>(ec);
 }
 
 // =============================================================================
@@ -768,27 +768,27 @@ auto messaging_quic_server::invoke_error_callback(std::error_code ec) -> void
 
 auto messaging_quic_server::set_connection_callback(connection_callback_t callback) -> void
 {
-	callbacks_.set<kConnectionCallbackIndex>(std::move(callback));
+	callbacks_.set<to_index(callback_index::connection)>(std::move(callback));
 }
 
 auto messaging_quic_server::set_disconnection_callback(disconnection_callback_t callback) -> void
 {
-	callbacks_.set<kDisconnectionCallbackIndex>(std::move(callback));
+	callbacks_.set<to_index(callback_index::disconnection)>(std::move(callback));
 }
 
 auto messaging_quic_server::set_receive_callback(receive_callback_t callback) -> void
 {
-	callbacks_.set<kReceiveCallbackIndex>(std::move(callback));
+	callbacks_.set<to_index(callback_index::receive)>(std::move(callback));
 }
 
 auto messaging_quic_server::set_stream_receive_callback(stream_receive_callback_t callback) -> void
 {
-	callbacks_.set<kStreamReceiveCallbackIndex>(std::move(callback));
+	callbacks_.set<to_index(callback_index::stream_receive)>(std::move(callback));
 }
 
 auto messaging_quic_server::set_error_callback(error_callback_t callback) -> void
 {
-	callbacks_.set<kErrorCallbackIndex>(std::move(callback));
+	callbacks_.set<to_index(callback_index::error)>(std::move(callback));
 }
 
 // =============================================================================
