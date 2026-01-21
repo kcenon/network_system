@@ -32,6 +32,28 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
+/**
+ * @file messaging_server.h
+ * @brief Legacy TCP server class.
+ *
+ * @deprecated This header is deprecated. Use unified_messaging_server.h instead.
+ *
+ * Migration guide:
+ * @code
+ * // Old code:
+ * #include <kcenon/network/core/messaging_server.h>
+ * auto server = std::make_shared<messaging_server>("server1");
+ *
+ * // New code:
+ * #include <kcenon/network/core/unified_messaging_server.h>
+ * auto server = std::make_shared<tcp_server>("server1");
+ * // Or: auto server = std::make_shared<unified_messaging_server<tcp_protocol>>("server1");
+ * @endcode
+ *
+ * @see unified_messaging_server.h for the new template-based API
+ * @see unified_compat.h for backward-compatible type aliases
+ */
+
 #include <kcenon/network/config/feature_flags.h>
 
 #include <atomic>
