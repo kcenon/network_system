@@ -97,9 +97,9 @@ auto messaging_client::start_client(std::string_view host, unsigned short port)
 }
 
 auto messaging_client::stop_client() -> VoidResult {
-  is_connected_.store(false, std::memory_order_release);
-
   // Use base class do_stop which handles lifecycle management and calls on_stopped()
+  // Note: do_stop() sets stop_initiated_ first, then calls do_stop_impl() which
+  // handles is_connected_ reset and async operation cleanup in the correct order.
   return do_stop();
 }
 
@@ -243,6 +243,9 @@ auto messaging_client::do_stop_impl() -> VoidResult {
   // NOTE: No logging in do_stop to prevent heap corruption during static
   // destruction. This method may be called from destructor when
   // GlobalLoggerRegistry is already destroyed.
+
+  // Mark as disconnected first (stop_initiated_ is already set by base class do_stop())
+  is_connected_.store(false, std::memory_order_release);
 
   try {
     // Swap out socket with mutex protection and close outside lock
