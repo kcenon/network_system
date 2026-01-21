@@ -32,6 +32,29 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
+/**
+ * @file secure_messaging_client.h
+ * @brief Legacy secure TCP client class.
+ *
+ * @deprecated This header is deprecated. Use unified_messaging_client.h instead.
+ *
+ * Migration guide:
+ * @code
+ * // Old code:
+ * #include <kcenon/network/core/secure_messaging_client.h>
+ * auto client = std::make_shared<secure_messaging_client>("client1");
+ *
+ * // New code:
+ * #include <kcenon/network/core/unified_messaging_client.h>
+ * tls_enabled tls_config{.cert_path = "cert.pem", .key_path = "key.pem"};
+ * auto client = std::make_shared<secure_tcp_client>("client1", tls_config);
+ * // Or: auto client = std::make_shared<unified_messaging_client<tcp_protocol, tls_enabled>>("client1", tls_config);
+ * @endcode
+ *
+ * @see unified_messaging_client.h for the new template-based API
+ * @see unified_compat.h for backward-compatible type aliases
+ */
+
 #include <atomic>
 #include <functional>
 #include <future>
@@ -57,6 +80,8 @@ namespace kcenon::network::core
 	/*!
 	 * \class secure_messaging_client
 	 * \brief A secure client for establishing TLS/SSL encrypted TCP connections to a server.
+	 *
+	 * @deprecated Use unified_messaging_client<tcp_protocol, tls_enabled> or secure_tcp_client instead.
 	 *
 	 * This class uses composition pattern with lifecycle_manager and
 	 * callback_manager for common lifecycle management and callback handling.
