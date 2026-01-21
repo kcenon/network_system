@@ -183,22 +183,22 @@ namespace kcenon::network::core
 
 	auto secure_messaging_server::set_connection_callback(connection_callback_t callback) -> void
 	{
-		callbacks_.set<kConnectionCallback>(std::move(callback));
+		callbacks_.set<to_index(callback_index::connection)>(std::move(callback));
 	}
 
 	auto secure_messaging_server::set_disconnection_callback(disconnection_callback_t callback) -> void
 	{
-		callbacks_.set<kDisconnectionCallback>(std::move(callback));
+		callbacks_.set<to_index(callback_index::disconnection)>(std::move(callback));
 	}
 
 	auto secure_messaging_server::set_receive_callback(receive_callback_t callback) -> void
 	{
-		callbacks_.set<kReceiveCallback>(std::move(callback));
+		callbacks_.set<to_index(callback_index::receive)>(std::move(callback));
 	}
 
 	auto secure_messaging_server::set_error_callback(error_callback_t callback) -> void
 	{
-		callbacks_.set<kErrorCallback>(std::move(callback));
+		callbacks_.set<to_index(callback_index::error)>(std::move(callback));
 	}
 
 	// =====================================================================
@@ -207,28 +207,28 @@ namespace kcenon::network::core
 
 	auto secure_messaging_server::get_connection_callback() const -> connection_callback_t
 	{
-		return callbacks_.get<kConnectionCallback>();
+		return callbacks_.get<to_index(callback_index::connection)>();
 	}
 
 	auto secure_messaging_server::get_disconnection_callback() const -> disconnection_callback_t
 	{
-		return callbacks_.get<kDisconnectionCallback>();
+		return callbacks_.get<to_index(callback_index::disconnection)>();
 	}
 
 	auto secure_messaging_server::get_receive_callback() const -> receive_callback_t
 	{
-		return callbacks_.get<kReceiveCallback>();
+		return callbacks_.get<to_index(callback_index::receive)>();
 	}
 
 	auto secure_messaging_server::get_error_callback() const -> error_callback_t
 	{
-		return callbacks_.get<kErrorCallback>();
+		return callbacks_.get<to_index(callback_index::error)>();
 	}
 
 	auto secure_messaging_server::invoke_connection_callback(
 		std::shared_ptr<session::secure_session> session) -> void
 	{
-		callbacks_.invoke<kConnectionCallback>(session);
+		callbacks_.invoke<to_index(callback_index::connection)>(session);
 	}
 
 	// =====================================================================

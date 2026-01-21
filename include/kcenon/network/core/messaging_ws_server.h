@@ -32,6 +32,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
+#include "kcenon/network/core/callback_indices.h"
 #include "kcenon/network/interfaces/i_websocket_server.h"
 #include "kcenon/network/internal/websocket_protocol.h"
 #include "kcenon/network/utils/result_types.h"
@@ -491,15 +492,8 @@ namespace kcenon::network::core
 		 */
 		auto invoke_error_callback(const std::string& conn_id, std::error_code ec) -> void;
 
-		// =====================================================================
-		// Callback indices for callback_manager
-		// =====================================================================
-		static constexpr std::size_t kConnectionCallbackIndex = 0;
-		static constexpr std::size_t kDisconnectionCallbackIndex = 1;
-		static constexpr std::size_t kMessageCallbackIndex = 2;
-		static constexpr std::size_t kTextMessageCallbackIndex = 3;
-		static constexpr std::size_t kBinaryMessageCallbackIndex = 4;
-		static constexpr std::size_t kErrorCallbackIndex = 5;
+		//! \brief Callback index type alias for clarity
+		using callback_index = ws_server_callback;
 
 		//! \brief Callback manager type for this server
 		using callbacks_t = utils::callback_manager<
