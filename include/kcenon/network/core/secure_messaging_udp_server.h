@@ -32,6 +32,29 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
+/**
+ * @file secure_messaging_udp_server.h
+ * @brief Legacy DTLS server class.
+ *
+ * @deprecated This header is deprecated. Use unified_udp_messaging_server.h instead.
+ *
+ * Migration guide:
+ * @code
+ * // Old code:
+ * #include <kcenon/network/core/secure_messaging_udp_server.h>
+ * auto server = std::make_shared<secure_messaging_udp_server>("server1");
+ * server->set_certificate_chain_file("server.crt");
+ * server->set_private_key_file("server.key");
+ *
+ * // New code:
+ * #include <kcenon/network/core/unified_udp_messaging_server.h>
+ * policy::tls_enabled tls_config{.cert_path = "server.crt", .key_path = "server.key"};
+ * auto server = std::make_shared<secure_udp_server>("server1", tls_config);
+ * @endcode
+ *
+ * @see unified_udp_messaging_server.h for the new template-based API
+ */
+
 #include <array>
 #include <atomic>
 #include <functional>
@@ -60,6 +83,8 @@ namespace kcenon::network::core
 	/*!
 	 * \class secure_messaging_udp_server
 	 * \brief A secure UDP server using DTLS (Datagram TLS) for encrypted communication.
+	 *
+	 * @deprecated Use unified_udp_messaging_server<tls_enabled> or secure_udp_server instead.
 	 *
 	 * This class uses the same lifecycle management pattern as other messaging
 	 * classes (is_running_, stop_promise_, etc.) but with UDP-specific callbacks
