@@ -44,6 +44,14 @@
 #include "kcenon/network/core/messaging_client.h"
 #include "kcenon/network/core/messaging_server.h"
 
+// Unified templates with protocol/TLS policy parameters
+#include "kcenon/network/core/unified_messaging_client.h"
+#include "kcenon/network/core/unified_messaging_server.h"
+
+// Protocol tags and TLS policies for unified templates
+#include "kcenon/network/protocol/protocol_tags.h"
+#include "kcenon/network/policy/tls_policy.h"
+
 // Session management
 #include "kcenon/network/session/messaging_session.h"
 
