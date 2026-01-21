@@ -178,13 +178,13 @@ namespace kcenon::network::core
 		if (!callback)
 		{
 			// Clear the callback
-			callbacks_.set<kReceiveCallbackIndex>(nullptr);
+			callbacks_.set<to_index(callback_index::receive)>(nullptr);
 			return;
 		}
 
 		// Adapt the interface callback to the internal callback type
 		// Convert asio::ip::udp::endpoint to endpoint_info
-		callbacks_.set<kReceiveCallbackIndex>(
+		callbacks_.set<to_index(callback_index::receive)>(
 			[callback = std::move(callback)](
 				const std::vector<uint8_t>& data,
 				const asio::ip::udp::endpoint& endpoint)
@@ -198,12 +198,12 @@ namespace kcenon::network::core
 
 	auto messaging_udp_server::set_receive_callback(receive_callback_t callback) -> void
 	{
-		callbacks_.set<kReceiveCallbackIndex>(std::move(callback));
+		callbacks_.set<to_index(callback_index::receive)>(std::move(callback));
 	}
 
 	auto messaging_udp_server::set_error_callback(error_callback_t callback) -> void
 	{
-		callbacks_.set<kErrorCallbackIndex>(std::move(callback));
+		callbacks_.set<to_index(callback_index::error)>(std::move(callback));
 	}
 
 	// ========================================================================
@@ -341,22 +341,22 @@ namespace kcenon::network::core
 		const std::vector<uint8_t>& data,
 		const asio::ip::udp::endpoint& endpoint) -> void
 	{
-		callbacks_.invoke<kReceiveCallbackIndex>(data, endpoint);
+		callbacks_.invoke<to_index(callback_index::receive)>(data, endpoint);
 	}
 
 	auto messaging_udp_server::invoke_error_callback(std::error_code ec) -> void
 	{
-		callbacks_.invoke<kErrorCallbackIndex>(ec);
+		callbacks_.invoke<to_index(callback_index::error)>(ec);
 	}
 
 	auto messaging_udp_server::get_receive_callback() const -> receive_callback_t
 	{
-		return callbacks_.get<kReceiveCallbackIndex>();
+		return callbacks_.get<to_index(callback_index::receive)>();
 	}
 
 	auto messaging_udp_server::get_error_callback() const -> error_callback_t
 	{
-		return callbacks_.get<kErrorCallbackIndex>();
+		return callbacks_.get<to_index(callback_index::error)>();
 	}
 
 } // namespace kcenon::network::core

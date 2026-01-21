@@ -44,6 +44,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <asio.hpp>
 #include <asio/ssl.hpp>
 
+#include "kcenon/network/core/callback_indices.h"
 #include "kcenon/network/internal/secure_tcp_socket.h"
 #include "kcenon/network/integration/thread_integration.h"
 #include "kcenon/network/utils/lifecycle_manager.h"
@@ -282,13 +283,8 @@ namespace kcenon::network::core
 		auto on_error(std::error_code ec) -> void;
 
 	private:
-		// =====================================================================
-		// Callback indices for callback_manager
-		// =====================================================================
-		static constexpr std::size_t kReceiveCallback = 0;
-		static constexpr std::size_t kConnectedCallback = 1;
-		static constexpr std::size_t kDisconnectedCallback = 2;
-		static constexpr std::size_t kErrorCallback = 3;
+		//! \brief Callback index type alias for clarity
+		using callback_index = tcp_client_callback;
 
 		//! \brief Callback manager type for this client
 		using callbacks_t = utils::callback_manager<

@@ -44,6 +44,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <asio.hpp>
 
+#include "kcenon/network/core/callback_indices.h"
 #include "kcenon/network/utils/result_types.h"
 #include "kcenon/network/utils/startable_base.h"
 #include "kcenon/network/utils/callback_manager.h"
@@ -339,13 +340,8 @@ namespace kcenon::network::core {
 		auto start_cleanup_timer() -> void;
 
 	private:
-		// =====================================================================
-		// Callback indices for callback_manager
-		// =====================================================================
-		static constexpr std::size_t kConnectionCallback = 0;
-		static constexpr std::size_t kDisconnectionCallback = 1;
-		static constexpr std::size_t kReceiveCallback = 2;
-		static constexpr std::size_t kErrorCallback = 3;
+		//! \brief Callback index type alias for clarity
+		using callback_index = tcp_server_callback;
 
 		//! \brief Callback manager type for this server
 		using callbacks_t = utils::callback_manager<

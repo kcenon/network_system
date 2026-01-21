@@ -105,7 +105,7 @@ auto messaging_client::stop_client() -> VoidResult {
 
 auto messaging_client::on_stopped() -> void {
   // Invoke disconnected callback after stop completes
-  callbacks_.invoke<kDisconnectedCallback>();
+  callbacks_.invoke<to_index(callback_index::disconnected)>();
 }
 
 // Note: wait_for_stop() and is_running() are inherited from startable_base
@@ -160,19 +160,19 @@ auto messaging_client::send_packet(std::vector<uint8_t>&& data) -> VoidResult {
 }
 
 auto messaging_client::set_receive_callback(receive_callback_t callback) -> void {
-  callbacks_.set<kReceiveCallback>(std::move(callback));
+  callbacks_.set<to_index(callback_index::receive)>(std::move(callback));
 }
 
 auto messaging_client::set_connected_callback(connected_callback_t callback) -> void {
-  callbacks_.set<kConnectedCallback>(std::move(callback));
+  callbacks_.set<to_index(callback_index::connected)>(std::move(callback));
 }
 
 auto messaging_client::set_disconnected_callback(disconnected_callback_t callback) -> void {
-  callbacks_.set<kDisconnectedCallback>(std::move(callback));
+  callbacks_.set<to_index(callback_index::disconnected)>(std::move(callback));
 }
 
 auto messaging_client::set_error_callback(error_callback_t callback) -> void {
-  callbacks_.set<kErrorCallback>(std::move(callback));
+  callbacks_.set<to_index(callback_index::error)>(std::move(callback));
 }
 
 auto messaging_client::set_connected(bool connected) -> void {
@@ -180,19 +180,19 @@ auto messaging_client::set_connected(bool connected) -> void {
 }
 
 auto messaging_client::invoke_receive_callback(const std::vector<uint8_t>& data) -> void {
-  callbacks_.invoke<kReceiveCallback>(data);
+  callbacks_.invoke<to_index(callback_index::receive)>(data);
 }
 
 auto messaging_client::invoke_connected_callback() -> void {
-  callbacks_.invoke<kConnectedCallback>();
+  callbacks_.invoke<to_index(callback_index::connected)>();
 }
 
 auto messaging_client::invoke_disconnected_callback() -> void {
-  callbacks_.invoke<kDisconnectedCallback>();
+  callbacks_.invoke<to_index(callback_index::disconnected)>();
 }
 
 auto messaging_client::invoke_error_callback(std::error_code ec) -> void {
-  callbacks_.invoke<kErrorCallback>(ec);
+  callbacks_.invoke<to_index(callback_index::error)>(ec);
 }
 
 // TCP-specific implementation of client start

@@ -34,6 +34,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <kcenon/network/config/feature_flags.h>
 
+#include "kcenon/network/core/callback_indices.h"
 #include "kcenon/network/core/messaging_quic_client.h"
 #include "kcenon/network/core/network_context.h"
 #include "kcenon/network/interfaces/i_quic_server.h"
@@ -510,14 +511,8 @@ namespace kcenon::network::core
 		 */
 		auto invoke_error_callback(std::error_code ec) -> void;
 
-		// =====================================================================
-		// Callback indices for callback_manager
-		// =====================================================================
-		static constexpr std::size_t kConnectionCallbackIndex = 0;
-		static constexpr std::size_t kDisconnectionCallbackIndex = 1;
-		static constexpr std::size_t kReceiveCallbackIndex = 2;
-		static constexpr std::size_t kStreamReceiveCallbackIndex = 3;
-		static constexpr std::size_t kErrorCallbackIndex = 4;
+		//! \brief Callback index type alias for clarity
+		using callback_index = quic_server_callback;
 
 		//! \brief Callback manager type for this server
 		using callbacks_t = utils::callback_manager<
