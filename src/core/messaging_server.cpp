@@ -53,7 +53,7 @@ namespace kcenon::network::core
 
 	messaging_server::~messaging_server() noexcept
 	{
-		if (lifecycle_.is_running())
+		if (is_running())
 		{
 			stop_server();
 		}
@@ -118,26 +118,10 @@ namespace kcenon::network::core
 			     .set_attribute("server.id", server_id_);
 		}
 
-		if (lifecycle_.is_running())
-		{
-			if (span)
-			{
-				span->set_error("Server is already running");
-			}
-			return error_void(
-				error_codes::network_system::server_already_running,
-				"Server is already running",
-				"messaging_server::start_server",
-				"Server ID: " + server_id_);
-		}
-
-		lifecycle_.set_running();
-		stop_initiated_.store(false, std::memory_order_release);
-
-		auto result = do_start_impl(port);
+		// Use base class do_start which handles lifecycle management
+		auto result = do_start(port);
 		if (result.is_err())
 		{
-			lifecycle_.mark_stopped();
 			if (span)
 			{
 				span->set_error(result.error().message);
@@ -156,38 +140,16 @@ namespace kcenon::network::core
 
 	auto messaging_server::stop_server() -> VoidResult
 	{
-		if (!lifecycle_.is_running())
-		{
-			return error_void(
-				error_codes::network_system::server_not_started,
-				"Server is not running",
-				"messaging_server::stop_server",
-				"Server ID: " + server_id_);
-		}
-
-		// Prevent multiple stop calls
-		bool expected = false;
-		if (!stop_initiated_.compare_exchange_strong(expected, true,
-		                                              std::memory_order_acq_rel))
-		{
-			return ok();
-		}
-
-		auto result = do_stop_impl();
-		lifecycle_.mark_stopped();
-
-		return result;
+		// Use base class do_stop which handles lifecycle management and calls on_stopped()
+		return do_stop();
 	}
 
-	auto messaging_server::wait_for_stop() -> void
+	auto messaging_server::on_stopped() -> void
 	{
-		lifecycle_.wait_for_stop();
+		// No-op for server - no disconnection callback at server level
 	}
 
-	auto messaging_server::is_running() const noexcept -> bool
-	{
-		return lifecycle_.is_running();
-	}
+	// Note: wait_for_stop() and is_running() are inherited from startable_base
 
 	auto messaging_server::server_id() const -> const std::string&
 	{

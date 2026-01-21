@@ -46,7 +46,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "kcenon/network/internal/tcp_socket.h"
 #include "kcenon/network/integration/io_context_thread_manager.h"
-#include "kcenon/network/utils/lifecycle_manager.h"
+#include "kcenon/network/utils/startable_base.h"
 #include "kcenon/network/utils/callback_manager.h"
 #include "kcenon/network/utils/result_types.h"
 
@@ -81,7 +81,9 @@ namespace kcenon::network::core
 	 */
 	class messaging_client
 		: public std::enable_shared_from_this<messaging_client>
+		, public utils::startable_base<messaging_client>
 	{
+		friend class utils::startable_base<messaging_client>;
 	public:
 		//! \brief Callback type for received data
 		using receive_callback_t = std::function<void(const std::vector<uint8_t>&)>;
@@ -133,16 +135,7 @@ namespace kcenon::network::core
 		 */
 		[[nodiscard]] auto stop_client() -> VoidResult;
 
-		/*!
-		 * \brief Blocks until stop_client() is called.
-		 */
-		auto wait_for_stop() -> void;
-
-		/*!
-		 * \brief Checks if the client is currently running.
-		 * \return true if running, false otherwise.
-		 */
-		[[nodiscard]] auto is_running() const noexcept -> bool;
+		// Note: wait_for_stop() and is_running() are inherited from startable_base
 
 		/*!
 		 * \brief Checks if the client is connected to the server.
@@ -198,6 +191,25 @@ namespace kcenon::network::core
 		auto set_error_callback(error_callback_t callback) -> void;
 
 	private:
+		// =====================================================================
+		// startable_base CRTP interface
+		// =====================================================================
+
+		/*!
+		 * \brief Returns the component name for error messages.
+		 * \return The component name string view.
+		 */
+		[[nodiscard]] static constexpr auto component_name() noexcept -> std::string_view
+		{
+			return "Client";
+		}
+
+		/*!
+		 * \brief Called after stop operation completes.
+		 * Invokes the disconnected callback.
+		 */
+		auto on_stopped() -> void;
+
 		// =====================================================================
 		// Internal Implementation Methods
 		// =====================================================================
@@ -325,10 +337,9 @@ namespace kcenon::network::core
 		// =====================================================================
 
 		std::string client_id_;              /*!< Client identifier. */
-		utils::lifecycle_manager lifecycle_; /*!< Lifecycle state manager. */
+		// Note: lifecycle_ and stop_initiated_ are managed by startable_base
 		callbacks_t callbacks_;              /*!< Callback manager. */
 		std::atomic<bool> is_connected_{false}; /*!< Connection state. */
-		std::atomic<bool> stop_initiated_{false}; /*!< Stop in progress flag. */
 
 		std::shared_ptr<asio::io_context>
 			io_context_; /*!< I/O context for async operations. */

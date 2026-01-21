@@ -329,6 +329,30 @@ inline bool is_macos() {
 }
 
 /**
+ * @brief Detect whether tests are running on Linux
+ * @return true when compiled on Linux platform
+ */
+inline bool is_linux() {
+#if defined(__linux__)
+  return true;
+#else
+  return false;
+#endif
+}
+
+/**
+ * @brief Detect whether this is a Debug build
+ * @return true when compiled with debug configuration (no NDEBUG)
+ */
+inline bool is_debug_build() {
+#if defined(NDEBUG)
+  return false;
+#else
+  return true;
+#endif
+}
+
+/**
  * @brief Get compiler identifier
  * @return Compiler name and version string
  */

@@ -45,7 +45,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <asio.hpp>
 
 #include "kcenon/network/utils/result_types.h"
-#include "kcenon/network/utils/lifecycle_manager.h"
+#include "kcenon/network/utils/startable_base.h"
 #include "kcenon/network/utils/callback_manager.h"
 #include "kcenon/network/integration/io_context_thread_manager.h"
 
@@ -110,7 +110,9 @@ namespace kcenon::network::core {
 	 */
 	class messaging_server
 		: public std::enable_shared_from_this<messaging_server>
+		, public utils::startable_base<messaging_server>
 	{
+		friend class utils::startable_base<messaging_server>;
 	public:
 		//! \brief Callback type for new connection
 		using connection_callback_t = std::function<void(std::shared_ptr<session::messaging_session>)>;
@@ -165,16 +167,7 @@ namespace kcenon::network::core {
 		 */
 		[[nodiscard]] auto stop_server() -> VoidResult;
 
-		/*!
-		 * \brief Blocks until stop_server() is called.
-		 */
-		auto wait_for_stop() -> void;
-
-		/*!
-		 * \brief Check if the server is currently running.
-		 * \return true if running, false otherwise.
-		 */
-		[[nodiscard]] auto is_running() const noexcept -> bool;
+		// Note: wait_for_stop() and is_running() are inherited from startable_base
 
 		/*!
 		 * \brief Returns the server identifier.
@@ -231,6 +224,25 @@ namespace kcenon::network::core {
 #endif // KCENON_WITH_COMMON_SYSTEM
 
 	private:
+		// =====================================================================
+		// startable_base CRTP interface
+		// =====================================================================
+
+		/*!
+		 * \brief Returns the component name for error messages.
+		 * \return The component name string view.
+		 */
+		[[nodiscard]] static constexpr auto component_name() noexcept -> std::string_view
+		{
+			return "Server";
+		}
+
+		/*!
+		 * \brief Called after stop operation completes.
+		 * No-op for server (no disconnection callback at server level).
+		 */
+		auto on_stopped() -> void;
+
 		// =====================================================================
 		// Internal Implementation Methods
 		// =====================================================================
@@ -348,9 +360,8 @@ namespace kcenon::network::core {
 		// =====================================================================
 
 		std::string server_id_;               /*!< Server identifier. */
-		utils::lifecycle_manager lifecycle_;  /*!< Lifecycle state manager. */
+		// Note: lifecycle_ and stop_initiated_ are managed by startable_base
 		callbacks_t callbacks_;               /*!< Callback manager. */
-		std::atomic<bool> stop_initiated_{false}; /*!< Stop in progress flag. */
 
 		std::shared_ptr<asio::io_context>
 			io_context_;	/*!< The I/O context for async ops. */
