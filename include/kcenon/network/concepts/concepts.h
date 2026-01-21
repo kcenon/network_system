@@ -98,6 +98,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 // Network-specific concepts (after common_system to avoid forward decl conflicts)
 #include "network_concepts.h"
+#include "socket_concepts.h"
 
 #if KCENON_WITH_COMMON_SYSTEM
 
