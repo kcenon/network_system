@@ -51,7 +51,7 @@ messaging_client::messaging_client(std::string_view client_id)
 }
 
 messaging_client::~messaging_client() noexcept {
-  if (lifecycle_.is_running()) {
+  if (is_running()) {
     stop_client();
   }
 }
@@ -69,16 +69,6 @@ auto messaging_client::start_client(std::string_view host, unsigned short port)
          .set_attribute("client.id", client_id_);
   }
 
-  if (lifecycle_.is_running()) {
-    if (span) {
-      span->set_error("Client is already running");
-    }
-    return error_void(error_codes::common_errors::already_exists,
-                      "Client is already running",
-                      "messaging_client::start_client",
-                      "Client ID: " + client_id_);
-  }
-
   if (host.empty()) {
     if (span) {
       span->set_error("Host cannot be empty");
@@ -88,13 +78,12 @@ auto messaging_client::start_client(std::string_view host, unsigned short port)
                       "messaging_client::start_client");
   }
 
-  lifecycle_.set_running();
+  // Reset connection state before start
   is_connected_.store(false, std::memory_order_release);
-  stop_initiated_.store(false, std::memory_order_release);
 
-  auto result = do_start_impl(host, port);
+  // Use base class do_start which handles lifecycle management
+  auto result = do_start(host, port);
   if (result.is_err()) {
-    lifecycle_.mark_stopped();
     if (span) {
       span->set_error(result.error().message);
     }
@@ -108,35 +97,18 @@ auto messaging_client::start_client(std::string_view host, unsigned short port)
 }
 
 auto messaging_client::stop_client() -> VoidResult {
-  if (!lifecycle_.is_running()) {
-    return ok();
-  }
-
-  // Prevent multiple stop calls
-  bool expected = false;
-  if (!stop_initiated_.compare_exchange_strong(expected, true,
-                                                std::memory_order_acq_rel)) {
-    return ok();
-  }
-
   is_connected_.store(false, std::memory_order_release);
 
-  auto result = do_stop_impl();
-  lifecycle_.mark_stopped();
+  // Use base class do_stop which handles lifecycle management and calls on_stopped()
+  return do_stop();
+}
 
-  // Invoke disconnected callback
+auto messaging_client::on_stopped() -> void {
+  // Invoke disconnected callback after stop completes
   callbacks_.invoke<kDisconnectedCallback>();
-
-  return result;
 }
 
-auto messaging_client::wait_for_stop() -> void {
-  lifecycle_.wait_for_stop();
-}
-
-auto messaging_client::is_running() const noexcept -> bool {
-  return lifecycle_.is_running();
-}
+// Note: wait_for_stop() and is_running() are inherited from startable_base
 
 auto messaging_client::is_connected() const noexcept -> bool {
   return is_connected_.load(std::memory_order_acquire);
@@ -405,7 +377,7 @@ auto messaging_client::do_connect(std::string_view host, unsigned short port)
                              tcp::resolver::results_type results) {
         // Check if stop was initiated before proceeding with socket operations.
         // This prevents race conditions when do_stop() is called during connection.
-        if (stop_initiated_.load(std::memory_order_acquire)) {
+        if (is_stop_initiated()) {
           return;
         }
 
@@ -423,7 +395,7 @@ auto messaging_client::do_connect(std::string_view host, unsigned short port)
         }
 
         // Check again after clearing resolver
-        if (stop_initiated_.load(std::memory_order_acquire)) {
+        if (is_stop_initiated()) {
           return;
         }
 
@@ -441,7 +413,7 @@ auto messaging_client::do_connect(std::string_view host, unsigned short port)
                          [[maybe_unused]] const tcp::endpoint &endpoint) {
               // Check if stop was initiated before proceeding with socket operations.
               // This prevents race conditions when do_stop() is called during connection.
-              if (stop_initiated_.load(std::memory_order_acquire)) {
+              if (is_stop_initiated()) {
                 return;
               }
 
@@ -459,7 +431,7 @@ auto messaging_client::do_connect(std::string_view host, unsigned short port)
               }
 
               // Check again after clearing socket
-              if (stop_initiated_.load(std::memory_order_acquire)) {
+              if (is_stop_initiated()) {
                 return;
               }
 

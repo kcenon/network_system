@@ -217,8 +217,8 @@ TEST_F(ErrorHandlingTest, StopServerNotStarted) {
   // Try to stop server that was never started
   auto result = server_->stop_server();
 
-  // Should fail or be handled gracefully
-  EXPECT_FALSE(result.is_ok());
+  // Idempotent stop: returns ok() even if not running (safe operation)
+  EXPECT_TRUE(result.is_ok());
 }
 
 // ============================================================================
