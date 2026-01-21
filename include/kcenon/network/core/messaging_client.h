@@ -32,6 +32,28 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
+/**
+ * @file messaging_client.h
+ * @brief Legacy TCP client class.
+ *
+ * @deprecated This header is deprecated. Use unified_messaging_client.h instead.
+ *
+ * Migration guide:
+ * @code
+ * // Old code:
+ * #include <kcenon/network/core/messaging_client.h>
+ * auto client = std::make_shared<messaging_client>("client1");
+ *
+ * // New code:
+ * #include <kcenon/network/core/unified_messaging_client.h>
+ * auto client = std::make_shared<tcp_client>("client1");
+ * // Or: auto client = std::make_shared<unified_messaging_client<tcp_protocol>>("client1");
+ * @endcode
+ *
+ * @see unified_messaging_client.h for the new template-based API
+ * @see unified_compat.h for backward-compatible type aliases
+ */
+
 #include <atomic>
 #include <functional>
 #include <future>
@@ -58,6 +80,8 @@ namespace kcenon::network::core
 	/*!
 	 * \class messaging_client
 	 * \brief A basic TCP client that connects to a remote host, sends/receives
+	 *
+	 * @deprecated Use unified_messaging_client<tcp_protocol> or tcp_client instead.
 	 * data using asynchronous operations, and can apply a pipeline for
 	 * transformations.
 	 *
