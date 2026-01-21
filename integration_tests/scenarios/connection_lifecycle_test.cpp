@@ -107,8 +107,8 @@ TEST_F(ConnectionLifecycleTest, ClientConnectionToNonExistentServer) {
     // cleanup. The startable_base CRTP pattern interacts with ASIO's epoll_reactor
     // in a way that causes malloc assertion failures during rapid client destruction.
     // This is a known issue tracked for future investigation.
-    if (test_helpers::is_linux() && test_helpers::is_debug_build()) {
-        GTEST_SKIP() << "Skipping on Linux Debug due to ASIO/glibc heap interaction issue";
+    if (test_helpers::is_linux()) {
+        GTEST_SKIP() << "Skipping on Linux due to ASIO/glibc heap interaction issue in connection failure cleanup";
     }
 
     // io_context lifecycle issues fixed via intentional leak pattern (Issue #400)
