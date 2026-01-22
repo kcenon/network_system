@@ -280,6 +280,13 @@ add_library(NetworkSystem
     # Core type-erased session management (Issue #522)
     src/core/unified_session_manager.cpp
 
+    # Unified interface adapters (Issue #521 Phase 2)
+    src/unified/adapters/tcp_connection_adapter.cpp
+    src/unified/adapters/tcp_listener_adapter.cpp
+
+    # Protocol factory functions (Issue #521 Phase 2)
+    src/protocol/tcp.cpp
+
     # Internal implementation
     src/internal/tcp_socket.cpp
     src/internal/udp_socket.cpp
