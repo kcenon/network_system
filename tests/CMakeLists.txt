@@ -1799,6 +1799,40 @@ if(GTest_FOUND OR GTEST_FOUND)
     )
     message(STATUS "QUIC messaging server tests enabled")
 
+    ##################################################
+    # Unified Interface Tests (Issue #521 Phase 1)
+    ##################################################
+
+    # Unified interfaces tests
+    add_executable(network_unified_interfaces_test
+        unified/unified_interfaces_test.cpp
+    )
+
+    target_link_libraries(network_unified_interfaces_test PRIVATE
+        NetworkSystem
+        GTest::gtest
+        GTest::gtest_main
+        Threads::Threads
+    )
+
+    setup_asio_integration(network_unified_interfaces_test)
+
+    if(COMMON_SYSTEM_INCLUDE_DIR)
+        target_include_directories(network_unified_interfaces_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(network_unified_interfaces_test PRIVATE WITH_COMMON_SYSTEM)
+    endif()
+
+    set_target_properties(network_unified_interfaces_test PROPERTIES
+        CXX_STANDARD 20
+        CXX_STANDARD_REQUIRED ON
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+    )
+
+    gtest_discover_tests(network_unified_interfaces_test
+        DISCOVERY_TIMEOUT 60
+    )
+    message(STATUS "Unified interfaces tests enabled")
+
 else()
     message(WARNING "GTest not found - unit tests will not be built")
 endif()
