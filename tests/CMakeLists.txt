@@ -1833,6 +1833,40 @@ if(GTest_FOUND OR GTEST_FOUND)
     )
     message(STATUS "Unified interfaces tests enabled")
 
+    ##################################################
+    # Type Erasure Infrastructure Tests (Issue #524)
+    ##################################################
+
+    # Session type erasure tests (Phase 1 of #522)
+    add_executable(network_session_type_erasure_test
+        unit/session_type_erasure_test.cpp
+    )
+
+    target_link_libraries(network_session_type_erasure_test PRIVATE
+        NetworkSystem
+        GTest::gtest
+        GTest::gtest_main
+        Threads::Threads
+    )
+
+    setup_asio_integration(network_session_type_erasure_test)
+
+    if(COMMON_SYSTEM_INCLUDE_DIR)
+        target_include_directories(network_session_type_erasure_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(network_session_type_erasure_test PRIVATE WITH_COMMON_SYSTEM)
+    endif()
+
+    set_target_properties(network_session_type_erasure_test PROPERTIES
+        CXX_STANDARD 20
+        CXX_STANDARD_REQUIRED ON
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+    )
+
+    gtest_discover_tests(network_session_type_erasure_test
+        DISCOVERY_TIMEOUT 60
+    )
+    message(STATUS "Session type erasure tests enabled")
+
 else()
     message(WARNING "GTest not found - unit tests will not be built")
 endif()
