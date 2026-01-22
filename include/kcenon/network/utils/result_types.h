@@ -141,8 +141,23 @@ namespace internal {
 	template<typename T>
 	class Result {
 	public:
+		Result(const T& val) : data_(val) {}
 		Result(T&& val) : data_(std::forward<T>(val)) {}
 		Result(const simple_error& err) : data_(err) {}
+
+		// Static factory methods for API compatibility with common::Result<T>
+		template<typename U = T>
+		static Result<T> ok(U&& value) {
+			return Result<T>(std::forward<U>(value));
+		}
+
+		static Result<T> err(const simple_error& error) {
+			return Result<T>(error);
+		}
+
+		static Result<T> err(int code, const std::string& message, const std::string& source = "") {
+			return Result<T>(simple_error(code, message, source));
+		}
 
 		bool is_ok() const { return std::holds_alternative<T>(data_); }
 		bool is_err() const { return !is_ok(); }
