@@ -94,6 +94,35 @@ enum class udp_server_callback : std::size_t {
 };
 
 /**
+ * \brief Callback indices for unified_udp_messaging_client.
+ *
+ * Unified UDP client uses callbacks for: receive, connected, disconnected, error.
+ * The connected/disconnected callbacks are used for DTLS handshake completion.
+ * For plain UDP, connected is called immediately after start.
+ */
+enum class unified_udp_client_callback : std::size_t {
+	receive = 0,
+	connected = 1,
+	disconnected = 2,
+	error = 3
+};
+
+/**
+ * \brief Callback indices for unified_udp_messaging_server.
+ *
+ * Unified UDP server uses callbacks for: receive, client_connected,
+ * client_disconnected, error.
+ * The client_connected/client_disconnected callbacks are used for DTLS sessions.
+ * For plain UDP, only receive and error are meaningful.
+ */
+enum class unified_udp_server_callback : std::size_t {
+	receive = 0,
+	client_connected = 1,
+	client_disconnected = 2,
+	error = 3
+};
+
+/**
  * \brief Callback indices for messaging_ws_client.
  *
  * WebSocket client uses callbacks for: message, text_message, binary_message,

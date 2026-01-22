@@ -32,6 +32,27 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
+/**
+ * @file messaging_udp_client.h
+ * @brief Legacy UDP client class.
+ *
+ * @deprecated This header is deprecated. Use unified_udp_messaging_client.h instead.
+ *
+ * Migration guide:
+ * @code
+ * // Old code:
+ * #include <kcenon/network/core/messaging_udp_client.h>
+ * auto client = std::make_shared<messaging_udp_client>("client1");
+ *
+ * // New code:
+ * #include <kcenon/network/core/unified_udp_messaging_client.h>
+ * auto client = std::make_shared<udp_client>("client1");
+ * // Or: auto client = std::make_shared<unified_udp_messaging_client<no_tls>>("client1");
+ * @endcode
+ *
+ * @see unified_udp_messaging_client.h for the new template-based API
+ */
+
 #include <functional>
 #include <future>
 #include <memory>
@@ -59,6 +80,8 @@ namespace kcenon::network::core
 	/*!
 	 * \class messaging_udp_client
 	 * \brief A UDP client that sends datagrams to a target endpoint and can receive responses.
+	 *
+	 * @deprecated Use unified_udp_messaging_client<no_tls> or udp_client instead.
 	 *
 	 * This class uses composition pattern with lifecycle_manager and
 	 * callback_manager for common lifecycle management and callback handling.

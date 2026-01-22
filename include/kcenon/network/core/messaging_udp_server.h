@@ -32,6 +32,27 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
+/**
+ * @file messaging_udp_server.h
+ * @brief Legacy UDP server class.
+ *
+ * @deprecated This header is deprecated. Use unified_udp_messaging_server.h instead.
+ *
+ * Migration guide:
+ * @code
+ * // Old code:
+ * #include <kcenon/network/core/messaging_udp_server.h>
+ * auto server = std::make_shared<messaging_udp_server>("server1");
+ *
+ * // New code:
+ * #include <kcenon/network/core/unified_udp_messaging_server.h>
+ * auto server = std::make_shared<udp_server>("server1");
+ * // Or: auto server = std::make_shared<unified_udp_messaging_server<no_tls>>("server1");
+ * @endcode
+ *
+ * @see unified_udp_messaging_server.h for the new template-based API
+ */
+
 #include <functional>
 #include <future>
 #include <memory>
@@ -58,6 +79,8 @@ namespace kcenon::network::core
 	/*!
 	 * \class messaging_udp_server
 	 * \brief A UDP server that receives datagrams and routes them based on sender endpoint.
+	 *
+	 * @deprecated Use unified_udp_messaging_server<no_tls> or udp_server instead.
 	 *
 	 * This class uses composition pattern with lifecycle_manager and
 	 * callback_manager for common lifecycle management and callback handling.
