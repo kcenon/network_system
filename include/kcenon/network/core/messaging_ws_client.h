@@ -443,4 +443,40 @@ namespace kcenon::network::core
 		std::mutex ws_socket_mutex_;                     /*!< Protects ws_socket_. */
 	};
 
+// =====================================================================
+// Unified Pattern Type Aliases
+// =====================================================================
+// These aliases provide a consistent API pattern across all protocols,
+// making WebSocket clients accessible via the unified template naming.
+// See: unified_messaging_client.h for TCP, unified_udp_messaging_client.h for UDP.
+
+/*!
+ * \brief Type alias for WebSocket client (plain).
+ *
+ * Provides consistent naming with the unified template pattern.
+ * WebSocket uses HTTP upgrade over TCP, optionally secured via TLS (WSS).
+ *
+ * \code
+ * auto ws_client = std::make_shared<ws_client>("client1");
+ * ws_client->start_client("localhost", 80, "/ws");
+ * \endcode
+ */
+using ws_client = messaging_ws_client;
+
+/*!
+ * \brief Type alias for secure WebSocket client (WSS).
+ *
+ * WebSocket Secure (WSS) uses TLS encryption over the TCP connection.
+ * Note: The actual TLS configuration is handled at the connection level.
+ *
+ * \code
+ * auto wss_client = std::make_shared<secure_ws_client>("client1");
+ * wss_client->start_client("localhost", 443, "/ws");
+ * \endcode
+ *
+ * \note Currently uses the same implementation as messaging_ws_client.
+ *       TLS is negotiated via the wss:// scheme or port configuration.
+ */
+using secure_ws_client = messaging_ws_client;
+
 } // namespace kcenon::network::core
