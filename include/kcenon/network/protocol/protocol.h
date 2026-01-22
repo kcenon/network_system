@@ -1,0 +1,86 @@
+/*****************************************************************************
+BSD 3-Clause License
+
+Copyright (c) 2025, kcenon
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice, this
+   list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
+
+3. Neither the name of the copyright holder nor the names of its
+   contributors may be used to endorse or promote products derived from
+   this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*****************************************************************************/
+
+#pragma once
+
+/**
+ * @file protocol.h
+ * @brief Convenience header for all protocol factory functions
+ *
+ * This header provides a single include point for all protocol-specific
+ * factory functions that create unified interface implementations.
+ *
+ * ### Available Protocol Factories
+ *
+ * | Namespace | Factory Functions |
+ * |-----------|-------------------|
+ * | `protocol::tcp` | `connect()`, `listen()`, `create_connection()`, `create_listener()` |
+ *
+ * ### Future Protocol Support
+ * - `protocol::udp` - UDP datagram connections (planned)
+ * - `protocol::websocket` - WebSocket connections (planned)
+ * - `protocol::quic` - QUIC connections (planned)
+ *
+ * ### Usage Example
+ * @code
+ * #include <kcenon/network/protocol/protocol.h>
+ *
+ * using namespace kcenon::network;
+ *
+ * // TCP client
+ * auto tcp_conn = protocol::tcp::connect({"localhost", 8080});
+ * tcp_conn->set_callbacks({
+ *     .on_connected = []() { std::cout << "Connected!\n"; },
+ *     .on_data = [](std::span<const std::byte> data) {
+ *         // Handle received data
+ *     }
+ * });
+ *
+ * // TCP server
+ * auto tcp_server = protocol::tcp::listen(8080);
+ * tcp_server->set_callbacks({
+ *     .on_accept = [](std::string_view conn_id) {
+ *         std::cout << "New connection: " << conn_id << "\n";
+ *     }
+ * });
+ * @endcode
+ *
+ * @see unified::i_connection
+ * @see unified::i_listener
+ * @see unified::i_transport
+ */
+
+// Protocol factory headers
+#include "tcp.h"
+
+// Protocol tag types
+#include "protocol_tags.h"
