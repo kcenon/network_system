@@ -526,4 +526,40 @@ namespace kcenon::network::core
 		std::shared_ptr<ws_session_manager> session_mgr_; /*!< Session manager. */
 	};
 
+// =====================================================================
+// Unified Pattern Type Aliases
+// =====================================================================
+// These aliases provide a consistent API pattern across all protocols,
+// making WebSocket servers accessible via the unified template naming.
+// See: unified_messaging_server.h for TCP, unified_udp_messaging_server.h for UDP.
+
+/*!
+ * \brief Type alias for WebSocket server (plain).
+ *
+ * Provides consistent naming with the unified template pattern.
+ * WebSocket uses HTTP upgrade over TCP, optionally secured via TLS (WSS).
+ *
+ * \code
+ * auto ws_server = std::make_shared<ws_server>("server1");
+ * ws_server->start_server(8080, "/ws");
+ * \endcode
+ */
+using ws_server = messaging_ws_server;
+
+/*!
+ * \brief Type alias for secure WebSocket server (WSS).
+ *
+ * WebSocket Secure (WSS) uses TLS encryption over the TCP connection.
+ * Note: TLS configuration should be handled at the server setup level.
+ *
+ * \code
+ * auto wss_server = std::make_shared<secure_ws_server>("server1");
+ * wss_server->start_server(8443, "/ws");
+ * \endcode
+ *
+ * \note Currently uses the same implementation as messaging_ws_server.
+ *       TLS should be configured via server configuration options.
+ */
+using secure_ws_server = messaging_ws_server;
+
 } // namespace kcenon::network::core

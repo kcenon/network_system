@@ -811,6 +811,70 @@ if(GTest_FOUND OR GTEST_FOUND)
             DISCOVERY_TIMEOUT 60
         )
         message(STATUS "WebSocket protocol tests enabled")
+
+        # WebSocket messaging client tests (Phase 3 unified pattern)
+        add_executable(network_messaging_ws_client_test
+            test_messaging_ws_client.cpp
+        )
+
+        target_link_libraries(network_messaging_ws_client_test PRIVATE
+            NetworkSystem
+            GTest::gtest
+            GTest::gtest_main
+            Threads::Threads
+        )
+
+        # Setup ASIO integration
+        setup_asio_integration(network_messaging_ws_client_test)
+
+        # Add system integration paths
+        if(COMMON_SYSTEM_INCLUDE_DIR)
+            target_include_directories(network_messaging_ws_client_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+            target_compile_definitions(network_messaging_ws_client_test PRIVATE WITH_COMMON_SYSTEM)
+        endif()
+
+        set_target_properties(network_messaging_ws_client_test PROPERTIES
+            CXX_STANDARD 20
+            CXX_STANDARD_REQUIRED ON
+            RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+        )
+
+        gtest_discover_tests(network_messaging_ws_client_test
+            DISCOVERY_TIMEOUT 60
+        )
+        message(STATUS "WebSocket messaging client tests enabled")
+
+        # WebSocket messaging server tests (Phase 3 unified pattern)
+        add_executable(network_messaging_ws_server_test
+            test_messaging_ws_server.cpp
+        )
+
+        target_link_libraries(network_messaging_ws_server_test PRIVATE
+            NetworkSystem
+            GTest::gtest
+            GTest::gtest_main
+            Threads::Threads
+        )
+
+        # Setup ASIO integration
+        setup_asio_integration(network_messaging_ws_server_test)
+
+        # Add system integration paths
+        if(COMMON_SYSTEM_INCLUDE_DIR)
+            target_include_directories(network_messaging_ws_server_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+            target_compile_definitions(network_messaging_ws_server_test PRIVATE WITH_COMMON_SYSTEM)
+        endif()
+
+        set_target_properties(network_messaging_ws_server_test PROPERTIES
+            CXX_STANDARD 20
+            CXX_STANDARD_REQUIRED ON
+            RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+        )
+
+        gtest_discover_tests(network_messaging_ws_server_test
+            DISCOVERY_TIMEOUT 60
+        )
+        message(STATUS "WebSocket messaging server tests enabled")
     endif()
 
     ##################################################

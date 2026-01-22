@@ -610,4 +610,39 @@ namespace kcenon::network::core
 		std::atomic<bool> early_data_accepted_{false}; //!< Early data acceptance status
 	};
 
+// =====================================================================
+// Unified Pattern Type Aliases
+// =====================================================================
+// These aliases provide a consistent API pattern across all protocols,
+// making QUIC clients accessible via the unified template naming.
+// See: unified_messaging_client.h for TCP, unified_udp_messaging_client.h for UDP.
+
+/*!
+ * \brief Type alias for QUIC client.
+ *
+ * QUIC (RFC 9000) provides reliable, multiplexed, secure transport.
+ * Note: QUIC always uses TLS 1.3 encryption - there is no "plain" QUIC variant.
+ *
+ * \code
+ * auto client = std::make_shared<quic_client>("client1");
+ * client->start_client("localhost", 4433);
+ * \endcode
+ */
+using quic_client = messaging_quic_client;
+
+/*!
+ * \brief Type alias for secure QUIC client (same as quic_client).
+ *
+ * QUIC inherently uses TLS 1.3 for all connections, so this alias
+ * is provided for API consistency with other protocol patterns.
+ * Both quic_client and secure_quic_client refer to the same implementation.
+ *
+ * \code
+ * // Both are equivalent:
+ * auto client1 = std::make_shared<quic_client>("client1");
+ * auto client2 = std::make_shared<secure_quic_client>("client2");
+ * \endcode
+ */
+using secure_quic_client = messaging_quic_client;
+
 } // namespace kcenon::network::core

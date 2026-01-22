@@ -390,4 +390,33 @@ TEST_F(MessagingQuicClientTest, ApiConsistencyWithTcpClient)
 	EXPECT_TRUE(stop_result.is_ok());
 }
 
+// =============================================================================
+// Unified Pattern Type Alias Tests
+// =============================================================================
+
+TEST_F(MessagingQuicClientTest, TypeAliasQuicClient)
+{
+	// Verify quic_client is an alias for messaging_quic_client
+	static_assert(std::is_same_v<quic_client, messaging_quic_client>,
+	              "quic_client should be an alias for messaging_quic_client");
+
+	auto client = std::make_shared<quic_client>("alias_test");
+	EXPECT_FALSE(client->is_connected());
+	EXPECT_EQ(client->client_id(), "alias_test");
+}
+
+TEST_F(MessagingQuicClientTest, TypeAliasSecureQuicClient)
+{
+	// Verify secure_quic_client is an alias for messaging_quic_client
+	// QUIC always uses TLS 1.3, so secure_quic_client == quic_client
+	static_assert(std::is_same_v<secure_quic_client, messaging_quic_client>,
+	              "secure_quic_client should be an alias for messaging_quic_client");
+	static_assert(std::is_same_v<quic_client, secure_quic_client>,
+	              "quic_client and secure_quic_client should be the same type");
+
+	auto client = std::make_shared<secure_quic_client>("secure_alias_test");
+	EXPECT_FALSE(client->is_connected());
+	EXPECT_EQ(client->client_id(), "secure_alias_test");
+}
+
 } // namespace kcenon::network::core::test
