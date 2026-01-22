@@ -470,4 +470,33 @@ TEST_F(MessagingQuicServerTest, QuicSessionDefaultStats)
 	EXPECT_EQ(stats.cwnd, 0);
 }
 
+// =============================================================================
+// Unified Pattern Type Alias Tests
+// =============================================================================
+
+TEST_F(MessagingQuicServerTest, TypeAliasQuicServer)
+{
+	// Verify quic_server is an alias for messaging_quic_server
+	static_assert(std::is_same_v<quic_server, messaging_quic_server>,
+	              "quic_server should be an alias for messaging_quic_server");
+
+	auto server = std::make_shared<quic_server>("alias_test");
+	EXPECT_FALSE(server->is_running());
+	EXPECT_EQ(server->server_id(), "alias_test");
+}
+
+TEST_F(MessagingQuicServerTest, TypeAliasSecureQuicServer)
+{
+	// Verify secure_quic_server is an alias for messaging_quic_server
+	// QUIC always uses TLS 1.3, so secure_quic_server == quic_server
+	static_assert(std::is_same_v<secure_quic_server, messaging_quic_server>,
+	              "secure_quic_server should be an alias for messaging_quic_server");
+	static_assert(std::is_same_v<quic_server, secure_quic_server>,
+	              "quic_server and secure_quic_server should be the same type");
+
+	auto server = std::make_shared<secure_quic_server>("secure_alias_test");
+	EXPECT_FALSE(server->is_running());
+	EXPECT_EQ(server->server_id(), "secure_alias_test");
+}
+
 } // namespace kcenon::network::core::test
