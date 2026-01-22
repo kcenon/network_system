@@ -30,7 +30,7 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *****************************************************************************/
 
-#include "kcenon/network/core/messaging_ws_client.h"
+#include "kcenon/network/http/websocket_client.h"
 
 #include "kcenon/network/core/network_context.h"
 #include "kcenon/network/internal/tcp_socket.h"
