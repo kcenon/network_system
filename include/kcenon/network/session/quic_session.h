@@ -42,6 +42,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <asio.hpp>
 
+// Note: Uses compatibility header to access experimental QUIC types
+// Internal code should migrate to experimental/ path when ready
 #include "kcenon/network/core/messaging_quic_client.h"
 #include "kcenon/network/interfaces/i_quic_server.h"
 #include "kcenon/network/protocols/quic/connection_id.h"

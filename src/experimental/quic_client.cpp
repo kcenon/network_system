@@ -30,7 +30,8 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *****************************************************************************/
 
-#include "kcenon/network/core/messaging_quic_client.h"
+#define NETWORK_USE_EXPERIMENTAL
+#include "kcenon/network/experimental/quic_client.h"
 #include "kcenon/network/integration/logger_integration.h"
 #include "kcenon/network/tracing/span.h"
 #include "kcenon/network/tracing/trace_context.h"

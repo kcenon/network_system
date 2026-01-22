@@ -256,18 +256,22 @@ add_library(NetworkSystem
     # Main API implementation
     src/network_system.cpp
 
-    # Core implementation
+    # Core implementation (stable TCP/UDP)
     src/core/network_context.cpp
     src/core/messaging_client.cpp
     src/core/messaging_server.cpp
     src/core/messaging_udp_client.cpp
     src/core/messaging_udp_server.cpp
-    src/core/reliable_udp_client.cpp
     src/core/connection_pool.cpp
-    src/core/http_client.cpp
-    src/core/http_server.cpp
-    src/core/messaging_quic_client.cpp
-    src/core/messaging_quic_server.cpp
+
+    # HTTP layer (stable)
+    src/http/http_client.cpp
+    src/http/http_server.cpp
+
+    # Experimental protocols
+    src/experimental/reliable_udp_client.cpp
+    src/experimental/quic_client.cpp
+    src/experimental/quic_server.cpp
 
     # Session management
     src/session/messaging_session.cpp
@@ -396,15 +400,15 @@ if(BUILD_TLS_SUPPORT)
     target_compile_definitions(NetworkSystem PRIVATE NETWORK_OPENSSL_3_X)
 endif()
 
-# WebSocket support (conditional)
+# WebSocket support (conditional) - part of HTTP layer
 if(BUILD_WEBSOCKET_SUPPORT)
     target_sources(NetworkSystem PRIVATE
         src/internal/websocket_frame.cpp
         src/internal/websocket_handshake.cpp
         src/internal/websocket_protocol.cpp
         src/internal/websocket_socket.cpp
-        src/core/messaging_ws_client.cpp
-        src/core/messaging_ws_server.cpp
+        src/http/websocket_client.cpp
+        src/http/websocket_server.cpp
     )
     target_compile_definitions(NetworkSystem PUBLIC BUILD_WEBSOCKET_SUPPORT)
 
