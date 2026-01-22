@@ -277,6 +277,9 @@ add_library(NetworkSystem
     src/session/messaging_session.cpp
     src/session/quic_session.cpp
 
+    # Core type-erased session management (Issue #522)
+    src/core/unified_session_manager.cpp
+
     # Internal implementation
     src/internal/tcp_socket.cpp
     src/internal/udp_socket.cpp
