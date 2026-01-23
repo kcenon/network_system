@@ -60,11 +60,13 @@ auto generate_random_cid() -> protocols::quic::connection_id
 {
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::uniform_int_distribution<uint8_t> dist(0, 255);
+    // Use unsigned short instead of uint8_t for MSVC compatibility
+    // C++ standard only allows short, int, long, long long and their unsigned versions
+    std::uniform_int_distribution<unsigned short> dist(0, 255);
 
     std::vector<uint8_t> cid_bytes(8);
     for (auto& byte : cid_bytes) {
-        byte = dist(gen);
+        byte = static_cast<uint8_t>(dist(gen));
     }
 
     return protocols::quic::connection_id(cid_bytes);
