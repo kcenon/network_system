@@ -283,9 +283,12 @@ add_library(NetworkSystem
     # Unified interface adapters (Issue #521 Phase 2)
     src/unified/adapters/tcp_connection_adapter.cpp
     src/unified/adapters/tcp_listener_adapter.cpp
+    src/unified/adapters/udp_connection_adapter.cpp
+    src/unified/adapters/udp_listener_adapter.cpp
 
     # Protocol factory functions (Issue #521 Phase 2)
     src/protocol/tcp.cpp
+    src/protocol/udp.cpp
 
     # Internal implementation
     src/internal/tcp_socket.cpp
