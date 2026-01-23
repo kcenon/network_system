@@ -44,9 +44,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * | Namespace | Factory Functions |
  * |-----------|-------------------|
  * | `protocol::tcp` | `connect()`, `listen()`, `create_connection()`, `create_listener()` |
+ * | `protocol::udp` | `connect()`, `listen()`, `create_connection()`, `create_listener()` |
  *
  * ### Future Protocol Support
- * - `protocol::udp` - UDP datagram connections (planned)
  * - `protocol::websocket` - WebSocket connections (planned)
  * - `protocol::quic` - QUIC connections (planned)
  *
@@ -72,6 +72,25 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *         std::cout << "New connection: " << conn_id << "\n";
  *     }
  * });
+ *
+ * // UDP client
+ * auto udp_conn = protocol::udp::connect({"localhost", 5555});
+ * udp_conn->set_callbacks({
+ *     .on_data = [](std::span<const std::byte> data) {
+ *         // Handle received datagram
+ *     }
+ * });
+ *
+ * // UDP server
+ * auto udp_server = protocol::udp::listen(5555);
+ * udp_server->set_callbacks({
+ *     .on_accept = [](std::string_view conn_id) {
+ *         std::cout << "New endpoint: " << conn_id << "\n";
+ *     },
+ *     .on_data = [](std::string_view conn_id, std::span<const std::byte> data) {
+ *         // Handle received datagram from conn_id
+ *     }
+ * });
  * @endcode
  *
  * @see unified::i_connection
@@ -81,6 +100,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 // Protocol factory headers
 #include "tcp.h"
+#include "udp.h"
 
 // Protocol tag types
 #include "protocol_tags.h"
