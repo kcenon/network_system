@@ -391,7 +391,7 @@ When adding integration tests:
 
 - [Google Test Documentation](https://google.github.io/googletest/)
 - [Network System API](../README.md)
-- [Performance Baselines](../BASELINE.md)
+- [Performance Baselines](../docs/performance/BASELINE.md)
 
 ## Total Test Count
 

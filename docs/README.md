@@ -62,6 +62,7 @@ Step-by-step guides for users:
 | [INTEGRATION.md](INTEGRATION.md) | Integration with ecosystem systems | [KO](INTEGRATION.kr.md) |
 | [advanced/OPERATIONS.md](advanced/OPERATIONS.md) | Operational guidelines and deployment | [KO](advanced/OPERATIONS.kr.md) |
 | [guides/LOAD_TEST_GUIDE.md](guides/LOAD_TEST_GUIDE.md) | Load testing methodology and tools | - |
+| [guides/UDP_SUPPORT.md](guides/UDP_SUPPORT.md) | UDP protocol support and usage | - |
 
 ### Advanced Topics
 
@@ -76,6 +77,15 @@ For experienced users and performance optimization:
 | [advanced/HTTP_ADVANCED.md](advanced/HTTP_ADVANCED.md) | Advanced HTTP features and configuration |
 | [advanced/MEMORY_PROFILING.md](advanced/MEMORY_PROFILING.md) | Memory analysis and optimization |
 | [advanced/STATIC_ANALYSIS.md](advanced/STATIC_ANALYSIS.md) | Static analysis configuration and results |
+| [advanced/MIGRATION.md](advanced/MIGRATION.md) | Migration guide from messaging_system |
+
+### Performance
+
+Performance metrics and baselines:
+
+| Document | Description | Korean |
+|----------|-------------|--------|
+| [performance/BASELINE.md](performance/BASELINE.md) | Performance baseline metrics | [KO](performance/BASELINE.kr.md) |
 
 ### Contributing
 

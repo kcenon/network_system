@@ -408,7 +408,7 @@ for protocol, metrics in data['protocols'].items():
 
 ## References
 
-- [BASELINE.md](../BASELINE.md) - Performance baseline documentation
+- [BASELINE.md](../performance/BASELINE.md) - Performance baseline documentation
 - [WEBSOCKET_IMPLEMENTATION_PLAN.md](WEBSOCKET_IMPLEMENTATION_PLAN.md) - Phase 7 implementation details
 - [Google Test Documentation](https://google.github.io/googletest/) - Test framework reference
 - [GitHub Actions Documentation](https://docs.github.com/en/actions) - CI/CD workflow reference
