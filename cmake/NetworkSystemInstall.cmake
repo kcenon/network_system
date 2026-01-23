@@ -11,14 +11,22 @@ include(CMakePackageConfigHelpers)
 # Install library
 ##################################################
 function(install_network_system_library)
-    install(TARGETS NetworkSystem
+    # Build list of targets to install
+    set(_INSTALL_TARGETS NetworkSystem)
+
+    # Include network-core if it exists (Issue #538, #539)
+    if(TARGET network-core)
+        list(APPEND _INSTALL_TARGETS network-core)
+    endif()
+
+    install(TARGETS ${_INSTALL_TARGETS}
         EXPORT NetworkSystemTargets
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
         INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
     )
-    message(STATUS "Configured library installation")
+    message(STATUS "Configured library installation (targets: ${_INSTALL_TARGETS})")
 endfunction()
 
 ##################################################
