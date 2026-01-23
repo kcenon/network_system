@@ -287,11 +287,14 @@ add_library(NetworkSystem
     src/unified/adapters/udp_listener_adapter.cpp
     src/unified/adapters/ws_connection_adapter.cpp
     src/unified/adapters/ws_listener_adapter.cpp
+    src/unified/adapters/quic_connection_adapter.cpp
+    src/unified/adapters/quic_listener_adapter.cpp
 
     # Protocol factory functions (Issue #521 Phase 2)
     src/protocol/tcp.cpp
     src/protocol/udp.cpp
     src/protocol/websocket.cpp
+    src/protocol/quic.cpp
 
     # Internal implementation
     src/internal/tcp_socket.cpp
