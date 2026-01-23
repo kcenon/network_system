@@ -45,9 +45,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * |-----------|-------------------|
  * | `protocol::tcp` | `connect()`, `listen()`, `create_connection()`, `create_listener()` |
  * | `protocol::udp` | `connect()`, `listen()`, `create_connection()`, `create_listener()` |
+ * | `protocol::websocket` | `connect()`, `listen()`, `create_connection()`, `create_listener()` |
  *
  * ### Future Protocol Support
- * - `protocol::websocket` - WebSocket connections (planned)
  * - `protocol::quic` - QUIC connections (planned)
  *
  * ### Usage Example
@@ -91,6 +91,26 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *         // Handle received datagram from conn_id
  *     }
  * });
+ *
+ * // WebSocket client
+ * auto ws_conn = protocol::websocket::connect("ws://localhost:8080/ws");
+ * ws_conn->set_callbacks({
+ *     .on_connected = []() { std::cout << "WebSocket connected!\n"; },
+ *     .on_data = [](std::span<const std::byte> data) {
+ *         // Handle received WebSocket message
+ *     }
+ * });
+ *
+ * // WebSocket server
+ * auto ws_server = protocol::websocket::listen(8080, "/ws");
+ * ws_server->set_callbacks({
+ *     .on_accept = [](std::string_view conn_id) {
+ *         std::cout << "New WebSocket client: " << conn_id << "\n";
+ *     },
+ *     .on_data = [](std::string_view conn_id, std::span<const std::byte> data) {
+ *         // Handle received message from conn_id
+ *     }
+ * });
  * @endcode
  *
  * @see unified::i_connection
@@ -101,6 +121,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // Protocol factory headers
 #include "tcp.h"
 #include "udp.h"
+#include "websocket.h"
 
 // Protocol tag types
 #include "protocol_tags.h"
