@@ -57,6 +57,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // Core interfaces
 #include "i_network_component.h"
 #include "i_session.h"
+#include "connection_observer.h"
 #include "i_client.h"
 #include "i_server.h"
 
