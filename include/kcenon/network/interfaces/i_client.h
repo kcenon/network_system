@@ -33,9 +33,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 
 #include "i_network_component.h"
+#include "connection_observer.h"
 
 #include <cstdint>
 #include <functional>
+#include <memory>
 #include <string_view>
 #include <system_error>
 #include <vector>
@@ -53,11 +55,18 @@ namespace kcenon::network::interfaces
 	 * operations such as connecting to a server, sending data, and
 	 * handling connection state.
 	 *
-	 * ### Callback Types
+	 * ### Observer Pattern (Recommended)
+	 * Use set_observer() with a connection_observer implementation for
+	 * unified event handling. See connection_observer.h for details.
+	 *
+	 * ### Legacy Callback Types (Deprecated)
 	 * - receive_callback_t: Called when data is received
 	 * - connected_callback_t: Called when connection is established
 	 * - disconnected_callback_t: Called when connection is lost
 	 * - error_callback_t: Called when an error occurs
+	 *
+	 * \note Individual callback setters are deprecated in favor of
+	 *       set_observer(). Use callback_adapter for gradual migration.
 	 *
 	 * ### Thread Safety
 	 * - All public methods must be thread-safe
@@ -67,6 +76,7 @@ namespace kcenon::network::interfaces
 	 * \see i_udp_client
 	 * \see i_websocket_client
 	 * \see i_quic_client
+	 * \see connection_observer
 	 */
 	class i_client : public i_network_component
 	{
@@ -134,30 +144,67 @@ namespace kcenon::network::interfaces
 		[[nodiscard]] virtual auto is_connected() const -> bool = 0;
 
 		/*!
+		 * \brief Sets the connection observer for unified event handling.
+		 * \param observer The observer instance (shared ownership).
+		 *
+		 * The observer receives all connection events through a single interface,
+		 * replacing the need for individual callback setters.
+		 *
+		 * ### Usage
+		 * \code
+		 * auto observer = std::make_shared<my_observer>();
+		 * client->set_observer(observer);
+		 * \endcode
+		 *
+		 * ### Thread Safety
+		 * Thread-safe. Observer methods may be invoked from I/O threads.
+		 *
+		 * \see connection_observer
+		 * \see callback_adapter
+		 */
+		virtual auto set_observer(std::shared_ptr<connection_observer> observer) -> void = 0;
+
+		/*!
 		 * \brief Sets the callback for received data.
 		 * \param callback The callback function.
 		 *
 		 * ### Thread Safety
 		 * Thread-safe. The callback may be invoked from I/O threads.
+		 *
+		 * \deprecated Use set_observer() with connection_observer instead.
+		 *             Use callback_adapter for gradual migration.
 		 */
+		[[deprecated("Use set_observer() with connection_observer instead")]]
 		virtual auto set_receive_callback(receive_callback_t callback) -> void = 0;
 
 		/*!
 		 * \brief Sets the callback for connection established.
 		 * \param callback The callback function.
+		 *
+		 * \deprecated Use set_observer() with connection_observer instead.
+		 *             Use callback_adapter for gradual migration.
 		 */
+		[[deprecated("Use set_observer() with connection_observer instead")]]
 		virtual auto set_connected_callback(connected_callback_t callback) -> void = 0;
 
 		/*!
 		 * \brief Sets the callback for disconnection.
 		 * \param callback The callback function.
+		 *
+		 * \deprecated Use set_observer() with connection_observer instead.
+		 *             Use callback_adapter for gradual migration.
 		 */
+		[[deprecated("Use set_observer() with connection_observer instead")]]
 		virtual auto set_disconnected_callback(disconnected_callback_t callback) -> void = 0;
 
 		/*!
 		 * \brief Sets the callback for errors.
 		 * \param callback The callback function.
+		 *
+		 * \deprecated Use set_observer() with connection_observer instead.
+		 *             Use callback_adapter for gradual migration.
 		 */
+		[[deprecated("Use set_observer() with connection_observer instead")]]
 		virtual auto set_error_callback(error_callback_t callback) -> void = 0;
 	};
 
