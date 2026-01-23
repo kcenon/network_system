@@ -249,6 +249,19 @@ find_network_system_dependencies()
 check_network_system_features()
 
 ##################################################
+# Modular Libraries (Issue #538)
+#
+# network-core: Header-only library with core interfaces
+# This enables protocol libraries to depend only on interfaces,
+# reducing coupling and build times.
+##################################################
+
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/libs/network-core/CMakeLists.txt)
+    add_subdirectory(libs/network-core)
+    message(STATUS "network-core library enabled")
+endif()
+
+##################################################
 # Create Main Library
 ##################################################
 
@@ -572,6 +585,11 @@ target_include_directories(NetworkSystem
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
+
+# Link to network-core for shared interfaces (Issue #538, #539)
+if(TARGET network-core)
+    target_link_libraries(NetworkSystem PUBLIC network-core)
+endif()
 
 ##################################################
 # Configure Integrations
