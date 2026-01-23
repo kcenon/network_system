@@ -46,9 +46,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * | `protocol::tcp` | `connect()`, `listen()`, `create_connection()`, `create_listener()` |
  * | `protocol::udp` | `connect()`, `listen()`, `create_connection()`, `create_listener()` |
  * | `protocol::websocket` | `connect()`, `listen()`, `create_connection()`, `create_listener()` |
- *
- * ### Future Protocol Support
- * - `protocol::quic` - QUIC connections (planned)
+ * | `protocol::quic` | `connect()`, `listen()`, `create_connection()`, `create_listener()` |
  *
  * ### Usage Example
  * @code
@@ -111,6 +109,32 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *         // Handle received message from conn_id
  *     }
  * });
+ *
+ * // QUIC client
+ * protocol::quic::quic_config quic_cfg;
+ * quic_cfg.server_name = "example.com";
+ * quic_cfg.alpn_protocols = {"h3"};
+ * auto quic_conn = protocol::quic::connect({"example.com", 443}, quic_cfg);
+ * quic_conn->set_callbacks({
+ *     .on_connected = []() { std::cout << "QUIC connected!\n"; },
+ *     .on_data = [](std::span<const std::byte> data) {
+ *         // Handle received QUIC data
+ *     }
+ * });
+ *
+ * // QUIC server
+ * protocol::quic::quic_config server_cfg;
+ * server_cfg.cert_file = "/path/to/cert.pem";
+ * server_cfg.key_file = "/path/to/key.pem";
+ * auto quic_server = protocol::quic::listen(443, server_cfg);
+ * quic_server->set_callbacks({
+ *     .on_accept = [](std::string_view conn_id) {
+ *         std::cout << "New QUIC client: " << conn_id << "\n";
+ *     },
+ *     .on_data = [](std::string_view conn_id, std::span<const std::byte> data) {
+ *         // Handle received QUIC message from conn_id
+ *     }
+ * });
  * @endcode
  *
  * @see unified::i_connection
@@ -122,6 +146,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "tcp.h"
 #include "udp.h"
 #include "websocket.h"
+#include "quic.h"
 
 // Protocol tag types
 #include "protocol_tags.h"
