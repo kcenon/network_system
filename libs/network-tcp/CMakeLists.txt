@@ -81,7 +81,9 @@ else()
 
     if(ASIO_INCLUDE_DIR)
         message(STATUS "network-tcp: Found standalone ASIO at ${ASIO_INCLUDE_DIR}")
-        target_include_directories(network-tcp SYSTEM PUBLIC ${ASIO_INCLUDE_DIR})
+        target_include_directories(network-tcp SYSTEM PUBLIC
+            $<BUILD_INTERFACE:${ASIO_INCLUDE_DIR}>
+        )
         target_compile_definitions(network-tcp PUBLIC ASIO_STANDALONE)
     else()
         message(FATAL_ERROR "network-tcp: ASIO not found. Please install standalone ASIO.")
