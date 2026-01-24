@@ -361,7 +361,8 @@ network_system/
 ├── 📁 benchmarks/               # 성능 벤치마크
 │   └── CMakeLists.txt           # 벤치마크 빌드 설정
 ├── 📁 docs/                     # 문서
-│   └── BASELINE.md              # 성능 기준선
+│   └── performance/
+│       └── BASELINE.md          # 성능 기준선
 ├── 📄 CMakeLists.txt            # 빌드 설정
 ├── 📄 .clang-format             # 코드 포매팅 규칙
 └── 📄 README.md                 # 이 파일

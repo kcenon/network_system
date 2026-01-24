@@ -190,7 +190,7 @@ span 기반과 vector 기반 수신 디스패치 간의 오버헤드 차이를 �
 
 ## 기준 결과
 
-**측정 예정**: 벤치마크를 실행하고 결과를 `docs/BASELINE.md`에 기록
+**참조**: [`../docs/performance/BASELINE.md`](../docs/performance/BASELINE.md)에서 최신 성능 기준 지표 확인
 
 예상 기준 범위 (확인 필요):
 

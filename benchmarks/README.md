@@ -190,7 +190,7 @@ Measures the overhead difference between span-based and vector-based receive dis
 
 ## Baseline Results
 
-**To be measured**: Run benchmarks and record results in `docs/BASELINE.md`
+**See**: [`../docs/performance/BASELINE.md`](../docs/performance/BASELINE.md) for the latest baseline performance metrics
 
 Expected baseline ranges (to be confirmed):
 
