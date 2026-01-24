@@ -93,6 +93,9 @@ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
     )
 
     install(FILES
+        ${CMAKE_CURRENT_SOURCE_DIR}/../../include/kcenon/network/core/session_concept.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/../../include/kcenon/network/core/session_model.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/../../include/kcenon/network/core/session_handle.h
         ${CMAKE_CURRENT_SOURCE_DIR}/../../include/kcenon/network/core/session_traits.h
         ${CMAKE_CURRENT_SOURCE_DIR}/../../include/kcenon/network/core/session_info.h
         ${CMAKE_CURRENT_SOURCE_DIR}/../../include/kcenon/network/core/session_manager_base.h
