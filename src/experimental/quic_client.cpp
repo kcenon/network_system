@@ -50,7 +50,7 @@ messaging_quic_client::~messaging_quic_client() noexcept
 {
 	if (lifecycle_.is_running())
 	{
-		auto result = stop_client();
+		(void)stop_client();
 		(void)result; // Ignore result in destructor
 	}
 }

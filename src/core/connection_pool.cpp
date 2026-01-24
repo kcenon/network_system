@@ -60,7 +60,7 @@ namespace kcenon::network::core
 				available_.pop();
 				if (client)
 				{
-					client->stop_client();
+					(void)client->stop_client();
 				}
 			}
 		}

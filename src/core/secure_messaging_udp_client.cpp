@@ -52,7 +52,7 @@ secure_messaging_udp_client::~secure_messaging_udp_client() noexcept
 {
 	if (lifecycle_.is_running())
 	{
-		stop_client();
+		(void)stop_client();
 	}
 }
 

@@ -55,7 +55,7 @@ namespace kcenon::network::core
 	{
 		if (is_running())
 		{
-			stop_server();
+			(void)stop_server();
 		}
 		// Additional cleanup for resources not managed by lifecycle manager.
 		try

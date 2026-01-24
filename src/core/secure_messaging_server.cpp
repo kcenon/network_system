@@ -102,7 +102,7 @@ namespace kcenon::network::core
 	{
 		if (lifecycle_.is_running())
 		{
-			stop_server();
+			(void)stop_server();
 		}
 	}
 

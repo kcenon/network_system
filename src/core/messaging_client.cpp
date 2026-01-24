@@ -52,7 +52,7 @@ messaging_client::messaging_client(std::string_view client_id)
 
 messaging_client::~messaging_client() noexcept {
   if (is_running()) {
-    stop_client();
+    (void)stop_client();
   }
 }
 
