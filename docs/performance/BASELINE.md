@@ -1,6 +1,6 @@
 # Network System - Performance Baseline Metrics
 
-**English** | [한국어](BASELINE_KO.md)
+**English** | [한국어](BASELINE.kr.md)
 
 **Version**: development (matches `VERSION`)
 **Last Updated**: 2025-10-26 (Asia/Seoul)

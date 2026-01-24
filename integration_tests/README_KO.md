@@ -391,7 +391,7 @@ cmake -B build -DCMAKE_BUILD_TYPE=Debug \
 
 - [Google Test 문서](https://google.github.io/googletest/)
 - [Network System API](../README.md)
-- [성능 기준](../BASELINE.md)
+- [성능 기준](../docs/performance/BASELINE.md)
 
 ## 총 테스트 수
 

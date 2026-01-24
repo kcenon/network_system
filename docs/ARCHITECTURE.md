@@ -879,7 +879,7 @@ Session Pool → Acquire → Use → Release → Pool
 - **ASIO Documentation**: https://think-async.com/Asio/
 - **C++20 Coroutines**: https://en.cppreference.com/w/cpp/language/coroutines
 - **Integration Guide**: [INTEGRATION.md](../INTEGRATION.md)
-- **Performance Baseline**: [BASELINE.md](../BASELINE.md)
+- **Performance Baseline**: [BASELINE.md](performance/BASELINE.md)
 - **API Reference**: [API_REFERENCE.md](API_REFERENCE.md)
 
 ---

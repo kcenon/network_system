@@ -452,7 +452,7 @@ ctest -V
 
 빌드 문제가 있는 경우 다음을 확인하세요:
 1. [GitHub Issues](https://github.com/kcenon/network_system/issues)
-2. 알려진 문제에 대한 [CHANGELOG.md](CHANGELOG.md)
+2. 알려진 문제에 대한 [CHANGELOG.md](../CHANGELOG.md)
 3. 연락처: kcenon@naver.com
 
 ---
