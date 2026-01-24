@@ -898,7 +898,7 @@ Network System은 향상된 모듈성과 재사용성을 제공하기 위해 mes
 |----------|-------------|
 | [API Reference](https://kcenon.github.io/network_system) | Doxygen 생성 API 문서 |
 | [Migration Guide](docs/MIGRATION_GUIDE.md) | messaging_system으로부터 단계별 마이그레이션 |
-| [Performance Baseline](BASELINE.md) | 합성 벤치마크 및 실제 네트워크 성능 메트릭 |
+| [Performance Baseline](docs/performance/BASELINE.md) | 합성 벤치마크 및 실제 네트워크 성능 메트릭 |
 | [Load Test Guide](docs/LOAD_TEST_GUIDE.md) | 부하 테스트 실행 및 해석을 위한 종합 가이드 |
 
 ## 🧪 성능 및 테스팅
@@ -916,7 +916,7 @@ cmake --build build -j
 ./build/benchmarks/network_benchmarks
 ```
 
-현재 결과는 [BASELINE.md](BASELINE.md)를 참조하세요.
+현재 결과는 [BASELINE.md](docs/performance/BASELINE.md)를 참조하세요.
 
 ### 실제 네트워크 부하 테스트
 
@@ -1018,13 +1018,13 @@ gh workflow run network-load-tests.yml --field update_baseline=true
 - **연결 설정**: 연결당 <100 μs
 - **메모리 효율성**: 선형 확장으로 <10 MB 기준선
 
-포괄적인 성능 메트릭 및 벤치마킹 세부 정보는 [BASELINE.md](BASELINE.md)를 참조하세요.
+포괄적인 성능 메트릭 및 벤치마킹 세부 정보는 [BASELINE.md](docs/performance/BASELINE.md)를 참조하세요.
 
 **완전한 문서 suite**
 - [ARCHITECTURE.md](docs/ARCHITECTURE.md): Network system 설계 및 패턴
 - [INTEGRATION.md](docs/INTEGRATION.md): 생태계 통합 가이드
 - [MIGRATION_GUIDE.md](docs/MIGRATION_GUIDE.md): messaging_system으로부터 마이그레이션
-- [BASELINE.md](BASELINE.md): 성능 기준선 측정값
+- [BASELINE.md](docs/performance/BASELINE.md): 성능 기준선 측정값
 
 ### Thread 안전성 및 동시성
 
