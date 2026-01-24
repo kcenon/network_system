@@ -261,6 +261,12 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/libs/network-core/CMakeLists.txt)
     message(STATUS "network-core library enabled")
 endif()
 
+# network-tcp: TCP protocol implementation library (Issue #554)
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/libs/network-tcp/CMakeLists.txt)
+    add_subdirectory(libs/network-tcp)
+    message(STATUS "network-tcp library enabled")
+endif()
+
 ##################################################
 # Create Main Library
 ##################################################
@@ -294,8 +300,7 @@ add_library(NetworkSystem
     src/core/unified_session_manager.cpp
 
     # Unified interface adapters (Issue #521 Phase 2)
-    src/unified/adapters/tcp_connection_adapter.cpp
-    src/unified/adapters/tcp_listener_adapter.cpp
+    # TCP adapters moved to libs/network-tcp (Issue #554)
     src/unified/adapters/udp_connection_adapter.cpp
     src/unified/adapters/udp_listener_adapter.cpp
     src/unified/adapters/ws_connection_adapter.cpp
@@ -304,13 +309,13 @@ add_library(NetworkSystem
     src/unified/adapters/quic_listener_adapter.cpp
 
     # Protocol factory functions (Issue #521 Phase 2)
-    src/protocol/tcp.cpp
+    # TCP protocol moved to libs/network-tcp (Issue #554)
     src/protocol/udp.cpp
     src/protocol/websocket.cpp
     src/protocol/quic.cpp
 
     # Internal implementation
-    src/internal/tcp_socket.cpp
+    # TCP socket moved to libs/network-tcp (Issue #554)
     src/internal/udp_socket.cpp
     src/internal/http_types.cpp
     src/internal/http_parser.cpp
@@ -404,7 +409,7 @@ option(BUILD_LZ4_COMPRESSION "Build with LZ4 compression support" ON)
 
 if(BUILD_TLS_SUPPORT)
     target_sources(NetworkSystem PRIVATE
-        src/internal/secure_tcp_socket.cpp
+        # secure_tcp_socket moved to libs/network-tcp (Issue #554)
         src/internal/dtls_socket.cpp
         src/session/secure_session.cpp
         src/core/secure_messaging_server.cpp
@@ -589,6 +594,11 @@ target_include_directories(NetworkSystem
 # Link to network-core for shared interfaces (Issue #538, #539)
 if(TARGET network-core)
     target_link_libraries(NetworkSystem PUBLIC network-core)
+endif()
+
+# Link to network-tcp for TCP protocol support (Issue #554)
+if(TARGET network-tcp)
+    target_link_libraries(NetworkSystem PUBLIC network-tcp)
 endif()
 
 ##################################################
