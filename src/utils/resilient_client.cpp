@@ -130,7 +130,7 @@ namespace kcenon::network::utils
 			return ok();
 		}
 
-		auto result = (void)client_->stop_client();
+		auto result = client_->stop_client();
 		if (!result.is_err())
 		{
 			is_connected_.store(false);

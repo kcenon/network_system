@@ -56,8 +56,7 @@ messaging_quic_server::~messaging_quic_server() noexcept
 {
 	if (lifecycle_.is_running())
 	{
-		(void)stop_server();
-		(void)result; // Ignore result in destructor
+		(void)stop_server(); // Ignore result in destructor
 	}
 }
 
