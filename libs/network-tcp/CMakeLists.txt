@@ -62,9 +62,31 @@ target_include_directories(network-tcp
 # - Main project headers for unified_messaging_client/server
 ##################################################
 
-# Find ASIO
-find_package(asio REQUIRED)
-target_link_libraries(network-tcp PUBLIC asio::asio)
+# Find ASIO (compatible with main project's ASIO setup)
+# Try CMake config package first (vcpkg)
+find_package(asio QUIET CONFIG)
+if(TARGET asio::asio)
+    message(STATUS "network-tcp: Found ASIO via CMake package")
+    target_link_libraries(network-tcp PUBLIC asio::asio)
+else()
+    # Fallback: find ASIO headers directly
+    find_path(ASIO_INCLUDE_DIR
+        NAMES asio.hpp
+        PATHS
+            /opt/homebrew/include
+            /usr/local/include
+            /usr/include
+        DOC "Path to standalone ASIO headers"
+    )
+
+    if(ASIO_INCLUDE_DIR)
+        message(STATUS "network-tcp: Found standalone ASIO at ${ASIO_INCLUDE_DIR}")
+        target_include_directories(network-tcp SYSTEM PUBLIC ${ASIO_INCLUDE_DIR})
+        target_compile_definitions(network-tcp PUBLIC ASIO_STANDALONE)
+    else()
+        message(FATAL_ERROR "network-tcp: ASIO not found. Please install standalone ASIO.")
+    endif()
+endif()
 
 # Find OpenSSL
 find_package(OpenSSL REQUIRED)
@@ -84,31 +106,40 @@ else()
 endif()
 
 ##################################################
-# Installation (when built standalone)
+# Installation
 ##################################################
 
+include(GNUInstallDirs)
+
+# Determine export set based on build context
 if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
-    # Standalone build - provide installation rules
-    include(GNUInstallDirs)
+    # Standalone build - use own export set
+    set(NETWORK_TCP_EXPORT_SET network-tcp-targets)
+else()
+    # Integrated build - use parent's export set
+    set(NETWORK_TCP_EXPORT_SET NetworkSystemTargets)
+endif()
 
-    install(TARGETS network-tcp
-        EXPORT network-tcp-targets
-        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-        INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-    )
+install(TARGETS network-tcp
+    EXPORT ${NETWORK_TCP_EXPORT_SET}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)
 
+# Install headers
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/network_tcp
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+    FILES_MATCHING PATTERN "*.h"
+)
+
+# Standalone build config file
+if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
     install(EXPORT network-tcp-targets
         FILE network-tcp-config.cmake
         NAMESPACE kcenon::
         DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/network-tcp
-    )
-
-    # Install headers
-    install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/network_tcp
-        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-        FILES_MATCHING PATTERN "*.h"
     )
 endif()
 
