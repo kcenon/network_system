@@ -187,8 +187,28 @@ namespace kcenon::network::internal
 			return;
 		}
 
+		// Verify ASIO internal state (descriptor_state) is valid before async operations
+		// by accessing the socket's non-blocking property. This forces ASIO to access
+		// its internal implementation state, which will fail gracefully if invalid
+		// instead of causing UBSAN errors from null pointer dereferencing.
+		std::error_code state_check_ec;
+		socket_.non_blocking(socket_.non_blocking(), state_check_ec);
+		if (state_check_ec)
+		{
+			is_reading_.store(false);
+			// Notify via error callback if available
+			auto error_cb = std::atomic_load(&error_callback_);
+			if (error_cb && *error_cb)
+			{
+				(*error_cb)(state_check_ec);
+			}
+			return;
+		}
+
 		auto self = shared_from_this();
-		socket_.async_read_some(
+		try
+		{
+			socket_.async_read_some(
 			asio::buffer(read_buffer_),
 			[this, self](std::error_code ec, std::size_t length)
 			{
@@ -244,6 +264,18 @@ namespace kcenon::network::internal
 					do_read();
 				}
 			});
+		}
+		catch (const std::exception&)
+		{
+			// Socket may have been invalidated between checks and async operation
+			// This catch prevents crashes from race conditions during socket teardown
+			is_reading_.store(false);
+			auto error_cb = std::atomic_load(&error_callback_);
+			if (error_cb && *error_cb)
+			{
+				(*error_cb)(asio::error::not_connected);
+			}
+		}
 	}
 
 auto tcp_socket::async_send(
@@ -273,6 +305,20 @@ auto tcp_socket::async_send(
         if (handler)
         {
             handler(asio::error::not_connected, 0);
+        }
+        return;
+    }
+
+    // Verify ASIO internal state (descriptor_state) is valid before async operations
+    // by accessing the socket's non-blocking property. This forces ASIO to access
+    // its internal implementation state, which will fail gracefully if invalid.
+    std::error_code state_check_ec;
+    socket_.non_blocking(socket_.non_blocking(), state_check_ec);
+    if (state_check_ec)
+    {
+        if (handler)
+        {
+            handler(state_check_ec, 0);
         }
         return;
     }
