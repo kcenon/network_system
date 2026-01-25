@@ -43,6 +43,8 @@ add_library(network-tcp
     ${CMAKE_CURRENT_SOURCE_DIR}/../../src/core/network_context.cpp
     # Session components needed by unified_messaging_server template
     ${CMAKE_CURRENT_SOURCE_DIR}/../../src/session/messaging_session.cpp
+    # Metrics components needed by messaging_session
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../src/metrics/network_metrics.cpp
 )
 
 add_library(kcenon::network-tcp ALIAS network-tcp)
