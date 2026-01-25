@@ -148,10 +148,28 @@ namespace kcenon::network::internal
 			return;
 		}
 
+		// Additional check for valid native handle to prevent UBSAN null pointer errors
+		// This catches edge cases where socket is in transitional state during close
+		try
+		{
+			if (socket_.native_handle() < 0)
+			{
+				is_reading_.store(false);
+				return;
+			}
+		}
+		catch (...)
+		{
+			is_reading_.store(false);
+			return;
+		}
+
 		auto self = shared_from_this();
-		socket_.async_read_some(
-			asio::buffer(read_buffer_),
-			[this, self](std::error_code ec, std::size_t length)
+		try
+		{
+			socket_.async_read_some(
+				asio::buffer(read_buffer_),
+				[this, self](std::error_code ec, std::size_t length)
 			{
 				// Check if reading has been stopped or socket closed at callback time
 				// This prevents accessing invalid socket state after close()
@@ -205,6 +223,13 @@ namespace kcenon::network::internal
 					do_read();
 				}
 			});
+		}
+		catch (const std::exception&)
+		{
+			// Socket may have been closed between our checks and async operation
+			// This is a race condition that can occur during shutdown
+			is_reading_.store(false);
+		}
 	}
 
 auto tcp_socket::async_send(
@@ -215,6 +240,28 @@ auto tcp_socket::async_send(
     // Both checks are needed: is_closed_ for explicit close() calls, is_open() for ASIO state
     // This prevents UBSAN errors from accessing null descriptor_state in epoll_reactor
     if (is_closed_.load() || !socket_.is_open())
+    {
+        if (handler)
+        {
+            handler(asio::error::not_connected, 0);
+        }
+        return;
+    }
+
+    // Additional check for valid native handle to prevent UBSAN null pointer errors
+    // This catches edge cases where socket is in transitional state during close
+    try
+    {
+        if (socket_.native_handle() < 0)
+        {
+            if (handler)
+            {
+                handler(asio::error::not_connected, 0);
+            }
+            return;
+        }
+    }
+    catch (...)
     {
         if (handler)
         {
@@ -255,42 +302,56 @@ auto tcp_socket::async_send(
 
     // Move data into shared_ptr for lifetime management
     auto buffer = std::make_shared<std::vector<uint8_t>>(std::move(data));
-    asio::async_write(
-        socket_, asio::buffer(*buffer),
-        [handler = std::move(handler), self, buffer, data_size](std::error_code ec, std::size_t bytes_transferred)
+    try
+    {
+        asio::async_write(
+            socket_, asio::buffer(*buffer),
+            [handler = std::move(handler), self, buffer, data_size](std::error_code ec, std::size_t bytes_transferred)
+            {
+                // Update pending bytes on completion
+                std::size_t remaining = self->pending_bytes_.fetch_sub(data_size) - data_size;
+                self->metrics_.current_pending_bytes.store(remaining);
+
+                if (!ec)
+                {
+                    self->metrics_.total_bytes_sent.fetch_add(bytes_transferred);
+                    self->metrics_.send_count.fetch_add(1);
+                }
+
+                // Check low water mark to release backpressure
+                if (self->config_.low_water_mark > 0 && self->backpressure_active_.load() &&
+                    remaining <= self->config_.low_water_mark)
+                {
+                    self->backpressure_active_.store(false);
+
+                    // Invoke backpressure callback
+                    auto bp_cb = std::atomic_load(&self->backpressure_callback_);
+                    if (bp_cb && *bp_cb)
+                    {
+                        (*bp_cb)(false);
+                    }
+                }
+
+                if constexpr (std::is_invocable_v<decltype(handler), std::error_code, std::size_t>)
+                {
+                    if (handler)
+                    {
+                        handler(ec, bytes_transferred);
+                    }
+                }
+            });
+    }
+    catch (const std::exception&)
+    {
+        // Socket may have been closed between our checks and async operation
+        // Rollback pending bytes and notify handler
+        pending_bytes_.fetch_sub(data_size);
+        metrics_.current_pending_bytes.store(pending_bytes_.load());
+        if (handler)
         {
-            // Update pending bytes on completion
-            std::size_t remaining = self->pending_bytes_.fetch_sub(data_size) - data_size;
-            self->metrics_.current_pending_bytes.store(remaining);
-
-            if (!ec)
-            {
-                self->metrics_.total_bytes_sent.fetch_add(bytes_transferred);
-                self->metrics_.send_count.fetch_add(1);
-            }
-
-            // Check low water mark to release backpressure
-            if (self->config_.low_water_mark > 0 && self->backpressure_active_.load() &&
-                remaining <= self->config_.low_water_mark)
-            {
-                self->backpressure_active_.store(false);
-
-                // Invoke backpressure callback
-                auto bp_cb = std::atomic_load(&self->backpressure_callback_);
-                if (bp_cb && *bp_cb)
-                {
-                    (*bp_cb)(false);
-                }
-            }
-
-            if constexpr (std::is_invocable_v<decltype(handler), std::error_code, std::size_t>)
-            {
-                if (handler)
-                {
-                    handler(ec, bytes_transferred);
-                }
-            }
-        });
+            handler(asio::error::not_connected, 0);
+        }
+    }
 }
 
 auto tcp_socket::set_backpressure_callback(backpressure_callback callback) -> void
