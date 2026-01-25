@@ -35,6 +35,8 @@ add_library(network-tcp
     src/tcp_listener_adapter.cpp
     # Integration components needed by TCP adapters
     ${CMAKE_CURRENT_SOURCE_DIR}/../../src/integration/io_context_thread_manager.cpp
+    # Core network_context needed by io_context_thread_manager
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../src/core/network_context.cpp
 )
 
 add_library(kcenon::network-tcp ALIAS network-tcp)
@@ -95,9 +97,6 @@ endif()
 # Find OpenSSL
 find_package(OpenSSL REQUIRED)
 target_link_libraries(network-tcp PUBLIC OpenSSL::SSL OpenSSL::Crypto)
-
-# Link to network-core if available
-# This is handled by parent CMakeLists.txt when integrated
 
 ##################################################
 # Compiler Options
