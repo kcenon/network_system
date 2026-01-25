@@ -98,20 +98,32 @@ namespace kcenon::network::internal
 	{
 		// Atomically mark socket as closed before actual close
 		// This prevents data races with concurrent async operations
-		is_closed_.store(true);
+		bool was_closed = is_closed_.exchange(true);
+		if (was_closed)
+		{
+			// Already closed, avoid double-close
+			return;
+		}
 		is_reading_.store(false);
 
-		// Post the actual socket close to the socket's executor to ensure
-		// thread-safety. ASIO's epoll_reactor has internal data structures that
-		// must be accessed from the same thread as async operations to avoid
-		// data races detected by ThreadSanitizer.
+		// Use dispatch instead of post to run on the same strand/thread if possible.
+		// This reduces the window for race conditions between is_closed_ check
+		// and actual socket operations in do_read().
+		//
+		// The close operation must:
+		// 1. Cancel all pending async operations first (this triggers their handlers)
+		// 2. Then close the socket
 		try
 		{
 			auto self = shared_from_this();
-			asio::post(socket_.get_executor(), [self]() {
+			asio::dispatch(socket_.get_executor(), [self]() {
 				std::error_code ec;
 				if (self->socket_.is_open())
 				{
+					// Cancel pending operations first - this will cause their
+					// handlers to be called with operation_aborted error
+					self->socket_.cancel(ec);
+					// Then close the socket
 					self->socket_.close(ec);
 				}
 				// Ignore close errors - socket may already be closed
@@ -119,9 +131,10 @@ namespace kcenon::network::internal
 		}
 		catch (...)
 		{
-			// If post fails (e.g., executor not running), fall back to direct close.
+			// If dispatch fails (e.g., executor not running), fall back to direct close.
 			// This may race but is better than leaking the socket.
 			std::error_code ec;
+			socket_.cancel(ec);
 			socket_.close(ec);
 		}
 	}
@@ -148,9 +161,27 @@ namespace kcenon::network::internal
 			return;
 		}
 
+		// Additional check: verify native handle is valid
+		// On some platforms, is_open() may return true briefly after close() is called
+		// but before the descriptor_state is fully cleaned up
+		auto native_fd = socket_.native_handle();
+		if (native_fd < 0)
+		{
+			is_reading_.store(false);
+			return;
+		}
+
 		auto self = shared_from_this();
 		try
 		{
+			// Final safety check right before async operation
+			// This minimizes the race window to the absolute minimum
+			if (is_closed_.load())
+			{
+				is_reading_.store(false);
+				return;
+			}
+
 			socket_.async_read_some(
 				asio::buffer(read_buffer_),
 				[this, self](std::error_code ec, std::size_t length)
@@ -164,6 +195,16 @@ namespace kcenon::network::internal
 
 				if (ec)
 				{
+					// Stop reading on any error
+					is_reading_.store(false);
+
+					// Don't invoke error callback for operation_aborted - this is normal
+					// during shutdown and is not a real error condition
+					if (ec == asio::error::operation_aborted)
+					{
+						return;
+					}
+
 					// On error, invoke the error callback
 					// Lock-free callback access via atomic_load
 					auto error_cb = std::atomic_load(&error_callback_);
@@ -224,6 +265,17 @@ auto tcp_socket::async_send(
     // Both checks are needed: is_closed_ for explicit close() calls, is_open() for ASIO state
     // This prevents UBSAN errors from accessing null descriptor_state in epoll_reactor
     if (is_closed_.load() || !socket_.is_open())
+    {
+        if (handler)
+        {
+            handler(asio::error::not_connected, 0);
+        }
+        return;
+    }
+
+    // Additional check: verify native handle is valid
+    auto native_fd = socket_.native_handle();
+    if (native_fd < 0)
     {
         if (handler)
         {
