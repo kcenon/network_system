@@ -46,6 +46,7 @@ add_library(network-tcp
     # Metrics components needed by messaging_session
     ${CMAKE_CURRENT_SOURCE_DIR}/../../src/metrics/network_metrics.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../../src/metrics/sliding_histogram.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../src/metrics/histogram.cpp
 )
 
 add_library(kcenon::network-tcp ALIAS network-tcp)
