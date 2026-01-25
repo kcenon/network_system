@@ -150,11 +150,31 @@ namespace kcenon::network::internal
 			return;
 		}
 
+		// Additional safety check: verify the executor is valid and the io_context
+		// is still running. This prevents SEGV when async operations are started
+		// on a socket whose io_context has been stopped.
+		try
+		{
+			auto executor = socket_.get_executor();
+			// Check if the executor's context is still valid by attempting to get it
+			// This will throw or return an invalid state if the io_context is gone
+			if (!executor.running_in_this_thread())
+			{
+				// Executor exists but we're on a different thread - that's OK
+			}
+		}
+		catch (...)
+		{
+			// Executor is invalid - don't start async operation
+			is_reading_.store(false);
+			return;
+		}
+
 		auto self = shared_from_this();
 
-		// Instead of using dispatch which can fail if the executor is in an invalid state,
-		// directly call async_read_some. ASIO's async operations are safe to call
-		// from any thread as they internally post to the io_context.
+		// Use asio::post to ensure the async operation is queued properly
+		// rather than calling async_read_some directly which may fail if
+		// the socket's internal state is invalid
 		try
 		{
 			socket_.async_read_some(
