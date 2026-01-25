@@ -85,7 +85,27 @@ namespace kcenon::network::internal
 			// Already reading, don't start another async operation
 			return;
 		}
-		do_read();
+
+		// Post the first read operation to the socket's executor to ensure
+		// the executor's internal state (descriptor_state) is fully initialized.
+		// This prevents SEGV errors when start_read() is called immediately
+		// after socket construction from a moved asio::ip::tcp::socket.
+		try
+		{
+			auto self = shared_from_this();
+			asio::post(socket_.get_executor(), [self]() {
+				if (self->is_reading_.load() && !self->is_closed_.load())
+				{
+					self->do_read();
+				}
+			});
+		}
+		catch (...)
+		{
+			// If post fails, fall back to direct call
+			// This may happen if executor is stopped
+			is_reading_.store(false);
+		}
 	}
 
 	auto tcp_socket::stop_read() -> void
@@ -149,6 +169,19 @@ namespace kcenon::network::internal
 		// This prevents data races and UBSAN errors from accessing null descriptor_state
 		// Both checks are needed: is_closed_ for explicit close() calls, is_open() for ASIO state
 		if (is_closed_.load() || !socket_.is_open())
+		{
+			is_reading_.store(false);
+			return;
+		}
+
+		// Additional check: verify native handle is valid before async operation
+		// This prevents SEGV when socket is in transitional state after move construction
+		// On POSIX systems, invalid handles are < 0; on Windows, INVALID_SOCKET
+#ifdef _WIN32
+		if (socket_.native_handle() == INVALID_SOCKET)
+#else
+		if (socket_.native_handle() < 0)
+#endif
 		{
 			is_reading_.store(false);
 			return;
@@ -221,6 +254,21 @@ auto tcp_socket::async_send(
     // Both checks are needed: is_closed_ for explicit close() calls, is_open() for ASIO state
     // This prevents UBSAN errors from accessing null descriptor_state in epoll_reactor
     if (is_closed_.load() || !socket_.is_open())
+    {
+        if (handler)
+        {
+            handler(asio::error::not_connected, 0);
+        }
+        return;
+    }
+
+    // Additional check: verify native handle is valid before async operation
+    // This prevents SEGV when socket is in transitional state after move construction
+#ifdef _WIN32
+    if (socket_.native_handle() == INVALID_SOCKET)
+#else
+    if (socket_.native_handle() < 0)
+#endif
     {
         if (handler)
         {
