@@ -154,28 +154,10 @@ namespace kcenon::network::internal
 			return;
 		}
 
-		// Additional check for valid native handle to prevent UBSAN null pointer errors
-		// This catches edge cases where socket is in transitional state during close
-		try
-		{
-			if (socket_.native_handle() < 0)
-			{
-				is_reading_.store(false);
-				return;
-			}
-		}
-		catch (...)
-		{
-			is_reading_.store(false);
-			return;
-		}
-
 		auto self = shared_from_this();
-		try
-		{
-			socket_.async_read_some(
-				asio::buffer(read_buffer_),
-				[this, self](std::error_code ec, std::size_t length)
+		socket_.async_read_some(
+			asio::buffer(read_buffer_),
+			[this, self](std::error_code ec, std::size_t length)
 			{
 				// Check if reading has been stopped or socket closed at callback time
 				// This prevents accessing invalid socket state after close()
@@ -229,13 +211,6 @@ namespace kcenon::network::internal
 					do_read();
 				}
 			});
-		}
-		catch (const std::exception&)
-		{
-			// Socket may have been closed between our checks and async operation
-			// This is a race condition that can occur during shutdown
-			is_reading_.store(false);
-		}
 	}
 
 auto tcp_socket::async_send(
@@ -246,28 +221,6 @@ auto tcp_socket::async_send(
     // Both checks are needed: is_closed_ for explicit close() calls, is_open() for ASIO state
     // This prevents UBSAN errors from accessing null descriptor_state in epoll_reactor
     if (is_closed_.load() || !socket_.is_open())
-    {
-        if (handler)
-        {
-            handler(asio::error::not_connected, 0);
-        }
-        return;
-    }
-
-    // Additional check for valid native handle to prevent UBSAN null pointer errors
-    // This catches edge cases where socket is in transitional state during close
-    try
-    {
-        if (socket_.native_handle() < 0)
-        {
-            if (handler)
-            {
-                handler(asio::error::not_connected, 0);
-            }
-            return;
-        }
-    }
-    catch (...)
     {
         if (handler)
         {
