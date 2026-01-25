@@ -152,37 +152,37 @@ namespace kcenon::network::internal
 			return;
 		}
 
-		// Check if socket has been closed or is no longer open before starting async operation
-		// This prevents data races and UBSAN errors from accessing null descriptor_state
-		// Both checks are needed: is_closed_ for explicit close() calls, is_open() for ASIO state
-		if (is_closed_.load() || !socket_.is_open())
-		{
-			is_reading_.store(false);
-			return;
-		}
-
-		// Additional check: verify native handle is valid
-		// On some platforms, is_open() may return true briefly after close() is called
-		// but before the descriptor_state is fully cleaned up
-		auto native_fd = socket_.native_handle();
-		if (native_fd < 0)
+		// Check if socket has been closed before starting async operation
+		// This is the primary guard against race conditions with close()
+		if (is_closed_.load())
 		{
 			is_reading_.store(false);
 			return;
 		}
 
 		auto self = shared_from_this();
-		try
-		{
-			// Final safety check right before async operation
-			// This minimizes the race window to the absolute minimum
-			if (is_closed_.load())
+
+		// Dispatch the read operation to the socket's executor to serialize with close()
+		// This ensures that close() and async_read_some() are never called concurrently
+		// on the same socket from different threads
+		asio::dispatch(socket_.get_executor(), [this, self]() {
+			// Re-check after dispatch - close() may have been called while we were waiting
+			if (!is_reading_.load() || is_closed_.load())
+			{
+				return;
+			}
+
+			// Check socket state within the executor context
+			// At this point, if is_closed_ is false, the socket should still be valid
+			if (!socket_.is_open())
 			{
 				is_reading_.store(false);
 				return;
 			}
 
-			socket_.async_read_some(
+			try
+			{
+				socket_.async_read_some(
 				asio::buffer(read_buffer_),
 				[this, self](std::error_code ec, std::size_t length)
 				{
@@ -248,34 +248,22 @@ namespace kcenon::network::internal
 					do_read();
 				}
 			});
-	}
-	catch (const std::exception&)
-	{
-		// Socket was closed or in invalid state - stop reading
-		// This catches ASIO exceptions when async operations are started on closed sockets
-		is_reading_.store(false);
-	}
+			}
+			catch (const std::exception&)
+			{
+				// Socket was closed or in invalid state - stop reading
+				// This catches ASIO exceptions when async operations are started on closed sockets
+				is_reading_.store(false);
+			}
+		});
 }
 
 auto tcp_socket::async_send(
     std::vector<uint8_t>&& data,
     std::function<void(std::error_code, std::size_t)> handler) -> void
 {
-    // Check if socket has been closed or is no longer open before starting async operation
-    // Both checks are needed: is_closed_ for explicit close() calls, is_open() for ASIO state
-    // This prevents UBSAN errors from accessing null descriptor_state in epoll_reactor
-    if (is_closed_.load() || !socket_.is_open())
-    {
-        if (handler)
-        {
-            handler(asio::error::not_connected, 0);
-        }
-        return;
-    }
-
-    // Additional check: verify native handle is valid
-    auto native_fd = socket_.native_handle();
-    if (native_fd < 0)
+    // Check if socket has been closed before starting async operation
+    if (is_closed_.load())
     {
         if (handler)
         {
@@ -316,9 +304,24 @@ auto tcp_socket::async_send(
 
     // Move data into shared_ptr for lifetime management
     auto buffer = std::make_shared<std::vector<uint8_t>>(std::move(data));
-    try
-    {
-        asio::async_write(
+
+    // Dispatch write operation to socket's executor to serialize with close()
+    asio::dispatch(socket_.get_executor(), [this, self, buffer, data_size, handler = std::move(handler)]() mutable {
+        // Re-check after dispatch
+        if (is_closed_.load() || !socket_.is_open())
+        {
+            pending_bytes_.fetch_sub(data_size);
+            metrics_.current_pending_bytes.store(pending_bytes_.load());
+            if (handler)
+            {
+                handler(asio::error::not_connected, 0);
+            }
+            return;
+        }
+
+        try
+        {
+            asio::async_write(
             socket_, asio::buffer(*buffer),
             [handler = std::move(handler), self, buffer, data_size](std::error_code ec, std::size_t bytes_transferred)
             {
@@ -354,18 +357,19 @@ auto tcp_socket::async_send(
                 }
             }
         });
-    }
-    catch (const std::exception&)
-    {
-        // Socket was closed or in invalid state
-        // Clean up pending bytes and invoke handler with error
-        pending_bytes_.fetch_sub(data_size);
-        metrics_.current_pending_bytes.store(pending_bytes_.load());
-        if (handler)
-        {
-            handler(asio::error::not_connected, 0);
         }
-    }
+        catch (const std::exception&)
+        {
+            // Socket was closed or in invalid state
+            // Clean up pending bytes and invoke handler with error
+            pending_bytes_.fetch_sub(data_size);
+            metrics_.current_pending_bytes.store(pending_bytes_.load());
+            if (handler)
+            {
+                handler(asio::error::not_connected, 0);
+            }
+        }
+    });
 }
 
 auto tcp_socket::set_backpressure_callback(backpressure_callback callback) -> void
