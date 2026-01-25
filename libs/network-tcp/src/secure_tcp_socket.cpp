@@ -105,27 +105,20 @@ namespace kcenon::network::internal
 	{
 		// Atomically mark socket as closed before actual close
 		// This prevents data races with concurrent async operations
-		bool was_closed = is_closed_.exchange(true);
-		if (was_closed)
-		{
-			// Already closed, avoid double-close
-			return;
-		}
+		is_closed_.store(true);
 		is_reading_.store(false);
 
-		// Use dispatch to run on the same strand/thread if possible
-		// The close operation cancels pending operations first, then closes
+		// Post the actual socket close to the socket's executor to ensure
+		// thread-safety. ASIO's epoll_reactor has internal data structures that
+		// must be accessed from the same thread as async operations.
 		try
 		{
 			auto self = shared_from_this();
-			asio::dispatch(ssl_stream_.lowest_layer().get_executor(), [self]() {
+			asio::post(ssl_stream_.lowest_layer().get_executor(), [self]() {
 				std::error_code ec;
 				auto& lowest = self->ssl_stream_.lowest_layer();
 				if (lowest.is_open())
 				{
-					// Cancel pending operations first
-					lowest.cancel(ec);
-					// Then close the socket
 					lowest.close(ec);
 				}
 				// Ignore close errors - socket may already be closed
@@ -133,9 +126,8 @@ namespace kcenon::network::internal
 		}
 		catch (...)
 		{
-			// If dispatch fails, fall back to direct close
+			// If post fails, fall back to direct close
 			std::error_code ec;
-			ssl_stream_.lowest_layer().cancel(ec);
 			ssl_stream_.lowest_layer().close(ec);
 		}
 	}
@@ -153,98 +145,70 @@ namespace kcenon::network::internal
 			return;
 		}
 
-		// Check if socket has been closed before starting async operation
-		if (is_closed_.load())
+		// Check if socket has been closed or is no longer open before starting async operation
+		// Both checks are needed: is_closed_ for explicit close() calls, is_open() for ASIO state
+		if (is_closed_.load() || !ssl_stream_.lowest_layer().is_open())
 		{
 			is_reading_.store(false);
 			return;
 		}
 
 		auto self = shared_from_this();
-
-		// Dispatch the read operation to the socket's executor to serialize with close()
-		asio::dispatch(ssl_stream_.lowest_layer().get_executor(), [this, self]() {
-			// Re-check after dispatch
-			if (!is_reading_.load() || is_closed_.load())
+		ssl_stream_.async_read_some(
+			asio::buffer(read_buffer_),
+			[this, self](std::error_code ec, std::size_t length)
 			{
-				return;
-			}
+				// Check if reading has been stopped or socket closed at callback time
+				if (!is_reading_.load() || is_closed_.load())
+				{
+					return;
+				}
 
-			if (!ssl_stream_.lowest_layer().is_open())
-			{
-				is_reading_.store(false);
-				return;
-			}
-
-			try
-			{
-				ssl_stream_.async_read_some(
-					asio::buffer(read_buffer_),
-					[this, self](std::error_code ec, std::size_t length)
+				if (ec)
+				{
+					// On error, invoke the error callback
+					auto error_cb = std::atomic_load(&error_callback_);
+					if (error_cb && *error_cb)
 					{
-						// Check if reading has been stopped or socket closed at callback time
-						if (!is_reading_.load() || is_closed_.load())
+						(*error_cb)(ec);
+					}
+					return;
+				}
+
+				if (length > 0)
+				{
+					auto view_cb = std::atomic_load(&receive_callback_view_);
+					if (view_cb && *view_cb)
+					{
+						std::span<const uint8_t> data_view(read_buffer_.data(), length);
+						(*view_cb)(data_view);
+					}
+					else
+					{
+						auto recv_cb = std::atomic_load(&receive_callback_);
+						if (recv_cb && *recv_cb)
 						{
-							return;
+							std::vector<uint8_t> chunk(read_buffer_.begin(),
+													   read_buffer_.begin() + length);
+							(*recv_cb)(chunk);
 						}
+					}
+				}
 
-						if (ec)
-						{
-							is_reading_.store(false);
-
-							// Don't invoke error callback for operation_aborted
-							if (ec == asio::error::operation_aborted)
-							{
-								return;
-							}
-
-							auto error_cb = std::atomic_load(&error_callback_);
-							if (error_cb && *error_cb)
-							{
-								(*error_cb)(ec);
-							}
-							return;
-						}
-
-						if (length > 0)
-						{
-							auto view_cb = std::atomic_load(&receive_callback_view_);
-							if (view_cb && *view_cb)
-							{
-								std::span<const uint8_t> data_view(read_buffer_.data(), length);
-								(*view_cb)(data_view);
-							}
-							else
-							{
-								auto recv_cb = std::atomic_load(&receive_callback_);
-								if (recv_cb && *recv_cb)
-								{
-									std::vector<uint8_t> chunk(read_buffer_.begin(),
-															   read_buffer_.begin() + length);
-									(*recv_cb)(chunk);
-								}
-							}
-						}
-
-						if (is_reading_.load() && !is_closed_.load())
-						{
-							do_read();
-						}
-					});
-			}
-			catch (const std::exception&)
-			{
-				is_reading_.store(false);
-			}
-		});
+				if (is_reading_.load() && !is_closed_.load())
+				{
+					do_read();
+				}
+			});
 	}
 
 	auto secure_tcp_socket::async_send(
 		std::vector<uint8_t>&& data,
 		std::function<void(std::error_code, std::size_t)> handler) -> void
 	{
-		// Check if socket has been closed before starting async operation
-		if (is_closed_.load())
+		// Check if socket has been closed or is no longer open before starting async operation
+		// Both checks are needed: is_closed_ for explicit close() calls, is_open() for ASIO state
+		if (is_closed_.load() || !ssl_stream_.lowest_layer().is_open())
 		{
 			if (handler)
 			{
@@ -256,40 +220,15 @@ namespace kcenon::network::internal
 		auto self = shared_from_this();
 		// Move data into shared_ptr for lifetime management
 		auto buffer = std::make_shared<std::vector<uint8_t>>(std::move(data));
-
-		// Dispatch write operation to socket's executor to serialize with close()
-		asio::dispatch(ssl_stream_.lowest_layer().get_executor(),
-			[this, self, buffer, handler = std::move(handler)]() mutable {
-				// Re-check after dispatch
-				if (is_closed_.load() || !ssl_stream_.lowest_layer().is_open())
+		asio::async_write(
+			ssl_stream_, asio::buffer(*buffer),
+			[handler = std::move(handler), self, buffer](std::error_code ec, std::size_t bytes_transferred)
+			{
+				if constexpr (std::is_invocable_v<decltype(handler), std::error_code, std::size_t>)
 				{
 					if (handler)
 					{
-						handler(asio::error::not_connected, 0);
-					}
-					return;
-				}
-
-				try
-				{
-					asio::async_write(
-						ssl_stream_, asio::buffer(*buffer),
-						[handler = std::move(handler), self, buffer](std::error_code ec, std::size_t bytes_transferred)
-						{
-							if constexpr (std::is_invocable_v<decltype(handler), std::error_code, std::size_t>)
-							{
-								if (handler)
-								{
-									handler(ec, bytes_transferred);
-								}
-							}
-						});
-				}
-				catch (const std::exception&)
-				{
-					if (handler)
-					{
-						handler(asio::error::not_connected, 0);
+						handler(ec, bytes_transferred);
 					}
 				}
 			});
