@@ -149,10 +149,12 @@ namespace kcenon::network::internal
 		}
 
 		auto self = shared_from_this();
-		socket_.async_read_some(
-			asio::buffer(read_buffer_),
-			[this, self](std::error_code ec, std::size_t length)
-			{
+		try
+		{
+			socket_.async_read_some(
+				asio::buffer(read_buffer_),
+				[this, self](std::error_code ec, std::size_t length)
+				{
 				// Check if reading has been stopped or socket closed at callback time
 				// This prevents accessing invalid socket state after close()
 				if (!is_reading_.load() || is_closed_.load())
@@ -206,6 +208,13 @@ namespace kcenon::network::internal
 				}
 			});
 	}
+	catch (const std::exception&)
+	{
+		// Socket was closed or in invalid state - stop reading
+		// This catches ASIO exceptions when async operations are started on closed sockets
+		is_reading_.store(false);
+	}
+}
 
 auto tcp_socket::async_send(
     std::vector<uint8_t>&& data,
@@ -255,10 +264,12 @@ auto tcp_socket::async_send(
 
     // Move data into shared_ptr for lifetime management
     auto buffer = std::make_shared<std::vector<uint8_t>>(std::move(data));
-    asio::async_write(
-        socket_, asio::buffer(*buffer),
-        [handler = std::move(handler), self, buffer, data_size](std::error_code ec, std::size_t bytes_transferred)
-        {
+    try
+    {
+        asio::async_write(
+            socket_, asio::buffer(*buffer),
+            [handler = std::move(handler), self, buffer, data_size](std::error_code ec, std::size_t bytes_transferred)
+            {
             // Update pending bytes on completion
             std::size_t remaining = self->pending_bytes_.fetch_sub(data_size) - data_size;
             self->metrics_.current_pending_bytes.store(remaining);
@@ -291,6 +302,18 @@ auto tcp_socket::async_send(
                 }
             }
         });
+    }
+    catch (const std::exception&)
+    {
+        // Socket was closed or in invalid state
+        // Clean up pending bytes and invoke handler with error
+        pending_bytes_.fetch_sub(data_size);
+        metrics_.current_pending_bytes.store(pending_bytes_.load());
+        if (handler)
+        {
+            handler(asio::error::not_connected, 0);
+        }
+    }
 }
 
 auto tcp_socket::set_backpressure_callback(backpressure_callback callback) -> void
