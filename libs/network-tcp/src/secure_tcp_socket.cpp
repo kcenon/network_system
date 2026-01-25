@@ -108,28 +108,9 @@ namespace kcenon::network::internal
 		is_closed_.store(true);
 		is_reading_.store(false);
 
-		// Post the actual socket close to the socket's executor to ensure
-		// thread-safety. ASIO's epoll_reactor has internal data structures that
-		// must be accessed from the same thread as async operations.
-		try
-		{
-			auto self = shared_from_this();
-			asio::post(ssl_stream_.lowest_layer().get_executor(), [self]() {
-				std::error_code ec;
-				auto& lowest = self->ssl_stream_.lowest_layer();
-				if (lowest.is_open())
-				{
-					lowest.close(ec);
-				}
-				// Ignore close errors - socket may already be closed
-			});
-		}
-		catch (...)
-		{
-			// If post fails, fall back to direct close
-			std::error_code ec;
-			ssl_stream_.lowest_layer().close(ec);
-		}
+		std::error_code ec;
+		ssl_stream_.lowest_layer().close(ec);
+		// Ignore close errors - socket may already be closed
 	}
 
 	auto secure_tcp_socket::is_closed() const -> bool
@@ -146,6 +127,7 @@ namespace kcenon::network::internal
 		}
 
 		// Check if socket has been closed or is no longer open before starting async operation
+		// This prevents data races and UBSAN errors from accessing null descriptor_state
 		// Both checks are needed: is_closed_ for explicit close() calls, is_open() for ASIO state
 		if (is_closed_.load() || !ssl_stream_.lowest_layer().is_open())
 		{
@@ -159,6 +141,7 @@ namespace kcenon::network::internal
 			[this, self](std::error_code ec, std::size_t length)
 			{
 				// Check if reading has been stopped or socket closed at callback time
+				// This prevents accessing invalid socket state after close()
 				if (!is_reading_.load() || is_closed_.load())
 				{
 					return;
@@ -167,6 +150,7 @@ namespace kcenon::network::internal
 				if (ec)
 				{
 					// On error, invoke the error callback
+					// Lock-free callback access via atomic_load
 					auto error_cb = std::atomic_load(&error_callback_);
 					if (error_cb && *error_cb)
 					{
@@ -175,16 +159,22 @@ namespace kcenon::network::internal
 					return;
 				}
 
+				// On success, if length > 0, dispatch to the appropriate callback
 				if (length > 0)
 				{
+					// Lock-free callback access via atomic_load
+					// Prefer view callback (zero-copy) over vector callback
 					auto view_cb = std::atomic_load(&receive_callback_view_);
 					if (view_cb && *view_cb)
 					{
+						// Zero-copy path: create span view directly into read_buffer_
+						// No std::vector allocation or copy required
 						std::span<const uint8_t> data_view(read_buffer_.data(), length);
 						(*view_cb)(data_view);
 					}
 					else
 					{
+						// Legacy path: allocate and copy into vector for compatibility
 						auto recv_cb = std::atomic_load(&receive_callback_);
 						if (recv_cb && *recv_cb)
 						{
@@ -195,6 +185,8 @@ namespace kcenon::network::internal
 					}
 				}
 
+				// Continue reading only if still active and socket is not closed
+				// Use atomic is_closed_ flag to prevent data race with close()
 				if (is_reading_.load() && !is_closed_.load())
 				{
 					do_read();
@@ -206,9 +198,9 @@ namespace kcenon::network::internal
 		std::vector<uint8_t>&& data,
 		std::function<void(std::error_code, std::size_t)> handler) -> void
 	{
-		// Check if socket has been closed or is no longer open before starting async operation
-		// Both checks are needed: is_closed_ for explicit close() calls, is_open() for ASIO state
-		if (is_closed_.load() || !ssl_stream_.lowest_layer().is_open())
+		// Check if socket has been closed before starting async operation
+		// Use atomic is_closed_ flag to prevent data race with close()
+		if (is_closed_.load())
 		{
 			if (handler)
 			{

@@ -140,6 +140,7 @@ namespace kcenon::network::internal
 		}
 
 		// Check if socket has been closed or is no longer open before starting async operation
+		// This prevents data races and UBSAN errors from accessing null descriptor_state
 		// Both checks are needed: is_closed_ for explicit close() calls, is_open() for ASIO state
 		if (is_closed_.load() || !socket_.is_open())
 		{
