@@ -108,9 +108,17 @@ namespace kcenon::network::internal
 		is_closed_.store(true);
 		is_reading_.store(false);
 
+		// Cancel any pending async operations first, then close the socket.
+		// This must be done synchronously to prevent race conditions where
+		// new async operations start after we've decided to close but before
+		// the socket is actually closed.
 		std::error_code ec;
-		ssl_stream_.lowest_layer().close(ec);
-		// Ignore close errors - socket may already be closed
+		if (ssl_stream_.lowest_layer().is_open())
+		{
+			ssl_stream_.lowest_layer().cancel(ec);
+			ssl_stream_.lowest_layer().close(ec);
+		}
+		// Ignore errors - socket may already be closed or cancelled
 	}
 
 	auto secure_tcp_socket::is_closed() const -> bool
