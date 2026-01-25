@@ -38,6 +38,7 @@ add_library(network-tcp
     ${CMAKE_CURRENT_SOURCE_DIR}/../../src/integration/logger_integration.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../../src/integration/thread_integration.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../../src/integration/monitoring_integration.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../src/integration/thread_system_adapter.cpp
     # Core network_context needed by io_context_thread_manager
     ${CMAKE_CURRENT_SOURCE_DIR}/../../src/core/network_context.cpp
 )
