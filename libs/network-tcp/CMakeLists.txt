@@ -35,6 +35,8 @@ add_library(network-tcp
     src/tcp_listener_adapter.cpp
     # Integration components needed by TCP adapters
     ${CMAKE_CURRENT_SOURCE_DIR}/../../src/integration/io_context_thread_manager.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../src/integration/logger_integration.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../src/integration/thread_integration.cpp
     # Core network_context needed by io_context_thread_manager
     ${CMAKE_CURRENT_SOURCE_DIR}/../../src/core/network_context.cpp
 )
