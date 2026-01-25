@@ -150,6 +150,31 @@ namespace kcenon::network::internal
 			return;
 		}
 
+		// Additional safety check: verify the executor is valid before starting async ops.
+		// This prevents SEGV when async operations are started on a socket whose
+		// io_context has been stopped or destroyed. The executor's target() method
+		// returns nullptr if the executor is in an invalid state.
+		try
+		{
+			auto executor = socket_.get_executor();
+			// Check if executor has a valid target - nullptr means invalid/default state
+			if (!executor.target<asio::io_context::executor_type>())
+			{
+				// Also try system_executor type which is the fallback
+				if (!executor.target<asio::system_executor>())
+				{
+					is_reading_.store(false);
+					return;
+				}
+			}
+		}
+		catch (...)
+		{
+			// Executor access failed - don't start async operation
+			is_reading_.store(false);
+			return;
+		}
+
 		auto self = shared_from_this();
 
 		// Use asio::post to ensure the async operation is queued properly
@@ -238,6 +263,41 @@ auto tcp_socket::async_send(
 {
     // Check if socket has been closed before starting async operation
     if (is_closed_.load())
+    {
+        if (handler)
+        {
+            handler(asio::error::not_connected, 0);
+        }
+        return;
+    }
+
+    // Check if socket is open
+    if (!socket_.is_open())
+    {
+        if (handler)
+        {
+            handler(asio::error::not_connected, 0);
+        }
+        return;
+    }
+
+    // Verify the executor is valid before starting async ops
+    try
+    {
+        auto executor = socket_.get_executor();
+        if (!executor.target<asio::io_context::executor_type>())
+        {
+            if (!executor.target<asio::system_executor>())
+            {
+                if (handler)
+                {
+                    handler(asio::error::not_connected, 0);
+                }
+                return;
+            }
+        }
+    }
+    catch (...)
     {
         if (handler)
         {
