@@ -35,23 +35,34 @@ add_library(network-tcp
     src/tcp_listener_adapter.cpp
 )
 
-# Include integration sources for all builds
-# These are required for network-tcp to function properly
-# In integrated builds, these sources will be compiled into network-tcp
-# and also into NetworkSystem (duplicated, but necessary for static library linking)
-message(STATUS "network-tcp: Including integration sources")
-target_sources(network-tcp PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../src/integration/io_context_thread_manager.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../src/integration/logger_integration.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../src/integration/thread_integration.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../src/integration/monitoring_integration.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../src/integration/thread_system_adapter.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../src/core/network_context.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../src/session/messaging_session.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../src/metrics/network_metrics.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../src/metrics/sliding_histogram.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../src/metrics/histogram.cpp
-)
+# Integration sources handling (ODR Fix - Issue #555)
+#
+# In integrated builds (part of network_system), we use the shared
+# network-integration-objects OBJECT library to avoid ODR violations.
+# In standalone builds, we include the sources directly.
+#
+# ODR violations occur when the same symbols are compiled into multiple
+# libraries, causing undefined behavior in sanitizer tests (SEGV).
+if(TARGET network-integration-objects)
+    # Integrated build: use shared OBJECT library (no symbol duplication)
+    message(STATUS "network-tcp: Using shared network-integration-objects (ODR-safe)")
+    target_sources(network-tcp PRIVATE $<TARGET_OBJECTS:network-integration-objects>)
+else()
+    # Standalone build: include sources directly
+    message(STATUS "network-tcp: Including integration sources (standalone build)")
+    target_sources(network-tcp PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/../../src/integration/io_context_thread_manager.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../../src/integration/logger_integration.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../../src/integration/thread_integration.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../../src/integration/monitoring_integration.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../../src/integration/thread_system_adapter.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../../src/core/network_context.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../../src/session/messaging_session.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../../src/metrics/network_metrics.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../../src/metrics/sliding_histogram.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../../src/metrics/histogram.cpp
+    )
+endif()
 
 add_library(kcenon::network-tcp ALIAS network-tcp)
 
