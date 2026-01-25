@@ -276,7 +276,7 @@ add_library(NetworkSystem
     src/network_system.cpp
 
     # Core implementation (stable TCP/UDP)
-    # network_context.cpp moved to network-tcp (Issue #554)
+    src/core/network_context.cpp
     src/core/messaging_client.cpp
     src/core/messaging_server.cpp
     src/core/messaging_udp_client.cpp

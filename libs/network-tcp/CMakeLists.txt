@@ -33,21 +33,27 @@ add_library(network-tcp
     src/secure_tcp_socket.cpp
     src/tcp_connection_adapter.cpp
     src/tcp_listener_adapter.cpp
-    # Integration components needed by TCP adapters
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../src/integration/io_context_thread_manager.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../src/integration/logger_integration.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../src/integration/thread_integration.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../src/integration/monitoring_integration.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../src/integration/thread_system_adapter.cpp
-    # Core network_context needed by io_context_thread_manager
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../src/core/network_context.cpp
-    # Session components needed by unified_messaging_server template
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../src/session/messaging_session.cpp
-    # Metrics components needed by messaging_session
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../src/metrics/network_metrics.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../src/metrics/sliding_histogram.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../src/metrics/histogram.cpp
 )
+
+# Standalone build: include integration/metrics/session sources directly
+# Integrated build: these symbols are provided by NetworkSystem
+if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+    message(STATUS "network-tcp: Standalone build - including integration sources")
+    target_sources(network-tcp PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/../../src/integration/io_context_thread_manager.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../../src/integration/logger_integration.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../../src/integration/thread_integration.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../../src/integration/monitoring_integration.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../../src/integration/thread_system_adapter.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../../src/core/network_context.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../../src/session/messaging_session.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../../src/metrics/network_metrics.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../../src/metrics/sliding_histogram.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../../src/metrics/histogram.cpp
+    )
+else()
+    message(STATUS "network-tcp: Integrated build - symbols provided by NetworkSystem")
+endif()
 
 add_library(kcenon::network-tcp ALIAS network-tcp)
 
