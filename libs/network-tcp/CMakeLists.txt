@@ -33,6 +33,8 @@ add_library(network-tcp
     src/secure_tcp_socket.cpp
     src/tcp_connection_adapter.cpp
     src/tcp_listener_adapter.cpp
+    # Integration components needed by TCP adapters
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../src/integration/io_context_thread_manager.cpp
 )
 
 add_library(kcenon::network-tcp ALIAS network-tcp)
