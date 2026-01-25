@@ -101,17 +101,35 @@ namespace kcenon::network::internal
 		is_closed_.store(true);
 		is_reading_.store(false);
 
-		// Cancel any pending async operations first, then close the socket.
-		// This must be done synchronously to prevent race conditions where
-		// new async operations start after we've decided to close but before
-		// the socket is actually closed.
-		std::error_code ec;
-		if (socket_.is_open())
+		// Post the actual socket close to the socket's executor to ensure
+		// thread-safety. ASIO's epoll_reactor has internal data structures that
+		// must be accessed from the same thread as async operations to avoid
+		// data races and SEGV errors detected by ThreadSanitizer/AddressSanitizer.
+		try
 		{
-			socket_.cancel(ec);
-			socket_.close(ec);
+			auto self = shared_from_this();
+			asio::post(socket_.get_executor(), [self]() {
+				std::error_code ec;
+				if (self->socket_.is_open())
+				{
+					self->socket_.cancel(ec);
+					self->socket_.close(ec);
+				}
+				// Ignore close errors - socket may already be closed
+			});
 		}
-		// Ignore errors - socket may already be closed or cancelled
+		catch (...)
+		{
+			// If post fails (e.g., executor not running or shared_from_this fails),
+			// fall back to direct close. This may race but is better than leaking
+			// the socket.
+			std::error_code ec;
+			if (socket_.is_open())
+			{
+				socket_.cancel(ec);
+				socket_.close(ec);
+			}
+		}
 	}
 
 	auto tcp_socket::is_closed() const -> bool
