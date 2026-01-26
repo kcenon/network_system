@@ -151,11 +151,11 @@ namespace kcenon::network::internal
 		auto self = shared_from_this();
 		socket_.async_read_some(
 			asio::buffer(read_buffer_),
-			[this, self](std::error_code ec, std::size_t length)
+			[self](std::error_code ec, std::size_t length)
 			{
 				// Check if reading has been stopped or socket closed at callback time
 				// This prevents accessing invalid socket state after close()
-				if (!is_reading_.load() || is_closed_.load())
+				if (!self->is_reading_.load() || self->is_closed_.load())
 				{
 					return;
 				}
@@ -164,7 +164,7 @@ namespace kcenon::network::internal
 				{
 					// On error, invoke the error callback
 					// Lock-free callback access via atomic_load
-					auto error_cb = std::atomic_load(&error_callback_);
+					auto error_cb = std::atomic_load(&self->error_callback_);
 					if (error_cb && *error_cb)
 					{
 						(*error_cb)(ec);
@@ -177,22 +177,22 @@ namespace kcenon::network::internal
 				{
 					// Lock-free callback access via atomic_load
 					// Prefer view callback (zero-copy) over vector callback
-					auto view_cb = std::atomic_load(&receive_callback_view_);
+					auto view_cb = std::atomic_load(&self->receive_callback_view_);
 					if (view_cb && *view_cb)
 					{
 						// Zero-copy path: create span view directly into read_buffer_
 						// No std::vector allocation or copy required
-						std::span<const uint8_t> data_view(read_buffer_.data(), length);
+						std::span<const uint8_t> data_view(self->read_buffer_.data(), length);
 						(*view_cb)(data_view);
 					}
 					else
 					{
 						// Legacy path: allocate and copy into vector for compatibility
-						auto recv_cb = std::atomic_load(&receive_callback_);
+						auto recv_cb = std::atomic_load(&self->receive_callback_);
 						if (recv_cb && *recv_cb)
 						{
-							std::vector<uint8_t> chunk(read_buffer_.begin(),
-													   read_buffer_.begin() + length);
+							std::vector<uint8_t> chunk(self->read_buffer_.begin(),
+													   self->read_buffer_.begin() + length);
 							(*recv_cb)(chunk);
 						}
 					}
@@ -200,9 +200,9 @@ namespace kcenon::network::internal
 
 				// Continue reading only if still active and socket is not closed
 				// Use atomic is_closed_ flag to prevent data race with close()
-				if (is_reading_.load() && !is_closed_.load())
+				if (self->is_reading_.load() && !self->is_closed_.load())
 				{
-					do_read();
+					self->do_read();
 				}
 			});
 	}
