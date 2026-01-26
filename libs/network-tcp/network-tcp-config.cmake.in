@@ -1,0 +1,19 @@
+#*****************************************************************************
+# BSD 3-Clause License
+#
+# Copyright (c) 2025, kcenon
+# All rights reserved.
+#*****************************************************************************
+
+@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
+
+# Find required dependencies
+find_dependency(asio REQUIRED)
+find_dependency(OpenSSL REQUIRED)
+
+# Include the targets file
+include("${CMAKE_CURRENT_LIST_DIR}/network-tcp-targets.cmake")
+
+check_required_components(network-tcp)

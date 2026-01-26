@@ -262,6 +262,71 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/libs/network-core/CMakeLists.txt)
 endif()
 
 ##################################################
+# Shared Integration Objects (ODR Fix - Issue #555)
+#
+# These sources are shared between NetworkSystem and network-tcp.
+# Using an OBJECT library ensures symbols are defined exactly once,
+# preventing ODR (One Definition Rule) violations that cause SEGV
+# in sanitizer tests.
+#
+# IMPORTANT: This must be defined BEFORE add_subdirectory(libs/network-tcp)
+# so that network-tcp can link against it.
+##################################################
+
+add_library(network-integration-objects OBJECT
+    src/integration/logger_integration.cpp
+    src/integration/thread_integration.cpp
+    src/integration/io_context_thread_manager.cpp
+    src/integration/monitoring_integration.cpp
+    src/integration/thread_system_adapter.cpp
+    src/core/network_context.cpp
+    src/session/messaging_session.cpp
+    src/metrics/network_metrics.cpp
+    src/metrics/sliding_histogram.cpp
+    src/metrics/histogram.cpp
+)
+
+# Configure integration objects with necessary includes and dependencies
+target_include_directories(network-integration-objects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
+
+target_compile_features(network-integration-objects PUBLIC cxx_std_20)
+
+# ASIO setup for integration objects
+find_package(asio QUIET CONFIG)
+if(TARGET asio::asio)
+    target_link_libraries(network-integration-objects PUBLIC asio::asio)
+else()
+    find_path(ASIO_INCLUDE_DIR
+        NAMES asio.hpp
+        PATHS
+            /opt/homebrew/include
+            /usr/local/include
+            /usr/include
+        DOC "Path to standalone ASIO headers"
+    )
+    if(ASIO_INCLUDE_DIR)
+        target_include_directories(network-integration-objects SYSTEM PUBLIC
+            $<BUILD_INTERFACE:${ASIO_INCLUDE_DIR}>
+        )
+        target_compile_definitions(network-integration-objects PUBLIC ASIO_STANDALONE)
+    endif()
+endif()
+
+# Export the OBJECT library for network-tcp to use
+set(NETWORK_INTEGRATION_OBJECTS_TARGET network-integration-objects CACHE INTERNAL "Integration objects target")
+
+# network-tcp: TCP protocol implementation library (Issue #554)
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/libs/network-tcp/CMakeLists.txt)
+    add_subdirectory(libs/network-tcp)
+    message(STATUS "network-tcp library enabled")
+endif()
+
+##################################################
 # Create Main Library
 ##################################################
 
@@ -270,7 +335,7 @@ add_library(NetworkSystem
     src/network_system.cpp
 
     # Core implementation (stable TCP/UDP)
-    src/core/network_context.cpp
+    # Note: network_context.cpp is in network-integration-objects to avoid ODR violations
     src/core/messaging_client.cpp
     src/core/messaging_server.cpp
     src/core/messaging_udp_client.cpp
@@ -287,15 +352,14 @@ add_library(NetworkSystem
     src/experimental/quic_server.cpp
 
     # Session management
-    src/session/messaging_session.cpp
+    # Note: messaging_session.cpp is in network-integration-objects to avoid ODR violations
     src/session/quic_session.cpp
 
     # Core type-erased session management (Issue #522)
     src/core/unified_session_manager.cpp
 
     # Unified interface adapters (Issue #521 Phase 2)
-    src/unified/adapters/tcp_connection_adapter.cpp
-    src/unified/adapters/tcp_listener_adapter.cpp
+    # TCP adapters moved to libs/network-tcp (Issue #554)
     src/unified/adapters/udp_connection_adapter.cpp
     src/unified/adapters/udp_listener_adapter.cpp
     src/unified/adapters/ws_connection_adapter.cpp
@@ -304,13 +368,13 @@ add_library(NetworkSystem
     src/unified/adapters/quic_listener_adapter.cpp
 
     # Protocol factory functions (Issue #521 Phase 2)
-    src/protocol/tcp.cpp
+    # TCP protocol moved to libs/network-tcp (Issue #554)
     src/protocol/udp.cpp
     src/protocol/websocket.cpp
     src/protocol/quic.cpp
 
     # Internal implementation
-    src/internal/tcp_socket.cpp
+    # TCP socket moved to libs/network-tcp (Issue #554)
     src/internal/udp_socket.cpp
     src/internal/http_types.cpp
     src/internal/http_parser.cpp
@@ -323,17 +387,9 @@ add_library(NetworkSystem
     src/utils/buffer_pool.cpp
     src/utils/compression_pipeline.cpp
 
-    # Basic integration layer (always built - no external dependencies)
-    src/integration/logger_integration.cpp
-    src/integration/thread_integration.cpp
-    src/integration/io_context_thread_manager.cpp
+    # Basic integration layer - container_integration only
+    # (Other integration sources are in network-integration-objects to avoid ODR violations)
     src/integration/container_integration.cpp
-    src/integration/monitoring_integration.cpp
-
-    # Metrics implementation
-    src/metrics/network_metrics.cpp
-    src/metrics/histogram.cpp
-    src/metrics/sliding_histogram.cpp
 
     # Tracing implementation (OpenTelemetry-compatible)
     src/tracing/trace_context.cpp
@@ -404,7 +460,7 @@ option(BUILD_LZ4_COMPRESSION "Build with LZ4 compression support" ON)
 
 if(BUILD_TLS_SUPPORT)
     target_sources(NetworkSystem PRIVATE
-        src/internal/secure_tcp_socket.cpp
+        # secure_tcp_socket moved to libs/network-tcp (Issue #554)
         src/internal/dtls_socket.cpp
         src/session/secure_session.cpp
         src/core/secure_messaging_server.cpp
@@ -590,6 +646,14 @@ target_include_directories(NetworkSystem
 if(TARGET network-core)
     target_link_libraries(NetworkSystem PUBLIC network-core)
 endif()
+
+# Link to network-tcp for TCP protocol support (Issue #554)
+if(TARGET network-tcp)
+    target_link_libraries(NetworkSystem PUBLIC network-tcp)
+endif()
+
+# Note: Integration objects are provided by network-tcp (ODR fix - Issue #555)
+# NetworkSystem gets these symbols through linking with network-tcp
 
 ##################################################
 # Configure Integrations

@@ -175,7 +175,7 @@ http_server::http_server(const std::string &server_id)
 
 http_server::~http_server() {
   if (tcp_server_) {
-    tcp_server_->stop_server();
+    (void)tcp_server_->stop_server();
   }
 }
 

@@ -101,7 +101,7 @@ namespace kcenon::network::core
 		{
 			if (is_running_.load())
 			{
-				stop_client();
+				(void)stop_client();
 			}
 		}
 
@@ -165,7 +165,7 @@ namespace kcenon::network::core
 			// Stop underlying UDP client
 			if (udp_client_)
 			{
-				udp_client_->stop_client();
+				(void)udp_client_->stop_client();
 				udp_client_.reset();
 			}
 
