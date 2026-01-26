@@ -165,10 +165,15 @@ namespace kcenon::network::internal
 		}
 
 		auto self = shared_from_this();
-		socket_.async_read_some(
-			asio::buffer(read_buffer_),
-			[self](std::error_code ec, std::size_t length)
-			{
+
+		// Protect async_read_some call with try-catch to handle descriptor_state null pointer
+		// This can occur if socket is closed between is_open() check and async operation start
+		try
+		{
+			socket_.async_read_some(
+				asio::buffer(read_buffer_),
+				[self](std::error_code ec, std::size_t length)
+				{
 				// Check if reading has been stopped or socket closed at callback time
 				// This prevents accessing invalid socket state after close()
 				if (!self->is_reading_.load() || self->is_closed_.load())
@@ -221,6 +226,18 @@ namespace kcenon::network::internal
 					self->do_read();
 				}
 			});
+		}
+		catch (const std::system_error&)
+		{
+			// Socket descriptor is invalid or already closed
+			// This can happen in race conditions during teardown
+			is_reading_.store(false);
+		}
+		catch (...)
+		{
+			// Unexpected error during async operation setup
+			is_reading_.store(false);
+		}
 	}
 
 auto tcp_socket::async_send(
@@ -271,10 +288,15 @@ auto tcp_socket::async_send(
 
     // Move data into shared_ptr for lifetime management
     auto buffer = std::make_shared<std::vector<uint8_t>>(std::move(data));
-    asio::async_write(
-        socket_, asio::buffer(*buffer),
-        [handler = std::move(handler), self, buffer, data_size](std::error_code ec, std::size_t bytes_transferred)
-        {
+
+    // Protect async_write call with try-catch to handle descriptor_state null pointer
+    // This can occur if socket is closed between is_open() check and async operation start
+    try
+    {
+        asio::async_write(
+            socket_, asio::buffer(*buffer),
+            [handler = std::move(handler), self, buffer, data_size](std::error_code ec, std::size_t bytes_transferred)
+            {
             // Update pending bytes on completion
             std::size_t remaining = self->pending_bytes_.fetch_sub(data_size) - data_size;
             self->metrics_.current_pending_bytes.store(remaining);
@@ -307,6 +329,28 @@ auto tcp_socket::async_send(
                 }
             }
         });
+    }
+    catch (const std::system_error&)
+    {
+        // Socket descriptor is invalid or already closed
+        // Rollback pending bytes counter and invoke error handler
+        pending_bytes_.fetch_sub(data_size);
+        metrics_.current_pending_bytes.store(pending_bytes_.load());
+        if (handler)
+        {
+            handler(asio::error::not_connected, 0);
+        }
+    }
+    catch (...)
+    {
+        // Unexpected error during async operation setup
+        pending_bytes_.fetch_sub(data_size);
+        metrics_.current_pending_bytes.store(pending_bytes_.load());
+        if (handler)
+        {
+            handler(asio::error::operation_aborted, 0);
+        }
+    }
 }
 
 auto tcp_socket::set_backpressure_callback(backpressure_callback callback) -> void
