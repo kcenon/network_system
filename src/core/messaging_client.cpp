@@ -376,7 +376,7 @@ auto messaging_client::do_connect(std::string_view host, unsigned short port)
 
   resolver->async_resolve(
       std::string(host), std::to_string(port),
-      [this, self, resolver](std::error_code ec,
+      [self, resolver](std::error_code ec,
                              tcp::resolver::results_type results) {
         // Check if stop was initiated before proceeding with socket operations.
         // This prevents race conditions when do_stop() is called during connection.
@@ -411,7 +411,7 @@ auto messaging_client::do_connect(std::string_view host, unsigned short port)
         }
         asio::async_connect(
             *raw_socket, results,
-            [this, self,
+            [self,
              raw_socket](std::error_code connect_ec,
                          [[maybe_unused]] const tcp::endpoint &endpoint) {
               // Check if stop was initiated before proceeding with socket operations.
@@ -468,9 +468,9 @@ auto messaging_client::on_connect(std::error_code ec) -> void {
 
   if (local_socket) {
     local_socket->set_receive_callback_view(
-        [this, self](std::span<const uint8_t> chunk) { on_receive(chunk); });
+        [self](std::span<const uint8_t> chunk) { self->on_receive(chunk); });
     local_socket->set_error_callback(
-        [this, self](std::error_code err) { on_error(err); });
+        [self](std::error_code err) { self->on_error(err); });
     local_socket->start_read();
   }
 }
