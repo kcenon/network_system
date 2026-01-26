@@ -148,27 +148,11 @@ namespace kcenon::network::internal
 			return;
 		}
 
-		// Capture shared_ptr to keep object alive during async operation
 		auto self = shared_from_this();
-
-		// Post async_read_some to socket's executor to prevent race conditions.
-		// This ensures socket's internal state is fully initialized before async operation starts.
-		// Without this, under heavy load or with sanitizers, async_read_some may attempt to
-		// create scheduler_operation with uninitialized socket descriptor, causing SEGV.
-		asio::post(socket_.get_executor(),
-			[self]()
+		socket_.async_read_some(
+			asio::buffer(read_buffer_),
+			[self](std::error_code ec, std::size_t length)
 			{
-				// Re-check socket state after posting (socket may have closed during post delay)
-				if (!self->is_reading_.load() || self->is_closed_.load() || !self->socket_.is_open())
-				{
-					self->is_reading_.store(false);
-					return;
-				}
-
-				self->socket_.async_read_some(
-					asio::buffer(self->read_buffer_),
-					[self](std::error_code ec, std::size_t length)
-					{
 				// Check if reading has been stopped or socket closed at callback time
 				// This prevents accessing invalid socket state after close()
 				if (!self->is_reading_.load() || self->is_closed_.load())
@@ -220,8 +204,7 @@ namespace kcenon::network::internal
 				{
 					self->do_read();
 				}
-			});  // end of async_read_some callback
-		});  // end of asio::post
+			});
 	}
 
 auto tcp_socket::async_send(
