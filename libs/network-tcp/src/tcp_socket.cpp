@@ -85,7 +85,16 @@ namespace kcenon::network::internal
 			// Already reading, don't start another async operation
 			return;
 		}
-		do_read();
+
+		// Post do_read to socket's executor to ensure thread-safety.
+		// This serializes async operations and prevents TOCTOU race conditions
+		// where the socket might be closed between is_open() check and async_read_some call.
+		// ASIO's internal reactor state (descriptor_state) must be accessed from the same
+		// thread as other async operations to avoid ThreadSanitizer and UBSAN errors.
+		auto self = shared_from_this();
+		asio::post(socket_.get_executor(), [self]() {
+			self->do_read();
+		});
 	}
 
 	auto tcp_socket::stop_read() -> void
