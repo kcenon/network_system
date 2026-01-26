@@ -157,7 +157,7 @@ TEST_F(ErrorHandlingTest, ServerStartOnPrivilegedPort) {
   auto result = server_->start_server(80);
 
   if (result.is_ok()) {
-    server_->stop_server();
+    (void)server_->stop_server();
     GTEST_SKIP() << "Environment allows binding to privileged ports; skipping "
                     "assertion.";
   }
@@ -213,7 +213,7 @@ TEST_F(ErrorHandlingTest, SendAfterDisconnect) {
   ASSERT_TRUE(ConnectClient());
 
   // Disconnect client
-  client_->stop_client();
+  (void)client_->stop_client();
   WaitFor(100);
 
   // Try to send message after disconnect
@@ -284,7 +284,7 @@ TEST_F(ErrorHandlingTest, ClientDisconnectDuringReceive) {
   SendMessage(std::move(message));
 
   // Abruptly disconnect client
-  client_->stop_client();
+  (void)client_->stop_client();
 
   // Server should handle disconnect gracefully
   WaitFor(100);
@@ -301,7 +301,7 @@ TEST_F(ErrorHandlingTest, RapidConnectDisconnect) {
     auto result = client_->start_client("localhost", test_port_);
     WaitFor(10);
 
-    client_->stop_client();
+    (void)client_->stop_client();
     WaitFor(10);
   }
 
@@ -396,7 +396,7 @@ TEST_F(ErrorHandlingTest, RecoveryAfterConnectionFailure) {
                                             std::chrono::seconds(5));
 
   // Stop the failed client before creating new one
-  client_->stop_client();
+  (void)client_->stop_client();
 
   // Start server
   ASSERT_TRUE(StartServer());

@@ -75,13 +75,13 @@ protected:
   void TearDown() override {
     // Stop client first
     if (client_) {
-      client_->stop_client();
+      (void)client_->stop_client();
       client_.reset();
     }
 
     // Then stop server
     if (server_) {
-      server_->stop_server();
+      (void)server_->stop_server();
       server_.reset();
     }
 
@@ -260,7 +260,7 @@ protected:
     // Stop all clients
     for (auto &client : clients_) {
       if (client) {
-        client->stop_client();
+        (void)client->stop_client();
       }
     }
     clients_.clear();
@@ -296,7 +296,7 @@ protected:
     // Start all connections in parallel (async operations)
     // Use 127.0.0.1 to avoid IPv6 lookup delays on macOS
     for (auto &client : clients_) {
-      client->start_client("127.0.0.1", test_port_);
+      (void)client->start_client("127.0.0.1", test_port_);
     }
 
     // Track which clients have connected

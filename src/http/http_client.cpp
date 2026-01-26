@@ -320,7 +320,7 @@ auto http_client::request(internal::http_method method, const std::string &url,
   // Send request
   auto send_result = client->send_packet(std::move(request_bytes));
   if (send_result.is_err()) {
-    client->stop_client();
+    (void)client->stop_client();
     return error<internal::http_response>(-1, "Failed to send request: " +
                                                   send_result.error().message);
   }
@@ -330,13 +330,13 @@ auto http_client::request(internal::http_method method, const std::string &url,
     std::unique_lock<std::mutex> lock(response_mutex);
     if (!response_cv.wait_for(lock, timeout_,
                               [&] { return response_complete || has_error; })) {
-      client->stop_client();
+      (void)client->stop_client();
       return error<internal::http_response>(-1, "Request timeout");
     }
   }
 
   // Stop client
-  client->stop_client();
+  (void)client->stop_client();
 
   // Check for errors
   if (has_error) {

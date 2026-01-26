@@ -222,7 +222,7 @@ namespace kcenon::network::utils
 			is_connected_.store(false);
 
 			// Disconnect the client
-			client_->stop_client();
+			(void)client_->stop_client();
 
 			// Invoke disconnect callback if set
 			if (disconnect_callback_)
@@ -278,7 +278,7 @@ namespace kcenon::network::utils
 		// Ensure client is disconnected first
 		if (client_->is_connected())
 		{
-			client_->stop_client();
+			(void)client_->stop_client();
 		}
 
 		// Try to reconnect with retry logic

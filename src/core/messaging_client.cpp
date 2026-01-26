@@ -52,7 +52,7 @@ messaging_client::messaging_client(std::string_view client_id)
 
 messaging_client::~messaging_client() noexcept {
   if (is_running()) {
-    stop_client();
+    (void)stop_client();
   }
 }
 
@@ -376,75 +376,75 @@ auto messaging_client::do_connect(std::string_view host, unsigned short port)
 
   resolver->async_resolve(
       std::string(host), std::to_string(port),
-      [this, self, resolver](std::error_code ec,
+      [self, resolver](std::error_code ec,
                              tcp::resolver::results_type results) {
         // Check if stop was initiated before proceeding with socket operations.
         // This prevents race conditions when do_stop() is called during connection.
-        if (is_stop_initiated()) {
+        if (self->is_stop_initiated()) {
           return;
         }
 
         // Clear pending resolver only if it's still the same resolver
         // (prevents race when rapid connect/disconnect overwrites pending_resolver_)
         {
-          std::lock_guard<std::mutex> lock(pending_mutex_);
-          if (pending_resolver_.get() == resolver.get()) {
-            pending_resolver_.reset();
+          std::lock_guard<std::mutex> lock(self->pending_mutex_);
+          if (self->pending_resolver_.get() == resolver.get()) {
+            self->pending_resolver_.reset();
           }
         }
         if (ec) {
-          on_connection_failed(ec);
+          self->on_connection_failed(ec);
           return;
         }
 
         // Check again after clearing resolver
-        if (is_stop_initiated()) {
+        if (self->is_stop_initiated()) {
           return;
         }
 
         // Attempt to connect to one of the resolved endpoints
         // Store socket as member so we can cancel it during stop_client()
-        auto raw_socket = std::make_shared<tcp::socket>(*io_context_);
+        auto raw_socket = std::make_shared<tcp::socket>(*self->io_context_);
         {
-          std::lock_guard<std::mutex> lock(pending_mutex_);
-          pending_socket_ = raw_socket;
+          std::lock_guard<std::mutex> lock(self->pending_mutex_);
+          self->pending_socket_ = raw_socket;
         }
         asio::async_connect(
             *raw_socket, results,
-            [this, self,
+            [self,
              raw_socket](std::error_code connect_ec,
                          [[maybe_unused]] const tcp::endpoint &endpoint) {
               // Check if stop was initiated before proceeding with socket operations.
               // This prevents race conditions when do_stop() is called during connection.
-              if (is_stop_initiated()) {
+              if (self->is_stop_initiated()) {
                 return;
               }
 
               // Clear pending socket only if it's still the same socket
               // (prevents race when rapid connect/disconnect overwrites pending_socket_)
               {
-                std::lock_guard<std::mutex> lock(pending_mutex_);
-                if (pending_socket_.get() == raw_socket.get()) {
-                  pending_socket_.reset();
+                std::lock_guard<std::mutex> lock(self->pending_mutex_);
+                if (self->pending_socket_.get() == raw_socket.get()) {
+                  self->pending_socket_.reset();
                 }
               }
               if (connect_ec) {
-                on_connection_failed(connect_ec);
+                self->on_connection_failed(connect_ec);
                 return;
               }
 
               // Check again after clearing socket
-              if (is_stop_initiated()) {
+              if (self->is_stop_initiated()) {
                 return;
               }
 
               // On success, wrap it in our tcp_socket with mutex protection
               {
-                std::lock_guard<std::mutex> lock(socket_mutex_);
-                socket_ = std::make_shared<internal::tcp_socket>(
+                std::lock_guard<std::mutex> lock(self->socket_mutex_);
+                self->socket_ = std::make_shared<internal::tcp_socket>(
                     std::move(*raw_socket));
               }
-              on_connect(connect_ec);
+              self->on_connect(connect_ec);
             });
       });
 }
@@ -468,9 +468,9 @@ auto messaging_client::on_connect(std::error_code ec) -> void {
 
   if (local_socket) {
     local_socket->set_receive_callback_view(
-        [this, self](std::span<const uint8_t> chunk) { on_receive(chunk); });
+        [self](std::span<const uint8_t> chunk) { self->on_receive(chunk); });
     local_socket->set_error_callback(
-        [this, self](std::error_code err) { on_error(err); });
+        [self](std::error_code err) { self->on_error(err); });
     local_socket->start_read();
   }
 }

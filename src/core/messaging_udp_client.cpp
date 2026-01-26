@@ -48,7 +48,7 @@ namespace kcenon::network::core
 	{
 		if (lifecycle_.is_running())
 		{
-			stop_client();
+			(void)stop_client();
 		}
 	}
 

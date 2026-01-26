@@ -50,14 +50,14 @@ protected:
         // Stop all clients
         for (auto& client : clients_) {
             if (client) {
-                client->stop_client();
+                (void)client->stop_client();
             }
         }
         clients_.clear();
 
         // Stop server
         if (server_) {
-            server_->stop_server();
+            (void)server_->stop_server();
             server_.reset();
         }
 

@@ -99,7 +99,7 @@ TEST_F(NetworkPerformanceTest, SingleConnectionLatency) {
 
         latencies.push_back(latency);
 
-        client_->stop_client();
+        (void)client_->stop_client();
         WaitFor(10);
     }
 
@@ -268,7 +268,7 @@ TEST_F(ConcurrentPerformanceTest, ConcurrentConnectionScalability) {
         // Clean up previous clients
         for (auto& client : clients_) {
             if (client) {
-                client->stop_client();
+                (void)client->stop_client();
             }
         }
         clients_.clear();
@@ -313,7 +313,7 @@ TEST_F(ConcurrentPerformanceTest, ConcurrentMessageSending) {
         for (auto& client : clients_) {
             for (size_t i = 0; i < messages_per_client; ++i) {
                 auto message = CreateTestMessage(128);
-                client->send_packet(std::move(message));
+                (void)client->send_packet(std::move(message));
             }
         }
     });
