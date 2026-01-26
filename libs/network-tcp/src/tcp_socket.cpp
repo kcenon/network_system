@@ -85,7 +85,23 @@ namespace kcenon::network::internal
 			// Already reading, don't start another async operation
 			return;
 		}
-		do_read();
+
+		// Post do_read() to socket's executor to ensure descriptor is properly initialized
+		// and to prevent race conditions where close() is called before async_read_some starts.
+		// This ensures that the async operation is initiated within the executor's context,
+		// preventing SEGV in ASIO's scheduler_operation constructor when descriptor_state is null.
+		try
+		{
+			auto self = shared_from_this();
+			asio::post(socket_.get_executor(), [self]() {
+				self->do_read();
+			});
+		}
+		catch (...)
+		{
+			// If post fails, reset is_reading_ flag
+			is_reading_.store(false);
+		}
 	}
 
 	auto tcp_socket::stop_read() -> void
