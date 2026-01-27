@@ -53,6 +53,10 @@ Network System 프로젝트의 모든 주요 변경 사항이 이 파일에 문�
   - macOS CI 연결 타임아웃을 15초로 증가 (기존 10초)
   - macOS CI 환경에서 서버 시작 대기 시간을 200ms로 증가
   - 불안정한 `ErrorHandlingTest.ServerShutdownDuringTransmission` 테스트 해결
+- **tcp_socket async_send 직렬화**: 송신 시작을 소켓 실행기에서 직렬화하도록 보완
+  - close/read 경로에서 ASIO 내부 구조에 대한 교차 스레드 접근 방지
+  - 송신 시작 실패 시 pending bytes 및 backpressure 상태 롤백
+  - 시작 실패 경로에서도 송신 완료 핸들러를 일관되게 호출
 
 ### 추가됨
 - **OpenTelemetry 호환 분산 트레이싱 (#408)**: 분산 관측성을 위한 핵심 트레이싱 인프라 추가

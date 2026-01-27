@@ -61,6 +61,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Increased connection timeout to 15s for macOS CI (up from 10s)
   - Increased server startup delay to 200ms for macOS CI environments
   - Resolved flaky `ErrorHandlingTest.ServerShutdownDuringTransmission` test
+- **tcp_socket async_send Serialization**: Ensure send initiation is serialized on the socket executor
+  - Avoid cross-thread access to ASIO internals during close/read paths
+  - Roll back pending bytes and backpressure state when a send fails to start
+  - Invoke the send completion handler consistently on initiation failures
 
 ### Added
 - **OpenTelemetry-Compatible Distributed Tracing (#408)**: Add core tracing infrastructure for distributed observability
