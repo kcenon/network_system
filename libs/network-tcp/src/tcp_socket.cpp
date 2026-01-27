@@ -245,9 +245,9 @@ auto tcp_socket::async_send(
     std::function<void(std::error_code, std::size_t)> handler) -> void
 {
     // Check if socket has been closed or is no longer open before starting async operation
-    // Both checks are needed: is_closed_ for explicit close() calls, is_open() for ASIO state
-    // This prevents UBSAN errors from accessing null descriptor_state in epoll_reactor
-    if (is_closed_.load() || !socket_.is_open())
+    // is_closed_ covers explicit close() calls; is_open() is checked on the executor thread
+    // to avoid cross-thread access to ASIO internals.
+    if (is_closed_.load())
     {
         if (handler)
         {
@@ -256,7 +256,6 @@ auto tcp_socket::async_send(
         return;
     }
 
-    auto self = shared_from_this();
     std::size_t data_size = data.size();
 
     // Track pending bytes
@@ -289,67 +288,113 @@ auto tcp_socket::async_send(
     // Move data into shared_ptr for lifetime management
     auto buffer = std::make_shared<std::vector<uint8_t>>(std::move(data));
 
-    // Protect async_write call with try-catch to handle descriptor_state null pointer
-    // This can occur if socket is closed between is_open() check and async operation start
+    using send_handler_t = std::function<void(std::error_code, std::size_t)>;
+    auto handler_ptr = std::make_shared<send_handler_t>(std::move(handler));
+    auto self = shared_from_this();
+
+    auto rollback_pending = [self, data_size]()
+    {
+        std::size_t remaining = self->pending_bytes_.fetch_sub(data_size) - data_size;
+        self->metrics_.current_pending_bytes.store(remaining);
+
+        // Check low water mark to release backpressure if we rolled back below threshold
+        if (self->config_.low_water_mark > 0 && self->backpressure_active_.load() &&
+            remaining <= self->config_.low_water_mark)
+        {
+            self->backpressure_active_.store(false);
+
+            // Invoke backpressure callback
+            auto bp_cb = std::atomic_load(&self->backpressure_callback_);
+            if (bp_cb && *bp_cb)
+            {
+                (*bp_cb)(false);
+            }
+        }
+    };
+
+    auto invoke_handler = [handler_ptr](std::error_code ec, std::size_t bytes_transferred)
+    {
+        if (handler_ptr && *handler_ptr)
+        {
+            (*handler_ptr)(ec, bytes_transferred);
+        }
+    };
+
+    // Post async_write to socket's executor to serialize operations with close() and reads
     try
     {
-        asio::async_write(
-            socket_, asio::buffer(*buffer),
-            [handler = std::move(handler), self, buffer, data_size](std::error_code ec, std::size_t bytes_transferred)
+        asio::post(socket_.get_executor(),
+            [self, buffer, data_size, handler_ptr, rollback_pending, invoke_handler]()
             {
-            // Update pending bytes on completion
-            std::size_t remaining = self->pending_bytes_.fetch_sub(data_size) - data_size;
-            self->metrics_.current_pending_bytes.store(remaining);
-
-            if (!ec)
-            {
-                self->metrics_.total_bytes_sent.fetch_add(bytes_transferred);
-                self->metrics_.send_count.fetch_add(1);
-            }
-
-            // Check low water mark to release backpressure
-            if (self->config_.low_water_mark > 0 && self->backpressure_active_.load() &&
-                remaining <= self->config_.low_water_mark)
-            {
-                self->backpressure_active_.store(false);
-
-                // Invoke backpressure callback
-                auto bp_cb = std::atomic_load(&self->backpressure_callback_);
-                if (bp_cb && *bp_cb)
+                if (self->is_closed_.load() || !self->socket_.is_open())
                 {
-                    (*bp_cb)(false);
+                    rollback_pending();
+                    invoke_handler(asio::error::not_connected, 0);
+                    return;
                 }
-            }
 
-            if constexpr (std::is_invocable_v<decltype(handler), std::error_code, std::size_t>)
-            {
-                if (handler)
+                // Protect async_write call with try-catch to handle descriptor_state issues
+                try
                 {
-                    handler(ec, bytes_transferred);
+                    asio::async_write(
+                        self->socket_, asio::buffer(*buffer),
+                        [handler_ptr, self, buffer, data_size](std::error_code ec, std::size_t bytes_transferred)
+                        {
+                            // Update pending bytes on completion
+                            std::size_t remaining = self->pending_bytes_.fetch_sub(data_size) - data_size;
+                            self->metrics_.current_pending_bytes.store(remaining);
+
+                            if (!ec)
+                            {
+                                self->metrics_.total_bytes_sent.fetch_add(bytes_transferred);
+                                self->metrics_.send_count.fetch_add(1);
+                            }
+
+                            // Check low water mark to release backpressure
+                            if (self->config_.low_water_mark > 0 && self->backpressure_active_.load() &&
+                                remaining <= self->config_.low_water_mark)
+                            {
+                                self->backpressure_active_.store(false);
+
+                                // Invoke backpressure callback
+                                auto bp_cb = std::atomic_load(&self->backpressure_callback_);
+                                if (bp_cb && *bp_cb)
+                                {
+                                    (*bp_cb)(false);
+                                }
+                            }
+
+                            if (handler_ptr && *handler_ptr)
+                            {
+                                (*handler_ptr)(ec, bytes_transferred);
+                            }
+                        });
                 }
-            }
-        });
+                catch (const std::system_error&)
+                {
+                    // Socket descriptor is invalid or already closed
+                    rollback_pending();
+                    invoke_handler(asio::error::not_connected, 0);
+                }
+                catch (...)
+                {
+                    // Unexpected error during async operation setup
+                    rollback_pending();
+                    invoke_handler(asio::error::operation_aborted, 0);
+                }
+            });
     }
     catch (const std::system_error&)
     {
         // Socket descriptor is invalid or already closed
-        // Rollback pending bytes counter and invoke error handler
-        pending_bytes_.fetch_sub(data_size);
-        metrics_.current_pending_bytes.store(pending_bytes_.load());
-        if (handler)
-        {
-            handler(asio::error::not_connected, 0);
-        }
+        rollback_pending();
+        invoke_handler(asio::error::not_connected, 0);
     }
     catch (...)
     {
         // Unexpected error during async operation setup
-        pending_bytes_.fetch_sub(data_size);
-        metrics_.current_pending_bytes.store(pending_bytes_.load());
-        if (handler)
-        {
-            handler(asio::error::operation_aborted, 0);
-        }
+        rollback_pending();
+        invoke_handler(asio::error::operation_aborted, 0);
     }
 }
 
