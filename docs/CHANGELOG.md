@@ -65,6 +65,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Avoid cross-thread access to ASIO internals during close/read paths
   - Roll back pending bytes and backpressure state when a send fails to start
   - Invoke the send completion handler consistently on initiation failures
+- **Logging Static Destruction Guard**: Make the guard counter atomic during shutdown
+  - Use relaxed atomic operations to prevent data races in logging safety checks
+- **Tracing Console Exporter Thread Safety**: Serialize std::cout writes for console spans
+  - Prevent concurrent span exports from racing on iostream state
 
 ### Added
 - **OpenTelemetry-Compatible Distributed Tracing (#408)**: Add core tracing infrastructure for distributed observability
