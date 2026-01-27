@@ -126,7 +126,7 @@ set_target_properties(connection_lifecycle_test PROPERTIES
 # )
 
 include(GoogleTest)
-gtest_discover_tests(connection_lifecycle_test
+network_gtest_discover_tests(connection_lifecycle_test
     DISCOVERY_TIMEOUT 60
 )
 
@@ -186,7 +186,7 @@ set_target_properties(protocol_integration_test PROPERTIES
 #     COMMAND protocol_integration_test
 # )
 
-gtest_discover_tests(protocol_integration_test
+network_gtest_discover_tests(protocol_integration_test
     DISCOVERY_TIMEOUT 60
 )
 
@@ -246,7 +246,7 @@ set_target_properties(network_performance_test PROPERTIES
 #     COMMAND network_performance_test
 # )
 
-gtest_discover_tests(network_performance_test
+network_gtest_discover_tests(network_performance_test
     DISCOVERY_TIMEOUT 60
 )
 
@@ -309,7 +309,7 @@ set_target_properties(error_handling_test PROPERTIES
 # Note: ErrorHandlingTest.RecoveryAfterServerRestart has a known benign race
 # condition in ASIO's epoll_reactor during concurrent acceptor close and
 # async_accept operations. This is excluded from sanitizer tests via label.
-gtest_discover_tests(error_handling_test
+network_gtest_discover_tests(error_handling_test
     DISCOVERY_TIMEOUT 60
     PROPERTIES LABELS "integration;error_handling"
     TEST_FILTER "-*RecoveryAfterServerRestart"
@@ -401,7 +401,7 @@ set_target_properties(tcp_load_test PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/integration_tests
 )
 
-gtest_discover_tests(tcp_load_test
+network_gtest_discover_tests(tcp_load_test
     DISCOVERY_TIMEOUT 60
 )
 
@@ -455,7 +455,7 @@ set_target_properties(udp_load_test PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/integration_tests
 )
 
-gtest_discover_tests(udp_load_test
+network_gtest_discover_tests(udp_load_test
     DISCOVERY_TIMEOUT 60
 )
 
@@ -509,7 +509,7 @@ set_target_properties(websocket_load_test PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/integration_tests
 )
 
-gtest_discover_tests(websocket_load_test
+network_gtest_discover_tests(websocket_load_test
     DISCOVERY_TIMEOUT 60
 )
 
