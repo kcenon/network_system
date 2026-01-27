@@ -69,6 +69,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Use relaxed atomic operations to prevent data races in logging safety checks
 - **Tracing Console Exporter Thread Safety**: Serialize std::cout writes for console spans
   - Prevent concurrent span exports from racing on iostream state
+- **Sanitizer Test Configuration**: Apply suppressions and unified sanitizer detection
+  - Inject LSAN/TSAN options for intentional leaks and ASIO false positives
+  - Use NETWORK_SYSTEM_SANITIZER to consistently skip sanitizer-sensitive tests
 
 ### Added
 - **OpenTelemetry-Compatible Distributed Tracing (#408)**: Add core tracing infrastructure for distributed observability
