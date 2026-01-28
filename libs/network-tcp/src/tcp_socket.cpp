@@ -41,13 +41,17 @@ namespace kcenon::network::internal
 {
 
 	tcp_socket::tcp_socket(asio::ip::tcp::socket socket)
-		: socket_(std::move(socket)), config_{}
+		: socket_(std::move(socket)),
+		  write_strand_(asio::make_strand(socket_.get_executor())),
+		  config_{}
 	{
 		// constructor body empty
 	}
 
 	tcp_socket::tcp_socket(asio::ip::tcp::socket socket, const socket_config& config)
-		: socket_(std::move(socket)), config_(config)
+		: socket_(std::move(socket)),
+		  write_strand_(asio::make_strand(socket_.get_executor())),
+		  config_(config)
 	{
 		// constructor body empty
 	}
@@ -117,14 +121,14 @@ namespace kcenon::network::internal
 		is_closed_.store(true);
 		is_reading_.store(false);
 
-		// Post the actual socket close to the socket's executor to ensure
+		// Post the actual socket close to the write strand to ensure
 		// thread-safety. ASIO's epoll_reactor has internal data structures that
 		// must be accessed from the same thread as async operations to avoid
 		// data races detected by ThreadSanitizer.
 		try
 		{
 			auto self = shared_from_this();
-			asio::post(socket_.get_executor(), [self]() {
+			asio::post(self->write_strand_, [self]() {
 				std::error_code ec;
 				if (self->socket_.is_open())
 				{
@@ -298,10 +302,10 @@ auto tcp_socket::async_send(
     auto handler_ptr = std::make_shared<send_handler_t>(std::move(handler));
     auto self = shared_from_this();
 
-    // Post to socket's executor to serialize write initiation
+    // Post to write strand to serialize write initiation
     try
     {
-        asio::post(socket_.get_executor(),
+        asio::post(write_strand_,
             [self, buffer, handler_ptr, data_size]()
             {
                 if (self->is_closed_.load() || !self->socket_.is_open())
@@ -346,32 +350,33 @@ auto tcp_socket::start_write() -> void
 	{
 		asio::async_write(
 			socket_, asio::buffer(*current.buffer),
-			[self](std::error_code ec, std::size_t bytes_transferred)
-			{
-				auto completed = std::move(self->write_queue_.front());
-				self->write_queue_.pop_front();
-
-				self->finalize_send(ec, bytes_transferred, completed.data_size, completed.handler);
-
-				if (ec || self->is_closed_.load() || !self->socket_.is_open() || self->drain_on_close_)
+			asio::bind_executor(write_strand_,
+				[self](std::error_code ec, std::size_t bytes_transferred)
 				{
-					auto drain_ec = ec ? ec : asio::error::not_connected;
-					if (self->drain_on_close_ && !ec)
+					auto completed = std::move(self->write_queue_.front());
+					self->write_queue_.pop_front();
+
+					self->finalize_send(ec, bytes_transferred, completed.data_size, completed.handler);
+
+					if (ec || self->is_closed_.load() || !self->socket_.is_open() || self->drain_on_close_)
 					{
-						drain_ec = asio::error::operation_aborted;
+						auto drain_ec = ec ? ec : asio::error::not_connected;
+						if (self->drain_on_close_ && !ec)
+						{
+							drain_ec = asio::error::operation_aborted;
+						}
+						self->drain_write_queue(drain_ec);
+						return;
 					}
-					self->drain_write_queue(drain_ec);
-					return;
-				}
 
-				if (self->write_queue_.empty())
-				{
-					self->write_in_progress_ = false;
-					return;
-				}
+					if (self->write_queue_.empty())
+					{
+						self->write_in_progress_ = false;
+						return;
+					}
 
-				self->start_write();
-			});
+					self->start_write();
+				}));
 	}
 	catch (const std::system_error&)
 	{

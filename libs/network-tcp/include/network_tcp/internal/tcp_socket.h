@@ -314,6 +314,8 @@ namespace kcenon::network::internal
 		};
 
 		asio::ip::tcp::socket socket_; /*!< The underlying ASIO TCP socket. */
+		asio::strand<asio::ip::tcp::socket::executor_type>
+			write_strand_; /*!< Serialize write queue access. */
 
 		std::array<uint8_t, 4096>
 			read_buffer_; /*!< Buffer for receiving data in \c do_read(). */
@@ -346,7 +348,7 @@ namespace kcenon::network::internal
 		/*! \brief Backpressure notification callback */
 		std::shared_ptr<backpressure_callback> backpressure_callback_;
 
-		/*! \brief Pending write queue (serialized on the socket executor) */
+		/*! \brief Pending write queue (serialized on the write strand) */
 		std::deque<pending_write> write_queue_;
 
 		/*! \brief True when an async_write is in flight */
@@ -355,7 +357,7 @@ namespace kcenon::network::internal
 		/*! \brief Drain pending writes after close completes */
 		bool drain_on_close_{false};
 
-		/*! \brief Start or continue queued writes (executor thread only) */
+		/*! \brief Start or continue queued writes (write strand only) */
 		auto start_write() -> void;
 
 		/*! \brief Finalize a send attempt and update metrics */
@@ -364,7 +366,7 @@ namespace kcenon::network::internal
 		                   std::size_t data_size,
 		                   const std::shared_ptr<send_handler_t>& handler_ptr) -> void;
 
-		/*! \brief Fail all queued writes with an error (executor thread only) */
+		/*! \brief Fail all queued writes with an error (write strand only) */
 		auto drain_write_queue(std::error_code ec) -> void;
 	};
 } // namespace kcenon::network::internal
