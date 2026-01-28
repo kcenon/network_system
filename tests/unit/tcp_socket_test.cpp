@@ -41,14 +41,16 @@ protected:
 		work_guard_ = std::make_unique<asio::executor_work_guard<asio::io_context::executor_type>>(
 			io_context_->get_executor());
 
-		// Start io_context in background thread
-		io_thread_ = std::thread([this]()
-								 { io_context_->run(); });
-
-		// Setup acceptor
+		// Setup acceptor BEFORE starting io_context thread to avoid data race
+		// ThreadSanitizer detected race condition when acceptor is created
+		// while io_context thread is already running
 		acceptor_ = std::make_unique<asio::ip::tcp::acceptor>(
 			*io_context_, asio::ip::tcp::endpoint(asio::ip::tcp::v4(), 0));
 		test_port_ = acceptor_->local_endpoint().port();
+
+		// Start io_context in background thread AFTER acceptor setup
+		io_thread_ = std::thread([this]()
+								 { io_context_->run(); });
 	}
 
 	void TearDown() override

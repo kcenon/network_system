@@ -58,6 +58,7 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/test_e2e.cpp)
     )
 
     add_test(NAME E2ETests COMMAND test_e2e)
+    network_apply_test_environment(E2ETests)
 
     message(STATUS "Integration test configured: test_e2e")
 endif()
@@ -150,6 +151,7 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/test_websocket_e2e.cpp)
     )
 
     add_test(NAME WebSocketE2ETests COMMAND test_websocket_e2e)
+    network_apply_test_environment(WebSocketE2ETests)
 
     # Exclude from sanitizer tests due to timing-sensitive operations
     # that can cause false positives or timeouts under sanitizers
@@ -203,6 +205,7 @@ if(BUILD_QUIC_SUPPORT AND EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/test_quic_e2e.cpp)
     )
 
     add_test(NAME QuicE2ETests COMMAND test_quic_e2e)
+    network_apply_test_environment(QuicE2ETests)
 
     # Exclude from sanitizer tests due to timing-sensitive operations
     # that can cause false positives or timeouts under sanitizers
@@ -261,6 +264,7 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/test_metrics_integration.cpp)
     )
 
     add_test(NAME MetricsIntegrationTests COMMAND test_metrics_integration)
+    network_apply_test_environment(MetricsIntegrationTests)
 
     message(STATUS "Integration test configured: test_metrics_integration")
 endif()
@@ -307,6 +311,7 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/test_tracing_integration.cpp)
     )
 
     add_test(NAME TracingIntegrationTests COMMAND test_tracing_integration)
+    network_apply_test_environment(TracingIntegrationTests)
 
     message(STATUS "Integration test configured: test_tracing_integration")
 endif()

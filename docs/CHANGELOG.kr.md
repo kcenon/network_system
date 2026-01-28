@@ -53,6 +53,19 @@ Network System 프로젝트의 모든 주요 변경 사항이 이 파일에 문�
   - macOS CI 연결 타임아웃을 15초로 증가 (기존 10초)
   - macOS CI 환경에서 서버 시작 대기 시간을 200ms로 증가
   - 불안정한 `ErrorHandlingTest.ServerShutdownDuringTransmission` 테스트 해결
+- **tcp_socket async_send 직렬화**: 송신 시작을 소켓 실행기에서 직렬화하도록 보완
+  - close/read 경로에서 ASIO 내부 구조에 대한 교차 스레드 접근 방지
+  - 송신 시작 실패 시 pending bytes 및 backpressure 상태 롤백
+  - 시작 실패 경로에서도 송신 완료 핸들러를 일관되게 호출
+  - 높은 송신률에서 async_write 중복 실행을 방지하도록 큐 기반 직렬화
+  - 다중 스레드 io_context 환경에서 쓰기 큐/완료 핸들러를 strand로 직렬화
+- **로깅 정적 파괴 가드 안정화**: 종료 시 가드 카운터를 원자적으로 처리
+  - 로깅 안전성 체크에서 데이터 레이스를 방지하도록 relaxed 원자 연산 적용
+- **트레이싱 콘솔 내보내기 스레드 안전성**: 콘솔 span 출력 시 std::cout 직렬화
+  - 동시 span 내보내기에서 iostream 상태 레이스 방지
+- **새니타이저 테스트 구성**: 억제 설정 및 공통 새니타이저 감지 적용
+  - 의도된 메모리 누수/ASIO 오탐을 위한 LSAN/TSAN 옵션 주입
+  - NETWORK_SYSTEM_SANITIZER로 새니타이저 민감 테스트 일관되게 스킵
 
 ### 추가됨
 - **OpenTelemetry 호환 분산 트레이싱 (#408)**: 분산 관측성을 위한 핵심 트레이싱 인프라 추가
