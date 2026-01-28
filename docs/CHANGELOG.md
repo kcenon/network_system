@@ -66,6 +66,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Roll back pending bytes and backpressure state when a send fails to start
   - Invoke the send completion handler consistently on initiation failures
   - Queue writes to prevent overlapping async_write operations under high send rates
+  - Serialize queued writes and completion handlers on a strand for multi-threaded io_context safety
 - **Logging Static Destruction Guard**: Make the guard counter atomic during shutdown
   - Use relaxed atomic operations to prevent data races in logging safety checks
 - **Tracing Console Exporter Thread Safety**: Serialize std::cout writes for console spans
