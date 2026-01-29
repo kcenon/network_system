@@ -29,7 +29,7 @@ jobs:
           - name: UndefinedBehaviorSanitizer
             option: ENABLE_UBSAN
             env_var: UBSAN_OPTIONS
-            env_value: "halt_on_error=0:print_stacktrace=1"
+            env_value: "halt_on_error=0:print_stacktrace=1:suppressions=../cmake/ubsan.supp"
 
     steps:
     - name: Checkout network_system
