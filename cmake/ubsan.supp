@@ -17,11 +17,24 @@
 # The allocator never actually returns null (it throws on failure), but
 # UBSAN incorrectly flags the placement new as a null pointer access.
 # See: https://github.com/chriskohlhoff/asio/issues/816
+
+# Core ASIO operation handlers
 null:reactive_socket_service_base.hpp
 null:reactive_socket_recv_op.hpp
 null:reactive_socket_send_op.hpp
 null:handler_alloc_helpers.hpp
 null:recycling_allocator.hpp
+
+# ASIO scheduler and reactor operations
+null:reactor_op.hpp
+null:scheduler_operation.hpp
+null:epoll_reactor.hpp
+null:kqueue_reactor.hpp
+null:executor_op.hpp
+null:completion_handler.hpp
+
+# ASIO detail implementation files
+null:asio/detail/*
 
 # Also suppress in boost::asio paths if using Boost.Asio
 null:boost/asio/detail/reactive_socket_service_base.hpp
@@ -29,3 +42,6 @@ null:boost/asio/detail/reactive_socket_recv_op.hpp
 null:boost/asio/detail/reactive_socket_send_op.hpp
 null:boost/asio/detail/handler_alloc_helpers.hpp
 null:boost/asio/detail/recycling_allocator.hpp
+null:boost/asio/detail/reactor_op.hpp
+null:boost/asio/detail/scheduler_operation.hpp
+null:boost/asio/detail/*
