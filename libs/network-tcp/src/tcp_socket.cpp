@@ -189,62 +189,89 @@ namespace kcenon::network::internal
 		// Safe to initiate async operation on the executor thread.
 		// ASIO's internal state (including descriptor_data_) is properly
 		// accessible when we're on the executor's thread context.
-		socket_.async_read_some(
-			asio::buffer(read_buffer_),
-			[self](std::error_code ec, std::size_t length)
-			{
-				// Check if reading has been stopped or socket closed at callback time.
-				// This prevents processing data after socket is closed.
-				if (!self->is_reading_.load() || self->is_closed_.load())
+		//
+		// Wrap in try-catch to handle potential allocation failures in ASIO's
+		// async operation setup. This can occur with sanitizers when the
+		// recycling allocator's thread context is not properly initialized.
+		try
+		{
+			socket_.async_read_some(
+				asio::buffer(read_buffer_),
+				[self](std::error_code ec, std::size_t length)
 				{
-					return;
-				}
-
-				if (ec)
-				{
-					// On error, invoke the error callback
-					// Lock-free callback access via atomic_load
-					auto error_cb = std::atomic_load(&self->error_callback_);
-					if (error_cb && *error_cb)
+					// Check if reading has been stopped or socket closed at callback time.
+					// This prevents processing data after socket is closed.
+					if (!self->is_reading_.load() || self->is_closed_.load())
 					{
-						(*error_cb)(ec);
+						return;
 					}
-					return;
-				}
 
-				// On success, if length > 0, dispatch to the appropriate callback
-				if (length > 0)
-				{
-					// Lock-free callback access via atomic_load
-					// Prefer view callback (zero-copy) over vector callback
-					auto view_cb = std::atomic_load(&self->receive_callback_view_);
-					if (view_cb && *view_cb)
+					if (ec)
 					{
-						// Zero-copy path: create span view directly into read_buffer_
-						// No std::vector allocation or copy required
-						std::span<const uint8_t> data_view(self->read_buffer_.data(), length);
-						(*view_cb)(data_view);
-					}
-					else
-					{
-						// Legacy path: allocate and copy into vector for compatibility
-						auto recv_cb = std::atomic_load(&self->receive_callback_);
-						if (recv_cb && *recv_cb)
+						// On error, invoke the error callback
+						// Lock-free callback access via atomic_load
+						auto error_cb = std::atomic_load(&self->error_callback_);
+						if (error_cb && *error_cb)
 						{
-							std::vector<uint8_t> chunk(self->read_buffer_.begin(),
-													   self->read_buffer_.begin() + length);
-							(*recv_cb)(chunk);
+							(*error_cb)(ec);
+						}
+						return;
+					}
+
+					// On success, if length > 0, dispatch to the appropriate callback
+					if (length > 0)
+					{
+						// Lock-free callback access via atomic_load
+						// Prefer view callback (zero-copy) over vector callback
+						auto view_cb = std::atomic_load(&self->receive_callback_view_);
+						if (view_cb && *view_cb)
+						{
+							// Zero-copy path: create span view directly into read_buffer_
+							// No std::vector allocation or copy required
+							std::span<const uint8_t> data_view(self->read_buffer_.data(), length);
+							(*view_cb)(data_view);
+						}
+						else
+						{
+							// Legacy path: allocate and copy into vector for compatibility
+							auto recv_cb = std::atomic_load(&self->receive_callback_);
+							if (recv_cb && *recv_cb)
+							{
+								std::vector<uint8_t> chunk(self->read_buffer_.begin(),
+														   self->read_buffer_.begin() + length);
+								(*recv_cb)(chunk);
+							}
 						}
 					}
-				}
 
-				// Continue reading only if still active and socket is not closed
-				// Use atomic is_closed_ flag to prevent data race with close()
-				if (self->is_reading_.load() && !self->is_closed_.load())
-				{
-					self->do_read();
-				}
-			});
+					// Continue reading only if still active and socket is not closed
+					// Use atomic is_closed_ flag to prevent data race with close()
+					if (self->is_reading_.load() && !self->is_closed_.load())
+					{
+						self->do_read();
+					}
+				});
+		}
+		catch (const std::bad_alloc&)
+		{
+			// Allocation failed - stop reading and report error
+			is_reading_.store(false);
+			auto error_cb = std::atomic_load(&error_callback_);
+			if (error_cb && *error_cb)
+			{
+				(*error_cb)(std::make_error_code(std::errc::not_enough_memory));
+			}
+		}
+		catch (const std::exception&)
+		{
+			// Other exception - stop reading and report generic error
+			is_reading_.store(false);
+			auto error_cb = std::atomic_load(&error_callback_);
+			if (error_cb && *error_cb)
+			{
+				(*error_cb)(std::make_error_code(std::errc::operation_canceled));
+			}
+		}
 	}
 
 auto tcp_socket::async_send(
@@ -324,39 +351,68 @@ auto tcp_socket::async_send(
 
             // Now safe to initiate async operation on the executor thread.
             // No mutex needed here since we're on the executor's thread.
-            asio::async_write(
-                self->socket_, asio::buffer(*buffer),
-                [handler_ptr, self, buffer, data_size](std::error_code ec, std::size_t bytes_transferred)
-                {
-                    // Update pending bytes on completion
-                    std::size_t remaining = self->pending_bytes_.fetch_sub(data_size) - data_size;
-                    self->metrics_.current_pending_bytes.store(remaining);
-
-                    if (!ec)
+            //
+            // Wrap in try-catch to handle potential allocation failures in ASIO's
+            // async operation setup. This can occur with sanitizers when the
+            // recycling allocator's thread context is not properly initialized.
+            try
+            {
+                asio::async_write(
+                    self->socket_, asio::buffer(*buffer),
+                    [handler_ptr, self, buffer, data_size](std::error_code ec, std::size_t bytes_transferred)
                     {
-                        self->metrics_.total_bytes_sent.fetch_add(bytes_transferred);
-                        self->metrics_.send_count.fetch_add(1);
-                    }
+                        // Update pending bytes on completion
+                        std::size_t remaining = self->pending_bytes_.fetch_sub(data_size) - data_size;
+                        self->metrics_.current_pending_bytes.store(remaining);
 
-                    // Check low water mark to release backpressure
-                    if (self->config_.low_water_mark > 0 && self->backpressure_active_.load() &&
-                        remaining <= self->config_.low_water_mark)
-                    {
-                        self->backpressure_active_.store(false);
-
-                        // Invoke backpressure callback
-                        auto bp_cb = std::atomic_load(&self->backpressure_callback_);
-                        if (bp_cb && *bp_cb)
+                        if (!ec)
                         {
-                            (*bp_cb)(false);
+                            self->metrics_.total_bytes_sent.fetch_add(bytes_transferred);
+                            self->metrics_.send_count.fetch_add(1);
                         }
-                    }
 
-                    if (*handler_ptr)
-                    {
-                        (*handler_ptr)(ec, bytes_transferred);
-                    }
-                });
+                        // Check low water mark to release backpressure
+                        if (self->config_.low_water_mark > 0 && self->backpressure_active_.load() &&
+                            remaining <= self->config_.low_water_mark)
+                        {
+                            self->backpressure_active_.store(false);
+
+                            // Invoke backpressure callback
+                            auto bp_cb = std::atomic_load(&self->backpressure_callback_);
+                            if (bp_cb && *bp_cb)
+                            {
+                                (*bp_cb)(false);
+                            }
+                        }
+
+                        if (*handler_ptr)
+                        {
+                            (*handler_ptr)(ec, bytes_transferred);
+                        }
+                    });
+            }
+            catch (const std::bad_alloc&)
+            {
+                // Allocation failed - restore pending bytes and report error
+                self->pending_bytes_.fetch_sub(data_size);
+                self->metrics_.current_pending_bytes.store(self->pending_bytes_.load());
+
+                if (*handler_ptr)
+                {
+                    (*handler_ptr)(std::make_error_code(std::errc::not_enough_memory), 0);
+                }
+            }
+            catch (const std::exception&)
+            {
+                // Other exception - restore pending bytes and report generic error
+                self->pending_bytes_.fetch_sub(data_size);
+                self->metrics_.current_pending_bytes.store(self->pending_bytes_.load());
+
+                if (*handler_ptr)
+                {
+                    (*handler_ptr)(std::make_error_code(std::errc::operation_canceled), 0);
+                }
+            }
         });
 }
 
