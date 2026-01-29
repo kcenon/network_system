@@ -323,6 +323,15 @@ namespace kcenon::network::internal
 		std::atomic<bool> is_reading_{false}; /*!< Flag to prevent read after stop. */
 		std::atomic<bool> is_closed_{false};  /*!< Flag to indicate socket is closed. */
 
+		/*!
+		 * \brief Mutex to protect socket operations from concurrent access.
+		 *
+		 * This mutex ensures that socket close() and async operations
+		 * (async_read_some, async_write) do not execute concurrently,
+		 * preventing race conditions that cause UBSAN null pointer errors.
+		 */
+		mutable std::mutex socket_mutex_;
+
 		/*! \brief Backpressure configuration */
 		socket_config config_;
 
