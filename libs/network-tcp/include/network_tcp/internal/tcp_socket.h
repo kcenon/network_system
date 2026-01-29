@@ -321,14 +321,6 @@ namespace kcenon::network::internal
 
 		std::mutex callback_mutex_; /*!< Protects callback registration only. */
 
-		/*!
-		 * Mutex to protect socket operations (close, async_read, async_write).
-		 * This prevents race conditions where is_closed_ check and async operation
-		 * initiation are not atomic, leading to UBSAN null pointer errors when
-		 * ASIO accesses descriptor_data_ that has already been nullified by close().
-		 */
-		mutable std::mutex socket_mutex_;
-
 		std::atomic<bool> is_reading_{false}; /*!< Flag to prevent read after stop. */
 		std::atomic<bool> is_closed_{false};  /*!< Flag to indicate socket is closed. */
 
