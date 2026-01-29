@@ -93,7 +93,24 @@ namespace kcenon::network::internal
 			// Already reading, don't start another async operation
 			return;
 		}
-		do_read();
+
+		// Post do_read() to the socket's executor to ensure ASIO internal state
+		// is properly initialized. When start_read() is called from a thread
+		// different from the io_context thread (e.g., main thread in tests),
+		// directly calling async_read_some() can cause SEGV because ASIO's
+		// per-thread state and reactor registration may not be properly set up.
+		// Using asio::post() ensures the async operation starts on the correct
+		// executor context where ASIO can properly manage its internal state.
+		auto self = shared_from_this();
+		asio::post(socket_.get_executor(),
+				   [self]()
+				   {
+					   // Re-check state after post - socket may have been closed
+					   if (self->is_reading_.load() && !self->is_closed_.load())
+					   {
+						   self->do_read();
+					   }
+				   });
 	}
 
 	auto tcp_socket::stop_read() -> void
@@ -116,28 +133,29 @@ namespace kcenon::network::internal
 		// Stop the read loop
 		is_reading_.store(false);
 
-		// Close the socket under mutex protection.
-		// This ensures mutual exclusion with async_read_some() and async_write()
-		// operations, preventing the race condition where socket internal state
-		// (descriptor_data_) is accessed concurrently from multiple threads.
-		//
-		// Note: We use a synchronous close with mutex protection rather than
-		// posting to executor because io_context may be running on multiple
-		// threads, and asio::post does not guarantee serialization across threads.
-		std::lock_guard<std::mutex> lock(socket_mutex_);
-		std::error_code ec;
-		if (socket_.is_open())
-		{
-			// Cancel pending async operations first
-			socket_.cancel(ec);
+		// Post the close operation to the socket's executor to ensure thread-safety.
+		// Since async_read_some() and async_write() now run on the executor,
+		// we need close() to also run on the executor to serialize operations.
+		// This prevents data races where close() modifies socket state while
+		// an async operation is being initiated.
+		auto self = shared_from_this();
+		asio::post(socket_.get_executor(),
+				   [self]()
+				   {
+					   std::error_code ec;
+					   if (self->socket_.is_open())
+					   {
+						   // Cancel pending async operations first
+						   self->socket_.cancel(ec);
 
-			// Shutdown causes pending reads to complete with error
-			socket_.shutdown(asio::ip::tcp::socket::shutdown_both, ec);
+						   // Shutdown causes pending reads to complete with error
+						   self->socket_.shutdown(asio::ip::tcp::socket::shutdown_both, ec);
 
-			// Now safe to close the socket
-			socket_.close(ec);
-		}
-		// Ignore close errors - socket may already be closed
+						   // Now safe to close the socket
+						   self->socket_.close(ec);
+					   }
+					   // Ignore close errors - socket may already be closed
+				   });
 	}
 
 	auto tcp_socket::is_closed() const -> bool
@@ -147,16 +165,20 @@ namespace kcenon::network::internal
 
 	auto tcp_socket::do_read() -> void
 	{
+		// This function is always called from the socket's executor thread
+		// (either via asio::post() from start_read(), or from the async callback).
+		// No mutex needed since we're guaranteed to be on the correct thread.
+
 		// Check if reading has been stopped before initiating new async operation
 		if (!is_reading_.load())
 		{
 			return;
 		}
 
-		// Early check for closed state to avoid unnecessary work.
-		// This check must happen BEFORE any socket access to prevent accessing
-		// invalid ASIO internal state.
-		if (is_closed_.load())
+		// Check for closed state to avoid operations on closed socket.
+		// Also check native_handle() to catch sockets that have been closed
+		// but not yet reflected in is_closed_ flag (race with close()).
+		if (is_closed_.load() || !socket_.is_open() || socket_.native_handle() == -1)
 		{
 			is_reading_.store(false);
 			return;
@@ -164,42 +186,9 @@ namespace kcenon::network::internal
 
 		auto self = shared_from_this();
 
-		// Lock the socket mutex to prevent concurrent access with close().
-		// This is critical because io_context may run on multiple threads,
-		// and close() may be called from any thread at any time.
-		//
-		// We acquire the lock BEFORE calling async_read_some() to ensure
-		// that close() cannot invalidate the socket's internal state between
-		// our state check and the async operation registration.
-		std::lock_guard<std::mutex> lock(socket_mutex_);
-
-		// Re-check state under lock - close() may have acquired the lock first
-		// and already closed the socket, making its internal state invalid.
-		//
-		// We check multiple conditions to ensure the socket is truly usable:
-		// 1. is_reading_ - we haven't been told to stop reading
-		// 2. is_closed_ - our close() hasn't been called
-		// 3. socket_.is_open() - ASIO thinks the socket is open
-		// 4. native_handle() != -1 - the underlying file descriptor is valid
-		//
-		// The native_handle check is critical because a socket can be moved-from
-		// after being closed, leaving is_open() returning false but with
-		// invalid internal state (descriptor_data_ == nullptr).
-		if (!is_reading_.load() || is_closed_.load() || !socket_.is_open() ||
-			socket_.native_handle() == -1)
-		{
-			is_reading_.store(false);
-			return;
-		}
-
-		// Now safe to initiate async operation under lock protection.
-		// The lock will be released when this function returns, after async_read_some
-		// has successfully initiated the async operation and registered it with
-		// the socket's internal state.
-		//
-		// Note: async_read_some() does NOT invoke the callback synchronously -
-		// it always posts completion to the executor, so there's no risk of
-		// deadlock from the callback trying to acquire this lock.
+		// Safe to initiate async operation on the executor thread.
+		// ASIO's internal state (including descriptor_data_) is properly
+		// accessible when we're on the executor's thread context.
 		socket_.async_read_some(
 			asio::buffer(read_buffer_),
 			[self](std::error_code ec, std::size_t length)
@@ -305,73 +294,69 @@ auto tcp_socket::async_send(
         }
     }
 
-    // Lock the socket mutex to prevent concurrent access with close().
-    // This is critical because io_context may run on multiple threads,
-    // and close() may be called from any thread at any time.
-    //
-    // We acquire the lock BEFORE calling async_write() to ensure
-    // that close() cannot invalidate the socket's internal state between
-    // our state check and the async operation registration.
-    std::lock_guard<std::mutex> lock(socket_mutex_);
+    // Post the async_write to the socket's executor to ensure ASIO internal state
+    // is properly initialized. When async_send() is called from a thread
+    // different from the io_context thread (e.g., main thread in tests),
+    // directly calling async_write() can cause SEGV because ASIO's per-thread
+    // state and reactor registration may not be properly set up.
+    // Using asio::post() ensures the async operation starts on the correct
+    // executor context where ASIO can properly manage its internal state.
+    auto handler_ptr = std::make_shared<std::function<void(std::error_code, std::size_t)>>(
+        std::move(handler));
 
-    // Re-check state under lock - close() may have acquired the lock first.
-    // Also check native_handle() to ensure the socket wasn't closed/moved-from.
-    if (is_closed_.load() || !socket_.is_open() || socket_.native_handle() == -1)
-    {
-        // Restore pending bytes count
-        pending_bytes_.fetch_sub(data_size);
-        metrics_.current_pending_bytes.store(pending_bytes_.load());
-
-        if (handler)
+    asio::post(socket_.get_executor(),
+        [self, buffer, data_size, handler_ptr]()
         {
-            handler(asio::error::not_connected, 0);
-        }
-        return;
-    }
-
-    // Now safe to initiate async operation under lock protection.
-    // The lock will be released when this function returns, after async_write
-    // has successfully initiated the async operation and registered it with
-    // the socket's internal state.
-    //
-    // Note: async_write() does NOT invoke the callback synchronously -
-    // it always posts completion to the executor, so there's no risk of
-    // deadlock from the callback trying to acquire this lock.
-    asio::async_write(
-        socket_, asio::buffer(*buffer),
-        [handler = std::move(handler), self, buffer, data_size](std::error_code ec, std::size_t bytes_transferred)
-        {
-            // Update pending bytes on completion
-            std::size_t remaining = self->pending_bytes_.fetch_sub(data_size) - data_size;
-            self->metrics_.current_pending_bytes.store(remaining);
-
-            if (!ec)
+            // Re-check state after post - socket may have been closed
+            if (self->is_closed_.load() || !self->socket_.is_open() ||
+                self->socket_.native_handle() == -1)
             {
-                self->metrics_.total_bytes_sent.fetch_add(bytes_transferred);
-                self->metrics_.send_count.fetch_add(1);
-            }
+                // Restore pending bytes count
+                self->pending_bytes_.fetch_sub(data_size);
+                self->metrics_.current_pending_bytes.store(self->pending_bytes_.load());
 
-            // Check low water mark to release backpressure
-            if (self->config_.low_water_mark > 0 && self->backpressure_active_.load() &&
-                remaining <= self->config_.low_water_mark)
-            {
-                self->backpressure_active_.store(false);
-
-                // Invoke backpressure callback
-                auto bp_cb = std::atomic_load(&self->backpressure_callback_);
-                if (bp_cb && *bp_cb)
+                if (*handler_ptr)
                 {
-                    (*bp_cb)(false);
+                    (*handler_ptr)(asio::error::not_connected, 0);
                 }
+                return;
             }
 
-            if constexpr (std::is_invocable_v<decltype(handler), std::error_code, std::size_t>)
-            {
-                if (handler)
+            // Now safe to initiate async operation on the executor thread.
+            // No mutex needed here since we're on the executor's thread.
+            asio::async_write(
+                self->socket_, asio::buffer(*buffer),
+                [handler_ptr, self, buffer, data_size](std::error_code ec, std::size_t bytes_transferred)
                 {
-                    handler(ec, bytes_transferred);
-                }
-            }
+                    // Update pending bytes on completion
+                    std::size_t remaining = self->pending_bytes_.fetch_sub(data_size) - data_size;
+                    self->metrics_.current_pending_bytes.store(remaining);
+
+                    if (!ec)
+                    {
+                        self->metrics_.total_bytes_sent.fetch_add(bytes_transferred);
+                        self->metrics_.send_count.fetch_add(1);
+                    }
+
+                    // Check low water mark to release backpressure
+                    if (self->config_.low_water_mark > 0 && self->backpressure_active_.load() &&
+                        remaining <= self->config_.low_water_mark)
+                    {
+                        self->backpressure_active_.store(false);
+
+                        // Invoke backpressure callback
+                        auto bp_cb = std::atomic_load(&self->backpressure_callback_);
+                        if (bp_cb && *bp_cb)
+                        {
+                            (*bp_cb)(false);
+                        }
+                    }
+
+                    if (*handler_ptr)
+                    {
+                        (*handler_ptr)(ec, bytes_transferred);
+                    }
+                });
         });
 }
 
