@@ -270,6 +270,7 @@ if(GTest_FOUND OR GTEST_FOUND)
 
     target_link_libraries(network_socket_concepts_test PRIVATE
         NetworkSystem
+        network-udp
         GTest::gtest
         GTest::gtest_main
         Threads::Threads
@@ -678,6 +679,7 @@ if(GTest_FOUND OR GTEST_FOUND)
 
     target_link_libraries(network_udp_composition_test PRIVATE
         NetworkSystem
+        network-udp
         GTest::gtest
         GTest::gtest_main
         Threads::Threads

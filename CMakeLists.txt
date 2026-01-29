@@ -383,6 +383,12 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/libs/network-tcp/CMakeLists.txt)
     message(STATUS "network-tcp library enabled")
 endif()
 
+# network-udp: UDP protocol implementation library (Issue #561)
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/libs/network-udp/CMakeLists.txt)
+    add_subdirectory(libs/network-udp)
+    message(STATUS "network-udp library enabled")
+endif()
+
 ##################################################
 # Create Main Library
 ##################################################
@@ -393,10 +399,9 @@ add_library(NetworkSystem
 
     # Core implementation (stable TCP/UDP)
     # Note: network_context.cpp is in network-integration-objects to avoid ODR violations
+    # UDP messaging moved to libs/network-udp (Issue #561)
     src/core/messaging_client.cpp
     src/core/messaging_server.cpp
-    src/core/messaging_udp_client.cpp
-    src/core/messaging_udp_server.cpp
     src/core/connection_pool.cpp
 
     # HTTP layer (stable)
@@ -404,7 +409,7 @@ add_library(NetworkSystem
     src/http/http_server.cpp
 
     # Experimental protocols
-    src/experimental/reliable_udp_client.cpp
+    # reliable_udp_client moved to libs/network-udp (Issue #561)
     src/experimental/quic_client.cpp
     src/experimental/quic_server.cpp
 
@@ -417,8 +422,7 @@ add_library(NetworkSystem
 
     # Unified interface adapters (Issue #521 Phase 2)
     # TCP adapters moved to libs/network-tcp (Issue #554)
-    src/unified/adapters/udp_connection_adapter.cpp
-    src/unified/adapters/udp_listener_adapter.cpp
+    # UDP adapters moved to libs/network-udp (Issue #561)
     src/unified/adapters/ws_connection_adapter.cpp
     src/unified/adapters/ws_listener_adapter.cpp
     src/unified/adapters/quic_connection_adapter.cpp
@@ -426,13 +430,13 @@ add_library(NetworkSystem
 
     # Protocol factory functions (Issue #521 Phase 2)
     # TCP protocol moved to libs/network-tcp (Issue #554)
-    src/protocol/udp.cpp
+    # UDP protocol moved to libs/network-udp (Issue #561)
     src/protocol/websocket.cpp
     src/protocol/quic.cpp
 
     # Internal implementation
     # TCP socket moved to libs/network-tcp (Issue #554)
-    src/internal/udp_socket.cpp
+    # UDP socket moved to libs/network-udp (Issue #561)
     src/internal/http_types.cpp
     src/internal/http_parser.cpp
     src/internal/http_error.cpp
@@ -518,12 +522,11 @@ option(BUILD_LZ4_COMPRESSION "Build with LZ4 compression support" ON)
 if(BUILD_TLS_SUPPORT)
     target_sources(NetworkSystem PRIVATE
         # secure_tcp_socket moved to libs/network-tcp (Issue #554)
+        # secure_messaging_udp moved to libs/network-udp (Issue #561)
         src/internal/dtls_socket.cpp
         src/session/secure_session.cpp
         src/core/secure_messaging_server.cpp
         src/core/secure_messaging_client.cpp
-        src/core/secure_messaging_udp_client.cpp
-        src/core/secure_messaging_udp_server.cpp
         # HTTP/2 client requires TLS (ALPN negotiation)
         src/protocols/http2/http2_client.cpp
         # HTTP/2 server requires TLS (ALPN negotiation)
