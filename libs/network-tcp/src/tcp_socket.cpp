@@ -78,6 +78,14 @@ namespace kcenon::network::internal
 
 	auto tcp_socket::start_read() -> void
 	{
+		// Early validation - check if socket is usable before starting read loop.
+		// This prevents calling async operations on a socket that was moved-from
+		// after being closed, which would cause SEGV due to null descriptor_data_.
+		if (is_closed_.load() || !socket_.is_open() || socket_.native_handle() == -1)
+		{
+			return;
+		}
+
 		// Prevent duplicate read operations - only start if not already reading
 		bool expected = false;
 		if (!is_reading_.compare_exchange_strong(expected, true))
@@ -167,7 +175,18 @@ namespace kcenon::network::internal
 
 		// Re-check state under lock - close() may have acquired the lock first
 		// and already closed the socket, making its internal state invalid.
-		if (!is_reading_.load() || is_closed_.load() || !socket_.is_open())
+		//
+		// We check multiple conditions to ensure the socket is truly usable:
+		// 1. is_reading_ - we haven't been told to stop reading
+		// 2. is_closed_ - our close() hasn't been called
+		// 3. socket_.is_open() - ASIO thinks the socket is open
+		// 4. native_handle() != -1 - the underlying file descriptor is valid
+		//
+		// The native_handle check is critical because a socket can be moved-from
+		// after being closed, leaving is_open() returning false but with
+		// invalid internal state (descriptor_data_ == nullptr).
+		if (!is_reading_.load() || is_closed_.load() || !socket_.is_open() ||
+			socket_.native_handle() == -1)
 		{
 			is_reading_.store(false);
 			return;
@@ -295,8 +314,9 @@ auto tcp_socket::async_send(
     // our state check and the async operation registration.
     std::lock_guard<std::mutex> lock(socket_mutex_);
 
-    // Re-check state under lock - close() may have acquired the lock first
-    if (is_closed_.load() || !socket_.is_open())
+    // Re-check state under lock - close() may have acquired the lock first.
+    // Also check native_handle() to ensure the socket wasn't closed/moved-from.
+    if (is_closed_.load() || !socket_.is_open() || socket_.native_handle() == -1)
     {
         // Restore pending bytes count
         pending_bytes_.fetch_sub(data_size);
