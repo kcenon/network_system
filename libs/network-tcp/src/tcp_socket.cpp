@@ -108,42 +108,30 @@ namespace kcenon::network::internal
 		// Stop the read loop
 		is_reading_.store(false);
 
-		// Post the actual socket close to the socket's executor.
-		// This ensures the close operation runs on the same thread as async operations,
-		// preventing race conditions between close() and async_read_some()/async_write().
-		// ASIO's internal data structures (descriptor_data_) must be accessed from
-		// the same thread to avoid UBSAN null pointer errors.
-		try
+		// Close the socket synchronously.
+		// This is safe because:
+		// 1. is_closed_ is now true, so new async operations won't be initiated
+		// 2. cancel() will cause pending operations to complete with operation_aborted
+		// 3. shutdown() ensures pending reads complete with error
+		//
+		// Note: ASIO documentation states that socket close can be called from any thread,
+		// and the cancel will safely abort pending operations. The UBSAN issue arises when
+		// async_read_some() is called while the socket is being closed concurrently.
+		// By setting is_closed_ first and checking it in do_read(), we prevent new async
+		// operations from being initiated. Existing operations will complete with error.
+		std::error_code ec;
+		if (socket_.is_open())
 		{
-			auto self = shared_from_this();
-			asio::post(socket_.get_executor(), [self]() {
-				std::error_code ec;
-				if (self->socket_.is_open())
-				{
-					// Cancel pending async operations first
-					self->socket_.cancel(ec);
+			// Cancel pending async operations first
+			socket_.cancel(ec);
 
-					// Shutdown causes pending reads to complete with error
-					self->socket_.shutdown(asio::ip::tcp::socket::shutdown_both, ec);
+			// Shutdown causes pending reads to complete with error
+			socket_.shutdown(asio::ip::tcp::socket::shutdown_both, ec);
 
-					// Now safe to close the socket
-					self->socket_.close(ec);
-				}
-				// Ignore close errors - socket may already be closed
-			});
+			// Now safe to close the socket
+			socket_.close(ec);
 		}
-		catch (...)
-		{
-			// If post fails (e.g., executor not running), fall back to direct close.
-			// This may not be ideal but is better than leaking the socket.
-			std::error_code ec;
-			if (socket_.is_open())
-			{
-				socket_.cancel(ec);
-				socket_.shutdown(asio::ip::tcp::socket::shutdown_both, ec);
-				socket_.close(ec);
-			}
-		}
+		// Ignore close errors - socket may already be closed
 	}
 
 	auto tcp_socket::is_closed() const -> bool
