@@ -33,12 +33,14 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <atomic>
 #include <chrono>
 #include <condition_variable>
+#include <cstdlib>
 #include <future>
 #include <gtest/gtest.h>
 #include <latch>
 #include <memory>
 #include <mutex>
 #include <string>
+#include <string_view>
 #include <thread>
 #include <vector>
 
@@ -61,12 +63,17 @@ inline void wait_for_ready() {
 
 // Detect whether tests are running under a sanitizer
 inline bool is_sanitizer_run() {
+#if defined(NETWORK_SYSTEM_SANITIZER)
+  return true;
+#endif
   const auto flag_set = [](const char *value) {
     return value != nullptr && *value != '\0' && std::string_view(value) != "0";
   };
   return flag_set(std::getenv("TSAN_OPTIONS")) ||
          flag_set(std::getenv("ASAN_OPTIONS")) ||
-         flag_set(std::getenv("SANITIZER"));
+         flag_set(std::getenv("UBSAN_OPTIONS")) ||
+         flag_set(std::getenv("SANITIZER")) ||
+         flag_set(std::getenv("NETWORK_SYSTEM_SANITIZER"));
 }
 
 // Test fixture for network tests

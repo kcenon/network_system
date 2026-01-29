@@ -48,6 +48,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * @date 2025-09-20
  */
 
+#include <atomic>
 #include <memory>
 #include <string>
 #include <string_view>
@@ -285,17 +286,20 @@ namespace detail {
  */
 class static_destruction_guard {
 public:
-    static_destruction_guard() { ++counter_; }
-    ~static_destruction_guard() { --counter_; }
+    static_destruction_guard() { counter_.fetch_add(1, std::memory_order_relaxed); }
+    ~static_destruction_guard() { counter_.fetch_sub(1, std::memory_order_relaxed); }
 
     /**
      * @brief Check if logging is safe (not in static destruction)
      * @return true if logging is safe, false if in static destruction
      */
-    static bool is_logging_safe() { return counter_ > 0; }
+    static bool is_logging_safe()
+    {
+        return counter_.load(std::memory_order_relaxed) > 0;
+    }
 
 private:
-    static inline int counter_ = 0;
+    static inline std::atomic<int> counter_{0};
 };
 
 // This static instance ensures the counter is incremented at program start

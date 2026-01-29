@@ -471,7 +471,16 @@ auto messaging_client::on_connect(std::error_code ec) -> void {
         [self](std::span<const uint8_t> chunk) { self->on_receive(chunk); });
     local_socket->set_error_callback(
         [self](std::error_code err) { self->on_error(err); });
-    local_socket->start_read();
+
+    // Post start_read() to io_context to ensure tcp_socket is fully initialized
+    // This prevents SEGV in async_read_some when socket descriptor state is incomplete
+    if (io_context_) {
+      asio::post(*io_context_, [local_socket]() {
+        if (local_socket) {
+          local_socket->start_read();
+        }
+      });
+    }
   }
 }
 
