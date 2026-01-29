@@ -108,45 +108,28 @@ namespace kcenon::network::internal
 		// Stop the read loop
 		is_reading_.store(false);
 
-		// Post the socket close to the executor to serialize with other socket operations.
-		// This ensures that close() runs in the same thread/strand as async_read_some()
-		// and async_write(), preventing the race condition where socket internal state
-		// (descriptor_data_) is accessed from multiple threads concurrently.
+		// Close the socket under mutex protection.
+		// This ensures mutual exclusion with async_read_some() and async_write()
+		// operations, preventing the race condition where socket internal state
+		// (descriptor_data_) is accessed concurrently from multiple threads.
 		//
-		// The key insight is that ASIO's async operations access internal socket state
-		// that is not thread-safe. By posting both the async operations and the close
-		// to the same executor, we guarantee they run sequentially, never concurrently.
-		auto self = shared_from_this();
-		try
+		// Note: We use a synchronous close with mutex protection rather than
+		// posting to executor because io_context may be running on multiple
+		// threads, and asio::post does not guarantee serialization across threads.
+		std::lock_guard<std::mutex> lock(socket_mutex_);
+		std::error_code ec;
+		if (socket_.is_open())
 		{
-			asio::post(socket_.get_executor(), [self]() {
-				std::error_code ec;
-				if (self->socket_.is_open())
-				{
-					// Cancel pending async operations first
-					self->socket_.cancel(ec);
+			// Cancel pending async operations first
+			socket_.cancel(ec);
 
-					// Shutdown causes pending reads to complete with error
-					self->socket_.shutdown(asio::ip::tcp::socket::shutdown_both, ec);
+			// Shutdown causes pending reads to complete with error
+			socket_.shutdown(asio::ip::tcp::socket::shutdown_both, ec);
 
-					// Now safe to close the socket
-					self->socket_.close(ec);
-				}
-				// Ignore close errors - socket may already be closed
-			});
+			// Now safe to close the socket
+			socket_.close(ec);
 		}
-		catch (...)
-		{
-			// If post fails (e.g., executor not running), fall back to direct close.
-			// This may happen during shutdown when io_context is already stopped.
-			std::error_code ec;
-			if (socket_.is_open())
-			{
-				socket_.cancel(ec);
-				socket_.shutdown(asio::ip::tcp::socket::shutdown_both, ec);
-				socket_.close(ec);
-			}
-		}
+		// Ignore close errors - socket may already be closed
 	}
 
 	auto tcp_socket::is_closed() const -> bool
@@ -172,93 +155,89 @@ namespace kcenon::network::internal
 		auto self = shared_from_this();
 
 		// Post the async read to the socket's executor.
-		// This ensures all socket operations (read, write, close) run on the same
-		// thread/strand, preventing race conditions between close() and async_read_some().
-		// ASIO's internal data structures (descriptor_data_) are accessed safely because
-		// close() is also posted to the same executor.
 		asio::post(socket_.get_executor(), [self]() {
 			// Re-check state after being scheduled on the executor
-			// This is the key synchronization point - if close() was posted before us,
-			// is_closed_ will be true and socket will be closed when we run.
-			// If close() is posted after us, we'll complete our async_read_some() first.
+			if (!self->is_reading_.load() || self->is_closed_.load())
+			{
+				self->is_reading_.store(false);
+				return;
+			}
+
+			// Lock the socket mutex to prevent concurrent access with close().
+			// This is critical because io_context may run on multiple threads,
+			// and close() may be called from any thread at any time.
+			// The lock ensures mutual exclusion between socket operations.
+			std::unique_lock<std::mutex> lock(self->socket_mutex_);
+
+			// Re-check state under lock - close() may have acquired the lock first
 			if (!self->is_reading_.load() || self->is_closed_.load() || !self->socket_.is_open())
 			{
 				self->is_reading_.store(false);
 				return;
 			}
 
-			// Now safe to initiate async operation - we're on the executor thread
-			// and the socket is guaranteed to be open at this point.
-			// Wrap in try-catch to handle the race condition where socket may be closed
-			// between our check and the actual async operation. This can happen because:
-			// 1. is_closed_ and socket_.is_open() checks are not atomic with async_read_some()
-			// 2. Another thread may call close() between our checks and the async call
-			// 3. ASIO's internal descriptor_data_ may become null during this window
-			try
-			{
-				self->socket_.async_read_some(
-					asio::buffer(self->read_buffer_),
-					[self](std::error_code ec, std::size_t length)
+			// Now safe to initiate async operation under lock protection.
+			// Release the lock before async_read_some since the callback may
+			// be invoked from the same thread and try to acquire the lock again.
+			// Instead, we rely on is_closed_ flag for callback safety.
+			lock.unlock();
+
+			self->socket_.async_read_some(
+				asio::buffer(self->read_buffer_),
+				[self](std::error_code ec, std::size_t length)
+				{
+					// Check if reading has been stopped or socket closed at callback time
+					// This prevents accessing invalid socket state after close()
+					if (!self->is_reading_.load() || self->is_closed_.load())
 					{
-						// Check if reading has been stopped or socket closed at callback time
-						// This prevents accessing invalid socket state after close()
-						if (!self->is_reading_.load() || self->is_closed_.load())
-						{
-							return;
-						}
+						return;
+					}
 
-						if (ec)
+					if (ec)
+					{
+						// On error, invoke the error callback
+						// Lock-free callback access via atomic_load
+						auto error_cb = std::atomic_load(&self->error_callback_);
+						if (error_cb && *error_cb)
 						{
-							// On error, invoke the error callback
-							// Lock-free callback access via atomic_load
-							auto error_cb = std::atomic_load(&self->error_callback_);
-							if (error_cb && *error_cb)
-							{
-								(*error_cb)(ec);
-							}
-							return;
+							(*error_cb)(ec);
 						}
+						return;
+					}
 
-						// On success, if length > 0, dispatch to the appropriate callback
-						if (length > 0)
+					// On success, if length > 0, dispatch to the appropriate callback
+					if (length > 0)
+					{
+						// Lock-free callback access via atomic_load
+						// Prefer view callback (zero-copy) over vector callback
+						auto view_cb = std::atomic_load(&self->receive_callback_view_);
+						if (view_cb && *view_cb)
 						{
-							// Lock-free callback access via atomic_load
-							// Prefer view callback (zero-copy) over vector callback
-							auto view_cb = std::atomic_load(&self->receive_callback_view_);
-							if (view_cb && *view_cb)
+							// Zero-copy path: create span view directly into read_buffer_
+							// No std::vector allocation or copy required
+							std::span<const uint8_t> data_view(self->read_buffer_.data(), length);
+							(*view_cb)(data_view);
+						}
+						else
+						{
+							// Legacy path: allocate and copy into vector for compatibility
+							auto recv_cb = std::atomic_load(&self->receive_callback_);
+							if (recv_cb && *recv_cb)
 							{
-								// Zero-copy path: create span view directly into read_buffer_
-								// No std::vector allocation or copy required
-								std::span<const uint8_t> data_view(self->read_buffer_.data(), length);
-								(*view_cb)(data_view);
-							}
-							else
-							{
-								// Legacy path: allocate and copy into vector for compatibility
-								auto recv_cb = std::atomic_load(&self->receive_callback_);
-								if (recv_cb && *recv_cb)
-								{
-									std::vector<uint8_t> chunk(self->read_buffer_.begin(),
-															   self->read_buffer_.begin() + length);
-									(*recv_cb)(chunk);
-								}
+								std::vector<uint8_t> chunk(self->read_buffer_.begin(),
+														   self->read_buffer_.begin() + length);
+								(*recv_cb)(chunk);
 							}
 						}
+					}
 
-						// Continue reading only if still active and socket is not closed
-						// Use atomic is_closed_ flag to prevent data race with close()
-						if (self->is_reading_.load() && !self->is_closed_.load())
-						{
-							self->do_read();
-						}
-					});
-			}
-			catch (const std::exception&)
-			{
-				// Socket was closed between our check and async_read_some() call.
-				// This is expected during concurrent close - just stop reading gracefully.
-				self->is_reading_.store(false);
-			}
+					// Continue reading only if still active and socket is not closed
+					// Use atomic is_closed_ flag to prevent data race with close()
+					if (self->is_reading_.load() && !self->is_closed_.load())
+					{
+						self->do_read();
+					}
+				});
 		});
 	}
 
