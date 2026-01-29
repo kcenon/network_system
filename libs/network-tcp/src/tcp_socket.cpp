@@ -174,62 +174,76 @@ namespace kcenon::network::internal
 
 			// Now safe to initiate async operation - we're on the executor thread
 			// and the socket is guaranteed to be open at this point.
-			self->socket_.async_read_some(
-				asio::buffer(self->read_buffer_),
-				[self](std::error_code ec, std::size_t length)
-				{
-					// Check if reading has been stopped or socket closed at callback time
-					// This prevents accessing invalid socket state after close()
-					if (!self->is_reading_.load() || self->is_closed_.load())
+			// Wrap in try-catch to handle the race condition where socket may be closed
+			// between our check and the actual async operation. This can happen because:
+			// 1. is_closed_ and socket_.is_open() checks are not atomic with async_read_some()
+			// 2. Another thread may call close() between our checks and the async call
+			// 3. ASIO's internal descriptor_data_ may become null during this window
+			try
+			{
+				self->socket_.async_read_some(
+					asio::buffer(self->read_buffer_),
+					[self](std::error_code ec, std::size_t length)
 					{
-						return;
-					}
-
-					if (ec)
-					{
-						// On error, invoke the error callback
-						// Lock-free callback access via atomic_load
-						auto error_cb = std::atomic_load(&self->error_callback_);
-						if (error_cb && *error_cb)
+						// Check if reading has been stopped or socket closed at callback time
+						// This prevents accessing invalid socket state after close()
+						if (!self->is_reading_.load() || self->is_closed_.load())
 						{
-							(*error_cb)(ec);
+							return;
 						}
-						return;
-					}
 
-					// On success, if length > 0, dispatch to the appropriate callback
-					if (length > 0)
-					{
-						// Lock-free callback access via atomic_load
-						// Prefer view callback (zero-copy) over vector callback
-						auto view_cb = std::atomic_load(&self->receive_callback_view_);
-						if (view_cb && *view_cb)
+						if (ec)
 						{
-							// Zero-copy path: create span view directly into read_buffer_
-							// No std::vector allocation or copy required
-							std::span<const uint8_t> data_view(self->read_buffer_.data(), length);
-							(*view_cb)(data_view);
-						}
-						else
-						{
-							// Legacy path: allocate and copy into vector for compatibility
-							auto recv_cb = std::atomic_load(&self->receive_callback_);
-							if (recv_cb && *recv_cb)
+							// On error, invoke the error callback
+							// Lock-free callback access via atomic_load
+							auto error_cb = std::atomic_load(&self->error_callback_);
+							if (error_cb && *error_cb)
 							{
-								std::vector<uint8_t> chunk(self->read_buffer_.begin(),
-														   self->read_buffer_.begin() + length);
-								(*recv_cb)(chunk);
+								(*error_cb)(ec);
+							}
+							return;
+						}
+
+						// On success, if length > 0, dispatch to the appropriate callback
+						if (length > 0)
+						{
+							// Lock-free callback access via atomic_load
+							// Prefer view callback (zero-copy) over vector callback
+							auto view_cb = std::atomic_load(&self->receive_callback_view_);
+							if (view_cb && *view_cb)
+							{
+								// Zero-copy path: create span view directly into read_buffer_
+								// No std::vector allocation or copy required
+								std::span<const uint8_t> data_view(self->read_buffer_.data(), length);
+								(*view_cb)(data_view);
+							}
+							else
+							{
+								// Legacy path: allocate and copy into vector for compatibility
+								auto recv_cb = std::atomic_load(&self->receive_callback_);
+								if (recv_cb && *recv_cb)
+								{
+									std::vector<uint8_t> chunk(self->read_buffer_.begin(),
+															   self->read_buffer_.begin() + length);
+									(*recv_cb)(chunk);
+								}
 							}
 						}
-					}
 
-					// Continue reading only if still active and socket is not closed
-					// Use atomic is_closed_ flag to prevent data race with close()
-					if (self->is_reading_.load() && !self->is_closed_.load())
-					{
-						self->do_read();
-					}
-				});
+						// Continue reading only if still active and socket is not closed
+						// Use atomic is_closed_ flag to prevent data race with close()
+						if (self->is_reading_.load() && !self->is_closed_.load())
+						{
+							self->do_read();
+						}
+					});
+			}
+			catch (const std::exception&)
+			{
+				// Socket was closed between our check and async_read_some() call.
+				// This is expected during concurrent close - just stop reading gracefully.
+				self->is_reading_.store(false);
+			}
 		});
 	}
 
@@ -299,42 +313,59 @@ auto tcp_socket::async_send(
         }
 
         // Now safe to initiate async operation
-        asio::async_write(
-            self->socket_, asio::buffer(*buffer),
-            [handler = std::move(handler), self, buffer, data_size](std::error_code ec, std::size_t bytes_transferred)
+        // Wrap in try-catch to handle race condition where socket may be closed
+        // between our check and the actual async operation
+        try
+        {
+            asio::async_write(
+                self->socket_, asio::buffer(*buffer),
+                [handler = std::move(handler), self, buffer, data_size](std::error_code ec, std::size_t bytes_transferred)
+                {
+                    // Update pending bytes on completion
+                    std::size_t remaining = self->pending_bytes_.fetch_sub(data_size) - data_size;
+                    self->metrics_.current_pending_bytes.store(remaining);
+
+                    if (!ec)
+                    {
+                        self->metrics_.total_bytes_sent.fetch_add(bytes_transferred);
+                        self->metrics_.send_count.fetch_add(1);
+                    }
+
+                    // Check low water mark to release backpressure
+                    if (self->config_.low_water_mark > 0 && self->backpressure_active_.load() &&
+                        remaining <= self->config_.low_water_mark)
+                    {
+                        self->backpressure_active_.store(false);
+
+                        // Invoke backpressure callback
+                        auto bp_cb = std::atomic_load(&self->backpressure_callback_);
+                        if (bp_cb && *bp_cb)
+                        {
+                            (*bp_cb)(false);
+                        }
+                    }
+
+                    if constexpr (std::is_invocable_v<decltype(handler), std::error_code, std::size_t>)
+                    {
+                        if (handler)
+                        {
+                            handler(ec, bytes_transferred);
+                        }
+                    }
+                });
+        }
+        catch (const std::exception&)
+        {
+            // Socket was closed between our check and async_write() call.
+            // Restore pending bytes count and invoke handler with error.
+            self->pending_bytes_.fetch_sub(data_size);
+            self->metrics_.current_pending_bytes.store(self->pending_bytes_.load());
+
+            if (handler)
             {
-                // Update pending bytes on completion
-                std::size_t remaining = self->pending_bytes_.fetch_sub(data_size) - data_size;
-                self->metrics_.current_pending_bytes.store(remaining);
-
-                if (!ec)
-                {
-                    self->metrics_.total_bytes_sent.fetch_add(bytes_transferred);
-                    self->metrics_.send_count.fetch_add(1);
-                }
-
-                // Check low water mark to release backpressure
-                if (self->config_.low_water_mark > 0 && self->backpressure_active_.load() &&
-                    remaining <= self->config_.low_water_mark)
-                {
-                    self->backpressure_active_.store(false);
-
-                    // Invoke backpressure callback
-                    auto bp_cb = std::atomic_load(&self->backpressure_callback_);
-                    if (bp_cb && *bp_cb)
-                    {
-                        (*bp_cb)(false);
-                    }
-                }
-
-                if constexpr (std::is_invocable_v<decltype(handler), std::error_code, std::size_t>)
-                {
-                    if (handler)
-                    {
-                        handler(ec, bytes_transferred);
-                    }
-                }
-            });
+                handler(asio::error::not_connected, 0);
+            }
+        }
     });
 }
 
