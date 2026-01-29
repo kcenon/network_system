@@ -23,12 +23,17 @@ using namespace kcenon::network::core;
 
 // Detect whether tests are running under a sanitizer
 inline bool is_sanitizer_run() {
+#if defined(NETWORK_SYSTEM_SANITIZER)
+  return true;
+#endif
   const auto flag_set = [](const char *value) {
     return value != nullptr && *value != '\0' && std::string_view(value) != "0";
   };
   return flag_set(std::getenv("TSAN_OPTIONS")) ||
          flag_set(std::getenv("ASAN_OPTIONS")) ||
-         flag_set(std::getenv("SANITIZER"));
+         flag_set(std::getenv("UBSAN_OPTIONS")) ||
+         flag_set(std::getenv("SANITIZER")) ||
+         flag_set(std::getenv("NETWORK_SYSTEM_SANITIZER"));
 }
 using namespace kcenon::network::internal;
 

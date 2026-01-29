@@ -66,6 +66,8 @@ struct tracing_state
 
 // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
 tracing_state g_tracing_state;
+// NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
+std::mutex g_console_mutex;
 
 // Sampling decision based on trace ID
 auto should_sample(const trace_context& ctx, double sample_rate) -> bool
@@ -230,6 +232,7 @@ void export_to_console(const span& s)
 
 	oss << "============\n";
 
+	std::lock_guard<std::mutex> lock(g_console_mutex);
 	std::cout << oss.str() << std::flush;
 }
 
@@ -485,6 +488,7 @@ void export_otlp_http(const std::vector<std::string>& spans_json)
 
 	if (config.debug)
 	{
+		std::lock_guard<std::mutex> lock(g_console_mutex);
 		std::cout << "[TRACING] Exporting " << spans_json.size()
 		          << " spans to OTLP HTTP: " << config.otlp.endpoint << "\n";
 		std::cout << "[TRACING] Request body: " << body << "\n";
@@ -566,8 +570,11 @@ void process_span(const span& s)
 		// gRPC export requires protobuf, fall back to debug console
 		if (config.debug)
 		{
-			std::cout << "[TRACING] OTLP gRPC export not implemented, "
-			          << "use otlp_http instead\n";
+			{
+				std::lock_guard<std::mutex> lock(g_console_mutex);
+				std::cout << "[TRACING] OTLP gRPC export not implemented, "
+				          << "use otlp_http instead\n";
+			}
 			export_to_console(s);
 		}
 		break;
@@ -576,8 +583,11 @@ void process_span(const span& s)
 		// Jaeger export uses Thrift, fall back to debug console
 		if (config.debug)
 		{
-			std::cout << "[TRACING] Jaeger export not implemented, "
-			          << "use otlp_http with Jaeger OTLP receiver\n";
+			{
+				std::lock_guard<std::mutex> lock(g_console_mutex);
+				std::cout << "[TRACING] Jaeger export not implemented, "
+				          << "use otlp_http with Jaeger OTLP receiver\n";
+			}
 			export_to_console(s);
 		}
 		break;
@@ -586,8 +596,11 @@ void process_span(const span& s)
 		// Zipkin export requires JSON v2 format
 		if (config.debug)
 		{
-			std::cout << "[TRACING] Zipkin export not implemented, "
-			          << "use otlp_http with Zipkin OTLP receiver\n";
+			{
+				std::lock_guard<std::mutex> lock(g_console_mutex);
+				std::cout << "[TRACING] Zipkin export not implemented, "
+				          << "use otlp_http with Zipkin OTLP receiver\n";
+			}
 			export_to_console(s);
 		}
 		break;
@@ -613,14 +626,19 @@ void process_span(const span& s)
 
 void configure_tracing(const tracing_config& config)
 {
-	std::lock_guard<std::mutex> lock(g_tracing_state.mutex);
+	const bool should_log = config.debug && config.exporter != exporter_type::none;
 
-	g_tracing_state.config = config;
-	g_tracing_state.enabled.store(config.exporter != exporter_type::none,
-	                               std::memory_order_release);
-
-	if (config.debug && config.exporter != exporter_type::none)
 	{
+		std::lock_guard<std::mutex> lock(g_tracing_state.mutex);
+
+		g_tracing_state.config = config;
+		g_tracing_state.enabled.store(config.exporter != exporter_type::none,
+		                               std::memory_order_release);
+	}
+
+	if (should_log)
+	{
+		std::lock_guard<std::mutex> lock(g_console_mutex);
 		std::cout << "[TRACING] Configured with exporter: ";
 		switch (config.exporter)
 		{
@@ -686,7 +704,10 @@ void flush_tracing()
 		export_otlp_http(batch);
 	}
 
-	std::cout << std::flush;
+	{
+		std::lock_guard<std::mutex> lock(g_console_mutex);
+		std::cout << std::flush;
+	}
 }
 
 auto is_tracing_enabled() -> bool

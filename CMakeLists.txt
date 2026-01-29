@@ -224,6 +224,11 @@ if(ENABLE_UBSAN)
     endif()
 endif()
 
+# Mark builds that enable sanitizers for tests and helpers.
+if(ENABLE_ASAN OR ENABLE_TSAN OR ENABLE_UBSAN)
+    add_compile_definitions(NETWORK_SYSTEM_SANITIZER)
+endif()
+
 # Disable ASIO's small block recycling allocator when any sanitizer is enabled.
 # The recycling allocator uses thread-local storage which can interact poorly
 # with sanitizers, causing false positives or undefined behavior reports.
@@ -238,6 +243,43 @@ if((ENABLE_ASAN OR ENABLE_TSAN OR ENABLE_UBSAN) AND NOT SKIP_ASIO_RECYCLING_WORK
     add_compile_definitions(ASIO_DISABLE_SMALL_BLOCK_RECYCLING)
     message(STATUS "ASIO small block recycling disabled for sanitizer build")
 endif()
+
+# Configure sanitizer test environment (used by gtest discovery and add_test)
+set(NETWORK_TEST_ENVIRONMENT "")
+
+if(ENABLE_ASAN OR ENABLE_TSAN OR ENABLE_UBSAN)
+    list(APPEND NETWORK_TEST_ENVIRONMENT "NETWORK_SYSTEM_SANITIZER=1")
+endif()
+
+set(NETWORK_LSAN_SUPPRESSIONS "${CMAKE_CURRENT_SOURCE_DIR}/sanitizers/lsan_suppressions.txt")
+if(ENABLE_ASAN AND EXISTS "${NETWORK_LSAN_SUPPRESSIONS}")
+    list(APPEND NETWORK_TEST_ENVIRONMENT "LSAN_OPTIONS=suppressions=${NETWORK_LSAN_SUPPRESSIONS}")
+    message(STATUS "LSAN suppressions configured: ${NETWORK_LSAN_SUPPRESSIONS}")
+endif()
+
+set(NETWORK_TSAN_SUPPRESSIONS "${CMAKE_CURRENT_SOURCE_DIR}/tsan_suppressions.txt")
+if(ENABLE_TSAN AND EXISTS "${NETWORK_TSAN_SUPPRESSIONS}")
+    list(APPEND NETWORK_TEST_ENVIRONMENT
+        "TSAN_OPTIONS=halt_on_error=0:second_deadlock_stack=1:suppressions=${NETWORK_TSAN_SUPPRESSIONS}")
+    message(STATUS "TSAN suppressions configured: ${NETWORK_TSAN_SUPPRESSIONS}")
+endif()
+
+function(network_gtest_discover_tests target)
+    if(NETWORK_TEST_ENVIRONMENT)
+        gtest_discover_tests(${target}
+            PROPERTIES ENVIRONMENT "${NETWORK_TEST_ENVIRONMENT}"
+            ${ARGN}
+        )
+    else()
+        gtest_discover_tests(${target} ${ARGN})
+    endif()
+endfunction()
+
+function(network_apply_test_environment test_name)
+    if(NETWORK_TEST_ENVIRONMENT)
+        set_tests_properties(${test_name} PROPERTIES ENVIRONMENT "${NETWORK_TEST_ENVIRONMENT}")
+    endif()
+endfunction()
 
 ##################################################
 # Include CMake Modules

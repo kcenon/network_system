@@ -73,6 +73,9 @@ inline void wait_for_ready() {
  * These tests should be skipped in sanitizer builds.
  */
 inline bool is_sanitizer_run() {
+#if defined(NETWORK_SYSTEM_SANITIZER)
+  return true;
+#endif
     const auto flag_set = [](const char *value) {
         return value != nullptr && *value != '\0' && std::string_view(value) != "0";
     };

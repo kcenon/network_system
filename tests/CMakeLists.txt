@@ -5,26 +5,6 @@
 # Enable testing
 enable_testing()
 
-##################################################
-# Sanitizer Suppression Configuration
-##################################################
-#
-# Configure LSAN (LeakSanitizer) to use suppression file for intentional leaks.
-# This prevents false positives from the intentional leak pattern in thread
-# integration. See docs/DESIGN_DECISIONS.md for details.
-
-set(NETWORK_LSAN_SUPPRESSIONS "${CMAKE_CURRENT_SOURCE_DIR}/../sanitizers/lsan_suppressions.txt")
-
-if(EXISTS "${NETWORK_LSAN_SUPPRESSIONS}")
-    # Set LSAN options for all tests via CTest environment
-    set(NETWORK_LSAN_OPTIONS "suppressions=${NETWORK_LSAN_SUPPRESSIONS}")
-
-    # Define a CMake variable for setting test environment
-    set(NETWORK_SANITIZER_ENV "LSAN_OPTIONS=${NETWORK_LSAN_OPTIONS}")
-
-    message(STATUS "LSAN suppressions configured: ${NETWORK_LSAN_SUPPRESSIONS}")
-endif()
-
 # Find test dependencies
 find_package(GTest QUIET)
 find_package(benchmark QUIET)
@@ -83,7 +63,7 @@ if(GTest_FOUND OR GTEST_FOUND)
 
     # Enable test discovery
     include(GoogleTest)
-    gtest_discover_tests(network_unit_tests
+    network_gtest_discover_tests(network_unit_tests
         DISCOVERY_TIMEOUT 60
     )
 
@@ -132,7 +112,7 @@ if(GTest_FOUND OR GTEST_FOUND)
     # Don't add suite-level test to prevent port conflicts during parallel execution
     # add_test(NAME NetworkThreadSafetyTests COMMAND network_thread_safety_test)
 
-    gtest_discover_tests(network_thread_safety_test
+    network_gtest_discover_tests(network_thread_safety_test
         DISCOVERY_TIMEOUT 60
     )
 
@@ -163,7 +143,7 @@ if(GTest_FOUND OR GTEST_FOUND)
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
     )
 
-    gtest_discover_tests(network_tls_config_test
+    network_gtest_discover_tests(network_tls_config_test
         DISCOVERY_TIMEOUT 60
     )
 
@@ -203,7 +183,7 @@ if(GTest_FOUND OR GTEST_FOUND)
             RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
         )
 
-        gtest_discover_tests(network_thread_system_adapter_test
+        network_gtest_discover_tests(network_thread_system_adapter_test
             DISCOVERY_TIMEOUT 60
         )
         message(STATUS "Thread system adapter tests enabled")
@@ -245,7 +225,7 @@ if(GTest_FOUND OR GTEST_FOUND)
             RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
         )
 
-        gtest_discover_tests(network_thread_pool_adapters_test
+        network_gtest_discover_tests(network_thread_pool_adapters_test
             DISCOVERY_TIMEOUT 60
         )
         message(STATUS "Thread pool adapters tests enabled")
@@ -278,7 +258,7 @@ if(GTest_FOUND OR GTEST_FOUND)
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
     )
 
-    gtest_discover_tests(network_tcp_socket_test
+    network_gtest_discover_tests(network_tcp_socket_test
         DISCOVERY_TIMEOUT 60
     )
     message(STATUS "TCP socket tests enabled")
@@ -310,7 +290,7 @@ if(GTest_FOUND OR GTEST_FOUND)
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
     )
 
-    gtest_discover_tests(network_socket_concepts_test
+    network_gtest_discover_tests(network_socket_concepts_test
         DISCOVERY_TIMEOUT 60
     )
     message(STATUS "Socket concepts tests enabled")
@@ -342,7 +322,7 @@ if(GTest_FOUND OR GTEST_FOUND)
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
     )
 
-    gtest_discover_tests(network_session_manager_test
+    network_gtest_discover_tests(network_session_manager_test
         DISCOVERY_TIMEOUT 60
     )
     message(STATUS "Session manager tests enabled")
@@ -372,7 +352,7 @@ if(GTest_FOUND OR GTEST_FOUND)
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
     )
 
-    gtest_discover_tests(network_session_manager_base_test
+    network_gtest_discover_tests(network_session_manager_base_test
         DISCOVERY_TIMEOUT 60
     )
     message(STATUS "Session manager base template tests enabled")
@@ -402,7 +382,7 @@ if(GTest_FOUND OR GTEST_FOUND)
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
     )
 
-    gtest_discover_tests(network_ws_session_manager_test
+    network_gtest_discover_tests(network_ws_session_manager_test
         DISCOVERY_TIMEOUT 60
     )
     message(STATUS "WebSocket session manager tests enabled")
@@ -432,7 +412,7 @@ if(GTest_FOUND OR GTEST_FOUND)
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
     )
 
-    gtest_discover_tests(network_session_manager_integration_test
+    network_gtest_discover_tests(network_session_manager_integration_test
         DISCOVERY_TIMEOUT 60
     )
     message(STATUS "Session manager integration tests enabled")
@@ -464,7 +444,7 @@ if(GTest_FOUND OR GTEST_FOUND)
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
     )
 
-    gtest_discover_tests(network_circuit_breaker_test
+    network_gtest_discover_tests(network_circuit_breaker_test
         DISCOVERY_TIMEOUT 60
     )
     message(STATUS "Circuit breaker tests enabled")
@@ -496,7 +476,7 @@ if(GTest_FOUND OR GTEST_FOUND)
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
     )
 
-    gtest_discover_tests(network_composition_utilities_test
+    network_gtest_discover_tests(network_composition_utilities_test
         DISCOVERY_TIMEOUT 60
     )
     message(STATUS "Composition utilities tests enabled")
@@ -528,7 +508,7 @@ if(GTest_FOUND OR GTEST_FOUND)
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
     )
 
-    gtest_discover_tests(network_interfaces_test
+    network_gtest_discover_tests(network_interfaces_test
         DISCOVERY_TIMEOUT 60
     )
     message(STATUS "Interface tests enabled")
@@ -560,7 +540,7 @@ if(GTest_FOUND OR GTEST_FOUND)
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
     )
 
-    gtest_discover_tests(network_policy_protocol_test
+    network_gtest_discover_tests(network_policy_protocol_test
         DISCOVERY_TIMEOUT 60
     )
     message(STATUS "Policy and protocol tests enabled")
@@ -602,7 +582,7 @@ if(GTest_FOUND OR GTEST_FOUND)
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
     )
 
-    gtest_discover_tests(network_unified_messaging_client_test
+    network_gtest_discover_tests(network_unified_messaging_client_test
         DISCOVERY_TIMEOUT 60
     )
     message(STATUS "Unified messaging client tests enabled")
@@ -644,7 +624,7 @@ if(GTest_FOUND OR GTEST_FOUND)
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
     )
 
-    gtest_discover_tests(network_unified_messaging_server_test
+    network_gtest_discover_tests(network_unified_messaging_server_test
         DISCOVERY_TIMEOUT 60
     )
     message(STATUS "Unified messaging server tests enabled")
@@ -686,7 +666,7 @@ if(GTest_FOUND OR GTEST_FOUND)
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
     )
 
-    gtest_discover_tests(network_unified_compat_test
+    network_gtest_discover_tests(network_unified_compat_test
         DISCOVERY_TIMEOUT 60
     )
     message(STATUS "Unified compat alias tests enabled")
@@ -728,7 +708,7 @@ if(GTest_FOUND OR GTEST_FOUND)
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
     )
 
-    gtest_discover_tests(network_udp_composition_test
+    network_gtest_discover_tests(network_udp_composition_test
         DISCOVERY_TIMEOUT 60
     )
     message(STATUS "UDP composition tests enabled")
@@ -755,7 +735,7 @@ if(GTest_FOUND OR GTEST_FOUND)
             RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
         )
 
-        gtest_discover_tests(network_websocket_frame_test
+        network_gtest_discover_tests(network_websocket_frame_test
             DISCOVERY_TIMEOUT 60
         )
         message(STATUS "WebSocket frame tests enabled")
@@ -781,7 +761,7 @@ if(GTest_FOUND OR GTEST_FOUND)
             RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
         )
 
-        gtest_discover_tests(network_websocket_handshake_test
+        network_gtest_discover_tests(network_websocket_handshake_test
             DISCOVERY_TIMEOUT 60
         )
         message(STATUS "WebSocket handshake tests enabled")
@@ -807,7 +787,7 @@ if(GTest_FOUND OR GTEST_FOUND)
             RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
         )
 
-        gtest_discover_tests(network_websocket_protocol_test
+        network_gtest_discover_tests(network_websocket_protocol_test
             DISCOVERY_TIMEOUT 60
         )
         message(STATUS "WebSocket protocol tests enabled")
@@ -839,7 +819,7 @@ if(GTest_FOUND OR GTEST_FOUND)
             RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
         )
 
-        gtest_discover_tests(network_messaging_ws_client_test
+        network_gtest_discover_tests(network_messaging_ws_client_test
             DISCOVERY_TIMEOUT 60
         )
         message(STATUS "WebSocket messaging client tests enabled")
@@ -871,7 +851,7 @@ if(GTest_FOUND OR GTEST_FOUND)
             RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
         )
 
-        gtest_discover_tests(network_messaging_ws_server_test
+        network_gtest_discover_tests(network_messaging_ws_server_test
             DISCOVERY_TIMEOUT 60
         )
         message(STATUS "WebSocket messaging server tests enabled")
@@ -908,7 +888,7 @@ if(GTest_FOUND OR GTEST_FOUND)
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
     )
 
-    gtest_discover_tests(network_http2_frame_test
+    network_gtest_discover_tests(network_http2_frame_test
         DISCOVERY_TIMEOUT 60
     )
     message(STATUS "HTTP/2 frame tests enabled")
@@ -940,7 +920,7 @@ if(GTest_FOUND OR GTEST_FOUND)
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
     )
 
-    gtest_discover_tests(network_http2_hpack_test
+    network_gtest_discover_tests(network_http2_hpack_test
         DISCOVERY_TIMEOUT 60
     )
     message(STATUS "HTTP/2 HPACK tests enabled")
@@ -975,7 +955,7 @@ if(GTest_FOUND OR GTEST_FOUND)
             RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
         )
 
-        gtest_discover_tests(network_http2_client_test
+        network_gtest_discover_tests(network_http2_client_test
             DISCOVERY_TIMEOUT 60
         )
         message(STATUS "HTTP/2 client tests enabled")
@@ -1009,7 +989,7 @@ if(GTest_FOUND OR GTEST_FOUND)
             RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
         )
 
-        gtest_discover_tests(network_http2_server_test
+        network_gtest_discover_tests(network_http2_server_test
             DISCOVERY_TIMEOUT 60
         )
         message(STATUS "HTTP/2 server tests enabled")
@@ -1052,7 +1032,7 @@ if(GTest_FOUND OR GTEST_FOUND)
             RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
         )
 
-        gtest_discover_tests(network_dtls_socket_test
+        network_gtest_discover_tests(network_dtls_socket_test
             DISCOVERY_TIMEOUT 60
         )
         message(STATUS "DTLS socket tests enabled")
@@ -1104,7 +1084,7 @@ if(GTest_FOUND OR GTEST_FOUND)
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
     )
 
-    gtest_discover_tests(network_metrics_test
+    network_gtest_discover_tests(network_metrics_test
         DISCOVERY_TIMEOUT 60
     )
     message(STATUS "Network metrics tests enabled")
@@ -1155,7 +1135,7 @@ if(GTest_FOUND OR GTEST_FOUND)
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
     )
 
-    gtest_discover_tests(network_histogram_test
+    network_gtest_discover_tests(network_histogram_test
         DISCOVERY_TIMEOUT 60
     )
     message(STATUS "Histogram tests enabled")
@@ -1206,7 +1186,7 @@ if(GTest_FOUND OR GTEST_FOUND)
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
     )
 
-    gtest_discover_tests(network_tracing_test
+    network_gtest_discover_tests(network_tracing_test
         DISCOVERY_TIMEOUT 60
     )
     message(STATUS "Tracing tests enabled")
@@ -1242,7 +1222,7 @@ if(GTest_FOUND OR GTEST_FOUND)
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
     )
 
-    gtest_discover_tests(network_grpc_frame_test
+    network_gtest_discover_tests(network_grpc_frame_test
         DISCOVERY_TIMEOUT 60
     )
     message(STATUS "gRPC frame tests enabled")
@@ -1274,7 +1254,7 @@ if(GTest_FOUND OR GTEST_FOUND)
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
     )
 
-    gtest_discover_tests(network_grpc_client_server_test
+    network_gtest_discover_tests(network_grpc_client_server_test
         DISCOVERY_TIMEOUT 60
     )
     message(STATUS "gRPC client/server tests enabled")
@@ -1306,7 +1286,7 @@ if(GTest_FOUND OR GTEST_FOUND)
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
     )
 
-    gtest_discover_tests(network_grpc_service_registry_test
+    network_gtest_discover_tests(network_grpc_service_registry_test
         DISCOVERY_TIMEOUT 60
     )
     message(STATUS "gRPC service registry tests enabled")
@@ -1338,7 +1318,7 @@ if(GTest_FOUND OR GTEST_FOUND)
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
     )
 
-    gtest_discover_tests(network_grpc_official_wrapper_test
+    network_gtest_discover_tests(network_grpc_official_wrapper_test
         DISCOVERY_TIMEOUT 60
     )
     message(STATUS "gRPC official wrapper tests enabled")
@@ -1370,7 +1350,7 @@ if(GTest_FOUND OR GTEST_FOUND)
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
     )
 
-    gtest_discover_tests(network_grpc_integration_test
+    network_gtest_discover_tests(network_grpc_integration_test
         DISCOVERY_TIMEOUT 60
     )
     message(STATUS "gRPC integration tests enabled")
@@ -1406,7 +1386,7 @@ if(GTest_FOUND OR GTEST_FOUND)
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
     )
 
-    gtest_discover_tests(network_quic_varint_test
+    network_gtest_discover_tests(network_quic_varint_test
         DISCOVERY_TIMEOUT 60
     )
     message(STATUS "QUIC varint tests enabled")
@@ -1438,7 +1418,7 @@ if(GTest_FOUND OR GTEST_FOUND)
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
     )
 
-    gtest_discover_tests(network_quic_frame_test
+    network_gtest_discover_tests(network_quic_frame_test
         DISCOVERY_TIMEOUT 60
     )
     message(STATUS "QUIC frame tests enabled")
@@ -1470,7 +1450,7 @@ if(GTest_FOUND OR GTEST_FOUND)
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
     )
 
-    gtest_discover_tests(network_quic_packet_test
+    network_gtest_discover_tests(network_quic_packet_test
         DISCOVERY_TIMEOUT 60
     )
     message(STATUS "QUIC packet tests enabled")
@@ -1505,7 +1485,7 @@ if(GTest_FOUND OR GTEST_FOUND)
             RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
         )
 
-        gtest_discover_tests(network_quic_crypto_test
+        network_gtest_discover_tests(network_quic_crypto_test
             DISCOVERY_TIMEOUT 60
         )
         message(STATUS "QUIC crypto tests enabled")
@@ -1539,7 +1519,7 @@ if(GTest_FOUND OR GTEST_FOUND)
             RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
         )
 
-        gtest_discover_tests(network_quic_socket_test
+        network_gtest_discover_tests(network_quic_socket_test
             DISCOVERY_TIMEOUT 60
         )
         message(STATUS "QUIC socket tests enabled")
@@ -1572,7 +1552,7 @@ if(GTest_FOUND OR GTEST_FOUND)
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
     )
 
-    gtest_discover_tests(network_quic_stream_test
+    network_gtest_discover_tests(network_quic_stream_test
         DISCOVERY_TIMEOUT 60
     )
     message(STATUS "QUIC stream tests enabled")
@@ -1604,7 +1584,7 @@ if(GTest_FOUND OR GTEST_FOUND)
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
     )
 
-    gtest_discover_tests(network_quic_connection_test
+    network_gtest_discover_tests(network_quic_connection_test
         DISCOVERY_TIMEOUT 60
     )
     message(STATUS "QUIC connection tests enabled")
@@ -1636,7 +1616,7 @@ if(GTest_FOUND OR GTEST_FOUND)
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
     )
 
-    gtest_discover_tests(network_quic_loss_detection_test
+    network_gtest_discover_tests(network_quic_loss_detection_test
         DISCOVERY_TIMEOUT 60
     )
     message(STATUS "QUIC loss detection tests enabled")
@@ -1668,7 +1648,7 @@ if(GTest_FOUND OR GTEST_FOUND)
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
     )
 
-    gtest_discover_tests(network_quic_pmtud_test
+    network_gtest_discover_tests(network_quic_pmtud_test
         DISCOVERY_TIMEOUT 60
     )
     message(STATUS "QUIC PMTUD tests enabled")
@@ -1700,7 +1680,7 @@ if(GTest_FOUND OR GTEST_FOUND)
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
     )
 
-    gtest_discover_tests(network_quic_ecn_test
+    network_gtest_discover_tests(network_quic_ecn_test
         DISCOVERY_TIMEOUT 60
     )
     message(STATUS "QUIC ECN tests enabled")
@@ -1732,7 +1712,7 @@ if(GTest_FOUND OR GTEST_FOUND)
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
     )
 
-    gtest_discover_tests(network_quic_session_ticket_test
+    network_gtest_discover_tests(network_quic_session_ticket_test
         DISCOVERY_TIMEOUT 60
     )
     message(STATUS "QUIC session ticket tests enabled")
@@ -1764,7 +1744,7 @@ if(GTest_FOUND OR GTEST_FOUND)
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
     )
 
-    gtest_discover_tests(network_messaging_quic_client_test
+    network_gtest_discover_tests(network_messaging_quic_client_test
         DISCOVERY_TIMEOUT 60
     )
     message(STATUS "QUIC messaging client tests enabled")
@@ -1794,7 +1774,7 @@ if(GTest_FOUND OR GTEST_FOUND)
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
     )
 
-    gtest_discover_tests(network_messaging_quic_server_test
+    network_gtest_discover_tests(network_messaging_quic_server_test
         DISCOVERY_TIMEOUT 60
     )
     message(STATUS "QUIC messaging server tests enabled")
@@ -1828,7 +1808,7 @@ if(GTest_FOUND OR GTEST_FOUND)
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
     )
 
-    gtest_discover_tests(network_unified_interfaces_test
+    network_gtest_discover_tests(network_unified_interfaces_test
         DISCOVERY_TIMEOUT 60
     )
     message(STATUS "Unified interfaces tests enabled")
@@ -1862,7 +1842,7 @@ if(GTest_FOUND OR GTEST_FOUND)
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
     )
 
-    gtest_discover_tests(network_session_type_erasure_test
+    network_gtest_discover_tests(network_session_type_erasure_test
         DISCOVERY_TIMEOUT 60
     )
     message(STATUS "Session type erasure tests enabled")
@@ -1892,7 +1872,7 @@ if(GTest_FOUND OR GTEST_FOUND)
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
     )
 
-    gtest_discover_tests(network_unified_session_manager_test
+    network_gtest_discover_tests(network_unified_session_manager_test
         DISCOVERY_TIMEOUT 60
     )
     message(STATUS "Unified session manager tests enabled")
