@@ -88,7 +88,8 @@ jobs:
           -DBUILD_MESSAGING_BRIDGE=OFF \
           -DBUILD_TESTS=ON \
           -DBUILD_SAMPLES=OFF \
-          -DASIO_INCLUDE_DIR=/usr/local/include
+          -DASIO_INCLUDE_DIR=/usr/local/include \
+          -DSKIP_ASIO_RECYCLING_WORKAROUND=ON
 
     - name: Build with ${{ matrix.sanitizer.name }}
       run: |

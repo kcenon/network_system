@@ -228,7 +228,13 @@ endif()
 # The recycling allocator uses thread-local storage which can interact poorly
 # with sanitizers, causing false positives or undefined behavior reports.
 # With this disabled, ASIO uses standard aligned_new() for all allocations.
-if(ENABLE_ASAN OR ENABLE_TSAN OR ENABLE_UBSAN)
+#
+# NOTE: ASIO 1.31.0+ has native fixes for the recycling allocator, so this
+# workaround is only needed for older ASIO versions. ASIO 1.32.0 has a bug
+# where ASIO_DISABLE_SMALL_BLOCK_RECYCLING causes a compilation error.
+# Use SKIP_ASIO_RECYCLING_WORKAROUND=ON when building with ASIO 1.31.0+.
+option(SKIP_ASIO_RECYCLING_WORKAROUND "Skip ASIO recycling allocator workaround (for ASIO 1.31.0+)" OFF)
+if((ENABLE_ASAN OR ENABLE_TSAN OR ENABLE_UBSAN) AND NOT SKIP_ASIO_RECYCLING_WORKAROUND)
     add_compile_definitions(ASIO_DISABLE_SMALL_BLOCK_RECYCLING)
     message(STATUS "ASIO small block recycling disabled for sanitizer build")
 endif()
