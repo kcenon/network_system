@@ -49,7 +49,25 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y cmake ninja-build clang libgtest-dev libfmt-dev libasio-dev libssl-dev liblz4-dev zlib1g-dev
+        # Note: We don't install libasio-dev here because Ubuntu 24.04 ships ASIO 1.28.1
+        # which has a bug where the recycling allocator returns null under sanitizers.
+        # We install ASIO 1.32+ from source below.
+        sudo apt-get install -y cmake ninja-build clang libgtest-dev libfmt-dev libssl-dev liblz4-dev zlib1g-dev
+
+    - name: Install ASIO from source
+      run: |
+        # Ubuntu 24.04's libasio-dev (1.28.1) has a bug where the recycling allocator
+        # can return null when running under sanitizers, causing SEGV. ASIO 1.31.0+
+        # has fixes for the recycling allocator. We install ASIO 1.32.0 from source.
+        # See: https://www.boost.org/doc/libs/develop/doc/html/boost_asio/history.html
+        cd ${{ github.workspace }}
+        curl -L https://github.com/chriskohlhoff/asio/archive/asio-1-32-0.tar.gz -o asio.tar.gz
+        tar xzf asio.tar.gz
+        sudo mkdir -p /usr/local/include
+        sudo cp -r asio-asio-1-32-0/asio/include/asio /usr/local/include/
+        sudo cp asio-asio-1-32-0/asio/include/asio.hpp /usr/local/include/
+        echo "Installed ASIO 1.32.0 to /usr/local/include"
+        ls -la /usr/local/include/asio.hpp
 
     - name: Set up compiler
       run: |
@@ -69,7 +87,8 @@ jobs:
           -DBUILD_WITH_CONTAINER_SYSTEM=OFF \
           -DBUILD_MESSAGING_BRIDGE=OFF \
           -DBUILD_TESTS=ON \
-          -DBUILD_SAMPLES=OFF
+          -DBUILD_SAMPLES=OFF \
+          -DASIO_INCLUDE_DIR=/usr/local/include
 
     - name: Build with ${{ matrix.sanitizer.name }}
       run: |
