@@ -145,7 +145,9 @@ namespace kcenon::network::internal
 			return;
 		}
 
-		// Early check for closed state to avoid unnecessary work
+		// Early check for closed state to avoid unnecessary work.
+		// This check must happen BEFORE any socket access to prevent accessing
+		// invalid ASIO internal state.
 		if (is_closed_.load())
 		{
 			is_reading_.store(false);
@@ -154,102 +156,94 @@ namespace kcenon::network::internal
 
 		auto self = shared_from_this();
 
-		// Post the async read to the socket's executor.
-		asio::post(socket_.get_executor(), [self]() {
-			// Re-check state after being scheduled on the executor
-			if (!self->is_reading_.load() || self->is_closed_.load())
+		// Lock the socket mutex to prevent concurrent access with close().
+		// This is critical because io_context may run on multiple threads,
+		// and close() may be called from any thread at any time.
+		//
+		// We acquire the lock BEFORE calling async_read_some() to ensure
+		// that close() cannot invalidate the socket's internal state between
+		// our state check and the async operation registration.
+		std::lock_guard<std::mutex> lock(socket_mutex_);
+
+		// Re-check state under lock - close() may have acquired the lock first
+		// and already closed the socket, making its internal state invalid.
+		if (!is_reading_.load() || is_closed_.load() || !socket_.is_open())
+		{
+			is_reading_.store(false);
+			return;
+		}
+
+		// Now safe to initiate async operation under lock protection.
+		// The lock will be released when this function returns, after async_read_some
+		// has successfully initiated the async operation and registered it with
+		// the socket's internal state.
+		//
+		// Note: async_read_some() does NOT invoke the callback synchronously -
+		// it always posts completion to the executor, so there's no risk of
+		// deadlock from the callback trying to acquire this lock.
+		socket_.async_read_some(
+			asio::buffer(read_buffer_),
+			[self](std::error_code ec, std::size_t length)
 			{
-				self->is_reading_.store(false);
-				return;
-			}
-
-			// Lock the socket mutex to prevent concurrent access with close().
-			// This is critical because io_context may run on multiple threads,
-			// and close() may be called from any thread at any time.
-			// The lock ensures mutual exclusion between socket operations.
-			//
-			// IMPORTANT: We keep the lock held during async_read_some() to ensure
-			// that close() cannot run between our state check and the async operation.
-			// ASIO's async_read_some() does NOT invoke the callback synchronously -
-			// it always posts completion to the executor, so there's no risk of
-			// deadlock from the callback trying to acquire this lock.
-			std::lock_guard<std::mutex> lock(self->socket_mutex_);
-
-			// Re-check state under lock - close() may have acquired the lock first
-			if (!self->is_reading_.load() || self->is_closed_.load() || !self->socket_.is_open())
-			{
-				self->is_reading_.store(false);
-				return;
-			}
-
-			// Now safe to initiate async operation under lock protection.
-			// The lock will be released when this lambda returns, after async_read_some
-			// has successfully initiated the async operation and registered it with
-			// the socket's internal state.
-			self->socket_.async_read_some(
-				asio::buffer(self->read_buffer_),
-				[self](std::error_code ec, std::size_t length)
+				// Check if reading has been stopped or socket closed at callback time.
+				// This prevents processing data after socket is closed.
+				if (!self->is_reading_.load() || self->is_closed_.load())
 				{
-					// Check if reading has been stopped or socket closed at callback time
-					// This prevents accessing invalid socket state after close()
-					if (!self->is_reading_.load() || self->is_closed_.load())
-					{
-						return;
-					}
+					return;
+				}
 
-					if (ec)
+				if (ec)
+				{
+					// On error, invoke the error callback
+					// Lock-free callback access via atomic_load
+					auto error_cb = std::atomic_load(&self->error_callback_);
+					if (error_cb && *error_cb)
 					{
-						// On error, invoke the error callback
-						// Lock-free callback access via atomic_load
-						auto error_cb = std::atomic_load(&self->error_callback_);
-						if (error_cb && *error_cb)
-						{
-							(*error_cb)(ec);
-						}
-						return;
+						(*error_cb)(ec);
 					}
+					return;
+				}
 
-					// On success, if length > 0, dispatch to the appropriate callback
-					if (length > 0)
+				// On success, if length > 0, dispatch to the appropriate callback
+				if (length > 0)
+				{
+					// Lock-free callback access via atomic_load
+					// Prefer view callback (zero-copy) over vector callback
+					auto view_cb = std::atomic_load(&self->receive_callback_view_);
+					if (view_cb && *view_cb)
 					{
-						// Lock-free callback access via atomic_load
-						// Prefer view callback (zero-copy) over vector callback
-						auto view_cb = std::atomic_load(&self->receive_callback_view_);
-						if (view_cb && *view_cb)
+						// Zero-copy path: create span view directly into read_buffer_
+						// No std::vector allocation or copy required
+						std::span<const uint8_t> data_view(self->read_buffer_.data(), length);
+						(*view_cb)(data_view);
+					}
+					else
+					{
+						// Legacy path: allocate and copy into vector for compatibility
+						auto recv_cb = std::atomic_load(&self->receive_callback_);
+						if (recv_cb && *recv_cb)
 						{
-							// Zero-copy path: create span view directly into read_buffer_
-							// No std::vector allocation or copy required
-							std::span<const uint8_t> data_view(self->read_buffer_.data(), length);
-							(*view_cb)(data_view);
-						}
-						else
-						{
-							// Legacy path: allocate and copy into vector for compatibility
-							auto recv_cb = std::atomic_load(&self->receive_callback_);
-							if (recv_cb && *recv_cb)
-							{
-								std::vector<uint8_t> chunk(self->read_buffer_.begin(),
-														   self->read_buffer_.begin() + length);
-								(*recv_cb)(chunk);
-							}
+							std::vector<uint8_t> chunk(self->read_buffer_.begin(),
+													   self->read_buffer_.begin() + length);
+							(*recv_cb)(chunk);
 						}
 					}
+				}
 
-					// Continue reading only if still active and socket is not closed
-					// Use atomic is_closed_ flag to prevent data race with close()
-					if (self->is_reading_.load() && !self->is_closed_.load())
-					{
-						self->do_read();
-					}
-				});
-		});
+				// Continue reading only if still active and socket is not closed
+				// Use atomic is_closed_ flag to prevent data race with close()
+				if (self->is_reading_.load() && !self->is_closed_.load())
+				{
+					self->do_read();
+				}
+			});
 	}
 
 auto tcp_socket::async_send(
     std::vector<uint8_t>&& data,
     std::function<void(std::error_code, std::size_t)> handler) -> void
 {
-    // Early check for closed state
+    // Early check for closed state before any socket access
     if (is_closed_.load())
     {
         if (handler)
@@ -265,7 +259,7 @@ auto tcp_socket::async_send(
     // Move data into shared_ptr for lifetime management
     auto buffer = std::make_shared<std::vector<uint8_t>>(std::move(data));
 
-    // Track pending bytes before posting to executor
+    // Track pending bytes before initiating async operation
     std::size_t new_pending = pending_bytes_.fetch_add(data_size) + data_size;
     metrics_.current_pending_bytes.store(new_pending);
 
@@ -292,75 +286,73 @@ auto tcp_socket::async_send(
         }
     }
 
-    // Post the async write to the socket's executor.
-    // This ensures all socket operations (read, write, close) run on the same
-    // thread/strand, preventing race conditions between close() and async_write().
-    asio::post(socket_.get_executor(), [self, buffer, data_size, handler = std::move(handler)]() mutable {
-        // Lock the socket mutex to prevent concurrent access with close().
-        // This is critical because io_context may run on multiple threads,
-        // and close() may be called from any thread at any time.
-        //
-        // IMPORTANT: We keep the lock held during async_write() to ensure
-        // that close() cannot run between our state check and the async operation.
-        // ASIO's async_write() does NOT invoke the callback synchronously -
-        // it always posts completion to the executor, so there's no risk of
-        // deadlock from the callback trying to acquire this lock.
-        std::lock_guard<std::mutex> lock(self->socket_mutex_);
+    // Lock the socket mutex to prevent concurrent access with close().
+    // This is critical because io_context may run on multiple threads,
+    // and close() may be called from any thread at any time.
+    //
+    // We acquire the lock BEFORE calling async_write() to ensure
+    // that close() cannot invalidate the socket's internal state between
+    // our state check and the async operation registration.
+    std::lock_guard<std::mutex> lock(socket_mutex_);
 
-        // Re-check state after being scheduled on the executor
-        if (self->is_closed_.load() || !self->socket_.is_open())
+    // Re-check state under lock - close() may have acquired the lock first
+    if (is_closed_.load() || !socket_.is_open())
+    {
+        // Restore pending bytes count
+        pending_bytes_.fetch_sub(data_size);
+        metrics_.current_pending_bytes.store(pending_bytes_.load());
+
+        if (handler)
         {
-            // Restore pending bytes count
-            self->pending_bytes_.fetch_sub(data_size);
-            self->metrics_.current_pending_bytes.store(self->pending_bytes_.load());
-
-            if (handler)
-            {
-                handler(asio::error::not_connected, 0);
-            }
-            return;
+            handler(asio::error::not_connected, 0);
         }
+        return;
+    }
 
-        // Now safe to initiate async operation under lock protection.
-        // The lock will be released when this lambda returns, after async_write
-        // has successfully initiated the async operation.
-        asio::async_write(
-            self->socket_, asio::buffer(*buffer),
-            [handler = std::move(handler), self, buffer, data_size](std::error_code ec, std::size_t bytes_transferred)
+    // Now safe to initiate async operation under lock protection.
+    // The lock will be released when this function returns, after async_write
+    // has successfully initiated the async operation and registered it with
+    // the socket's internal state.
+    //
+    // Note: async_write() does NOT invoke the callback synchronously -
+    // it always posts completion to the executor, so there's no risk of
+    // deadlock from the callback trying to acquire this lock.
+    asio::async_write(
+        socket_, asio::buffer(*buffer),
+        [handler = std::move(handler), self, buffer, data_size](std::error_code ec, std::size_t bytes_transferred)
+        {
+            // Update pending bytes on completion
+            std::size_t remaining = self->pending_bytes_.fetch_sub(data_size) - data_size;
+            self->metrics_.current_pending_bytes.store(remaining);
+
+            if (!ec)
             {
-                // Update pending bytes on completion
-                std::size_t remaining = self->pending_bytes_.fetch_sub(data_size) - data_size;
-                self->metrics_.current_pending_bytes.store(remaining);
+                self->metrics_.total_bytes_sent.fetch_add(bytes_transferred);
+                self->metrics_.send_count.fetch_add(1);
+            }
 
-                if (!ec)
+            // Check low water mark to release backpressure
+            if (self->config_.low_water_mark > 0 && self->backpressure_active_.load() &&
+                remaining <= self->config_.low_water_mark)
+            {
+                self->backpressure_active_.store(false);
+
+                // Invoke backpressure callback
+                auto bp_cb = std::atomic_load(&self->backpressure_callback_);
+                if (bp_cb && *bp_cb)
                 {
-                    self->metrics_.total_bytes_sent.fetch_add(bytes_transferred);
-                    self->metrics_.send_count.fetch_add(1);
+                    (*bp_cb)(false);
                 }
+            }
 
-                // Check low water mark to release backpressure
-                if (self->config_.low_water_mark > 0 && self->backpressure_active_.load() &&
-                    remaining <= self->config_.low_water_mark)
+            if constexpr (std::is_invocable_v<decltype(handler), std::error_code, std::size_t>)
+            {
+                if (handler)
                 {
-                    self->backpressure_active_.store(false);
-
-                    // Invoke backpressure callback
-                    auto bp_cb = std::atomic_load(&self->backpressure_callback_);
-                    if (bp_cb && *bp_cb)
-                    {
-                        (*bp_cb)(false);
-                    }
+                    handler(ec, bytes_transferred);
                 }
-
-                if constexpr (std::is_invocable_v<decltype(handler), std::error_code, std::size_t>)
-                {
-                    if (handler)
-                    {
-                        handler(ec, bytes_transferred);
-                    }
-                }
-            });
-    });
+            }
+        });
 }
 
 auto tcp_socket::set_backpressure_callback(backpressure_callback callback) -> void
