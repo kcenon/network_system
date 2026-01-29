@@ -96,45 +96,39 @@ namespace kcenon::network::internal
 
 	auto tcp_socket::close() -> void
 	{
+		// Lock the socket mutex to ensure that no async operations are in progress
+		// or being initiated. This prevents the race condition where:
+		// 1. do_read() checks is_closed_ (false) and is_open() (true)
+		// 2. close() sets is_closed_ and closes the socket
+		// 3. do_read() calls async_read_some() on closed socket -> UBSAN error
+		std::lock_guard<std::mutex> lock(socket_mutex_);
+
+		// Check if already closed to avoid double-close
+		if (is_closed_.load())
+		{
+			return;
+		}
+
 		// Atomically mark socket as closed before actual close
-		// This prevents data races with concurrent async operations
 		is_closed_.store(true);
 		is_reading_.store(false);
 
-		// Post the actual socket close to the socket's executor to ensure
-		// thread-safety. ASIO's epoll_reactor has internal data structures that
-		// must be accessed from the same thread as async operations to avoid
-		// data races detected by ThreadSanitizer.
-		try
+		// Close the socket directly while holding the mutex.
+		// This ensures that any concurrent do_read() or async_send() calls
+		// will see is_closed_=true when they acquire the mutex.
+		std::error_code ec;
+		if (socket_.is_open())
 		{
-			auto self = shared_from_this();
-			asio::post(socket_.get_executor(), [self]() {
-				std::error_code ec;
-				if (self->socket_.is_open())
-				{
-					// Cancel pending async operations first to prevent UBSAN errors
-					// from racing between close() and async_read_some()
-					self->socket_.cancel(ec);
-
-					// Shutdown causes pending reads to complete with error,
-					// ensuring clean termination of async operations
-					self->socket_.shutdown(asio::ip::tcp::socket::shutdown_both, ec);
-
-					// Now safe to close the socket
-					self->socket_.close(ec);
-				}
-				// Ignore close errors - socket may already be closed
-			});
-		}
-		catch (...)
-		{
-			// If post fails (e.g., executor not running), fall back to direct close.
-			// This may race but is better than leaking the socket.
-			std::error_code ec;
+			// Cancel pending async operations first
 			socket_.cancel(ec);
+
+			// Shutdown causes pending reads to complete with error
 			socket_.shutdown(asio::ip::tcp::socket::shutdown_both, ec);
+
+			// Now safe to close the socket
 			socket_.close(ec);
 		}
+		// Ignore close errors - socket may already be closed
 	}
 
 	auto tcp_socket::is_closed() const -> bool
@@ -150,25 +144,26 @@ namespace kcenon::network::internal
 			return;
 		}
 
-		// Check if socket has been closed or is no longer open before starting async operation
-		// This prevents data races and UBSAN errors from accessing null descriptor_state
-		// Both checks are needed: is_closed_ for explicit close() calls, is_open() for ASIO state
-		if (is_closed_.load() || !socket_.is_open())
-		{
-			is_reading_.store(false);
-			return;
-		}
-
 		auto self = shared_from_this();
 
-		// Use try-catch to handle the case where socket is being closed concurrently.
-		// Even with is_closed_ check above, there's a race window between the check
-		// and async_read_some() where another thread could call close().
-		// The cancel() in close() will cause pending operations to fail gracefully,
-		// but we also need to handle the case where async_read_some() itself fails
-		// due to the socket being in an invalid state.
-		try
+		// Lock the socket mutex to atomically check is_closed_ and initiate async operation.
+		// This prevents the race condition where close() can be called between our checks
+		// and the async_read_some() call, which would cause UBSAN null pointer errors
+		// when ASIO tries to access the already-nullified descriptor_data_.
 		{
+			std::lock_guard<std::mutex> lock(socket_mutex_);
+
+			// Check if socket has been closed or is no longer open while holding the lock.
+			// This ensures close() cannot interfere between this check and async_read_some().
+			if (is_closed_.load() || !socket_.is_open())
+			{
+				is_reading_.store(false);
+				return;
+			}
+
+			// Initiate async operation while holding the lock.
+			// This guarantees the socket cannot be closed until async_read_some() has
+			// successfully registered the operation with ASIO's reactor.
 			socket_.async_read_some(
 				asio::buffer(read_buffer_),
 				[self](std::error_code ec, std::size_t length)
@@ -226,68 +221,71 @@ namespace kcenon::network::internal
 					}
 				});
 		}
-		catch (const std::system_error&)
-		{
-			// Socket was closed/cancelled between our check and async_read_some()
-			// This is a benign race condition - just stop reading
-			is_reading_.store(false);
-		}
+		// Lock released here - async operation is now registered with ASIO
 	}
 
 auto tcp_socket::async_send(
     std::vector<uint8_t>&& data,
     std::function<void(std::error_code, std::size_t)> handler) -> void
 {
-    // Check if socket has been closed or is no longer open before starting async operation
-    // Both checks are needed: is_closed_ for explicit close() calls, is_open() for ASIO state
-    // This prevents UBSAN errors from accessing null descriptor_state in epoll_reactor
-    if (is_closed_.load() || !socket_.is_open())
-    {
-        if (handler)
-        {
-            handler(asio::error::not_connected, 0);
-        }
-        return;
-    }
-
     auto self = shared_from_this();
     std::size_t data_size = data.size();
 
-    // Track pending bytes
-    std::size_t new_pending = pending_bytes_.fetch_add(data_size) + data_size;
-    metrics_.current_pending_bytes.store(new_pending);
-
-    // Update peak pending bytes
-    std::size_t peak = metrics_.peak_pending_bytes.load();
-    while (new_pending > peak &&
-           !metrics_.peak_pending_bytes.compare_exchange_weak(peak, new_pending))
-    {
-        // Loop until we successfully update or find a higher value
-    }
-
-    // Check high water mark for backpressure
-    if (config_.high_water_mark > 0 && !backpressure_active_.load() &&
-        new_pending >= config_.high_water_mark)
-    {
-        backpressure_active_.store(true);
-        metrics_.backpressure_events.fetch_add(1);
-
-        // Invoke backpressure callback
-        auto bp_cb = std::atomic_load(&backpressure_callback_);
-        if (bp_cb && *bp_cb)
-        {
-            (*bp_cb)(true);
-        }
-    }
-
-    // Move data into shared_ptr for lifetime management
+    // Move data into shared_ptr for lifetime management before acquiring lock
     auto buffer = std::make_shared<std::vector<uint8_t>>(std::move(data));
 
-    // Use try-catch to handle the case where socket is being closed concurrently.
-    // Even with is_closed_ check above, there's a race window between the check
-    // and async_write() where another thread could call close().
-    try
+    // Lock the socket mutex to atomically check is_closed_ and initiate async operation.
+    // This prevents the race condition where close() can be called between our checks
+    // and the async_write() call, which would cause UBSAN null pointer errors.
     {
+        std::lock_guard<std::mutex> lock(socket_mutex_);
+
+        // Check if socket has been closed or is no longer open while holding the lock.
+        // This ensures close() cannot interfere between this check and async_write().
+        if (is_closed_.load() || !socket_.is_open())
+        {
+            // Release lock before calling handler to avoid deadlock
+            // if handler tries to access this socket
+            if (handler)
+            {
+                // Post to executor to call handler outside of lock
+                asio::post(socket_.get_executor(), [handler]() {
+                    handler(asio::error::not_connected, 0);
+                });
+            }
+            return;
+        }
+
+        // Track pending bytes
+        std::size_t new_pending = pending_bytes_.fetch_add(data_size) + data_size;
+        metrics_.current_pending_bytes.store(new_pending);
+
+        // Update peak pending bytes
+        std::size_t peak = metrics_.peak_pending_bytes.load();
+        while (new_pending > peak &&
+               !metrics_.peak_pending_bytes.compare_exchange_weak(peak, new_pending))
+        {
+            // Loop until we successfully update or find a higher value
+        }
+
+        // Check high water mark for backpressure
+        if (config_.high_water_mark > 0 && !backpressure_active_.load() &&
+            new_pending >= config_.high_water_mark)
+        {
+            backpressure_active_.store(true);
+            metrics_.backpressure_events.fetch_add(1);
+
+            // Invoke backpressure callback
+            auto bp_cb = std::atomic_load(&backpressure_callback_);
+            if (bp_cb && *bp_cb)
+            {
+                (*bp_cb)(true);
+            }
+        }
+
+        // Initiate async operation while holding the lock.
+        // This guarantees the socket cannot be closed until async_write() has
+        // successfully registered the operation with ASIO's reactor.
         asio::async_write(
             socket_, asio::buffer(*buffer),
             [handler = std::move(handler), self, buffer, data_size](std::error_code ec, std::size_t bytes_transferred)
@@ -325,18 +323,7 @@ auto tcp_socket::async_send(
                 }
             });
     }
-    catch (const std::system_error& e)
-    {
-        // Socket was closed/cancelled between our check and async_write()
-        // Restore pending bytes and invoke handler with error
-        pending_bytes_.fetch_sub(data_size);
-        metrics_.current_pending_bytes.store(pending_bytes_.load());
-
-        if (handler)
-        {
-            handler(e.code(), 0);
-        }
-    }
+    // Lock released here - async operation is now registered with ASIO
 }
 
 auto tcp_socket::set_backpressure_callback(backpressure_callback callback) -> void
