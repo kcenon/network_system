@@ -41,17 +41,13 @@ namespace kcenon::network::internal
 {
 
 	tcp_socket::tcp_socket(asio::ip::tcp::socket socket)
-		: socket_(std::move(socket)),
-		  write_strand_(asio::make_strand(socket_.get_executor())),
-		  config_{}
+		: socket_(std::move(socket)), config_{}
 	{
 		// constructor body empty
 	}
 
 	tcp_socket::tcp_socket(asio::ip::tcp::socket socket, const socket_config& config)
-		: socket_(std::move(socket)),
-		  write_strand_(asio::make_strand(socket_.get_executor())),
-		  config_(config)
+		: socket_(std::move(socket)), config_(config)
 	{
 		// constructor body empty
 	}
@@ -89,23 +85,7 @@ namespace kcenon::network::internal
 			// Already reading, don't start another async operation
 			return;
 		}
-
-		// Post do_read() to socket's executor to ensure descriptor is properly initialized
-		// and to prevent race conditions where close() is called before async_read_some starts.
-		// This ensures that the async operation is initiated within the executor's context,
-		// preventing SEGV in ASIO's scheduler_operation constructor when descriptor_state is null.
-		try
-		{
-			auto self = shared_from_this();
-			asio::post(socket_.get_executor(), [self]() {
-				self->do_read();
-			});
-		}
-		catch (...)
-		{
-			// If post fails, reset is_reading_ flag
-			is_reading_.store(false);
-		}
+		do_read();
 	}
 
 	auto tcp_socket::stop_read() -> void
@@ -121,26 +101,18 @@ namespace kcenon::network::internal
 		is_closed_.store(true);
 		is_reading_.store(false);
 
-		// Post the actual socket close to the write strand to ensure
+		// Post the actual socket close to the socket's executor to ensure
 		// thread-safety. ASIO's epoll_reactor has internal data structures that
 		// must be accessed from the same thread as async operations to avoid
 		// data races detected by ThreadSanitizer.
 		try
 		{
 			auto self = shared_from_this();
-			asio::post(self->write_strand_, [self]() {
+			asio::post(socket_.get_executor(), [self]() {
 				std::error_code ec;
 				if (self->socket_.is_open())
 				{
 					self->socket_.close(ec);
-				}
-				if (self->write_in_progress_)
-				{
-					self->drain_on_close_ = true;
-				}
-				else if (!self->write_queue_.empty())
-				{
-					self->drain_write_queue(asio::error::operation_aborted);
 				}
 				// Ignore close errors - socket may already be closed
 			});
@@ -177,15 +149,10 @@ namespace kcenon::network::internal
 		}
 
 		auto self = shared_from_this();
-
-		// Protect async_read_some call with try-catch to handle descriptor_state null pointer
-		// This can occur if socket is closed between is_open() check and async operation start
-		try
-		{
-			socket_.async_read_some(
-				asio::buffer(read_buffer_),
-				[self](std::error_code ec, std::size_t length)
-				{
+		socket_.async_read_some(
+			asio::buffer(read_buffer_),
+			[self](std::error_code ec, std::size_t length)
+			{
 				// Check if reading has been stopped or socket closed at callback time
 				// This prevents accessing invalid socket state after close()
 				if (!self->is_reading_.load() || self->is_closed_.load())
@@ -238,28 +205,16 @@ namespace kcenon::network::internal
 					self->do_read();
 				}
 			});
-		}
-		catch (const std::system_error&)
-		{
-			// Socket descriptor is invalid or already closed
-			// This can happen in race conditions during teardown
-			is_reading_.store(false);
-		}
-		catch (...)
-		{
-			// Unexpected error during async operation setup
-			is_reading_.store(false);
-		}
 	}
 
 auto tcp_socket::async_send(
     std::vector<uint8_t>&& data,
-    send_handler_t handler) -> void
+    std::function<void(std::error_code, std::size_t)> handler) -> void
 {
     // Check if socket has been closed or is no longer open before starting async operation
-    // is_closed_ covers explicit close() calls; is_open() is checked on the executor thread
-    // to avoid cross-thread access to ASIO internals.
-    if (is_closed_.load())
+    // Both checks are needed: is_closed_ for explicit close() calls, is_open() for ASIO state
+    // This prevents UBSAN errors from accessing null descriptor_state in epoll_reactor
+    if (is_closed_.load() || !socket_.is_open())
     {
         if (handler)
         {
@@ -268,6 +223,7 @@ auto tcp_socket::async_send(
         return;
     }
 
+    auto self = shared_from_this();
     std::size_t data_size = data.size();
 
     // Track pending bytes
@@ -299,140 +255,42 @@ auto tcp_socket::async_send(
 
     // Move data into shared_ptr for lifetime management
     auto buffer = std::make_shared<std::vector<uint8_t>>(std::move(data));
-    auto handler_ptr = std::make_shared<send_handler_t>(std::move(handler));
-    auto self = shared_from_this();
+    asio::async_write(
+        socket_, asio::buffer(*buffer),
+        [handler = std::move(handler), self, buffer, data_size](std::error_code ec, std::size_t bytes_transferred)
+        {
+            // Update pending bytes on completion
+            std::size_t remaining = self->pending_bytes_.fetch_sub(data_size) - data_size;
+            self->metrics_.current_pending_bytes.store(remaining);
 
-    // Post to write strand to serialize write initiation
-    try
-    {
-        asio::post(write_strand_,
-            [self, buffer, handler_ptr, data_size]()
+            if (!ec)
             {
-                if (self->is_closed_.load() || !self->socket_.is_open())
+                self->metrics_.total_bytes_sent.fetch_add(bytes_transferred);
+                self->metrics_.send_count.fetch_add(1);
+            }
+
+            // Check low water mark to release backpressure
+            if (self->config_.low_water_mark > 0 && self->backpressure_active_.load() &&
+                remaining <= self->config_.low_water_mark)
+            {
+                self->backpressure_active_.store(false);
+
+                // Invoke backpressure callback
+                auto bp_cb = std::atomic_load(&self->backpressure_callback_);
+                if (bp_cb && *bp_cb)
                 {
-                    self->finalize_send(asio::error::not_connected, 0, data_size, handler_ptr);
-                    return;
+                    (*bp_cb)(false);
                 }
+            }
 
-                self->write_queue_.push_back({buffer, handler_ptr, data_size});
-
-                if (!self->write_in_progress_)
+            if constexpr (std::is_invocable_v<decltype(handler), std::error_code, std::size_t>)
+            {
+                if (handler)
                 {
-                    self->write_in_progress_ = true;
-                    self->start_write();
+                    handler(ec, bytes_transferred);
                 }
-            });
-    }
-    catch (const std::system_error&)
-    {
-        // Socket descriptor is invalid or already closed
-        finalize_send(asio::error::not_connected, 0, data_size, handler_ptr);
-    }
-    catch (...)
-    {
-        // Unexpected error during async operation setup
-        finalize_send(asio::error::operation_aborted, 0, data_size, handler_ptr);
-    }
-}
-
-auto tcp_socket::start_write() -> void
-{
-	if (write_queue_.empty())
-	{
-		write_in_progress_ = false;
-		return;
-	}
-
-	auto self = shared_from_this();
-	const auto current = write_queue_.front();
-
-	try
-	{
-		asio::async_write(
-			socket_, asio::buffer(*current.buffer),
-			asio::bind_executor(write_strand_,
-				[self](std::error_code ec, std::size_t bytes_transferred)
-				{
-					auto completed = std::move(self->write_queue_.front());
-					self->write_queue_.pop_front();
-
-					self->finalize_send(ec, bytes_transferred, completed.data_size, completed.handler);
-
-					if (ec || self->is_closed_.load() || !self->socket_.is_open() || self->drain_on_close_)
-					{
-						auto drain_ec = ec ? ec : asio::error::not_connected;
-						if (self->drain_on_close_ && !ec)
-						{
-							drain_ec = asio::error::operation_aborted;
-						}
-						self->drain_write_queue(drain_ec);
-						return;
-					}
-
-					if (self->write_queue_.empty())
-					{
-						self->write_in_progress_ = false;
-						return;
-					}
-
-					self->start_write();
-				}));
-	}
-	catch (const std::system_error&)
-	{
-		drain_write_queue(asio::error::not_connected);
-	}
-	catch (...)
-	{
-		drain_write_queue(asio::error::operation_aborted);
-	}
-}
-
-auto tcp_socket::finalize_send(std::error_code ec,
-                               std::size_t bytes_transferred,
-                               std::size_t data_size,
-                               const std::shared_ptr<send_handler_t>& handler_ptr) -> void
-{
-	std::size_t remaining = pending_bytes_.fetch_sub(data_size) - data_size;
-	metrics_.current_pending_bytes.store(remaining);
-
-	if (!ec)
-	{
-		metrics_.total_bytes_sent.fetch_add(bytes_transferred);
-		metrics_.send_count.fetch_add(1);
-	}
-
-	// Check low water mark to release backpressure
-	if (config_.low_water_mark > 0 && backpressure_active_.load() &&
-	    remaining <= config_.low_water_mark)
-	{
-		backpressure_active_.store(false);
-
-		// Invoke backpressure callback
-		auto bp_cb = std::atomic_load(&backpressure_callback_);
-		if (bp_cb && *bp_cb)
-		{
-			(*bp_cb)(false);
-		}
-	}
-
-	if (handler_ptr && *handler_ptr)
-	{
-		(*handler_ptr)(ec, bytes_transferred);
-	}
-}
-
-auto tcp_socket::drain_write_queue(std::error_code ec) -> void
-{
-	while (!write_queue_.empty())
-	{
-		auto pending = std::move(write_queue_.front());
-		write_queue_.pop_front();
-		finalize_send(ec, 0, pending.data_size, pending.handler);
-	}
-
-	write_in_progress_ = false;
-	drain_on_close_ = false;
+            }
+        });
 }
 
 auto tcp_socket::set_backpressure_callback(backpressure_callback callback) -> void

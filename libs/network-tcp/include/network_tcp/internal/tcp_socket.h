@@ -34,7 +34,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <array>
 #include <atomic>
-#include <deque>
 #include <functional>
 #include <memory>
 #include <mutex>
@@ -78,7 +77,6 @@ namespace kcenon::network::internal
 		 *        (low water mark reached).
 		 */
 		using backpressure_callback = std::function<void(bool apply_backpressure)>;
-		using send_handler_t = std::function<void(std::error_code, std::size_t)>;
 
 		/*!
 		 * \brief Constructs a \c tcp_socket by taking ownership of a moved \p
@@ -202,7 +200,7 @@ namespace kcenon::network::internal
 		 */
         auto async_send(
             std::vector<uint8_t>&& data,
-            send_handler_t handler) -> void;
+            std::function<void(std::error_code, std::size_t)> handler) -> void;
 
 		/*!
 		 * \brief Sets a callback for backpressure notifications.
@@ -307,15 +305,8 @@ namespace kcenon::network::internal
 		using receive_callback_t = std::function<void(const std::vector<uint8_t>&)>;
 		using receive_callback_view_t = std::function<void(std::span<const uint8_t>)>;
 		using error_callback_t = std::function<void(std::error_code)>;
-		struct pending_write {
-			std::shared_ptr<std::vector<uint8_t>> buffer;
-			std::shared_ptr<send_handler_t> handler;
-			std::size_t data_size{0};
-		};
 
 		asio::ip::tcp::socket socket_; /*!< The underlying ASIO TCP socket. */
-		asio::strand<asio::ip::tcp::socket::executor_type>
-			write_strand_; /*!< Serialize write queue access. */
 
 		std::array<uint8_t, 4096>
 			read_buffer_; /*!< Buffer for receiving data in \c do_read(). */
@@ -347,26 +338,5 @@ namespace kcenon::network::internal
 
 		/*! \brief Backpressure notification callback */
 		std::shared_ptr<backpressure_callback> backpressure_callback_;
-
-		/*! \brief Pending write queue (serialized on the write strand) */
-		std::deque<pending_write> write_queue_;
-
-		/*! \brief True when an async_write is in flight */
-		bool write_in_progress_{false};
-
-		/*! \brief Drain pending writes after close completes */
-		bool drain_on_close_{false};
-
-		/*! \brief Start or continue queued writes (write strand only) */
-		auto start_write() -> void;
-
-		/*! \brief Finalize a send attempt and update metrics */
-		auto finalize_send(std::error_code ec,
-		                   std::size_t bytes_transferred,
-		                   std::size_t data_size,
-		                   const std::shared_ptr<send_handler_t>& handler_ptr) -> void;
-
-		/*! \brief Fail all queued writes with an error (write strand only) */
-		auto drain_write_queue(std::error_code ec) -> void;
 	};
 } // namespace kcenon::network::internal
