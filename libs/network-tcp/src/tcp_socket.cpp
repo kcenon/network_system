@@ -167,7 +167,13 @@ namespace kcenon::network::internal
 			// This is critical because io_context may run on multiple threads,
 			// and close() may be called from any thread at any time.
 			// The lock ensures mutual exclusion between socket operations.
-			std::unique_lock<std::mutex> lock(self->socket_mutex_);
+			//
+			// IMPORTANT: We keep the lock held during async_read_some() to ensure
+			// that close() cannot run between our state check and the async operation.
+			// ASIO's async_read_some() does NOT invoke the callback synchronously -
+			// it always posts completion to the executor, so there's no risk of
+			// deadlock from the callback trying to acquire this lock.
+			std::lock_guard<std::mutex> lock(self->socket_mutex_);
 
 			// Re-check state under lock - close() may have acquired the lock first
 			if (!self->is_reading_.load() || self->is_closed_.load() || !self->socket_.is_open())
@@ -177,11 +183,9 @@ namespace kcenon::network::internal
 			}
 
 			// Now safe to initiate async operation under lock protection.
-			// Release the lock before async_read_some since the callback may
-			// be invoked from the same thread and try to acquire the lock again.
-			// Instead, we rely on is_closed_ flag for callback safety.
-			lock.unlock();
-
+			// The lock will be released when this lambda returns, after async_read_some
+			// has successfully initiated the async operation and registered it with
+			// the socket's internal state.
 			self->socket_.async_read_some(
 				asio::buffer(self->read_buffer_),
 				[self](std::error_code ec, std::size_t length)
@@ -292,6 +296,17 @@ auto tcp_socket::async_send(
     // This ensures all socket operations (read, write, close) run on the same
     // thread/strand, preventing race conditions between close() and async_write().
     asio::post(socket_.get_executor(), [self, buffer, data_size, handler = std::move(handler)]() mutable {
+        // Lock the socket mutex to prevent concurrent access with close().
+        // This is critical because io_context may run on multiple threads,
+        // and close() may be called from any thread at any time.
+        //
+        // IMPORTANT: We keep the lock held during async_write() to ensure
+        // that close() cannot run between our state check and the async operation.
+        // ASIO's async_write() does NOT invoke the callback synchronously -
+        // it always posts completion to the executor, so there's no risk of
+        // deadlock from the callback trying to acquire this lock.
+        std::lock_guard<std::mutex> lock(self->socket_mutex_);
+
         // Re-check state after being scheduled on the executor
         if (self->is_closed_.load() || !self->socket_.is_open())
         {
@@ -306,60 +321,45 @@ auto tcp_socket::async_send(
             return;
         }
 
-        // Now safe to initiate async operation
-        // Wrap in try-catch to handle race condition where socket may be closed
-        // between our check and the actual async operation
-        try
-        {
-            asio::async_write(
-                self->socket_, asio::buffer(*buffer),
-                [handler = std::move(handler), self, buffer, data_size](std::error_code ec, std::size_t bytes_transferred)
-                {
-                    // Update pending bytes on completion
-                    std::size_t remaining = self->pending_bytes_.fetch_sub(data_size) - data_size;
-                    self->metrics_.current_pending_bytes.store(remaining);
-
-                    if (!ec)
-                    {
-                        self->metrics_.total_bytes_sent.fetch_add(bytes_transferred);
-                        self->metrics_.send_count.fetch_add(1);
-                    }
-
-                    // Check low water mark to release backpressure
-                    if (self->config_.low_water_mark > 0 && self->backpressure_active_.load() &&
-                        remaining <= self->config_.low_water_mark)
-                    {
-                        self->backpressure_active_.store(false);
-
-                        // Invoke backpressure callback
-                        auto bp_cb = std::atomic_load(&self->backpressure_callback_);
-                        if (bp_cb && *bp_cb)
-                        {
-                            (*bp_cb)(false);
-                        }
-                    }
-
-                    if constexpr (std::is_invocable_v<decltype(handler), std::error_code, std::size_t>)
-                    {
-                        if (handler)
-                        {
-                            handler(ec, bytes_transferred);
-                        }
-                    }
-                });
-        }
-        catch (const std::exception&)
-        {
-            // Socket was closed between our check and async_write() call.
-            // Restore pending bytes count and invoke handler with error.
-            self->pending_bytes_.fetch_sub(data_size);
-            self->metrics_.current_pending_bytes.store(self->pending_bytes_.load());
-
-            if (handler)
+        // Now safe to initiate async operation under lock protection.
+        // The lock will be released when this lambda returns, after async_write
+        // has successfully initiated the async operation.
+        asio::async_write(
+            self->socket_, asio::buffer(*buffer),
+            [handler = std::move(handler), self, buffer, data_size](std::error_code ec, std::size_t bytes_transferred)
             {
-                handler(asio::error::not_connected, 0);
-            }
-        }
+                // Update pending bytes on completion
+                std::size_t remaining = self->pending_bytes_.fetch_sub(data_size) - data_size;
+                self->metrics_.current_pending_bytes.store(remaining);
+
+                if (!ec)
+                {
+                    self->metrics_.total_bytes_sent.fetch_add(bytes_transferred);
+                    self->metrics_.send_count.fetch_add(1);
+                }
+
+                // Check low water mark to release backpressure
+                if (self->config_.low_water_mark > 0 && self->backpressure_active_.load() &&
+                    remaining <= self->config_.low_water_mark)
+                {
+                    self->backpressure_active_.store(false);
+
+                    // Invoke backpressure callback
+                    auto bp_cb = std::atomic_load(&self->backpressure_callback_);
+                    if (bp_cb && *bp_cb)
+                    {
+                        (*bp_cb)(false);
+                    }
+                }
+
+                if constexpr (std::is_invocable_v<decltype(handler), std::error_code, std::size_t>)
+                {
+                    if (handler)
+                    {
+                        handler(ec, bytes_transferred);
+                    }
+                }
+            });
     });
 }
 
