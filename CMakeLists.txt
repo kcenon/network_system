@@ -224,6 +224,15 @@ if(ENABLE_UBSAN)
     endif()
 endif()
 
+# Disable ASIO's small block recycling allocator when any sanitizer is enabled.
+# The recycling allocator uses thread-local storage which can interact poorly
+# with sanitizers, causing false positives or undefined behavior reports.
+# With this disabled, ASIO uses standard aligned_new() for all allocations.
+if(ENABLE_ASAN OR ENABLE_TSAN OR ENABLE_UBSAN)
+    add_compile_definitions(ASIO_DISABLE_SMALL_BLOCK_RECYCLING)
+    message(STATUS "ASIO small block recycling disabled for sanitizer build")
+endif()
+
 ##################################################
 # Include CMake Modules
 ##################################################
