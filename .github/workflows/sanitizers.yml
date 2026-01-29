@@ -29,7 +29,8 @@ jobs:
           - name: UndefinedBehaviorSanitizer
             option: ENABLE_UBSAN
             env_var: UBSAN_OPTIONS
-            env_value: "halt_on_error=0:print_stacktrace=1:suppressions=../cmake/ubsan.supp"
+            # Note: suppressions path is set dynamically in the test step
+            env_value: "halt_on_error=0:print_stacktrace=1"
 
     steps:
     - name: Checkout network_system
@@ -78,6 +79,11 @@ jobs:
     - name: Run tests with ${{ matrix.sanitizer.name }}
       run: |
         cd network_system/build
+        # For UBSAN, append suppressions file path to options
+        if [ "${{ matrix.sanitizer.option }}" = "ENABLE_UBSAN" ]; then
+          export UBSAN_OPTIONS="${{ matrix.sanitizer.env_value }}:suppressions=${{ github.workspace }}/network_system/cmake/ubsan.supp"
+          echo "UBSAN_OPTIONS=$UBSAN_OPTIONS"
+        fi
         ctest --output-on-failure --verbose -LE no_sanitizer
       env:
         ${{ matrix.sanitizer.env_var }}: ${{ matrix.sanitizer.env_value }}
