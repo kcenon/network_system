@@ -402,6 +402,8 @@ add_library(NetworkSystem
     # UDP messaging moved to libs/network-udp (Issue #561)
     src/core/messaging_client.cpp
     src/core/messaging_server.cpp
+    src/core/messaging_udp_client.cpp
+    src/core/messaging_udp_server.cpp
     src/core/connection_pool.cpp
 
     # HTTP layer (stable)
