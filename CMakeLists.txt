@@ -402,6 +402,12 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/libs/network-http2/CMakeLists.txt)
     message(STATUS "network-http2 library enabled")
 endif()
 
+# network-quic: QUIC protocol implementation library (Issue #569)
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/libs/network-quic/CMakeLists.txt)
+    add_subdirectory(libs/network-quic)
+    message(STATUS "network-quic library enabled")
+endif()
+
 ##################################################
 # Create Main Library
 ##################################################
