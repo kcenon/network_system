@@ -408,6 +408,12 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/libs/network-quic/CMakeLists.txt)
     message(STATUS "network-quic library enabled")
 endif()
 
+# network-grpc: gRPC protocol implementation library (Issue #571)
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/libs/network-grpc/CMakeLists.txt)
+    add_subdirectory(libs/network-grpc)
+    message(STATUS "network-grpc library enabled")
+endif()
+
 ##################################################
 # Create Main Library
 ##################################################
