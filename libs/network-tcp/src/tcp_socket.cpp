@@ -41,15 +41,23 @@ namespace kcenon::network::internal
 {
 
 	tcp_socket::tcp_socket(asio::ip::tcp::socket socket)
-		: socket_(std::move(socket)), config_{}
+		: socket_(std::move(socket)), read_buffer_{}, receive_callback_(nullptr),
+		  receive_callback_view_(nullptr), error_callback_(nullptr),
+		  config_{}, metrics_{}, observers_{},
+		  is_reading_(false), is_closed_(false), pending_bytes_(0),
+		  backpressure_active_(false), backpressure_callback_(nullptr)
 	{
-		// constructor body empty
+		// callback_mutex_ uses default constructor (not copyable/movable)
 	}
 
 	tcp_socket::tcp_socket(asio::ip::tcp::socket socket, const socket_config& config)
-		: socket_(std::move(socket)), config_(config)
+		: socket_(std::move(socket)), read_buffer_{}, receive_callback_(nullptr),
+		  receive_callback_view_(nullptr), error_callback_(nullptr),
+		  config_(config), metrics_{}, observers_{},
+		  is_reading_(false), is_closed_(false), pending_bytes_(0),
+		  backpressure_active_(false), backpressure_callback_(nullptr)
 	{
-		// constructor body empty
+		// callback_mutex_ uses default constructor (not copyable/movable)
 	}
 
 	auto tcp_socket::set_receive_callback(
@@ -215,12 +223,18 @@ namespace kcenon::network::internal
 						{
 							(*error_cb)(ec);
 						}
+
+						// Notify observers of error
+						self->notify_observers_error(ec);
 						return;
 					}
 
 					// On success, if length > 0, dispatch to the appropriate callback
 					if (length > 0)
 					{
+						// Create span view for zero-copy access
+						std::span<const uint8_t> data_view(self->read_buffer_.data(), length);
+
 						// Lock-free callback access via atomic_load
 						// Prefer view callback (zero-copy) over vector callback
 						auto view_cb = std::atomic_load(&self->receive_callback_view_);
@@ -228,7 +242,6 @@ namespace kcenon::network::internal
 						{
 							// Zero-copy path: create span view directly into read_buffer_
 							// No std::vector allocation or copy required
-							std::span<const uint8_t> data_view(self->read_buffer_.data(), length);
 							(*view_cb)(data_view);
 						}
 						else
@@ -242,6 +255,9 @@ namespace kcenon::network::internal
 								(*recv_cb)(chunk);
 							}
 						}
+
+						// Notify observers with zero-copy span view
+						self->notify_observers_receive(data_view);
 					}
 
 					// Continue reading only if still active and socket is not closed
@@ -319,6 +335,9 @@ auto tcp_socket::async_send(
         {
             (*bp_cb)(true);
         }
+
+        // Notify observers of backpressure
+        notify_observers_backpressure(true);
     }
 
     // Post the async_write to the socket's executor to ensure ASIO internal state
@@ -383,6 +402,9 @@ auto tcp_socket::async_send(
                             {
                                 (*bp_cb)(false);
                             }
+
+                            // Notify observers of backpressure release
+                            self->notify_observers_backpressure(false);
                         }
 
                         if (*handler_ptr)
@@ -466,6 +488,111 @@ auto tcp_socket::reset_metrics() -> void
 auto tcp_socket::config() const -> const socket_config&
 {
     return config_;
+}
+
+auto tcp_socket::attach_observer(std::shared_ptr<network_core::interfaces::socket_observer> observer) -> void
+{
+	if (!observer)
+	{
+		return;
+	}
+
+	std::lock_guard<std::mutex> lock(callback_mutex_);
+
+	// Remove expired observers before adding new one
+	observers_.erase(
+		std::remove_if(observers_.begin(), observers_.end(),
+			[](const std::weak_ptr<network_core::interfaces::socket_observer>& weak_obs) {
+				return weak_obs.expired();
+			}),
+		observers_.end());
+
+	// Check if observer is already attached
+	auto it = std::find_if(observers_.begin(), observers_.end(),
+		[&observer](const std::weak_ptr<network_core::interfaces::socket_observer>& weak_obs) {
+			auto existing = weak_obs.lock();
+			return existing && existing == observer;
+		});
+
+	if (it == observers_.end())
+	{
+		observers_.push_back(observer);
+	}
+}
+
+auto tcp_socket::detach_observer(std::shared_ptr<network_core::interfaces::socket_observer> observer) -> void
+{
+	if (!observer)
+	{
+		return;
+	}
+
+	std::lock_guard<std::mutex> lock(callback_mutex_);
+
+	observers_.erase(
+		std::remove_if(observers_.begin(), observers_.end(),
+			[&observer](const std::weak_ptr<network_core::interfaces::socket_observer>& weak_obs) {
+				auto existing = weak_obs.lock();
+				return !existing || existing == observer;
+			}),
+		observers_.end());
+}
+
+auto tcp_socket::notify_observers_receive(std::span<const uint8_t> data) -> void
+{
+	std::lock_guard<std::mutex> lock(callback_mutex_);
+
+	for (auto it = observers_.begin(); it != observers_.end();)
+	{
+		if (auto observer = it->lock())
+		{
+			observer->on_receive(data);
+			++it;
+		}
+		else
+		{
+			// Remove expired observer
+			it = observers_.erase(it);
+		}
+	}
+}
+
+auto tcp_socket::notify_observers_error(std::error_code ec) -> void
+{
+	std::lock_guard<std::mutex> lock(callback_mutex_);
+
+	for (auto it = observers_.begin(); it != observers_.end();)
+	{
+		if (auto observer = it->lock())
+		{
+			observer->on_error(ec);
+			++it;
+		}
+		else
+		{
+			// Remove expired observer
+			it = observers_.erase(it);
+		}
+	}
+}
+
+auto tcp_socket::notify_observers_backpressure(bool apply) -> void
+{
+	std::lock_guard<std::mutex> lock(callback_mutex_);
+
+	for (auto it = observers_.begin(); it != observers_.end();)
+	{
+		if (auto observer = it->lock())
+		{
+			observer->on_backpressure(apply);
+			++it;
+		}
+		else
+		{
+			// Remove expired observer
+			it = observers_.erase(it);
+		}
+	}
 }
 
 } // namespace kcenon::network::internal
