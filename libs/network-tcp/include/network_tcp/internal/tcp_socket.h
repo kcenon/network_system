@@ -377,7 +377,7 @@ namespace kcenon::network::internal
 		 * \brief List of socket observers (using weak_ptr for automatic cleanup).
 		 * Protected by callback_mutex_.
 		 */
-		std::vector<std::weak_ptr<network_core::interfaces::socket_observer>> observers_;
+		std::vector<std::weak_ptr<network_core::interfaces::socket_observer>> observers_{};
 
 		/*! \brief Helper to notify all observers of receive events */
 		auto notify_observers_receive(std::span<const uint8_t> data) -> void;
