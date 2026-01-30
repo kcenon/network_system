@@ -1,0 +1,35 @@
+@PACKAGE_INIT@
+
+# network-all CMake Config File
+#
+# This config file provides the network-all umbrella package that
+# aggregates all network protocol libraries.
+#
+# Usage:
+#   find_package(network-all REQUIRED)
+#   target_link_libraries(my_app PRIVATE kcenon::network-all)
+#
+# This will transitively link all available protocol libraries:
+# - kcenon::network-core
+# - kcenon::network-tcp
+# - kcenon::network-udp
+# - kcenon::network-websocket (if available)
+# - kcenon::network-http2
+# - kcenon::network-quic
+# - kcenon::network-grpc
+
+include(CMakeFindDependencyMacro)
+
+# Find all protocol dependencies
+find_dependency(network-core)
+find_dependency(network-tcp)
+find_dependency(network-udp)
+
+# Optional protocols
+find_package(network-websocket QUIET)
+find_package(network-http2 QUIET)
+find_package(network-quic QUIET)
+find_package(network-grpc QUIET)
+
+# Include the targets file
+include("${CMAKE_CURRENT_LIST_DIR}/network-all-targets.cmake")
