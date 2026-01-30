@@ -414,6 +414,12 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/libs/network-grpc/CMakeLists.txt)
     message(STATUS "network-grpc library enabled")
 endif()
 
+# network-all: Umbrella package aggregating all protocol libraries (Issue #573)
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/libs/network-all/CMakeLists.txt)
+    add_subdirectory(libs/network-all)
+    message(STATUS "network-all umbrella package enabled")
+endif()
+
 ##################################################
 # Create Main Library
 ##################################################
