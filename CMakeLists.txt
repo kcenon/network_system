@@ -390,6 +390,12 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/libs/network-udp/CMakeLists.txt)
     message(STATUS "network-udp library enabled")
 endif()
 
+# network-websocket: WebSocket protocol implementation library (Issue #565)
+if(BUILD_WEBSOCKET_SUPPORT AND EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/libs/network-websocket/CMakeLists.txt)
+    add_subdirectory(libs/network-websocket)
+    message(STATUS "network-websocket library enabled")
+endif()
+
 ##################################################
 # Create Main Library
 ##################################################
