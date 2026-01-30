@@ -1,0 +1,12 @@
+# network-udp CMake config file
+# Provides target kcenon::network-udp
+
+@PACKAGE_INIT@
+
+include("${CMAKE_CURRENT_LIST_DIR}/network-udp-targets.cmake")
+
+# Find required dependencies
+include(CMakeFindDependencyMacro)
+find_dependency(OpenSSL REQUIRED)
+
+check_required_components(network-udp)

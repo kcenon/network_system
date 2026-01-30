@@ -419,6 +419,7 @@ target_include_directories(udp_load_test PRIVATE
 
 target_link_libraries(udp_load_test PRIVATE
     NetworkSystem
+    network-udp
     network_integration_test_framework
     GTest::gtest
     GTest::gtest_main
