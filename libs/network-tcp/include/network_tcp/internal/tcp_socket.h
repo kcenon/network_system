@@ -355,6 +355,12 @@ namespace kcenon::network::internal
 
 		std::mutex callback_mutex_; /*!< Protects callback registration only. */
 
+		/*! \brief Backpressure configuration */
+		socket_config config_;
+
+		/*! \brief Socket runtime metrics */
+		mutable socket_metrics metrics_;
+
 		/*!
 		 * \brief List of socket observers (using weak_ptr for automatic cleanup).
 		 * Protected by callback_mutex_.
@@ -363,12 +369,6 @@ namespace kcenon::network::internal
 
 		std::atomic<bool> is_reading_{false}; /*!< Flag to prevent read after stop. */
 		std::atomic<bool> is_closed_{false};  /*!< Flag to indicate socket is closed. */
-
-		/*! \brief Backpressure configuration */
-		socket_config config_;
-
-		/*! \brief Socket runtime metrics */
-		mutable socket_metrics metrics_;
 
 		/*! \brief Current pending bytes in send buffer */
 		std::atomic<std::size_t> pending_bytes_{0};
