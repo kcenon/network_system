@@ -355,6 +355,12 @@ namespace kcenon::network::internal
 
 		std::mutex callback_mutex_; /*!< Protects callback registration only. */
 
+		/*!
+		 * \brief List of socket observers (using weak_ptr for automatic cleanup).
+		 * Protected by callback_mutex_.
+		 */
+		std::vector<std::weak_ptr<network_core::interfaces::socket_observer>> observers_{};
+
 		std::atomic<bool> is_reading_{false}; /*!< Flag to prevent read after stop. */
 		std::atomic<bool> is_closed_{false};  /*!< Flag to indicate socket is closed. */
 
@@ -372,12 +378,6 @@ namespace kcenon::network::internal
 
 		/*! \brief Backpressure notification callback */
 		std::shared_ptr<backpressure_callback> backpressure_callback_;
-
-		/*!
-		 * \brief List of socket observers (using weak_ptr for automatic cleanup).
-		 * Protected by callback_mutex_.
-		 */
-		std::vector<std::weak_ptr<network_core::interfaces::socket_observer>> observers_{};
 
 		/*! \brief Helper to notify all observers of receive events */
 		auto notify_observers_receive(std::span<const uint8_t> data) -> void;
