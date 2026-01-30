@@ -396,6 +396,12 @@ if(BUILD_WEBSOCKET_SUPPORT AND EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/libs/network-w
     message(STATUS "network-websocket library enabled")
 endif()
 
+# network-http2: HTTP/2 protocol implementation library (Issue #567)
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/libs/network-http2/CMakeLists.txt)
+    add_subdirectory(libs/network-http2)
+    message(STATUS "network-http2 library enabled")
+endif()
+
 ##################################################
 # Create Main Library
 ##################################################
