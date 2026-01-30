@@ -30,7 +30,7 @@ project(network-udp
 # - Depends on ASIO for async I/O and OpenSSL for secure connections
 ##################################################
 
-add_library(network-udp
+add_library(network-udp STATIC
     src/udp.cpp
     src/udp_socket.cpp
     src/messaging_udp_client.cpp
