@@ -187,6 +187,71 @@ int main() {
 
 ---
 
+## Modular Architecture (NEW)
+
+Starting with v2.0, network_system is organized into protocol-specific libraries for improved maintainability and selective linking.
+
+### Library Overview
+
+| Library | Description | Dependencies |
+|---------|-------------|--------------|
+| [`network-core`](libs/network-core/) | Core interfaces and session management | None |
+| [`network-tcp`](libs/network-tcp/) | TCP protocol with SSL/TLS support | network-core, ASIO, OpenSSL |
+| [`network-udp`](libs/network-udp/) | UDP datagram protocol | network-core, ASIO |
+| [`network-websocket`](libs/network-websocket/) | WebSocket (RFC 6455) | network-tcp |
+| [`network-http2`](libs/network-http2/) | HTTP/2 multiplexed protocol | network-websocket |
+| [`network-quic`](libs/network-quic/) | QUIC (RFC 9000) | network-udp, OpenSSL |
+| [`network-grpc`](libs/network-grpc/) | gRPC high-performance RPC | network-quic |
+| [`network-all`](libs/network-all/) | Umbrella package (all protocols) | All above |
+
+### Dependency Graph
+
+```
+                    network-core
+                    /    |    \
+                   /     |     \
+            network-tcp  |  network-udp
+                  |      |      |
+         network-websocket    network-quic
+                  |             |
+              network-http2  network-grpc
+```
+
+### Selective Linking
+
+Link only the protocols your application needs:
+
+```cmake
+# Option 1: All protocols (simple, larger binary)
+find_package(network-all REQUIRED)
+target_link_libraries(my_app PRIVATE kcenon::network-all)
+
+# Option 2: Specific protocols (smaller binary)
+find_package(network-tcp REQUIRED)
+find_package(network-udp REQUIRED)
+target_link_libraries(my_app PRIVATE
+    kcenon::network-tcp
+    kcenon::network-udp
+)
+```
+
+### Umbrella Header
+
+Include all protocols with a single header:
+
+```cpp
+#include <network_all/network.h>
+
+// Check protocol availability at compile time
+#if NETWORK_ALL_HAS_QUIC
+    auto quic_conn = protocol::quic::connect({...});
+#endif
+```
+
+📖 **[Migration Guide →](docs/MIGRATION.md)** | **[Library READMEs](libs/)**
+
+---
+
 ## Core Features
 
 ### Protocols
