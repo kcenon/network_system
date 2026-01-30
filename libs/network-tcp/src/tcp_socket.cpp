@@ -41,15 +41,23 @@ namespace kcenon::network::internal
 {
 
 	tcp_socket::tcp_socket(asio::ip::tcp::socket socket)
-		: socket_(std::move(socket)), config_{}
+		: socket_(std::move(socket)), read_buffer_{}, receive_callback_(nullptr),
+		  receive_callback_view_(nullptr), error_callback_(nullptr),
+		  callback_mutex_(), config_{}, metrics_{}, observers_{},
+		  is_reading_(false), is_closed_(false), pending_bytes_(0),
+		  backpressure_active_(false), backpressure_callback_(nullptr)
 	{
-		// constructor body empty
+		// All members explicitly initialized
 	}
 
 	tcp_socket::tcp_socket(asio::ip::tcp::socket socket, const socket_config& config)
-		: socket_(std::move(socket)), config_(config)
+		: socket_(std::move(socket)), read_buffer_{}, receive_callback_(nullptr),
+		  receive_callback_view_(nullptr), error_callback_(nullptr),
+		  callback_mutex_(), config_(config), metrics_{}, observers_{},
+		  is_reading_(false), is_closed_(false), pending_bytes_(0),
+		  backpressure_active_(false), backpressure_callback_(nullptr)
 	{
-		// constructor body empty
+		// All members explicitly initialized
 	}
 
 	auto tcp_socket::set_receive_callback(
