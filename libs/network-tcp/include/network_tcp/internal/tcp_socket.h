@@ -44,6 +44,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <asio.hpp>
 
 #include "kcenon/network/internal/common_defs.h"
+#include "kcenon/network-core/interfaces/socket_observer.h"
 
 namespace kcenon::network::internal
 {
@@ -102,6 +103,28 @@ namespace kcenon::network::internal
 		~tcp_socket() = default;
 
 		/*!
+		 * \brief Attaches an observer to receive socket events.
+		 * \param observer Shared pointer to socket_observer implementation.
+		 *
+		 * Multiple observers can be attached to the same socket. All attached
+		 * observers will be notified of socket events.
+		 *
+		 * \see socket_observer
+		 * \see detach_observer()
+		 */
+		auto attach_observer(std::shared_ptr<network_core::interfaces::socket_observer> observer)
+			-> void;
+
+		/*!
+		 * \brief Detaches a previously attached observer.
+		 * \param observer The observer to detach.
+		 *
+		 * If the observer was not attached, this method has no effect.
+		 */
+		auto detach_observer(std::shared_ptr<network_core::interfaces::socket_observer> observer)
+			-> void;
+
+		/*!
 		 * \brief Sets a callback to receive inbound data chunks.
 		 * \param callback A function with signature \c void(const
 		 * std::vector<uint8_t>&), called whenever a chunk of data is
@@ -109,9 +132,11 @@ namespace kcenon::network::internal
 		 *
 		 * If no callback is set, received data is effectively discarded.
 		 *
+		 * \deprecated Use attach_observer() with socket_observer instead.
 		 * \note This is the legacy callback API. For better performance,
 		 * consider using set_receive_callback_view() instead.
 		 */
+		[[deprecated("Use attach_observer() with socket_observer instead")]]
 		auto set_receive_callback(
 			std::function<void(const std::vector<uint8_t>&)> callback) -> void;
 
@@ -145,7 +170,10 @@ namespace kcenon::network::internal
 		 *     // my_buffer.insert(my_buffer.end(), data.begin(), data.end());
 		 * });
 		 * \endcode
+		 *
+		 * \deprecated Use attach_observer() with socket_observer instead.
 		 */
+		[[deprecated("Use attach_observer() with socket_observer instead")]]
 		auto set_receive_callback_view(
 			std::function<void(std::span<const uint8_t>)> callback) -> void;
 
@@ -157,7 +185,10 @@ namespace kcenon::network::internal
 		 *
 		 * If no callback is set, errors are not explicitly handled here (beyond
 		 * stopping reads).
+		 *
+		 * \deprecated Use attach_observer() with socket_observer instead.
 		 */
+		[[deprecated("Use attach_observer() with socket_observer instead")]]
 		auto set_error_callback(std::function<void(std::error_code)> callback)
 			-> void;
 
@@ -209,7 +240,10 @@ namespace kcenon::network::internal
 		 * The callback receives `true` when pending bytes exceed high_water_mark
 		 * (apply backpressure), and `false` when they drop below low_water_mark
 		 * (release backpressure).
+		 *
+		 * \deprecated Use attach_observer() with socket_observer instead.
 		 */
+		[[deprecated("Use attach_observer() with socket_observer instead")]]
 		auto set_backpressure_callback(backpressure_callback callback) -> void;
 
 		/*!
@@ -338,5 +372,20 @@ namespace kcenon::network::internal
 
 		/*! \brief Backpressure notification callback */
 		std::shared_ptr<backpressure_callback> backpressure_callback_;
+
+		/*!
+		 * \brief List of socket observers (using weak_ptr for automatic cleanup).
+		 * Protected by callback_mutex_.
+		 */
+		std::vector<std::weak_ptr<network_core::interfaces::socket_observer>> observers_;
+
+		/*! \brief Helper to notify all observers of receive events */
+		auto notify_observers_receive(std::span<const uint8_t> data) -> void;
+
+		/*! \brief Helper to notify all observers of error events */
+		auto notify_observers_error(std::error_code ec) -> void;
+
+		/*! \brief Helper to notify all observers of backpressure events */
+		auto notify_observers_backpressure(bool apply) -> void;
 	};
 } // namespace kcenon::network::internal
