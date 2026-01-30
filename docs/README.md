@@ -17,6 +17,7 @@ Welcome to the network_system documentation! This is a high-performance C++20 as
 | Get started quickly | [Build Guide](guides/BUILD.md) |
 | Understand the architecture | [Architecture](ARCHITECTURE.md) |
 | Learn the API | [API Reference](API_REFERENCE.md) |
+| **Migrate to modular architecture** | **[Migration Guide](MIGRATION.md)** |
 | Use C++20 Concepts | [Concepts Guide](advanced/CONCEPTS.md) |
 | Configure TLS/SSL | [TLS Setup Guide](guides/TLS_SETUP_GUIDE.md) |
 | Troubleshoot an issue | [Troubleshooting](guides/TROUBLESHOOTING.md) |
@@ -49,6 +50,7 @@ Essential documents for understanding the system:
 | [PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md) | Codebase organization and directory layout | [KO](PROJECT_STRUCTURE.kr.md) |
 | [PRODUCTION_QUALITY.md](PRODUCTION_QUALITY.md) | Quality metrics and CI/CD status | [KO](PRODUCTION_QUALITY.kr.md) |
 | [CHANGELOG.md](CHANGELOG.md) | Version history and changes | [KO](CHANGELOG.kr.md) |
+| **[MIGRATION.md](MIGRATION.md)** | **Migration guide for modular architecture** | - |
 
 ### User Guides
 
