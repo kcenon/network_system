@@ -83,6 +83,13 @@ jobs:
     - name: Build system dependencies
       shell: bash
       run: |
+        # Convert Windows path to Unix-style for consistent path handling
+        if [[ "$RUNNER_OS" == "Windows" ]]; then
+          INSTALL_PREFIX=$(cygpath -u "${{ github.workspace }}")/deps/install
+        else
+          INSTALL_PREFIX="${{ github.workspace }}/deps/install"
+        fi
+
         mkdir -p deps
         cd deps
 
@@ -96,7 +103,7 @@ jobs:
             -DBUILD_EXAMPLES=OFF \
             -DBUILD_SAMPLES=OFF
           cmake --build build
-          cmake --install build --prefix ${{ github.workspace }}/deps/install
+          cmake --install build --prefix "${INSTALL_PREFIX}"
           cd ..
         fi
 
@@ -106,13 +113,13 @@ jobs:
           cd thread_system
           cmake -B build -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_PREFIX_PATH=${{ github.workspace }}/deps/install \
+            -DCMAKE_PREFIX_PATH="${INSTALL_PREFIX}" \
             -DBUILD_TESTS=OFF \
             -DBUILD_EXAMPLES=OFF \
             -DBUILD_SAMPLES=OFF \
             -DBUILD_INTEGRATION_TESTS=OFF
           cmake --build build --target ThreadSystem
-          cmake --install build --prefix ${{ github.workspace }}/deps/install
+          cmake --install build --prefix "${INSTALL_PREFIX}"
           cd ..
         fi
 
@@ -122,13 +129,13 @@ jobs:
           cd logger_system
           cmake -B build -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_PREFIX_PATH=${{ github.workspace }}/deps/install \
+            -DCMAKE_PREFIX_PATH="${INSTALL_PREFIX}" \
             -DBUILD_TESTS=OFF \
             -DBUILD_EXAMPLES=OFF \
             -DBUILD_SAMPLES=OFF \
             -DLOGGER_BUILD_INTEGRATION_TESTS=OFF
           cmake --build build
-          cmake --install build --prefix ${{ github.workspace }}/deps/install
+          cmake --install build --prefix "${INSTALL_PREFIX}"
           cd ..
         fi
 
@@ -138,13 +145,13 @@ jobs:
           cd monitoring_system
           cmake -B build -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_PREFIX_PATH=${{ github.workspace }}/deps/install \
+            -DCMAKE_PREFIX_PATH="${INSTALL_PREFIX}" \
             -DBUILD_TESTS=OFF \
             -DBUILD_EXAMPLES=OFF \
             -DBUILD_SAMPLES=OFF \
             -DMONITORING_BUILD_INTEGRATION_TESTS=OFF
           cmake --build build
-          cmake --install build --prefix ${{ github.workspace }}/deps/install
+          cmake --install build --prefix "${INSTALL_PREFIX}"
           cd ..
         fi
 
@@ -154,12 +161,12 @@ jobs:
           cd container_system
           cmake -B build -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_PREFIX_PATH=${{ github.workspace }}/deps/install \
+            -DCMAKE_PREFIX_PATH="${INSTALL_PREFIX}" \
             -DBUILD_TESTS=OFF \
             -DBUILD_EXAMPLES=OFF \
             -DBUILD_SAMPLES=OFF
           cmake --build build
-          cmake --install build --prefix ${{ github.workspace }}/deps/install
+          cmake --install build --prefix "${INSTALL_PREFIX}"
           cd ..
         fi
 
@@ -220,15 +227,21 @@ jobs:
 
     - name: Configure WITH all dependencies (Windows)
       if: runner.os == 'Windows'
+      shell: bash
       run: |
-        cmake -B build -G Ninja `
-          -DCMAKE_BUILD_TYPE=Debug `
-          -DCMAKE_PREFIX_PATH=${{ github.workspace }}/deps/install `
-          -DBUILD_WITH_COMMON_SYSTEM=ON `
-          -DBUILD_WITH_LOGGER_SYSTEM=ON `
-          -DBUILD_WITH_THREAD_SYSTEM=ON `
-          -DBUILD_WITH_CONTAINER_SYSTEM=ON `
-          -DBUILD_WITH_MONITORING_SYSTEM=ON `
+        INSTALL_PREFIX=$(cygpath -u "${{ github.workspace }}")/deps/install
+        cmake -B build -G Ninja \
+          -DCMAKE_BUILD_TYPE=Debug \
+          -DCMAKE_PREFIX_PATH="${INSTALL_PREFIX}" \
+          -DBUILD_WITH_COMMON_SYSTEM=ON \
+          -DBUILD_WITH_LOGGER_SYSTEM=ON \
+          -DBUILD_WITH_THREAD_SYSTEM=ON \
+          -DBUILD_WITH_CONTAINER_SYSTEM=ON \
+          -DBUILD_WITH_MONITORING_SYSTEM=ON \
+          -DBUILD_TESTS=ON \
+          -DBUILD_INTEGRATION_TESTS=ON \
+          -DBUILD_EXAMPLES=ON \
+          -DBUILD_SAMPLES=OFF
           -DBUILD_TESTS=ON `
           -DBUILD_INTEGRATION_TESTS=ON `
           -DBUILD_EXAMPLES=ON `
