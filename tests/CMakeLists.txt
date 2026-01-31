@@ -418,37 +418,8 @@ if(GTest_FOUND OR GTEST_FOUND)
     )
     message(STATUS "Session manager integration tests enabled")
 
-    # Circuit breaker tests
-    add_executable(network_circuit_breaker_test
-        unit/test_circuit_breaker.cpp
-    )
-
-    target_link_libraries(network_circuit_breaker_test PRIVATE
-        NetworkSystem
-        GTest::gtest
-        GTest::gtest_main
-        Threads::Threads
-    )
-
-    # Setup ASIO integration
-    setup_asio_integration(network_circuit_breaker_test)
-
-    # Add system integration paths
-    if(COMMON_SYSTEM_INCLUDE_DIR)
-        target_include_directories(network_circuit_breaker_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
-        target_compile_definitions(network_circuit_breaker_test PRIVATE WITH_COMMON_SYSTEM)
-    endif()
-
-    set_target_properties(network_circuit_breaker_test PROPERTIES
-        CXX_STANDARD 20
-        CXX_STANDARD_REQUIRED ON
-        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
-    )
-
-    network_gtest_discover_tests(network_circuit_breaker_test
-        DISCOVERY_TIMEOUT 60
-    )
-    message(STATUS "Circuit breaker tests enabled")
+    # Note: Circuit breaker tests moved to common_system (issue #315)
+    # network_system now uses common_system's circuit_breaker implementation
 
     # Composition utilities tests (lifecycle_manager, connection_state, callback_manager)
     add_executable(network_composition_utilities_test

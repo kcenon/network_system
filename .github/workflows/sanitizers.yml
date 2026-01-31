@@ -74,14 +74,26 @@ jobs:
         echo "CC=clang" >> $GITHUB_ENV
         echo "CXX=clang++" >> $GITHUB_ENV
 
+    - name: Build common_system dependency
+      run: |
+        cd common_system
+        cmake -B build -G Ninja \
+          -DCMAKE_BUILD_TYPE=Debug \
+          -DBUILD_TESTS=OFF \
+          -DBUILD_EXAMPLES=OFF \
+          -DBUILD_SAMPLES=OFF
+        cmake --build build
+        cmake --install build --prefix ${{ github.workspace }}/deps/install
+
     - name: Configure CMake with ${{ matrix.sanitizer.name }}
       run: |
         cd network_system
         cmake -B build -S . \
           -GNinja \
           -DCMAKE_BUILD_TYPE=Debug \
+          -DCMAKE_PREFIX_PATH=${{ github.workspace }}/deps/install \
           -D${{ matrix.sanitizer.option }}=ON \
-          -DBUILD_WITH_COMMON_SYSTEM=OFF \
+          -DBUILD_WITH_COMMON_SYSTEM=ON \
           -DBUILD_WITH_LOGGER_SYSTEM=OFF \
           -DBUILD_WITH_THREAD_SYSTEM=OFF \
           -DBUILD_WITH_CONTAINER_SYSTEM=OFF \

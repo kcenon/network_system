@@ -118,10 +118,32 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
+    - name: Checkout common_system
+      uses: actions/checkout@v4
+      with:
+        repository: kcenon/common_system
+        path: common_system
+        token: ${{ secrets.GITHUB_TOKEN }}
+
     - name: Setup Environment
       run: |
         sudo apt-get update
         sudo apt-get install -y cmake ninja-build libasio-dev libfmt-dev lcov gcovr
+
+    - name: Install common_system headers
+      run: |
+        if [ -d "common_system" ]; then
+          echo "Installing common_system headers..."
+          cd common_system
+          cmake -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DBUILD_TESTS=OFF \
+            -DBUILD_EXAMPLES=OFF \
+            -DBUILD_SAMPLES=OFF
+          cmake --build build
+          sudo cmake --install build --prefix /usr/local
+          cd ..
+        fi
 
     - name: Configure with Coverage
       run: |
@@ -131,7 +153,7 @@ jobs:
           -DCMAKE_C_FLAGS="--coverage -fprofile-arcs -ftest-coverage" \
           -DBUILD_TESTS=ON \
           -DBUILD_SAMPLES=OFF \
-          -DBUILD_WITH_COMMON_SYSTEM=OFF \
+          -DBUILD_WITH_COMMON_SYSTEM=ON \
           -DBUILD_WITH_LOGGER_SYSTEM=OFF \
           -DBUILD_WITH_THREAD_SYSTEM=OFF \
           -DBUILD_WITH_CONTAINER_SYSTEM=OFF \
