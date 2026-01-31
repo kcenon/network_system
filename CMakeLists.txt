@@ -475,7 +475,6 @@ add_library(NetworkSystem
     src/internal/http_error.cpp
 
     # Utility implementations
-    src/utils/circuit_breaker.cpp
     src/utils/resilient_client.cpp
     src/utils/health_monitor.cpp
     src/utils/buffer_pool.cpp
