@@ -31,6 +31,13 @@ jobs:
       with:
         submodules: recursive
 
+    - name: Checkout common_system
+      uses: actions/checkout@v4
+      with:
+        repository: kcenon/common_system
+        path: common_system
+        token: ${{ secrets.GITHUB_TOKEN }}
+
     - name: Setup Build Environment (Ubuntu)
       if: startsWith(matrix.os, 'ubuntu')
       run: |
@@ -41,6 +48,24 @@ jobs:
       if: startsWith(matrix.os, 'macos')
       run: |
         brew install cmake ninja asio fmt lcov
+
+    - name: Install common_system headers (Unix)
+      if: ${{ !startsWith(matrix.os, 'windows') }}
+      shell: bash
+      run: |
+        # common_system is header-only, install headers after build tools are available
+        if [ -d "common_system" ]; then
+          echo "Installing common_system headers..."
+          cd common_system
+          cmake -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DBUILD_TESTS=OFF \
+            -DBUILD_EXAMPLES=OFF \
+            -DBUILD_SAMPLES=OFF
+          cmake --build build
+          sudo cmake --install build --prefix /usr/local
+          cd ..
+        fi
 
     - name: Setup Build Environment (Windows)
       if: startsWith(matrix.os, 'windows')
@@ -54,6 +79,23 @@ jobs:
           mingw-w64-x86_64-asio
           mingw-w64-x86_64-fmt
           mingw-w64-x86_64-gcc
+
+    - name: Install common_system headers (Windows)
+      if: startsWith(matrix.os, 'windows')
+      shell: msys2 {0}
+      run: |
+        if [ -d "common_system" ]; then
+          echo "Installing common_system headers..."
+          cd common_system
+          cmake -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DBUILD_TESTS=OFF \
+            -DBUILD_EXAMPLES=OFF \
+            -DBUILD_SAMPLES=OFF
+          cmake --build build
+          cmake --install build --prefix /mingw64
+          cd ..
+        fi
 
     - name: Configure CMake (Windows)
       if: startsWith(matrix.os, 'windows')
@@ -72,7 +114,7 @@ jobs:
               -DCMAKE_C_COMPILER=gcc \
               -DCMAKE_CXX_COMPILER=g++ \
               -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
-              -DBUILD_WITH_COMMON_SYSTEM=OFF \
+              -DBUILD_WITH_COMMON_SYSTEM=ON \
               -DBUILD_WITH_LOGGER_SYSTEM=OFF \
               -DBUILD_WITH_THREAD_SYSTEM=OFF \
               -DBUILD_WITH_CONTAINER_SYSTEM=OFF \
@@ -86,7 +128,7 @@ jobs:
       run: |
         cmake -B build -G Ninja \
           -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
-          -DBUILD_WITH_COMMON_SYSTEM=OFF \
+          -DBUILD_WITH_COMMON_SYSTEM=ON \
           -DBUILD_WITH_LOGGER_SYSTEM=OFF \
           -DBUILD_WITH_THREAD_SYSTEM=OFF \
           -DBUILD_WITH_CONTAINER_SYSTEM=OFF \
