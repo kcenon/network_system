@@ -40,8 +40,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <vector>
 
 #include "kcenon/network/core/messaging_client.h"
+
+#ifdef WITH_COMMON_SYSTEM
 #include "kcenon/common/resilience/circuit_breaker.h"
 #include "kcenon/common/resilience/circuit_state.h"
+#endif
+
 #include "kcenon/network/utils/result_types.h"
 
 namespace kcenon::network::utils
@@ -117,8 +121,11 @@ namespace kcenon::network::utils
 						 const std::string& host,
 						 unsigned short port,
 						 size_t max_retries = 3,
-						 std::chrono::milliseconds initial_backoff = std::chrono::seconds(1),
-						 common::resilience::circuit_breaker_config cb_config = {});
+						 std::chrono::milliseconds initial_backoff = std::chrono::seconds(1)
+#ifdef WITH_COMMON_SYSTEM
+						 , common::resilience::circuit_breaker_config cb_config = {}
+#endif
+						 );
 
 		/*!
 		 * \brief Destructor - disconnects client if still connected
@@ -176,11 +183,13 @@ namespace kcenon::network::utils
 		 */
 		[[nodiscard]] auto get_client() const -> std::shared_ptr<core::messaging_client>;
 
+#ifdef WITH_COMMON_SYSTEM
 		/*!
 		 * \brief Gets the current circuit breaker state
 		 * \return Current state (CLOSED, OPEN, or HALF_OPEN)
 		 */
 		[[nodiscard]] auto circuit_state() const -> common::resilience::circuit_state;
+#endif
 
 	private:
 		/*!
@@ -208,7 +217,9 @@ namespace kcenon::network::utils
 		std::function<void(size_t)> reconnect_callback_; /*!< Reconnection callback */
 		std::function<void()> disconnect_callback_;      /*!< Disconnection callback */
 
+#ifdef WITH_COMMON_SYSTEM
 		std::unique_ptr<common::resilience::circuit_breaker> circuit_breaker_; /*!< Circuit breaker instance */
+#endif
 	};
 
 } // namespace kcenon::network::utils
