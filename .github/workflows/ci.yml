@@ -70,9 +70,18 @@ jobs:
       if: runner.os != 'Windows'
       shell: bash
       run: |
-        # Build common_system (header-only, just need include path)
+        # Build common_system (Tier 0 - must be first)
         if [ -d "common_system" ]; then
-          echo "common_system found - header-only library"
+          echo "Building common_system..."
+          cd common_system
+          cmake -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DBUILD_TESTS=OFF \
+            -DBUILD_EXAMPLES=OFF \
+            -DBUILD_SAMPLES=OFF
+          cmake --build build
+          cmake --install build --prefix ${{ github.workspace }}/deps/install
+          cd ..
         fi
 
         # Build thread_system
@@ -81,6 +90,7 @@ jobs:
           cd thread_system
           cmake -B build -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_PREFIX_PATH=${{ github.workspace }}/deps/install \
             -DBUILD_TESTS=OFF \
             -DBUILD_EXAMPLES=OFF \
             -DBUILD_SAMPLES=OFF \
@@ -138,6 +148,20 @@ jobs:
       run: |
         New-Item -ItemType Directory -Force -Path deps/install | Out-Null
 
+        # Build common_system (Tier 0 - must be first)
+        if (Test-Path "common_system") {
+          Write-Host "Building common_system..."
+          Push-Location common_system
+          cmake -B build -G Ninja `
+            -DCMAKE_BUILD_TYPE=Debug `
+            -DBUILD_TESTS=OFF `
+            -DBUILD_EXAMPLES=OFF `
+            -DBUILD_SAMPLES=OFF
+          cmake --build build
+          cmake --install build --prefix ${{ github.workspace }}/deps/install
+          Pop-Location
+        }
+
         # Build thread_system
         # Note: Must use Debug build type to match network_system's Debug configuration
         # Windows MSVC requires matching RuntimeLibrary settings (MDd vs MD)
@@ -146,6 +170,7 @@ jobs:
           Push-Location thread_system
           cmake -B build -G Ninja `
             -DCMAKE_BUILD_TYPE=Debug `
+            -DCMAKE_PREFIX_PATH=${{ github.workspace }}/deps/install `
             -DBUILD_TESTS=OFF `
             -DBUILD_EXAMPLES=OFF `
             -DBUILD_SAMPLES=OFF `
