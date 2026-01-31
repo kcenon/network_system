@@ -55,12 +55,28 @@ jobs:
       - name: Build ecosystem dependencies
         shell: bash
         run: |
+          # Build common_system (Tier 0 - must be first)
+          if [ -d "common_system" ]; then
+            echo "Building common_system..."
+            cd common_system
+            cmake -B build -G Ninja \
+              -DCMAKE_BUILD_TYPE=Release \
+              -DBUILD_TESTS=OFF \
+              -DBUILD_EXAMPLES=OFF \
+              -DBUILD_SAMPLES=OFF
+            cmake --build build
+            cmake --install build --prefix ${{ github.workspace }}/deps/install
+            cd ..
+          fi
+
           # Build thread_system
           if [ -d "thread_system" ]; then
             echo "Building thread_system..."
             cd thread_system
             cmake -B build -G Ninja \
               -DCMAKE_BUILD_TYPE=Release \
+              -DCMAKE_PREFIX_PATH=${{ github.workspace }}/deps/install \
+              -DCOMMON_SYSTEM_INCLUDE_DIR=${{ github.workspace }}/deps/install/include \
               -DBUILD_TESTS=OFF \
               -DBUILD_EXAMPLES=OFF \
               -DBUILD_SAMPLES=OFF \
@@ -77,6 +93,7 @@ jobs:
             cmake -B build -G Ninja \
               -DCMAKE_BUILD_TYPE=Release \
               -DCMAKE_PREFIX_PATH=${{ github.workspace }}/deps/install \
+              -DCOMMON_SYSTEM_INCLUDE_DIR=${{ github.workspace }}/deps/install/include \
               -DBUILD_TESTS=OFF \
               -DBUILD_EXAMPLES=OFF \
               -DBUILD_SAMPLES=OFF \
@@ -93,6 +110,7 @@ jobs:
             cmake -B build -G Ninja \
               -DCMAKE_BUILD_TYPE=Release \
               -DCMAKE_PREFIX_PATH=${{ github.workspace }}/deps/install \
+              -DCOMMON_SYSTEM_INCLUDE_DIR=${{ github.workspace }}/deps/install/include \
               -DBUILD_TESTS=OFF \
               -DBUILD_EXAMPLES=OFF \
               -DBUILD_SAMPLES=OFF
@@ -273,12 +291,28 @@ jobs:
       - name: Build ecosystem dependencies
         shell: bash
         run: |
+          # Build common_system (Tier 0 - must be first)
+          if [ -d "common_system" ]; then
+            echo "Building common_system..."
+            cd common_system
+            cmake -B build -G Ninja \
+              -DCMAKE_BUILD_TYPE=Release \
+              -DBUILD_TESTS=OFF \
+              -DBUILD_EXAMPLES=OFF \
+              -DBUILD_SAMPLES=OFF
+            cmake --build build
+            cmake --install build --prefix ${{ github.workspace }}/deps/install
+            cd ..
+          fi
+
           # Build thread_system
           if [ -d "thread_system" ]; then
             echo "Building thread_system..."
             cd thread_system
             cmake -B build -G Ninja \
               -DCMAKE_BUILD_TYPE=Release \
+              -DCMAKE_PREFIX_PATH=${{ github.workspace }}/deps/install \
+              -DCOMMON_SYSTEM_INCLUDE_DIR=${{ github.workspace }}/deps/install/include \
               -DBUILD_TESTS=OFF \
               -DBUILD_EXAMPLES=OFF \
               -DBUILD_SAMPLES=OFF \
@@ -295,6 +329,7 @@ jobs:
             cmake -B build -G Ninja \
               -DCMAKE_BUILD_TYPE=Release \
               -DCMAKE_PREFIX_PATH=${{ github.workspace }}/deps/install \
+              -DCOMMON_SYSTEM_INCLUDE_DIR=${{ github.workspace }}/deps/install/include \
               -DBUILD_TESTS=OFF \
               -DBUILD_EXAMPLES=OFF \
               -DBUILD_SAMPLES=OFF \
@@ -311,6 +346,7 @@ jobs:
             cmake -B build -G Ninja \
               -DCMAKE_BUILD_TYPE=Release \
               -DCMAKE_PREFIX_PATH=${{ github.workspace }}/deps/install \
+              -DCOMMON_SYSTEM_INCLUDE_DIR=${{ github.workspace }}/deps/install/include \
               -DBUILD_TESTS=OFF \
               -DBUILD_EXAMPLES=OFF \
               -DBUILD_SAMPLES=OFF

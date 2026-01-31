@@ -432,7 +432,7 @@ function(find_common_system)
         endif()
     endforeach()
 
-    # Prioritize environment variable, then standard paths
+    # Prioritize environment variable, then CMAKE_PREFIX_PATH, then standard paths
     set(_common_search_paths)
 
     # 1. Check environment variable
@@ -445,23 +445,40 @@ function(find_common_system)
         list(APPEND _common_search_paths "${COMMON_SYSTEM_ROOT}/include")
     endif()
 
-    # 3. CI workspace path (actions/checkout@v4 with path: common_system)
+    # 3. CMAKE_PREFIX_PATH (set by CI via -DCMAKE_PREFIX_PATH)
+    # This is critical for CI builds where dependencies are installed to a custom location
+    if(CMAKE_PREFIX_PATH)
+        foreach(_prefix ${CMAKE_PREFIX_PATH})
+            list(APPEND _common_search_paths "${_prefix}/include")
+        endforeach()
+    endif()
+
+    # 4. CI workspace path (actions/checkout@v4 with path: common_system)
     list(APPEND _common_search_paths
         "${CMAKE_SOURCE_DIR}/common_system/include"
     )
 
-    # 4. Local development paths
+    # 5. Local development paths
     list(APPEND _common_search_paths
         "${CMAKE_CURRENT_SOURCE_DIR}/../common_system/include"
         "${CMAKE_SOURCE_DIR}/../common_system/include"
         "../common_system/include"
     )
 
+    # Try explicit paths first
     find_path(COMMON_SYSTEM_INCLUDE_DIR
         NAMES kcenon/common/patterns/result.h
         PATHS ${_common_search_paths}
         NO_DEFAULT_PATH
     )
+
+    # If not found in explicit paths, let CMake search standard locations
+    # This allows find_path to use CMAKE_PREFIX_PATH automatically
+    if(NOT COMMON_SYSTEM_INCLUDE_DIR)
+        find_path(COMMON_SYSTEM_INCLUDE_DIR
+            NAMES kcenon/common/patterns/result.h
+        )
+    endif()
 
     if(COMMON_SYSTEM_INCLUDE_DIR)
         message(STATUS "Found common_system at: ${COMMON_SYSTEM_INCLUDE_DIR}")

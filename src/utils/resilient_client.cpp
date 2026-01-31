@@ -44,12 +44,12 @@ namespace kcenon::network::utils
 									   unsigned short port,
 									   size_t max_retries,
 									   std::chrono::milliseconds initial_backoff,
-									   circuit_breaker::config cb_config)
+									   common::resilience::circuit_breaker_config cb_config)
 		: host_(host)
 		, port_(port)
 		, max_retries_(max_retries)
 		, initial_backoff_(initial_backoff)
-		, circuit_breaker_(std::make_unique<circuit_breaker>(cb_config))
+		, circuit_breaker_(std::make_unique<common::resilience::circuit_breaker>(cb_config))
 	{
 		client_ = std::make_shared<core::messaging_client>(client_id);
 		NETWORK_LOG_INFO("[resilient_client] Created with max_retries=" +
@@ -155,14 +155,14 @@ namespace kcenon::network::utils
 	auto resilient_client::send_with_retry(std::vector<uint8_t>&& data) -> VoidResult
 	{
 		// Check circuit breaker first
-		if (!circuit_breaker_->allow_call())
+		if (!circuit_breaker_->allow_request())
 		{
 			NETWORK_LOG_WARN("[resilient_client] Circuit breaker is open, failing fast");
 			return error_void(
 				kcenon::network::error_codes_ext::network_system::circuit_open,
 				"Circuit breaker is open",
 				"resilient_client::send_with_retry",
-				"Circuit state: " + circuit_breaker::state_to_string(circuit_breaker_->current_state())
+				"Circuit state: " + common::resilience::to_string(circuit_breaker_->get_state())
 			);
 		}
 
@@ -328,21 +328,9 @@ namespace kcenon::network::utils
 		return std::min(backoff, max_backoff);
 	}
 
-	auto resilient_client::circuit_state() const -> circuit_breaker::state
+	auto resilient_client::circuit_state() const -> common::resilience::circuit_state
 	{
-		return circuit_breaker_->current_state();
-	}
-
-	auto resilient_client::reset_circuit() -> void
-	{
-		circuit_breaker_->reset();
-		NETWORK_LOG_INFO("[resilient_client] Circuit breaker reset");
-	}
-
-	auto resilient_client::set_circuit_state_callback(
-		circuit_breaker::state_change_callback callback) -> void
-	{
-		circuit_breaker_->set_state_change_callback(std::move(callback));
+		return circuit_breaker_->get_state();
 	}
 
 } // namespace kcenon::network::utils

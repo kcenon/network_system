@@ -40,7 +40,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <vector>
 
 #include "kcenon/network/core/messaging_client.h"
-#include "kcenon/network/utils/circuit_breaker.h"
+#include "kcenon/common/resilience/circuit_breaker.h"
+#include "kcenon/common/resilience/circuit_state.h"
 #include "kcenon/network/utils/result_types.h"
 
 namespace kcenon::network::utils
@@ -75,9 +76,9 @@ namespace kcenon::network::utils
 	 *     "client_id", "localhost", 8080,
 	 *     3,  // max retries
 	 *     std::chrono::seconds(1),  // initial backoff
-	 *     circuit_breaker::config{
+	 *     common::resilience::circuit_breaker_config{
 	 *         .failure_threshold = 5,
-	 *         .open_duration = std::chrono::seconds(30)
+	 *         .timeout = std::chrono::seconds(30)
 	 *     }
 	 * );
 	 *
@@ -95,7 +96,7 @@ namespace kcenon::network::utils
 	 * auto send_result = client->send_with_retry(std::move(data));
 	 *
 	 * // Check circuit state
-	 * if (client->circuit_state() == circuit_breaker::state::open) {
+	 * if (client->circuit_state() == common::resilience::circuit_state::OPEN) {
 	 *     std::cerr << "Circuit is open, backend unavailable\n";
 	 * }
 	 * \endcode
@@ -117,7 +118,7 @@ namespace kcenon::network::utils
 						 unsigned short port,
 						 size_t max_retries = 3,
 						 std::chrono::milliseconds initial_backoff = std::chrono::seconds(1),
-						 circuit_breaker::config cb_config = {});
+						 common::resilience::circuit_breaker_config cb_config = {});
 
 		/*!
 		 * \brief Destructor - disconnects client if still connected
@@ -177,22 +178,9 @@ namespace kcenon::network::utils
 
 		/*!
 		 * \brief Gets the current circuit breaker state
-		 * \return Current state (closed, open, or half_open)
+		 * \return Current state (CLOSED, OPEN, or HALF_OPEN)
 		 */
-		[[nodiscard]] auto circuit_state() const -> circuit_breaker::state;
-
-		/*!
-		 * \brief Resets the circuit breaker to closed state
-		 *
-		 * Use this to manually reset the circuit after resolving issues.
-		 */
-		auto reset_circuit() -> void;
-
-		/*!
-		 * \brief Sets callback for circuit breaker state changes
-		 * \param callback Function called on state transitions
-		 */
-		auto set_circuit_state_callback(circuit_breaker::state_change_callback callback) -> void;
+		[[nodiscard]] auto circuit_state() const -> common::resilience::circuit_state;
 
 	private:
 		/*!
@@ -220,7 +208,7 @@ namespace kcenon::network::utils
 		std::function<void(size_t)> reconnect_callback_; /*!< Reconnection callback */
 		std::function<void()> disconnect_callback_;      /*!< Disconnection callback */
 
-		std::unique_ptr<circuit_breaker> circuit_breaker_; /*!< Circuit breaker instance */
+		std::unique_ptr<common::resilience::circuit_breaker> circuit_breaker_; /*!< Circuit breaker instance */
 	};
 
 } // namespace kcenon::network::utils
