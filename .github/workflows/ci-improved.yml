@@ -242,10 +242,6 @@ jobs:
           -DBUILD_INTEGRATION_TESTS=ON \
           -DBUILD_EXAMPLES=ON \
           -DBUILD_SAMPLES=OFF
-          -DBUILD_TESTS=ON `
-          -DBUILD_INTEGRATION_TESTS=ON `
-          -DBUILD_EXAMPLES=ON `
-          -DBUILD_SAMPLES=OFF
 
     - name: Build
       run: cmake --build build --config Debug --parallel
