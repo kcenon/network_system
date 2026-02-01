@@ -486,9 +486,11 @@ add_library(NetworkSystem
     src/utils/buffer_pool.cpp
     src/utils/compression_pipeline.cpp
 
-    # Basic integration layer - container_integration only
+    # Basic integration layer - container_integration and messaging_bridge
     # (Other integration sources are in network-integration-objects to avoid ODR violations)
+    # messaging_bridge.cpp is here because it depends on messaging_client/server
     src/integration/container_integration.cpp
+    src/integration/messaging_bridge.cpp
 
     # Tracing implementation (OpenTelemetry-compatible)
     src/tracing/trace_context.cpp
