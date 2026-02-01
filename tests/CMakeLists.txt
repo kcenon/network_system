@@ -6,6 +6,7 @@
 enable_testing()
 
 # Find test dependencies
+find_package(Threads REQUIRED)
 find_package(GTest QUIET)
 find_package(benchmark QUIET)
 
