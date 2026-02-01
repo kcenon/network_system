@@ -110,7 +110,7 @@ auto messaging_client::on_stopped() -> void {
 
 // Note: wait_for_stop() and is_running() are inherited from startable_base
 
-auto messaging_client::is_connected() const noexcept -> bool {
+auto messaging_client::is_connected() const -> bool {
   return is_connected_.load(std::memory_order_acquire);
 }
 
@@ -174,6 +174,49 @@ auto messaging_client::set_disconnected_callback(disconnected_callback_t callbac
 auto messaging_client::set_error_callback(error_callback_t callback) -> void {
   callbacks_.set<to_index(callback_index::error)>(std::move(callback));
 }
+
+// ===========================================================================
+// IProtocolClient Interface Implementation
+// ===========================================================================
+
+auto messaging_client::start(std::string_view host, uint16_t port) -> VoidResult {
+  return start_client(host, port);
+}
+
+auto messaging_client::stop() -> VoidResult {
+  return stop_client();
+}
+
+auto messaging_client::send(std::vector<uint8_t>&& data) -> VoidResult {
+  return send_packet(std::move(data));
+}
+
+auto messaging_client::set_observer(std::shared_ptr<interfaces::connection_observer> observer) -> void {
+  observer_ = observer;
+
+  // Bridge observer methods to existing callbacks
+  if (observer_) {
+    set_receive_callback([observer](const std::vector<uint8_t>& data) {
+      observer->on_receive(data);
+    });
+
+    set_connected_callback([observer]() {
+      observer->on_connected();
+    });
+
+    set_disconnected_callback([observer]() {
+      observer->on_disconnected();
+    });
+
+    set_error_callback([observer](std::error_code ec) {
+      observer->on_error(ec);
+    });
+  }
+}
+
+// ===========================================================================
+// Internal Callback Helpers
+// ===========================================================================
 
 auto messaging_client::set_connected(bool connected) -> void {
   is_connected_.store(connected, std::memory_order_release);

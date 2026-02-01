@@ -72,6 +72,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "kcenon/network/utils/startable_base.h"
 #include "kcenon/network/utils/callback_manager.h"
 #include "kcenon/network/utils/result_types.h"
+#include "kcenon/network/interfaces/i_protocol_client.h"
+#include "kcenon/network/interfaces/connection_observer.h"
 
 // Use nested namespace definition in C++17
 namespace kcenon::network::core
@@ -107,9 +109,31 @@ namespace kcenon::network::core
 	class messaging_client
 		: public std::enable_shared_from_this<messaging_client>
 		, public utils::startable_base<messaging_client>
+		, public interfaces::i_protocol_client
 	{
 		friend class utils::startable_base<messaging_client>;
+
 	public:
+		// =====================================================================
+		// INetworkComponent Interface Implementation (via IProtocolClient)
+		// =====================================================================
+
+		/*!
+		 * \brief Checks if the client is currently running.
+		 * \return true if running, false otherwise.
+		 */
+		[[nodiscard]] auto is_running() const -> bool override
+		{
+			return utils::startable_base<messaging_client>::is_running();
+		}
+
+		/*!
+		 * \brief Waits for the client to stop.
+		 */
+		auto wait_for_stop() -> void override
+		{
+			return utils::startable_base<messaging_client>::wait_for_stop();
+		}
 		//! \brief Callback type for received data
 		using receive_callback_t = std::function<void(const std::vector<uint8_t>&)>;
 		//! \brief Callback type for connection established
@@ -139,7 +163,44 @@ namespace kcenon::network::core
 		messaging_client& operator=(messaging_client&&) = delete;
 
 		// =====================================================================
-		// Lifecycle Management
+		// IProtocolClient Interface Implementation
+		// =====================================================================
+
+		/*!
+		 * \brief Starts the client and connects to the specified server (IProtocolClient interface).
+		 * \param host The server hostname or IP address.
+		 * \param port The server port number.
+		 * \return VoidResult indicating success or failure.
+		 */
+		[[nodiscard]] auto start(std::string_view host, uint16_t port) -> VoidResult override;
+
+		/*!
+		 * \brief Stops the client and closes the connection (IProtocolClient interface).
+		 * \return VoidResult indicating success or failure.
+		 */
+		[[nodiscard]] auto stop() -> VoidResult override;
+
+		/*!
+		 * \brief Sends data to the connected server (IProtocolClient interface).
+		 * \param data The data to send.
+		 * \return VoidResult indicating success or failure.
+		 */
+		[[nodiscard]] auto send(std::vector<uint8_t>&& data) -> VoidResult override;
+
+		/*!
+		 * \brief Checks if the client is connected to the server (IProtocolClient interface).
+		 * \return true if connected, false otherwise.
+		 */
+		[[nodiscard]] auto is_connected() const -> bool override;
+
+		/*!
+		 * \brief Sets the connection observer for unified event handling.
+		 * \param observer The observer instance (shared ownership).
+		 */
+		auto set_observer(std::shared_ptr<interfaces::connection_observer> observer) -> void override;
+
+		// =====================================================================
+		// Lifecycle Management (Legacy API)
 		// =====================================================================
 
 		/*!
@@ -161,12 +222,7 @@ namespace kcenon::network::core
 		[[nodiscard]] auto stop_client() -> VoidResult;
 
 		// Note: wait_for_stop() and is_running() are inherited from startable_base
-
-		/*!
-		 * \brief Checks if the client is connected to the server.
-		 * \return true if connected, false otherwise.
-		 */
-		[[nodiscard]] auto is_connected() const noexcept -> bool;
+		// Note: is_connected() is declared in IProtocolClient interface section
 
 		/*!
 		 * \brief Returns the client identifier.
@@ -188,32 +244,36 @@ namespace kcenon::network::core
 		[[nodiscard]] auto send_packet(std::vector<uint8_t>&& data) -> VoidResult;
 
 		// =====================================================================
-		// Callback Setters
+		// Callback Setters (Deprecated - IProtocolClient interface)
 		// =====================================================================
 
 		/*!
 		 * \brief Sets the callback for received data.
 		 * \param callback Function called when data is received.
+		 * \deprecated Use set_observer() with connection_observer instead.
 		 */
-		auto set_receive_callback(receive_callback_t callback) -> void;
+		auto set_receive_callback(receive_callback_t callback) -> void override;
 
 		/*!
 		 * \brief Sets the callback for connection established.
 		 * \param callback Function called when connection is established.
+		 * \deprecated Use set_observer() with connection_observer instead.
 		 */
-		auto set_connected_callback(connected_callback_t callback) -> void;
+		auto set_connected_callback(connected_callback_t callback) -> void override;
 
 		/*!
 		 * \brief Sets the callback for disconnection.
 		 * \param callback Function called when disconnected.
+		 * \deprecated Use set_observer() with connection_observer instead.
 		 */
-		auto set_disconnected_callback(disconnected_callback_t callback) -> void;
+		auto set_disconnected_callback(disconnected_callback_t callback) -> void override;
 
 		/*!
 		 * \brief Sets the callback for errors.
 		 * \param callback Function called when an error occurs.
+		 * \deprecated Use set_observer() with connection_observer instead.
 		 */
-		auto set_error_callback(error_callback_t callback) -> void;
+		auto set_error_callback(error_callback_t callback) -> void override;
 
 	private:
 		// =====================================================================
@@ -360,6 +420,9 @@ namespace kcenon::network::core
 		// Note: lifecycle_ and stop_initiated_ are managed by startable_base
 		callbacks_t callbacks_;              /*!< Callback manager. */
 		std::atomic<bool> is_connected_{false}; /*!< Connection state. */
+
+		//! \brief Connection observer for unified event handling (IProtocolClient interface)
+		std::shared_ptr<interfaces::connection_observer> observer_;
 
 		std::shared_ptr<asio::io_context>
 			io_context_; /*!< I/O context for async operations. */
