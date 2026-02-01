@@ -336,6 +336,7 @@ add_library(network-integration-objects OBJECT
     src/integration/io_context_thread_manager.cpp
     src/integration/monitoring_integration.cpp
     src/integration/thread_system_adapter.cpp
+    src/integration/thread_pool_bridge.cpp
     src/core/network_context.cpp
     src/session/messaging_session.cpp
     src/metrics/network_metrics.cpp
@@ -374,6 +375,9 @@ else()
         target_compile_definitions(network-integration-objects PUBLIC ASIO_STANDALONE)
     endif()
 endif()
+
+# common_system integration for network-integration-objects
+setup_common_system_integration(network-integration-objects)
 
 # Export the OBJECT library for network-tcp to use
 set(NETWORK_INTEGRATION_OBJECTS_TARGET network-integration-objects CACHE INTERNAL "Integration objects target")

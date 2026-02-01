@@ -215,7 +215,7 @@ public:
      * }
      * @endcode
      */
-    virtual Result<void> initialize(const BridgeConfig& config) = 0;
+    virtual VoidResult initialize(const BridgeConfig& config) = 0;
 
     /**
      * @brief Shutdown the bridge and release resources
@@ -240,7 +240,7 @@ public:
      * }
      * @endcode
      */
-    virtual Result<void> shutdown() = 0;
+    virtual VoidResult shutdown() = 0;
 
     /**
      * @brief Check if the bridge is initialized and ready for use
