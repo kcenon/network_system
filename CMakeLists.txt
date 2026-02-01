@@ -488,6 +488,7 @@ add_library(NetworkSystem
 
     # Facade layer - simplified protocol creation APIs (Issue #596)
     src/facade/tcp_facade.cpp
+    src/facade/udp_facade.cpp
 
     # Basic integration layer - container_integration and messaging_bridge
     # (Other integration sources are in network-integration-objects to avoid ODR violations)
