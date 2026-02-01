@@ -246,6 +246,21 @@ if(GTest_FOUND OR GTEST_FOUND)
     # Setup ASIO integration
     setup_asio_integration(network_thread_pool_bridge_test)
 
+    # Network system bridge tests
+    add_executable(network_system_bridge_test
+        unit/test_network_system_bridge.cpp
+    )
+
+    target_link_libraries(network_system_bridge_test PRIVATE
+        NetworkSystem
+        GTest::gtest
+        GTest::gtest_main
+        Threads::Threads
+    )
+
+    # Setup ASIO integration
+    setup_asio_integration(network_system_bridge_test)
+
     # Add system integration paths if available
     if(COMMON_SYSTEM_INCLUDE_DIR)
         target_include_directories(network_thread_pool_bridge_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
@@ -272,6 +287,33 @@ if(GTest_FOUND OR GTEST_FOUND)
         DISCOVERY_TIMEOUT 60
     )
     message(STATUS "Thread pool bridge tests enabled")
+
+    # Add system integration paths for network_system_bridge_test
+    if(COMMON_SYSTEM_INCLUDE_DIR)
+        target_include_directories(network_system_bridge_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(network_system_bridge_test PRIVATE WITH_COMMON_SYSTEM)
+    endif()
+
+    if(THREAD_SYSTEM_INCLUDE_DIR)
+        target_include_directories(network_system_bridge_test PRIVATE ${THREAD_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(network_system_bridge_test PRIVATE WITH_THREAD_SYSTEM)
+    endif()
+
+    if(LOGGER_SYSTEM_INCLUDE_DIR)
+        target_include_directories(network_system_bridge_test PRIVATE ${LOGGER_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(network_system_bridge_test PRIVATE WITH_LOGGER_SYSTEM)
+    endif()
+
+    set_target_properties(network_system_bridge_test PROPERTIES
+        CXX_STANDARD 20
+        CXX_STANDARD_REQUIRED ON
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+    )
+
+    network_gtest_discover_tests(network_system_bridge_test
+        DISCOVERY_TIMEOUT 60
+    )
+    message(STATUS "Network system bridge tests enabled")
 
     # TCP socket callback tests
     add_executable(network_tcp_socket_test

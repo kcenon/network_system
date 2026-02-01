@@ -337,6 +337,7 @@ add_library(network-integration-objects OBJECT
     src/integration/monitoring_integration.cpp
     src/integration/thread_system_adapter.cpp
     src/integration/thread_pool_bridge.cpp
+    src/integration/network_system_bridge.cpp
     src/core/network_context.cpp
     src/session/messaging_session.cpp
     src/metrics/network_metrics.cpp
