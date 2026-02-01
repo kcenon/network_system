@@ -2140,6 +2140,43 @@ if(benchmark_FOUND)
 endif()
 
 ##################################################
+# Facade Tests (Issue #596)
+##################################################
+
+# TCP facade tests
+add_executable(network_tcp_facade_test
+    test_tcp_facade.cpp
+)
+
+target_link_libraries(network_tcp_facade_test PRIVATE
+    NetworkSystem
+    GTest::gtest
+    GTest::gtest_main
+    Threads::Threads
+)
+
+# Setup ASIO integration
+setup_asio_integration(network_tcp_facade_test)
+
+# Add system integration paths if available
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_tcp_facade_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_tcp_facade_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+
+set_target_properties(network_tcp_facade_test PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+)
+
+network_gtest_discover_tests(network_tcp_facade_test
+    DISCOVERY_TIMEOUT 60
+)
+
+message(STATUS "TCP facade tests enabled")
+
+##################################################
 # Integration Tests
 ##################################################
 

@@ -486,6 +486,9 @@ add_library(NetworkSystem
     src/utils/buffer_pool.cpp
     src/utils/compression_pipeline.cpp
 
+    # Facade layer - simplified protocol creation APIs (Issue #596)
+    src/facade/tcp_facade.cpp
+
     # Basic integration layer - container_integration and messaging_bridge
     # (Other integration sources are in network-integration-objects to avoid ODR violations)
     # messaging_bridge.cpp is here because it depends on messaging_client/server
