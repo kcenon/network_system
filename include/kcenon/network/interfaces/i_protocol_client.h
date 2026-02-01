@@ -243,8 +243,11 @@ namespace kcenon::network::interfaces
 		 * ### Usage
 		 * \code
 		 * class my_observer : public connection_observer {
-		 *     void on_connected() override { /* handle connect */ }
-		 *     void on_receive(const std::vector<uint8_t>& data) override { /* handle data */ }
+		 *     void on_connected() override { // handle connect
+		 *     }
+		 *     void on_receive(const std::vector<uint8_t>& data) override {
+		 *         // handle data
+		 *     }
 		 *     // ... implement other methods
 		 * };
 		 *
