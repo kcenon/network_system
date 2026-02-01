@@ -32,19 +32,20 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
-#include <kcenon/network/config/feature_flags.h>
-
 /**
  * @file messaging_bridge.h
- * @brief Bridge for messaging_system compatibility
+ * @brief Bridge for messaging_system compatibility implementing INetworkBridge
  *
  * This bridge provides backward compatibility with the existing messaging_system
- * while using the new independent network_system implementation.
+ * while using the new independent network_system implementation. Updated to
+ * implement INetworkBridge for unified lifecycle management.
  *
  * @author kcenon
  * @date 2025-09-19
  */
 
+#include <kcenon/network/config/feature_flags.h>
+#include <kcenon/network/integration/bridge_interface.h>
 #include "kcenon/network/core/messaging_client.h"
 #include "kcenon/network/core/messaging_server.h"
 
@@ -73,12 +74,23 @@ namespace kcenon::network::integration {
 
 /**
  * @class messaging_bridge
- * @brief Bridge class for messaging_system compatibility
+ * @brief Bridge class for messaging_system compatibility implementing INetworkBridge
  *
  * This class provides a compatibility layer that allows existing messaging_system
  * code to work with the new independent network_system without modification.
+ *
+ * Lifecycle:
+ * 1. Create using constructor or factory methods
+ * 2. Call initialize() with configuration
+ * 3. Use create_server() and create_client() to create messaging components
+ * 4. Call shutdown() before destruction
+ *
+ * Thread Safety:
+ * - initialize() and shutdown() are not thread-safe (single-threaded usage)
+ * - get_metrics() is thread-safe for concurrent queries
+ * - create_server() and create_client() are thread-safe after initialization
  */
-class messaging_bridge {
+class messaging_bridge : public INetworkBridge {
 public:
     /**
      * @brief Default constructor
@@ -87,8 +99,73 @@ public:
 
     /**
      * @brief Destructor
+     *
+     * Automatically calls shutdown() if initialized
      */
-    ~messaging_bridge();
+    ~messaging_bridge() override;
+
+    // INetworkBridge interface implementation
+
+    /**
+     * @brief Initialize the bridge with configuration
+     * @param config Configuration parameters
+     * @return ok() on success, error_info on failure
+     *
+     * Configuration Properties:
+     * - "enabled": "true" or "false" (default: "true")
+     * - "server_id": Default server identifier (optional)
+     * - "client_id": Default client identifier (optional)
+     *
+     * Error Conditions:
+     * - Already initialized
+     * - Invalid configuration
+     *
+     * Example:
+     * @code
+     * BridgeConfig config;
+     * config.integration_name = "messaging_system";
+     * config.properties["enabled"] = "true";
+     *
+     * auto result = bridge->initialize(config);
+     * if (result.is_err()) {
+     *     std::cerr << "Init failed: " << result.error().message << std::endl;
+     * }
+     * @endcode
+     */
+    VoidResult initialize(const BridgeConfig& config) override;
+
+    /**
+     * @brief Shutdown the bridge
+     * @return ok() on success, error_info on failure
+     *
+     * Shuts down the bridge and releases resources.
+     * This method is idempotent - multiple calls are safe.
+     */
+    VoidResult shutdown() override;
+
+    /**
+     * @brief Check if the bridge is initialized
+     * @return true if initialized and ready, false otherwise
+     */
+    bool is_initialized() const override;
+
+    /**
+     * @brief Get current metrics
+     * @return Bridge metrics including messaging statistics
+     *
+     * Custom Metrics:
+     * - "messages_sent": Total messages sent
+     * - "messages_received": Total messages received
+     * - "bytes_sent": Total bytes sent
+     * - "bytes_received": Total bytes received
+     * - "connections_active": Number of active connections
+     * - "avg_latency_ms": Average message latency in milliseconds
+     *
+     * Thread Safety: Safe to call concurrently
+     */
+    BridgeMetrics get_metrics() const override;
+
+    // messaging_bridge-specific methods (maintained for backward compatibility)
 
     /**
      * @brief Create a messaging server with messaging_system compatible API
@@ -151,7 +228,8 @@ public:
     std::shared_ptr<thread_pool_interface> get_thread_pool_interface() const;
 
     /**
-     * @brief Performance metrics structure
+     * @brief Performance metrics structure (deprecated, use get_metrics() from INetworkBridge)
+     * @deprecated Use BridgeMetrics from INetworkBridge::get_metrics() instead
      */
     struct performance_metrics {
         uint64_t messages_sent = 0;
@@ -164,21 +242,16 @@ public:
     };
 
     /**
-     * @brief Get current performance metrics
+     * @brief Get current performance metrics (deprecated)
      * @return Current performance metrics
+     * @deprecated Use get_metrics() from INetworkBridge instead
      */
-    performance_metrics get_metrics() const;
+    performance_metrics get_performance_metrics() const;
 
     /**
      * @brief Reset performance metrics
      */
     void reset_metrics();
-
-    /**
-     * @brief Check if bridge is initialized
-     * @return true if initialized, false otherwise
-     */
-    bool is_initialized() const;
 
 private:
     class impl;
