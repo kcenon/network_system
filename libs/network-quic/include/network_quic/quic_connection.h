@@ -40,7 +40,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * including connection state, stream management, and protocol internals.
  */
 
-// Re-export the QUIC connection types from the main library
-#include "kcenon/network/protocols/quic/connection.h"
-#include "kcenon/network/protocols/quic/stream.h"
-#include "kcenon/network/protocols/quic/stream_manager.h"
+// Re-export the QUIC connection types from the main library internal headers
+// Note: These are internal implementation details exposed for advanced use cases
+#include "internal/protocols/quic/connection.h"
+#include "internal/protocols/quic/stream.h"
+#include "internal/protocols/quic/stream_manager.h"

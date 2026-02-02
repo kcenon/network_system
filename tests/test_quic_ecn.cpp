@@ -32,10 +32,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <gtest/gtest.h>
 
-#include "kcenon/network/protocols/quic/congestion_controller.h"
-#include "kcenon/network/protocols/quic/ecn_tracker.h"
-#include "kcenon/network/protocols/quic/loss_detector.h"
-#include "kcenon/network/protocols/quic/rtt_estimator.h"
+#include "internal/protocols/quic/congestion_controller.h"
+#include "internal/protocols/quic/ecn_tracker.h"
+#include "internal/protocols/quic/loss_detector.h"
+#include "internal/protocols/quic/rtt_estimator.h"
 
 #include <chrono>
 #include <thread>

@@ -32,7 +32,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
-#include "kcenon/network/protocols/quic/frame_types.h"
+#include "frame_types.h"
 
 #include <chrono>
 #include <cstdint>

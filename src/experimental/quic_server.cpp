@@ -37,7 +37,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "kcenon/network/integration/logger_integration.h"
 #include "kcenon/network/metrics/network_metrics.h"
-#include "kcenon/network/protocols/quic/packet.h"
+#include "internal/protocols/quic/packet.h"
 #include "kcenon/network/session/quic_session.h"
 #include "internal/quic_socket.h"
 

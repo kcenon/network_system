@@ -34,7 +34,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "kcenon/network/unified/i_listener.h"
 #include "kcenon/network/protocol/quic.h"
-#include "kcenon/network/protocols/quic/connection.h"
+#include "internal/protocols/quic/connection.h"
 
 #include <atomic>
 #include <condition_variable>

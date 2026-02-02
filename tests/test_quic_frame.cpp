@@ -32,8 +32,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <gtest/gtest.h>
 
-#include "kcenon/network/protocols/quic/frame.h"
-#include "kcenon/network/protocols/quic/frame_types.h"
+#include "internal/protocols/quic/frame.h"
+#include "internal/protocols/quic/frame_types.h"
 
 namespace kcenon::network::protocols::quic
 {
