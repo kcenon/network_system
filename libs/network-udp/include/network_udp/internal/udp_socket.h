@@ -41,7 +41,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <mutex>
 #include <atomic>
 
-#include "kcenon/network/internal/common_defs.h"
+#include "internal/utils/common_defs.h"
 
 namespace kcenon::network::internal
 {

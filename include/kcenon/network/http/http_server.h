@@ -33,9 +33,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 
 #include "kcenon/network/core/messaging_server.h"
-#include "kcenon/network/internal/http_types.h"
-#include "kcenon/network/internal/http_parser.h"
-#include "kcenon/network/internal/http_error.h"
+#include "internal/http/http_types.h"
+#include "internal/http/http_parser.h"
+#include "internal/http/http_error.h"
 #include "kcenon/network/utils/result_types.h"
 #include "kcenon/network/utils/compression_pipeline.h"
 #include <string>

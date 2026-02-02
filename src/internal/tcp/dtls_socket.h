@@ -42,8 +42,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <asio.hpp>
 
-#include "kcenon/network/internal/common_defs.h"
-#include "kcenon/network/internal/openssl_compat.h"
+#include "internal/utils/common_defs.h"
+#include "internal/utils/openssl_compat.h"
 
 namespace kcenon::network::internal
 {

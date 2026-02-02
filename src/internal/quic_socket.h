@@ -43,7 +43,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <map>
 #include <deque>
 
-#include "common_defs.h"
+#include "internal/utils/common_defs.h"
 #include "kcenon/network/protocols/quic/crypto.h"
 #include "kcenon/network/protocols/quic/frame.h"
 #include "kcenon/network/protocols/quic/packet.h"

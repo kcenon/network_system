@@ -43,7 +43,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <asio.hpp>
 
-#include "kcenon/network/internal/common_defs.h"
+#include "internal/utils/common_defs.h"
 #include "kcenon/network-core/interfaces/socket_observer.h"
 
 namespace kcenon::network::internal

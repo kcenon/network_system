@@ -30,7 +30,7 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *****************************************************************************/
 
-#include "kcenon/network/internal/http_parser.h"
+#include "internal/http/http_parser.h"
 #include "kcenon/network/integration/logger_integration.h"
 #include <sstream>
 #include <iomanip>
