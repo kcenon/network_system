@@ -32,7 +32,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "kcenon/network/core/secure_messaging_udp_server.h"
 #include "kcenon/network/core/network_context.h"
-#include "kcenon/network/internal/dtls_socket.h"
+#include "internal/tcp/dtls_socket.h"
 
 #include <string_view>
 

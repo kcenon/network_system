@@ -68,7 +68,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <asio/ssl.hpp>
 
 #include "kcenon/network/core/callback_indices.h"
-#include "kcenon/network/internal/secure_tcp_socket.h"
+#include "internal/tcp/secure_tcp_socket.h"
 #include "kcenon/network/integration/thread_integration.h"
 #include "kcenon/network/utils/lifecycle_manager.h"
 #include "kcenon/network/utils/callback_manager.h"

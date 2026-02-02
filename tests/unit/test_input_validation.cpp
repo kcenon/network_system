@@ -5,8 +5,8 @@
 // Unit tests for network input validation (TICKET-006)
 
 #include <gtest/gtest.h>
-#include <kcenon/network/internal/message_validator.h>
-#include <kcenon/network/internal/rate_limiter.h>
+#include <internal/utils/message_validator.h>
+#include <internal/utils/rate_limiter.h>
 
 #include <thread>
 #include <vector>

@@ -33,8 +33,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 
 #include "kcenon/network/core/messaging_client.h"
-#include "kcenon/network/internal/http_types.h"
-#include "kcenon/network/internal/http_parser.h"
+#include "internal/http/http_types.h"
+#include "internal/http/http_parser.h"
 #include "kcenon/network/utils/result_types.h"
 #include <string>
 #include <map>

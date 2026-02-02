@@ -32,7 +32,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "kcenon/network/core/messaging_udp_server.h"
 #include "kcenon/network/core/network_context.h"
-#include "kcenon/network/internal/udp_socket.h"
+#include "internal/udp/udp_socket.h"
 #include "kcenon/network/integration/logger_integration.h"
 
 namespace kcenon::network::core

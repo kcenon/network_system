@@ -32,7 +32,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
-#include "kcenon/network/internal/websocket_frame.h"
+#include "internal/websocket/websocket_frame.h"
 
 #include <cstdint>
 #include <functional>

@@ -45,7 +45,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <asio.hpp>
 
 #include "kcenon/network/interfaces/i_session.h"
-#include "kcenon/network/internal/tcp_socket.h"
+#include "internal/tcp/tcp_socket.h"
 
 // Use nested namespace definition in C++17
 namespace kcenon::network::session

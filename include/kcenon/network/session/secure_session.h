@@ -44,7 +44,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <asio.hpp>
 #include <asio/ssl.hpp>
 
-#include "kcenon/network/internal/secure_tcp_socket.h"
+#include "internal/tcp/secure_tcp_socket.h"
 
 namespace kcenon::network::session
 {

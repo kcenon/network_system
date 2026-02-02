@@ -5,7 +5,7 @@ Copyright (c) 2024, 🍀☀🌕🌥 🌊
 All rights reserved.
 *****************************************************************************/
 
-#include "kcenon/network/internal/dtls_socket.h"
+#include "internal/tcp/dtls_socket.h"
 #include "../helpers/dtls_test_helpers.h"
 #include <gtest/gtest.h>
 

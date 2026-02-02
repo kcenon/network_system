@@ -10,7 +10,7 @@ All rights reserved.
 #include "kcenon/network/core/http_server.h"
 #include "kcenon/network/core/messaging_client.h"
 #include "kcenon/network/core/messaging_server.h"
-#include "kcenon/network/internal/http_error.h"
+#include "internal/http/http_error.h"
 
 #include <chrono>
 #include <cstdlib>

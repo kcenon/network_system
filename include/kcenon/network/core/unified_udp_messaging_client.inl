@@ -33,11 +33,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 
 #include "kcenon/network/core/network_context.h"
-#include "kcenon/network/internal/udp_socket.h"
+#include "internal/udp/udp_socket.h"
 #include "kcenon/network/integration/logger_integration.h"
 
 #ifdef BUILD_TLS_SUPPORT
-#include "kcenon/network/internal/dtls_socket.h"
+#include "internal/tcp/dtls_socket.h"
 #include <chrono>
 #include <condition_variable>
 #endif

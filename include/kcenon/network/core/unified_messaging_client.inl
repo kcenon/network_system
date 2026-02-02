@@ -32,11 +32,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
-#include "kcenon/network/internal/tcp_socket.h"
+#include "internal/tcp/tcp_socket.h"
 #include "kcenon/network/integration/io_context_thread_manager.h"
 
 #ifdef BUILD_TLS_SUPPORT
-#include "kcenon/network/internal/secure_tcp_socket.h"
+#include "internal/tcp/secure_tcp_socket.h"
 #endif
 
 #include <chrono>

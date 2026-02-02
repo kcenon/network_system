@@ -55,8 +55,8 @@
 
 #include <gtest/gtest.h>
 
-#include "kcenon/network/internal/tcp_socket.h"
-#include "kcenon/network/internal/websocket_socket.h"
+#include "internal/tcp/tcp_socket.h"
+#include "internal/websocket/websocket_socket.h"
 
 using namespace kcenon::network::internal;
 using namespace std::chrono_literals;

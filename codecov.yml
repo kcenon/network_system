@@ -34,3 +34,4 @@ ignore:
   - "build/**/*"
   - "**/test_*.cpp"
   - "**/*_test.cpp"
+  - "src/internal/**/*"  # Internal implementation headers - not part of public API

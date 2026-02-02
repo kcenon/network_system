@@ -5,7 +5,7 @@ Copyright (c) 2024, 🍀☀🌕🌥 🌊
 All rights reserved.
 *****************************************************************************/
 
-#include "kcenon/network/internal/tcp_socket.h"
+#include "internal/tcp/tcp_socket.h"
 #include <gtest/gtest.h>
 
 #include <atomic>

@@ -6,7 +6,7 @@ All rights reserved.
 *****************************************************************************/
 
 #include <gtest/gtest.h>
-#include <kcenon/network/internal/common_defs.h>
+#include <internal/utils/common_defs.h>
 
 using namespace kcenon::network::internal;
 

@@ -35,7 +35,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // Wrapper header that includes the main project's websocket_frame.h
 // This allows network-websocket to be used both standalone and integrated
 
-#include "kcenon/network/internal/websocket_frame.h"
+#include "internal/websocket/websocket_frame.h"
 
 namespace network_websocket
 {

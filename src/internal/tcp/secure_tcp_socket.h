@@ -42,23 +42,24 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <vector>
 
 #include <asio.hpp>
+#include <asio/ssl.hpp>
 
-#include "kcenon/network/internal/common_defs.h"
-#include "kcenon/network-core/interfaces/socket_observer.h"
+#include "internal/utils/common_defs.h"
 
 namespace kcenon::network::internal
 {
 	/*!
-	 * \class tcp_socket
-	 * \brief A lightweight wrapper around \c asio::ip::tcp::socket,
-	 *        enabling asynchronous read and write operations.
+	 * \class secure_tcp_socket
+	 * \brief A lightweight wrapper around \c asio::ssl::stream<asio::ip::tcp::socket>,
+	 *        enabling asynchronous TLS/SSL encrypted read and write operations.
 	 *
 	 * ### Key Features
-	 * - Maintains a \c socket_ (from ASIO) for TCP communication.
-	 * - Exposes \c set_receive_callback() to handle inbound data
+	 * - Maintains a \c ssl_stream_ (from ASIO SSL) for secure TCP communication.
+	 * - Performs SSL handshake before data transmission.
+	 * - Exposes \c set_receive_callback() to handle inbound encrypted data
 	 *   and \c set_error_callback() for error handling.
 	 * - \c start_read() begins an ongoing loop of \c async_read_some().
-	 * - \c async_send() performs an \c async_write of a given data buffer.
+	 * - \c async_send() performs an \c async_write of a given data buffer with encryption.
 	 *
 	 * ### Thread Safety
 	 * - All public methods are thread-safe. Callback registration is protected
@@ -68,82 +69,59 @@ namespace kcenon::network::internal
 	 * - The provided callbacks will be invoked on an ASIO worker thread;
 	 *   ensure that your callback logic is thread-safe if it shares data.
 	 */
-	class tcp_socket : public std::enable_shared_from_this<tcp_socket>
+	class secure_tcp_socket : public std::enable_shared_from_this<secure_tcp_socket>
 	{
 	public:
-		/*!
-		 * \brief Callback type for backpressure notifications.
-		 * \param apply_backpressure True when backpressure should be applied
-		 *        (high water mark reached), false when it can be released
-		 *        (low water mark reached).
-		 */
-		using backpressure_callback = std::function<void(bool apply_backpressure)>;
+		using ssl_socket = asio::ssl::stream<asio::ip::tcp::socket>;
 
 		/*!
-		 * \brief Constructs a \c tcp_socket by taking ownership of a moved \p
-		 * socket.
+		 * \brief Constructs a \c secure_tcp_socket by taking ownership of a moved \p
+		 * socket and SSL context.
 		 * \param socket An \c asio::ip::tcp::socket that must be open/connected
-		 * or at least valid.
+		 *               or at least valid.
+		 * \param ssl_context SSL context for encryption settings
 		 *
-		 * After construction, you can immediately call \c start_read() to begin
-		 * receiving data. For sending, call \c async_send().
+		 * After construction, you must call \c async_handshake() before using
+		 * the socket for data transmission.
 		 */
-		tcp_socket(asio::ip::tcp::socket socket);
-
-		/*!
-		 * \brief Constructs a \c tcp_socket with custom configuration.
-		 * \param socket An \c asio::ip::tcp::socket that must be open/connected.
-		 * \param config Socket configuration including backpressure settings.
-		 */
-		tcp_socket(asio::ip::tcp::socket socket, const socket_config& config);
+		secure_tcp_socket(asio::ip::tcp::socket socket,
+						  asio::ssl::context& ssl_context);
 
 		/*!
 		 * \brief Default destructor (no special cleanup needed).
 		 */
-		~tcp_socket() = default;
+		~secure_tcp_socket() = default;
 
 		/*!
-		 * \brief Attaches an observer to receive socket events.
-		 * \param observer Shared pointer to socket_observer implementation.
+		 * \brief Performs asynchronous SSL handshake.
+		 * \param type Handshake type (client or server)
+		 * \param handler Completion handler with signature void(std::error_code)
 		 *
-		 * Multiple observers can be attached to the same socket. All attached
-		 * observers will be notified of socket events.
-		 *
-		 * \see socket_observer
-		 * \see detach_observer()
+		 * Must be called before start_read() or async_send().
 		 */
-		auto attach_observer(std::shared_ptr<network_core::interfaces::socket_observer> observer)
-			-> void;
-
-		/*!
-		 * \brief Detaches a previously attached observer.
-		 * \param observer The observer to detach.
-		 *
-		 * If the observer was not attached, this method has no effect.
-		 */
-		auto detach_observer(std::shared_ptr<network_core::interfaces::socket_observer> observer)
-			-> void;
+		auto async_handshake(
+			asio::ssl::stream_base::handshake_type type,
+			std::function<void(std::error_code)> handler) -> void;
 
 		/*!
 		 * \brief Sets a callback to receive inbound data chunks.
 		 * \param callback A function with signature \c void(const
 		 * std::vector<uint8_t>&), called whenever a chunk of data is
-		 * successfully read.
+		 * successfully read and decrypted.
 		 *
 		 * If no callback is set, received data is effectively discarded.
 		 *
-		 * \deprecated Use attach_observer() with socket_observer instead.
 		 * \note This is the legacy callback API. For better performance,
 		 * consider using set_receive_callback_view() instead.
 		 */
-		[[deprecated("Use attach_observer() with socket_observer instead")]]
 		auto set_receive_callback(
 			std::function<void(const std::vector<uint8_t>&)> callback) -> void;
 
 		/*!
 		 * \brief Sets a zero-copy callback to receive inbound data as a view.
 		 * \param callback A function with signature \c void(std::span<const
-		 * uint8_t>), called whenever a chunk of data is successfully read.
+		 * uint8_t>), called whenever a chunk of data is successfully read
+		 * and decrypted.
 		 *
 		 * ### Zero-Copy Performance
 		 * Unlike set_receive_callback(), this callback receives data as a
@@ -170,10 +148,7 @@ namespace kcenon::network::internal
 		 *     // my_buffer.insert(my_buffer.end(), data.begin(), data.end());
 		 * });
 		 * \endcode
-		 *
-		 * \deprecated Use attach_observer() with socket_observer instead.
 		 */
-		[[deprecated("Use attach_observer() with socket_observer instead")]]
 		auto set_receive_callback_view(
 			std::function<void(std::span<const uint8_t>)> callback) -> void;
 
@@ -185,10 +160,7 @@ namespace kcenon::network::internal
 		 *
 		 * If no callback is set, errors are not explicitly handled here (beyond
 		 * stopping reads).
-		 *
-		 * \deprecated Use attach_observer() with socket_observer instead.
 		 */
-		[[deprecated("Use attach_observer() with socket_observer instead")]]
 		auto set_error_callback(std::function<void(std::error_code)> callback)
 			-> void;
 
@@ -202,8 +174,8 @@ namespace kcenon::network::internal
 		auto start_read() -> void;
 
 		/*!
-		 * \brief Initiates an asynchronous write of the given \p data buffer.
-		 * \param data The buffer to send over TCP (moved for efficiency).
+		 * \brief Initiates an asynchronous write of the given \p data buffer with encryption.
+		 * \param data The buffer to send over TLS (moved for efficiency).
 		 * \param handler A completion handler with signature \c
 		 * void(std::error_code, std::size_t) that is invoked upon success or
 		 * failure.
@@ -212,97 +184,27 @@ namespace kcenon::network::internal
 		 * - \c ec : the \c std::error_code from the write operation,
 		 * - \c bytes_transferred : how many bytes were actually written.
 		 *
-		 * ### Example
-		 * \code
-		 * auto sock = std::make_shared<network::tcp_socket>(...);
-		 * std::vector<uint8_t> buf = {0x01, 0x02, 0x03};
-		 * sock->async_send(std::move(buf), [](std::error_code ec, std::size_t len) {
-		 *     if(ec) {
-		 *         // handle error
-		 *     }
-		 *     else {
-		 *         // handle success
-		 *     }
-		 * });
-		 * \endcode
-		 *
-		 * \note Data is moved (not copied) to avoid memory allocation.
+		 * \note Data is moved (not copied) to avoid memory allocation overhead.
 		 * \note The original vector will be empty after this call.
 		 */
-        auto async_send(
-            std::vector<uint8_t>&& data,
-            std::function<void(std::error_code, std::size_t)> handler) -> void;
-
-		/*!
-		 * \brief Sets a callback for backpressure notifications.
-		 * \param callback Function invoked when backpressure state changes.
-		 *
-		 * The callback receives `true` when pending bytes exceed high_water_mark
-		 * (apply backpressure), and `false` when they drop below low_water_mark
-		 * (release backpressure).
-		 *
-		 * \deprecated Use attach_observer() with socket_observer instead.
-		 */
-		[[deprecated("Use attach_observer() with socket_observer instead")]]
-		auto set_backpressure_callback(backpressure_callback callback) -> void;
-
-		/*!
-		 * \brief Attempts to send data without blocking.
-		 * \param data The buffer to send (moved for efficiency).
-		 * \param handler Completion handler for async operation.
-		 * \return true if send was initiated, false if backpressure is active.
-		 *
-		 * Unlike async_send(), this method checks backpressure limits before
-		 * initiating the send. Returns false immediately if:
-		 * - max_pending_bytes is set and would be exceeded
-		 * - Backpressure is currently active
-		 *
-		 * ### Example
-		 * \code
-		 * if (!sock->try_send(std::move(data), handler)) {
-		 *     // Queue data for later or drop it
-		 * }
-		 * \endcode
-		 */
-		[[nodiscard]] auto try_send(
+		auto async_send(
 			std::vector<uint8_t>&& data,
-			std::function<void(std::error_code, std::size_t)> handler) -> bool;
+			std::function<void(std::error_code, std::size_t)> handler) -> void;
 
 		/*!
-		 * \brief Returns current pending bytes count.
-		 * \return Number of bytes currently pending in send buffer.
+		 * \brief Provides direct access to the underlying SSL stream.
+		 * \return A reference to the wrapped \c asio::ssl::stream.
 		 */
-		[[nodiscard]] auto pending_bytes() const -> std::size_t;
+		auto stream() -> ssl_socket& { return ssl_stream_; }
 
 		/*!
-		 * \brief Checks if backpressure is currently active.
-		 * \return true if pending bytes exceed high_water_mark.
+		 * \brief Provides access to the underlying TCP socket.
+		 * \return A reference to the lowest layer socket.
 		 */
-		[[nodiscard]] auto is_backpressure_active() const -> bool;
-
-		/*!
-		 * \brief Returns socket metrics for monitoring.
-		 * \return Const reference to socket_metrics struct.
-		 */
-		[[nodiscard]] auto metrics() const -> const socket_metrics&;
-
-		/*!
-		 * \brief Resets socket metrics to zero.
-		 */
-		auto reset_metrics() -> void;
-
-		/*!
-		 * \brief Returns the current socket configuration.
-		 * \return Const reference to socket_config struct.
-		 */
-		[[nodiscard]] auto config() const -> const socket_config&;
-
-		/*!
-		 * \brief Provides direct access to the underlying \c
-		 * asio::ip::tcp::socket in case advanced operations are needed.
-		 * \return A reference to the wrapped \c asio::ip::tcp::socket.
-		 */
-		auto socket() -> asio::ip::tcp::socket& { return socket_; }
+		auto socket() -> ssl_socket::lowest_layer_type&
+		{
+			return ssl_stream_.lowest_layer();
+		}
 
 		/*!
 		 * \brief Stops the read loop to prevent further async operations
@@ -340,7 +242,7 @@ namespace kcenon::network::internal
 		using receive_callback_view_t = std::function<void(std::span<const uint8_t>)>;
 		using error_callback_t = std::function<void(std::error_code)>;
 
-		asio::ip::tcp::socket socket_; /*!< The underlying ASIO TCP socket. */
+		ssl_socket ssl_stream_; /*!< The underlying ASIO SSL stream. */
 
 		std::array<uint8_t, 4096>
 			read_buffer_; /*!< Buffer for receiving data in \c do_read(). */
@@ -355,37 +257,7 @@ namespace kcenon::network::internal
 
 		std::mutex callback_mutex_; /*!< Protects callback registration only. */
 
-		/*! \brief Backpressure configuration */
-		socket_config config_;
-
-		/*! \brief Socket runtime metrics */
-		mutable socket_metrics metrics_;
-
-		/*!
-		 * \brief List of socket observers (using weak_ptr for automatic cleanup).
-		 * Protected by callback_mutex_.
-		 */
-		std::vector<std::weak_ptr<network_core::interfaces::socket_observer>> observers_{};
-
 		std::atomic<bool> is_reading_{false}; /*!< Flag to prevent read after stop. */
 		std::atomic<bool> is_closed_{false};  /*!< Flag to indicate socket is closed. */
-
-		/*! \brief Current pending bytes in send buffer */
-		std::atomic<std::size_t> pending_bytes_{0};
-
-		/*! \brief Backpressure state flag */
-		std::atomic<bool> backpressure_active_{false};
-
-		/*! \brief Backpressure notification callback */
-		std::shared_ptr<backpressure_callback> backpressure_callback_;
-
-		/*! \brief Helper to notify all observers of receive events */
-		auto notify_observers_receive(std::span<const uint8_t> data) -> void;
-
-		/*! \brief Helper to notify all observers of error events */
-		auto notify_observers_error(std::error_code ec) -> void;
-
-		/*! \brief Helper to notify all observers of backpressure events */
-		auto notify_observers_backpressure(bool apply) -> void;
 	};
 } // namespace kcenon::network::internal
