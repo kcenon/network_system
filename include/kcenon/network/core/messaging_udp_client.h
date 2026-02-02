@@ -32,6 +32,15 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
+// Deprecation warning for v2.0 migration
+#ifndef NETWORK_SYSTEM_SUPPRESS_DEPRECATION_WARNINGS
+#if defined(__GNUC__) || defined(__clang__)
+#warning "messaging_udp_client.h is deprecated and will move to internal in v2.0. Use udp_facade.h instead. See docs/refactoring/MIGRATION_GUIDE_V2.md"
+#elif defined(_MSC_VER)
+#pragma message("Warning: messaging_udp_client.h is deprecated and will move to internal in v2.0. Use udp_facade.h instead. See docs/refactoring/MIGRATION_GUIDE_V2.md")
+#endif
+#endif
+
 /**
  * @file messaging_udp_client.h
  * @brief Legacy UDP client class.
