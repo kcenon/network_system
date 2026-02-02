@@ -759,6 +759,11 @@ if(TARGET network-tcp)
     target_link_libraries(NetworkSystem PUBLIC network-tcp)
 endif()
 
+# Link to network-udp for UDP protocol support (Issue #618)
+if(TARGET network-udp)
+    target_link_libraries(NetworkSystem PUBLIC network-udp)
+endif()
+
 # Note: Integration objects are provided by network-tcp (ODR fix - Issue #555)
 # NetworkSystem gets these symbols through linking with network-tcp
 

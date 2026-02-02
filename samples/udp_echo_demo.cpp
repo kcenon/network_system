@@ -41,8 +41,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 4. Graceful shutdown
  */
 
-#include "kcenon/network/core/messaging_udp_server.h"
-#include "kcenon/network/core/messaging_udp_client.h"
+#include <kcenon/network/facade/udp_facade.h>
 
 #include <iostream>
 #include <thread>
@@ -50,7 +49,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <string>
 #include <atomic>
 
-using namespace kcenon::network::core;
+using namespace kcenon::network;
 
 // Shared flag for graceful shutdown
 std::atomic<bool> should_stop{false};
@@ -64,12 +63,13 @@ void run_server()
 {
     std::cout << "[Server] Starting UDP echo server...\n";
 
-    auto server = std::make_shared<messaging_udp_server>("EchoServer");
+    facade::udp_facade udp;
+    auto server = udp.create_server({.port = 5555, .server_id = "EchoServer"});
 
     // Set up receive callback to echo messages back (using interface callback)
     server->set_receive_callback(
         [server](const std::vector<uint8_t>& data,
-                 const kcenon::network::interfaces::i_udp_server::endpoint_info& sender)
+                 const interfaces::i_udp_server::endpoint_info& sender)
         {
             std::string message(data.begin(), data.end());
             std::cout << "[Server] Received: \"" << message << "\" from "
@@ -107,14 +107,6 @@ void run_server()
             std::cerr << "[Server] Error: " << ec.message() << "\n";
         });
 
-    // Start server on port 5555
-    auto result = server->start_server(5555);
-    if (result.is_err())
-    {
-        std::cerr << "[Server] Failed to start: " << result.error().message << "\n";
-        return;
-    }
-
     std::cout << "[Server] Running on port 5555. Press Ctrl+C to stop.\n";
 
     // Wait until signaled to stop
@@ -124,7 +116,6 @@ void run_server()
     }
 
     std::cout << "[Server] Stopping...\n";
-    server->stop_server();
     std::cout << "[Server] Stopped.\n";
 }
 
@@ -140,12 +131,13 @@ void run_client()
 
     std::cout << "[Client] Starting UDP client...\n";
 
-    auto client = std::make_shared<messaging_udp_client>("TestClient");
+    facade::udp_facade udp;
+    auto client = udp.create_client({.host = "localhost", .port = 5555, .client_id = "TestClient"});
 
     // Set up receive callback to handle echo responses (using interface callback)
     client->set_receive_callback(
         [](const std::vector<uint8_t>& data,
-           const kcenon::network::interfaces::i_udp_client::endpoint_info& sender)
+           const interfaces::i_udp_client::endpoint_info& sender)
         {
             std::string message(data.begin(), data.end());
             std::cout << "[Client] Received response: \"" << message << "\"\n";
@@ -157,14 +149,6 @@ void run_client()
         {
             std::cerr << "[Client] Error: " << ec.message() << "\n";
         });
-
-    // Start client targeting localhost:5555
-    auto result = client->start_client("localhost", 5555);
-    if (result.is_err())
-    {
-        std::cerr << "[Client] Failed to start: " << result.error().message << "\n";
-        return;
-    }
 
     std::cout << "[Client] Connected to localhost:5555\n";
 
@@ -210,7 +194,6 @@ void run_client()
     std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
     std::cout << "[Client] Stopping...\n";
-    client->stop_client();
     std::cout << "[Client] Stopped.\n";
 
     // Signal server to stop
