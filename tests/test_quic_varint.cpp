@@ -32,7 +32,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <gtest/gtest.h>
 
-#include "kcenon/network/protocols/quic/varint.h"
+#include "internal/protocols/quic/varint.h"
 
 namespace kcenon::network::protocols::quic
 {

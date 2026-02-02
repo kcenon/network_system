@@ -30,8 +30,8 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *****************************************************************************/
 
-#include "kcenon/network/protocols/quic/crypto.h"
-#include "kcenon/network/protocols/quic/packet.h"
+#include "internal/protocols/quic/crypto.h"
+#include "internal/protocols/quic/packet.h"
 #include "internal/utils/openssl_compat.h"
 
 #include <openssl/evp.h>

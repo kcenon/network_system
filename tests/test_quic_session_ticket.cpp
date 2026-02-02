@@ -35,7 +35,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <chrono>
 #include <thread>
 
-#include "kcenon/network/protocols/quic/session_ticket_store.h"
+#include "internal/protocols/quic/session_ticket_store.h"
 
 using namespace kcenon::network::protocols::quic;
 using namespace std::chrono_literals;

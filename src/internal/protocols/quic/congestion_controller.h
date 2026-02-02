@@ -32,8 +32,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
-#include "kcenon/network/protocols/quic/loss_detector.h"
-#include "kcenon/network/protocols/quic/rtt_estimator.h"
+#include "loss_detector.h"
+#include "rtt_estimator.h"
 
 #include <chrono>
 #include <cstddef>

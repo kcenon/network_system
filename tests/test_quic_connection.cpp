@@ -32,9 +32,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <gtest/gtest.h>
 
-#include "kcenon/network/protocols/quic/connection.h"
-#include "kcenon/network/protocols/quic/connection_id_manager.h"
-#include "kcenon/network/protocols/quic/transport_params.h"
+#include "internal/protocols/quic/connection.h"
+#include "internal/protocols/quic/connection_id_manager.h"
+#include "internal/protocols/quic/transport_params.h"
 
 #include <chrono>
 #include <thread>

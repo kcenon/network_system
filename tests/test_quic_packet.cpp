@@ -33,7 +33,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <gtest/gtest.h>
 
 #include "kcenon/network/protocols/quic/connection_id.h"
-#include "kcenon/network/protocols/quic/packet.h"
+#include "internal/protocols/quic/packet.h"
 
 using namespace kcenon::network::protocols::quic;
 

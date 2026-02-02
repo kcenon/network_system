@@ -32,9 +32,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <gtest/gtest.h>
 
-#include "kcenon/network/protocols/quic/stream.h"
-#include "kcenon/network/protocols/quic/stream_manager.h"
-#include "kcenon/network/protocols/quic/flow_control.h"
+#include "internal/protocols/quic/stream.h"
+#include "internal/protocols/quic/stream_manager.h"
+#include "internal/protocols/quic/flow_control.h"
 
 #include <vector>
 #include <array>
