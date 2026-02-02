@@ -51,8 +51,8 @@ NETWORK_REQUIRE_EXPERIMENTAL
 
 #include <asio.hpp>
 
-#include "kcenon/network/core/callback_indices.h"
-#include "kcenon/network/core/network_context.h"
+#include "internal/core/callback_indices.h"
+#include "internal/core/network_context.h"
 #include "kcenon/network/interfaces/i_quic_client.h"
 #include "kcenon/network/integration/thread_integration.h"
 #include "kcenon/network/utils/callback_manager.h"

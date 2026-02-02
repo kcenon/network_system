@@ -30,7 +30,7 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *****************************************************************************/
 
-#include "kcenon/network/core/connection_pool.h"
+#include "internal/core/connection_pool.h"
 #include "kcenon/network/integration/logger_integration.h"
 
 namespace kcenon::network::core
