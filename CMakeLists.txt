@@ -491,6 +491,7 @@ add_library(NetworkSystem
     src/facade/udp_facade.cpp
     src/facade/http_facade.cpp
     src/facade/websocket_facade.cpp
+    src/facade/quic_facade.cpp
 
     # Basic integration layer - container_integration and messaging_bridge
     # (Other integration sources are in network-integration-objects to avoid ODR violations)
