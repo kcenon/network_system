@@ -37,8 +37,8 @@
  * - Long-running stability
  */
 
-#include <kcenon/network/core/messaging_server.h>
-#include <kcenon/network/core/messaging_client.h>
+#include <kcenon/network/facade/tcp_facade.h>
+#include <kcenon/network/interfaces/i_session.h>
 #include <iostream>
 #include <iomanip>
 #include <vector>
@@ -47,6 +47,8 @@
 #include <chrono>
 #include <string>
 #include <cstring>
+#include <map>
+#include <mutex>
 
 #if defined(__APPLE__)
 #include <mach/mach.h>
@@ -56,7 +58,7 @@
 #include <unistd.h>
 #endif
 
-using namespace kcenon::network::core;
+using namespace kcenon::network;
 
 /**
  * @brief Get current RSS (Resident Set Size) in bytes
@@ -126,8 +128,13 @@ void profile_connections(int num_connections) {
     size_t baseline_rss = get_current_rss();
     print_memory_stats("Before server start");
 
-    auto server = std::make_shared<messaging_server>("profile-server");
-    auto start_result = server->start_server(5555);
+    facade::tcp_facade tcp;
+    auto server = tcp.create_server({
+        .port = 5555,
+        .server_id = "profile-server"
+    });
+
+    auto start_result = server->start(5555);
 
     if (start_result.is_err()) {
         std::cerr << "Failed to start server: " << start_result.error().message << std::endl;
@@ -137,14 +144,16 @@ void profile_connections(int num_connections) {
     print_memory_stats("After server start");
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-    std::vector<std::shared_ptr<messaging_client>> clients;
+    std::vector<std::shared_ptr<interfaces::i_protocol_client>> clients;
     clients.reserve(static_cast<size_t>(num_connections));
 
     size_t before_clients_rss = get_current_rss();
 
     for (int i = 0; i < num_connections; ++i) {
-        auto client = std::make_shared<messaging_client>("client-" + std::to_string(i));
-        auto result = client->start_client("localhost", 5555);
+        auto client = tcp.create_client({
+            .client_id = "client-" + std::to_string(i)
+        });
+        auto result = client->start("localhost", 5555);
 
         if (result.is_ok()) {
             clients.push_back(std::move(client));
@@ -171,14 +180,14 @@ void profile_connections(int num_connections) {
     // Cleanup
     std::cout << "\n--- Cleanup ---\n";
     for (auto& client : clients) {
-        client->stop_client();
+        (void)client->stop();
     }
     clients.clear();
 
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
     print_memory_stats("After cleanup");
 
-    server->stop_server();
+    (void)server->stop();
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
     print_memory_stats("After server stop");
 
@@ -199,8 +208,13 @@ void profile_message_throughput(int num_messages) {
     size_t baseline_rss = get_current_rss();
     print_memory_stats("Before start");
 
-    auto server = std::make_shared<messaging_server>("profile-server");
-    auto server_result = server->start_server(5556);
+    facade::tcp_facade tcp;
+    auto server = tcp.create_server({
+        .port = 5556,
+        .server_id = "profile-server"
+    });
+
+    auto server_result = server->start(5556);
 
     if (server_result.is_err()) {
         std::cerr << "Failed to start server\n";
@@ -209,12 +223,14 @@ void profile_message_throughput(int num_messages) {
 
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-    auto client = std::make_shared<messaging_client>("profile-client");
-    auto client_result = client->start_client("localhost", 5556);
+    auto client = tcp.create_client({
+        .client_id = "profile-client"
+    });
+    auto client_result = client->start("localhost", 5556);
 
     if (client_result.is_err()) {
         std::cerr << "Failed to connect client\n";
-        server->stop_server();
+        (void)server->stop();
         return;
     }
 
@@ -224,7 +240,7 @@ void profile_message_throughput(int num_messages) {
 
     for (int i = 0; i < num_messages; ++i) {
         std::vector<uint8_t> msg(1024, static_cast<uint8_t>(i % 256));
-        client->send_packet(std::move(msg));
+        (void)client->send(std::move(msg));
 
         if ((i + 1) % 5000 == 0) {
             print_memory_stats("After " + std::to_string(i + 1) + " messages");
@@ -247,8 +263,8 @@ void profile_message_throughput(int num_messages) {
     print_memory_stats("After processing");
 
     // Cleanup
-    client->stop_client();
-    server->stop_server();
+    (void)client->stop();
+    (void)server->stop();
 
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
     print_memory_stats("After cleanup");
@@ -271,8 +287,13 @@ void profile_long_running(int duration_seconds) {
     size_t peak_rss = baseline_rss;
     print_memory_stats("Baseline");
 
-    auto server = std::make_shared<messaging_server>("profile-server");
-    auto server_result = server->start_server(5557);
+    facade::tcp_facade tcp;
+    auto server = tcp.create_server({
+        .port = 5557,
+        .server_id = "profile-server"
+    });
+
+    auto server_result = server->start(5557);
 
     if (server_result.is_err()) {
         std::cerr << "Failed to start server\n";
@@ -289,12 +310,14 @@ void profile_long_running(int duration_seconds) {
            std::chrono::seconds(duration_seconds)) {
 
         // Create client, send message, disconnect
-        auto client = std::make_shared<messaging_client>("temp-client");
-        auto result = client->start_client("localhost", 5557);
+        auto client = tcp.create_client({
+            .client_id = "temp-client"
+        });
+        auto result = client->start("localhost", 5557);
 
         if (result.is_ok()) {
-            client->send_packet({'t', 'e', 's', 't'});
-            client->stop_client();
+            (void)client->send({'t', 'e', 's', 't'});
+            (void)client->stop();
             successful_cycles++;
         }
 
@@ -317,7 +340,7 @@ void profile_long_running(int duration_seconds) {
     std::cout << "Successful cycles: " << successful_cycles << "\n";
     std::cout << "Peak RSS: " << (peak_rss / (1024 * 1024)) << " MB\n";
 
-    server->stop_server();
+    (void)server->stop();
 
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
     print_memory_stats("Final");
