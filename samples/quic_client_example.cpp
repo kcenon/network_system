@@ -4,7 +4,7 @@
  *
  * QUIC Client Example
  *
- * This example demonstrates how to use the messaging_quic_client class
+ * This example demonstrates how to use the QUIC facade API
  * to connect to a QUIC server and send/receive data.
  *
  * Key features demonstrated:
@@ -25,9 +25,11 @@
 #include <condition_variable>
 #include <mutex>
 
-#include "kcenon/network/core/messaging_quic_client.h"
+#define NETWORK_USE_EXPERIMENTAL
+#include <kcenon/network/facade/quic_facade.h>
+#include <kcenon/network/experimental/quic_client.h>
 
-using namespace kcenon::network::core;
+using namespace kcenon::network;
 
 /**
  * @brief Simple QUIC client demo
@@ -48,14 +50,18 @@ public:
 		std::cout << "=== QUIC Client Example ===" << std::endl;
 		std::cout << "Connecting to " << server_host_ << ":" << server_port_ << std::endl;
 
-		// Create the QUIC client
-		client_ = std::make_shared<messaging_quic_client>("quic_demo_client");
+		// Create the QUIC client using facade
+		facade::quic_facade quic;
+		client_ = quic.create_client({
+			.host = server_host_,
+			.port = server_port_,
+			.client_id = "quic_demo_client",
+			.verify_server = false,  // For testing with self-signed certs
+			.alpn = "h3"
+		});
 
 		// Set up callbacks
 		setup_callbacks();
-
-		// Configure ALPN if needed
-		client_->set_alpn_protocols({"h3", "hq-interop"});
 
 		// Start the client
 		auto result = client_->start_client(server_host_, server_port_);
@@ -237,7 +243,7 @@ private:
 
 	std::string server_host_;
 	unsigned short server_port_;
-	std::shared_ptr<messaging_quic_client> client_;
+	std::shared_ptr<core::messaging_quic_client> client_;
 	std::atomic<bool> connected_;
 	std::atomic<bool> message_received_;
 	std::mutex mutex_;
@@ -251,23 +257,24 @@ void demo_with_config()
 {
 	std::cout << "\n=== QUIC Client with Custom Config ===" << std::endl;
 
-	// Create custom configuration
-	quic_client_config config;
-	config.verify_server = false;  // For testing with self-signed certs
-	config.alpn_protocols = {"h3"};
-	config.max_idle_timeout_ms = 60000;  // 60 seconds
-	config.initial_max_streams_bidi = 200;
-	config.initial_max_streams_uni = 100;
-	config.enable_early_data = true;  // Enable 0-RTT
+	// Create client with custom configuration using facade
+	facade::quic_facade quic;
+	auto client = quic.create_client({
+		.host = "example.com",
+		.port = 443,
+		.client_id = "config_demo_client",
+		.verify_server = false,  // For testing with self-signed certs
+		.alpn = "h3",
+		.max_idle_timeout_ms = 60000,  // 60 seconds
+		.enable_0rtt = true  // Enable 0-RTT
+	});
 
-	// For mutual TLS (uncomment if needed)
-	// config.ca_cert_file = "/path/to/ca.pem";
-	// config.client_cert_file = "/path/to/client.pem";
-	// config.client_key_file = "/path/to/client-key.pem";
+	// For mutual TLS, use optional fields:
+	// .ca_cert_path = "/path/to/ca.pem",
+	// .client_cert_path = "/path/to/client.pem",
+	// .client_key_path = "/path/to/client-key.pem"
 
-	auto client = std::make_shared<messaging_quic_client>("config_demo_client");
-
-	auto result = client->start_client("example.com", 443, config);
+	auto result = client->start_client("example.com", 443);
 	if (result.is_err())
 	{
 		std::cout << "Expected failure (no server): " << result.error().message << std::endl;
