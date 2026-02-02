@@ -86,6 +86,15 @@ foreach(SAMPLE ${SAMPLE_PROGRAMS})
         endif()
     endif()
 
+    # Additional linking for QUIC samples requiring network-quic library
+    if(SAMPLE MATCHES "quic")
+        if(TARGET network-quic)
+            target_link_libraries(network_${SAMPLE} PRIVATE
+                network-quic
+            )
+        endif()
+    endif()
+
     # Configure ASIO for all samples
     setup_asio_integration(network_${SAMPLE})
     
