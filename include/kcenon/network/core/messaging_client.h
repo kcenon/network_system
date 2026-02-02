@@ -32,22 +32,39 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
+// Deprecation warning for v2.0 migration
+#ifndef NETWORK_SYSTEM_SUPPRESS_DEPRECATION_WARNINGS
+#if defined(__GNUC__) || defined(__clang__)
+#warning "messaging_client.h is deprecated and will move to internal in v2.0. Use tcp_facade.h instead. See docs/refactoring/MIGRATION_GUIDE_V2.md"
+#elif defined(_MSC_VER)
+#pragma message("Warning: messaging_client.h is deprecated and will move to internal in v2.0. Use tcp_facade.h instead. See docs/refactoring/MIGRATION_GUIDE_V2.md")
+#endif
+#endif
+
 /**
  * @file messaging_client.h
- * @brief Legacy TCP client class.
+ * @brief TCP client implementation (DEPRECATED - Will be moved to internal in v2.0)
  *
- * @deprecated This header is deprecated. Use unified_messaging_client.h instead.
+ * @deprecated This header will be moved to src/internal/ in network_system v2.0.
+ *             Use kcenon/network/facade/tcp_facade.h instead for a simpler, stable API.
+ *
+ * @warning This header is scheduled for removal from public API in v3.0.
+ *          See docs/refactoring/MIGRATION_GUIDE_V2.md for migration instructions.
  *
  * Migration guide:
  * @code
- * // Old code:
- * #include <kcenon/network/core/messaging_client.h>
- * auto client = std::make_shared<messaging_client>("client1");
+ * // Old code (v1.x):
+ * #include "kcenon/network/core/messaging_client.h"
+ * auto client = std::make_shared<messaging_client>("client-id", "127.0.0.1", 8080);
  *
- * // New code:
- * #include <kcenon/network/core/unified_messaging_client.h>
- * auto client = std::make_shared<tcp_client>("client1");
- * // Or: auto client = std::make_shared<unified_messaging_client<tcp_protocol>>("client1");
+ * // New code (v2.0+):
+ * #include "kcenon/network/facade/tcp_facade.h"
+ * tcp_facade facade;
+ * auto client = facade.create_client({
+ *     .host = "127.0.0.1",
+ *     .port = 8080,
+ *     .client_id = "client-id"
+ * });
  * @endcode
  *
  * @see unified_messaging_client.h for the new template-based API
