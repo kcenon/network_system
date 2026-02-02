@@ -26,14 +26,18 @@ All rights reserved.
 #include <chrono>
 #include <future>
 #include <iostream>
+#include <map>
+#include <mutex>
+#include <string>
 #include <thread>
 #include <vector>
 
 #include "kcenon/network/core/connection_pool.h"
-#include "kcenon/network/core/messaging_server.h"
-#include "kcenon/network/session/messaging_session.h"
+#include <kcenon/network/facade/tcp_facade.h>
+#include <kcenon/network/interfaces/i_session.h>
 
 using namespace kcenon::network::core;
+using namespace kcenon::network;
 
 // RAII wrapper for automatic connection release
 class scoped_connection
@@ -292,19 +296,47 @@ int main()
 	std::cout << "Connection Pool Example\n";
 	std::cout << "=======================\n\n";
 
-	// Start a simple echo server for testing
-	auto server = std::make_shared<messaging_server>("test_server");
+	// Start a simple echo server for testing using facade
+	facade::tcp_facade tcp;
+	auto server = tcp.create_server({
+		.port = 5555,
+		.server_id = "test_server"
+	});
+
+	// Store sessions for echo functionality
+	std::mutex sessions_mutex;
+	std::map<std::string, std::shared_ptr<interfaces::i_session>> sessions;
+
+	// Set up connection handler to track sessions
+	server->set_connection_callback(
+		[&sessions, &sessions_mutex](std::shared_ptr<interfaces::i_session> session)
+		{
+			std::lock_guard<std::mutex> lock(sessions_mutex);
+			sessions[std::string(session->id())] = session;
+		});
+
+	// Set up disconnection handler to clean up sessions
+	server->set_disconnection_callback(
+		[&sessions, &sessions_mutex](std::string_view session_id)
+		{
+			std::lock_guard<std::mutex> lock(sessions_mutex);
+			sessions.erase(std::string(session_id));
+		});
 
 	// Set up echo handler
 	server->set_receive_callback(
-		[](std::shared_ptr<kcenon::network::session::messaging_session> session,
-		   const std::vector<uint8_t>& data)
+		[&sessions, &sessions_mutex](std::string_view session_id, const std::vector<uint8_t>& data)
 		{
-			// Echo back the data
-			session->send_packet(std::vector<uint8_t>(data));
+			std::lock_guard<std::mutex> lock(sessions_mutex);
+			auto it = sessions.find(std::string(session_id));
+			if (it != sessions.end())
+			{
+				// Echo back the data
+				it->second->send(std::vector<uint8_t>(data));
+			}
 		});
 
-	auto server_result = server->start_server(5555);
+	auto server_result = server->start(5555);
 	if (server_result.is_err())
 	{
 		std::cerr << "Failed to start server: " << server_result.error().message
@@ -325,7 +357,7 @@ int main()
 	{
 		std::cerr << "Failed to initialize pool: "
 				  << init_result.error().message << "\n";
-		server->stop_server();
+		server->stop();
 		return 1;
 	}
 
@@ -342,7 +374,7 @@ int main()
 	// Cleanup
 	std::cout << "=== Cleanup ===\n";
 	std::cout << "Stopping server...\n";
-	server->stop_server();
+	server->stop();
 	std::cout << "Done.\n";
 
 	return 0;
