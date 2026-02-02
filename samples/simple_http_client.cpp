@@ -5,15 +5,15 @@ Copyright (c) 2024, 🍀☀🌕🌥 🌊
 All rights reserved.
 *****************************************************************************/
 
-#include "kcenon/network/core/http_client.h"
+#include <kcenon/network/facade/http_facade.h>
+#include <kcenon/network/http/http_client.h>
 #include <iostream>
 #include <thread>
 #include <chrono>
 
-using namespace kcenon::network::core;
-using namespace kcenon::network::internal;
+using namespace kcenon::network;
 
-void print_response(const http_response& response)
+void print_response(const internal::http_response& response)
 {
     std::cout << "Status: " << response.status_code << " " << response.status_message << std::endl;
     std::cout << "Headers:" << std::endl;
@@ -29,8 +29,11 @@ int main()
 {
     std::cout << "=== Simple HTTP Client Demo ===" << std::endl;
 
-    // Create HTTP client
-    auto client = std::make_shared<http_client>();
+    // Create HTTP client using facade
+    facade::http_facade http;
+    auto client = http.create_client({
+        .timeout = std::chrono::seconds(30)
+    });
 
     // Wait a moment for server to be ready (if running locally)
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
