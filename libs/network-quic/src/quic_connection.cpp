@@ -44,10 +44,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "network_quic/quic_connection.h"
 
-// Include the QUIC protocol internals
-#include "kcenon/network/protocols/quic/connection.h"
-#include "kcenon/network/protocols/quic/stream.h"
-#include "kcenon/network/protocols/quic/stream_manager.h"
+// Include the QUIC protocol internals (moved to internal)
+#include "internal/protocols/quic/connection.h"
+#include "internal/protocols/quic/stream.h"
+#include "internal/protocols/quic/stream_manager.h"
 
 // This compilation unit serves as a linkage point for the QUIC connection
 // functionality when used as a standalone library. The actual implementation

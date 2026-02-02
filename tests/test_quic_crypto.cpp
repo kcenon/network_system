@@ -35,8 +35,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <algorithm>
 
 #include "kcenon/network/protocols/quic/connection_id.h"
-#include "kcenon/network/protocols/quic/crypto.h"
-#include "kcenon/network/protocols/quic/keys.h"
+#include "internal/protocols/quic/crypto.h"
+#include "internal/protocols/quic/keys.h"
 
 using namespace kcenon::network::protocols::quic;
 

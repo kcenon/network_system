@@ -39,7 +39,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * This header provides internal QUIC stream types and utilities.
  */
 
-// Re-export QUIC stream types from the main library
-#include "kcenon/network/protocols/quic/stream.h"
-#include "kcenon/network/protocols/quic/stream_manager.h"
-#include "kcenon/network/protocols/quic/flow_control.h"
+// Re-export QUIC stream types from the main library internal headers
+#include "internal/protocols/quic/stream.h"
+#include "internal/protocols/quic/stream_manager.h"
+#include "internal/protocols/quic/flow_control.h"

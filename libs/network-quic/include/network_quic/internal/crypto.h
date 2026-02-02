@@ -39,7 +39,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * This header provides internal QUIC cryptographic types and utilities.
  */
 
-// Re-export QUIC crypto types from the main library
-#include "kcenon/network/protocols/quic/crypto.h"
-#include "kcenon/network/protocols/quic/keys.h"
-#include "kcenon/network/protocols/quic/session_ticket_store.h"
+// Re-export QUIC crypto types from the main library internal headers
+#include "internal/protocols/quic/crypto.h"
+#include "internal/protocols/quic/keys.h"
+#include "internal/protocols/quic/session_ticket_store.h"

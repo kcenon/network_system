@@ -32,7 +32,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <gtest/gtest.h>
 
-#include "kcenon/network/protocols/quic/pmtud_controller.h"
+#include "internal/protocols/quic/pmtud_controller.h"
 
 #include <chrono>
 

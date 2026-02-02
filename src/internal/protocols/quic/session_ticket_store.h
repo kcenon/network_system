@@ -32,7 +32,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
-#include "kcenon/network/protocols/quic/transport_params.h"
+#include "transport_params.h"
 
 #include <chrono>
 #include <mutex>

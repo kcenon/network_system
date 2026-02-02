@@ -44,9 +44,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <deque>
 
 #include "internal/utils/common_defs.h"
-#include "kcenon/network/protocols/quic/crypto.h"
-#include "kcenon/network/protocols/quic/frame.h"
-#include "kcenon/network/protocols/quic/packet.h"
+#include "internal/protocols/quic/crypto.h"
+#include "internal/protocols/quic/frame.h"
+#include "internal/protocols/quic/packet.h"
 #include "kcenon/network/utils/result_types.h"
 
 namespace kcenon::network::internal

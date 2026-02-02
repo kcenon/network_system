@@ -32,10 +32,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
-#include "kcenon/network/protocols/quic/ecn_tracker.h"
-#include "kcenon/network/protocols/quic/frame_types.h"
-#include "kcenon/network/protocols/quic/keys.h"
-#include "kcenon/network/protocols/quic/rtt_estimator.h"
+#include "ecn_tracker.h"
+#include "frame_types.h"
+#include "keys.h"
+#include "rtt_estimator.h"
 
 #include <chrono>
 #include <cstdint>

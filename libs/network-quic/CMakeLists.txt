@@ -50,6 +50,8 @@ target_include_directories(network-quic
         $<INSTALL_INTERFACE:include>
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/src
+        # Access to internal headers (protocols/quic moved to src/internal)
+        ${CMAKE_CURRENT_SOURCE_DIR}/../../src
 )
 
 ##################################################

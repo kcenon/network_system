@@ -32,18 +32,18 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
-#include "kcenon/network/protocols/quic/congestion_controller.h"
+#include "congestion_controller.h"
 #include "kcenon/network/protocols/quic/connection_id.h"
-#include "kcenon/network/protocols/quic/connection_id_manager.h"
-#include "kcenon/network/protocols/quic/crypto.h"
-#include "kcenon/network/protocols/quic/flow_control.h"
-#include "kcenon/network/protocols/quic/frame.h"
-#include "kcenon/network/protocols/quic/loss_detector.h"
-#include "kcenon/network/protocols/quic/packet.h"
-#include "kcenon/network/protocols/quic/pmtud_controller.h"
-#include "kcenon/network/protocols/quic/rtt_estimator.h"
-#include "kcenon/network/protocols/quic/stream_manager.h"
-#include "kcenon/network/protocols/quic/transport_params.h"
+#include "connection_id_manager.h"
+#include "crypto.h"
+#include "flow_control.h"
+#include "frame.h"
+#include "loss_detector.h"
+#include "packet.h"
+#include "pmtud_controller.h"
+#include "rtt_estimator.h"
+#include "stream_manager.h"
+#include "transport_params.h"
 #include "kcenon/network/utils/result_types.h"
 
 #include <chrono>

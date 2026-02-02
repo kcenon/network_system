@@ -33,7 +33,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 
 #include "kcenon/network/protocols/quic/connection_id.h"
-#include "kcenon/network/protocols/quic/frame_types.h"
+#include "frame_types.h"
 #include "kcenon/network/utils/result_types.h"
 
 #include <array>

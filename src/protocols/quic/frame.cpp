@@ -30,8 +30,8 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *****************************************************************************/
 
-#include "kcenon/network/protocols/quic/frame.h"
-#include "kcenon/network/protocols/quic/varint.h"
+#include "internal/protocols/quic/frame.h"
+#include "internal/protocols/quic/varint.h"
 
 namespace kcenon::network::protocols::quic
 {
