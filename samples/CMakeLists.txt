@@ -43,12 +43,8 @@ set(SAMPLE_PROGRAMS
     concepts_example
     grpc_service_example
     http2_server_example
+    udp_echo_demo
 )
-
-# Add UDP sample if UDP support is enabled
-if(NETWORK_ENABLE_UDP)
-    list(APPEND SAMPLE_PROGRAMS udp_echo_demo)
-endif()
 
 # Output directory
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
@@ -149,13 +145,10 @@ set(SAMPLE_SOURCE_FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/memory_profile_demo.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/connection_pool_example.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/concepts_example.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/udp_echo_demo.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt
     ${CMAKE_CURRENT_SOURCE_DIR}/README.md
 )
-
-if(NETWORK_ENABLE_UDP)
-    list(APPEND SAMPLE_SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/udp_echo_demo.cpp)
-endif()
 
 install(FILES ${SAMPLE_SOURCE_FILES}
     DESTINATION share/network_system/samples
