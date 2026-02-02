@@ -1,10 +1,13 @@
 /**
  * BSD 3-Clause License
  * Copyright (c) 2024, Network System Project
+ *
+ * This example demonstrates the facade API for creating TCP clients and servers.
+ * The facade pattern provides a simplified interface compared to direct instantiation
+ * of protocol implementation classes.
  */
 
-#include <kcenon/network/core/messaging_server.h>
-#include <kcenon/network/core/messaging_client.h>
+#include <kcenon/network/facade/tcp_facade.h>
 #include <iostream>
 #include <memory>
 #include <thread>
@@ -19,15 +22,21 @@ int main() {
     // 1. TCP Server Setup
     std::cout << "\n1. TCP Server Setup:" << std::endl;
 
-    auto server = std::make_shared<core::messaging_server>("BasicServer");
+    // Create TCP facade and server using factory method
+    facade::tcp_facade tcp;
+    const unsigned short port = 8080;
+
+    auto server = tcp.create_server({
+        .port = port,
+        .server_id = "BasicServer"
+    });
     std::cout << "Server created with ID: BasicServer" << std::endl;
 
-    // Start server on port 8080
-    const unsigned short port = 8080;
-    auto server_result = server->start_server(port);
+    // Start server (port already set in config)
+    auto server_result = server->start(port);
 
     if (server_result.is_err()) {
-        std::cerr << "✗ Failed to start server: " << server_result.error().message << std::endl;
+        std::cerr << "✗ Failed to start server" << std::endl;
         return -1;
     }
 
@@ -39,15 +48,20 @@ int main() {
     // 2. TCP Client Setup
     std::cout << "\n2. TCP Client Setup:" << std::endl;
 
-    auto client = std::make_shared<core::messaging_client>("BasicClient");
+    // Create TCP client using facade factory method
+    auto client = tcp.create_client({
+        .host = "localhost",
+        .port = port,
+        .client_id = "BasicClient"
+    });
     std::cout << "Client created with ID: BasicClient" << std::endl;
 
     // Connect to server
-    auto client_result = client->start_client("localhost", port);
+    auto client_result = client->start("localhost", port);
 
     if (client_result.is_err()) {
-        std::cerr << "✗ Failed to connect client: " << client_result.error().message << std::endl;
-        server->stop_server();
+        std::cerr << "✗ Failed to connect client" << std::endl;
+        server->stop();
         return -1;
     }
 
@@ -66,10 +80,10 @@ int main() {
     std::cout << "Sending message: \"" << message << "\"" << std::endl;
 
     // Use std::move for zero-copy efficiency
-    auto send_result = client->send_packet(std::move(data));
+    auto send_result = client->send(std::move(data));
 
     if (send_result.is_err()) {
-        std::cerr << "✗ Failed to send message: " << send_result.error().message << std::endl;
+        std::cerr << "✗ Failed to send message" << std::endl;
     } else {
         std::cout << "✓ Message sent successfully" << std::endl;
     }
@@ -89,10 +103,10 @@ int main() {
     std::vector<uint8_t> binary_data = {0x01, 0x02, 0x03, 0x04, 0x05, 0xFF, 0xFE, 0xFD};
     std::cout << "Sending binary data (" << binary_data.size() << " bytes)" << std::endl;
 
-    auto binary_result = client->send_packet(std::move(binary_data));
+    auto binary_result = client->send(std::move(binary_data));
 
     if (binary_result.is_err()) {
-        std::cerr << "✗ Failed to send binary data: " << binary_result.error().message << std::endl;
+        std::cerr << "✗ Failed to send binary data" << std::endl;
     } else {
         std::cout << "✓ Binary data sent successfully" << std::endl;
     }
@@ -101,17 +115,17 @@ int main() {
     std::cout << "\n6. Cleanup:" << std::endl;
 
     // Stop client
-    auto client_stop_result = client->stop_client();
+    auto client_stop_result = client->stop();
     if (client_stop_result.is_err()) {
-        std::cerr << "✗ Failed to stop client: " << client_stop_result.error().message << std::endl;
+        std::cerr << "✗ Failed to stop client" << std::endl;
     } else {
         std::cout << "✓ Client stopped" << std::endl;
     }
 
     // Stop server
-    auto server_stop_result = server->stop_server();
+    auto server_stop_result = server->stop();
     if (server_stop_result.is_err()) {
-        std::cerr << "✗ Failed to stop server: " << server_stop_result.error().message << std::endl;
+        std::cerr << "✗ Failed to stop server" << std::endl;
     } else {
         std::cout << "✓ Server stopped" << std::endl;
     }
