@@ -35,7 +35,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // Wrapper header that includes the main project's websocket_handshake.h
 // This allows network-websocket to be used both standalone and integrated
 
-#include "kcenon/network/internal/websocket_handshake.h"
+#include "internal/websocket/websocket_handshake.h"
 
 namespace network_websocket
 {

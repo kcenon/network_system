@@ -5,7 +5,7 @@ Copyright (c) 2024, 🍀☀🌕🌥 🌊
 All rights reserved.
 *****************************************************************************/
 
-#include "kcenon/network/internal/websocket_protocol.h"
+#include "internal/websocket/websocket_protocol.h"
 #include <gtest/gtest.h>
 
 using namespace kcenon::network::internal;

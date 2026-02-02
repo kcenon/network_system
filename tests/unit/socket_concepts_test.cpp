@@ -17,8 +17,8 @@ All rights reserved.
  */
 
 #include "kcenon/network/concepts/socket_concepts.h"
-#include "kcenon/network/internal/tcp_socket.h"
-#include "kcenon/network/internal/udp_socket.h"
+#include "internal/tcp/tcp_socket.h"
+#include "internal/udp/udp_socket.h"
 #include <gtest/gtest.h>
 
 #include <asio.hpp>

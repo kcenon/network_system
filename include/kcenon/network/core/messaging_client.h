@@ -67,7 +67,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <asio.hpp>
 
 #include "kcenon/network/core/callback_indices.h"
-#include "kcenon/network/internal/tcp_socket.h"
+#include "internal/tcp/tcp_socket.h"
 #include "kcenon/network/integration/io_context_thread_manager.h"
 #include "kcenon/network/utils/startable_base.h"
 #include "kcenon/network/utils/callback_manager.h"

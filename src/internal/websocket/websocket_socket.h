@@ -32,7 +32,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
-#include "kcenon/network/internal/websocket_protocol.h"
+#include "internal/websocket/websocket_protocol.h"
 #include "kcenon/network/utils/result_types.h"
 
 #include <atomic>

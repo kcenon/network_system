@@ -6,7 +6,7 @@ All rights reserved.
 *****************************************************************************/
 
 #include <gtest/gtest.h>
-#include "kcenon/network/internal/websocket_frame.h"
+#include "internal/websocket/websocket_frame.h"
 
 using namespace kcenon::network::internal;
 
