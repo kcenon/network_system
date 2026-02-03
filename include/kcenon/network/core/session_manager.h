@@ -1,105 +1,48 @@
 /*****************************************************************************
 BSD 3-Clause License
 
-Copyright (c) 2025, kcenon
+Copyright (c) 2024, kcenon
 All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice, this
+   list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
+
+3. Neither the name of the copyright holder nor the names of its
+   contributors may be used to endorse or promote products derived from
+   this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *****************************************************************************/
 
 #pragma once
 
-#include "kcenon/network/core/session_manager_base.h"
-#include "kcenon/network/session/messaging_session.h"
+// DEPRECATED: This header location is deprecated.
+// Please use facade headers for new code.
+#ifndef NETWORK_SYSTEM_SUPPRESS_DEPRECATION_WARNINGS
+#if defined(__GNUC__) || defined(__clang__)
+#pragma message("DEPRECATED: include path 'kcenon/network/core/session_manager.h' is deprecated. " \
+                "Use facade headers instead.")
+#elif defined(_MSC_VER)
+#pragma message("DEPRECATED: include path 'kcenon/network/core/session_manager.h' is deprecated. " \
+                "Use facade headers instead.")
+#endif
+#endif
 
-namespace kcenon::network::core {
-
-/**
- * @brief Session info struct for backward compatibility
- *
- * This struct is provided for backward compatibility with code that
- * accesses session_info directly. New code should use the template-based
- * session_info_t<SessionType> instead.
- */
-struct session_info {
-    std::shared_ptr<kcenon::network::session::messaging_session> session;
-    std::chrono::steady_clock::time_point created_at;
-    std::chrono::steady_clock::time_point last_activity;
-
-    explicit session_info(
-        std::shared_ptr<kcenon::network::session::messaging_session> sess)
-        : session(std::move(sess))
-        , created_at(std::chrono::steady_clock::now())
-        , last_activity(created_at) {}
-};
-
-/**
- * @class session_manager
- * @brief Thread-safe TCP session lifecycle management with backpressure
- *
- * This is a type alias for session_manager_base<messaging_session> that
- * provides backward compatibility with existing code while leveraging
- * the unified template implementation.
- *
- * This manager provides:
- * - Thread-safe session tracking
- * - Connection limit enforcement
- * - Idle session cleanup
- * - Backpressure signaling
- * - Session metrics
- *
- * ### Thread Safety
- * All methods are thread-safe using shared_mutex for concurrent reads
- * and exclusive writes.
- *
- * ### Production Usage
- * @code
- * session_config config;
- * config.max_sessions = 1000;
- * config.idle_timeout = std::chrono::minutes(5);
- *
- * auto manager = std::make_shared<session_manager>(config);
- *
- * // Check before accepting new connection
- * if (manager->can_accept_connection()) {
- *     auto session = create_session();
- *     manager->add_session(session);
- * } else {
- *     log_warning("Connection rejected: max sessions reached");
- *     socket.close();
- * }
- *
- * // Periodic cleanup
- * manager->cleanup_idle_sessions();
- * @endcode
- */
-class session_manager : public session_manager_base<session::messaging_session> {
-public:
-    using session_ptr = std::shared_ptr<session::messaging_session>;
-    using base_type = session_manager_base<session::messaging_session>;
-
-    explicit session_manager(const session_config& config = session_config())
-        : base_type(config) {}
-
-    /**
-     * @brief Get session info including activity timestamps
-     * @param session_id Session ID to query
-     * @return Optional session_info if found
-     *
-     * This method is provided for backward compatibility. It converts
-     * the internal session_info_t to the legacy session_info struct.
-     */
-    [[nodiscard]] auto get_session_info(const std::string& session_id) const
-        -> std::optional<session_info> {
-        std::shared_lock lock(sessions_mutex_);
-        auto it = active_sessions_.find(session_id);
-        if (it != active_sessions_.end()) {
-            session_info info(it->second.session);
-            info.created_at = it->second.created_at;
-            info.last_activity = it->second.last_activity;
-            return info;
-        }
-        return std::nullopt;
-    }
-
-};
-
-} // namespace kcenon::network::core
+// Include internal header for backward compatibility
+#include "internal/core/session_manager.h"

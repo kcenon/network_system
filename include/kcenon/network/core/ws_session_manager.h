@@ -32,153 +32,17 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
-#include "kcenon/network/core/session_manager_base.h"
+// DEPRECATED: This header location is deprecated.
+// Please use facade headers for new code.
+#ifndef NETWORK_SYSTEM_SUPPRESS_DEPRECATION_WARNINGS
+#if defined(__GNUC__) || defined(__clang__)
+#pragma message("DEPRECATED: include path 'kcenon/network/core/ws_session_manager.h' is deprecated. " \
+                "Use facade headers instead.")
+#elif defined(_MSC_VER)
+#pragma message("DEPRECATED: include path 'kcenon/network/core/ws_session_manager.h' is deprecated. " \
+                "Use facade headers instead.")
+#endif
+#endif
 
-namespace kcenon::network::core {
-
-// Forward declaration
-class ws_connection;
-
-/**
- * @class ws_session_manager
- * @brief Thread-safe WebSocket session lifecycle management.
- *
- * This class extends session_manager_base<ws_connection> to provide
- * WebSocket-specific connection management while leveraging the unified
- * template implementation for common functionality.
- *
- * Features:
- * - Thread-safe connection tracking
- * - Connection limit enforcement
- * - Backpressure signaling
- * - Connection metrics
- * - Automatic connection ID generation
- *
- * Thread Safety:
- * - All public methods are thread-safe
- * - Uses shared_mutex for concurrent reads and exclusive writes
- * - Atomic counters for metrics
- *
- * Usage Example:
- * @code
- * session_config config;
- * config.max_sessions = 1000;
- * auto manager = std::make_shared<ws_session_manager>(config);
- *
- * // Check before accepting new connection
- * if (manager->can_accept_connection()) {
- *     auto conn = create_ws_connection();
- *     auto conn_id = manager->add_connection(conn);
- *     if (!conn_id.empty()) {
- *         // Connection accepted
- *     }
- * }
- * @endcode
- */
-class ws_session_manager : public session_manager_base<ws_connection> {
-public:
-    using ws_connection_ptr = std::shared_ptr<ws_connection>;
-    using base_type = session_manager_base<ws_connection>;
-
-    /**
-     * @brief Constructs a WebSocket session manager.
-     *
-     * @param config Session management configuration
-     */
-    explicit ws_session_manager(const session_config& config = session_config())
-        : base_type(config) {}
-
-    // =========================================================================
-    // Backward-compatible API (aliases to base class methods)
-    // =========================================================================
-
-    /**
-     * @brief Adds a connection to the manager.
-     *
-     * Thread-safe operation that adds a connection with automatic or
-     * provided ID. If max_sessions limit is reached, the connection
-     * is rejected.
-     *
-     * @param conn Connection to add
-     * @param conn_id Optional connection ID (auto-generated if empty)
-     * @return Connection ID that was used (empty string if rejected)
-     */
-    auto add_connection(ws_connection_ptr conn, const std::string& conn_id = "")
-        -> std::string {
-        return add_session_with_id(std::move(conn), conn_id);
-    }
-
-    /**
-     * @brief Removes a connection from the manager.
-     *
-     * Thread-safe operation that removes a connection by ID.
-     *
-     * @param conn_id Connection ID to remove
-     * @return True if connection was found and removed
-     */
-    auto remove_connection(const std::string& conn_id) -> bool {
-        return remove_session(conn_id);
-    }
-
-    /**
-     * @brief Gets a connection by ID.
-     *
-     * Thread-safe read operation.
-     *
-     * @param conn_id Connection ID to lookup
-     * @return Shared pointer to connection, or nullptr if not found
-     */
-    [[nodiscard]] auto get_connection(const std::string& conn_id) const
-        -> ws_connection_ptr {
-        return get_session(conn_id);
-    }
-
-    /**
-     * @brief Gets all active connections.
-     *
-     * Thread-safe operation that returns a snapshot of all connections.
-     *
-     * @return Vector of all active connections
-     */
-    [[nodiscard]] auto get_all_connections() const -> std::vector<ws_connection_ptr> {
-        return get_all_sessions();
-    }
-
-    /**
-     * @brief Gets all connection IDs.
-     *
-     * Thread-safe operation that returns a list of all connection IDs.
-     *
-     * @return Vector of connection IDs
-     */
-    [[nodiscard]] auto get_all_connection_ids() const -> std::vector<std::string> {
-        return get_all_session_ids();
-    }
-
-    /**
-     * @brief Gets the current connection count.
-     *
-     * @return Number of active connections
-     */
-    [[nodiscard]] auto get_connection_count() const -> size_t {
-        return get_session_count();
-    }
-
-    /**
-     * @brief Clears all connections.
-     *
-     * Thread-safe operation that removes all connections.
-     */
-    auto clear_all_connections() -> void { clear_all_sessions(); }
-
-    /**
-     * @brief Generates a unique connection ID.
-     *
-     * This is a static method that can be used to generate IDs externally.
-     *
-     * @return Generated connection ID
-     */
-    static auto generate_connection_id() -> std::string { return generate_id(); }
-};
-
-} // namespace kcenon::network::core
+// Include internal header for backward compatibility
+#include "internal/core/ws_session_manager.h"

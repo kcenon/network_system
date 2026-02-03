@@ -32,9 +32,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <kcenon/network/config/feature_flags.h>
 
-#include "kcenon/network/core/secure_messaging_server.h"
+#include "internal/core/secure_messaging_server.h"
 
-#include "kcenon/network/core/network_context.h"
+#include "internal/core/network_context.h"
 #include "kcenon/network/integration/logger_integration.h"
 #include "kcenon/network/session/secure_session.h"
 

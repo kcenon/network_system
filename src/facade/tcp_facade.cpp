@@ -37,11 +37,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <sstream>
 #include <stdexcept>
 
-#include "kcenon/network/core/messaging_client.h"
+#include "internal/core/messaging_client.h"
 // SSL and server implementations will be added after they implement the protocol interfaces
-// #include "kcenon/network/core/secure_messaging_client.h"
-// #include "kcenon/network/core/messaging_server.h"
-// #include "kcenon/network/core/secure_messaging_server.h"
+// #include "internal/core/secure_messaging_client.h"
+// #include "internal/core/messaging_server.h"
+// #include "internal/core/secure_messaging_server.h"
 
 namespace kcenon::network::facade
 {

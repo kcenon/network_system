@@ -37,8 +37,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <sstream>
 #include <stdexcept>
 
-#include "kcenon/network/core/messaging_udp_client.h"
-#include "kcenon/network/core/messaging_udp_server.h"
+#include "internal/core/messaging_udp_client.h"
+#include "internal/core/messaging_udp_server.h"
 
 namespace kcenon::network::facade
 {

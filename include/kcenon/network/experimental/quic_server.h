@@ -38,9 +38,9 @@ NETWORK_REQUIRE_EXPERIMENTAL
 
 #include <kcenon/network/config/feature_flags.h>
 
-#include "kcenon/network/core/callback_indices.h"
+#include "internal/core/callback_indices.h"
 #include "kcenon/network/experimental/quic_client.h"
-#include "kcenon/network/core/network_context.h"
+#include "internal/core/network_context.h"
 #include "kcenon/network/interfaces/i_quic_server.h"
 #include "kcenon/network/integration/thread_integration.h"
 #include "kcenon/network/protocols/quic/connection_id.h"

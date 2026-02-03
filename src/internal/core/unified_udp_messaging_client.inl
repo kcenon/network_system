@@ -32,7 +32,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
-#include "kcenon/network/core/network_context.h"
+#include "internal/core/network_context.h"
 #include "internal/udp/udp_socket.h"
 #include "kcenon/network/integration/logger_integration.h"
 
