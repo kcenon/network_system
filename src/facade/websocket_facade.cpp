@@ -37,8 +37,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <sstream>
 #include <stdexcept>
 
-#include "kcenon/network/http/websocket_client.h"
-#include "kcenon/network/http/websocket_server.h"
+// Suppress deprecation warnings for internal usage
+#define NETWORK_SYSTEM_SUPPRESS_DEPRECATION_WARNINGS
+#include "internal/http/websocket_client.h"
+#include "internal/http/websocket_server.h"
+#undef NETWORK_SYSTEM_SUPPRESS_DEPRECATION_WARNINGS
 
 namespace kcenon::network::facade
 {
