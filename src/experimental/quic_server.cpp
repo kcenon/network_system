@@ -33,7 +33,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <kcenon/network/config/feature_flags.h>
 
 #define NETWORK_USE_EXPERIMENTAL
-#include "kcenon/network/experimental/quic_server.h"
+#include "internal/experimental/quic_server.h"
 
 #include "internal/integration/logger_integration.h"
 #include "kcenon/network/metrics/network_metrics.h"

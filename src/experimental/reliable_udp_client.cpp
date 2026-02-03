@@ -31,7 +31,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *****************************************************************************/
 
 #define NETWORK_USE_EXPERIMENTAL
-#include "kcenon/network/experimental/reliable_udp_client.h"
+#include "internal/experimental/reliable_udp_client.h"
 #include "internal/core/messaging_udp_client.h"
 #include "internal/core/network_context.h"
 #include "internal/integration/logger_integration.h"
