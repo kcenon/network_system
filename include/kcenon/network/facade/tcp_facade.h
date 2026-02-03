@@ -41,6 +41,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "kcenon/network/interfaces/i_protocol_client.h"
 #include "kcenon/network/interfaces/i_protocol_server.h"
 
+// Forward declarations
+namespace kcenon::network::core
+{
+class connection_pool;
+} // namespace kcenon::network::core
+
 namespace kcenon::network::facade
 {
 
@@ -193,6 +199,51 @@ public:
 	 */
 	[[nodiscard]] auto create_server(const server_config& config) const
 		-> std::shared_ptr<interfaces::i_protocol_server>;
+
+	/*!
+	 * \struct pool_config
+	 * \brief Configuration for creating a TCP connection pool.
+	 */
+	struct pool_config
+	{
+		//! Server hostname or IP address
+		std::string host;
+
+		//! Server port number
+		uint16_t port = 0;
+
+		//! Number of connections to maintain in the pool
+		size_t pool_size = 10;
+	};
+
+	/*!
+	 * \brief Creates a TCP connection pool with the specified configuration.
+	 * \param config Pool configuration.
+	 * \return Shared pointer to connection_pool.
+	 *
+	 * ### Behavior
+	 * - Creates a connection pool that manages multiple reusable connections
+	 * - Pool is not initialized; call initialize() before use
+	 * - Thread-safe for concurrent acquire/release operations
+	 *
+	 * ### Usage Example
+	 * \code
+	 * tcp_facade facade;
+	 * auto pool = facade.create_connection_pool({
+	 *     .host = "127.0.0.1",
+	 *     .port = 5555,
+	 *     .pool_size = 10
+	 * });
+	 * auto result = pool->initialize();
+	 * if (result.is_ok()) {
+	 *     auto client = pool->acquire();
+	 *     client->send_packet(data);
+	 *     pool->release(std::move(client));
+	 * }
+	 * \endcode
+	 */
+	[[nodiscard]] auto create_connection_pool(const pool_config& config) const
+		-> std::shared_ptr<core::connection_pool>;
 
 private:
 	//! \brief Generates a unique client ID
