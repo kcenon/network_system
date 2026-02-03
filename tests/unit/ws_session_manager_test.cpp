@@ -5,7 +5,7 @@ Copyright (c) 2025, kcenon
 All rights reserved.
 *****************************************************************************/
 
-#include "kcenon/network/core/ws_session_manager.h"
+#include "internal/core/ws_session_manager.h"
 
 #include <gtest/gtest.h>
 

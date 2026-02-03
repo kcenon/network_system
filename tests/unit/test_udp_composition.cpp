@@ -51,8 +51,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <thread>
 #include <vector>
 
-#include "kcenon/network/core/messaging_udp_client.h"
-#include "kcenon/network/core/messaging_udp_server.h"
+#include "internal/core/messaging_udp_client.h"
+#include "internal/core/messaging_udp_server.h"
 #include "kcenon/network/interfaces/i_udp_client.h"
 #include "kcenon/network/interfaces/i_udp_server.h"
 

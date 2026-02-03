@@ -5,8 +5,8 @@ Copyright (c) 2025, 🍀☀🌕🌥 🌊
 All rights reserved.
 *****************************************************************************/
 
-#include "kcenon/network/core/messaging_client.h"
-#include "kcenon/network/core/messaging_server.h"
+#include "internal/core/messaging_client.h"
+#include "internal/core/messaging_server.h"
 #include "kcenon/network/session/messaging_session.h"
 #include <gtest/gtest.h>
 

@@ -5,7 +5,7 @@ Copyright (c) 2025, kcenon
 All rights reserved.
 *****************************************************************************/
 
-#include "kcenon/network/core/session_manager_base.h"
+#include "internal/core/session_manager_base.h"
 
 #include <gtest/gtest.h>
 

@@ -5,8 +5,8 @@ Copyright (c) 2025, kcenon
 All rights reserved.
 *****************************************************************************/
 
-#include "kcenon/network/core/session_traits.h"
-#include "kcenon/network/core/unified_session_manager.h"
+#include "internal/core/session_traits.h"
+#include "internal/core/unified_session_manager.h"
 
 #include <gtest/gtest.h>
 

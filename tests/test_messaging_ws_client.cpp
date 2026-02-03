@@ -32,7 +32,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <gtest/gtest.h>
 
-#include "kcenon/network/core/messaging_ws_client.h"
+#include "kcenon/network/http/websocket_client.h"
 #include "kcenon/network/utils/result_types.h"
 
 namespace kcenon::network::core::test

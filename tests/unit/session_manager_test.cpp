@@ -5,7 +5,7 @@ Copyright (c) 2025, 🍀☀🌕🌥 🌊
 All rights reserved.
 *****************************************************************************/
 
-#include "kcenon/network/core/session_manager.h"
+#include "internal/core/session_manager.h"
 #include <gtest/gtest.h>
 
 #include <chrono>
