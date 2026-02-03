@@ -48,7 +48,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * To use experimental APIs, define NETWORK_USE_EXPERIMENTAL:
  * \code
  * #define NETWORK_USE_EXPERIMENTAL
- * #include <kcenon/network/experimental/quic_client.h>
+ * #include "internal/experimental/quic_client.h"
  * \endcode
  *
  * Without the define, a clear compiler error will guide users.

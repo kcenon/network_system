@@ -33,7 +33,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 
 // Experimental API marker - users must opt-in to use this header
-#include "kcenon/network/experimental/experimental_api.h"
+#include "internal/experimental/experimental_api.h"
 NETWORK_REQUIRE_EXPERIMENTAL
 
 #include <atomic>

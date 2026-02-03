@@ -42,8 +42,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define NETWORK_USE_EXPERIMENTAL
 #endif
 
-#include "kcenon/network/experimental/quic_client.h"
-#include "kcenon/network/experimental/quic_server.h"
+#include "internal/experimental/quic_client.h"
+#include "internal/experimental/quic_server.h"
 
 namespace kcenon::network::facade
 {

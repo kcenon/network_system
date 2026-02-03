@@ -25,9 +25,9 @@ deprecation warnings. Please migrate to the new locations:
 | `http_server.h` | `kcenon/network/http/http_server.h` |
 | `messaging_ws_client.h` | `kcenon/network/http/websocket_client.h` |
 | `messaging_ws_server.h` | `kcenon/network/http/websocket_server.h` |
-| `messaging_quic_client.h` | `kcenon/network/experimental/quic_client.h` |
-| `messaging_quic_server.h` | `kcenon/network/experimental/quic_server.h` |
-| `reliable_udp_client.h` | `kcenon/network/experimental/reliable_udp_client.h` |
+| `messaging_quic_client.h` | `internal/experimental/quic_client.h` |
+| `messaging_quic_server.h` | `internal/experimental/quic_server.h` |
+| `reliable_udp_client.h` | `internal/experimental/reliable_udp_client.h` |
 
 ## Stability
 

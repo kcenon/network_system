@@ -27,7 +27,7 @@
 
 #define NETWORK_USE_EXPERIMENTAL
 #include <kcenon/network/facade/quic_facade.h>
-#include <kcenon/network/experimental/quic_client.h>
+#include "internal/experimental/quic_client.h"
 
 using namespace kcenon::network;
 
