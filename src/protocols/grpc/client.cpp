@@ -49,7 +49,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <grpcpp/generic/generic_stub.h>
 #include <grpcpp/support/byte_buffer.h>
 #else
-#include "kcenon/network/protocols/http2/http2_client.h"
+#include "internal/protocols/http2/http2_client.h"
 #include "kcenon/network/integration/thread_integration.h"
 #endif
 

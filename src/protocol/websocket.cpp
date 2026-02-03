@@ -31,8 +31,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *****************************************************************************/
 
 #include "kcenon/network/protocol/websocket.h"
-#include "kcenon/network/unified/adapters/ws_connection_adapter.h"
-#include "kcenon/network/unified/adapters/ws_listener_adapter.h"
+#include "internal/unified/adapters/ws_connection_adapter.h"
+#include "internal/unified/adapters/ws_listener_adapter.h"
 
 #include <atomic>
 #include <chrono>
