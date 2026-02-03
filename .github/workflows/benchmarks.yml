@@ -128,8 +128,15 @@ jobs:
            benchmarks/baselines/baseline_${{ matrix.os }}_$(date +%Y%m%d).json
 
     - name: Compare with baseline (if exists)
-      if: hashFiles('benchmarks/baselines/baseline_${{ matrix.os }}_*.json') != ''
       run: |
+        # Check if any baseline files exist for this OS
+        BASELINE=$(ls -t benchmarks/baselines/baseline_${{ matrix.os }}_*.json 2>/dev/null | head -1 || true)
+
+        if [ -z "$BASELINE" ] || [ ! -f "$BASELINE" ]; then
+          echo "No baseline found for ${{ matrix.os }}, skipping comparison"
+          exit 0
+        fi
+
         echo "Comparing with baseline..."
 
         # Create virtual environment for Python dependencies (PEP 668 compliance)
@@ -137,22 +144,17 @@ jobs:
         source .venv/bin/activate
         pip install scipy
 
-        # Find latest baseline
-        BASELINE=$(ls -t benchmarks/baselines/baseline_${{ matrix.os }}_*.json | head -1)
+        echo "Baseline: $BASELINE"
+        echo "Current: build/benchmarks/benchmark_results_${{ matrix.os }}.json"
 
-        if [ -f "$BASELINE" ]; then
-          echo "Baseline: $BASELINE"
-          echo "Current: build/benchmarks/benchmark_results_${{ matrix.os }}.json"
+        # Download compare.py
+        curl -O https://raw.githubusercontent.com/google/benchmark/main/tools/compare.py
+        chmod +x compare.py
 
-          # Download compare.py
-          curl -O https://raw.githubusercontent.com/google/benchmark/main/tools/compare.py
-          chmod +x compare.py
-
-          # Run comparison
-          python3 compare.py \
-            "$BASELINE" \
-            build/benchmarks/benchmark_results_${{ matrix.os }}.json
-        fi
+        # Run comparison
+        python3 compare.py \
+          "$BASELINE" \
+          build/benchmarks/benchmark_results_${{ matrix.os }}.json
 
         deactivate
 
