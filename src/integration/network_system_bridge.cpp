@@ -28,10 +28,10 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <kcenon/network/integration/network_system_bridge.h>
-#include <kcenon/network/integration/thread_system_adapter.h>
+#include "internal/integration/thread_system_adapter.h"
 
 #if KCENON_WITH_COMMON_SYSTEM
-#include <kcenon/network/integration/common_system_adapter.h>
+#include "internal/integration/common_system_adapter.h"
 #include <kcenon/common/interfaces/monitoring_interface.h>
 #endif
 

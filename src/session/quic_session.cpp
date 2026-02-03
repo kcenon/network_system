@@ -32,7 +32,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "kcenon/network/session/quic_session.h"
 
-#include "kcenon/network/integration/logger_integration.h"
+#include "internal/integration/logger_integration.h"
 #include "kcenon/network/metrics/network_metrics.h"
 #include "internal/quic_socket.h"
 

@@ -45,7 +45,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <mutex>
 
 #if KCENON_WITH_THREAD_SYSTEM
-#include "kcenon/network/integration/thread_system_adapter.h"
+#include "internal/integration/thread_system_adapter.h"
 #endif
 
 namespace kcenon::network::core {

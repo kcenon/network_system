@@ -42,7 +42,7 @@
 
 #include <kcenon/network/config/feature_flags.h>
 
-#include "kcenon/network/integration/thread_system_adapter.h"
+#include "internal/integration/thread_system_adapter.h"
 
 #if KCENON_WITH_THREAD_SYSTEM
 

@@ -16,7 +16,7 @@ All rights reserved.
  */
 
 #include "kcenon/network/metrics/network_metrics.h"
-#include "kcenon/network/integration/monitoring_integration.h"
+#include "internal/integration/monitoring_integration.h"
 #include "../helpers/mock_monitor.h"
 
 #include <gtest/gtest.h>

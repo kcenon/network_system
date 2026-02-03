@@ -34,7 +34,7 @@
 
 #include <gtest/gtest.h>
 
-#include <kcenon/network/integration/thread_pool_bridge.h>
+#include "internal/integration/thread_pool_bridge.h"
 #include <kcenon/network/integration/thread_integration.h>
 #include <kcenon/network/config/feature_flags.h>
 

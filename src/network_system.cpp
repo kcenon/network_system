@@ -34,12 +34,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "kcenon/network/network_system.h"
 #include "internal/core/network_context.h"
-#include "kcenon/network/integration/common_system_adapter.h"
-#include "kcenon/network/integration/logger_integration.h"
+#include "internal/integration/common_system_adapter.h"
+#include "internal/integration/logger_integration.h"
 #include "kcenon/network/integration/thread_integration.h"
 
 #if KCENON_WITH_MONITORING_SYSTEM
-#include "kcenon/network/integration/monitoring_integration.h"
+#include "internal/integration/monitoring_integration.h"
 #endif
 
 #include <atomic>

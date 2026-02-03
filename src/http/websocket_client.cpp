@@ -35,7 +35,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "internal/core/network_context.h"
 #include "internal/tcp/tcp_socket.h"
 #include "internal/websocket/websocket_socket.h"
-#include "kcenon/network/integration/logger_integration.h"
+#include "internal/integration/logger_integration.h"
 
 namespace kcenon::network::core
 {

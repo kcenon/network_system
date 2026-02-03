@@ -33,8 +33,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "kcenon/network/metrics/network_metrics.h"
 #include "kcenon/network/metrics/histogram.h"
 #include "kcenon/network/metrics/sliding_histogram.h"
-#include "kcenon/network/integration/monitoring_integration.h"
-#include "kcenon/network/integration/logger_integration.h"
+#include "internal/integration/monitoring_integration.h"
+#include "internal/integration/logger_integration.h"
 #include "kcenon/network/config/feature_flags.h"
 
 #include <mutex>
