@@ -37,11 +37,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <sstream>
 #include <stdexcept>
 
-// Suppress deprecation warnings for internal usage
-#define NETWORK_SYSTEM_SUPPRESS_DEPRECATION_WARNINGS
-#include "internal/http/websocket_client.h"
-#include "internal/http/websocket_server.h"
-#undef NETWORK_SYSTEM_SUPPRESS_DEPRECATION_WARNINGS
+#include "internal/adapters/ws_client_adapter.h"
+#include "internal/adapters/ws_server_adapter.h"
 
 namespace kcenon::network::facade
 {
@@ -93,23 +90,30 @@ auto websocket_facade::validate_server_config(const server_config& config) -> vo
 }
 
 auto websocket_facade::create_client(const client_config& config) const
-	-> std::shared_ptr<core::messaging_ws_client>
+	-> std::shared_ptr<interfaces::i_protocol_client>
 {
 	validate_client_config(config);
 
 	const auto client_id = config.client_id.empty() ? generate_client_id() : config.client_id;
 
-	return std::make_shared<core::messaging_ws_client>(client_id);
+	// Create adapter with ping interval from config
+	// Note: Path must be set by caller via dynamic_cast if non-default path needed
+	return std::make_shared<internal::adapters::ws_client_adapter>(
+		client_id, config.ping_interval);
 }
 
 auto websocket_facade::create_server(const server_config& config) const
-	-> std::shared_ptr<core::messaging_ws_server>
+	-> std::shared_ptr<interfaces::i_protocol_server>
 {
 	validate_server_config(config);
 
 	const auto server_id = config.server_id.empty() ? generate_server_id() : config.server_id;
 
-	return std::make_shared<core::messaging_ws_server>(server_id);
+	// Create adapter and configure path
+	auto adapter = std::make_shared<internal::adapters::ws_server_adapter>(server_id);
+	adapter->set_path(config.path);
+
+	return adapter;
 }
 
 } // namespace kcenon::network::facade

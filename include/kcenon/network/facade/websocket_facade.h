@@ -37,11 +37,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <memory>
 #include <string>
 
-namespace kcenon::network::core
+namespace kcenon::network::interfaces
 {
-	class messaging_ws_client;
-	class messaging_ws_server;
-} // namespace kcenon::network::core
+	class i_protocol_client;
+	class i_protocol_server;
+} // namespace kcenon::network::interfaces
 
 namespace kcenon::network::facade
 {
@@ -57,7 +57,7 @@ namespace kcenon::network::facade
  * ### Design Goals
  * - **Simplicity**: No template parameters or protocol tags
  * - **Consistency**: Same API pattern across all protocol facades
- * - **Type Safety**: Returns standard WebSocket client/server types
+ * - **Type Safety**: Returns unified protocol interfaces (i_protocol_client/i_protocol_server)
  * - **Zero Cost**: No performance overhead compared to direct instantiation
  *
  * ### Thread Safety
@@ -82,8 +82,8 @@ namespace kcenon::network::facade
  * });
  * \endcode
  *
- * \see core::messaging_ws_client
- * \see core::messaging_ws_server
+ * \see interfaces::i_protocol_client
+ * \see interfaces::i_protocol_server
  */
 class websocket_facade
 {
@@ -120,37 +120,47 @@ public:
 	/*!
 	 * \brief Creates a WebSocket client with the specified configuration.
 	 * \param config Client configuration.
-	 * \return Shared pointer to messaging_ws_client.
+	 * \return Shared pointer to i_protocol_client interface.
 	 * \throws std::invalid_argument if configuration is invalid.
 	 *
 	 * ### Behavior
-	 * - Creates a messaging_ws_client instance
+	 * - Creates a WebSocket client adapter wrapping messaging_ws_client
 	 * - Client ID is auto-generated if not provided
 	 * - Default ping interval is 30 seconds
+	 * - Returns unified i_protocol_client interface for protocol-agnostic usage
+	 *
+	 * ### Protocol-Specific Notes
+	 * - send() sends data as binary WebSocket frames
+	 * - For text messages or WebSocket-specific features, cast to i_websocket_client
 	 *
 	 * ### Error Conditions
 	 * - Throws if ping_interval is zero or negative
 	 */
 	[[nodiscard]] auto create_client(const client_config& config) const
-		-> std::shared_ptr<core::messaging_ws_client>;
+		-> std::shared_ptr<interfaces::i_protocol_client>;
 
 	/*!
 	 * \brief Creates a WebSocket server with the specified configuration.
 	 * \param config Server configuration.
-	 * \return Shared pointer to messaging_ws_server.
+	 * \return Shared pointer to i_protocol_server interface.
 	 * \throws std::invalid_argument if configuration is invalid.
 	 *
 	 * ### Behavior
-	 * - Creates a messaging_ws_server instance
+	 * - Creates a WebSocket server adapter wrapping messaging_ws_server
 	 * - Server ID is auto-generated if not provided
 	 * - Server must be started manually using start() method
+	 * - Returns unified i_protocol_server interface for protocol-agnostic usage
+	 *
+	 * ### Protocol-Specific Notes
+	 * - Receive callback delivers binary data via the unified interface
+	 * - For text messages or WebSocket-specific features, cast to i_websocket_server
 	 *
 	 * ### Error Conditions
 	 * - Throws if port is 0 or > 65535
 	 * - Throws if path is empty or does not start with '/'
 	 */
 	[[nodiscard]] auto create_server(const server_config& config) const
-		-> std::shared_ptr<core::messaging_ws_server>;
+		-> std::shared_ptr<interfaces::i_protocol_server>;
 
 private:
 	//! \brief Generates a unique client ID

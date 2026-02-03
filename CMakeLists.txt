@@ -497,6 +497,8 @@ add_library(NetworkSystem
     src/adapters/tcp_server_adapter.cpp
     src/adapters/udp_client_adapter.cpp
     src/adapters/udp_server_adapter.cpp
+    src/adapters/ws_client_adapter.cpp
+    src/adapters/ws_server_adapter.cpp
 
     # Basic integration layer - container_integration and messaging_bridge
     # (Other integration sources are in network-integration-objects to avoid ODR violations)
