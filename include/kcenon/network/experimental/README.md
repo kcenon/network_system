@@ -1,96 +1,55 @@
-# Experimental Module
+# Experimental Module (Migrated)
 
-This module contains experimental protocol implementations that are still under development.
+## Status: Moved to Internal
 
-## Warning
+The experimental headers have been moved to `src/internal/experimental/` as part of the header simplification effort (Issue #577).
 
-**APIs in this module may change between minor versions without notice.**
+## Migration Guide
 
-These implementations are provided for early adopters and feedback collection.
-Do not use in production without understanding the risks.
+If you were using experimental APIs directly, update your includes:
 
-## Contents
+| Old Path | New Path |
+|----------|----------|
+| `kcenon/network/experimental/quic_client.h` | `internal/experimental/quic_client.h` |
+| `kcenon/network/experimental/quic_server.h` | `internal/experimental/quic_server.h` |
+| `kcenon/network/experimental/reliable_udp_client.h` | `internal/experimental/reliable_udp_client.h` |
+| `kcenon/network/experimental/experimental_api.h` | `internal/experimental/experimental_api.h` |
 
-| Header | Description |
-|--------|-------------|
-| `experimental_api.h` | Macros for experimental API opt-in |
-| `quic_client.h` | QUIC protocol client implementation |
-| `quic_server.h` | QUIC protocol server implementation |
-| `reliable_udp_client.h` | Reliable UDP transport layer |
+## Recommended Approach
 
-## Enabling Experimental APIs
-
-To use experimental APIs, you must explicitly opt-in:
+Instead of using internal headers directly, prefer the facade APIs:
 
 ```cpp
-// Method 1: Define before including
-#define NETWORK_USE_EXPERIMENTAL
-#include <kcenon/network/experimental/quic_client.h>
+#include <kcenon/network/facade/quic_facade.h>
 
-// Method 2: Compiler define
-// g++ -DNETWORK_USE_EXPERIMENTAL ...
-```
+using namespace kcenon::network::facade;
 
-Without opt-in, you'll get a compile-time error explaining that the API is experimental.
-
-## Usage
-
-```cpp
-#define NETWORK_USE_EXPERIMENTAL
-#include <kcenon/network/experimental/quic_client.h>
-#include <kcenon/network/experimental/quic_server.h>
-
-using namespace kcenon::network::experimental;
-
-// QUIC Client
-auto client = messaging_quic_client::create(quic_client_config{
-    .server_address = "localhost",
-    .port = 4433
+// Create QUIC client via facade
+quic_facade facade;
+auto client = facade.create_client({
+    .host = "localhost",
+    .port = 4433,
+    .client_id = "my-client"
 });
 
-// QUIC Server (requires TLS certificates)
-auto server = messaging_quic_server::create(quic_server_config{
+// Create QUIC server via facade
+auto server = facade.create_server({
     .port = 4433,
     .cert_path = "server.crt",
     .key_path = "server.key"
 });
 ```
 
-## Migration from core/
+## Why This Change?
 
-If you were previously using includes from `kcenon/network/core/`:
+This change is part of EPIC #577 to:
+1. Reduce public header count (goal: < 40 files)
+2. Hide internal implementation details
+3. Promote facade-based API usage
+4. Improve compilation times
 
-| Old Path | New Path |
-|----------|----------|
-| `core/messaging_quic_client.h` | `experimental/quic_client.h` |
-| `core/messaging_quic_server.h` | `experimental/quic_server.h` |
-| `core/reliable_udp_client.h` | `experimental/reliable_udp_client.h` |
+## See Also
 
-The old paths still work but will emit deprecation warnings and automatically
-enable the experimental flag for backward compatibility.
-
-## Namespace
-
-All types are in `kcenon::network::experimental` namespace:
-
-```cpp
-namespace kcenon::network::experimental {
-    class messaging_quic_client;
-    class messaging_quic_server;
-    class reliable_udp_client;
-    // ... etc
-}
-```
-
-## Feedback
-
-We welcome feedback on experimental APIs! Please open an issue on GitHub
-with your use case, suggestions, or bug reports.
-
-## Promotion Path
-
-Experimental APIs may be promoted to stable status when:
-1. The API has stabilized and no breaking changes are expected
-2. Sufficient testing and real-world usage has occurred
-3. Documentation is complete
-4. Performance characteristics are well understood
+- `kcenon/network/facade/quic_facade.h` - Recommended facade API
+- `kcenon/network/interfaces/i_quic_client.h` - Public interface
+- `kcenon/network/interfaces/i_quic_server.h` - Public interface

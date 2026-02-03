@@ -33,13 +33,13 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 
 // Experimental API marker - users must opt-in to use this header
-#include "kcenon/network/experimental/experimental_api.h"
+#include "internal/experimental/experimental_api.h"
 NETWORK_REQUIRE_EXPERIMENTAL
 
 #include <kcenon/network/config/feature_flags.h>
 
 #include "internal/core/callback_indices.h"
-#include "kcenon/network/experimental/quic_client.h"
+#include "internal/experimental/quic_client.h"
 #include "internal/core/network_context.h"
 #include "kcenon/network/interfaces/i_quic_server.h"
 #include "kcenon/network/integration/thread_integration.h"
