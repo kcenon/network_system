@@ -46,8 +46,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <kcenon/network/config/feature_flags.h>
 #include "internal/integration/bridge_interface.h"
-#include "kcenon/network/core/messaging_client.h"
-#include "kcenon/network/core/messaging_server.h"
+#include "internal/core/messaging_client.h"
+#include "internal/core/messaging_server.h"
 
 #if KCENON_WITH_CONTAINER_SYSTEM
 #include "container.h"

@@ -33,7 +33,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 
 #include "kcenon/network/unified/i_listener.h"
-#include "kcenon/network/core/unified_messaging_server.h"
+#include "internal/core/unified_messaging_server.h"
 
 #include <atomic>
 #include <memory>
