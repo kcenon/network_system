@@ -42,8 +42,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <memory>
 #include "kcenon/network/integration/thread_integration.h"
-#include "kcenon/network/integration/logger_integration.h"
-#include "kcenon/network/integration/monitoring_integration.h"
+#include "internal/integration/logger_integration.h"
+#include "internal/integration/monitoring_integration.h"
 
 namespace kcenon::network::core {
 

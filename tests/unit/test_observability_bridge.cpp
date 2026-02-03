@@ -34,9 +34,9 @@
 
 #include <gtest/gtest.h>
 
-#include <kcenon/network/integration/observability_bridge.h>
-#include <kcenon/network/integration/logger_integration.h>
-#include <kcenon/network/integration/monitoring_integration.h>
+#include "internal/integration/observability_bridge.h"
+#include "internal/integration/logger_integration.h"
+#include "internal/integration/monitoring_integration.h"
 #include <kcenon/network/config/feature_flags.h>
 
 #include <atomic>

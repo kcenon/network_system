@@ -31,7 +31,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *****************************************************************************/
 
 #include "kcenon/network/utils/compression_pipeline.h"
-#include "kcenon/network/integration/logger_integration.h"
+#include "internal/integration/logger_integration.h"
 
 #ifdef BUILD_LZ4_COMPRESSION
 #include <lz4.h>

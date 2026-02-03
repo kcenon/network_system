@@ -33,7 +33,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 
 #include "internal/tcp/tcp_socket.h"
-#include "kcenon/network/integration/io_context_thread_manager.h"
+#include "internal/integration/io_context_thread_manager.h"
 
 #ifdef BUILD_TLS_SUPPORT
 #include "internal/tcp/secure_tcp_socket.h"

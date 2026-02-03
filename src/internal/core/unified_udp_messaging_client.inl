@@ -34,7 +34,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "internal/core/network_context.h"
 #include "internal/udp/udp_socket.h"
-#include "kcenon/network/integration/logger_integration.h"
+#include "internal/integration/logger_integration.h"
 
 #ifdef BUILD_TLS_SUPPORT
 #include "internal/tcp/dtls_socket.h"

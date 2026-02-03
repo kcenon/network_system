@@ -37,8 +37,8 @@
 
 #include <gtest/gtest.h>
 
-#include <kcenon/network/integration/messaging_bridge.h>
-#include <kcenon/network/integration/bridge_interface.h>
+#include "internal/integration/messaging_bridge.h"
+#include "internal/integration/bridge_interface.h"
 #include <kcenon/network/config/feature_flags.h>
 
 #include <chrono>

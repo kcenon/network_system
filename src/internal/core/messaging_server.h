@@ -83,7 +83,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "kcenon/network/utils/result_types.h"
 #include "kcenon/network/utils/startable_base.h"
 #include "kcenon/network/utils/callback_manager.h"
-#include "kcenon/network/integration/io_context_thread_manager.h"
+#include "internal/integration/io_context_thread_manager.h"
 
 // Optional monitoring support via common_system
 #if KCENON_WITH_COMMON_SYSTEM

@@ -36,7 +36,7 @@
 
 #include <gtest/gtest.h>
 
-#include "kcenon/network/integration/thread_pool_adapters.h"
+#include "internal/integration/thread_pool_adapters.h"
 
 #include <atomic>
 #include <chrono>

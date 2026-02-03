@@ -35,8 +35,8 @@
  * @date 2025-01-06
  */
 
-#include "kcenon/network/integration/io_context_thread_manager.h"
-#include "kcenon/network/integration/logger_integration.h"
+#include "internal/integration/io_context_thread_manager.h"
+#include "internal/integration/logger_integration.h"
 #include "internal/core/network_context.h"
 
 #include <atomic>
