@@ -31,7 +31,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *****************************************************************************/
 
 #include "network_udp/core/secure_messaging_udp_server.h"
-#include "kcenon/network/core/network_context.h"
+#include "internal/core/network_context.h"
 #include "internal/tcp/dtls_socket.h"
 
 #include <string_view>

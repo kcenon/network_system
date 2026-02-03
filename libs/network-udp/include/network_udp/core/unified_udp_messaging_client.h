@@ -45,7 +45,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <asio.hpp>
 
-#include "kcenon/network/core/callback_indices.h"
+#include "internal/core/callback_indices.h"
 #include "network_udp/interfaces/i_udp_client.h"
 #include "kcenon/network/integration/thread_integration.h"
 #include "kcenon/network/policy/tls_policy.h"
