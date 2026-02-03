@@ -41,7 +41,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <asio.hpp>
 
-#include "kcenon/network/core/messaging_client.h"
+#include "internal/core/messaging_client.h"
 
 namespace kcenon::network::utils
 {
