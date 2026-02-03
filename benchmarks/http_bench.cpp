@@ -51,8 +51,8 @@
 #include <algorithm>
 #include <numeric>
 
-#include "kcenon/network/core/http_server.h"
-#include "kcenon/network/core/http_client.h"
+#include "internal/http/http_server.h"
+#include "internal/http/http_client.h"
 
 using namespace kcenon::network::core;
 using namespace kcenon::network::internal;

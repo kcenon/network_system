@@ -41,12 +41,12 @@
  */
 
 // Core networking components
-#include "kcenon/network/core/messaging_client.h"
-#include "kcenon/network/core/messaging_server.h"
+#include "internal/core/messaging_client.h"
+#include "internal/core/messaging_server.h"
 
 // Unified templates with protocol/TLS policy parameters
-#include "kcenon/network/core/unified_messaging_client.h"
-#include "kcenon/network/core/unified_messaging_server.h"
+#include "internal/core/unified_messaging_client.h"
+#include "internal/core/unified_messaging_server.h"
 
 // Protocol tags and TLS policies for unified templates
 #include "kcenon/network/protocol/protocol_tags.h"
@@ -56,14 +56,14 @@
 #include "kcenon/network/session/messaging_session.h"
 
 // Integration interfaces
-#include "kcenon/network/integration/messaging_bridge.h"
+#include "internal/integration/messaging_bridge.h"
 #include "kcenon/network/integration/thread_integration.h"
-#include "kcenon/network/integration/container_integration.h"
+#include "internal/integration/container_integration.h"
 
 // Configuration system
 #include "kcenon/network/config/network_config.h"
 #include "kcenon/network/config/network_system_config.h"
-#include "kcenon/network/core/network_context.h"
+#include "internal/core/network_context.h"
 
 // Result type for error handling
 #include "kcenon/network/utils/result_types.h"

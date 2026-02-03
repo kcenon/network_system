@@ -77,8 +77,8 @@ All rights reserved.
  * @see unified_messaging_server
  */
 
-#include "kcenon/network/core/unified_messaging_client.h"
-#include "kcenon/network/core/unified_messaging_server.h"
+#include "internal/core/unified_messaging_client.h"
+#include "internal/core/unified_messaging_server.h"
 
 namespace kcenon::network::compat {
 

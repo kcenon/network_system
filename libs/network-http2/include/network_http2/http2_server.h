@@ -41,4 +41,4 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 // Re-export http2_server from main network_system
-#include "kcenon/network/protocols/http2/http2_server.h"
+#include "internal/protocols/http2/http2_server.h"

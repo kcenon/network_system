@@ -6,7 +6,7 @@ All rights reserved.
 *****************************************************************************/
 
 #include <kcenon/network/facade/http_facade.h>
-#include <kcenon/network/http/http_client.h>
+#include <internal/http/http_client.h>
 #include <iostream>
 #include <thread>
 #include <chrono>
