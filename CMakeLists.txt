@@ -493,6 +493,9 @@ add_library(NetworkSystem
     src/facade/websocket_facade.cpp
     src/facade/quic_facade.cpp
 
+    # Protocol adapters - bridge legacy implementations to unified interfaces
+    src/adapters/tcp_server_adapter.cpp
+
     # Basic integration layer - container_integration and messaging_bridge
     # (Other integration sources are in network-integration-objects to avoid ODR violations)
     # messaging_bridge.cpp is here because it depends on messaging_client/server

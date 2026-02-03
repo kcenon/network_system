@@ -38,9 +38,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdexcept>
 
 #include "internal/core/messaging_client.h"
-// SSL and server implementations will be added after they implement the protocol interfaces
+#include "internal/adapters/tcp_server_adapter.h"
+// SSL implementations will be added after they implement the protocol interfaces
 // #include "internal/core/secure_messaging_client.h"
-// #include "internal/core/messaging_server.h"
 // #include "internal/core/secure_messaging_server.h"
 
 namespace kcenon::network::facade
@@ -149,13 +149,24 @@ auto tcp_facade::create_server(const server_config& config) const
 	// Validate configuration
 	validate_server_config(config);
 
-	// TODO: Implement server creation after messaging_server implements IProtocolServer
-	// This is tracked in issue #597 (or create a follow-up issue for server support)
+	// Generate server ID if not provided
+	const std::string server_id = config.server_id.empty() ? generate_server_id() : config.server_id;
 
-	// For now, throw to indicate this is not yet implemented
-	throw std::runtime_error(
-		"tcp_facade::create_server not yet implemented - "
-		"requires messaging_server to implement IProtocolServer interface");
+	// Create appropriate server type based on SSL flag
+	std::shared_ptr<interfaces::i_protocol_server> server;
+
+	if (config.use_ssl)
+	{
+		// Note: SSL support will be added after secure_messaging_server implements IProtocolServer
+		throw std::runtime_error(
+			"tcp_facade: SSL/TLS support not yet implemented - "
+			"requires secure_messaging_server to implement IProtocolServer interface");
+	}
+
+	// Create adapter wrapping messaging_server
+	server = std::make_shared<internal::adapters::tcp_server_adapter>(server_id);
+
+	return server;
 }
 
 } // namespace kcenon::network::facade
