@@ -41,4 +41,4 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 // Re-export frame types from main network_system
-#include "kcenon/network/protocols/http2/frame.h"
+#include "internal/protocols/http2/frame.h"

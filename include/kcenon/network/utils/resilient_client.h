@@ -39,7 +39,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <string>
 #include <vector>
 
-#include "kcenon/network/core/messaging_client.h"
+#include "internal/core/messaging_client.h"
 
 #ifdef WITH_COMMON_SYSTEM
 #include "kcenon/common/resilience/circuit_breaker.h"

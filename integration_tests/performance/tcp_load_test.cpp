@@ -6,8 +6,8 @@ All rights reserved.
 *****************************************************************************/
 
 #include <gtest/gtest.h>
-#include "kcenon/network/core/messaging_server.h"
-#include "kcenon/network/core/messaging_client.h"
+#include "internal/core/messaging_server.h"
+#include "internal/core/messaging_client.h"
 #include "../framework/test_helpers.h"
 #include "../framework/memory_profiler.h"
 #include "../framework/result_writer.h"
