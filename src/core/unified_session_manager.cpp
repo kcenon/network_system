@@ -5,7 +5,7 @@ Copyright (c) 2025, kcenon
 All rights reserved.
 *****************************************************************************/
 
-#include "kcenon/network/core/unified_session_manager.h"
+#include "internal/core/unified_session_manager.h"
 
 #include <algorithm>
 #include <atomic>

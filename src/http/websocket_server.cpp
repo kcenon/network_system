@@ -32,8 +32,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "kcenon/network/http/websocket_server.h"
 
-#include "kcenon/network/core/network_context.h"
-#include "kcenon/network/core/ws_session_manager.h"
+#include "internal/core/network_context.h"
+#include "internal/core/ws_session_manager.h"
 #include "internal/tcp/tcp_socket.h"
 #include "internal/websocket/websocket_socket.h"
 #include "kcenon/network/integration/logger_integration.h"

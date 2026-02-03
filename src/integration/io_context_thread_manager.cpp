@@ -37,7 +37,7 @@
 
 #include "kcenon/network/integration/io_context_thread_manager.h"
 #include "kcenon/network/integration/logger_integration.h"
-#include "kcenon/network/core/network_context.h"
+#include "internal/core/network_context.h"
 
 #include <atomic>
 #include <unordered_map>

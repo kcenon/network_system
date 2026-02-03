@@ -38,7 +38,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * @date 2025-01-13
  */
 
-#include "kcenon/network/core/network_context.h"
+#include "internal/core/network_context.h"
 #include "kcenon/network/config/feature_flags.h"
 
 #include <thread>

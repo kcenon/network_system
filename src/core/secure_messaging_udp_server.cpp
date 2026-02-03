@@ -30,8 +30,8 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *****************************************************************************/
 
-#include "kcenon/network/core/secure_messaging_udp_server.h"
-#include "kcenon/network/core/network_context.h"
+#include "internal/core/secure_messaging_udp_server.h"
+#include "internal/core/network_context.h"
 #include "internal/tcp/dtls_socket.h"
 
 #include <string_view>
