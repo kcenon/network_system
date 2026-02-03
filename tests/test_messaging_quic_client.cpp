@@ -36,7 +36,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <thread>
 #include <future>
 
-#include "kcenon/network/core/messaging_quic_client.h"
+#define NETWORK_USE_EXPERIMENTAL
+#include "kcenon/network/experimental/quic_client.h"
 #include "kcenon/network/utils/result_types.h"
 
 namespace kcenon::network::core::test

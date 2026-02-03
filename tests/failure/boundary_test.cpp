@@ -7,9 +7,9 @@ All rights reserved.
 
 #include <gtest/gtest.h>
 
-#include "kcenon/network/core/http_server.h"
-#include "kcenon/network/core/messaging_client.h"
-#include "kcenon/network/core/messaging_server.h"
+#include "internal/http/http_server.h"
+#include "internal/core/messaging_client.h"
+#include "internal/core/messaging_server.h"
 #include "internal/http/http_error.h"
 
 #include <chrono>
