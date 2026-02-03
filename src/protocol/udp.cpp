@@ -31,8 +31,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *****************************************************************************/
 
 #include "kcenon/network/protocol/udp.h"
-#include "kcenon/network/unified/adapters/udp_connection_adapter.h"
-#include "kcenon/network/unified/adapters/udp_listener_adapter.h"
+#include "internal/unified/adapters/udp_connection_adapter.h"
+#include "internal/unified/adapters/udp_listener_adapter.h"
 
 #include <atomic>
 #include <chrono>

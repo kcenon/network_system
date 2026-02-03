@@ -30,7 +30,7 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *****************************************************************************/
 
-#include "kcenon/network/unified/adapters/ws_listener_adapter.h"
+#include "internal/unified/adapters/ws_listener_adapter.h"
 
 #include <algorithm>
 #include <cstring>
