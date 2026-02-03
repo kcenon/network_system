@@ -33,8 +33,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 
 #include "kcenon/network/session/messaging_session.h"
-#include "kcenon/network/integration/io_context_thread_manager.h"
-#include "kcenon/network/integration/logger_integration.h"
+#include "internal/integration/io_context_thread_manager.h"
+#include "internal/integration/logger_integration.h"
 
 #ifdef BUILD_TLS_SUPPORT
 #include "kcenon/network/session/secure_session.h"

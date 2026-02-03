@@ -7,7 +7,7 @@ All rights reserved.
 
 #pragma once
 
-#include "kcenon/network/integration/monitoring_integration.h"
+#include "internal/integration/monitoring_integration.h"
 
 #include <atomic>
 #include <mutex>

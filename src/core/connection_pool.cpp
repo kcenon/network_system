@@ -31,7 +31,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *****************************************************************************/
 
 #include "internal/core/connection_pool.h"
-#include "kcenon/network/integration/logger_integration.h"
+#include "internal/integration/logger_integration.h"
 
 namespace kcenon::network::core
 {

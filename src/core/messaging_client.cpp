@@ -31,8 +31,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *****************************************************************************/
 
 #include "internal/core/messaging_client.h"
-#include "kcenon/network/integration/logger_integration.h"
-#include "kcenon/network/integration/io_context_thread_manager.h"
+#include "internal/integration/logger_integration.h"
+#include "internal/integration/io_context_thread_manager.h"
 #include "kcenon/network/tracing/span.h"
 #include "kcenon/network/tracing/trace_context.h"
 #include "kcenon/network/tracing/tracing_config.h"

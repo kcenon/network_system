@@ -68,11 +68,11 @@
  * @date 2026-02-01
  */
 
-#include <kcenon/network/integration/bridge_interface.h>
-#include <kcenon/network/integration/thread_pool_bridge.h>
-#include <kcenon/network/integration/thread_integration.h>
-#include <kcenon/network/integration/logger_integration.h>
-#include <kcenon/network/integration/monitoring_integration.h>
+#include "internal/integration/bridge_interface.h"
+#include "internal/integration/thread_pool_bridge.h"
+#include "kcenon/network/integration/thread_integration.h"
+#include "internal/integration/logger_integration.h"
+#include "internal/integration/monitoring_integration.h"
 #include <kcenon/network/config/feature_flags.h>
 
 #if KCENON_WITH_COMMON_SYSTEM
