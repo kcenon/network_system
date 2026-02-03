@@ -32,9 +32,9 @@ All rights reserved.
 #include <thread>
 #include <vector>
 
-#include "kcenon/network/core/connection_pool.h"
 #include <kcenon/network/facade/tcp_facade.h>
 #include <kcenon/network/interfaces/i_session.h>
+#include "internal/core/connection_pool.h"
 
 using namespace kcenon::network::core;
 using namespace kcenon::network;
@@ -349,8 +349,12 @@ int main()
 	// Give server time to start
 	std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-	// Create and initialize connection pool
-	auto pool = std::make_shared<connection_pool>("127.0.0.1", 5555, 5);
+	// Create and initialize connection pool using facade
+	auto pool = tcp.create_connection_pool({
+		.host = "127.0.0.1",
+		.port = 5555,
+		.pool_size = 5
+	});
 
 	auto init_result = pool->initialize();
 	if (init_result.is_err())

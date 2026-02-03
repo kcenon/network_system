@@ -37,6 +37,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <sstream>
 #include <stdexcept>
 
+#include "internal/core/connection_pool.h"
 #include "internal/core/messaging_client.h"
 #include "internal/adapters/tcp_server_adapter.h"
 // SSL implementations will be added after they implement the protocol interfaces
@@ -167,6 +168,30 @@ auto tcp_facade::create_server(const server_config& config) const
 	server = std::make_shared<internal::adapters::tcp_server_adapter>(server_id);
 
 	return server;
+}
+
+auto tcp_facade::create_connection_pool(const pool_config& config) const
+	-> std::shared_ptr<core::connection_pool>
+{
+	if (config.host.empty())
+	{
+		throw std::invalid_argument("tcp_facade: host cannot be empty");
+	}
+
+	if (config.port == 0 || config.port > 65535)
+	{
+		throw std::invalid_argument("tcp_facade: port must be between 1 and 65535");
+	}
+
+	if (config.pool_size == 0)
+	{
+		throw std::invalid_argument("tcp_facade: pool_size must be greater than 0");
+	}
+
+	return std::make_shared<core::connection_pool>(
+		config.host,
+		config.port,
+		config.pool_size);
 }
 
 } // namespace kcenon::network::facade
