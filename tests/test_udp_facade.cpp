@@ -33,8 +33,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <gtest/gtest.h>
 
 #include "kcenon/network/facade/udp_facade.h"
-#include "kcenon/network/interfaces/i_udp_client.h"
-#include "kcenon/network/interfaces/i_udp_server.h"
+#include "kcenon/network/interfaces/i_protocol_client.h"
+#include "kcenon/network/interfaces/i_protocol_server.h"
 
 #include <chrono>
 #include <memory>
@@ -68,8 +68,8 @@ protected:
 	}
 
 	std::unique_ptr<udp_facade> facade_;
-	std::shared_ptr<i_udp_server> server_;
-	std::shared_ptr<i_udp_client> client_;
+	std::shared_ptr<i_protocol_server> server_;
+	std::shared_ptr<i_protocol_client> client_;
 };
 
 // ============================================================================
@@ -146,8 +146,8 @@ TEST_F(UdpFacadeTest, CreateServerWithoutIdGeneratesUniqueId)
 	udp_facade::server_config config1{.port = 5558};
 	udp_facade::server_config config2{.port = 5559};
 
-	std::shared_ptr<i_udp_server> server1;
-	std::shared_ptr<i_udp_server> server2;
+	std::shared_ptr<i_protocol_server> server1;
+	std::shared_ptr<i_protocol_server> server2;
 
 	ASSERT_NO_THROW({
 		server1 = facade_->create_server(config1);
@@ -238,8 +238,8 @@ TEST_F(UdpFacadeTest, CreateClientWithoutIdGeneratesUniqueId)
 		.port = 5562,
 	};
 
-	std::shared_ptr<i_udp_client> client1;
-	std::shared_ptr<i_udp_client> client2;
+	std::shared_ptr<i_protocol_client> client1;
+	std::shared_ptr<i_protocol_client> client2;
 
 	ASSERT_NO_THROW({
 		client1 = facade_->create_client(config1);
@@ -278,8 +278,9 @@ TEST_F(UdpFacadeTest, ClientCanSendDataToServer)
 	std::vector<uint8_t> received_data;
 
 	server_->set_receive_callback(
-		[&received, &received_data](const std::vector<uint8_t>& data,
-		                             const i_udp_server::endpoint_info& sender) {
+		[&received, &received_data](std::string_view session_id,
+		                             const std::vector<uint8_t>& data) {
+			(void)session_id;  // Unused
 			received = true;
 			received_data = data;
 		});
@@ -321,8 +322,10 @@ TEST_F(UdpFacadeTest, MultipleClientsCanCommunicateWithServer)
 	int message_count = 0;
 
 	server_->set_receive_callback(
-		[&message_count](const std::vector<uint8_t>& data,
-		                 const i_udp_server::endpoint_info& sender) {
+		[&message_count](std::string_view session_id,
+		                 const std::vector<uint8_t>& data) {
+			(void)session_id;  // Unused
+			(void)data;        // Unused
 			message_count++;
 		});
 
@@ -337,8 +340,8 @@ TEST_F(UdpFacadeTest, MultipleClientsCanCommunicateWithServer)
 		.port = 5564,
 	};
 
-	std::shared_ptr<i_udp_client> client1;
-	std::shared_ptr<i_udp_client> client2;
+	std::shared_ptr<i_protocol_client> client1;
+	std::shared_ptr<i_protocol_client> client2;
 
 	ASSERT_NO_THROW({
 		client1 = facade_->create_client(config1);

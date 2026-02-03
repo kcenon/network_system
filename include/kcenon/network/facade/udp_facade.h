@@ -36,8 +36,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <memory>
 #include <string>
 
-#include "kcenon/network/interfaces/i_udp_client.h"
-#include "kcenon/network/interfaces/i_udp_server.h"
+#include "kcenon/network/interfaces/i_protocol_client.h"
+#include "kcenon/network/interfaces/i_protocol_server.h"
 
 namespace kcenon::network::facade
 {
@@ -53,7 +53,7 @@ namespace kcenon::network::facade
  * ### Design Goals
  * - **Simplicity**: No template parameters or protocol tags
  * - **Consistency**: Same API pattern across all protocol facades
- * - **Type Safety**: Returns standard i_udp_client/i_udp_server interfaces
+ * - **Type Safety**: Returns standard IProtocolClient/IProtocolServer interfaces
  * - **Zero Cost**: No performance overhead compared to direct instantiation
  *
  * ### Thread Safety
@@ -78,8 +78,8 @@ namespace kcenon::network::facade
  * });
  * \endcode
  *
- * \see interfaces::i_udp_client
- * \see interfaces::i_udp_server
+ * \see interfaces::i_protocol_client
+ * \see interfaces::i_protocol_server
  */
 class udp_facade
 {
@@ -116,11 +116,11 @@ public:
 	/*!
 	 * \brief Creates a UDP client with the specified configuration.
 	 * \param config Client configuration.
-	 * \return Shared pointer to i_udp_client interface.
+	 * \return Shared pointer to IProtocolClient interface.
 	 * \throws std::invalid_argument if configuration is invalid.
 	 *
 	 * ### Behavior
-	 * - Creates a messaging_udp_client instance
+	 * - Creates a UDP client adapter wrapping messaging_udp_client
 	 * - Client ID is auto-generated if not provided
 	 * - Automatically connects to the specified target endpoint
 	 *
@@ -129,16 +129,16 @@ public:
 	 * - Throws if port is 0 or > 65535
 	 */
 	[[nodiscard]] auto create_client(const client_config& config) const
-		-> std::shared_ptr<interfaces::i_udp_client>;
+		-> std::shared_ptr<interfaces::i_protocol_client>;
 
 	/*!
 	 * \brief Creates a UDP server with the specified configuration.
 	 * \param config Server configuration.
-	 * \return Shared pointer to i_udp_server interface.
+	 * \return Shared pointer to IProtocolServer interface.
 	 * \throws std::invalid_argument if configuration is invalid.
 	 *
 	 * ### Behavior
-	 * - Creates a messaging_udp_server instance
+	 * - Creates a UDP server adapter wrapping messaging_udp_server
 	 * - Server ID is auto-generated if not provided
 	 * - Automatically starts listening on the specified port
 	 *
@@ -146,7 +146,7 @@ public:
 	 * - Throws if port is 0 or > 65535
 	 */
 	[[nodiscard]] auto create_server(const server_config& config) const
-		-> std::shared_ptr<interfaces::i_udp_server>;
+		-> std::shared_ptr<interfaces::i_protocol_server>;
 
 private:
 	//! \brief Generates a unique client ID

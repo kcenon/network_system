@@ -37,8 +37,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <sstream>
 #include <stdexcept>
 
-#include "internal/core/messaging_udp_client.h"
-#include "internal/core/messaging_udp_server.h"
+#include "internal/adapters/udp_client_adapter.h"
+#include "internal/adapters/udp_server_adapter.h"
 
 namespace kcenon::network::facade
 {
@@ -90,7 +90,7 @@ auto udp_facade::validate_server_config(const server_config& config) -> void
 }
 
 auto udp_facade::create_client(const client_config& config) const
-	-> std::shared_ptr<interfaces::i_udp_client>
+	-> std::shared_ptr<interfaces::i_protocol_client>
 {
 	// Validate configuration
 	validate_client_config(config);
@@ -98,8 +98,8 @@ auto udp_facade::create_client(const client_config& config) const
 	// Generate client ID if not provided
 	const std::string client_id = config.client_id.empty() ? generate_client_id() : config.client_id;
 
-	// Create UDP client
-	auto client = std::make_shared<core::messaging_udp_client>(client_id);
+	// Create UDP client adapter that wraps messaging_udp_client
+	auto client = std::make_shared<internal::adapters::udp_client_adapter>(client_id);
 
 	// Start the client and connect to target
 	auto result = client->start(config.host, config.port);
@@ -112,7 +112,7 @@ auto udp_facade::create_client(const client_config& config) const
 }
 
 auto udp_facade::create_server(const server_config& config) const
-	-> std::shared_ptr<interfaces::i_udp_server>
+	-> std::shared_ptr<interfaces::i_protocol_server>
 {
 	// Validate configuration
 	validate_server_config(config);
@@ -120,8 +120,8 @@ auto udp_facade::create_server(const server_config& config) const
 	// Generate server ID if not provided
 	const std::string server_id = config.server_id.empty() ? generate_server_id() : config.server_id;
 
-	// Create UDP server
-	auto server = std::make_shared<core::messaging_udp_server>(server_id);
+	// Create UDP server adapter that wraps messaging_udp_server
+	auto server = std::make_shared<internal::adapters::udp_server_adapter>(server_id);
 
 	// Start the server
 	auto result = server->start(config.port);

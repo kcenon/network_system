@@ -42,12 +42,15 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 #include <kcenon/network/facade/udp_facade.h>
+#include <kcenon/network/interfaces/i_session.h>
 
 #include <iostream>
 #include <thread>
 #include <chrono>
 #include <string>
 #include <atomic>
+#include <mutex>
+#include <unordered_map>
 
 using namespace kcenon::network;
 
@@ -66,45 +69,69 @@ void run_server()
     facade::udp_facade udp;
     auto server = udp.create_server({.port = 5555, .server_id = "EchoServer"});
 
-    // Set up receive callback to echo messages back (using interface callback)
+    // Track sessions to send responses back
+    std::unordered_map<std::string, std::shared_ptr<interfaces::i_session>> sessions;
+    std::mutex sessions_mutex;
+
+    // Set up connection callback to track new clients
+    server->set_connection_callback(
+        [&sessions, &sessions_mutex](std::shared_ptr<interfaces::i_session> session)
+        {
+            std::lock_guard<std::mutex> lock(sessions_mutex);
+            std::string id(session->id());
+            sessions[id] = session;
+            std::cout << "[Server] New client: " << id << "\n";
+        });
+
+    // Set up disconnection callback
+    server->set_disconnection_callback(
+        [&sessions, &sessions_mutex](std::string_view session_id)
+        {
+            std::lock_guard<std::mutex> lock(sessions_mutex);
+            sessions.erase(std::string(session_id));
+            std::cout << "[Server] Client disconnected: " << session_id << "\n";
+        });
+
+    // Set up receive callback to echo messages back (using i_protocol_server interface)
     server->set_receive_callback(
-        [server](const std::vector<uint8_t>& data,
-                 const interfaces::i_udp_server::endpoint_info& sender)
+        [&sessions, &sessions_mutex](std::string_view session_id,
+                                      const std::vector<uint8_t>& data)
         {
             std::string message(data.begin(), data.end());
-            std::cout << "[Server] Received: \"" << message << "\" from "
-                      << sender.address << ":" << sender.port << "\n";
+            std::cout << "[Server] Received: \"" << message << "\" from " << session_id << "\n";
 
-            // Echo back using interface send_to
-            std::string response = "Echo: " + message;
-            std::vector<uint8_t> response_data(response.begin(), response.end());
-
-            auto send_result = server->send_to(
-                sender,
-                std::move(response_data),
-                [](std::error_code ec, std::size_t bytes)
-                {
-                    if (!ec)
-                    {
-                        std::cout << "[Server] Sent echo response: " << bytes << " bytes\n";
-                    }
-                    else
-                    {
-                        std::cerr << "[Server] Send error: " << ec.message() << "\n";
-                    }
-                });
-
-            if (send_result.is_err())
+            // Echo back via session
+            std::shared_ptr<interfaces::i_session> session;
             {
-                std::cerr << "[Server] Failed to initiate send: " << send_result.error().message << "\n";
+                std::lock_guard<std::mutex> lock(sessions_mutex);
+                auto it = sessions.find(std::string(session_id));
+                if (it != sessions.end())
+                {
+                    session = it->second;
+                }
+            }
+
+            if (session)
+            {
+                std::string response = "Echo: " + message;
+                std::vector<uint8_t> response_data(response.begin(), response.end());
+                auto result = session->send(std::move(response_data));
+                if (result.is_ok())
+                {
+                    std::cout << "[Server] Sent echo response: " << response.size() << " bytes\n";
+                }
+                else
+                {
+                    std::cerr << "[Server] Send error: " << result.error().message << "\n";
+                }
             }
         });
 
     // Set up error callback
     server->set_error_callback(
-        [](std::error_code ec)
+        [](std::string_view session_id, std::error_code ec)
         {
-            std::cerr << "[Server] Error: " << ec.message() << "\n";
+            std::cerr << "[Server] Error on session " << session_id << ": " << ec.message() << "\n";
         });
 
     std::cout << "[Server] Running on port 5555. Press Ctrl+C to stop.\n";
@@ -134,10 +161,9 @@ void run_client()
     facade::udp_facade udp;
     auto client = udp.create_client({.host = "localhost", .port = 5555, .client_id = "TestClient"});
 
-    // Set up receive callback to handle echo responses (using interface callback)
+    // Set up receive callback to handle echo responses (using i_protocol_client interface)
     client->set_receive_callback(
-        [](const std::vector<uint8_t>& data,
-           const interfaces::i_udp_client::endpoint_info& sender)
+        [](const std::vector<uint8_t>& data)
         {
             std::string message(data.begin(), data.end());
             std::cout << "[Client] Received response: \"" << message << "\"\n";
@@ -166,22 +192,14 @@ void run_client()
 
         std::cout << "[Client] Sending: \"" << msg << "\"\n";
 
-        // Use interface send() instead of deprecated send_packet()
-        auto send_result = client->send(
-            std::move(data),
-            [](std::error_code ec, std::size_t bytes)
-            {
-                if (!ec)
-                {
-                    std::cout << "[Client] Sent " << bytes << " bytes\n";
-                }
-                else
-                {
-                    std::cerr << "[Client] Send error: " << ec.message() << "\n";
-                }
-            });
+        // Use i_protocol_client::send() - no callback support in unified interface
+        auto send_result = client->send(std::move(data));
 
-        if (send_result.is_err())
+        if (send_result.is_ok())
+        {
+            std::cout << "[Client] Sent " << msg.size() << " bytes\n";
+        }
+        else if (send_result.is_err())
         {
             std::cerr << "[Client] Send failed: " << send_result.error().message << "\n";
         }
