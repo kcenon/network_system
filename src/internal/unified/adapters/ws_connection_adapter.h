@@ -33,7 +33,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 
 #include "kcenon/network/unified/i_connection.h"
-#include "kcenon/network/http/websocket_client.h"
+#include "internal/http/websocket_client.h"
 
 #include <atomic>
 #include <memory>
