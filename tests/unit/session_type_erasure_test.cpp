@@ -5,10 +5,10 @@ Copyright (c) 2025, kcenon
 All rights reserved.
 *****************************************************************************/
 
-#include "kcenon/network/core/session_concept.h"
-#include "kcenon/network/core/session_handle.h"
-#include "kcenon/network/core/session_model.h"
-#include "kcenon/network/core/session_traits.h"
+#include "internal/core/session_concept.h"
+#include "internal/core/session_handle.h"
+#include "internal/core/session_model.h"
+#include "internal/core/session_traits.h"
 
 #include <gtest/gtest.h>
 

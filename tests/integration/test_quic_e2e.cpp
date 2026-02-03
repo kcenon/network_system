@@ -56,8 +56,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <gtest/gtest.h>
 
-#include "kcenon/network/core/messaging_quic_client.h"
-#include "kcenon/network/core/messaging_quic_server.h"
+#define NETWORK_USE_EXPERIMENTAL
+#include "kcenon/network/experimental/quic_client.h"
+#include "kcenon/network/experimental/quic_server.h"
 #include "kcenon/network/session/quic_session.h"
 
 using namespace kcenon::network::core;

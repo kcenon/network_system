@@ -35,7 +35,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <memory>
 #include <type_traits>
 
-#include "kcenon/network/core/unified_messaging_server.h"
+#include "internal/core/unified_messaging_server.h"
 #include "kcenon/network/policy/tls_policy.h"
 #include "kcenon/network/protocol/protocol_tags.h"
 
