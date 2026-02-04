@@ -7,7 +7,7 @@ All rights reserved.
 
 #include "internal/core/messaging_client.h"
 #include "internal/core/messaging_server.h"
-#include "kcenon/network/session/messaging_session.h"
+#include "kcenon/network/detail/session/messaging_session.h"
 #include <gtest/gtest.h>
 
 #include <atomic>

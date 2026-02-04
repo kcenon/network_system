@@ -44,7 +44,7 @@ NETWORK_REQUIRE_EXPERIMENTAL
 #include <system_error>
 #include <vector>
 
-#include "kcenon/network/utils/result_types.h"
+#include "kcenon/network/detail/utils/result_types.h"
 
 namespace kcenon::network::core
 {

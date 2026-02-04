@@ -65,9 +65,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "internal/core/callback_indices.h"
 #include "network_udp/interfaces/i_udp_client.h"
-#include "kcenon/network/utils/result_types.h"
-#include "kcenon/network/utils/lifecycle_manager.h"
-#include "kcenon/network/utils/callback_manager.h"
+#include "kcenon/network/detail/utils/result_types.h"
+#include "kcenon/network/detail/utils/lifecycle_manager.h"
+#include "kcenon/network/detail/utils/callback_manager.h"
 #include "kcenon/network/integration/thread_integration.h"
 
 namespace kcenon::network::internal

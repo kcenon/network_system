@@ -54,7 +54,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <memory>
 
-#include "kcenon/network/config/network_config.h"
+#include "kcenon/network/detail/config/network_config.h"
 
 namespace kcenon::common::interfaces {
 class IExecutor;

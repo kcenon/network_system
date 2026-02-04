@@ -47,7 +47,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "internal/protocols/quic/crypto.h"
 #include "internal/protocols/quic/frame.h"
 #include "internal/protocols/quic/packet.h"
-#include "kcenon/network/utils/result_types.h"
+#include "kcenon/network/detail/utils/result_types.h"
 
 namespace kcenon::network::internal
 {

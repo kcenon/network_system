@@ -68,7 +68,7 @@
 #include "internal/integration/bridge_interface.h"
 #include "internal/integration/logger_integration.h"
 #include "internal/integration/monitoring_integration.h"
-#include <kcenon/network/config/feature_flags.h>
+#include <kcenon/network/detail/config/feature_flags.h>
 #include <memory>
 #include <mutex>
 #include <atomic>

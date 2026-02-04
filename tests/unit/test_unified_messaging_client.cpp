@@ -37,7 +37,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "internal/core/unified_messaging_client.h"
 #include "kcenon/network/policy/tls_policy.h"
-#include "kcenon/network/protocol/protocol_tags.h"
+#include "kcenon/network/detail/protocol/protocol_tags.h"
 
 using namespace kcenon::network::core;
 using namespace kcenon::network::policy;

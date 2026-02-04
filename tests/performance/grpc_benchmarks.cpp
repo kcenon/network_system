@@ -31,9 +31,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *****************************************************************************/
 
 #include <benchmark/benchmark.h>
-#include <kcenon/network/protocols/grpc/frame.h>
-#include <kcenon/network/protocols/grpc/status.h>
-#include <kcenon/network/protocols/grpc/service_registry.h>
+#include <kcenon/network/detail/protocols/grpc/frame.h>
+#include <kcenon/network/detail/protocols/grpc/status.h>
+#include <kcenon/network/detail/protocols/grpc/service_registry.h>
 
 #include <numeric>
 #include <random>

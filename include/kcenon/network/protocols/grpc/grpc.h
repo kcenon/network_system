@@ -68,19 +68,19 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * \see docs/adr/ADR-001-grpc-official-library-wrapper.md
  */
 
-// Core gRPC types
-#include "kcenon/network/protocols/grpc/status.h"
-#include "kcenon/network/protocols/grpc/frame.h"
+// Core gRPC types (from detail directory)
+#include "kcenon/network/detail/protocols/grpc/status.h"
+#include "kcenon/network/detail/protocols/grpc/frame.h"
 
-// Client and server APIs
-#include "kcenon/network/protocols/grpc/client.h"
-#include "kcenon/network/protocols/grpc/server.h"
+// Client and server APIs (from detail directory)
+#include "kcenon/network/detail/protocols/grpc/client.h"
+#include "kcenon/network/detail/protocols/grpc/server.h"
 
-// Service registration and management
-#include "kcenon/network/protocols/grpc/service_registry.h"
+// Service registration and management (from detail directory)
+#include "kcenon/network/detail/protocols/grpc/service_registry.h"
 
-// Official gRPC library wrapper (optional, enabled with NETWORK_GRPC_OFFICIAL)
-#include "kcenon/network/protocols/grpc/grpc_official_wrapper.h"
+// Official gRPC library wrapper (from detail directory)
+#include "kcenon/network/detail/protocols/grpc/grpc_official_wrapper.h"
 
 /*!
  * \namespace kcenon::network::protocols::grpc

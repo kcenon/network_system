@@ -49,10 +49,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "network_udp/interfaces/i_udp_client.h"
 #include "kcenon/network/integration/thread_integration.h"
 #include "kcenon/network/policy/tls_policy.h"
-#include "kcenon/network/protocol/protocol_tags.h"
-#include "kcenon/network/utils/callback_manager.h"
-#include "kcenon/network/utils/lifecycle_manager.h"
-#include "kcenon/network/utils/result_types.h"
+#include "kcenon/network/detail/protocol/protocol_tags.h"
+#include "kcenon/network/detail/utils/callback_manager.h"
+#include "kcenon/network/detail/utils/lifecycle_manager.h"
+#include "kcenon/network/detail/utils/result_types.h"
 
 #ifdef BUILD_TLS_SUPPORT
 #include <openssl/ssl.h>

@@ -35,8 +35,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * @brief Implementation of RAII span for distributed tracing
  */
 
-#include "kcenon/network/tracing/span.h"
-#include "kcenon/network/tracing/tracing_config.h"
+#include "kcenon/network/detail/tracing/span.h"
+#include "kcenon/network/detail/tracing/tracing_config.h"
 
 #include <utility>
 

@@ -32,7 +32,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
-#include <kcenon/network/config/feature_flags.h>
+#include <kcenon/network/detail/config/feature_flags.h>
 
 /**
  * @file concepts.h
@@ -96,9 +96,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <kcenon/common/concepts/container.h>
 #endif
 
-// Network-specific concepts (after common_system to avoid forward decl conflicts)
-#include "network_concepts.h"
-#include "socket_concepts.h"
+// Network-specific concepts (from detail directory)
+#include "kcenon/network/detail/concepts/network_concepts.h"
+#include "kcenon/network/detail/concepts/socket_concepts.h"
 
 #if KCENON_WITH_COMMON_SYSTEM
 

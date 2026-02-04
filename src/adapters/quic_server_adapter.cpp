@@ -32,8 +32,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "internal/adapters/quic_server_adapter.h"
 
-#include "kcenon/network/utils/result_types.h"
-#include "kcenon/network/session/quic_session.h"
+#include "kcenon/network/detail/utils/result_types.h"
+#include "kcenon/network/detail/session/quic_session.h"
 
 // Enable experimental API for QUIC
 #ifndef NETWORK_USE_EXPERIMENTAL

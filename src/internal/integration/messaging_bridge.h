@@ -44,7 +44,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * @date 2025-09-19
  */
 
-#include <kcenon/network/config/feature_flags.h>
+#include <kcenon/network/detail/config/feature_flags.h>
 #include "internal/integration/bridge_interface.h"
 #include "internal/core/messaging_client.h"
 #include "internal/core/messaging_server.h"

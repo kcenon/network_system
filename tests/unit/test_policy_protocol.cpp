@@ -35,7 +35,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <type_traits>
 
 #include "kcenon/network/policy/tls_policy.h"
-#include "kcenon/network/protocol/protocol_tags.h"
+#include "kcenon/network/detail/protocol/protocol_tags.h"
 
 using namespace kcenon::network::policy;
 using namespace kcenon::network::protocol;

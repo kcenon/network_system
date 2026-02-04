@@ -73,7 +73,7 @@
 #include "kcenon/network/integration/thread_integration.h"
 #include "internal/integration/logger_integration.h"
 #include "internal/integration/monitoring_integration.h"
-#include <kcenon/network/config/feature_flags.h>
+#include <kcenon/network/detail/config/feature_flags.h>
 
 #if KCENON_WITH_COMMON_SYSTEM
 #include <kcenon/common/interfaces/executor_interface.h>

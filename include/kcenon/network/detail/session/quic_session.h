@@ -48,8 +48,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endif
 #include "internal/experimental/quic_client.h"
 #include "internal/interfaces/i_quic_server.h"
-#include "kcenon/network/protocols/quic/connection_id.h"
-#include "kcenon/network/utils/result_types.h"
+#include "kcenon/network/detail/protocols/quic/connection_id.h"
+#include "kcenon/network/detail/utils/result_types.h"
 
 namespace kcenon::network::internal
 {

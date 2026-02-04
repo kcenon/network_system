@@ -62,17 +62,17 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * config.sampling_rate = 0.1; // Sample 10% of traces
  * @endcode
  *
- * @note For backward compatibility, individual headers can still be included
- * directly, but using this unified header is recommended.
+ * @note Individual headers in detail/tracing/ are implementation details.
+ * Please use this unified header for tracing needs.
  *
- * @see trace_context.h For context propagation
- * @see span.h For RAII span implementation
- * @see tracing_config.h For tracing configuration
+ * @see detail/tracing/trace_context.h For context propagation
+ * @see detail/tracing/span.h For RAII span implementation
+ * @see detail/tracing/tracing_config.h For tracing configuration
  */
 
-// Core tracing types (order matters: trace_context first, span depends on it)
-#include "trace_context.h"
-#include "span.h"
+// Core tracing types (from detail directory)
+#include "kcenon/network/detail/tracing/trace_context.h"
+#include "kcenon/network/detail/tracing/span.h"
 
 // Configuration
-#include "tracing_config.h"
+#include "kcenon/network/detail/tracing/tracing_config.h"

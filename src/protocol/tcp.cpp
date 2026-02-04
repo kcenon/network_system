@@ -30,7 +30,7 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *****************************************************************************/
 
-#include "kcenon/network/protocol/tcp.h"
+#include "kcenon/network/detail/protocol/tcp.h"
 #include "internal/unified/adapters/tcp_connection_adapter.h"
 #include "internal/unified/adapters/tcp_listener_adapter.h"
 

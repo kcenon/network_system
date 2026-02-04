@@ -30,12 +30,12 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *****************************************************************************/
 
-#include "kcenon/network/session/messaging_session.h"
+#include "kcenon/network/detail/session/messaging_session.h"
 
 #include <span>
 
 #include "internal/integration/logger_integration.h"
-#include "kcenon/network/metrics/network_metrics.h"
+#include "kcenon/network/detail/metrics/network_metrics.h"
 
 // Use nested namespace definition (C++17)
 namespace kcenon::network::session

@@ -32,9 +32,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
-#include "kcenon/network/unified/i_connection.h"
-#include "kcenon/network/unified/i_listener.h"
-#include "kcenon/network/unified/types.h"
+#include "kcenon/network/detail/unified/i_connection.h"
+#include "kcenon/network/detail/unified/i_listener.h"
+#include "kcenon/network/detail/unified/types.h"
 
 #include <chrono>
 #include <cstdint>

@@ -49,11 +49,11 @@
 #include "internal/core/unified_messaging_server.h"
 
 // Protocol tags and TLS policies for unified templates
-#include "kcenon/network/protocol/protocol_tags.h"
+#include "kcenon/network/detail/protocol/protocol_tags.h"
 #include "kcenon/network/policy/tls_policy.h"
 
 // Session management
-#include "kcenon/network/session/messaging_session.h"
+#include "kcenon/network/detail/session/messaging_session.h"
 
 // Integration interfaces
 #include "internal/integration/messaging_bridge.h"
@@ -61,12 +61,12 @@
 #include "internal/integration/container_integration.h"
 
 // Configuration system
-#include "kcenon/network/config/network_config.h"
-#include "kcenon/network/config/network_system_config.h"
+#include "kcenon/network/detail/config/network_config.h"
+#include "kcenon/network/detail/config/network_system_config.h"
 #include "internal/core/network_context.h"
 
 // Result type for error handling
-#include "kcenon/network/utils/result_types.h"
+#include "kcenon/network/detail/utils/result_types.h"
 
 // C++20 Concepts for compile-time type validation
 #include "kcenon/network/concepts/concepts.h"

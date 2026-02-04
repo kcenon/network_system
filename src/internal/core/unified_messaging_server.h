@@ -45,13 +45,13 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <asio.hpp>
 
-#include "kcenon/network/config/feature_flags.h"
+#include "kcenon/network/detail/config/feature_flags.h"
 #include "kcenon/network/policy/tls_policy.h"
-#include "kcenon/network/protocol/protocol_tags.h"
+#include "kcenon/network/detail/protocol/protocol_tags.h"
 #include "internal/core/callback_indices.h"
-#include "kcenon/network/utils/callback_manager.h"
-#include "kcenon/network/utils/result_types.h"
-#include "kcenon/network/utils/lifecycle_manager.h"
+#include "kcenon/network/detail/utils/callback_manager.h"
+#include "kcenon/network/detail/utils/result_types.h"
+#include "kcenon/network/detail/utils/lifecycle_manager.h"
 
 #ifdef BUILD_TLS_SUPPORT
 #include <asio/ssl.hpp>

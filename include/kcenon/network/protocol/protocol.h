@@ -142,11 +142,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * @see unified::i_transport
  */
 
-// Protocol factory headers
-#include "tcp.h"
-#include "udp.h"
-#include "websocket.h"
-#include "quic.h"
+// Protocol factory headers (from detail directory)
+#include "kcenon/network/detail/protocol/tcp.h"
+#include "kcenon/network/detail/protocol/udp.h"
+#include "kcenon/network/detail/protocol/websocket.h"
+#include "kcenon/network/detail/protocol/quic.h"
 
 // Protocol tag types
-#include "protocol_tags.h"
+#include "kcenon/network/detail/protocol/protocol_tags.h"

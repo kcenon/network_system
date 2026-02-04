@@ -58,15 +58,15 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * auto quic = std::make_shared<quic_session>(connection);
  * @endcode
  *
- * @note For backward compatibility, individual headers can still be included
- * directly, but using this unified header is recommended.
+ * @note Individual headers in detail/session/ are implementation details.
+ * Please use this unified header for session management needs.
  *
- * @see messaging_session.h For TCP messaging sessions
- * @see secure_session.h For TLS/SSL sessions
- * @see quic_session.h For QUIC protocol sessions
+ * @see detail/session/messaging_session.h For TCP messaging sessions
+ * @see detail/session/secure_session.h For TLS/SSL sessions
+ * @see detail/session/quic_session.h For QUIC protocol sessions
  */
 
-// Session implementations
-#include "messaging_session.h"
-#include "secure_session.h"
-#include "quic_session.h"
+// Session implementations (from detail directory)
+#include "kcenon/network/detail/session/messaging_session.h"
+#include "kcenon/network/detail/session/secure_session.h"
+#include "kcenon/network/detail/session/quic_session.h"

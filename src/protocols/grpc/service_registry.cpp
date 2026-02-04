@@ -38,8 +38,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * protoc-generated and dynamically registered gRPC services.
  */
 
-#include "kcenon/network/protocols/grpc/service_registry.h"
-#include "kcenon/network/protocols/grpc/server.h"
+#include "kcenon/network/detail/protocols/grpc/service_registry.h"
+#include "kcenon/network/detail/protocols/grpc/server.h"
 
 #include <algorithm>
 #include <mutex>

@@ -30,15 +30,15 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *****************************************************************************/
 
-#include <kcenon/network/config/feature_flags.h>
+#include <kcenon/network/detail/config/feature_flags.h>
 
 #define NETWORK_USE_EXPERIMENTAL
 #include "internal/experimental/quic_server.h"
 
 #include "internal/integration/logger_integration.h"
-#include "kcenon/network/metrics/network_metrics.h"
+#include "kcenon/network/detail/metrics/network_metrics.h"
 #include "internal/protocols/quic/packet.h"
-#include "kcenon/network/session/quic_session.h"
+#include "kcenon/network/detail/session/quic_session.h"
 #include "internal/quic_socket.h"
 
 #include <random>

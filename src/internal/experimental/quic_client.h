@@ -55,9 +55,9 @@ NETWORK_REQUIRE_EXPERIMENTAL
 #include "internal/core/network_context.h"
 #include "internal/interfaces/i_quic_client.h"
 #include "kcenon/network/integration/thread_integration.h"
-#include "kcenon/network/utils/callback_manager.h"
-#include "kcenon/network/utils/lifecycle_manager.h"
-#include "kcenon/network/utils/result_types.h"
+#include "kcenon/network/detail/utils/callback_manager.h"
+#include "kcenon/network/detail/utils/lifecycle_manager.h"
+#include "kcenon/network/detail/utils/result_types.h"
 
 // Forward declaration
 namespace kcenon::network::internal

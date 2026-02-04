@@ -32,9 +32,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "internal/protocols/http2/http2_client.h"
 
-#include "kcenon/network/tracing/span.h"
-#include "kcenon/network/tracing/trace_context.h"
-#include "kcenon/network/tracing/tracing_config.h"
+#include "kcenon/network/detail/tracing/span.h"
+#include "kcenon/network/detail/tracing/trace_context.h"
+#include "kcenon/network/detail/tracing/tracing_config.h"
 
 #include <algorithm>
 #include <thread>
