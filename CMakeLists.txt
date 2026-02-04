@@ -494,6 +494,8 @@ add_library(NetworkSystem
     src/facade/quic_facade.cpp
 
     # Protocol adapters - bridge legacy implementations to unified interfaces
+    src/adapters/http_client_adapter.cpp
+    src/adapters/http_server_adapter.cpp
     src/adapters/tcp_server_adapter.cpp
     src/adapters/udp_client_adapter.cpp
     src/adapters/udp_server_adapter.cpp

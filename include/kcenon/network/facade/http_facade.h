@@ -37,11 +37,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <memory>
 #include <string>
 
-namespace kcenon::network::core
+namespace kcenon::network::interfaces
 {
-	class http_client;
-	class http_server;
-} // namespace kcenon::network::core
+	class i_protocol_client;
+	class i_protocol_server;
+} // namespace kcenon::network::interfaces
 
 namespace kcenon::network::facade
 {
@@ -57,7 +57,7 @@ namespace kcenon::network::facade
  * ### Design Goals
  * - **Simplicity**: No template parameters or protocol tags
  * - **Consistency**: Same API pattern across all protocol facades
- * - **Type Safety**: Returns standard HTTP client/server types
+ * - **Type Safety**: Returns unified protocol interfaces (i_protocol_client/i_protocol_server)
  * - **Zero Cost**: No performance overhead compared to direct instantiation
  *
  * ### Thread Safety
@@ -70,6 +70,7 @@ namespace kcenon::network::facade
  * // Create HTTP client
  * http_facade facade;
  * auto client = facade.create_client({
+ *     .client_id = "my-http-client",
  *     .timeout = std::chrono::seconds(10)
  * });
  *
@@ -80,8 +81,8 @@ namespace kcenon::network::facade
  * });
  * \endcode
  *
- * \see core::http_client
- * \see core::http_server
+ * \see interfaces::i_protocol_client
+ * \see interfaces::i_protocol_server
  */
 class http_facade
 {
@@ -92,8 +93,17 @@ public:
 	 */
 	struct client_config
 	{
+		//! Client identifier (auto-generated if not provided)
+		std::string client_id;
+
 		//! Request timeout
 		std::chrono::milliseconds timeout = std::chrono::seconds(30);
+
+		//! Whether to use HTTPS
+		bool use_ssl = false;
+
+		//! HTTP path (default: "/")
+		std::string path = "/";
 	};
 
 	/*!
@@ -112,37 +122,52 @@ public:
 	/*!
 	 * \brief Creates an HTTP client with the specified configuration.
 	 * \param config Client configuration.
-	 * \return Shared pointer to http_client.
+	 * \return Shared pointer to i_protocol_client interface.
 	 * \throws std::invalid_argument if configuration is invalid.
 	 *
 	 * ### Behavior
-	 * - Creates an http_client instance with the specified timeout
+	 * - Creates an HTTP client adapter wrapping http_client
+	 * - Client ID is auto-generated if not provided
 	 * - Default timeout is 30 seconds if not specified
+	 * - Returns unified i_protocol_client interface for protocol-agnostic usage
+	 *
+	 * ### Protocol-Specific Notes
+	 * - start() sets the base URL (host:port) for subsequent requests
+	 * - send() performs an HTTP POST request with binary data
+	 * - Received response body is delivered via receive callback
 	 *
 	 * ### Error Conditions
 	 * - Throws if timeout is zero or negative
 	 */
 	[[nodiscard]] auto create_client(const client_config& config) const
-		-> std::shared_ptr<core::http_client>;
+		-> std::shared_ptr<interfaces::i_protocol_client>;
 
 	/*!
 	 * \brief Creates an HTTP server with the specified configuration.
 	 * \param config Server configuration.
-	 * \return Shared pointer to http_server.
+	 * \return Shared pointer to i_protocol_server interface.
 	 * \throws std::invalid_argument if configuration is invalid.
 	 *
 	 * ### Behavior
-	 * - Creates an http_server instance
+	 * - Creates an HTTP server adapter wrapping http_server
 	 * - Server ID is auto-generated if not provided
 	 * - Server must be started manually using start() method
+	 * - Returns unified i_protocol_server interface for protocol-agnostic usage
+	 *
+	 * ### Protocol-Specific Notes
+	 * - Receive callback delivers HTTP request body as binary data
+	 * - Session send() queues response data for the current request
 	 *
 	 * ### Error Conditions
 	 * - Throws if port is 0 or > 65535
 	 */
 	[[nodiscard]] auto create_server(const server_config& config) const
-		-> std::shared_ptr<core::http_server>;
+		-> std::shared_ptr<interfaces::i_protocol_server>;
 
 private:
+	//! \brief Generates a unique client ID
+	[[nodiscard]] static auto generate_client_id() -> std::string;
+
 	//! \brief Generates a unique server ID
 	[[nodiscard]] static auto generate_server_id() -> std::string;
 
