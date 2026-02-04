@@ -481,10 +481,10 @@ add_library(NetworkSystem
     src/internal/http_error.cpp
 
     # Utility implementations
-    src/utils/resilient_client.cpp
-    src/utils/health_monitor.cpp
-    src/utils/buffer_pool.cpp
-    src/utils/compression_pipeline.cpp
+    src/internal/utils/resilient_client.cpp
+    src/internal/utils/health_monitor.cpp
+    src/internal/utils/buffer_pool.cpp
+    src/internal/utils/compression_pipeline.cpp
 
     # Facade layer - simplified protocol creation APIs (Issue #596)
     src/facade/tcp_facade.cpp
