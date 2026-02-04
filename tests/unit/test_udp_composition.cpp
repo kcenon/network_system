@@ -53,8 +53,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "internal/core/messaging_udp_client.h"
 #include "internal/core/messaging_udp_server.h"
-#include "kcenon/network/interfaces/i_udp_client.h"
-#include "kcenon/network/interfaces/i_udp_server.h"
+// Note: i_udp_client and i_udp_server interfaces are already included
+// via the internal headers above (internal/interfaces/i_udp_*.h)
 
 using namespace kcenon::network::core;
 using namespace kcenon::network::interfaces;
