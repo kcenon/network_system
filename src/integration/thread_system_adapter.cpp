@@ -40,7 +40,7 @@
  * @date 2025-09-20
  */
 
-#include <kcenon/network/config/feature_flags.h>
+#include <kcenon/network/detail/config/feature_flags.h>
 
 #include "internal/integration/thread_system_adapter.h"
 

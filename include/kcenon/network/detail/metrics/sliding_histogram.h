@@ -43,7 +43,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
-#include "kcenon/network/metrics/histogram.h"
+#include "kcenon/network/detail/metrics/histogram.h"
 
 #include <chrono>
 #include <deque>

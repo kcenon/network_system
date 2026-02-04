@@ -70,7 +70,7 @@
  * @date 2026-02-01
  */
 
-#include <kcenon/network/utils/result_types.h>
+#include <kcenon/network/detail/utils/result_types.h>
 #include <chrono>
 #include <map>
 #include <string>

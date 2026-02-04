@@ -35,7 +35,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "internal/core/messaging_client.h"
 #include "internal/http/http_types.h"
 #include "internal/http/http_parser.h"
-#include "kcenon/network/utils/result_types.h"
+#include "kcenon/network/detail/utils/result_types.h"
 #include <string>
 #include <map>
 #include <vector>

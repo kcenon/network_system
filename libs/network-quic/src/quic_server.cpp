@@ -45,7 +45,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "network_quic/quic_server.h"
 
 // Include the protocol factory implementation
-#include "kcenon/network/protocol/quic.h"
+#include "kcenon/network/detail/protocol/quic.h"
 
 // This compilation unit serves as a linkage point for the QUIC server
 // functionality when used as a standalone library. The actual implementation

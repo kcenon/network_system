@@ -58,19 +58,19 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * auto result = kcenon::network::initialize(cfg);
  * @endcode
  *
- * @note For backward compatibility, individual headers can still be included
- * directly, but using this unified header is recommended.
+ * @note Individual headers in detail/config/ are implementation details.
+ * Please use this unified header for configuration needs.
  *
- * @see feature_flags.h For compile-time feature detection
- * @see network_config.h For standalone configuration
- * @see network_system_config.h For integration configuration
+ * @see detail/config/feature_flags.h For compile-time feature detection
+ * @see detail/config/network_config.h For standalone configuration
+ * @see detail/config/network_system_config.h For integration configuration
  */
 
 // Feature flags must come first (defines KCENON_WITH_* macros)
-#include "feature_flags.h"
+#include "kcenon/network/detail/config/feature_flags.h"
 
 // Standalone configuration (creates internal resources)
-#include "network_config.h"
+#include "kcenon/network/detail/config/network_config.h"
 
 // Integration configuration (accepts external dependencies)
-#include "network_system_config.h"
+#include "kcenon/network/detail/config/network_system_config.h"

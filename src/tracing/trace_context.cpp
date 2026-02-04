@@ -35,8 +35,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * @brief Implementation of trace context for distributed tracing
  */
 
-#include "kcenon/network/tracing/trace_context.h"
-#include "kcenon/network/tracing/span.h"
+#include "kcenon/network/detail/tracing/trace_context.h"
+#include "kcenon/network/detail/tracing/span.h"
 
 #include <algorithm>
 #include <array>

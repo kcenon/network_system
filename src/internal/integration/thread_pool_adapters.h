@@ -42,7 +42,7 @@
  * @date 2025-12-27
  */
 
-#include <kcenon/network/config/feature_flags.h>
+#include <kcenon/network/detail/config/feature_flags.h>
 #include "kcenon/network/integration/thread_integration.h"
 
 #include <chrono>

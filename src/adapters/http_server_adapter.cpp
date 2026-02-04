@@ -32,7 +32,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "internal/adapters/http_server_adapter.h"
 
-#include "kcenon/network/utils/result_types.h"
+#include "kcenon/network/detail/utils/result_types.h"
 
 // Suppress deprecation warnings for internal usage
 #define NETWORK_SYSTEM_SUPPRESS_DEPRECATION_WARNINGS

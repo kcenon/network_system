@@ -50,4 +50,4 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 // Re-export the protocol factory functions from the main library
 // This provides backward compatibility with existing code using protocol::quic
-#include "kcenon/network/protocol/quic.h"
+#include "kcenon/network/detail/protocol/quic.h"

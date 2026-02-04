@@ -61,17 +61,17 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * recent_latency.record(30);
  * @endcode
  *
- * @note For backward compatibility, individual headers can still be included
- * directly, but using this unified header is recommended.
+ * @note Individual headers in detail/metrics/ are implementation details.
+ * Please use this unified header for metrics needs.
  *
- * @see network_metrics.h For core metrics definitions
- * @see histogram.h For histogram implementation
- * @see sliding_histogram.h For time-windowed histogram
+ * @see detail/metrics/network_metrics.h For core metrics definitions
+ * @see detail/metrics/histogram.h For histogram implementation
+ * @see detail/metrics/sliding_histogram.h For time-windowed histogram
  */
 
-// Core metrics types
-#include "network_metrics.h"
+// Core metrics types (from detail directory)
+#include "kcenon/network/detail/metrics/network_metrics.h"
 
 // Histogram implementations
-#include "histogram.h"
-#include "sliding_histogram.h"
+#include "kcenon/network/detail/metrics/histogram.h"
+#include "kcenon/network/detail/metrics/sliding_histogram.h"

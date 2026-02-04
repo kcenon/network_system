@@ -67,7 +67,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * @endcode
  */
 
-#include <kcenon/network/config/feature_flags.h>
+#include <kcenon/network/detail/config/feature_flags.h>
 
 #include <atomic>
 #include <functional>
@@ -80,9 +80,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <asio.hpp>
 
 #include "internal/core/callback_indices.h"
-#include "kcenon/network/utils/result_types.h"
-#include "kcenon/network/utils/startable_base.h"
-#include "kcenon/network/utils/callback_manager.h"
+#include "kcenon/network/detail/utils/result_types.h"
+#include "kcenon/network/detail/utils/startable_base.h"
+#include "kcenon/network/detail/utils/callback_manager.h"
 #include "internal/integration/io_context_thread_manager.h"
 
 // Optional monitoring support via common_system

@@ -35,9 +35,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "internal/core/callback_indices.h"
 #include "internal/interfaces/i_websocket_server.h"
 #include "internal/websocket/websocket_protocol.h"
-#include "kcenon/network/utils/result_types.h"
-#include "kcenon/network/utils/lifecycle_manager.h"
-#include "kcenon/network/utils/callback_manager.h"
+#include "kcenon/network/detail/utils/result_types.h"
+#include "kcenon/network/detail/utils/lifecycle_manager.h"
+#include "kcenon/network/detail/utils/callback_manager.h"
 #include "kcenon/network/integration/thread_integration.h"
 
 #include <chrono>

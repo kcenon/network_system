@@ -30,7 +30,7 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *****************************************************************************/
 
-#include "kcenon/network/session/messaging_session.h"
+#include "kcenon/network/detail/session/messaging_session.h"
 #include "kcenon/network/internal/send_coroutine.h" // for async_send_with_pipeline_co / no_co
 #include "kcenon/network/integration/logger_integration.h"
 #include <string_view>

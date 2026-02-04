@@ -64,7 +64,7 @@
 
 #include "internal/integration/bridge_interface.h"
 #include "kcenon/network/integration/thread_integration.h"
-#include <kcenon/network/config/feature_flags.h>
+#include <kcenon/network/detail/config/feature_flags.h>
 #include <memory>
 #include <string>
 #include <mutex>
