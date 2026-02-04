@@ -185,6 +185,52 @@ int main() {
 }
 ```
 
+### Simplified Facade API (NEW in v2.0)
+
+For even simpler usage, use the Facade API that hides template complexity:
+
+```cpp
+#include <kcenon/network/facade/tcp_facade.h>
+#include <iostream>
+
+int main() {
+    using namespace kcenon::network;
+
+    // Create server with declarative configuration
+    facade::tcp_facade facade;
+    auto server = facade.create_server({
+        .port = 8080,
+        .server_id = "MyServer"
+    });
+
+    // Set callbacks
+    server->set_receive_callback([&](auto session_id, const auto& data) {
+        std::cout << "Received " << data.size() << " bytes\n";
+        // Echo back
+        server->send(session_id, data);
+    });
+
+    // Start server
+    auto result = server->start(8080);
+    if (result.is_err()) {
+        std::cerr << "Failed: " << result.error().message << "\n";
+        return -1;
+    }
+
+    std::cout << "Server running on port 8080...\n";
+    server->wait_for_stop();
+    return 0;
+}
+```
+
+**Benefits:**
+- ✅ No template parameters
+- ✅ Clear configuration struct
+- ✅ Protocol-agnostic interface
+- ✅ Same performance as direct API
+
+📖 **[Full Facade Documentation →](docs/facades/README.md)**
+
 ---
 
 ## Modular Architecture (NEW)

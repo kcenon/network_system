@@ -61,6 +61,17 @@ Network_system follows a layered architecture with clear separation of concerns:
 └─────────────────────────┬───────────────────────────────────┘
                           │ uses
 ┌─────────────────────────▼───────────────────────────────────┐
+│                  Facade Layer (NEW in v2.0)                 │
+│  ┌────────────────────────────────────────────────────┐    │
+│  │  tcp_facade  │  udp_facade  │  websocket_facade   │    │
+│  │  http_facade │  quic_facade                       │    │
+│  │  ────────────────────────────────────────────────  │    │
+│  │  - Simplified API      - No template parameters   │    │
+│  │  - Unified interfaces  - Zero-cost abstraction    │    │
+│  └────────────────────────────────────────────────────┘    │
+└────────────────────────┬────────────────────────────────────┘
+                          │ creates
+┌─────────────────────────▼───────────────────────────────────┐
 │                  Core Layer (Public API)                    │
 │  ┌────────────────────────────────────────────────────┐    │
 │  │  MessagingServer  │  MessagingClient               │    │
@@ -109,6 +120,39 @@ Network_system follows a layered architecture with clear separation of concerns:
 ```
 
 ### Layer Descriptions
+
+#### 0. Facade Layer (NEW in v2.0)
+
+**Purpose**: Provide simplified, template-free API for protocol client/server creation
+
+**Components**:
+- `tcp_facade`: TCP client/server with optional SSL/TLS
+- `udp_facade`: UDP datagram client/server
+- `websocket_facade`: WebSocket client/server (RFC 6455)
+- `http_facade`: HTTP/1.1 client/server
+- `quic_facade`: QUIC client/server (RFC 9000/9001/9002)
+
+**Responsibilities**:
+- Hide template parameters and protocol tags from users
+- Provide declarative configuration via config structs
+- Return unified `i_protocol_client`/`i_protocol_server` interfaces
+- Enable protocol-agnostic application code
+- Zero-cost abstraction (no performance overhead)
+
+**Design Pattern**: Facade pattern for simplified interface
+
+**Usage Example**:
+```cpp
+tcp_facade facade;
+auto client = facade.create_client({
+    .host = "127.0.0.1",
+    .port = 8080,
+    .use_ssl = true
+});
+client->start("127.0.0.1", 8080);
+```
+
+📖 **See:** [Facade API Documentation](facades/README.md) | [Migration Guide](facades/migration-guide.md)
 
 #### 1. Core Layer (Public API)
 
