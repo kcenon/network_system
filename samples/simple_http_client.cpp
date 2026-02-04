@@ -5,7 +5,11 @@ Copyright (c) 2024, 🍀☀🌕🌥 🌊
 All rights reserved.
 *****************************************************************************/
 
-#include <kcenon/network/facade/http_facade.h>
+// Note: This sample uses http_client directly instead of http_facade
+// because it needs HTTP-specific features like GET, POST methods and
+// response handling. The http_facade returns i_protocol_client which
+// provides a unified interface but doesn't expose HTTP-specific methods.
+
 #include <internal/http/http_client.h>
 #include <iostream>
 #include <thread>
@@ -29,11 +33,8 @@ int main()
 {
     std::cout << "=== Simple HTTP Client Demo ===" << std::endl;
 
-    // Create HTTP client using facade
-    facade::http_facade http;
-    auto client = http.create_client({
-        .timeout = std::chrono::seconds(30)
-    });
+    // Create HTTP client directly for HTTP-specific features
+    auto client = std::make_shared<core::http_client>(std::chrono::seconds(30));
 
     // Wait a moment for server to be ready (if running locally)
     std::this_thread::sleep_for(std::chrono::milliseconds(500));

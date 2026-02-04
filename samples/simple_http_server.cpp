@@ -5,7 +5,11 @@ Copyright (c) 2024, 🍀☀🌕🌥 🌊
 All rights reserved.
 *****************************************************************************/
 
-#include <kcenon/network/facade/http_facade.h>
+// Note: This sample uses http_server directly instead of http_facade
+// because it needs HTTP-specific features like routing and request handlers.
+// The http_facade returns i_protocol_server which provides a unified interface
+// but doesn't expose HTTP-specific methods.
+
 #include <internal/http/http_server.h>
 #include <iostream>
 #include <chrono>
@@ -17,11 +21,8 @@ int main()
 {
     std::cout << "=== Simple HTTP Server Demo ===" << std::endl;
 
-    // Create HTTP server using facade
-    facade::http_facade http;
-    auto server = http.create_server({
-        .server_id = "simple_http_server"
-    });
+    // Create HTTP server directly for HTTP-specific features
+    auto server = std::make_shared<core::http_server>("simple_http_server");
 
     // Register routes
     server->get("/", [](const core::http_request_context&)
