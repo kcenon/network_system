@@ -47,7 +47,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define NETWORK_USE_EXPERIMENTAL
 #endif
 #include "internal/experimental/quic_client.h"
-#include "kcenon/network/interfaces/i_quic_server.h"
+#include "internal/interfaces/i_quic_server.h"
 #include "kcenon/network/protocols/quic/connection_id.h"
 #include "kcenon/network/utils/result_types.h"
 

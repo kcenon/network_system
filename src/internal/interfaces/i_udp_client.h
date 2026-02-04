@@ -32,30 +32,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
-/**
- * @file i_udp_server.h
- * @brief UDP server interface (deprecated - use facade API)
- *
- * @deprecated This header exposes internal implementation details.
- * Use the facade API instead:
- *
- * @code
- * #include <kcenon/network/facade/udp_facade.h>
- *
- * auto server = kcenon::network::facade::udp_facade{}.create_server({
- *     .port = 5555,
- *     .server_id = "my-server"
- * });
- * @endcode
- *
- * This header will be moved to internal in a future release.
- */
-
-#include "i_network_component.h"
-#include "i_udp_client.h"
+#include "kcenon/network/interfaces/i_network_component.h"
 
 #include <cstdint>
 #include <functional>
+#include <string_view>
 #include <system_error>
 #include <vector>
 
@@ -65,29 +46,37 @@ namespace kcenon::network::interfaces
 {
 
 	/*!
-	 * \interface i_udp_server
-	 * \brief Interface for UDP server components.
+	 * \interface i_udp_client
+	 * \brief Interface for UDP client components.
 	 *
-	 * This interface extends i_network_component with UDP server-specific
-	 * operations such as receiving datagrams from multiple clients and
-	 * sending responses to specific endpoints.
+	 * This interface extends i_network_component with UDP-specific
+	 * operations such as connectionless datagram transmission and
+	 * receiving datagrams with sender endpoint information.
 	 *
 	 * ### Key Characteristics
-	 * - Connectionless: No client session management required
-	 * - Endpoint-aware: Each received datagram includes sender information
-	 * - Bidirectional: Can send responses to any endpoint
+	 * - Connectionless: Each send operation is independent
+	 * - Unreliable: No built-in acknowledgment or ordering
+	 * - Endpoint-aware: Receive callbacks include sender information
+	 *
+	 * ### Callback Types
+	 * - receive_callback_t: Called when data is received (includes sender endpoint)
+	 * - error_callback_t: Called when an error occurs
 	 *
 	 * ### Thread Safety
 	 * - All public methods must be thread-safe
 	 * - Callbacks may be invoked from I/O threads
 	 *
-	 * \see i_server
+	 * \see i_client
 	 */
-	class i_udp_server : public i_network_component
+	class i_udp_client : public i_network_component
 	{
 	public:
-		//! \brief Reuse endpoint_info from i_udp_client
-		using endpoint_info = i_udp_client::endpoint_info;
+		//! \brief Endpoint information for UDP datagrams
+		struct endpoint_info
+		{
+			std::string address;  //!< IP address string
+			uint16_t port;        //!< Port number
+		};
 
 		//! \brief Callback type for received data (includes sender endpoint)
 		using receive_callback_t = std::function<void(
@@ -101,26 +90,28 @@ namespace kcenon::network::interfaces
 		using send_callback_t = std::function<void(std::error_code, std::size_t)>;
 
 		/*!
-		 * \brief Starts the UDP server on the specified port.
-		 * \param port The port number to bind to.
+		 * \brief Starts the UDP client targeting the specified endpoint.
+		 * \param host The target hostname or IP address.
+		 * \param port The target port number.
 		 * \return VoidResult indicating success or failure.
 		 *
 		 * ### Behavior
-		 * - Creates a UDP socket and binds to the specified port
+		 * - Creates a UDP socket
+		 * - Resolves the target endpoint
 		 * - Begins listening for incoming datagrams
 		 *
 		 * ### Error Conditions
 		 * - Returns error if already running
 		 * - Returns error if socket creation fails
-		 * - Returns error if port binding fails
+		 * - Returns error if name resolution fails
 		 *
 		 * ### Thread Safety
 		 * Thread-safe. Only one start operation can succeed at a time.
 		 */
-		[[nodiscard]] virtual auto start(uint16_t port) -> VoidResult = 0;
+		[[nodiscard]] virtual auto start(std::string_view host, uint16_t port) -> VoidResult = 0;
 
 		/*!
-		 * \brief Stops the UDP server.
+		 * \brief Stops the UDP client.
 		 * \return VoidResult indicating success or failure.
 		 *
 		 * ### Thread Safety
@@ -129,19 +120,35 @@ namespace kcenon::network::interfaces
 		[[nodiscard]] virtual auto stop() -> VoidResult = 0;
 
 		/*!
-		 * \brief Sends a datagram to the specified endpoint.
-		 * \param endpoint The target endpoint.
+		 * \brief Sends a datagram to the configured target endpoint.
 		 * \param data The data to send.
 		 * \param handler Optional completion handler.
 		 * \return VoidResult indicating success or failure.
 		 *
+		 * ### Error Conditions
+		 * - Returns error if not running
+		 * - Returns error if send fails
+		 *
 		 * ### Thread Safety
 		 * Thread-safe. Multiple sends may be queued.
 		 */
-		[[nodiscard]] virtual auto send_to(
-			const endpoint_info& endpoint,
+		[[nodiscard]] virtual auto send(
 			std::vector<uint8_t>&& data,
 			send_callback_t handler = nullptr) -> VoidResult = 0;
+
+		/*!
+		 * \brief Changes the target endpoint for future sends.
+		 * \param host The new target hostname or IP address.
+		 * \param port The new target port number.
+		 * \return VoidResult indicating success or failure.
+		 *
+		 * ### Error Conditions
+		 * - Returns error if name resolution fails
+		 *
+		 * ### Thread Safety
+		 * Thread-safe.
+		 */
+		[[nodiscard]] virtual auto set_target(std::string_view host, uint16_t port) -> VoidResult = 0;
 
 		/*!
 		 * \brief Sets the callback for received datagrams.
@@ -149,7 +156,7 @@ namespace kcenon::network::interfaces
 		 *
 		 * ### Note
 		 * The callback receives both the data and the sender's endpoint
-		 * information, allowing responses to be sent using send_to().
+		 * information, allowing responses to be sent to the correct peer.
 		 */
 		virtual auto set_receive_callback(receive_callback_t callback) -> void = 0;
 

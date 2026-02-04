@@ -32,32 +32,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
-/**
- * @file i_websocket_server.h
- * @brief WebSocket server interface (deprecated - use facade API)
- *
- * @deprecated This header exposes internal implementation details.
- * Use the facade API instead:
- *
- * @code
- * #include <kcenon/network/facade/websocket_facade.h>
- *
- * auto server = kcenon::network::facade::websocket_facade{}.create_server({
- *     .port = 8080,
- *     .server_id = "my-server"
- * });
- * @endcode
- *
- * This header will be moved to internal in a future release.
- */
-
-#include "i_network_component.h"
-#include "i_session.h"
+#include "kcenon/network/interfaces/i_network_component.h"
+#include "kcenon/network/interfaces/i_session.h"
 
 #include <cstdint>
 #include <functional>
 #include <memory>
-#include <string>
 #include <string_view>
 #include <system_error>
 #include <vector>
@@ -68,54 +48,58 @@ namespace kcenon::network::interfaces
 {
 
 	/*!
-	 * \interface i_websocket_session
-	 * \brief Interface for a WebSocket session on the server side.
+	 * \interface i_quic_session
+	 * \brief Interface for a QUIC session on the server side.
 	 *
-	 * This interface extends i_session with WebSocket-specific operations
-	 * such as sending text/binary messages and closing with status codes.
+	 * This interface extends i_session with QUIC-specific operations
+	 * such as multi-stream support.
 	 */
-	class i_websocket_session : public i_session
+	class i_quic_session : public i_session
 	{
 	public:
 		/*!
-		 * \brief Sends a text message to the client.
-		 * \param message The text message to send.
+		 * \brief Creates a new server-initiated bidirectional stream.
+		 * \return Stream ID or error.
+		 */
+		[[nodiscard]] virtual auto create_stream() -> Result<uint64_t> = 0;
+
+		/*!
+		 * \brief Creates a new server-initiated unidirectional stream.
+		 * \return Stream ID or error.
+		 */
+		[[nodiscard]] virtual auto create_unidirectional_stream() -> Result<uint64_t> = 0;
+
+		/*!
+		 * \brief Sends data on a specific stream.
+		 * \param stream_id The target stream ID.
+		 * \param data The data to send.
+		 * \param fin True if this is the final data on the stream.
 		 * \return VoidResult indicating success or failure.
 		 */
-		[[nodiscard]] virtual auto send_text(std::string&& message) -> VoidResult = 0;
+		[[nodiscard]] virtual auto send_on_stream(
+			uint64_t stream_id,
+			std::vector<uint8_t>&& data,
+			bool fin = false) -> VoidResult = 0;
 
 		/*!
-		 * \brief Sends a binary message to the client.
-		 * \param data The binary data to send.
+		 * \brief Closes a stream.
+		 * \param stream_id The stream to close.
 		 * \return VoidResult indicating success or failure.
 		 */
-		[[nodiscard]] virtual auto send_binary(std::vector<uint8_t>&& data) -> VoidResult = 0;
-
-		/*!
-		 * \brief Closes the WebSocket connection gracefully.
-		 * \param code The close status code.
-		 * \param reason Optional human-readable reason.
-		 */
-		virtual auto close(uint16_t code, std::string_view reason = "") -> void = 0;
-
-		/*!
-		 * \brief Gets the requested path from the handshake.
-		 * \return The WebSocket path (e.g., "/ws").
-		 */
-		[[nodiscard]] virtual auto path() const -> std::string_view = 0;
+		[[nodiscard]] virtual auto close_stream(uint64_t stream_id) -> VoidResult = 0;
 	};
 
 	/*!
-	 * \interface i_websocket_server
-	 * \brief Interface for WebSocket server components.
+	 * \interface i_quic_server
+	 * \brief Interface for QUIC server components.
 	 *
-	 * This interface extends i_network_component with WebSocket server-specific
-	 * operations such as handling text/binary messages and session management.
+	 * This interface extends i_network_component with QUIC server-specific
+	 * operations such as multi-stream support and session management.
 	 *
 	 * ### Key Features
-	 * - Text and binary message support
-	 * - Session-based client management
-	 * - Close frame handling with status codes
+	 * - Multiple concurrent streams per connection
+	 * - Built-in TLS 1.3 integration
+	 * - 0-RTT early data support
 	 *
 	 * ### Thread Safety
 	 * - All public methods must be thread-safe
@@ -123,36 +107,36 @@ namespace kcenon::network::interfaces
 	 *
 	 * \see i_server
 	 */
-	class i_websocket_server : public i_network_component
+	class i_quic_server : public i_network_component
 	{
 	public:
 		//! \brief Callback type for new connections
-		using connection_callback_t = std::function<void(std::shared_ptr<i_websocket_session>)>;
+		using connection_callback_t = std::function<void(std::shared_ptr<i_quic_session>)>;
 
-		//! \brief Callback type for disconnections (with close code and reason)
-		using disconnection_callback_t = std::function<void(
-			std::string_view session_id,
-			uint16_t code,
-			std::string_view reason)>;
+		//! \brief Callback type for disconnections (session_id)
+		using disconnection_callback_t = std::function<void(std::string_view)>;
 
-		//! \brief Callback type for text messages (session_id, message)
-		using text_callback_t = std::function<void(std::string_view, const std::string&)>;
+		//! \brief Callback type for default stream data (session_id, data)
+		using receive_callback_t = std::function<void(std::string_view, const std::vector<uint8_t>&)>;
 
-		//! \brief Callback type for binary messages (session_id, data)
-		using binary_callback_t = std::function<void(std::string_view, const std::vector<uint8_t>&)>;
+		//! \brief Callback type for stream data (session_id, stream_id, data, is_fin)
+		using stream_callback_t = std::function<void(
+			std::string_view,
+			uint64_t,
+			const std::vector<uint8_t>&,
+			bool)>;
 
 		//! \brief Callback type for errors (session_id, error)
 		using error_callback_t = std::function<void(std::string_view, std::error_code)>;
 
 		/*!
-		 * \brief Starts the WebSocket server on the specified port.
+		 * \brief Starts the QUIC server on the specified port.
 		 * \param port The port number to listen on.
 		 * \return VoidResult indicating success or failure.
 		 *
 		 * ### Behavior
-		 * - Starts TCP listener
-		 * - Handles WebSocket handshakes for incoming connections
-		 * - Begins accepting WebSocket connections
+		 * - Binds to the specified port (UDP)
+		 * - Begins accepting QUIC connections
 		 *
 		 * ### Thread Safety
 		 * Thread-safe. Only one start operation can succeed at a time.
@@ -160,7 +144,7 @@ namespace kcenon::network::interfaces
 		[[nodiscard]] virtual auto start(uint16_t port) -> VoidResult = 0;
 
 		/*!
-		 * \brief Stops the WebSocket server.
+		 * \brief Stops the QUIC server.
 		 * \return VoidResult indicating success or failure.
 		 *
 		 * ### Behavior
@@ -170,7 +154,7 @@ namespace kcenon::network::interfaces
 		[[nodiscard]] virtual auto stop() -> VoidResult = 0;
 
 		/*!
-		 * \brief Gets the number of active WebSocket connections.
+		 * \brief Gets the number of active QUIC connections.
 		 * \return The count of currently connected clients.
 		 */
 		[[nodiscard]] virtual auto connection_count() const -> size_t = 0;
@@ -188,16 +172,16 @@ namespace kcenon::network::interfaces
 		virtual auto set_disconnection_callback(disconnection_callback_t callback) -> void = 0;
 
 		/*!
-		 * \brief Sets the callback for text messages.
+		 * \brief Sets the callback for received data on default stream.
 		 * \param callback The callback function.
 		 */
-		virtual auto set_text_callback(text_callback_t callback) -> void = 0;
+		virtual auto set_receive_callback(receive_callback_t callback) -> void = 0;
 
 		/*!
-		 * \brief Sets the callback for binary messages.
+		 * \brief Sets the callback for stream data.
 		 * \param callback The callback function.
 		 */
-		virtual auto set_binary_callback(binary_callback_t callback) -> void = 0;
+		virtual auto set_stream_callback(stream_callback_t callback) -> void = 0;
 
 		/*!
 		 * \brief Sets the callback for errors.

@@ -72,7 +72,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <asio.hpp>
 
 #include "internal/core/callback_indices.h"
-#include "kcenon/network/interfaces/i_udp_server.h"
+#include "internal/interfaces/i_udp_server.h"
 #include "kcenon/network/utils/result_types.h"
 #include "kcenon/network/utils/lifecycle_manager.h"
 #include "kcenon/network/utils/callback_manager.h"
