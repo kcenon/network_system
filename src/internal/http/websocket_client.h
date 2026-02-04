@@ -46,7 +46,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <asio.hpp>
 
-#include "kcenon/network/interfaces/i_websocket_client.h"
+#include "internal/interfaces/i_websocket_client.h"
 #include "internal/core/callback_indices.h"
 #include "internal/websocket/websocket_protocol.h"
 #include "kcenon/network/utils/result_types.h"

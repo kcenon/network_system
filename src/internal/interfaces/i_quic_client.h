@@ -32,26 +32,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
-/**
- * @file i_quic_client.h
- * @brief QUIC client interface (deprecated - use facade API)
- *
- * @deprecated This header exposes internal implementation details.
- * Use the facade API instead:
- *
- * @code
- * #include <kcenon/network/facade/quic_facade.h>
- *
- * auto client = kcenon::network::facade::quic_facade{}.create_client({
- *     .host = "example.com",
- *     .port = 443
- * });
- * @endcode
- *
- * This header will be moved to internal in a future release.
- */
-
-#include "i_network_component.h"
+#include "kcenon/network/interfaces/i_network_component.h"
 
 #include <cstdint>
 #include <functional>
