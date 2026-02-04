@@ -42,10 +42,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * - Route requests to appropriate handlers
  */
 
-#include <kcenon/network/protocols/grpc/service_registry.h>
-#include <kcenon/network/protocols/grpc/frame.h>
-#include <kcenon/network/protocols/grpc/status.h>
-#include <kcenon/network/protocols/grpc/server.h>
+#include <kcenon/network/protocols/grpc/grpc.h>
 
 #include <iostream>
 #include <string>
