@@ -4,11 +4,15 @@
  *
  * QUIC Server Example
  *
- * This example demonstrates how to use the quic_facade to create a QUIC server
- * that accepts client connections using the simplified facade API.
+ * This example demonstrates how to create a QUIC server that accepts client
+ * connections and handles data transmission.
+ *
+ * Note: This sample uses messaging_quic_server directly instead of quic_facade
+ * because it needs QUIC-specific features like broadcasting, multicasting,
+ * and session management. The quic_facade returns i_protocol_server which
+ * provides a unified interface but doesn't expose QUIC-specific methods.
  *
  * Key features demonstrated:
- * - Creating server with facade factory method
  * - Starting and stopping the server
  * - Handling client connections and disconnections
  * - Receiving data from clients
@@ -22,7 +26,6 @@
 #define NETWORK_USE_EXPERIMENTAL
 #endif
 
-#include <kcenon/network/facade/quic_facade.h>
 #include "internal/experimental/quic_server.h"
 #include <kcenon/network/session/quic_session.h>
 
@@ -63,18 +66,8 @@ public:
 		std::cout << "=== QUIC Server Example ===" << std::endl;
 		std::cout << "Starting server on port " << port_ << std::endl;
 
-		// Create the QUIC server using facade
-		facade::quic_facade quic;
-		server_ = quic.create_server({
-		    .port = port_,
-		    .server_id = "quic_demo_server",
-		    // For production, set TLS certificate paths:
-		    .cert_path = "/path/to/server.crt",
-		    .key_path = "/path/to/server.key",
-		    .alpn = "h3",
-		    .max_idle_timeout_ms = 30000,
-		    .max_connections = 100
-		});
+		// Create QUIC server directly for QUIC-specific features
+		server_ = std::make_shared<core::messaging_quic_server>("quic_demo_server");
 
 		// Set up callbacks
 		setup_callbacks();
@@ -317,20 +310,14 @@ void demo_multicast(std::shared_ptr<core::messaging_quic_server> server)
 }
 
 /**
- * @brief Example with minimal setup using facade
+ * @brief Example with minimal setup
  */
 void simple_server_example()
 {
 	std::cout << "\n=== Simple QUIC Server ===" << std::endl;
 
-	// Create server using facade
-	facade::quic_facade quic;
-	auto server = quic.create_server({
-	    .port = 4434,
-	    .server_id = "simple_server",
-	    .cert_path = "/path/to/server.crt",
-	    .key_path = "/path/to/server.key"
-	});
+	// Create server directly for QUIC-specific features
+	auto server = std::make_shared<core::messaging_quic_server>("simple_server");
 
 	// Minimal setup - just echo received messages
 	server->set_receive_callback(
@@ -342,7 +329,11 @@ void simple_server_example()
 		    (void)session->send(std::move(response));
 	    });
 
-	auto result = server->start_server(4434);
+	core::quic_server_config config;
+	config.cert_file = "/path/to/server.crt";
+	config.key_file = "/path/to/server.key";
+
+	auto result = server->start_server(4434, config);
 	if (result.is_ok())
 	{
 		std::cout << "Simple server started on port 4434" << std::endl;

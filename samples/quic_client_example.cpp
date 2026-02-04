@@ -4,8 +4,13 @@
  *
  * QUIC Client Example
  *
- * This example demonstrates how to use the QUIC facade API
+ * This example demonstrates how to use the QUIC client API
  * to connect to a QUIC server and send/receive data.
+ *
+ * Note: This sample uses messaging_quic_client directly instead of quic_facade
+ * because it needs QUIC-specific features like multi-stream support, 0-RTT,
+ * and connection statistics. The quic_facade returns i_protocol_client which
+ * provides a unified interface but doesn't expose QUIC-specific methods.
  *
  * Key features demonstrated:
  * - Basic connection and disconnection
@@ -26,7 +31,6 @@
 #include <mutex>
 
 #define NETWORK_USE_EXPERIMENTAL
-#include <kcenon/network/facade/quic_facade.h>
 #include "internal/experimental/quic_client.h"
 
 using namespace kcenon::network;
@@ -50,15 +54,8 @@ public:
 		std::cout << "=== QUIC Client Example ===" << std::endl;
 		std::cout << "Connecting to " << server_host_ << ":" << server_port_ << std::endl;
 
-		// Create the QUIC client using facade
-		facade::quic_facade quic;
-		client_ = quic.create_client({
-			.host = server_host_,
-			.port = server_port_,
-			.client_id = "quic_demo_client",
-			.verify_server = false,  // For testing with self-signed certs
-			.alpn = "h3"
-		});
+		// Create QUIC client directly for QUIC-specific features
+		client_ = std::make_shared<core::messaging_quic_client>("quic_demo_client");
 
 		// Set up callbacks
 		setup_callbacks();
@@ -257,24 +254,22 @@ void demo_with_config()
 {
 	std::cout << "\n=== QUIC Client with Custom Config ===" << std::endl;
 
-	// Create client with custom configuration using facade
-	facade::quic_facade quic;
-	auto client = quic.create_client({
-		.host = "example.com",
-		.port = 443,
-		.client_id = "config_demo_client",
-		.verify_server = false,  // For testing with self-signed certs
-		.alpn = "h3",
-		.max_idle_timeout_ms = 60000,  // 60 seconds
-		.enable_0rtt = true  // Enable 0-RTT
-	});
+	// Create client directly for QUIC-specific features
+	auto client = std::make_shared<core::messaging_quic_client>("config_demo_client");
 
-	// For mutual TLS, use optional fields:
-	// .ca_cert_path = "/path/to/ca.pem",
-	// .client_cert_path = "/path/to/client.pem",
-	// .client_key_path = "/path/to/client-key.pem"
+	// Configure QUIC-specific options
+	core::quic_client_config config;
+	config.verify_server = false;  // For testing with self-signed certs
+	config.alpn_protocols = {"h3"};
+	config.max_idle_timeout_ms = 60000;  // 60 seconds
+	config.enable_early_data = true;  // Enable 0-RTT
 
-	auto result = client->start_client("example.com", 443);
+	// For mutual TLS, set optional fields:
+	// config.ca_cert_file = "/path/to/ca.pem";
+	// config.client_cert_file = "/path/to/client.pem";
+	// config.client_key_file = "/path/to/client-key.pem";
+
+	auto result = client->start_client("example.com", 443, config);
 	if (result.is_err())
 	{
 		std::cout << "Expected failure (no server): " << result.error().message << std::endl;
