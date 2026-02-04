@@ -37,7 +37,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "internal/http/http_parser.h"
 #include "internal/http/http_error.h"
 #include "kcenon/network/utils/result_types.h"
-#include "kcenon/network/utils/compression_pipeline.h"
+#include "internal/utils/compression_pipeline.h"
 #include <string>
 #include <map>
 #include <functional>
