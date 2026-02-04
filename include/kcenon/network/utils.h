@@ -67,7 +67,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 // Core utilities (from detail directory)
-#include "kcenon/network/detail/utils/result_types.h"
+#include "kcenon/network/types/result.h"
 
 // Lifecycle management (from detail directory)
 #include "kcenon/network/detail/utils/lifecycle_manager.h"
