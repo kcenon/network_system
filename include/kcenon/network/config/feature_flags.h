@@ -30,47 +30,24 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *****************************************************************************/
 
-#pragma once
-
 /**
- * @file config.h
- * @brief Unified configuration header for network_system
+ * @file feature_flags.h
+ * @brief Public header for compile-time feature flags
  *
- * This is the main entry point for network_system configuration.
- * It includes all configuration-related headers:
- * - Feature flags for compile-time feature detection
- * - Standalone configuration for internal resource management
- * - Integration configuration for external dependency injection
+ * This header provides KCENON_WITH_* macros for conditional compilation
+ * based on available features and integrations.
  *
- * Usage:
- * @code
- * #include <kcenon/network/config/config.h>
+ * @note This is the public API path for feature flags. Use this header
+ *       instead of including detail/config/feature_flags.h directly.
  *
- * using namespace kcenon::network::config;
- *
- * // Standalone initialization
- * auto result = kcenon::network::initialize(network_config::production());
- *
- * // Integration with existing infrastructure
- * network_system_config cfg;
- * cfg.executor = my_shared_executor;
- * cfg.logger = my_shared_logger;
- * auto result = kcenon::network::initialize(cfg);
- * @endcode
- *
- * @note Individual headers in detail/config/ are implementation details.
- * Please use this unified header for configuration needs.
- *
- * @see detail/config/feature_flags.h For compile-time feature detection
- * @see detail/config/network_config.h For standalone configuration
- * @see detail/config/network_system_config.h For integration configuration
+ * Available flags:
+ * - KCENON_WITH_COMMON_SYSTEM: common_system integration
+ * - KCENON_WITH_THREAD_SYSTEM: thread_system integration
+ * - KCENON_WITH_LOGGER_SYSTEM: logger_system integration
+ * - KCENON_WITH_CONTAINER_SYSTEM: container_system integration
  */
 
-// Feature flags must come first (defines KCENON_WITH_* macros)
-#include "kcenon/network/config/feature_flags.h"
+#pragma once
 
-// Standalone configuration (creates internal resources)
-#include "kcenon/network/detail/config/network_config.h"
-
-// Integration configuration (accepts external dependencies)
-#include "kcenon/network/detail/config/network_system_config.h"
+// Include the implementation from detail
+#include "kcenon/network/detail/config/feature_flags.h"

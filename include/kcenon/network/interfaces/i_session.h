@@ -36,7 +36,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <string_view>
 #include <vector>
 
-#include "kcenon/network/detail/utils/result_types.h"
+#include "kcenon/network/types/result.h"
 
 namespace kcenon::network::interfaces
 {
