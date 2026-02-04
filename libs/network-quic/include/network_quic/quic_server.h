@@ -42,4 +42,4 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 // Re-export the QUIC server interface from the main library
 #include "kcenon/network/interfaces/i_quic_server.h"
-#include "kcenon/network/protocol/quic.h"
+#include "kcenon/network/detail/protocol/quic.h"

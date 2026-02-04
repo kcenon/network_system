@@ -31,12 +31,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *****************************************************************************/
 
 #include <gtest/gtest.h>
-#include <kcenon/network/protocols/grpc/server.h>
-#include <kcenon/network/protocols/grpc/client.h>
-#include <kcenon/network/protocols/grpc/frame.h>
-#include <kcenon/network/protocols/grpc/status.h>
-#include <kcenon/network/protocols/grpc/service_registry.h>
-#include <kcenon/network/protocols/grpc/grpc_official_wrapper.h>
+#include <kcenon/network/detail/protocols/grpc/server.h>
+#include <kcenon/network/detail/protocols/grpc/client.h>
+#include <kcenon/network/detail/protocols/grpc/frame.h>
+#include <kcenon/network/detail/protocols/grpc/status.h>
+#include <kcenon/network/detail/protocols/grpc/service_registry.h>
+#include <kcenon/network/detail/protocols/grpc/grpc_official_wrapper.h>
 
 #include <chrono>
 #include <thread>

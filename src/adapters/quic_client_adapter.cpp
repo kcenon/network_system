@@ -32,7 +32,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "internal/adapters/quic_client_adapter.h"
 
-#include "kcenon/network/utils/result_types.h"
+#include "kcenon/network/detail/utils/result_types.h"
 
 // Enable experimental API for QUIC
 #ifndef NETWORK_USE_EXPERIMENTAL

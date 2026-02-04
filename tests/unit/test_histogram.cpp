@@ -17,9 +17,9 @@ All rights reserved.
  * - Sliding window expiration
  */
 
-#include "kcenon/network/metrics/histogram.h"
-#include "kcenon/network/metrics/sliding_histogram.h"
-#include "kcenon/network/metrics/network_metrics.h"
+#include "kcenon/network/detail/metrics/histogram.h"
+#include "kcenon/network/detail/metrics/sliding_histogram.h"
+#include "kcenon/network/detail/metrics/network_metrics.h"
 
 #include <gtest/gtest.h>
 

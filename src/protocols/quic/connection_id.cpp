@@ -30,7 +30,7 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *****************************************************************************/
 
-#include "kcenon/network/protocols/quic/connection_id.h"
+#include "kcenon/network/detail/protocols/quic/connection_id.h"
 
 #include <algorithm>
 #include <random>

@@ -103,10 +103,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * @see i_listener
  */
 
-// Core types
-#include "types.h"
+// Core types (from detail directory)
+#include "kcenon/network/detail/unified/types.h"
 
-// Core interfaces
-#include "i_transport.h"
-#include "i_connection.h"
-#include "i_listener.h"
+// Core interfaces (from detail directory)
+#include "kcenon/network/detail/unified/i_transport.h"
+#include "kcenon/network/detail/unified/i_connection.h"
+#include "kcenon/network/detail/unified/i_listener.h"

@@ -16,7 +16,7 @@ All rights reserved.
  * - Generic algorithm applicability
  */
 
-#include "kcenon/network/concepts/socket_concepts.h"
+#include "kcenon/network/detail/concepts/socket_concepts.h"
 #include "internal/tcp/tcp_socket.h"
 #include "internal/udp/udp_socket.h"
 #include <gtest/gtest.h>

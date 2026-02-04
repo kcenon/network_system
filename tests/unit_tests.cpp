@@ -47,7 +47,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "internal/core/messaging_server.h"
 #include "internal/core/messaging_client.h"
 #include "internal/integration/container_integration.h"
-#include "kcenon/network/utils/result_types.h"
+#include "kcenon/network/detail/utils/result_types.h"
 
 using messaging_server = kcenon::network::core::messaging_server;
 using messaging_client = kcenon::network::core::messaging_client;

@@ -42,11 +42,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
 
-#include <kcenon/network/config/feature_flags.h>
+#include <kcenon/network/detail/config/feature_flags.h>
 
 #include "internal/integration/messaging_bridge.h"
 #include "kcenon/network/integration/thread_integration.h"
-#include <kcenon/network/utils/result_types.h>
+#include <kcenon/network/detail/utils/result_types.h>
 #include <atomic>
 #include <mutex>
 

@@ -55,7 +55,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * @see unified_compat.h for backward-compatible type aliases
  */
 
-#include <kcenon/network/config/feature_flags.h>
+#include <kcenon/network/detail/config/feature_flags.h>
 
 #include <atomic>
 #include <functional>
@@ -71,9 +71,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "internal/core/callback_indices.h"
 #include "kcenon/network/integration/thread_integration.h"
-#include "kcenon/network/utils/lifecycle_manager.h"
-#include "kcenon/network/utils/callback_manager.h"
-#include "kcenon/network/utils/result_types.h"
+#include "kcenon/network/detail/utils/lifecycle_manager.h"
+#include "kcenon/network/detail/utils/callback_manager.h"
+#include "kcenon/network/detail/utils/result_types.h"
 
 // Optional monitoring support via common_system
 #if KCENON_WITH_COMMON_SYSTEM

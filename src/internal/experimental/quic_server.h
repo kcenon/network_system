@@ -36,17 +36,17 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "internal/experimental/experimental_api.h"
 NETWORK_REQUIRE_EXPERIMENTAL
 
-#include <kcenon/network/config/feature_flags.h>
+#include <kcenon/network/detail/config/feature_flags.h>
 
 #include "internal/core/callback_indices.h"
 #include "internal/experimental/quic_client.h"
 #include "internal/core/network_context.h"
 #include "internal/interfaces/i_quic_server.h"
 #include "kcenon/network/integration/thread_integration.h"
-#include "kcenon/network/protocols/quic/connection_id.h"
-#include "kcenon/network/utils/callback_manager.h"
-#include "kcenon/network/utils/lifecycle_manager.h"
-#include "kcenon/network/utils/result_types.h"
+#include "kcenon/network/detail/protocols/quic/connection_id.h"
+#include "kcenon/network/detail/utils/callback_manager.h"
+#include "kcenon/network/detail/utils/lifecycle_manager.h"
+#include "kcenon/network/detail/utils/result_types.h"
 
 #include <array>
 #include <atomic>

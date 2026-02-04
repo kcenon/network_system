@@ -32,12 +32,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
-#include "kcenon/network/session/messaging_session.h"
+#include "kcenon/network/detail/session/messaging_session.h"
 #include "internal/integration/io_context_thread_manager.h"
 #include "internal/integration/logger_integration.h"
 
 #ifdef BUILD_TLS_SUPPORT
-#include "kcenon/network/session/secure_session.h"
+#include "kcenon/network/detail/session/secure_session.h"
 #include <openssl/ssl.h>
 #endif
 

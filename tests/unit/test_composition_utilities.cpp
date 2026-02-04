@@ -37,9 +37,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <thread>
 #include <vector>
 
-#include "kcenon/network/utils/callback_manager.h"
+#include "kcenon/network/detail/utils/callback_manager.h"
 #include "internal/utils/connection_state.h"
-#include "kcenon/network/utils/lifecycle_manager.h"
+#include "kcenon/network/detail/utils/lifecycle_manager.h"
 
 using namespace kcenon::network::utils;
 

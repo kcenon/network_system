@@ -33,7 +33,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "internal/adapters/tcp_server_adapter.h"
 
 #include "internal/core/messaging_server.h"
-#include "kcenon/network/session/messaging_session.h"
+#include "kcenon/network/detail/session/messaging_session.h"
 
 namespace kcenon::network::internal::adapters {
 

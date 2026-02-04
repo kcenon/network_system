@@ -7,7 +7,7 @@ All rights reserved.
 
 #pragma once
 
-#include "kcenon/network/utils/result_types.h"
+#include "kcenon/network/detail/utils/result_types.h"
 
 #include <chrono>
 #include <cstdint>

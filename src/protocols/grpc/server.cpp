@@ -30,11 +30,11 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *****************************************************************************/
 
-#include "kcenon/network/protocols/grpc/server.h"
+#include "kcenon/network/detail/protocols/grpc/server.h"
 
-#include "kcenon/network/tracing/span.h"
-#include "kcenon/network/tracing/trace_context.h"
-#include "kcenon/network/tracing/tracing_config.h"
+#include "kcenon/network/detail/tracing/span.h"
+#include "kcenon/network/detail/tracing/trace_context.h"
+#include "kcenon/network/detail/tracing/tracing_config.h"
 
 #include <atomic>
 #include <condition_variable>

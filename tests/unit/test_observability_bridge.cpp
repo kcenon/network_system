@@ -37,7 +37,7 @@
 #include "internal/integration/observability_bridge.h"
 #include "internal/integration/logger_integration.h"
 #include "internal/integration/monitoring_integration.h"
-#include <kcenon/network/config/feature_flags.h>
+#include <kcenon/network/detail/config/feature_flags.h>
 
 #include <atomic>
 #include <chrono>

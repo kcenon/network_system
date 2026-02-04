@@ -33,9 +33,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define NETWORK_USE_EXPERIMENTAL
 #include "internal/experimental/quic_client.h"
 #include "internal/integration/logger_integration.h"
-#include "kcenon/network/tracing/span.h"
-#include "kcenon/network/tracing/trace_context.h"
-#include "kcenon/network/tracing/tracing_config.h"
+#include "kcenon/network/detail/tracing/span.h"
+#include "kcenon/network/detail/tracing/trace_context.h"
+#include "kcenon/network/detail/tracing/tracing_config.h"
 #include "internal/quic_socket.h"
 
 namespace kcenon::network::core

@@ -16,7 +16,7 @@ All rights reserved.
  * - Edge cases
  */
 
-#include "kcenon/network/metrics/network_metrics.h"
+#include "kcenon/network/detail/metrics/network_metrics.h"
 #include "internal/integration/monitoring_integration.h"
 #include "../helpers/mock_monitor.h"
 

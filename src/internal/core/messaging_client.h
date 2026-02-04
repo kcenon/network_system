@@ -86,9 +86,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "internal/core/callback_indices.h"
 #include "internal/tcp/tcp_socket.h"
 #include "internal/integration/io_context_thread_manager.h"
-#include "kcenon/network/utils/startable_base.h"
-#include "kcenon/network/utils/callback_manager.h"
-#include "kcenon/network/utils/result_types.h"
+#include "kcenon/network/detail/utils/startable_base.h"
+#include "kcenon/network/detail/utils/callback_manager.h"
+#include "kcenon/network/detail/utils/result_types.h"
 #include "kcenon/network/interfaces/i_protocol_client.h"
 #include "kcenon/network/interfaces/connection_observer.h"
 

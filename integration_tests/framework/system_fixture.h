@@ -41,7 +41,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "internal/core/messaging_client.h"
 #include "internal/core/messaging_server.h"
-#include "kcenon/network/utils/result_types.h"
+#include "kcenon/network/detail/utils/result_types.h"
 #include "test_helpers.h"
 
 namespace kcenon::network::integration_tests {

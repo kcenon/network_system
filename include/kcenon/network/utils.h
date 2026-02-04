@@ -66,15 +66,15 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * \see docs/architecture/facade-pattern.md
  */
 
-// Core utilities - always needed
-#include "kcenon/network/utils/result_types.h"
+// Core utilities (from detail directory)
+#include "kcenon/network/detail/utils/result_types.h"
 
-// Lifecycle management
-#include "kcenon/network/utils/lifecycle_manager.h"
-#include "kcenon/network/utils/startable_base.h"
+// Lifecycle management (from detail directory)
+#include "kcenon/network/detail/utils/lifecycle_manager.h"
+#include "kcenon/network/detail/utils/startable_base.h"
 
-// Callback management
-#include "kcenon/network/utils/callback_manager.h"
+// Callback management (from detail directory)
+#include "kcenon/network/detail/utils/callback_manager.h"
 
 /*!
  * \namespace kcenon::network::utils

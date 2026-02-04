@@ -8,7 +8,7 @@ All rights reserved.
 #pragma once
 
 #include "internal/core/session_manager_base.h"
-#include "kcenon/network/session/messaging_session.h"
+#include "kcenon/network/detail/session/messaging_session.h"
 
 namespace kcenon::network::core {
 

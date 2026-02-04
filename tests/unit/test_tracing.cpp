@@ -17,9 +17,9 @@ All rights reserved.
  * - tracing configuration
  */
 
-#include "kcenon/network/tracing/trace_context.h"
-#include "kcenon/network/tracing/span.h"
-#include "kcenon/network/tracing/tracing_config.h"
+#include "kcenon/network/detail/tracing/trace_context.h"
+#include "kcenon/network/detail/tracing/span.h"
+#include "kcenon/network/detail/tracing/tracing_config.h"
 
 #include <gtest/gtest.h>
 

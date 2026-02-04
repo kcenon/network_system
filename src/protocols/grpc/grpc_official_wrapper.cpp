@@ -41,10 +41,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * \see docs/adr/ADR-001-grpc-official-library-wrapper.md
  */
 
-#include "kcenon/network/protocols/grpc/grpc_official_wrapper.h"
-#include "kcenon/network/protocols/grpc/frame.h"
-#include "kcenon/network/protocols/grpc/status.h"
-#include "kcenon/network/utils/result_types.h"
+#include "kcenon/network/detail/protocols/grpc/grpc_official_wrapper.h"
+#include "kcenon/network/detail/protocols/grpc/frame.h"
+#include "kcenon/network/detail/protocols/grpc/status.h"
+#include "kcenon/network/detail/utils/result_types.h"
 
 #if NETWORK_GRPC_OFFICIAL
 

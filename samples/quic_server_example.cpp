@@ -27,7 +27,7 @@
 #endif
 
 #include "internal/experimental/quic_server.h"
-#include <kcenon/network/session/quic_session.h>
+#include <kcenon/network/detail/session/quic_session.h>
 
 #include <iostream>
 #include <string>

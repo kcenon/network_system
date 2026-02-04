@@ -31,7 +31,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *****************************************************************************/
 
 #include "internal/http/http_server.h"
-#include "kcenon/network/session/messaging_session.h"
+#include "kcenon/network/detail/session/messaging_session.h"
 #include "internal/utils/compression_pipeline.h"
 #include <algorithm>
 #include <cctype>

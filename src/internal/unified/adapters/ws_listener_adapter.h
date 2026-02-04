@@ -32,7 +32,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
-#include "kcenon/network/unified/i_listener.h"
+#include "kcenon/network/detail/unified/i_listener.h"
 #include "internal/http/websocket_server.h"
 
 #include <atomic>
