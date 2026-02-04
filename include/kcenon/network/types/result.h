@@ -1,7 +1,7 @@
 /*****************************************************************************
 BSD 3-Clause License
 
-Copyright (c) 2024-2025, kcenon
+Copyright (c) 2024, kcenon
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -30,47 +30,57 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *****************************************************************************/
 
-#pragma once
-
 /**
- * @file config.h
- * @brief Unified configuration header for network_system
+ * @file result.h
+ * @brief Public header for Result<T> error handling types
  *
- * This is the main entry point for network_system configuration.
- * It includes all configuration-related headers:
- * - Feature flags for compile-time feature detection
- * - Standalone configuration for internal resource management
- * - Integration configuration for external dependency injection
+ * This is the public API header for result types. Use this header instead of
+ * including detail/utils/result_types.h directly.
  *
- * Usage:
+ * @example
  * @code
- * #include <kcenon/network/config/config.h>
+ * #include <kcenon/network/types/result.h>
  *
- * using namespace kcenon::network::config;
- *
- * // Standalone initialization
- * auto result = kcenon::network::initialize(network_config::production());
- *
- * // Integration with existing infrastructure
- * network_system_config cfg;
- * cfg.executor = my_shared_executor;
- * cfg.logger = my_shared_logger;
- * auto result = kcenon::network::initialize(cfg);
+ * auto connect() -> kcenon::network::Result<void> {
+ *     // ... connection logic
+ *     return kcenon::network::ok();
+ * }
  * @endcode
- *
- * @note Individual headers in detail/config/ are implementation details.
- * Please use this unified header for configuration needs.
- *
- * @see detail/config/feature_flags.h For compile-time feature detection
- * @see detail/config/network_config.h For standalone configuration
- * @see detail/config/network_system_config.h For integration configuration
  */
 
-// Feature flags must come first (defines KCENON_WITH_* macros)
-#include "kcenon/network/config/feature_flags.h"
+#pragma once
 
-// Standalone configuration (creates internal resources)
-#include "kcenon/network/detail/config/network_config.h"
+// Include the implementation from detail
+// This maintains backward compatibility while providing a public API path
+#include "kcenon/network/detail/utils/result_types.h"
 
-// Integration configuration (accepts external dependencies)
-#include "kcenon/network/detail/config/network_system_config.h"
+namespace kcenon::network
+{
+
+/**
+ * @brief Result type for operations that can fail
+ *
+ * Result<T> is the primary error handling mechanism in network_system.
+ * It provides a type-safe alternative to exceptions for error handling.
+ *
+ * @tparam T The success value type
+ *
+ * @note When KCENON_WITH_COMMON_SYSTEM is enabled, this is an alias to
+ *       kcenon::common::Result<T>. Otherwise, a standalone implementation
+ *       is provided.
+ */
+// Result<T> is already defined in detail/utils/result_types.h
+
+/**
+ * @brief Alias for Result<void> for operations that return no value
+ */
+// VoidResult is already defined in detail/utils/result_types.h
+
+/**
+ * @brief Error information structure
+ *
+ * Contains error code and message for failed operations.
+ */
+// error_info is already defined in detail/utils/result_types.h
+
+} // namespace kcenon::network
