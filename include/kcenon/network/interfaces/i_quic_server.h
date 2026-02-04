@@ -32,6 +32,26 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
+/**
+ * @file i_quic_server.h
+ * @brief QUIC server interface (deprecated - use facade API)
+ *
+ * @deprecated This header exposes internal implementation details.
+ * Use the facade API instead:
+ *
+ * @code
+ * #include <kcenon/network/facade/quic_facade.h>
+ *
+ * auto server = kcenon::network::facade::quic_facade{}.create_server({
+ *     .port = 443,
+ *     .cert_path = "/path/to/cert.pem",
+ *     .key_path = "/path/to/key.pem"
+ * });
+ * @endcode
+ *
+ * This header will be moved to internal in a future release.
+ */
+
 #include "i_network_component.h"
 #include "i_session.h"
 

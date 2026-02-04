@@ -53,7 +53,7 @@ NETWORK_REQUIRE_EXPERIMENTAL
 
 #include "internal/core/callback_indices.h"
 #include "internal/core/network_context.h"
-#include "kcenon/network/interfaces/i_quic_client.h"
+#include "internal/interfaces/i_quic_client.h"
 #include "kcenon/network/integration/thread_integration.h"
 #include "kcenon/network/utils/callback_manager.h"
 #include "kcenon/network/utils/lifecycle_manager.h"

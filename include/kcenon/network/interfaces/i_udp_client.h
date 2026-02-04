@@ -32,6 +32,29 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
+/**
+ * @file i_udp_client.h
+ * @brief UDP client interface (deprecated - use facade API)
+ *
+ * @deprecated This header exposes internal implementation details.
+ * Use the facade API instead for creating UDP clients:
+ *
+ * @code
+ * #include <kcenon/network/facade/udp_facade.h>
+ *
+ * auto client = kcenon::network::facade::udp_facade{}.create_client({
+ *     .host = "127.0.0.1",
+ *     .port = 5555,
+ *     .client_id = "my-client"
+ * });
+ * @endcode
+ *
+ * The returned client implements i_protocol_client which provides
+ * a protocol-agnostic interface.
+ *
+ * This header will be moved to internal in a future release.
+ */
+
 #include "i_network_component.h"
 
 #include <cstdint>

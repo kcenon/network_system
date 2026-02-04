@@ -32,26 +32,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
-/**
- * @file i_udp_server.h
- * @brief UDP server interface (deprecated - use facade API)
- *
- * @deprecated This header exposes internal implementation details.
- * Use the facade API instead:
- *
- * @code
- * #include <kcenon/network/facade/udp_facade.h>
- *
- * auto server = kcenon::network::facade::udp_facade{}.create_server({
- *     .port = 5555,
- *     .server_id = "my-server"
- * });
- * @endcode
- *
- * This header will be moved to internal in a future release.
- */
-
-#include "i_network_component.h"
+#include "kcenon/network/interfaces/i_network_component.h"
 #include "i_udp_client.h"
 
 #include <cstdint>
