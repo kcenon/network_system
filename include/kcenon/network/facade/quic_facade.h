@@ -38,11 +38,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <string>
 #include <vector>
 
-namespace kcenon::network::core
+namespace kcenon::network::interfaces
 {
-	class messaging_quic_client;
-	class messaging_quic_server;
-} // namespace kcenon::network::core
+	class i_protocol_client;
+	class i_protocol_server;
+} // namespace kcenon::network::interfaces
 
 namespace kcenon::network::facade
 {
@@ -166,41 +166,49 @@ public:
 	/*!
 	 * \brief Creates a QUIC client with the specified configuration.
 	 * \param config Client configuration.
-	 * \return Shared pointer to messaging_quic_client.
+	 * \return Shared pointer to i_protocol_client.
 	 * \throws std::invalid_argument if configuration is invalid.
 	 *
 	 * ### Behavior
-	 * - Creates a messaging_quic_client instance
+	 * - Creates a QUIC client adapter implementing i_protocol_client
 	 * - Client ID is auto-generated if not provided
 	 * - QUIC always uses TLS 1.3 encryption
-	 * - Client must be started manually using start_client() method
+	 * - Client must be started manually using start() method
 	 *
 	 * ### Error Conditions
 	 * - Throws if host is empty
 	 * - Throws if port is 0 or > 65535
+	 *
+	 * ### Note
+	 * For QUIC-specific features (multi-stream, 0-RTT, ALPN), use
+	 * messaging_quic_client directly instead of the facade.
 	 */
 	[[nodiscard]] auto create_client(const client_config& config) const
-		-> std::shared_ptr<core::messaging_quic_client>;
+		-> std::shared_ptr<interfaces::i_protocol_client>;
 
 	/*!
 	 * \brief Creates a QUIC server with the specified configuration.
 	 * \param config Server configuration.
-	 * \return Shared pointer to messaging_quic_server.
+	 * \return Shared pointer to i_protocol_server.
 	 * \throws std::invalid_argument if configuration is invalid.
 	 *
 	 * ### Behavior
-	 * - Creates a messaging_quic_server instance
+	 * - Creates a QUIC server adapter implementing i_protocol_server
 	 * - Server ID is auto-generated if not provided
 	 * - QUIC always uses TLS 1.3 encryption
-	 * - Server must be started manually using start_server() method
+	 * - Server must be started manually using start() method
 	 *
 	 * ### Error Conditions
 	 * - Throws if port is 0 or > 65535
 	 * - Throws if cert_path is empty
 	 * - Throws if key_path is empty
+	 *
+	 * ### Note
+	 * For QUIC-specific features (multi-stream, broadcast), use
+	 * messaging_quic_server directly instead of the facade.
 	 */
 	[[nodiscard]] auto create_server(const server_config& config) const
-		-> std::shared_ptr<core::messaging_quic_server>;
+		-> std::shared_ptr<interfaces::i_protocol_server>;
 
 private:
 	//! \brief Generates a unique client ID

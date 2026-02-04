@@ -37,13 +37,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <sstream>
 #include <stdexcept>
 
-// Enable experimental API for QUIC
-#ifndef NETWORK_USE_EXPERIMENTAL
-#define NETWORK_USE_EXPERIMENTAL
-#endif
-
-#include "internal/experimental/quic_client.h"
-#include "internal/experimental/quic_server.h"
+#include "internal/adapters/quic_client_adapter.h"
+#include "internal/adapters/quic_server_adapter.h"
 
 namespace kcenon::network::facade
 {
@@ -120,23 +115,65 @@ auto quic_facade::validate_server_config(const server_config& config) -> void
 }
 
 auto quic_facade::create_client(const client_config& config) const
-	-> std::shared_ptr<core::messaging_quic_client>
+	-> std::shared_ptr<interfaces::i_protocol_client>
 {
 	validate_client_config(config);
 
 	const auto client_id = config.client_id.empty() ? generate_client_id() : config.client_id;
 
-	return std::make_shared<core::messaging_quic_client>(client_id);
+	auto adapter = std::make_shared<internal::adapters::quic_client_adapter>(client_id);
+
+	// Configure QUIC-specific options
+	if (!config.alpn.empty())
+	{
+		adapter->set_alpn_protocols({config.alpn});
+	}
+
+	if (config.ca_cert_path)
+	{
+		adapter->set_ca_cert_path(*config.ca_cert_path);
+	}
+
+	if (config.client_cert_path && config.client_key_path)
+	{
+		adapter->set_client_cert(*config.client_cert_path, *config.client_key_path);
+	}
+
+	adapter->set_verify_server(config.verify_server);
+	adapter->set_max_idle_timeout(config.max_idle_timeout_ms);
+
+	return adapter;
 }
 
 auto quic_facade::create_server(const server_config& config) const
-	-> std::shared_ptr<core::messaging_quic_server>
+	-> std::shared_ptr<interfaces::i_protocol_server>
 {
 	validate_server_config(config);
 
 	const auto server_id = config.server_id.empty() ? generate_server_id() : config.server_id;
 
-	return std::make_shared<core::messaging_quic_server>(server_id);
+	auto adapter = std::make_shared<internal::adapters::quic_server_adapter>(server_id);
+
+	// Configure TLS certificates (required for QUIC)
+	adapter->set_cert_path(config.cert_path);
+	adapter->set_key_path(config.key_path);
+
+	// Configure QUIC-specific options
+	if (!config.alpn.empty())
+	{
+		adapter->set_alpn_protocols({config.alpn});
+	}
+
+	if (config.ca_cert_path)
+	{
+		adapter->set_ca_cert_path(*config.ca_cert_path);
+	}
+
+	adapter->set_require_client_cert(config.require_client_cert);
+	adapter->set_max_idle_timeout(config.max_idle_timeout_ms);
+	adapter->set_max_connections(config.max_connections);
+
+	return adapter;
 }
 
 } // namespace kcenon::network::facade

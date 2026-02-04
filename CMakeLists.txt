@@ -496,6 +496,8 @@ add_library(NetworkSystem
     # Protocol adapters - bridge legacy implementations to unified interfaces
     src/adapters/http_client_adapter.cpp
     src/adapters/http_server_adapter.cpp
+    src/adapters/quic_client_adapter.cpp
+    src/adapters/quic_server_adapter.cpp
     src/adapters/tcp_server_adapter.cpp
     src/adapters/udp_client_adapter.cpp
     src/adapters/udp_server_adapter.cpp
