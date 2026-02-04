@@ -59,6 +59,8 @@ Step-by-step guides for users:
 | Document | Description | Korean |
 |----------|-------------|--------|
 | [guides/BUILD.md](guides/BUILD.md) | Build instructions for all platforms | [KO](guides/BUILD.kr.md) |
+| **[facades/README.md](facades/README.md)** | **Simplified Facade API reference (NEW)** | - |
+| **[facades/migration-guide.md](facades/migration-guide.md)** | **Migration guide from direct templates to Facade API** | - |
 | [guides/TLS_SETUP_GUIDE.md](guides/TLS_SETUP_GUIDE.md) | TLS/SSL configuration and certificates | [KO](guides/TLS_SETUP_GUIDE.kr.md) |
 | [guides/TROUBLESHOOTING.md](guides/TROUBLESHOOTING.md) | Common problems and solutions | [KO](guides/TROUBLESHOOTING.kr.md) |
 | [INTEGRATION.md](INTEGRATION.md) | Integration with ecosystem systems | [KO](INTEGRATION.kr.md) |
