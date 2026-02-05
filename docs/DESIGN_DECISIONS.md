@@ -4,7 +4,7 @@
 
 This document explains key design decisions in network_system, particularly patterns that may seem unusual but are intentional and necessary.
 
-**Version**: 1.0.0
+**Version**: 0.1.0.0
 **Last Updated**: 2025-12-27
 
 ---

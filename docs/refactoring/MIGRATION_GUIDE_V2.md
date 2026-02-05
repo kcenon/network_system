@@ -1,6 +1,6 @@
 # Migration Guide: network_system v1.x → v2.0
 
-> **Version**: 2.0.0
+> **Version**: 0.2.0.0
 > **Issue**: #610 (Part of Epic #577)
 > **Breaking Changes**: Yes - Core implementation headers moved to internal
 > **Migration Difficulty**: Low to Medium

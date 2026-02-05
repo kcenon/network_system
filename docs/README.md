@@ -2,7 +2,7 @@
 
 > **Language:** **English** | [한국어](README.kr.md)
 
-**Version:** 0.2.0
+**Version:** 0.2.0.0
 **Last Updated:** 2025-11-28
 **Status:** Comprehensive
 
@@ -207,7 +207,7 @@ System integration documentation:
 ## Project Information
 
 ### Current Status
-- **Version**: 0.2.0
+- **Version**: 0.2.0.0
 - **Type**: Static Library
 - **C++ Standard**: C++20 (C++17 compatible for some features)
 - **License**: BSD 3-Clause
