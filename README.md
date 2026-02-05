@@ -52,6 +52,8 @@ network_system
     └── common_system
 ```
 
+> **Note**: Unlike database_system, network_system does **not** have a compile-time dependency on monitoring_system. For observability, network_system uses EventBus-based metric publishing via common_system. External monitoring consumers (including monitoring_system) can subscribe to `network_metric_event` for metrics collection. See [Monitoring Integration Guide](docs/integration/with-monitoring.md) for details.
+
 ### Building with Dependencies
 
 ```bash

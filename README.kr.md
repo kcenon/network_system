@@ -47,6 +47,8 @@ network_system
     └── common_system
 ```
 
+> **참고**: database_system과 달리 network_system은 monitoring_system에 대한 컴파일 타임 의존성이 **없습니다**. observability를 위해 network_system은 common_system의 EventBus 기반 메트릭 publishing을 사용합니다. 외부 모니터링 소비자(monitoring_system 포함)는 메트릭 수집을 위해 `network_metric_event`를 구독할 수 있습니다. 자세한 내용은 [모니터링 통합 가이드](docs/integration/with-monitoring.md)를 참조하세요.
+
 ### 의존성과 함께 빌드
 
 ```bash
