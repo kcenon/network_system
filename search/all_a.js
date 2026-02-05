@@ -1,0 +1,26 @@
+var searchData=
+[
+  ['c_2020_20모듈_20빌드_20실험적_0',['C++20 모듈 빌드 (실험적)',['../md_README_8kr.html#autotoc_md48',1,'']]],
+  ['c_2020_20module_20build_20experimental_1',['C++20 Module Build (Experimental)',['../md_README.html#autotoc_md118',1,'']]],
+  ['cd_20infrastructure_2',['CI/CD Infrastructure',['../md_README.html#autotoc_md155',1,'']]],
+  ['changelog_3',['changelog',['../md_CHANGELOG.html',1,'Changelog'],['../md_CHANGELOG.html#autotoc_md6',1,'How to Read This Changelog']]],
+  ['characteristics_4',['Performance Characteristics',['../index.html#performance_sec',1,'']]],
+  ['ci_20cd_20infrastructure_5',['CI/CD Infrastructure',['../md_README.html#autotoc_md155',1,'']]],
+  ['client_6',['client',['../md_README_8kr.html#autotoc_md57',1,'TCP Client'],['../md_README.html#autotoc_md120',1,'Your First Client']]],
+  ['client_20usage_7',['Basic Client Usage',['../index.html#usage_client',1,'']]],
+  ['cmake_20configuration_8',['Manual CMake Configuration',['../md_README.html#autotoc_md164',1,'']]],
+  ['cmake_20options_9',['Available CMake Options',['../md_README.html#autotoc_md165',1,'']]],
+  ['cmake_20presets_20recommended_10',['Using CMake Presets (Recommended)',['../md_README.html#autotoc_md163',1,'']]],
+  ['common_20issues_11',['Common Issues',['../index.html#trouble_common',1,'']]],
+  ['completed_12',['Recently Completed',['../md_README.html#autotoc_md170',1,'']]],
+  ['configuration_13',['Manual CMake Configuration',['../md_README.html#autotoc_md164',1,'']]],
+  ['considerations_14',['Security Considerations',['../index.html#feat_security',1,'']]],
+  ['contact_20and_20support_15',['Contact and Support',['../index.html#contact_sec',1,'']]],
+  ['contact_20support_16',['Contact &amp; Support',['../md_README.html#autotoc_md178',1,'']]],
+  ['contributing_17',['contributing',['../index.html#contributing_sec',1,'Contributing'],['../md_README.html#autotoc_md174',1,'Contributing']]],
+  ['copy_20데이터_20전송_18',['Zero-Copy 데이터 전송',['../md_README_8kr.html#autotoc_md59',1,'']]],
+  ['core_20dependencies_19',['Core Dependencies',['../md_README.html#autotoc_md181',1,'']]],
+  ['core_20features_20',['Core Features',['../md_README.html#autotoc_md129',1,'']]],
+  ['core_20layer_21',['Core Layer',['../index.html#arch_core',1,'']]],
+  ['current_20focus_22',['Current Focus',['../md_README.html#autotoc_md171',1,'']]]
+];
