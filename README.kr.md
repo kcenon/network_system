@@ -953,7 +953,7 @@ gh workflow run network-load-tests.yml --field update_baseline=true
 
 ## 🤝 기여
 
-기여를 환영합니다! 다음 가이드라인을 따라주세요:
+기여를 환영합니다! 자세한 가이드라인은 [기여 가이드](docs/contributing/CONTRIBUTING.md)를 참조하세요.
 
 1. 저장소를 Fork하세요
 2. 기능 브랜치를 생성하세요 (`git checkout -b feature/amazing-feature`)
