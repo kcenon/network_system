@@ -328,4 +328,4 @@ See complete examples in:
 - [Logger System Documentation](../../../logger_system/README.md)
 - [Logger System API Reference](../../../logger_system/docs/API_REFERENCE.md)
 - [Network System Logging Guide](../guides/LOGGING.md)
-- [Ecosystem Integration Guide](../../../ECOSYSTEM_INTEGRATION.md)
+- [Ecosystem Integration Guide](../../../ECOSYSTEM.md)
