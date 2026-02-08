@@ -1,6 +1,6 @@
 # Network System Features
 
-**Last Updated**: 2025-11-15
+**Last Updated**: 2026-02-08
 
 This document provides comprehensive details on all features available in the network system.
 
@@ -9,6 +9,8 @@ This document provides comprehensive details on all features available in the ne
 ## Table of Contents
 
 - [Protocol Support](#protocol-support)
+- [Facade API](#facade-api)
+- [Unified Interface Layer](#unified-interface-layer)
 - [Asynchronous I/O Model](#asynchronous-io-model)
 - [Core Features](#core-features)
 - [Integration Features](#integration-features)
@@ -318,6 +320,272 @@ cmake -DBUILD_QUIC_SUPPORT=ON ..
 ```
 
 See [QUIC Documentation](protocols/quic/README.md) for detailed configuration and examples.
+
+### gRPC Protocol (RFC 7540) -- Prototype
+
+**Implementation**: Prototype gRPC framework built on HTTP/2 transport, supporting all four RPC patterns
+
+**Status**: Prototype -- API surfaces are fully defined; headers note "for production use, consider wrapping the official gRPC library." Optional integration with the official gRPC C++ library is available via the `NETWORK_GRPC_OFFICIAL` compile flag.
+
+**Features**:
+- **RPC Patterns**:
+  - Unary RPC (single request, single response)
+  - Server streaming (single request, multiple responses)
+  - Client streaming (multiple requests, single response)
+  - Bidirectional streaming (multiple requests and responses)
+- **Client** (`grpc_client`):
+  - Synchronous and asynchronous unary calls (`call_raw`, `call_raw_async`)
+  - Stream readers/writers for all streaming patterns
+  - Channel configuration: TLS, keepalive, retry, max message size
+  - Per-call options: deadlines, metadata, compression, wait-for-ready
+- **Server** (`grpc_server`):
+  - Method handler registration for all four RPC types
+  - `server_context` with client metadata, trailing metadata, cancellation, deadlines, peer info, auth context
+  - TLS and mutual TLS support via `start_tls()`
+  - Configurable concurrent streams, message size, keepalive, connection limits, worker threads
+- **Service Registry** (`service_registry`):
+  - `generic_service` for runtime method registration without protobuf
+  - `protoc_service_adapter` for protoc-generated services (requires `NETWORK_GRPC_OFFICIAL`)
+  - Service lookup and method routing by full path
+  - Reflection support for debugging tools (e.g., grpcurl)
+  - Health checking service (`health_service`) implementing [gRPC health checking protocol](https://github.com/grpc/grpc/blob/master/doc/health-checking.md)
+
+**Classes**:
+- `grpc_client` -- gRPC client with sync/async unary and streaming calls
+- `grpc_server` -- gRPC server with handler registration and TLS
+- `service_registry` -- Central registry for service management and routing
+- `generic_service` -- Dynamic service for runtime method registration
+- `protoc_service_adapter` -- Adapter for protoc-generated services
+- `health_service` -- Standard gRPC health checking implementation
+
+**Example**:
+```cpp
+using namespace kcenon::network::protocols::grpc;
+
+// Server setup
+grpc_server server({.max_concurrent_streams = 100, .num_threads = 4});
+
+server.register_unary_method("/mypackage.MyService/Echo",
+    [](server_context& ctx, const std::vector<uint8_t>& request)
+        -> std::pair<grpc_status, std::vector<uint8_t>> {
+        return {grpc_status::ok_status(), request};  // Echo back
+    });
+
+server.start(50051);
+
+// Client setup
+grpc_client client("localhost:50051", {.use_tls = false});
+client.connect();
+
+auto result = client.call_raw("/mypackage.MyService/Echo", request_data);
+if (result.is_ok()) {
+    // Process response
+}
+
+// Service registry with health checking
+service_registry registry({.enable_reflection = true, .enable_health_check = true});
+generic_service echo_service("mypackage.EchoService");
+echo_service.register_unary_method("Echo", echo_handler);
+registry.register_service(&echo_service);
+registry.configure_server(server);
+```
+
+**Build Configuration**:
+```bash
+# Prototype (built-in implementation)
+cmake -DBUILD_GRPC_SUPPORT=ON ..
+
+# With official gRPC library wrapper
+cmake -DBUILD_GRPC_SUPPORT=ON -DNETWORK_GRPC_OFFICIAL=ON ..
+```
+
+---
+
+## Facade API
+
+The Facade API provides simplified, unified interfaces for creating protocol clients and servers. Each supported protocol (TCP, UDP, HTTP, WebSocket, QUIC) has a dedicated facade class following the same design pattern.
+
+**Design Goals**:
+
+| Goal | Description | Benefit |
+|------|-------------|---------|
+| **Simplicity** | No template parameters or protocol tags | Easier to learn and use |
+| **Consistency** | Same `create_client`/`create_server` pattern across all protocols | Reduced cognitive load |
+| **Type Safety** | Returns standard `i_protocol_client`/`i_protocol_server` interfaces | Protocol-agnostic code |
+| **Zero Cost** | No performance overhead compared to direct instantiation | Production-ready |
+
+### Available Facades
+
+| Facade | Header | Protocols | SSL/TLS | Connection Pool |
+|--------|--------|-----------|---------|-----------------|
+| `tcp_facade` | `<kcenon/network/facade/tcp_facade.h>` | TCP | Yes | Yes |
+| `udp_facade` | `<kcenon/network/facade/udp_facade.h>` | UDP | No | No |
+| `http_facade` | `<kcenon/network/facade/http_facade.h>` | HTTP/1.1 | Yes | No |
+| `websocket_facade` | `<kcenon/network/facade/websocket_facade.h>` | WebSocket | No | No |
+| `quic_facade` | `<kcenon/network/facade/quic_facade.h>` | QUIC | Built-in (TLS 1.3) | No |
+
+### Quick Example
+
+```cpp
+#include <kcenon/network/facade/tcp_facade.h>
+using namespace kcenon::network::facade;
+
+// Create a TCP client (plain or secure)
+tcp_facade tcp;
+auto client = tcp.create_client({
+    .host = "127.0.0.1",
+    .port = 8080,
+    .client_id = "my-client",
+    .timeout = std::chrono::seconds(30),
+    .use_ssl = false
+});
+
+// Create a TCP server
+auto server = tcp.create_server({
+    .port = 8080,
+    .server_id = "my-server"
+});
+
+// Protocol-agnostic usage via i_protocol_client
+client->set_receive_callback([](const std::vector<uint8_t>& data) {
+    std::cout << "Received " << data.size() << " bytes\n";
+});
+client->start("127.0.0.1", 8080);
+```
+
+### TCP Connection Pooling
+
+The TCP facade also supports connection pooling for managing multiple reusable connections:
+
+```cpp
+tcp_facade tcp;
+auto pool = tcp.create_connection_pool({
+    .host = "127.0.0.1",
+    .port = 5555,
+    .pool_size = 10
+});
+auto result = pool->initialize();
+if (result.is_ok()) {
+    auto conn = pool->acquire();
+    conn->send_packet(data);
+    pool->release(std::move(conn));
+}
+```
+
+### When to Use Direct Classes
+
+Facades cover common use cases. Use direct protocol classes when you need protocol-specific features:
+
+- **TCP**: Advanced TLS configuration, custom cipher suites, direct session control
+- **WebSocket**: Text frame handling, protocol extensions, fragmentation control
+- **HTTP**: Routing, cookies, multipart forms, custom headers
+- **QUIC**: Multi-stream, stream prioritization, 0-RTT resumption, connection migration
+
+For full facade documentation, see [Facade API Reference](facades/README.md).
+For migration instructions, see [Facade Migration Guide](facades/migration-guide.md).
+
+---
+
+## Unified Interface Layer
+
+The Unified Interface Layer provides protocol-agnostic abstractions for network transport, connections, and listeners. Located in `kcenon/network/detail/unified/`, these interfaces allow code to work with any network protocol without depending on protocol-specific details.
+
+### Architecture
+
+The layer consists of three core interfaces forming an inheritance hierarchy:
+
+```
+i_transport           (base: data send, state query, endpoint info)
+    |
+    v
+i_connection          (extends i_transport: connect, close, callbacks, options)
+
+i_listener            (standalone: listen, accept, broadcast, connection management)
+```
+
+### `i_transport` -- Data Transport Abstraction
+
+**Header**: `<kcenon/network/detail/unified/i_transport.h>`
+
+The base interface for all data transport. Provides the minimal set of operations shared by every protocol implementation.
+
+**Key Operations**:
+- `send(std::span<const std::byte>)` -- Send raw data to the remote endpoint
+- `is_connected()` -- Check connection status
+- `id()` -- Get unique transport identifier
+- `remote_endpoint()` / `local_endpoint()` -- Get endpoint information
+
+### `i_connection` -- Active Connection Interface
+
+**Header**: `<kcenon/network/detail/unified/i_connection.h>`
+
+Extends `i_transport` with connection lifecycle operations. Represents both client-initiated and server-accepted connections.
+
+**Key Operations**:
+- `connect(endpoint_info)` / `connect(url)` -- Connect to a remote endpoint
+- `close()` -- Graceful shutdown
+- `set_callbacks(connection_callbacks)` -- Register event handlers (on_connected, on_data, on_disconnected, on_error)
+- `set_options(connection_options)` -- Configure timeouts, keep-alive, no-delay
+- `is_connecting()` / `wait_for_stop()` -- State queries
+
+### `i_listener` -- Server-Side Listener Interface
+
+**Header**: `<kcenon/network/detail/unified/i_listener.h>`
+
+Represents a server-side component that listens for incoming connections.
+
+**Key Operations**:
+- `start(endpoint_info)` / `start(port)` -- Bind and listen
+- `stop()` -- Stop accepting connections and close all active connections
+- `set_callbacks(listener_callbacks)` -- Register event handlers (on_accept, on_data, on_disconnect, on_error)
+- `send_to(connection_id, data)` -- Send to a specific connection
+- `broadcast(data)` -- Send to all connected clients
+- `close_connection(connection_id)` -- Close a specific connection
+- `connection_count()` -- Get number of active connections
+
+### Supporting Types
+
+**Header**: `<kcenon/network/detail/unified/types.h>`
+
+| Type | Purpose |
+|------|---------|
+| `endpoint_info` | Network endpoint (host/port or URL) |
+| `connection_callbacks` | Callback structure for connection events |
+| `listener_callbacks` | Callback structure for listener/server events |
+| `connection_options` | Configuration: timeouts, keep-alive, no-delay |
+
+### Protocol-Agnostic Example
+
+```cpp
+#include <kcenon/network/detail/unified/i_connection.h>
+
+using namespace kcenon::network::unified;
+
+// Works with any protocol implementation
+void send_message(i_transport& transport, std::span<const std::byte> data) {
+    if (!transport.is_connected()) {
+        return;
+    }
+    auto result = transport.send(data);
+    if (!result) {
+        std::cerr << "Send failed\n";
+    }
+}
+
+// Connection lifecycle (works for TCP, WebSocket, QUIC, etc.)
+void run_client(i_connection& conn) {
+    conn.set_callbacks({
+        .on_connected = []() { std::cout << "Connected\n"; },
+        .on_data = [](std::span<const std::byte> data) { /* process */ },
+        .on_disconnected = []() { std::cout << "Disconnected\n"; },
+        .on_error = [](std::error_code ec) { std::cerr << ec.message() << "\n"; }
+    });
+
+    conn.connect({"localhost", 8080});
+    // ... use connection ...
+    conn.close();
+}
+```
 
 ---
 
@@ -671,10 +939,14 @@ The following features are tracked in [IMPROVEMENTS.md](../IMPROVEMENTS.md):
   - ✅ Flow control with window updates
   - See `samples/http2_server_example.cpp` for server example
 
-- 🚧 **gRPC Integration**: High-performance RPC framework
-  - Protocol Buffers integration
-  - Streaming RPC
-  - Load balancing
+- 🔬 **gRPC Integration** (Prototype): High-performance RPC framework
+  - Unary, server streaming, client streaming, and bidirectional streaming RPC
+  - Service registry with dynamic and protoc-generated service support
+  - gRPC health checking protocol (grpc.health.v1.Health)
+  - Server reflection for debugging and service discovery
+  - TLS/mTLS support with configurable channel and server options
+  - Call options: deadlines, metadata, compression, wait-for-ready
+  - See [gRPC Protocol Support](#grpc-protocol-rfc-7540--prototype) for details
 
 ### Long-term
 
@@ -702,5 +974,5 @@ The following features are tracked in [IMPROVEMENTS.md](../IMPROVEMENTS.md):
 
 ---
 
-**Last Updated**: 2026-01-13
+**Last Updated**: 2026-02-08
 **Maintained by**: kcenon@naver.com

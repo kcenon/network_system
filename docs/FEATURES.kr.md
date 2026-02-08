@@ -2,8 +2,8 @@
 
 **언어:** [English](ARCHITECTURE.md) | **한국어**
 
-**최종 업데이트**: 2025-11-28
-**버전**: 0.1.0
+**최종 업데이트**: 2026-02-08
+**버전**: 0.2.0
 
 이 문서는 Network System의 모든 기능에 대한 포괄적인 세부 정보를 제공합니다.
 
@@ -12,6 +12,9 @@
 ## 목차
 
 - [핵심 기능](#핵심-기능)
+- [gRPC 프로토콜](#grpc-프로토콜-프로토타입)
+- [Facade API](#facade-api)
+- [통합 인터페이스 계층](#통합-인터페이스-계층)
 - [서버 구현](#서버-구현)
 - [클라이언트 구현](#클라이언트-구현)
 - [세션 관리](#세션-관리)
@@ -44,6 +47,220 @@ Network System은 다음 목표를 달성하도록 설계되었습니다:
 - **서브마이크로초 지연시간**: 평균 0.8μs
 - **제로 카피**: 불필요한 메모리 복사 제거
 - **효율적인 버퍼 관리**: 메모리 풀링 활용
+
+---
+
+## gRPC 프로토콜 (프로토타입)
+
+**구현 상태**: HTTP/2 전송 기반의 프로토타입 gRPC 프레임워크로, 4가지 RPC 패턴을 모두 지원합니다.
+
+**참고**: 헤더에 "프로덕션 사용 시 공식 gRPC 라이브러리 래핑을 고려하세요"라고 명시되어 있습니다. `NETWORK_GRPC_OFFICIAL` 컴파일 플래그를 통해 공식 gRPC C++ 라이브러리와의 선택적 통합이 가능합니다.
+
+**기능**:
+- **RPC 패턴**: Unary, Server Streaming, Client Streaming, Bidirectional Streaming
+- **클라이언트** (`grpc_client`):
+  - 동기/비동기 Unary 호출 (`call_raw`, `call_raw_async`)
+  - 모든 스트리밍 패턴의 리더/라이터
+  - 채널 설정: TLS, 킵얼라이브, 재시도, 최대 메시지 크기
+  - 호출별 옵션: 데드라인, 메타데이터, 압축, wait-for-ready
+- **서버** (`grpc_server`):
+  - 4가지 RPC 타입의 메서드 핸들러 등록
+  - `server_context`: 클라이언트 메타데이터, 취소, 데드라인, 피어 정보, 인증 컨텍스트
+  - TLS 및 상호 TLS 지원 (`start_tls()`)
+  - 동시 스트림, 메시지 크기, 킵얼라이브, 연결 제한, 워커 스레드 설정
+- **서비스 레지스트리** (`service_registry`):
+  - `generic_service`: protobuf 없이 런타임 메서드 등록
+  - `protoc_service_adapter`: protoc 생성 서비스 어댑터 (`NETWORK_GRPC_OFFICIAL` 필요)
+  - 서비스 조회 및 전체 경로 기반 메서드 라우팅
+  - 리플렉션 지원 (grpcurl 등 디버깅 도구용)
+  - 헬스 체크 서비스 (`health_service`): 표준 gRPC 헬스 체크 프로토콜 구현
+
+**주요 클래스**:
+
+| 클래스 | 설명 |
+|--------|------|
+| `grpc_client` | 동기/비동기 Unary 및 스트리밍 호출 |
+| `grpc_server` | 핸들러 등록 및 TLS 지원 서버 |
+| `service_registry` | 서비스 관리 및 라우팅 중앙 레지스트리 |
+| `generic_service` | 런타임 메서드 등록을 위한 동적 서비스 |
+| `protoc_service_adapter` | protoc 생성 서비스 어댑터 |
+| `health_service` | 표준 gRPC 헬스 체크 구현 |
+
+**사용 예**:
+```cpp
+using namespace kcenon::network::protocols::grpc;
+
+// 서버 설정
+grpc_server server({.max_concurrent_streams = 100, .num_threads = 4});
+
+server.register_unary_method("/mypackage.MyService/Echo",
+    [](server_context& ctx, const std::vector<uint8_t>& request)
+        -> std::pair<grpc_status, std::vector<uint8_t>> {
+        return {grpc_status::ok_status(), request};  // Echo back
+    });
+
+server.start(50051);
+
+// 클라이언트 설정
+grpc_client client("localhost:50051", {.use_tls = false});
+client.connect();
+
+auto result = client.call_raw("/mypackage.MyService/Echo", request_data);
+```
+
+---
+
+## Facade API
+
+Facade API는 프로토콜 클라이언트 및 서버 생성을 위한 단순화된 통합 인터페이스를 제공합니다. 지원되는 각 프로토콜(TCP, UDP, HTTP, WebSocket, QUIC)에는 동일한 설계 패턴을 따르는 전용 Facade 클래스가 있습니다.
+
+**설계 목표**:
+
+| 목표 | 설명 | 이점 |
+|------|------|------|
+| **단순성** | 템플릿 매개변수나 프로토콜 태그 불필요 | 학습 및 사용 용이 |
+| **일관성** | 모든 프로토콜에서 동일한 `create_client`/`create_server` 패턴 | 인지 부하 감소 |
+| **타입 안전성** | 표준 `i_protocol_client`/`i_protocol_server` 인터페이스 반환 | 프로토콜 독립 코드 |
+| **제로 비용** | 직접 인스턴스화 대비 성능 오버헤드 없음 | 프로덕션 준비 완료 |
+
+### 사용 가능한 Facade
+
+| Facade | 헤더 | 프로토콜 | SSL/TLS | 연결 풀 |
+|--------|------|----------|---------|---------|
+| `tcp_facade` | `<kcenon/network/facade/tcp_facade.h>` | TCP | 지원 | 지원 |
+| `udp_facade` | `<kcenon/network/facade/udp_facade.h>` | UDP | 미지원 | 미지원 |
+| `http_facade` | `<kcenon/network/facade/http_facade.h>` | HTTP/1.1 | 지원 | 미지원 |
+| `websocket_facade` | `<kcenon/network/facade/websocket_facade.h>` | WebSocket | 미지원 | 미지원 |
+| `quic_facade` | `<kcenon/network/facade/quic_facade.h>` | QUIC | 내장 (TLS 1.3) | 미지원 |
+
+### 빠른 예제
+
+```cpp
+#include <kcenon/network/facade/tcp_facade.h>
+using namespace kcenon::network::facade;
+
+// TCP 클라이언트 생성 (일반 또는 보안)
+tcp_facade tcp;
+auto client = tcp.create_client({
+    .host = "127.0.0.1",
+    .port = 8080,
+    .client_id = "my-client",
+    .timeout = std::chrono::seconds(30),
+    .use_ssl = false
+});
+
+// TCP 서버 생성
+auto server = tcp.create_server({
+    .port = 8080,
+    .server_id = "my-server"
+});
+
+// i_protocol_client를 통한 프로토콜 독립 사용
+client->set_receive_callback([](const std::vector<uint8_t>& data) {
+    std::cout << "Received " << data.size() << " bytes\n";
+});
+client->start("127.0.0.1", 8080);
+```
+
+### 직접 클래스 사용 시점
+
+Facade는 일반적인 사용 사례를 다룹니다. 프로토콜 고유 기능이 필요한 경우 직접 클래스를 사용합니다:
+
+- **TCP**: 고급 TLS 설정, 사용자 정의 암호 모음, 직접 세션 제어
+- **WebSocket**: 텍스트 프레임 처리, 프로토콜 확장, 프래그멘테이션 제어
+- **HTTP**: 라우팅, 쿠키, 멀티파트 폼, 사용자 정의 헤더
+- **QUIC**: 멀티 스트림, 스트림 우선순위, 0-RTT 재개, 연결 마이그레이션
+
+자세한 Facade 문서는 [Facade API 레퍼런스](facades/README.md)를 참조하세요.
+마이그레이션 가이드는 [Facade 마이그레이션 가이드](facades/migration-guide.md)를 참조하세요.
+
+---
+
+## 통합 인터페이스 계층
+
+통합 인터페이스 계층은 네트워크 전송, 연결 및 리스너에 대한 프로토콜 독립 추상화를 제공합니다. `kcenon/network/detail/unified/`에 위치한 이 인터페이스들은 프로토콜별 세부 사항에 의존하지 않고 어떤 네트워크 프로토콜과도 작동하는 코드를 작성할 수 있게 합니다.
+
+### 아키텍처
+
+계층은 상속 계층을 형성하는 3개의 핵심 인터페이스로 구성됩니다:
+
+```
+i_transport           (기본: 데이터 전송, 상태 조회, 엔드포인트 정보)
+    |
+    v
+i_connection          (i_transport 확장: 연결, 종료, 콜백, 옵션)
+
+i_listener            (독립: 수신, 수락, 브로드캐스트, 연결 관리)
+```
+
+### `i_transport` -- 데이터 전송 추상화
+
+**헤더**: `<kcenon/network/detail/unified/i_transport.h>`
+
+모든 데이터 전송의 기본 인터페이스입니다. 모든 프로토콜 구현이 공유하는 최소한의 연산 집합을 제공합니다.
+
+**주요 연산**:
+- `send(std::span<const std::byte>)` -- 원격 엔드포인트에 원시 데이터 전송
+- `is_connected()` -- 연결 상태 확인
+- `id()` -- 고유 전송 식별자 반환
+- `remote_endpoint()` / `local_endpoint()` -- 엔드포인트 정보 반환
+
+### `i_connection` -- 활성 연결 인터페이스
+
+**헤더**: `<kcenon/network/detail/unified/i_connection.h>`
+
+`i_transport`를 연결 수명 주기 연산으로 확장합니다. 클라이언트 시작 연결과 서버 수락 연결 모두를 나타냅니다.
+
+**주요 연산**:
+- `connect(endpoint_info)` / `connect(url)` -- 원격 엔드포인트에 연결
+- `close()` -- 정상 종료
+- `set_callbacks(connection_callbacks)` -- 이벤트 핸들러 등록 (on_connected, on_data, on_disconnected, on_error)
+- `set_options(connection_options)` -- 타임아웃, 킵얼라이브, no-delay 설정
+- `is_connecting()` / `wait_for_stop()` -- 상태 조회
+
+### `i_listener` -- 서버 측 리스너 인터페이스
+
+**헤더**: `<kcenon/network/detail/unified/i_listener.h>`
+
+수신 연결을 대기하는 서버 측 컴포넌트를 나타냅니다.
+
+**주요 연산**:
+- `start(endpoint_info)` / `start(port)` -- 바인드 및 수신 대기
+- `stop()` -- 수신 중단 및 모든 활성 연결 종료
+- `set_callbacks(listener_callbacks)` -- 이벤트 핸들러 등록 (on_accept, on_data, on_disconnect, on_error)
+- `send_to(connection_id, data)` -- 특정 연결에 전송
+- `broadcast(data)` -- 모든 연결된 클라이언트에 전송
+- `connection_count()` -- 활성 연결 수 반환
+
+### 지원 타입
+
+**헤더**: `<kcenon/network/detail/unified/types.h>`
+
+| 타입 | 용도 |
+|------|------|
+| `endpoint_info` | 네트워크 엔드포인트 (호스트/포트 또는 URL) |
+| `connection_callbacks` | 연결 이벤트 콜백 구조체 |
+| `listener_callbacks` | 리스너/서버 이벤트 콜백 구조체 |
+| `connection_options` | 설정: 타임아웃, 킵얼라이브, no-delay |
+
+### 프로토콜 독립 예제
+
+```cpp
+#include <kcenon/network/detail/unified/i_connection.h>
+
+using namespace kcenon::network::unified;
+
+// 어떤 프로토콜 구현과도 작동
+void send_message(i_transport& transport, std::span<const std::byte> data) {
+    if (!transport.is_connected()) {
+        return;
+    }
+    auto result = transport.send(data);
+    if (!result) {
+        std::cerr << "Send failed\n";
+    }
+}
+```
 
 ---
 
@@ -508,8 +725,8 @@ server.set_metrics_collector(metrics);
 
 ---
 
-**최종 업데이트**: 2025-11-28
-**버전**: 0.1.0
+**최종 업데이트**: 2026-02-08
+**버전**: 0.2.0
 
 ---
 
