@@ -163,7 +163,7 @@ See: [../security/SECURITY.md](../security/SECURITY.md)
 
 - [Network System API Reference](../API_REFERENCE.md)
 - [Network System Architecture](../ARCHITECTURE.md)
-- [Ecosystem Integration Guide](../../../ECOSYSTEM_INTEGRATION.md)
+- [Ecosystem Integration Guide](../../../ECOSYSTEM.md)
 - [Example Applications](../../../examples/network/)
 
 ## Support

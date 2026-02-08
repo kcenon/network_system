@@ -21,7 +21,7 @@ Network System Project는 분산 시스템 및 메시징 애플리케이션을 �
 
 | 의존성 | 버전 | 필수 | 설명 |
 |--------|------|------|------|
-| C++20 컴파일러 | GCC 11+ / Clang 14+ / MSVC 2022+ / Apple Clang 14+ | 예 | C++20 기능 필요 |
+| C++20 컴파일러 | GCC 13+ / Clang 17+ / MSVC 2022+ / Apple Clang 14+ | 예 | thread_system 의존성으로 인한 높은 요구사항 |
 | CMake | 3.20+ | 예 | 빌드 시스템 |
 | ASIO | latest | 예 | 비동기 I/O (standalone) |
 | OpenSSL | 3.x (권장) / 1.1.1 (최소) | 예 | TLS/SSL 지원 |

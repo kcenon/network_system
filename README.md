@@ -26,7 +26,7 @@ A modern C++20 asynchronous network library providing reusable transport primiti
 
 | Dependency | Version | Required | Description |
 |------------|---------|----------|-------------|
-| C++20 Compiler | GCC 11+ / Clang 14+ / MSVC 2022+ / Apple Clang 14+ | Yes | C++20 features required |
+| C++20 Compiler | GCC 13+ / Clang 17+ / MSVC 2022+ / Apple Clang 14+ | Yes | Higher requirements due to thread_system dependency |
 | CMake | 3.20+ | Yes | Build system |
 | ASIO | latest | Yes | Asynchronous I/O (standalone) |
 | OpenSSL | 3.x (recommended) / 1.1.1 (minimum) | Yes | TLS/SSL support |
