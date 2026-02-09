@@ -97,7 +97,9 @@ struct endpoint_info {
 
     endpoint_info() = default;
     endpoint_info(const std::string& h, uint16_t p);      // Host/port
+    endpoint_info(const char* h, uint16_t p);              // Host/port (C-string)
     explicit endpoint_info(const std::string& url);         // URL-only
+    explicit endpoint_info(const char* url);                // URL-only (C-string)
 
     [[nodiscard]] auto is_valid() const noexcept -> bool;   // Non-empty host
     [[nodiscard]] auto to_string() const -> std::string;    // "host:port" or URL
