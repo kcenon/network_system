@@ -93,4 +93,3 @@ cmake --build build --target migration_examples
 
 - [Migration Guide](../../docs/guides/MIGRATION_UNIFIED_API.md)
 - [Unified API Reference](../../docs/API_REFERENCE.md)
-- [Compatibility Header](../../include/kcenon/network/compat/legacy_aliases.h)

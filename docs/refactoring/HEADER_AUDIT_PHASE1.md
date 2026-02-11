@@ -174,12 +174,11 @@ Examples:
 | `experimental/experimental_api.h` | `src/internal/experimental/experimental_api.h` | Unstable |
 | Remaining experimental headers | `src/internal/experimental/` | Unstable APIs |
 
-### Category 9: Legacy/Compatibility (2 headers) 🔄 MOVE TO INTERNAL
+### Category 9: Legacy/Compatibility — REMOVED
 
-| Header | Destination | Reason |
-|--------|-------------|--------|
-| `compat/legacy_aliases.h` | `src/internal/compat/legacy_aliases.h` | Compatibility only |
-| `compat/unified_compat.h` | `src/internal/compat/unified_compat.h` | Compatibility only |
+> Removed in Issue #692. `compat/legacy_aliases.h` (28 deprecated aliases) and
+> `compat/unified_compat.h` (9 deprecated aliases) were deleted since network_system
+> is at v0.1.0 with no external consumers.
 
 ### Category 10: Remaining Headers (47 headers) 🔍 REVIEW NEEDED
 

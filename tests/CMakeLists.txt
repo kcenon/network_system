@@ -770,48 +770,6 @@ if(GTest_FOUND OR GTEST_FOUND)
     )
     message(STATUS "Unified messaging server tests enabled")
 
-    # Unified compat alias tests
-    add_executable(network_unified_compat_test
-        unit/test_unified_compat.cpp
-    )
-
-    target_link_libraries(network_unified_compat_test PRIVATE
-        NetworkSystem
-        GTest::gtest
-        GTest::gtest_main
-        Threads::Threads
-    )
-
-    # Setup ASIO integration
-    setup_asio_integration(network_unified_compat_test)
-
-    # Add system integration paths
-    if(COMMON_SYSTEM_INCLUDE_DIR)
-        target_include_directories(network_unified_compat_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
-        target_compile_definitions(network_unified_compat_test PRIVATE WITH_COMMON_SYSTEM)
-    endif()
-
-    if(THREAD_SYSTEM_INCLUDE_DIR)
-        target_include_directories(network_unified_compat_test PRIVATE ${THREAD_SYSTEM_INCLUDE_DIR})
-        target_compile_definitions(network_unified_compat_test PRIVATE WITH_THREAD_SYSTEM)
-    endif()
-
-    if(LOGGER_SYSTEM_INCLUDE_DIR)
-        target_include_directories(network_unified_compat_test PRIVATE ${LOGGER_SYSTEM_INCLUDE_DIR})
-        target_compile_definitions(network_unified_compat_test PRIVATE WITH_LOGGER_SYSTEM)
-    endif()
-
-    set_target_properties(network_unified_compat_test PROPERTIES
-        CXX_STANDARD 20
-        CXX_STANDARD_REQUIRED ON
-        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
-    )
-
-    network_gtest_discover_tests(network_unified_compat_test
-        DISCOVERY_TIMEOUT 60
-    )
-    message(STATUS "Unified compat alias tests enabled")
-
     # UDP composition tests
     add_executable(network_udp_composition_test
         unit/test_udp_composition.cpp
