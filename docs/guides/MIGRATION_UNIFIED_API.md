@@ -322,21 +322,6 @@ auto secure_client = websocket::connect("wss://example.com/ws");
 auto server = websocket::listen(8080, "/ws");
 ```
 
-## Compatibility Header
-
-For gradual migration, use the compatibility header:
-
-```cpp
-#include <kcenon/network/compat/legacy_aliases.h>
-
-using namespace kcenon::network::compat;
-
-// These aliases compile but produce deprecation warnings
-i_client_compat* client;      // Warning: use unified::i_connection
-i_server_compat* server;      // Warning: use unified::i_listener
-i_session_compat* session;    // Warning: use unified::i_connection
-```
-
 ## Common Migration Patterns
 
 ### Pattern 1: Factory Function Migration
