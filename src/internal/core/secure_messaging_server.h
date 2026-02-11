@@ -52,7 +52,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * @endcode
  *
  * @see unified_messaging_server.h for the new template-based API
- * @see unified_compat.h for backward-compatible type aliases
  */
 
 #include <kcenon/network/detail/config/feature_flags.h>
