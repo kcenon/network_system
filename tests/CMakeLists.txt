@@ -2116,6 +2116,135 @@ if(GTest_FOUND OR GTEST_FOUND)
         message(STATUS "Secure messaging server tests enabled")
     endif()
 
+    ##################################################
+    # UDP Functional Tests (Issue #695)
+    ##################################################
+
+    add_executable(network_udp_basic_test
+        udp_basic_test.cpp
+    )
+
+    target_link_libraries(network_udp_basic_test PRIVATE
+        NetworkSystem
+        GTest::gtest
+        GTest::gtest_main
+        Threads::Threads
+    )
+
+    target_compile_definitions(network_udp_basic_test PRIVATE
+        NETWORK_SYSTEM_SUPPRESS_DEPRECATION_WARNINGS
+    )
+
+    setup_asio_integration(network_udp_basic_test)
+
+    if(COMMON_SYSTEM_INCLUDE_DIR)
+        target_include_directories(network_udp_basic_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(network_udp_basic_test PRIVATE WITH_COMMON_SYSTEM)
+    endif()
+
+    if(THREAD_SYSTEM_INCLUDE_DIR)
+        target_include_directories(network_udp_basic_test PRIVATE ${THREAD_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(network_udp_basic_test PRIVATE WITH_THREAD_SYSTEM)
+    endif()
+
+    if(LOGGER_SYSTEM_INCLUDE_DIR)
+        target_include_directories(network_udp_basic_test PRIVATE ${LOGGER_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(network_udp_basic_test PRIVATE WITH_LOGGER_SYSTEM)
+    endif()
+
+    set_target_properties(network_udp_basic_test PROPERTIES
+        CXX_STANDARD 20
+        CXX_STANDARD_REQUIRED ON
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+    )
+
+    network_gtest_discover_tests(network_udp_basic_test
+        DISCOVERY_TIMEOUT 60
+    )
+    message(STATUS "UDP functional tests enabled")
+
+    ##################################################
+    # HTTP Client/Server Unit Tests (Issue #695)
+    ##################################################
+
+    add_executable(network_http_client_test
+        unit/http_client_test.cpp
+    )
+
+    target_link_libraries(network_http_client_test PRIVATE
+        NetworkSystem
+        GTest::gtest
+        GTest::gtest_main
+        Threads::Threads
+    )
+
+    setup_asio_integration(network_http_client_test)
+
+    if(COMMON_SYSTEM_INCLUDE_DIR)
+        target_include_directories(network_http_client_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(network_http_client_test PRIVATE WITH_COMMON_SYSTEM)
+    endif()
+
+    if(THREAD_SYSTEM_INCLUDE_DIR)
+        target_include_directories(network_http_client_test PRIVATE ${THREAD_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(network_http_client_test PRIVATE WITH_THREAD_SYSTEM)
+    endif()
+
+    if(LOGGER_SYSTEM_INCLUDE_DIR)
+        target_include_directories(network_http_client_test PRIVATE ${LOGGER_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(network_http_client_test PRIVATE WITH_LOGGER_SYSTEM)
+    endif()
+
+    set_target_properties(network_http_client_test PROPERTIES
+        CXX_STANDARD 20
+        CXX_STANDARD_REQUIRED ON
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+    )
+
+    network_gtest_discover_tests(network_http_client_test
+        DISCOVERY_TIMEOUT 60
+    )
+    message(STATUS "HTTP client tests enabled")
+
+    add_executable(network_http_server_test
+        unit/http_server_test.cpp
+    )
+
+    target_link_libraries(network_http_server_test PRIVATE
+        NetworkSystem
+        GTest::gtest
+        GTest::gtest_main
+        Threads::Threads
+    )
+
+    setup_asio_integration(network_http_server_test)
+
+    if(COMMON_SYSTEM_INCLUDE_DIR)
+        target_include_directories(network_http_server_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(network_http_server_test PRIVATE WITH_COMMON_SYSTEM)
+    endif()
+
+    if(THREAD_SYSTEM_INCLUDE_DIR)
+        target_include_directories(network_http_server_test PRIVATE ${THREAD_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(network_http_server_test PRIVATE WITH_THREAD_SYSTEM)
+    endif()
+
+    if(LOGGER_SYSTEM_INCLUDE_DIR)
+        target_include_directories(network_http_server_test PRIVATE ${LOGGER_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(network_http_server_test PRIVATE WITH_LOGGER_SYSTEM)
+    endif()
+
+    set_target_properties(network_http_server_test PROPERTIES
+        CXX_STANDARD 20
+        CXX_STANDARD_REQUIRED ON
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+    )
+
+    network_gtest_discover_tests(network_http_server_test
+        DISCOVERY_TIMEOUT 60
+    )
+    message(STATUS "HTTP server tests enabled")
+
 else()
     message(WARNING "GTest not found - unit tests will not be built")
 endif()
