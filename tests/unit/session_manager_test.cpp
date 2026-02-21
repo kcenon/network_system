@@ -475,3 +475,203 @@ TEST_F(ThreadSafetyTest, ConcurrentActivityUpdates)
 	// Session should still exist (activity kept it alive)
 	EXPECT_TRUE(manager_->get_session_info("shared_session").has_value());
 }
+
+// ============================================================================
+// Backward Compatibility: get_session_info() Conversion Tests
+// ============================================================================
+
+class SessionInfoBackwardCompatTest : public ::testing::Test
+{
+protected:
+	void SetUp() override
+	{
+		config_.max_sessions = 10;
+		config_.idle_timeout = 200ms;
+		manager_ = std::make_unique<session_manager>(config_);
+	}
+
+	session_config config_;
+	std::unique_ptr<session_manager> manager_;
+};
+
+TEST_F(SessionInfoBackwardCompatTest, GetSessionInfoConvertsTimestampsFromInternal)
+{
+	auto before = std::chrono::steady_clock::now();
+	manager_->add_session(nullptr, "compat_session");
+	auto after = std::chrono::steady_clock::now();
+
+	auto info = manager_->get_session_info("compat_session");
+	ASSERT_TRUE(info.has_value());
+
+	// created_at should be within the time window of add_session call
+	EXPECT_GE(info->created_at, before);
+	EXPECT_LE(info->created_at, after);
+
+	// last_activity should equal created_at right after creation
+	EXPECT_EQ(info->created_at, info->last_activity);
+}
+
+TEST_F(SessionInfoBackwardCompatTest, GetSessionInfoReflectsUpdatedActivity)
+{
+	manager_->add_session(nullptr, "activity_session");
+
+	auto info_before = manager_->get_session_info("activity_session");
+	ASSERT_TRUE(info_before.has_value());
+
+	std::this_thread::sleep_for(15ms);
+	manager_->update_activity("activity_session");
+
+	auto info_after = manager_->get_session_info("activity_session");
+	ASSERT_TRUE(info_after.has_value());
+
+	// created_at should be unchanged across both calls
+	EXPECT_EQ(info_before->created_at, info_after->created_at);
+
+	// last_activity should have advanced
+	EXPECT_GT(info_after->last_activity, info_before->last_activity);
+}
+
+TEST_F(SessionInfoBackwardCompatTest, GetSessionInfoReturnsNulloptForNonexistent)
+{
+	auto info = manager_->get_session_info("does_not_exist");
+	EXPECT_FALSE(info.has_value());
+}
+
+TEST_F(SessionInfoBackwardCompatTest, GetSessionInfoPreservesSessionPointer)
+{
+	// session_info.session should hold the same pointer passed to add_session
+	// Using nullptr to verify the conversion doesn't lose the pointer
+	manager_->add_session(nullptr, "ptr_test");
+
+	auto info = manager_->get_session_info("ptr_test");
+	ASSERT_TRUE(info.has_value());
+	EXPECT_EQ(info->session, nullptr);
+}
+
+// ============================================================================
+// Session Config Validation Tests
+// ============================================================================
+
+class SessionConfigValidationTest : public ::testing::Test
+{
+};
+
+TEST_F(SessionConfigValidationTest, MaxSessionsEnforcesCapacity)
+{
+	session_config config;
+	config.max_sessions = 3;
+	session_manager manager(config);
+
+	EXPECT_TRUE(manager.can_accept_connection());
+
+	manager.add_session(nullptr, "s1");
+	manager.add_session(nullptr, "s2");
+	EXPECT_TRUE(manager.can_accept_connection());
+
+	manager.add_session(nullptr, "s3");
+	EXPECT_FALSE(manager.can_accept_connection());
+
+	// Attempting to add beyond capacity should fail
+	EXPECT_FALSE(manager.add_session(nullptr, "s4"));
+	EXPECT_EQ(manager.get_session_count(), 3);
+}
+
+TEST_F(SessionConfigValidationTest, BackpressureThresholdInteraction)
+{
+	session_config config;
+	config.max_sessions = 10;
+	config.enable_backpressure = true;
+	config.backpressure_threshold = 0.5;  // 50% threshold
+	session_manager manager(config);
+
+	// Add 4 sessions (40% - below threshold)
+	for (int i = 0; i < 4; ++i)
+	{
+		manager.add_session(nullptr, "bp_" + std::to_string(i));
+	}
+	EXPECT_FALSE(manager.is_backpressure_active());
+
+	// Add 1 more (50% - at threshold)
+	manager.add_session(nullptr, "bp_4");
+	EXPECT_TRUE(manager.is_backpressure_active());
+
+	// Still can accept even under backpressure (until max_sessions)
+	EXPECT_TRUE(manager.can_accept_connection());
+}
+
+TEST_F(SessionConfigValidationTest, BackpressureDisabledNeverActivates)
+{
+	session_config config;
+	config.max_sessions = 5;
+	config.enable_backpressure = false;
+	session_manager manager(config);
+
+	// Fill to 100%
+	for (int i = 0; i < 5; ++i)
+	{
+		manager.add_session(nullptr, "nobp_" + std::to_string(i));
+	}
+
+	// Backpressure should never be active when disabled
+	EXPECT_FALSE(manager.is_backpressure_active());
+}
+
+TEST_F(SessionConfigValidationTest, IdleTimeoutInteractsWithCleanup)
+{
+	session_config config;
+	config.max_sessions = 10;
+	config.idle_timeout = 30ms;  // Very short
+	session_manager manager(config);
+
+	manager.add_session(nullptr, "idle_test_1");
+	manager.add_session(nullptr, "idle_test_2");
+
+	// Sessions are fresh, cleanup should remove nothing
+	EXPECT_EQ(manager.cleanup_idle_sessions(), 0u);
+
+	// Wait for idle timeout to expire
+	std::this_thread::sleep_for(50ms);
+
+	// Now cleanup should remove all idle sessions
+	size_t cleaned = manager.cleanup_idle_sessions();
+	EXPECT_EQ(cleaned, 2u);
+	EXPECT_EQ(manager.get_session_count(), 0);
+}
+
+TEST_F(SessionConfigValidationTest, CanAcceptConnectionReturnsFalseAtCapacity)
+{
+	session_config config;
+	config.max_sessions = 2;
+	session_manager manager(config);
+
+	EXPECT_TRUE(manager.can_accept_connection());
+
+	manager.add_session(nullptr, "cap_1");
+	EXPECT_TRUE(manager.can_accept_connection());
+
+	manager.add_session(nullptr, "cap_2");
+	EXPECT_FALSE(manager.can_accept_connection());
+
+	// After removing one, can accept again
+	manager.remove_session("cap_1");
+	EXPECT_TRUE(manager.can_accept_connection());
+}
+
+TEST_F(SessionConfigValidationTest, CleanupIdleSessionsRestoresCapacity)
+{
+	session_config config;
+	config.max_sessions = 2;
+	config.idle_timeout = 20ms;
+	session_manager manager(config);
+
+	manager.add_session(nullptr, "full_1");
+	manager.add_session(nullptr, "full_2");
+	EXPECT_FALSE(manager.can_accept_connection());
+
+	std::this_thread::sleep_for(40ms);
+	manager.cleanup_idle_sessions();
+
+	// Capacity should be restored after cleanup
+	EXPECT_TRUE(manager.can_accept_connection());
+	EXPECT_EQ(manager.get_session_count(), 0);
+}

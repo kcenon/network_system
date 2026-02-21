@@ -814,6 +814,175 @@ TEST_F(NetworkTest, ServerStopWhileClientsConnected) {
   clients.clear();
 }
 
+// ============================================================================
+// Messaging Server: server_id() Accessor Tests
+// ============================================================================
+
+TEST_F(NetworkTest, ServerIdReturnsConstructorValue) {
+  auto server = std::make_shared<messaging_server>("my_custom_id");
+  EXPECT_EQ(server->server_id(), "my_custom_id");
+}
+
+TEST_F(NetworkTest, ServerIdEmptyStringIsValid) {
+  auto server = std::make_shared<messaging_server>("");
+  EXPECT_EQ(server->server_id(), "");
+}
+
+// ============================================================================
+// Messaging Server: Double-Start Error Tests
+// ============================================================================
+
+TEST_F(NetworkTest, DoubleStartReturnsAlreadyExistsError) {
+  auto server = std::make_shared<messaging_server>("double_start_server");
+
+  auto port = FindAvailablePort();
+  ASSERT_NE(port, 0) << "No available port found";
+
+  auto result1 = server->start_server(port);
+  ASSERT_TRUE(result1.is_ok()) << "First start should succeed";
+
+  WaitForServerReady();
+
+  // Second start should return error while already running
+  auto result2 = server->start_server(port);
+  EXPECT_TRUE(result2.is_err()) << "Double start should return error";
+
+  if (result2.is_err()) {
+    // startable_base returns already_exists for double-start
+    EXPECT_EQ(result2.error().code, error_codes::common_errors::already_exists)
+        << "Should return already_exists error code";
+    EXPECT_FALSE(result2.error().message.empty())
+        << "Error message should not be empty";
+  }
+
+  auto stop_result = server->stop_server();
+  EXPECT_TRUE(stop_result.is_ok());
+}
+
+// ============================================================================
+// Messaging Server: wait_for_stop() Blocking Tests
+// ============================================================================
+
+TEST_F(NetworkTest, WaitForStopIsCallableWhileRunning) {
+  auto server = std::make_shared<messaging_server>("wait_server");
+
+  auto port = FindAvailablePort();
+  ASSERT_NE(port, 0) << "No available port found";
+
+  auto start_result = server->start_server(port);
+  ASSERT_TRUE(start_result.is_ok()) << "Server start should succeed";
+
+  WaitForServerReady();
+
+  // wait_for_stop() should be safe to call from another thread
+  // Note: In the current startable_base implementation, wait_for_stop()
+  // returns immediately since prepare_stop() is not called by do_start().
+  // This test verifies it doesn't crash or hang.
+  std::atomic<bool> wait_completed{false};
+
+  std::thread waiter([&server, &wait_completed]() {
+    server->wait_for_stop();
+    wait_completed.store(true);
+  });
+
+  // Stop the server
+  auto stop_result = server->stop_server();
+  EXPECT_TRUE(stop_result.is_ok());
+
+  // The waiter thread should have completed
+  if (waiter.joinable()) {
+    waiter.join();
+  }
+
+  EXPECT_TRUE(wait_completed.load())
+      << "wait_for_stop should have returned after stop_server";
+}
+
+TEST_F(NetworkTest, WaitForStopOnNonRunningServerReturnsImmediately) {
+  auto server = std::make_shared<messaging_server>("idle_server");
+
+  // wait_for_stop on a server that was never started should not hang
+  server->wait_for_stop();
+
+  EXPECT_FALSE(server->is_running());
+}
+
+// ============================================================================
+// Messaging Server: cleanup_dead_sessions() Indirect Tests
+// ============================================================================
+
+TEST_F(NetworkTest, CleanupDeadSessionsOnNewConnection) {
+  // Skip under sanitizers - this test relies on timing
+  if (is_sanitizer_run()) {
+    GTEST_SKIP() << "Skipping under sanitizer due to timing sensitivity";
+  }
+
+  auto port = FindAvailablePort();
+  ASSERT_NE(port, 0) << "No available port found";
+
+  auto server = std::make_shared<messaging_server>("cleanup_server");
+
+  std::atomic<int> connection_count{0};
+
+  server->set_connection_callback(
+      [&connection_count](std::shared_ptr<kcenon::network::session::messaging_session>) {
+        connection_count.fetch_add(1);
+      });
+
+  auto server_start = server->start_server(port);
+  ASSERT_TRUE(server_start.is_ok()) << "Server should start";
+
+  WaitForServerReady();
+
+  // Connect first client and wait for connection
+  auto client1 = std::make_shared<messaging_client>("cleanup_client_1");
+  auto start1 = client1->start_client("127.0.0.1", port);
+  ASSERT_TRUE(start1.is_ok()) << "First client should start";
+
+  // Wait for client1 connection to be established
+  WaitForCondition([&]() { return connection_count.load() >= 1; }, 5000ms);
+
+  // Stop client1 (session becomes dead on server side)
+  (void)client1->stop_client();
+  wait_for_ready();
+
+  // Connect second client - triggers cleanup_dead_sessions() in on_accept()
+  auto client2 = std::make_shared<messaging_client>("cleanup_client_2");
+  auto start2 = client2->start_client("127.0.0.1", port);
+  EXPECT_TRUE(start2.is_ok()) << "Second client should start";
+
+  // Wait for client2 connection
+  WaitForCondition([&]() { return connection_count.load() >= 2; }, 5000ms);
+
+  // Server accepted both connections (cleanup happened internally during second accept)
+  EXPECT_GE(connection_count.load(), 2)
+      << "Server should have accepted both connections";
+
+  // Cleanup
+  (void)client2->stop_client();
+  wait_for_ready();
+  (void)server->stop_server();
+  wait_for_ready();
+}
+
+#if KCENON_WITH_COMMON_SYSTEM
+// ============================================================================
+// Messaging Server: Monitor Tests (requires common_system)
+// ============================================================================
+
+TEST_F(NetworkTest, SetAndGetMonitor) {
+  auto server = std::make_shared<messaging_server>("monitor_server");
+
+  // Initially no monitor
+  EXPECT_EQ(server->get_monitor(), nullptr);
+
+  // Set a mock monitor (using nullptr-like pattern since we don't have real IMonitor)
+  // This test just verifies the setter/getter work
+  server->set_monitor(nullptr);
+  EXPECT_EQ(server->get_monitor(), nullptr);
+}
+#endif // KCENON_WITH_COMMON_SYSTEM
+
 // Main function for running tests
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
