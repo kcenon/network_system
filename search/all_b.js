@@ -1,0 +1,28 @@
+var searchData=
+[
+  ['c_2020_20모듈_20빌드_20실험적_0',['C++20 모듈 빌드 (실험적)',['../md_README_8kr.html#autotoc_md125',1,'']]],
+  ['c_2020_20module_20build_20experimental_1',['C++20 Module Build (Experimental)',['../md_README.html#autotoc_md195',1,'']]],
+  ['cd_20infrastructure_2',['CI/CD Infrastructure',['../md_README.html#autotoc_md232',1,'']]],
+  ['changed_3',['changed',['../md_CHANGELOG.html#autotoc_md37',1,'Changed'],['../md_CHANGELOG.html#autotoc_md76',1,'Changed'],['../md_CHANGELOG.html#autotoc_md71',1,'Changed'],['../md_CHANGELOG.html#autotoc_md66',1,'Changed'],['../md_CHANGELOG.html#autotoc_md61',1,'Changed'],['../md_CHANGELOG.html#autotoc_md48',1,'Changed'],['../md_CHANGELOG.html#autotoc_md43',1,'Changed'],['../md_CHANGELOG.html#autotoc_md32',1,'Changed'],['../md_CHANGELOG.html#autotoc_md27',1,'Changed'],['../md_CHANGELOG.html#autotoc_md22',1,'Changed'],['../md_CHANGELOG.html#autotoc_md17',1,'Changed'],['../md_CHANGELOG.html#autotoc_md10',1,'Changed']]],
+  ['changelog_4',['changelog',['../md_CHANGELOG.html',1,'Changelog'],['../md_CHANGELOG.html#autotoc_md6',1,'How to Read This Changelog']]],
+  ['changes_5',['Breaking Changes',['../md_CHANGELOG.html#autotoc_md13',1,'']]],
+  ['characteristics_6',['Performance Characteristics',['../index.html#performance_sec',1,'']]],
+  ['ci_20cd_20infrastructure_7',['CI/CD Infrastructure',['../md_README.html#autotoc_md232',1,'']]],
+  ['client_8',['client',['../md_README_8kr.html#autotoc_md134',1,'TCP Client'],['../md_README.html#autotoc_md197',1,'Your First Client']]],
+  ['client_20usage_9',['Basic Client Usage',['../index.html#usage_client',1,'']]],
+  ['cmake_20configuration_10',['Manual CMake Configuration',['../md_README.html#autotoc_md241',1,'']]],
+  ['cmake_20options_11',['Available CMake Options',['../md_README.html#autotoc_md242',1,'']]],
+  ['cmake_20presets_20recommended_12',['Using CMake Presets (Recommended)',['../md_README.html#autotoc_md240',1,'']]],
+  ['common_20issues_13',['Common Issues',['../index.html#trouble_common',1,'']]],
+  ['completed_14',['Recently Completed',['../md_README.html#autotoc_md247',1,'']]],
+  ['configuration_15',['Manual CMake Configuration',['../md_README.html#autotoc_md241',1,'']]],
+  ['considerations_16',['Security Considerations',['../index.html#feat_security',1,'']]],
+  ['contact_20and_20support_17',['Contact and Support',['../index.html#contact_sec',1,'']]],
+  ['contact_20support_18',['Contact &amp; Support',['../md_README.html#autotoc_md255',1,'']]],
+  ['contributing_19',['contributing',['../index.html#contributing_sec',1,'Contributing'],['../md_README.html#autotoc_md251',1,'Contributing']]],
+  ['copy_20데이터_20전송_20',['Zero-Copy 데이터 전송',['../md_README_8kr.html#autotoc_md136',1,'']]],
+  ['core_20dependencies_21',['Core Dependencies',['../md_README.html#autotoc_md258',1,'']]],
+  ['core_20features_22',['Core Features',['../md_README.html#autotoc_md206',1,'']]],
+  ['core_20layer_23',['Core Layer',['../index.html#arch_core',1,'']]],
+  ['current_20focus_24',['Current Focus',['../md_README.html#autotoc_md248',1,'']]]
+];
