@@ -2,50 +2,12 @@ name: Generate-Documentation
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   pull_request:
-    branches:
-      - main
+    branches: [main]
   workflow_dispatch:
 
 jobs:
-  generate_docs:
-    permissions:
-      contents: write
-    runs-on: ubuntu-latest
-    # Skip if commit message contains [skip ci] or [ci skip]
-    if: "!contains(github.event.head_commit.message, '[skip ci]') && !contains(github.event.head_commit.message, '[ci skip]')"
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: recursive
-          fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Install Doxygen
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y doxygen graphviz
-
-      - name: Cache Doxygen output
-        uses: actions/cache@v3
-        with:
-          path: ./documents/html
-          key: ${{ runner.os }}-doxygen-${{ hashFiles('**/*.h', '**/*.cpp', 'Doxyfile') }}
-          restore-keys: |
-            ${{ runner.os }}-doxygen-
-
-      - name: Generate Documentation
-        run: doxygen Doxyfile
-
-      - name: Deploy Documentation
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./documents/html
-          commit_message: "docs: update API documentation [skip ci]"
-          enable_jekyll: false
-          force_orphan: true
-          user_name: 'github-actions[bot]'
-          user_email: 'github-actions[bot]@users.noreply.github.com'
+  docs:
+    uses: kcenon/common_system/.github/workflows/doxygen.yml@main
+    secrets: inherit
