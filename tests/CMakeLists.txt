@@ -2021,6 +2021,135 @@ if(GTest_FOUND OR GTEST_FOUND)
     message(STATUS "Connection pool tests enabled")
 
     ##################################################
+    # Buffer Pool Tests (Issue #703)
+    ##################################################
+
+    add_executable(network_buffer_pool_test
+        unit/buffer_pool_test.cpp
+    )
+
+    target_link_libraries(network_buffer_pool_test PRIVATE
+        NetworkSystem
+        GTest::gtest
+        GTest::gtest_main
+        Threads::Threads
+    )
+
+    setup_asio_integration(network_buffer_pool_test)
+
+    if(COMMON_SYSTEM_INCLUDE_DIR)
+        target_include_directories(network_buffer_pool_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(network_buffer_pool_test PRIVATE WITH_COMMON_SYSTEM)
+    endif()
+
+    if(THREAD_SYSTEM_INCLUDE_DIR)
+        target_include_directories(network_buffer_pool_test PRIVATE ${THREAD_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(network_buffer_pool_test PRIVATE WITH_THREAD_SYSTEM)
+    endif()
+
+    if(LOGGER_SYSTEM_INCLUDE_DIR)
+        target_include_directories(network_buffer_pool_test PRIVATE ${LOGGER_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(network_buffer_pool_test PRIVATE WITH_LOGGER_SYSTEM)
+    endif()
+
+    set_target_properties(network_buffer_pool_test PROPERTIES
+        CXX_STANDARD 20
+        CXX_STANDARD_REQUIRED ON
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+    )
+
+    network_gtest_discover_tests(network_buffer_pool_test
+        DISCOVERY_TIMEOUT 60
+    )
+    message(STATUS "Buffer pool tests enabled")
+
+    ##################################################
+    # Compression Pipeline Tests (Issue #703)
+    ##################################################
+
+    add_executable(network_compression_pipeline_test
+        unit/compression_pipeline_test.cpp
+    )
+
+    target_link_libraries(network_compression_pipeline_test PRIVATE
+        NetworkSystem
+        GTest::gtest
+        GTest::gtest_main
+        Threads::Threads
+    )
+
+    setup_asio_integration(network_compression_pipeline_test)
+
+    if(COMMON_SYSTEM_INCLUDE_DIR)
+        target_include_directories(network_compression_pipeline_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(network_compression_pipeline_test PRIVATE WITH_COMMON_SYSTEM)
+    endif()
+
+    if(THREAD_SYSTEM_INCLUDE_DIR)
+        target_include_directories(network_compression_pipeline_test PRIVATE ${THREAD_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(network_compression_pipeline_test PRIVATE WITH_THREAD_SYSTEM)
+    endif()
+
+    if(LOGGER_SYSTEM_INCLUDE_DIR)
+        target_include_directories(network_compression_pipeline_test PRIVATE ${LOGGER_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(network_compression_pipeline_test PRIVATE WITH_LOGGER_SYSTEM)
+    endif()
+
+    set_target_properties(network_compression_pipeline_test PROPERTIES
+        CXX_STANDARD 20
+        CXX_STANDARD_REQUIRED ON
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+    )
+
+    network_gtest_discover_tests(network_compression_pipeline_test
+        DISCOVERY_TIMEOUT 60
+    )
+    message(STATUS "Compression pipeline tests enabled")
+
+    ##################################################
+    # Resilient Client Tests (Issue #703)
+    ##################################################
+
+    add_executable(network_resilient_client_test
+        unit/resilient_client_test.cpp
+    )
+
+    target_link_libraries(network_resilient_client_test PRIVATE
+        NetworkSystem
+        GTest::gtest
+        GTest::gtest_main
+        Threads::Threads
+    )
+
+    setup_asio_integration(network_resilient_client_test)
+
+    if(COMMON_SYSTEM_INCLUDE_DIR)
+        target_include_directories(network_resilient_client_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(network_resilient_client_test PRIVATE WITH_COMMON_SYSTEM)
+    endif()
+
+    if(THREAD_SYSTEM_INCLUDE_DIR)
+        target_include_directories(network_resilient_client_test PRIVATE ${THREAD_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(network_resilient_client_test PRIVATE WITH_THREAD_SYSTEM)
+    endif()
+
+    if(LOGGER_SYSTEM_INCLUDE_DIR)
+        target_include_directories(network_resilient_client_test PRIVATE ${LOGGER_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(network_resilient_client_test PRIVATE WITH_LOGGER_SYSTEM)
+    endif()
+
+    set_target_properties(network_resilient_client_test PROPERTIES
+        CXX_STANDARD 20
+        CXX_STANDARD_REQUIRED ON
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+    )
+
+    network_gtest_discover_tests(network_resilient_client_test
+        DISCOVERY_TIMEOUT 60
+    )
+    message(STATUS "Resilient client tests enabled")
+
+    ##################################################
     # Secure Messaging Client Tests (Issue #694)
     ##################################################
 
