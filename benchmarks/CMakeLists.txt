@@ -21,6 +21,7 @@ if(benchmark_FOUND OR BENCHMARK_FOUND)
         session_bench.cpp
         http_bench.cpp
         tcp_receive_bench.cpp
+        facade_vs_direct_bench.cpp
         main_bench.cpp
     )
 
@@ -35,6 +36,7 @@ if(benchmark_FOUND OR BENCHMARK_FOUND)
     target_include_directories(network_benchmarks
         PRIVATE
             ${CMAKE_CURRENT_SOURCE_DIR}/../include
+            ${CMAKE_CURRENT_SOURCE_DIR}/../src
     )
 
     # Setup integrations for benchmarks (same as NetworkSystem target)
@@ -64,6 +66,9 @@ if(benchmark_FOUND OR BENCHMARK_FOUND)
     if(BUILD_MESSAGING_BRIDGE)
         target_compile_definitions(network_benchmarks PRIVATE BUILD_MESSAGING_BRIDGE)
     endif()
+
+    # Suppress deprecation warnings for benchmark access to internal APIs
+    target_compile_definitions(network_benchmarks PRIVATE NETWORK_SYSTEM_SUPPRESS_DEPRECATION_WARNINGS)
 
     target_compile_features(network_benchmarks PRIVATE cxx_std_20)
 
