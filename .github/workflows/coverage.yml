@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [ main ]
 
+permissions:
+  contents: read
+  pull-requests: write
+
 jobs:
   coverage:
     name: Coverage Analysis
@@ -27,7 +31,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y cmake ninja-build g++ libgtest-dev libgmock-dev libasio-dev libfmt-dev lcov
+        sudo apt-get install -y cmake ninja-build g++ libgtest-dev libgmock-dev libasio-dev libfmt-dev libssl-dev liblz4-dev zlib1g-dev lcov
 
     - name: Build common_system dependency
       run: |
@@ -45,8 +49,7 @@ jobs:
         cmake -B build -G Ninja \
           -DCMAKE_BUILD_TYPE=Debug \
           -DCMAKE_PREFIX_PATH=${{ github.workspace }}/deps/install \
-          -DCMAKE_CXX_FLAGS="--coverage -fprofile-arcs -ftest-coverage" \
-          -DCMAKE_C_FLAGS="--coverage -fprofile-arcs -ftest-coverage" \
+          -DENABLE_COVERAGE=ON \
           -DBUILD_WITH_COMMON_SYSTEM=ON \
           -DBUILD_WITH_LOGGER_SYSTEM=OFF \
           -DBUILD_WITH_THREAD_SYSTEM=OFF \
@@ -66,25 +69,32 @@ jobs:
     - name: Generate coverage report
       run: |
         cd build
-        # Create coverage directory
         mkdir -p coverage
 
-        # Capture coverage data (ignore gcov mismatches from external dependencies)
-        # Set environment variable to pass ignore-errors to geninfo
-        export GENINFO_OPTS="--ignore-errors mismatch,gcov,source,unused"
+        # Capture coverage data
         lcov --directory . --capture --output-file coverage.info \
           --ignore-errors mismatch,gcov,source,unused \
           --rc geninfo_gcov_all_blocks=0 || true
 
-        # Filter out system headers, test files, and external dependencies (FetchContent)
+        # Filter out non-project sources
         lcov --remove coverage.info \
           '/usr/*' \
           '*/test/*' \
           '*/tests/*' \
           '*/examples/*' \
+          '*/samples/*' \
           '*/build/_deps/*' \
           '*/googletest/*' \
           '*/asio/*' \
+          '*/common_system/*' \
+          '*/thread_system/*' \
+          '*/logger_system/*' \
+          '*/container_system/*' \
+          '*/deps/*' \
+          '*/fmt/*' \
+          '*/openssl/*' \
+          '*/lz4/*' \
+          '*/zlib/*' \
           --output-file coverage_filtered.info \
           --ignore-errors unused,mismatch || true
 
@@ -94,6 +104,21 @@ jobs:
 
         # Print summary
         lcov --list coverage_filtered.info --ignore-errors unused || true
+
+    - name: Extract coverage percentage
+      id: coverage
+      run: |
+        if [ -f build/coverage_filtered.info ]; then
+          # Extract line coverage percentage
+          COVERAGE=$(lcov --summary build/coverage_filtered.info 2>&1 \
+            --ignore-errors empty \
+            | grep -oP 'lines\.*:\s*\K[0-9.]+' || echo "0")
+          echo "percentage=${COVERAGE}" >> $GITHUB_OUTPUT
+          echo "Coverage: ${COVERAGE}%"
+        else
+          echo "percentage=0" >> $GITHUB_OUTPUT
+          echo "No coverage data available"
+        fi
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v4
@@ -106,6 +131,53 @@ jobs:
       env:
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
+    - name: Comment PR with coverage
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v7
+      continue-on-error: true
+      with:
+        script: |
+          const coverage = '${{ steps.coverage.outputs.percentage }}';
+          const body = `## Coverage Report
+
+          | Metric | Value |
+          |--------|-------|
+          | **Line Coverage** | ${coverage}% |
+          | **Target** | 75% (stretch: 80%) |
+
+          <details>
+          <summary>Coverage Details</summary>
+
+          Full HTML report is available as a build artifact.
+          </details>`;
+
+          // Find existing coverage comment
+          const { data: comments } = await github.rest.issues.listComments({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: context.issue.number,
+          });
+
+          const existingComment = comments.find(c =>
+            c.body.includes('## Coverage Report') && c.user.type === 'Bot'
+          );
+
+          if (existingComment) {
+            await github.rest.issues.updateComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: existingComment.id,
+              body: body,
+            });
+          } else {
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: body,
+            });
+          }
+
     - name: Upload coverage artifacts
       if: always()
       uses: actions/upload-artifact@v4
@@ -116,18 +188,21 @@ jobs:
           build/coverage.info
           build/coverage_filtered.info
           build/coverage_html/
-        retention-days: 7
+        retention-days: 30
 
     - name: Coverage summary
       if: always()
       run: |
+        COVERAGE="${{ steps.coverage.outputs.percentage }}"
         echo "## Coverage Summary" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        if [ -f build/coverage_filtered.info ]; then
-          echo "Coverage data collected successfully." >> $GITHUB_STEP_SUMMARY
+        if [ -f build/coverage_filtered.info ] && [ "$COVERAGE" != "0" ]; then
+          echo "| Metric | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| **Line Coverage** | ${COVERAGE}% |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Target** | 75% (stretch: 80%) |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Phase 0 Target: Establish baseline coverage" >> $GITHUB_STEP_SUMMARY
-          echo "Phase 5 Target: 80%+ coverage" >> $GITHUB_STEP_SUMMARY
+          echo "Coverage report uploaded as artifact (retained for 30 days)." >> $GITHUB_STEP_SUMMARY
         else
           echo "No coverage data generated." >> $GITHUB_STEP_SUMMARY
         fi
