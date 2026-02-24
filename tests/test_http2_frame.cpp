@@ -343,3 +343,731 @@ TEST_F(Http2FrameTest, RejectsSettingsFrameWithNonZeroStreamId)
     auto frame_result = frame::parse(raw);
     EXPECT_TRUE(frame_result.is_err());
 }
+
+// ============================================================
+// Frame Header Tests
+// ============================================================
+
+TEST_F(Http2FrameTest, ParsesFrameHeaderDirectly)
+{
+    std::vector<uint8_t> raw = {
+        0x00, 0x04, 0x00,        // Length: 1024
+        0x01,                    // Type: HEADERS
+        0x05,                    // Flags: END_STREAM | END_HEADERS
+        0x00, 0x00, 0x00, 0x03  // Stream ID: 3
+    };
+
+    auto result = frame_header::parse(raw);
+    ASSERT_TRUE(result.is_ok());
+    EXPECT_EQ(result.value().length, 1024u);
+    EXPECT_EQ(result.value().type, frame_type::headers);
+    EXPECT_EQ(result.value().flags, 0x05);
+    EXPECT_EQ(result.value().stream_id, 3u);
+}
+
+TEST_F(Http2FrameTest, SerializesFrameHeaderDirectly)
+{
+    frame_header hdr;
+    hdr.length = 256;
+    hdr.type = frame_type::data;
+    hdr.flags = frame_flags::end_stream;
+    hdr.stream_id = 7;
+
+    auto bytes = hdr.serialize();
+    ASSERT_EQ(bytes.size(), 9u);
+
+    // Length: 256 = 0x000100
+    EXPECT_EQ(bytes[0], 0x00);
+    EXPECT_EQ(bytes[1], 0x01);
+    EXPECT_EQ(bytes[2], 0x00);
+    // Type: DATA = 0x00
+    EXPECT_EQ(bytes[3], 0x00);
+    // Flags: END_STREAM = 0x01
+    EXPECT_EQ(bytes[4], 0x01);
+    // Stream ID: 7
+    EXPECT_EQ(bytes[5], 0x00);
+    EXPECT_EQ(bytes[6], 0x00);
+    EXPECT_EQ(bytes[7], 0x00);
+    EXPECT_EQ(bytes[8], 0x07);
+}
+
+TEST_F(Http2FrameTest, FrameHeaderRoundTrip)
+{
+    frame_header original;
+    original.length = 16384;
+    original.type = frame_type::settings;
+    original.flags = frame_flags::ack;
+    original.stream_id = 0;
+
+    auto bytes = original.serialize();
+    auto parsed = frame_header::parse(bytes);
+
+    ASSERT_TRUE(parsed.is_ok());
+    EXPECT_EQ(parsed.value().length, original.length);
+    EXPECT_EQ(parsed.value().type, original.type);
+    EXPECT_EQ(parsed.value().flags, original.flags);
+    EXPECT_EQ(parsed.value().stream_id, original.stream_id);
+}
+
+TEST_F(Http2FrameTest, RejectsEmptyDataForFrameHeader)
+{
+    std::vector<uint8_t> empty;
+    auto result = frame_header::parse(empty);
+    EXPECT_TRUE(result.is_err());
+}
+
+TEST_F(Http2FrameTest, RejectsOversizedFrameLength)
+{
+    // Length = 16,777,216 (exceeds max 16,777,215)
+    std::vector<uint8_t> raw = {
+        0xFF, 0xFF, 0xFF,        // Length: 16,777,215 (max, should be ok)
+        0x00,                    // Type: DATA
+        0x00,                    // Flags: none
+        0x00, 0x00, 0x00, 0x01  // Stream ID: 1
+    };
+
+    // Max frame size (16,777,215) should parse ok for header
+    auto result = frame_header::parse(raw);
+    ASSERT_TRUE(result.is_ok());
+    EXPECT_EQ(result.value().length, 16777215u);
+}
+
+TEST_F(Http2FrameTest, FrameHeaderMasksStreamIdReservedBit)
+{
+    // Stream ID with MSB set (reserved bit should be masked)
+    std::vector<uint8_t> raw = {
+        0x00, 0x00, 0x00,        // Length: 0
+        0x01,                    // Type: HEADERS
+        0x04,                    // Flags: END_HEADERS
+        0x80, 0x00, 0x00, 0x05  // Stream ID: 0x80000005 (MSB set)
+    };
+
+    auto result = frame_header::parse(raw);
+    ASSERT_TRUE(result.is_ok());
+    // MSB should be masked off: 0x80000005 & 0x7FFFFFFF = 5
+    EXPECT_EQ(result.value().stream_id, 5u);
+}
+
+// ============================================================
+// Data Frame Error Tests
+// ============================================================
+
+TEST_F(Http2FrameTest, ParsesPaddedDataFrame)
+{
+    // Padded DATA frame: pad_length=2, data="hi", padding=0x00 0x00
+    std::vector<uint8_t> raw = {
+        0x00, 0x00, 0x05,        // Length: 5 (1 pad_length + 2 data + 2 padding)
+        0x00,                    // Type: DATA
+        0x08,                    // Flags: PADDED
+        0x00, 0x00, 0x00, 0x01,  // Stream ID: 1
+        0x02,                    // Pad length: 2
+        'h', 'i',                // Data
+        0x00, 0x00               // Padding
+    };
+
+    auto result = frame::parse(raw);
+    ASSERT_TRUE(result.is_ok());
+
+    auto data_frm = dynamic_cast<data_frame*>(result.value().get());
+    ASSERT_NE(data_frm, nullptr);
+    EXPECT_TRUE(data_frm->is_padded());
+
+    auto data = data_frm->data();
+    std::string data_str(data.begin(), data.end());
+    EXPECT_EQ(data_str, "hi");
+}
+
+TEST_F(Http2FrameTest, RejectsPaddedDataFrameWithEmptyPayload)
+{
+    // Padded DATA frame but payload is empty (no pad length byte)
+    std::vector<uint8_t> raw = {
+        0x00, 0x00, 0x00,        // Length: 0
+        0x00,                    // Type: DATA
+        0x08,                    // Flags: PADDED
+        0x00, 0x00, 0x00, 0x01  // Stream ID: 1
+    };
+
+    auto result = frame::parse(raw);
+    EXPECT_TRUE(result.is_err());
+}
+
+TEST_F(Http2FrameTest, RejectsPaddedDataFrameWithInvalidPadding)
+{
+    // Pad length exceeds payload size
+    std::vector<uint8_t> raw = {
+        0x00, 0x00, 0x02,        // Length: 2
+        0x00,                    // Type: DATA
+        0x08,                    // Flags: PADDED
+        0x00, 0x00, 0x00, 0x01,  // Stream ID: 1
+        0x05,                    // Pad length: 5 (but only 1 byte remaining)
+        0x41                     // Only 1 byte
+    };
+
+    auto result = frame::parse(raw);
+    EXPECT_TRUE(result.is_err());
+}
+
+TEST_F(Http2FrameTest, DataFrameWithoutEndStream)
+{
+    std::vector<uint8_t> raw = {
+        0x00, 0x00, 0x03,        // Length: 3
+        0x00,                    // Type: DATA
+        0x00,                    // Flags: none
+        0x00, 0x00, 0x00, 0x01,  // Stream ID: 1
+        'a', 'b', 'c'
+    };
+
+    auto result = frame::parse(raw);
+    ASSERT_TRUE(result.is_ok());
+
+    auto data_frm = dynamic_cast<data_frame*>(result.value().get());
+    ASSERT_NE(data_frm, nullptr);
+    EXPECT_FALSE(data_frm->is_end_stream());
+    EXPECT_FALSE(data_frm->is_padded());
+}
+
+TEST_F(Http2FrameTest, DataFrameEmptyPayload)
+{
+    std::vector<uint8_t> raw = {
+        0x00, 0x00, 0x00,        // Length: 0
+        0x00,                    // Type: DATA
+        0x01,                    // Flags: END_STREAM
+        0x00, 0x00, 0x00, 0x01  // Stream ID: 1
+    };
+
+    auto result = frame::parse(raw);
+    ASSERT_TRUE(result.is_ok());
+
+    auto data_frm = dynamic_cast<data_frame*>(result.value().get());
+    ASSERT_NE(data_frm, nullptr);
+    EXPECT_TRUE(data_frm->is_end_stream());
+    EXPECT_EQ(data_frm->data().size(), 0u);
+}
+
+// ============================================================
+// Headers Frame Error Tests
+// ============================================================
+
+TEST_F(Http2FrameTest, RejectsHeadersFrameWithZeroStreamId)
+{
+    std::vector<uint8_t> raw = {
+        0x00, 0x00, 0x00,        // Length: 0
+        0x01,                    // Type: HEADERS
+        0x04,                    // Flags: END_HEADERS
+        0x00, 0x00, 0x00, 0x00  // Stream ID: 0 (invalid)
+    };
+
+    auto result = frame::parse(raw);
+    EXPECT_TRUE(result.is_err());
+}
+
+TEST_F(Http2FrameTest, ParsesPaddedHeadersFrame)
+{
+    // Padded HEADERS frame: pad_length=1, header_block="AB", padding=0x00
+    std::vector<uint8_t> raw = {
+        0x00, 0x00, 0x04,        // Length: 4
+        0x01,                    // Type: HEADERS
+        0x0C,                    // Flags: PADDED | END_HEADERS
+        0x00, 0x00, 0x00, 0x01,  // Stream ID: 1
+        0x01,                    // Pad length: 1
+        0x41, 0x42,              // Header block: "AB"
+        0x00                     // Padding
+    };
+
+    auto result = frame::parse(raw);
+    ASSERT_TRUE(result.is_ok());
+
+    auto hdr_frm = dynamic_cast<headers_frame*>(result.value().get());
+    ASSERT_NE(hdr_frm, nullptr);
+    EXPECT_TRUE(hdr_frm->is_end_headers());
+
+    auto block = hdr_frm->header_block();
+    EXPECT_EQ(block.size(), 2u);
+    EXPECT_EQ(block[0], 0x41);
+    EXPECT_EQ(block[1], 0x42);
+}
+
+TEST_F(Http2FrameTest, RejectsPaddedHeadersFrameWithEmptyPayload)
+{
+    std::vector<uint8_t> raw = {
+        0x00, 0x00, 0x00,        // Length: 0
+        0x01,                    // Type: HEADERS
+        0x08,                    // Flags: PADDED
+        0x00, 0x00, 0x00, 0x01  // Stream ID: 1
+    };
+
+    auto result = frame::parse(raw);
+    EXPECT_TRUE(result.is_err());
+}
+
+TEST_F(Http2FrameTest, RejectsPaddedHeadersFrameWithInvalidPadding)
+{
+    std::vector<uint8_t> raw = {
+        0x00, 0x00, 0x02,        // Length: 2
+        0x01,                    // Type: HEADERS
+        0x08,                    // Flags: PADDED
+        0x00, 0x00, 0x00, 0x01,  // Stream ID: 1
+        0x0A,                    // Pad length: 10 (exceeds remaining)
+        0x41                     // Header block: 1 byte
+    };
+
+    auto result = frame::parse(raw);
+    EXPECT_TRUE(result.is_err());
+}
+
+TEST_F(Http2FrameTest, HeadersFrameWithHeaderBlock)
+{
+    std::vector<uint8_t> header_block = {0x82, 0x84, 0x87};
+    std::vector<uint8_t> raw = {
+        0x00, 0x00, 0x03,        // Length: 3
+        0x01,                    // Type: HEADERS
+        0x05,                    // Flags: END_STREAM | END_HEADERS
+        0x00, 0x00, 0x00, 0x01,  // Stream ID: 1
+        0x82, 0x84, 0x87         // Header block
+    };
+
+    auto result = frame::parse(raw);
+    ASSERT_TRUE(result.is_ok());
+
+    auto hdr_frm = dynamic_cast<headers_frame*>(result.value().get());
+    ASSERT_NE(hdr_frm, nullptr);
+    auto block = hdr_frm->header_block();
+    EXPECT_EQ(block.size(), 3u);
+    EXPECT_EQ(std::vector<uint8_t>(block.begin(), block.end()), header_block);
+}
+
+// ============================================================
+// Settings Frame Error Tests
+// ============================================================
+
+TEST_F(Http2FrameTest, RejectsSettingsAckWithPayload)
+{
+    // SETTINGS ACK with non-empty payload (invalid per RFC 7540 6.5)
+    std::vector<uint8_t> raw = {
+        0x00, 0x00, 0x06,        // Length: 6
+        0x04,                    // Type: SETTINGS
+        0x01,                    // Flags: ACK
+        0x00, 0x00, 0x00, 0x00,  // Stream ID: 0
+        0x00, 0x01,              // Identifier
+        0x00, 0x00, 0x10, 0x00   // Value
+    };
+
+    auto result = frame::parse(raw);
+    EXPECT_TRUE(result.is_err());
+}
+
+TEST_F(Http2FrameTest, RejectsSettingsWithOddPayloadSize)
+{
+    // Payload not multiple of 6 (invalid per RFC 7540 6.5)
+    std::vector<uint8_t> raw = {
+        0x00, 0x00, 0x05,        // Length: 5 (not multiple of 6)
+        0x04,                    // Type: SETTINGS
+        0x00,                    // Flags: none
+        0x00, 0x00, 0x00, 0x00,  // Stream ID: 0
+        0x00, 0x01, 0x00, 0x00, 0x10  // 5 bytes
+    };
+
+    auto result = frame::parse(raw);
+    EXPECT_TRUE(result.is_err());
+}
+
+TEST_F(Http2FrameTest, ParsesSettingsFrameWithSingleParameter)
+{
+    std::vector<uint8_t> raw = {
+        0x00, 0x00, 0x06,        // Length: 6
+        0x04,                    // Type: SETTINGS
+        0x00,                    // Flags: none
+        0x00, 0x00, 0x00, 0x00,  // Stream ID: 0
+        0x00, 0x04,              // Identifier: INITIAL_WINDOW_SIZE
+        0x00, 0x01, 0x00, 0x00   // Value: 65536
+    };
+
+    auto result = frame::parse(raw);
+    ASSERT_TRUE(result.is_ok());
+
+    auto settings_frm = dynamic_cast<settings_frame*>(result.value().get());
+    ASSERT_NE(settings_frm, nullptr);
+    ASSERT_EQ(settings_frm->settings().size(), 1u);
+    EXPECT_EQ(settings_frm->settings()[0].identifier,
+              static_cast<uint16_t>(setting_identifier::initial_window_size));
+    EXPECT_EQ(settings_frm->settings()[0].value, 65536u);
+}
+
+// ============================================================
+// RST_STREAM Error Tests
+// ============================================================
+
+TEST_F(Http2FrameTest, RejectsRstStreamWithZeroStreamId)
+{
+    std::vector<uint8_t> raw = {
+        0x00, 0x00, 0x04,        // Length: 4
+        0x03,                    // Type: RST_STREAM
+        0x00,                    // Flags: none
+        0x00, 0x00, 0x00, 0x00,  // Stream ID: 0 (invalid)
+        0x00, 0x00, 0x00, 0x08   // Error code
+    };
+
+    auto result = frame::parse(raw);
+    EXPECT_TRUE(result.is_err());
+}
+
+TEST_F(Http2FrameTest, RejectsRstStreamWithInvalidPayloadSize)
+{
+    // RST_STREAM must be exactly 4 bytes
+    std::vector<uint8_t> raw = {
+        0x00, 0x00, 0x03,        // Length: 3 (should be 4)
+        0x03,                    // Type: RST_STREAM
+        0x00,                    // Flags: none
+        0x00, 0x00, 0x00, 0x01,  // Stream ID: 1
+        0x00, 0x00, 0x08         // Only 3 bytes (invalid)
+    };
+
+    auto result = frame::parse(raw);
+    EXPECT_TRUE(result.is_err());
+}
+
+// ============================================================
+// PING Error Tests
+// ============================================================
+
+TEST_F(Http2FrameTest, RejectsPingWithNonZeroStreamId)
+{
+    std::vector<uint8_t> raw = {
+        0x00, 0x00, 0x08,        // Length: 8
+        0x06,                    // Type: PING
+        0x00,                    // Flags: none
+        0x00, 0x00, 0x00, 0x01,  // Stream ID: 1 (invalid)
+        0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08
+    };
+
+    auto result = frame::parse(raw);
+    EXPECT_TRUE(result.is_err());
+}
+
+TEST_F(Http2FrameTest, RejectsPingWithInvalidPayloadSize)
+{
+    // PING must be exactly 8 bytes
+    std::vector<uint8_t> raw = {
+        0x00, 0x00, 0x04,        // Length: 4 (should be 8)
+        0x06,                    // Type: PING
+        0x00,                    // Flags: none
+        0x00, 0x00, 0x00, 0x00,  // Stream ID: 0
+        0x01, 0x02, 0x03, 0x04   // Only 4 bytes (invalid)
+    };
+
+    auto result = frame::parse(raw);
+    EXPECT_TRUE(result.is_err());
+}
+
+TEST_F(Http2FrameTest, ParsesPingAckFrame)
+{
+    std::vector<uint8_t> raw = {
+        0x00, 0x00, 0x08,        // Length: 8
+        0x06,                    // Type: PING
+        0x01,                    // Flags: ACK
+        0x00, 0x00, 0x00, 0x00,  // Stream ID: 0
+        0xDE, 0xAD, 0xBE, 0xEF, 0xCA, 0xFE, 0xBA, 0xBE
+    };
+
+    auto result = frame::parse(raw);
+    ASSERT_TRUE(result.is_ok());
+
+    auto ping_frm = dynamic_cast<ping_frame*>(result.value().get());
+    ASSERT_NE(ping_frm, nullptr);
+    EXPECT_TRUE(ping_frm->is_ack());
+    EXPECT_EQ(ping_frm->opaque_data()[0], 0xDE);
+    EXPECT_EQ(ping_frm->opaque_data()[7], 0xBE);
+}
+
+// ============================================================
+// GOAWAY Error Tests
+// ============================================================
+
+TEST_F(Http2FrameTest, RejectsGoawayWithNonZeroStreamId)
+{
+    std::vector<uint8_t> raw = {
+        0x00, 0x00, 0x08,        // Length: 8
+        0x07,                    // Type: GOAWAY
+        0x00,                    // Flags: none
+        0x00, 0x00, 0x00, 0x01,  // Stream ID: 1 (invalid)
+        0x00, 0x00, 0x00, 0x05,  // Last stream ID
+        0x00, 0x00, 0x00, 0x00   // Error code
+    };
+
+    auto result = frame::parse(raw);
+    EXPECT_TRUE(result.is_err());
+}
+
+TEST_F(Http2FrameTest, RejectsGoawayWithShortPayload)
+{
+    // GOAWAY needs at least 8 bytes
+    std::vector<uint8_t> raw = {
+        0x00, 0x00, 0x04,        // Length: 4 (should be >= 8)
+        0x07,                    // Type: GOAWAY
+        0x00,                    // Flags: none
+        0x00, 0x00, 0x00, 0x00,  // Stream ID: 0
+        0x00, 0x00, 0x00, 0x05   // Only 4 bytes
+    };
+
+    auto result = frame::parse(raw);
+    EXPECT_TRUE(result.is_err());
+}
+
+TEST_F(Http2FrameTest, ParsesGoawayWithAdditionalData)
+{
+    std::vector<uint8_t> raw = {
+        0x00, 0x00, 0x0C,        // Length: 12 (8 required + 4 additional)
+        0x07,                    // Type: GOAWAY
+        0x00,                    // Flags: none
+        0x00, 0x00, 0x00, 0x00,  // Stream ID: 0
+        0x00, 0x00, 0x00, 0x0A,  // Last stream ID: 10
+        0x00, 0x00, 0x00, 0x02,  // Error code: INTERNAL_ERROR
+        'E', 'R', 'R', '!'      // Additional debug data
+    };
+
+    auto result = frame::parse(raw);
+    ASSERT_TRUE(result.is_ok());
+
+    auto goaway_frm = dynamic_cast<goaway_frame*>(result.value().get());
+    ASSERT_NE(goaway_frm, nullptr);
+    EXPECT_EQ(goaway_frm->last_stream_id(), 10u);
+    EXPECT_EQ(goaway_frm->error_code(), 2u);
+
+    auto additional = goaway_frm->additional_data();
+    EXPECT_EQ(additional.size(), 4u);
+    std::string debug_str(additional.begin(), additional.end());
+    EXPECT_EQ(debug_str, "ERR!");
+}
+
+// ============================================================
+// WINDOW_UPDATE Error Tests
+// ============================================================
+
+TEST_F(Http2FrameTest, RejectsWindowUpdateWithZeroIncrement)
+{
+    std::vector<uint8_t> raw = {
+        0x00, 0x00, 0x04,        // Length: 4
+        0x08,                    // Type: WINDOW_UPDATE
+        0x00,                    // Flags: none
+        0x00, 0x00, 0x00, 0x00,  // Stream ID: 0
+        0x00, 0x00, 0x00, 0x00   // Increment: 0 (invalid)
+    };
+
+    auto result = frame::parse(raw);
+    EXPECT_TRUE(result.is_err());
+}
+
+TEST_F(Http2FrameTest, RejectsWindowUpdateWithInvalidPayloadSize)
+{
+    std::vector<uint8_t> raw = {
+        0x00, 0x00, 0x03,        // Length: 3 (should be 4)
+        0x08,                    // Type: WINDOW_UPDATE
+        0x00,                    // Flags: none
+        0x00, 0x00, 0x00, 0x01,  // Stream ID: 1
+        0x00, 0x00, 0x01         // Only 3 bytes
+    };
+
+    auto result = frame::parse(raw);
+    EXPECT_TRUE(result.is_err());
+}
+
+TEST_F(Http2FrameTest, WindowUpdateWithNonZeroStreamId)
+{
+    std::vector<uint8_t> raw = {
+        0x00, 0x00, 0x04,        // Length: 4
+        0x08,                    // Type: WINDOW_UPDATE
+        0x00,                    // Flags: none
+        0x00, 0x00, 0x00, 0x05,  // Stream ID: 5
+        0x00, 0x00, 0x80, 0x00   // Increment: 32768
+    };
+
+    auto result = frame::parse(raw);
+    ASSERT_TRUE(result.is_ok());
+
+    auto wnd_frm = dynamic_cast<window_update_frame*>(result.value().get());
+    ASSERT_NE(wnd_frm, nullptr);
+    EXPECT_EQ(wnd_frm->header().stream_id, 5u);
+    EXPECT_EQ(wnd_frm->window_size_increment(), 32768u);
+}
+
+// ============================================================
+// Generic Frame Tests
+// ============================================================
+
+TEST_F(Http2FrameTest, RejectsFrameWithInsufficientPayload)
+{
+    // Header says 10 bytes payload but only 5 available
+    std::vector<uint8_t> raw = {
+        0x00, 0x00, 0x0A,        // Length: 10
+        0x00,                    // Type: DATA
+        0x00,                    // Flags: none
+        0x00, 0x00, 0x00, 0x01,  // Stream ID: 1
+        0x01, 0x02, 0x03, 0x04, 0x05  // Only 5 bytes
+    };
+
+    auto result = frame::parse(raw);
+    EXPECT_TRUE(result.is_err());
+}
+
+TEST_F(Http2FrameTest, ParsesUnknownFrameType)
+{
+    // Unknown frame type 0xFF
+    std::vector<uint8_t> raw = {
+        0x00, 0x00, 0x02,        // Length: 2
+        0xFF,                    // Type: unknown
+        0x00,                    // Flags: none
+        0x00, 0x00, 0x00, 0x01,  // Stream ID: 1
+        0xAA, 0xBB               // Payload
+    };
+
+    auto result = frame::parse(raw);
+    ASSERT_TRUE(result.is_ok());
+
+    // Should be a generic frame (not a specialized subclass)
+    auto& frm = result.value();
+    EXPECT_EQ(frm->header().type, static_cast<frame_type>(0xFF));
+    EXPECT_EQ(frm->payload().size(), 2u);
+}
+
+// ============================================================
+// Round-Trip Tests (construct → serialize → parse)
+// ============================================================
+
+TEST_F(Http2FrameTest, RoundTripHeadersFrame)
+{
+    std::vector<uint8_t> header_block = {0x82, 0x84, 0x87, 0x41, 0x0F};
+    headers_frame original(3, header_block, true, true);
+
+    auto serialized = original.serialize();
+    auto parsed_result = frame::parse(serialized);
+    ASSERT_TRUE(parsed_result.is_ok());
+
+    auto parsed = dynamic_cast<headers_frame*>(parsed_result.value().get());
+    ASSERT_NE(parsed, nullptr);
+    EXPECT_EQ(parsed->header().stream_id, 3u);
+    EXPECT_TRUE(parsed->is_end_stream());
+    EXPECT_TRUE(parsed->is_end_headers());
+
+    auto block = parsed->header_block();
+    EXPECT_EQ(std::vector<uint8_t>(block.begin(), block.end()), header_block);
+}
+
+TEST_F(Http2FrameTest, RoundTripRstStreamFrame)
+{
+    rst_stream_frame original(5, static_cast<uint32_t>(error_code::cancel));
+
+    auto serialized = original.serialize();
+    auto parsed_result = frame::parse(serialized);
+    ASSERT_TRUE(parsed_result.is_ok());
+
+    auto parsed = dynamic_cast<rst_stream_frame*>(parsed_result.value().get());
+    ASSERT_NE(parsed, nullptr);
+    EXPECT_EQ(parsed->header().stream_id, 5u);
+    EXPECT_EQ(parsed->error_code(), static_cast<uint32_t>(error_code::cancel));
+}
+
+TEST_F(Http2FrameTest, RoundTripPingFrame)
+{
+    std::array<uint8_t, 8> ping_data = {0xDE, 0xAD, 0xBE, 0xEF, 0xCA, 0xFE, 0xBA, 0xBE};
+    ping_frame original(ping_data, false);
+
+    auto serialized = original.serialize();
+    auto parsed_result = frame::parse(serialized);
+    ASSERT_TRUE(parsed_result.is_ok());
+
+    auto parsed = dynamic_cast<ping_frame*>(parsed_result.value().get());
+    ASSERT_NE(parsed, nullptr);
+    EXPECT_FALSE(parsed->is_ack());
+    EXPECT_EQ(parsed->opaque_data(), ping_data);
+}
+
+TEST_F(Http2FrameTest, RoundTripPingAckFrame)
+{
+    std::array<uint8_t, 8> ping_data = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08};
+    ping_frame original(ping_data, true);
+
+    auto serialized = original.serialize();
+    auto parsed_result = frame::parse(serialized);
+    ASSERT_TRUE(parsed_result.is_ok());
+
+    auto parsed = dynamic_cast<ping_frame*>(parsed_result.value().get());
+    ASSERT_NE(parsed, nullptr);
+    EXPECT_TRUE(parsed->is_ack());
+    EXPECT_EQ(parsed->opaque_data(), ping_data);
+}
+
+TEST_F(Http2FrameTest, RoundTripGoawayFrame)
+{
+    goaway_frame original(100, static_cast<uint32_t>(error_code::no_error));
+
+    auto serialized = original.serialize();
+    auto parsed_result = frame::parse(serialized);
+    ASSERT_TRUE(parsed_result.is_ok());
+
+    auto parsed = dynamic_cast<goaway_frame*>(parsed_result.value().get());
+    ASSERT_NE(parsed, nullptr);
+    EXPECT_EQ(parsed->last_stream_id(), 100u);
+    EXPECT_EQ(parsed->error_code(), static_cast<uint32_t>(error_code::no_error));
+    EXPECT_EQ(parsed->additional_data().size(), 0u);
+}
+
+TEST_F(Http2FrameTest, RoundTripGoawayFrameWithAdditionalData)
+{
+    std::vector<uint8_t> debug_data = {'d', 'e', 'b', 'u', 'g'};
+    goaway_frame original(42, static_cast<uint32_t>(error_code::internal_error), debug_data);
+
+    auto serialized = original.serialize();
+    auto parsed_result = frame::parse(serialized);
+    ASSERT_TRUE(parsed_result.is_ok());
+
+    auto parsed = dynamic_cast<goaway_frame*>(parsed_result.value().get());
+    ASSERT_NE(parsed, nullptr);
+    EXPECT_EQ(parsed->last_stream_id(), 42u);
+    EXPECT_EQ(parsed->error_code(), static_cast<uint32_t>(error_code::internal_error));
+
+    auto additional = parsed->additional_data();
+    EXPECT_EQ(std::vector<uint8_t>(additional.begin(), additional.end()), debug_data);
+}
+
+TEST_F(Http2FrameTest, RoundTripWindowUpdateFrame)
+{
+    window_update_frame original(7, 1048576);
+
+    auto serialized = original.serialize();
+    auto parsed_result = frame::parse(serialized);
+    ASSERT_TRUE(parsed_result.is_ok());
+
+    auto parsed = dynamic_cast<window_update_frame*>(parsed_result.value().get());
+    ASSERT_NE(parsed, nullptr);
+    EXPECT_EQ(parsed->header().stream_id, 7u);
+    EXPECT_EQ(parsed->window_size_increment(), 1048576u);
+}
+
+TEST_F(Http2FrameTest, RoundTripSettingsAckFrame)
+{
+    settings_frame original({}, true);
+
+    auto serialized = original.serialize();
+    auto parsed_result = frame::parse(serialized);
+    ASSERT_TRUE(parsed_result.is_ok());
+
+    auto parsed = dynamic_cast<settings_frame*>(parsed_result.value().get());
+    ASSERT_NE(parsed, nullptr);
+    EXPECT_TRUE(parsed->is_ack());
+    EXPECT_EQ(parsed->settings().size(), 0u);
+}
+
+TEST_F(Http2FrameTest, RoundTripWindowUpdateConnectionLevel)
+{
+    // Stream ID 0 means connection-level flow control
+    window_update_frame original(0, 65535);
+
+    auto serialized = original.serialize();
+    auto parsed_result = frame::parse(serialized);
+    ASSERT_TRUE(parsed_result.is_ok());
+
+    auto parsed = dynamic_cast<window_update_frame*>(parsed_result.value().get());
+    ASSERT_NE(parsed, nullptr);
+    EXPECT_EQ(parsed->header().stream_id, 0u);
+    EXPECT_EQ(parsed->window_size_increment(), 65535u);
+}
