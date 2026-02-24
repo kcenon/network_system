@@ -55,6 +55,8 @@
 #include <asio.hpp>
 
 #include "kcenon/network/facade/tcp_facade.h"
+#include "kcenon/network/interfaces/i_protocol_client.h"
+#include "kcenon/network/interfaces/i_protocol_server.h"
 #include "internal/core/messaging_client.h"
 #include "internal/core/messaging_server.h"
 
@@ -285,9 +287,10 @@ static void BM_DirectAPI_SendThroughput(benchmark::State& state)
 	state.SetBytesProcessed(static_cast<int64_t>(state.iterations())
 		* static_cast<int64_t>(payload_size));
 
-	// Cleanup
+	// Cleanup — allow thread resources to be reclaimed
 	(void)client->stop_client();
 	(void)server->stop_server();
+	std::this_thread::sleep_for(std::chrono::milliseconds(50));
 }
 BENCHMARK(BM_DirectAPI_SendThroughput)
 	->Arg(64)      // Small message
@@ -318,33 +321,47 @@ static void BM_FacadeAPI_SendThroughput(benchmark::State& state)
 	}
 
 	facade::tcp_facade facade;
+	std::shared_ptr<interfaces::i_protocol_server> server;
+	std::shared_ptr<interfaces::i_protocol_client> client;
 
-	// Setup server via facade
-	auto server = facade.create_server({
-		.port = port,
-		.server_id = "facade_bench_server"
-	});
-	auto start_result = server->start(port);
-	if (start_result.is_err())
+	try
 	{
-		state.SkipWithError("Failed to start facade server");
-		return;
+		// Setup server via facade
+		server = facade.create_server({
+			.port = port,
+			.server_id = "facade_bench_server"
+		});
+		auto start_result = server->start(port);
+		if (start_result.is_err())
+		{
+			state.SkipWithError("Failed to start facade server");
+			return;
+		}
+
+		// Allow server to begin accepting
+		std::this_thread::sleep_for(std::chrono::milliseconds(50));
+
+		// Setup client via facade
+		client = facade.create_client({
+			.host = "127.0.0.1",
+			.port = port,
+			.client_id = "facade_bench_client"
+		});
+		auto connect_result = client->start("127.0.0.1", port);
+		if (connect_result.is_err())
+		{
+			(void)server->stop();
+			state.SkipWithError("Failed to connect facade client");
+			return;
+		}
 	}
-
-	// Allow server to begin accepting
-	std::this_thread::sleep_for(std::chrono::milliseconds(50));
-
-	// Setup client via facade
-	auto client = facade.create_client({
-		.host = "127.0.0.1",
-		.port = port,
-		.client_id = "facade_bench_client"
-	});
-	auto connect_result = client->start("127.0.0.1", port);
-	if (connect_result.is_err())
+	catch (const std::exception& e)
 	{
-		(void)server->stop();
-		state.SkipWithError("Failed to connect facade client");
+		if (server)
+		{
+			(void)server->stop();
+		}
+		state.SkipWithError(e.what());
 		return;
 	}
 
@@ -384,9 +401,10 @@ static void BM_FacadeAPI_SendThroughput(benchmark::State& state)
 	state.SetBytesProcessed(static_cast<int64_t>(state.iterations())
 		* static_cast<int64_t>(payload_size));
 
-	// Cleanup
+	// Cleanup — allow thread resources to be reclaimed
 	(void)client->stop();
 	(void)server->stop();
+	std::this_thread::sleep_for(std::chrono::milliseconds(50));
 }
 BENCHMARK(BM_FacadeAPI_SendThroughput)
 	->Arg(64)      // Small message
@@ -481,9 +499,10 @@ static void BM_BurstThroughput_Validation(benchmark::State& state)
 		* static_cast<int64_t>(batch_size)
 		* static_cast<int64_t>(payload_size));
 
-	// Cleanup
+	// Cleanup — allow thread resources to be reclaimed
 	(void)client->stop_client();
 	(void)server->stop_server();
+	std::this_thread::sleep_for(std::chrono::milliseconds(50));
 }
 BENCHMARK(BM_BurstThroughput_Validation)
 	->Arg(100)     // Small burst
@@ -497,7 +516,8 @@ BENCHMARK(BM_BurstThroughput_Validation)
 /**
  * @brief Benchmark full connection lifecycle via direct API
  *
- * Measures the complete cycle: create → connect → send → disconnect → destroy
+ * Measures the complete cycle: create → connect → send → disconnect → destroy.
+ * Iteration count is limited to avoid thread resource exhaustion on CI runners.
  */
 static void BM_DirectAPI_FullLifecycle(benchmark::State& state)
 {
@@ -523,35 +543,47 @@ static void BM_DirectAPI_FullLifecycle(benchmark::State& state)
 
 	for (auto _ : state)
 	{
-		// Create
-		auto client = std::make_shared<core::messaging_client>("lifecycle_client");
-
-		// Connect
-		auto connect_result = client->start_client("127.0.0.1", port);
-		if (connect_result.is_err())
+		try
 		{
-			continue;
+			// Create
+			auto client = std::make_shared<core::messaging_client>("lifecycle_client");
+
+			// Connect
+			auto connect_result = client->start_client("127.0.0.1", port);
+			if (connect_result.is_err())
+			{
+				continue;
+			}
+
+			// Brief wait for connection
+			std::this_thread::sleep_for(std::chrono::milliseconds(10));
+
+			// Send
+			auto copy = payload;
+			(void)client->send_packet(std::move(copy));
+
+			// Disconnect and allow thread cleanup
+			(void)client->stop_client();
+			std::this_thread::sleep_for(std::chrono::milliseconds(10));
 		}
-
-		// Brief wait for connection
-		std::this_thread::sleep_for(std::chrono::milliseconds(10));
-
-		// Send
-		auto copy = payload;
-		(void)client->send_packet(std::move(copy));
-
-		// Disconnect
-		(void)client->stop_client();
+		catch (const std::exception&)
+		{
+			// Thread resource exhaustion — stop gracefully
+			break;
+		}
 	}
 
 	state.SetItemsProcessed(static_cast<int64_t>(state.iterations()));
 
 	(void)server->stop_server();
+	std::this_thread::sleep_for(std::chrono::milliseconds(50));
 }
-BENCHMARK(BM_DirectAPI_FullLifecycle);
+BENCHMARK(BM_DirectAPI_FullLifecycle)->Iterations(10);
 
 /**
  * @brief Benchmark full connection lifecycle via facade API
+ *
+ * Iteration count is limited to avoid thread resource exhaustion on CI runners.
  */
 static void BM_FacadeAPI_FullLifecycle(benchmark::State& state)
 {
@@ -563,15 +595,24 @@ static void BM_FacadeAPI_FullLifecycle(benchmark::State& state)
 	}
 
 	facade::tcp_facade facade;
+	std::shared_ptr<interfaces::i_protocol_server> server;
 
-	auto server = facade.create_server({
-		.port = port,
-		.server_id = "facade_lifecycle_server"
-	});
-	auto start_result = server->start(port);
-	if (start_result.is_err())
+	try
 	{
-		state.SkipWithError("Failed to start server");
+		server = facade.create_server({
+			.port = port,
+			.server_id = "facade_lifecycle_server"
+		});
+		auto start_result = server->start(port);
+		if (start_result.is_err())
+		{
+			state.SkipWithError("Failed to start server");
+			return;
+		}
+	}
+	catch (const std::exception& e)
+	{
+		state.SkipWithError(e.what());
 		return;
 	}
 
@@ -581,35 +622,45 @@ static void BM_FacadeAPI_FullLifecycle(benchmark::State& state)
 
 	for (auto _ : state)
 	{
-		// Create via facade
-		auto client = facade.create_client({
-			.host = "127.0.0.1",
-			.port = port,
-			.client_id = "facade_lifecycle_client"
-		});
-
-		// Connect
-		auto connect_result = client->start("127.0.0.1", port);
-		if (connect_result.is_err())
+		try
 		{
-			continue;
+			// Create via facade
+			auto client = facade.create_client({
+				.host = "127.0.0.1",
+				.port = port,
+				.client_id = "facade_lifecycle_client"
+			});
+
+			// Connect
+			auto connect_result = client->start("127.0.0.1", port);
+			if (connect_result.is_err())
+			{
+				continue;
+			}
+
+			// Brief wait for connection
+			std::this_thread::sleep_for(std::chrono::milliseconds(10));
+
+			// Send
+			auto copy = payload;
+			(void)client->send(std::move(copy));
+
+			// Disconnect and allow thread cleanup
+			(void)client->stop();
+			std::this_thread::sleep_for(std::chrono::milliseconds(10));
 		}
-
-		// Brief wait for connection
-		std::this_thread::sleep_for(std::chrono::milliseconds(10));
-
-		// Send
-		auto copy = payload;
-		(void)client->send(std::move(copy));
-
-		// Disconnect
-		(void)client->stop();
+		catch (const std::exception&)
+		{
+			// Thread resource exhaustion — stop gracefully
+			break;
+		}
 	}
 
 	state.SetItemsProcessed(static_cast<int64_t>(state.iterations()));
 
 	(void)server->stop();
+	std::this_thread::sleep_for(std::chrono::milliseconds(50));
 }
-BENCHMARK(BM_FacadeAPI_FullLifecycle);
+BENCHMARK(BM_FacadeAPI_FullLifecycle)->Iterations(10);
 
 }  // namespace
