@@ -3232,6 +3232,72 @@ network_gtest_discover_tests(network_startable_base_test
 message(STATUS "Startable base lifecycle unit tests enabled")
 
 ##################################################
+# Session Info & Traits Unit Tests (Issue #741)
+##################################################
+
+add_executable(network_session_info_traits_test
+    unit/session_info_traits_test.cpp
+)
+
+target_link_libraries(network_session_info_traits_test PRIVATE
+    NetworkSystem
+    GTest::gtest
+    GTest::gtest_main
+    Threads::Threads
+)
+
+setup_asio_integration(network_session_info_traits_test)
+
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_session_info_traits_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_session_info_traits_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+
+set_target_properties(network_session_info_traits_test PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+)
+
+network_gtest_discover_tests(network_session_info_traits_test
+    DISCOVERY_TIMEOUT 60
+)
+message(STATUS "Session info and traits unit tests enabled")
+
+##################################################
+# Result Types Unit Tests (Issue #741)
+##################################################
+
+add_executable(network_result_types_test
+    unit/result_types_test.cpp
+)
+
+target_link_libraries(network_result_types_test PRIVATE
+    NetworkSystem
+    GTest::gtest
+    GTest::gtest_main
+    Threads::Threads
+)
+
+setup_asio_integration(network_result_types_test)
+
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_result_types_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_result_types_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+
+set_target_properties(network_result_types_test PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+)
+
+network_gtest_discover_tests(network_result_types_test
+    DISCOVERY_TIMEOUT 60
+)
+message(STATUS "Result types unit tests enabled")
+
+##################################################
 # Integration Tests
 ##################################################
 
