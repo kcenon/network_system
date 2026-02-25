@@ -3166,6 +3166,39 @@ network_gtest_discover_tests(network_quic_connection_id_test
 message(STATUS "QUIC connection_id unit tests enabled")
 
 ##################################################
+# QUIC Keys Unit Tests (Issue #737)
+##################################################
+
+add_executable(network_quic_keys_test
+    unit/quic_keys_test.cpp
+)
+
+target_link_libraries(network_quic_keys_test PRIVATE
+    NetworkSystem
+    GTest::gtest
+    GTest::gtest_main
+    Threads::Threads
+)
+
+setup_asio_integration(network_quic_keys_test)
+
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_quic_keys_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_quic_keys_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+
+set_target_properties(network_quic_keys_test PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+)
+
+network_gtest_discover_tests(network_quic_keys_test
+    DISCOVERY_TIMEOUT 60
+)
+message(STATUS "QUIC keys unit tests enabled")
+
+##################################################
 # Integration Tests
 ##################################################
 
