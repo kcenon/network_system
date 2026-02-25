@@ -3038,6 +3038,72 @@ network_gtest_discover_tests(network_context_test
 message(STATUS "Network context unit tests enabled")
 
 ##################################################
+# Network Metric Event Unit Tests (Issue #731)
+##################################################
+
+add_executable(network_metric_event_test
+    unit/network_metric_event_test.cpp
+)
+
+target_link_libraries(network_metric_event_test PRIVATE
+    NetworkSystem
+    GTest::gtest
+    GTest::gtest_main
+    Threads::Threads
+)
+
+setup_asio_integration(network_metric_event_test)
+
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_metric_event_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_metric_event_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+
+set_target_properties(network_metric_event_test PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+)
+
+network_gtest_discover_tests(network_metric_event_test
+    DISCOVERY_TIMEOUT 60
+)
+message(STATUS "Network metric event unit tests enabled")
+
+##################################################
+# Network Concepts Unit Tests (Issue #731)
+##################################################
+
+add_executable(network_concepts_test
+    unit/network_concepts_test.cpp
+)
+
+target_link_libraries(network_concepts_test PRIVATE
+    NetworkSystem
+    GTest::gtest
+    GTest::gtest_main
+    Threads::Threads
+)
+
+setup_asio_integration(network_concepts_test)
+
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_concepts_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_concepts_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+
+set_target_properties(network_concepts_test PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+)
+
+network_gtest_discover_tests(network_concepts_test
+    DISCOVERY_TIMEOUT 60
+)
+message(STATUS "Network concepts unit tests enabled")
+
+##################################################
 # Integration Tests
 ##################################################
 
