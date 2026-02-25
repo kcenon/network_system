@@ -2807,6 +2807,105 @@ network_gtest_discover_tests(network_config_http_error_test
 message(STATUS "Network config and HTTP error utility tests enabled")
 
 ##################################################
+# Socket Metrics and Data Mode Tests (Issue #725)
+##################################################
+
+add_executable(network_socket_metrics_test
+    unit/socket_metrics_test.cpp
+)
+
+target_link_libraries(network_socket_metrics_test PRIVATE
+    NetworkSystem
+    GTest::gtest
+    GTest::gtest_main
+    Threads::Threads
+)
+
+setup_asio_integration(network_socket_metrics_test)
+
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_socket_metrics_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_socket_metrics_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+
+set_target_properties(network_socket_metrics_test PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+)
+
+network_gtest_discover_tests(network_socket_metrics_test
+    DISCOVERY_TIMEOUT 60
+)
+message(STATUS "Socket metrics and data mode tests enabled")
+
+##################################################
+# Callback Indices Tests (Issue #725)
+##################################################
+
+add_executable(network_callback_indices_test
+    unit/callback_indices_test.cpp
+)
+
+target_link_libraries(network_callback_indices_test PRIVATE
+    NetworkSystem
+    GTest::gtest
+    GTest::gtest_main
+    Threads::Threads
+)
+
+setup_asio_integration(network_callback_indices_test)
+
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_callback_indices_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_callback_indices_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+
+set_target_properties(network_callback_indices_test PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+)
+
+network_gtest_discover_tests(network_callback_indices_test
+    DISCOVERY_TIMEOUT 60
+)
+message(STATUS "Callback indices tests enabled")
+
+##################################################
+# HTTP/2 Request Tests (Issue #725)
+##################################################
+
+add_executable(network_http2_request_test
+    unit/http2_request_test.cpp
+)
+
+target_link_libraries(network_http2_request_test PRIVATE
+    NetworkSystem
+    GTest::gtest
+    GTest::gtest_main
+    Threads::Threads
+)
+
+setup_asio_integration(network_http2_request_test)
+
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_http2_request_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_http2_request_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+
+set_target_properties(network_http2_request_test PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+)
+
+network_gtest_discover_tests(network_http2_request_test
+    DISCOVERY_TIMEOUT 60
+)
+message(STATUS "HTTP/2 request tests enabled")
+
+##################################################
 # Integration Tests
 ##################################################
 
