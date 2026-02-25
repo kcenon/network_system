@@ -2709,6 +2709,39 @@ if(BUILD_WEBSOCKET_SUPPORT)
     message(STATUS "WebSocket facade tests enabled")
 endif()
 
+# Memory profiler and session timeout tests
+add_executable(network_memory_profiler_session_timeout_test
+    test_memory_profiler_session_timeout.cpp
+    ${CMAKE_SOURCE_DIR}/src/internal/utils/memory_profiler.cpp
+)
+
+target_link_libraries(network_memory_profiler_session_timeout_test PRIVATE
+    NetworkSystem
+    GTest::gtest
+    GTest::gtest_main
+    Threads::Threads
+)
+
+# Setup ASIO integration
+setup_asio_integration(network_memory_profiler_session_timeout_test)
+
+# Add system integration paths
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_memory_profiler_session_timeout_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_memory_profiler_session_timeout_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+
+set_target_properties(network_memory_profiler_session_timeout_test PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+)
+
+network_gtest_discover_tests(network_memory_profiler_session_timeout_test
+    DISCOVERY_TIMEOUT 60
+)
+message(STATUS "Memory profiler and session timeout tests enabled")
+
 ##################################################
 # Integration Tests
 ##################################################
