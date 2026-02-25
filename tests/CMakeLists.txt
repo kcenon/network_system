@@ -2774,6 +2774,38 @@ network_gtest_discover_tests(network_facade_validation_test
 )
 message(STATUS "Facade config validation tests enabled")
 
+# Network config and HTTP error utility tests
+add_executable(network_config_http_error_test
+    test_network_config_http_error.cpp
+)
+
+target_link_libraries(network_config_http_error_test PRIVATE
+    NetworkSystem
+    GTest::gtest
+    GTest::gtest_main
+    Threads::Threads
+)
+
+# Setup ASIO integration
+setup_asio_integration(network_config_http_error_test)
+
+# Add system integration paths
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_config_http_error_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_config_http_error_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+
+set_target_properties(network_config_http_error_test PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+)
+
+network_gtest_discover_tests(network_config_http_error_test
+    DISCOVERY_TIMEOUT 60
+)
+message(STATUS "Network config and HTTP error utility tests enabled")
+
 ##################################################
 # Integration Tests
 ##################################################
