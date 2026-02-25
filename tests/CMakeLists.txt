@@ -3103,6 +3103,35 @@ network_gtest_discover_tests(network_concepts_test
 )
 message(STATUS "Network concepts unit tests enabled")
 
+add_executable(network_http_types_test
+    unit/http_types_test.cpp
+)
+
+target_link_libraries(network_http_types_test PRIVATE
+    NetworkSystem
+    GTest::gtest
+    GTest::gtest_main
+    Threads::Threads
+)
+
+setup_asio_integration(network_http_types_test)
+
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_http_types_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_http_types_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+
+set_target_properties(network_http_types_test PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+)
+
+network_gtest_discover_tests(network_http_types_test
+    DISCOVERY_TIMEOUT 60
+)
+message(STATUS "Network http_types unit tests enabled")
+
 ##################################################
 # Integration Tests
 ##################################################
