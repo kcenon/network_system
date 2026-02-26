@@ -614,3 +614,392 @@ TEST_F(PacketEdgeCasesTest, QuicVersion2)
     auto& [header, len] = result.value();
     EXPECT_EQ(header.version, quic_version::version_2);
 }
+
+// ============================================================================
+// Packet Number Encoding Boundary Tests (RFC 9000 Appendix A)
+// ============================================================================
+
+class PacketNumberBoundaryTest : public ::testing::Test
+{
+};
+
+TEST_F(PacketNumberBoundaryTest, OneByteBoundary)
+{
+    // 1-byte encoding: difference < 128
+    EXPECT_EQ(packet_number::encoded_length(0, 0), 1);
+    EXPECT_EQ(packet_number::encoded_length(1, 0), 1);
+    EXPECT_EQ(packet_number::encoded_length(63, 0), 1);
+    EXPECT_EQ(packet_number::encoded_length(127, 0), 1);
+}
+
+TEST_F(PacketNumberBoundaryTest, TwoByteBoundary)
+{
+    // 2-byte encoding: 128 <= difference < 32768
+    EXPECT_EQ(packet_number::encoded_length(128, 0), 2);
+    EXPECT_EQ(packet_number::encoded_length(1000, 0), 2);
+    EXPECT_EQ(packet_number::encoded_length(16383, 0), 2);
+    EXPECT_EQ(packet_number::encoded_length(32767, 0), 2);
+}
+
+TEST_F(PacketNumberBoundaryTest, ThreeByteBoundary)
+{
+    // 3-byte encoding: 32768 <= difference < 8388608
+    EXPECT_EQ(packet_number::encoded_length(32768, 0), 3);
+    EXPECT_EQ(packet_number::encoded_length(100000, 0), 3);
+    EXPECT_EQ(packet_number::encoded_length(8388607, 0), 3);
+}
+
+TEST_F(PacketNumberBoundaryTest, FourByteBoundary)
+{
+    // 4-byte encoding: difference >= 8388608
+    EXPECT_EQ(packet_number::encoded_length(8388608, 0), 4);
+    EXPECT_EQ(packet_number::encoded_length(100000000, 0), 4);
+}
+
+TEST_F(PacketNumberBoundaryTest, EncodedLengthWithLargestAcked)
+{
+    // When largest_acked is close, encoding is shorter
+    EXPECT_EQ(packet_number::encoded_length(1000, 990), 1);
+    EXPECT_EQ(packet_number::encoded_length(1000, 900), 1);
+    EXPECT_EQ(packet_number::encoded_length(1000, 0), 2);
+}
+
+// ============================================================================
+// Packet Number Encode-Decode Round-Trip Tests
+// ============================================================================
+
+class PacketNumberRoundTripTest : public ::testing::Test
+{
+};
+
+TEST_F(PacketNumberRoundTripTest, SmallPacketNumber)
+{
+    // Use values large enough to avoid unsigned underflow in
+    // RFC 9000 Appendix A decode algorithm (largest_pn + 1 >= pn_hwin)
+    uint64_t pn = 200;
+    uint64_t largest_acked = 190;
+
+    auto [encoded, len] = packet_number::encode(pn, largest_acked);
+    ASSERT_GT(len, 0);
+
+    uint64_t truncated = 0;
+    for (size_t i = 0; i < len; ++i)
+    {
+        truncated = (truncated << 8) | encoded[i];
+    }
+
+    uint64_t decoded = packet_number::decode(truncated, len, largest_acked);
+    EXPECT_EQ(decoded, pn);
+}
+
+TEST_F(PacketNumberRoundTripTest, MediumPacketNumber)
+{
+    uint64_t pn = 1000;
+    uint64_t largest_acked = 990;
+
+    auto [encoded, len] = packet_number::encode(pn, largest_acked);
+    ASSERT_GT(len, 0);
+
+    uint64_t truncated = 0;
+    for (size_t i = 0; i < len; ++i)
+    {
+        truncated = (truncated << 8) | encoded[i];
+    }
+
+    uint64_t decoded = packet_number::decode(truncated, len, largest_acked);
+    EXPECT_EQ(decoded, pn);
+}
+
+TEST_F(PacketNumberRoundTripTest, LargePacketNumber)
+{
+    uint64_t pn = 100000;
+    uint64_t largest_acked = 99900;
+
+    auto [encoded, len] = packet_number::encode(pn, largest_acked);
+    ASSERT_GT(len, 0);
+
+    uint64_t truncated = 0;
+    for (size_t i = 0; i < len; ++i)
+    {
+        truncated = (truncated << 8) | encoded[i];
+    }
+
+    uint64_t decoded = packet_number::decode(truncated, len, largest_acked);
+    EXPECT_EQ(decoded, pn);
+}
+
+TEST_F(PacketNumberRoundTripTest, EncodeLengthIsMinimal)
+{
+    // Verify encode produces the minimum number of bytes
+    auto [enc1, len1] = packet_number::encode(200, 190);
+    EXPECT_EQ(len1, 1); // Difference is 10, fits in 1 byte
+
+    auto [enc2, len2] = packet_number::encode(1000, 0);
+    EXPECT_EQ(len2, 2); // Difference is 1000, needs 2 bytes
+
+    auto [enc3, len3] = packet_number::encode(100000, 0);
+    EXPECT_EQ(len3, 3); // Difference is 100000, needs 3 bytes
+
+    auto [enc4, len4] = packet_number::encode(100000000, 0);
+    EXPECT_EQ(len4, 4); // Difference is 100000000, needs 4 bytes
+}
+
+TEST_F(PacketNumberRoundTripTest, ConsecutivePackets)
+{
+    // Simulate sending consecutive packets with sufficiently large base
+    // to avoid unsigned underflow in RFC 9000 Appendix A decode algorithm
+    uint64_t largest_acked = 500;
+    for (uint64_t pn = 501; pn <= 510; ++pn)
+    {
+        auto [encoded, len] = packet_number::encode(pn, largest_acked);
+        ASSERT_GT(len, 0) << "Failed for pn=" << pn;
+
+        uint64_t truncated = 0;
+        for (size_t i = 0; i < len; ++i)
+        {
+            truncated = (truncated << 8) | encoded[i];
+        }
+
+        uint64_t decoded = packet_number::decode(truncated, len, largest_acked);
+        EXPECT_EQ(decoded, pn) << "Mismatch for pn=" << pn;
+    }
+}
+
+// ============================================================================
+// Long Header Format Tests
+// ============================================================================
+
+class LongHeaderFormatTest : public ::testing::Test
+{
+protected:
+    connection_id dest_cid;
+    connection_id src_cid;
+
+    void SetUp() override
+    {
+        dest_cid = connection_id::generate(8);
+        src_cid = connection_id::generate(4);
+    }
+};
+
+TEST_F(LongHeaderFormatTest, InitialPacketFirstByteFormat)
+{
+    auto packet = packet_builder::build_initial(dest_cid, src_cid, {}, 0);
+
+    // Bit 7: Header Form = 1 (long), Bit 6: Fixed Bit = 1
+    EXPECT_TRUE(packet[0] & 0x80); // Long header form
+    EXPECT_TRUE(packet[0] & 0x40); // Fixed bit set
+    // Bits 4-5: Packet Type = 00 (Initial)
+    EXPECT_EQ((packet[0] >> 4) & 0x03, 0x00);
+}
+
+TEST_F(LongHeaderFormatTest, HandshakePacketFirstByteFormat)
+{
+    auto packet = packet_builder::build_handshake(dest_cid, src_cid, 0);
+
+    EXPECT_TRUE(packet[0] & 0x80); // Long header
+    EXPECT_TRUE(packet[0] & 0x40); // Fixed bit
+    // Bits 4-5: Packet Type = 10 (Handshake)
+    EXPECT_EQ((packet[0] >> 4) & 0x03, 0x02);
+}
+
+TEST_F(LongHeaderFormatTest, ZeroRttPacketFirstByteFormat)
+{
+    auto packet = packet_builder::build_zero_rtt(dest_cid, src_cid, 0);
+
+    EXPECT_TRUE(packet[0] & 0x80); // Long header
+    EXPECT_TRUE(packet[0] & 0x40); // Fixed bit
+    // Bits 4-5: Packet Type = 01 (0-RTT)
+    EXPECT_EQ((packet[0] >> 4) & 0x03, 0x01);
+}
+
+TEST_F(LongHeaderFormatTest, RetryPacketFirstByteFormat)
+{
+    std::array<uint8_t, 16> tag{};
+    auto packet = packet_builder::build_retry(dest_cid, src_cid, {0xAA}, tag);
+
+    EXPECT_TRUE(packet[0] & 0x80); // Long header
+    EXPECT_TRUE(packet[0] & 0x40); // Fixed bit
+    // Bits 4-5: Packet Type = 11 (Retry)
+    EXPECT_EQ((packet[0] >> 4) & 0x03, 0x03);
+}
+
+TEST_F(LongHeaderFormatTest, VersionFieldLocation)
+{
+    // Version is always at bytes 1-4 in long headers
+    auto packet = packet_builder::build_initial(dest_cid, src_cid, {}, 0);
+
+    uint32_t version = (static_cast<uint32_t>(packet[1]) << 24) |
+                       (static_cast<uint32_t>(packet[2]) << 16) |
+                       (static_cast<uint32_t>(packet[3]) << 8) |
+                       static_cast<uint32_t>(packet[4]);
+    EXPECT_EQ(version, quic_version::version_1);
+}
+
+TEST_F(LongHeaderFormatTest, ConnectionIdLengthFields)
+{
+    auto packet = packet_builder::build_initial(dest_cid, src_cid, {}, 0);
+
+    // DCID Length at byte 5
+    uint8_t dcid_len = packet[5];
+    EXPECT_EQ(dcid_len, dest_cid.length());
+
+    // DCID bytes follow immediately
+    // SCID Length after DCID
+    size_t scid_len_pos = 5 + 1 + dcid_len;
+    uint8_t scid_len = packet[scid_len_pos];
+    EXPECT_EQ(scid_len, src_cid.length());
+}
+
+// ============================================================================
+// Short Header Format Tests
+// ============================================================================
+
+class ShortHeaderFormatTest : public ::testing::Test
+{
+protected:
+    connection_id dest_cid;
+
+    void SetUp() override
+    {
+        dest_cid = connection_id::generate(8);
+    }
+};
+
+TEST_F(ShortHeaderFormatTest, FirstByteFormat)
+{
+    auto packet = packet_builder::build_short(dest_cid, 0, false, false);
+
+    // Bit 7: Header Form = 0 (short)
+    EXPECT_FALSE(packet[0] & 0x80);
+    // Bit 6: Fixed Bit = 1
+    EXPECT_TRUE(packet[0] & 0x40);
+}
+
+TEST_F(ShortHeaderFormatTest, SpinBitSet)
+{
+    auto packet = packet_builder::build_short(dest_cid, 0, false, true);
+
+    // Bit 5: Spin Bit
+    EXPECT_TRUE(packet[0] & 0x20);
+}
+
+TEST_F(ShortHeaderFormatTest, SpinBitClear)
+{
+    auto packet = packet_builder::build_short(dest_cid, 0, false, false);
+
+    EXPECT_FALSE(packet[0] & 0x20);
+}
+
+TEST_F(ShortHeaderFormatTest, KeyPhaseSet)
+{
+    auto packet = packet_builder::build_short(dest_cid, 0, true, false);
+
+    // Bit 2: Key Phase
+    EXPECT_TRUE(packet[0] & 0x04);
+}
+
+TEST_F(ShortHeaderFormatTest, KeyPhaseClear)
+{
+    auto packet = packet_builder::build_short(dest_cid, 0, false, false);
+
+    EXPECT_FALSE(packet[0] & 0x04);
+}
+
+TEST_F(ShortHeaderFormatTest, DestCidFollowsFirstByte)
+{
+    auto packet = packet_builder::build_short(dest_cid, 0, false, false);
+
+    // Connection ID starts at byte 1
+    auto cid_data = dest_cid.data();
+    for (size_t i = 0; i < cid_data.size(); ++i)
+    {
+        EXPECT_EQ(packet[1 + i], cid_data[i]) << "Mismatch at CID byte " << i;
+    }
+}
+
+// ============================================================================
+// Version Constants Tests
+// ============================================================================
+
+class QuicVersionConstantsTest : public ::testing::Test
+{
+};
+
+TEST_F(QuicVersionConstantsTest, Version1)
+{
+    EXPECT_EQ(quic_version::version_1, 0x00000001);
+}
+
+TEST_F(QuicVersionConstantsTest, Version2)
+{
+    EXPECT_EQ(quic_version::version_2, 0x6b3343cf);
+}
+
+TEST_F(QuicVersionConstantsTest, VersionNegotiation)
+{
+    EXPECT_EQ(quic_version::negotiation, 0x00000000);
+}
+
+// ============================================================================
+// Coalesced Packets Tests
+// ============================================================================
+
+class CoalescedPacketsTest : public ::testing::Test
+{
+protected:
+    connection_id dest_cid;
+    connection_id src_cid;
+
+    void SetUp() override
+    {
+        dest_cid = connection_id::generate(8);
+        src_cid = connection_id::generate(4);
+    }
+};
+
+TEST_F(CoalescedPacketsTest, DetectMultipleLongHeaders)
+{
+    // Build two long-header packets and concatenate them
+    auto initial = packet_builder::build_initial(dest_cid, src_cid, {}, 0);
+    auto handshake = packet_builder::build_handshake(dest_cid, src_cid, 0);
+
+    std::vector<uint8_t> coalesced;
+    coalesced.insert(coalesced.end(), initial.begin(), initial.end());
+    coalesced.insert(coalesced.end(), handshake.begin(), handshake.end());
+
+    // First packet should parse as long header
+    EXPECT_TRUE(packet_parser::is_long_header(coalesced[0]));
+
+    // Parse the first header
+    auto result1 = packet_parser::parse_long_header(coalesced);
+    ASSERT_TRUE(result1.is_ok());
+    auto& [header1, consumed1] = result1.value();
+    EXPECT_EQ(header1.type(), packet_type::initial);
+
+    // The remaining bytes should also start with a long header
+    ASSERT_GT(coalesced.size(), consumed1);
+    EXPECT_TRUE(packet_parser::is_long_header(coalesced[consumed1]));
+}
+
+TEST_F(CoalescedPacketsTest, MixedLongAndShortHeaders)
+{
+    // Long header followed by short header
+    auto initial = packet_builder::build_initial(dest_cid, src_cid, {}, 0);
+    auto short_pkt = packet_builder::build_short(dest_cid, 1, false, false);
+
+    std::vector<uint8_t> coalesced;
+    coalesced.insert(coalesced.end(), initial.begin(), initial.end());
+    coalesced.insert(coalesced.end(), short_pkt.begin(), short_pkt.end());
+
+    // First is long header
+    EXPECT_TRUE(packet_parser::is_long_header(coalesced[0]));
+
+    auto result1 = packet_parser::parse_long_header(coalesced);
+    ASSERT_TRUE(result1.is_ok());
+    auto& [header1, consumed1] = result1.value();
+
+    // Remaining should be short header
+    ASSERT_GT(coalesced.size(), consumed1);
+    EXPECT_FALSE(packet_parser::is_long_header(coalesced[consumed1]));
+}

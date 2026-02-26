@@ -6,6 +6,7 @@ All rights reserved.
 *****************************************************************************/
 
 #include "internal/protocols/quic/frame_types.h"
+#include "internal/protocols/quic/frame.h"
 #include <gtest/gtest.h>
 
 using namespace kcenon::network::protocols::quic;
@@ -23,6 +24,8 @@ using namespace kcenon::network::protocols::quic;
  * - frame_type_to_string() for all known types
  * - get_frame_type() variant visitor
  * - Frame struct default initialization
+ * - ACK frame encoding with ranges
+ * - Frame serialization/deserialization round-trips
  */
 
 // ============================================================================
@@ -362,10 +365,84 @@ TEST_F(GetFrameTypeTest, StreamsBlockedUniFrame)
 	EXPECT_EQ(get_frame_type(f), frame_type::streams_blocked_uni);
 }
 
+TEST_F(GetFrameTypeTest, ResetStreamFrame)
+{
+	frame f = reset_stream_frame{};
+	EXPECT_EQ(get_frame_type(f), frame_type::reset_stream);
+}
+
+TEST_F(GetFrameTypeTest, StopSendingFrame)
+{
+	frame f = stop_sending_frame{};
+	EXPECT_EQ(get_frame_type(f), frame_type::stop_sending);
+}
+
+TEST_F(GetFrameTypeTest, NewTokenFrame)
+{
+	frame f = new_token_frame{};
+	EXPECT_EQ(get_frame_type(f), frame_type::new_token);
+}
+
+TEST_F(GetFrameTypeTest, MaxDataFrame)
+{
+	frame f = max_data_frame{};
+	EXPECT_EQ(get_frame_type(f), frame_type::max_data);
+}
+
+TEST_F(GetFrameTypeTest, MaxStreamDataFrame)
+{
+	frame f = max_stream_data_frame{};
+	EXPECT_EQ(get_frame_type(f), frame_type::max_stream_data);
+}
+
+TEST_F(GetFrameTypeTest, DataBlockedFrame)
+{
+	frame f = data_blocked_frame{};
+	EXPECT_EQ(get_frame_type(f), frame_type::data_blocked);
+}
+
+TEST_F(GetFrameTypeTest, StreamDataBlockedFrame)
+{
+	frame f = stream_data_blocked_frame{};
+	EXPECT_EQ(get_frame_type(f), frame_type::stream_data_blocked);
+}
+
+TEST_F(GetFrameTypeTest, NewConnectionIdFrame)
+{
+	frame f = new_connection_id_frame{};
+	EXPECT_EQ(get_frame_type(f), frame_type::new_connection_id);
+}
+
+TEST_F(GetFrameTypeTest, RetireConnectionIdFrame)
+{
+	frame f = retire_connection_id_frame{};
+	EXPECT_EQ(get_frame_type(f), frame_type::retire_connection_id);
+}
+
+TEST_F(GetFrameTypeTest, PathChallengeFrame)
+{
+	frame f = path_challenge_frame{};
+	EXPECT_EQ(get_frame_type(f), frame_type::path_challenge);
+}
+
+TEST_F(GetFrameTypeTest, PathResponseFrame)
+{
+	frame f = path_response_frame{};
+	EXPECT_EQ(get_frame_type(f), frame_type::path_response);
+}
+
 TEST_F(GetFrameTypeTest, ConnectionCloseFrame)
 {
 	frame f = connection_close_frame{};
 	EXPECT_EQ(get_frame_type(f), frame_type::connection_close);
+}
+
+TEST_F(GetFrameTypeTest, ConnectionCloseAppFrame)
+{
+	connection_close_frame ccf;
+	ccf.is_application_error = true;
+	frame f = ccf;
+	EXPECT_EQ(get_frame_type(f), frame_type::connection_close_app);
 }
 
 TEST_F(GetFrameTypeTest, HandshakeDoneFrame)
@@ -428,4 +505,534 @@ TEST_F(FrameStructDefaultsTest, EcnCountsDefaults)
 	EXPECT_EQ(c.ect0, 0);
 	EXPECT_EQ(c.ect1, 0);
 	EXPECT_EQ(c.ecn_ce, 0);
+}
+
+TEST_F(FrameStructDefaultsTest, ResetStreamFrameDefaults)
+{
+	reset_stream_frame f;
+	EXPECT_EQ(f.stream_id, 0);
+	EXPECT_EQ(f.application_error_code, 0);
+	EXPECT_EQ(f.final_size, 0);
+}
+
+TEST_F(FrameStructDefaultsTest, StopSendingFrameDefaults)
+{
+	stop_sending_frame f;
+	EXPECT_EQ(f.stream_id, 0);
+	EXPECT_EQ(f.application_error_code, 0);
+}
+
+TEST_F(FrameStructDefaultsTest, CryptoFrameDefaults)
+{
+	crypto_frame f;
+	EXPECT_EQ(f.offset, 0);
+	EXPECT_TRUE(f.data.empty());
+}
+
+TEST_F(FrameStructDefaultsTest, NewTokenFrameDefaults)
+{
+	new_token_frame f;
+	EXPECT_TRUE(f.token.empty());
+}
+
+TEST_F(FrameStructDefaultsTest, MaxDataFrameDefaults)
+{
+	max_data_frame f;
+	EXPECT_EQ(f.maximum_data, 0);
+}
+
+TEST_F(FrameStructDefaultsTest, MaxStreamDataFrameDefaults)
+{
+	max_stream_data_frame f;
+	EXPECT_EQ(f.stream_id, 0);
+	EXPECT_EQ(f.maximum_stream_data, 0);
+}
+
+TEST_F(FrameStructDefaultsTest, DataBlockedFrameDefaults)
+{
+	data_blocked_frame f;
+	EXPECT_EQ(f.maximum_data, 0);
+}
+
+TEST_F(FrameStructDefaultsTest, StreamDataBlockedFrameDefaults)
+{
+	stream_data_blocked_frame f;
+	EXPECT_EQ(f.stream_id, 0);
+	EXPECT_EQ(f.maximum_stream_data, 0);
+}
+
+TEST_F(FrameStructDefaultsTest, StreamsBlockedFrameDefaults)
+{
+	streams_blocked_frame f;
+	EXPECT_EQ(f.maximum_streams, 0);
+	EXPECT_TRUE(f.bidirectional);
+}
+
+TEST_F(FrameStructDefaultsTest, NewConnectionIdFrameDefaults)
+{
+	new_connection_id_frame f;
+	EXPECT_EQ(f.sequence_number, 0);
+	EXPECT_EQ(f.retire_prior_to, 0);
+	EXPECT_TRUE(f.connection_id.empty());
+	for (auto byte : f.stateless_reset_token)
+	{
+		EXPECT_EQ(byte, 0);
+	}
+}
+
+TEST_F(FrameStructDefaultsTest, RetireConnectionIdFrameDefaults)
+{
+	retire_connection_id_frame f;
+	EXPECT_EQ(f.sequence_number, 0);
+}
+
+TEST_F(FrameStructDefaultsTest, PathChallengeFrameDefaults)
+{
+	path_challenge_frame f;
+	for (auto byte : f.data)
+	{
+		EXPECT_EQ(byte, 0);
+	}
+}
+
+TEST_F(FrameStructDefaultsTest, PathResponseFrameDefaults)
+{
+	path_response_frame f;
+	for (auto byte : f.data)
+	{
+		EXPECT_EQ(byte, 0);
+	}
+}
+
+TEST_F(FrameStructDefaultsTest, AckRangeDefaults)
+{
+	ack_range r;
+	EXPECT_EQ(r.gap, 0);
+	EXPECT_EQ(r.length, 0);
+}
+
+// ============================================================================
+// ACK Frame Encoding Tests (RFC 9000 Section 19.3)
+// ============================================================================
+
+class AckFrameEncodingTest : public ::testing::Test
+{
+};
+
+TEST_F(AckFrameEncodingTest, BasicAckRoundTrip)
+{
+	ack_frame original;
+	original.largest_acknowledged = 42;
+	original.ack_delay = 10;
+
+	auto built = frame_builder::build_ack(original);
+	ASSERT_GT(built.size(), 0);
+
+	auto result = frame_parser::parse(built);
+	ASSERT_TRUE(result.is_ok());
+
+	auto* ack = std::get_if<ack_frame>(&result.value().first);
+	ASSERT_NE(ack, nullptr);
+	EXPECT_EQ(ack->largest_acknowledged, 42);
+	EXPECT_EQ(ack->ack_delay, 10);
+	EXPECT_TRUE(ack->ranges.empty());
+	EXPECT_FALSE(ack->ecn.has_value());
+}
+
+TEST_F(AckFrameEncodingTest, AckWithZeroDelay)
+{
+	ack_frame original;
+	original.largest_acknowledged = 100;
+	original.ack_delay = 0;
+
+	auto built = frame_builder::build_ack(original);
+	auto result = frame_parser::parse(built);
+	ASSERT_TRUE(result.is_ok());
+
+	auto* ack = std::get_if<ack_frame>(&result.value().first);
+	ASSERT_NE(ack, nullptr);
+	EXPECT_EQ(ack->largest_acknowledged, 100);
+	EXPECT_EQ(ack->ack_delay, 0);
+}
+
+TEST_F(AckFrameEncodingTest, AckSmallestPacketNumber)
+{
+	ack_frame original;
+	original.largest_acknowledged = 0;
+	original.ack_delay = 0;
+
+	auto built = frame_builder::build_ack(original);
+	auto result = frame_parser::parse(built);
+	ASSERT_TRUE(result.is_ok());
+
+	auto* ack = std::get_if<ack_frame>(&result.value().first);
+	ASSERT_NE(ack, nullptr);
+	EXPECT_EQ(ack->largest_acknowledged, 0);
+}
+
+TEST_F(AckFrameEncodingTest, AckWithEcnCountsRoundTrip)
+{
+	ack_frame original;
+	original.largest_acknowledged = 1000;
+	original.ack_delay = 100;
+	original.ecn = ecn_counts{50, 30, 10};
+
+	auto built = frame_builder::build_ack(original);
+	auto result = frame_parser::parse(built);
+	ASSERT_TRUE(result.is_ok());
+
+	auto* ack = std::get_if<ack_frame>(&result.value().first);
+	ASSERT_NE(ack, nullptr);
+	ASSERT_TRUE(ack->ecn.has_value());
+	EXPECT_EQ(ack->ecn->ect0, 50);
+	EXPECT_EQ(ack->ecn->ect1, 30);
+	EXPECT_EQ(ack->ecn->ecn_ce, 10);
+}
+
+TEST_F(AckFrameEncodingTest, AckEcnWithLargeValues)
+{
+	ack_frame original;
+	original.largest_acknowledged = 2000;
+	original.ack_delay = 50;
+	original.ecn = ecn_counts{1000, 500, 25};
+
+	auto built = frame_builder::build_ack(original);
+	auto result = frame_parser::parse(built);
+	ASSERT_TRUE(result.is_ok());
+
+	auto* ack = std::get_if<ack_frame>(&result.value().first);
+	ASSERT_NE(ack, nullptr);
+	EXPECT_EQ(ack->largest_acknowledged, 2000);
+	EXPECT_EQ(ack->ack_delay, 50);
+	ASSERT_TRUE(ack->ecn.has_value());
+	EXPECT_EQ(ack->ecn->ect0, 1000);
+	EXPECT_EQ(ack->ecn->ect1, 500);
+	EXPECT_EQ(ack->ecn->ecn_ce, 25);
+}
+
+TEST_F(AckFrameEncodingTest, AckLargePacketNumber)
+{
+	ack_frame original;
+	original.largest_acknowledged = 0xFFFFFFFF;
+	original.ack_delay = 0;
+
+	auto built = frame_builder::build_ack(original);
+	auto result = frame_parser::parse(built);
+	ASSERT_TRUE(result.is_ok());
+
+	auto* ack = std::get_if<ack_frame>(&result.value().first);
+	ASSERT_NE(ack, nullptr);
+	EXPECT_EQ(ack->largest_acknowledged, 0xFFFFFFFF);
+}
+
+// ============================================================================
+// RESET_STREAM Frame Serialization Tests
+// ============================================================================
+
+class ResetStreamFrameEncodingTest : public ::testing::Test
+{
+};
+
+TEST_F(ResetStreamFrameEncodingTest, BasicRoundTrip)
+{
+	reset_stream_frame original;
+	original.stream_id = 4;
+	original.application_error_code = 0x42;
+	original.final_size = 1024;
+
+	auto built = frame_builder::build_reset_stream(original);
+	auto result = frame_parser::parse(built);
+	ASSERT_TRUE(result.is_ok());
+
+	auto* reset = std::get_if<reset_stream_frame>(&result.value().first);
+	ASSERT_NE(reset, nullptr);
+	EXPECT_EQ(reset->stream_id, 4);
+	EXPECT_EQ(reset->application_error_code, 0x42);
+	EXPECT_EQ(reset->final_size, 1024);
+}
+
+TEST_F(ResetStreamFrameEncodingTest, ZeroFinalSize)
+{
+	reset_stream_frame original;
+	original.stream_id = 0;
+	original.application_error_code = 0;
+	original.final_size = 0;
+
+	auto built = frame_builder::build_reset_stream(original);
+	auto result = frame_parser::parse(built);
+	ASSERT_TRUE(result.is_ok());
+
+	auto* reset = std::get_if<reset_stream_frame>(&result.value().first);
+	ASSERT_NE(reset, nullptr);
+	EXPECT_EQ(reset->final_size, 0);
+}
+
+TEST_F(ResetStreamFrameEncodingTest, LargeFinalSize)
+{
+	reset_stream_frame original;
+	original.stream_id = 8;
+	original.application_error_code = 0xFF;
+	original.final_size = 1000000;
+
+	auto built = frame_builder::build_reset_stream(original);
+	auto result = frame_parser::parse(built);
+	ASSERT_TRUE(result.is_ok());
+
+	auto* reset = std::get_if<reset_stream_frame>(&result.value().first);
+	ASSERT_NE(reset, nullptr);
+	EXPECT_EQ(reset->final_size, 1000000);
+}
+
+// ============================================================================
+// STOP_SENDING Frame Serialization Tests
+// ============================================================================
+
+class StopSendingFrameEncodingTest : public ::testing::Test
+{
+};
+
+TEST_F(StopSendingFrameEncodingTest, BasicRoundTrip)
+{
+	stop_sending_frame original;
+	original.stream_id = 12;
+	original.application_error_code = 0x100;
+
+	auto built = frame_builder::build_stop_sending(original);
+	auto result = frame_parser::parse(built);
+	ASSERT_TRUE(result.is_ok());
+
+	auto* stop = std::get_if<stop_sending_frame>(&result.value().first);
+	ASSERT_NE(stop, nullptr);
+	EXPECT_EQ(stop->stream_id, 12);
+	EXPECT_EQ(stop->application_error_code, 0x100);
+}
+
+TEST_F(StopSendingFrameEncodingTest, ZeroErrorCode)
+{
+	stop_sending_frame original;
+	original.stream_id = 0;
+	original.application_error_code = 0;
+
+	auto built = frame_builder::build_stop_sending(original);
+	auto result = frame_parser::parse(built);
+	ASSERT_TRUE(result.is_ok());
+
+	auto* stop = std::get_if<stop_sending_frame>(&result.value().first);
+	ASSERT_NE(stop, nullptr);
+	EXPECT_EQ(stop->stream_id, 0);
+	EXPECT_EQ(stop->application_error_code, 0);
+}
+
+// ============================================================================
+// MAX_DATA Frame Serialization Tests
+// ============================================================================
+
+class MaxDataFrameEncodingTest : public ::testing::Test
+{
+};
+
+TEST_F(MaxDataFrameEncodingTest, BasicRoundTrip)
+{
+	max_data_frame original;
+	original.maximum_data = 1048576;
+
+	auto built = frame_builder::build_max_data(original);
+	auto result = frame_parser::parse(built);
+	ASSERT_TRUE(result.is_ok());
+
+	auto* md = std::get_if<max_data_frame>(&result.value().first);
+	ASSERT_NE(md, nullptr);
+	EXPECT_EQ(md->maximum_data, 1048576);
+}
+
+TEST_F(MaxDataFrameEncodingTest, ZeroMaxData)
+{
+	max_data_frame original;
+	original.maximum_data = 0;
+
+	auto built = frame_builder::build_max_data(original);
+	auto result = frame_parser::parse(built);
+	ASSERT_TRUE(result.is_ok());
+
+	auto* md = std::get_if<max_data_frame>(&result.value().first);
+	ASSERT_NE(md, nullptr);
+	EXPECT_EQ(md->maximum_data, 0);
+}
+
+TEST_F(MaxDataFrameEncodingTest, LargeMaxData)
+{
+	max_data_frame original;
+	original.maximum_data = 1000000000;
+
+	auto built = frame_builder::build_max_data(original);
+	auto result = frame_parser::parse(built);
+	ASSERT_TRUE(result.is_ok());
+
+	auto* md = std::get_if<max_data_frame>(&result.value().first);
+	ASSERT_NE(md, nullptr);
+	EXPECT_EQ(md->maximum_data, 1000000000);
+}
+
+// ============================================================================
+// MAX_STREAMS Frame Serialization Tests
+// ============================================================================
+
+class MaxStreamsFrameEncodingTest : public ::testing::Test
+{
+};
+
+TEST_F(MaxStreamsFrameEncodingTest, BidiRoundTrip)
+{
+	max_streams_frame original;
+	original.maximum_streams = 100;
+	original.bidirectional = true;
+
+	auto built = frame_builder::build_max_streams(original);
+	auto result = frame_parser::parse(built);
+	ASSERT_TRUE(result.is_ok());
+
+	auto* ms = std::get_if<max_streams_frame>(&result.value().first);
+	ASSERT_NE(ms, nullptr);
+	EXPECT_EQ(ms->maximum_streams, 100);
+	EXPECT_TRUE(ms->bidirectional);
+}
+
+TEST_F(MaxStreamsFrameEncodingTest, UniRoundTrip)
+{
+	max_streams_frame original;
+	original.maximum_streams = 50;
+	original.bidirectional = false;
+
+	auto built = frame_builder::build_max_streams(original);
+	auto result = frame_parser::parse(built);
+	ASSERT_TRUE(result.is_ok());
+
+	auto* ms = std::get_if<max_streams_frame>(&result.value().first);
+	ASSERT_NE(ms, nullptr);
+	EXPECT_EQ(ms->maximum_streams, 50);
+	EXPECT_FALSE(ms->bidirectional);
+}
+
+TEST_F(MaxStreamsFrameEncodingTest, ZeroStreams)
+{
+	max_streams_frame original;
+	original.maximum_streams = 0;
+	original.bidirectional = true;
+
+	auto built = frame_builder::build_max_streams(original);
+	auto result = frame_parser::parse(built);
+	ASSERT_TRUE(result.is_ok());
+
+	auto* ms = std::get_if<max_streams_frame>(&result.value().first);
+	ASSERT_NE(ms, nullptr);
+	EXPECT_EQ(ms->maximum_streams, 0);
+}
+
+// ============================================================================
+// Generic Frame Serialization Round-Trip Tests
+// ============================================================================
+
+class FrameRoundTripTest : public ::testing::Test
+{
+};
+
+TEST_F(FrameRoundTripTest, PaddingFrameViaVariant)
+{
+	frame f = padding_frame{5};
+	auto built = frame_builder::build(f);
+	EXPECT_EQ(built.size(), 5);
+
+	auto result = frame_parser::parse(built);
+	ASSERT_TRUE(result.is_ok());
+	EXPECT_NE(std::get_if<padding_frame>(&result.value().first), nullptr);
+}
+
+TEST_F(FrameRoundTripTest, PingFrameViaVariant)
+{
+	frame f = ping_frame{};
+	auto built = frame_builder::build(f);
+
+	auto result = frame_parser::parse(built);
+	ASSERT_TRUE(result.is_ok());
+	EXPECT_NE(std::get_if<ping_frame>(&result.value().first), nullptr);
+}
+
+TEST_F(FrameRoundTripTest, StreamFrameWithAllFields)
+{
+	stream_frame sf;
+	sf.stream_id = 16;
+	sf.offset = 500;
+	sf.data = {0x01, 0x02, 0x03, 0x04, 0x05};
+	sf.fin = true;
+	frame f = sf;
+
+	auto built = frame_builder::build(f);
+	auto result = frame_parser::parse(built);
+	ASSERT_TRUE(result.is_ok());
+
+	auto* parsed = std::get_if<stream_frame>(&result.value().first);
+	ASSERT_NE(parsed, nullptr);
+	EXPECT_EQ(parsed->stream_id, 16);
+	EXPECT_EQ(parsed->offset, 500);
+	EXPECT_EQ(parsed->data.size(), 5);
+	EXPECT_TRUE(parsed->fin);
+}
+
+TEST_F(FrameRoundTripTest, ConnectionCloseViaVariant)
+{
+	connection_close_frame ccf;
+	ccf.error_code = 0x0A;
+	ccf.frame_type = 0x06;
+	ccf.reason_phrase = "test error";
+	ccf.is_application_error = false;
+	frame f = ccf;
+
+	auto built = frame_builder::build(f);
+	auto result = frame_parser::parse(built);
+	ASSERT_TRUE(result.is_ok());
+
+	auto* parsed = std::get_if<connection_close_frame>(&result.value().first);
+	ASSERT_NE(parsed, nullptr);
+	EXPECT_EQ(parsed->error_code, 0x0A);
+	EXPECT_EQ(parsed->reason_phrase, "test error");
+}
+
+TEST_F(FrameRoundTripTest, MultipleFramesParseAll)
+{
+	std::vector<uint8_t> buffer;
+
+	// Build PING
+	auto ping = frame_builder::build_ping();
+	buffer.insert(buffer.end(), ping.begin(), ping.end());
+
+	// Build RESET_STREAM
+	reset_stream_frame rsf;
+	rsf.stream_id = 4;
+	rsf.application_error_code = 0x42;
+	rsf.final_size = 100;
+	auto reset = frame_builder::build_reset_stream(rsf);
+	buffer.insert(buffer.end(), reset.begin(), reset.end());
+
+	// Build STOP_SENDING
+	stop_sending_frame ssf;
+	ssf.stream_id = 8;
+	ssf.application_error_code = 0x10;
+	auto stop = frame_builder::build_stop_sending(ssf);
+	buffer.insert(buffer.end(), stop.begin(), stop.end());
+
+	// Build MAX_DATA
+	max_data_frame mdf;
+	mdf.maximum_data = 65536;
+	auto max_data = frame_builder::build_max_data(mdf);
+	buffer.insert(buffer.end(), max_data.begin(), max_data.end());
+
+	// Parse all
+	auto result = frame_parser::parse_all(buffer);
+	ASSERT_TRUE(result.is_ok());
+	EXPECT_EQ(result.value().size(), 4);
+
+	EXPECT_NE(std::get_if<ping_frame>(&result.value()[0]), nullptr);
+	EXPECT_NE(std::get_if<reset_stream_frame>(&result.value()[1]), nullptr);
+	EXPECT_NE(std::get_if<stop_sending_frame>(&result.value()[2]), nullptr);
+	EXPECT_NE(std::get_if<max_data_frame>(&result.value()[3]), nullptr);
 }
