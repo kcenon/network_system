@@ -1071,3 +1071,252 @@ TEST_F(Http2FrameTest, RoundTripWindowUpdateConnectionLevel)
     EXPECT_EQ(parsed->header().stream_id, 0u);
     EXPECT_EQ(parsed->window_size_increment(), 65535u);
 }
+
+// ============================================================================
+// Frame Type Enum Tests
+// ============================================================================
+
+TEST_F(Http2FrameTest, FrameTypeEnumValues)
+{
+    EXPECT_EQ(static_cast<uint8_t>(frame_type::data), 0x0);
+    EXPECT_EQ(static_cast<uint8_t>(frame_type::headers), 0x1);
+    EXPECT_EQ(static_cast<uint8_t>(frame_type::priority), 0x2);
+    EXPECT_EQ(static_cast<uint8_t>(frame_type::rst_stream), 0x3);
+    EXPECT_EQ(static_cast<uint8_t>(frame_type::settings), 0x4);
+    EXPECT_EQ(static_cast<uint8_t>(frame_type::push_promise), 0x5);
+    EXPECT_EQ(static_cast<uint8_t>(frame_type::ping), 0x6);
+    EXPECT_EQ(static_cast<uint8_t>(frame_type::goaway), 0x7);
+    EXPECT_EQ(static_cast<uint8_t>(frame_type::window_update), 0x8);
+    EXPECT_EQ(static_cast<uint8_t>(frame_type::continuation), 0x9);
+}
+
+// ============================================================================
+// Error Code Enum Tests
+// ============================================================================
+
+TEST_F(Http2FrameTest, ErrorCodeEnumValues)
+{
+    EXPECT_EQ(static_cast<uint32_t>(error_code::no_error), 0x0);
+    EXPECT_EQ(static_cast<uint32_t>(error_code::protocol_error), 0x1);
+    EXPECT_EQ(static_cast<uint32_t>(error_code::internal_error), 0x2);
+    EXPECT_EQ(static_cast<uint32_t>(error_code::flow_control_error), 0x3);
+    EXPECT_EQ(static_cast<uint32_t>(error_code::settings_timeout), 0x4);
+    EXPECT_EQ(static_cast<uint32_t>(error_code::stream_closed), 0x5);
+    EXPECT_EQ(static_cast<uint32_t>(error_code::frame_size_error), 0x6);
+    EXPECT_EQ(static_cast<uint32_t>(error_code::refused_stream), 0x7);
+    EXPECT_EQ(static_cast<uint32_t>(error_code::cancel), 0x8);
+    EXPECT_EQ(static_cast<uint32_t>(error_code::compression_error), 0x9);
+    EXPECT_EQ(static_cast<uint32_t>(error_code::connect_error), 0xA);
+    EXPECT_EQ(static_cast<uint32_t>(error_code::enhance_your_calm), 0xB);
+    EXPECT_EQ(static_cast<uint32_t>(error_code::inadequate_security), 0xC);
+    EXPECT_EQ(static_cast<uint32_t>(error_code::http_1_1_required), 0xD);
+}
+
+// ============================================================================
+// Setting Identifier Enum Tests
+// ============================================================================
+
+TEST_F(Http2FrameTest, SettingIdentifierEnumValues)
+{
+    EXPECT_EQ(static_cast<uint16_t>(setting_identifier::header_table_size), 0x1);
+    EXPECT_EQ(static_cast<uint16_t>(setting_identifier::enable_push), 0x2);
+    EXPECT_EQ(static_cast<uint16_t>(setting_identifier::max_concurrent_streams), 0x3);
+    EXPECT_EQ(static_cast<uint16_t>(setting_identifier::initial_window_size), 0x4);
+    EXPECT_EQ(static_cast<uint16_t>(setting_identifier::max_frame_size), 0x5);
+    EXPECT_EQ(static_cast<uint16_t>(setting_identifier::max_header_list_size), 0x6);
+}
+
+// ============================================================================
+// Frame Flags Constant Tests
+// ============================================================================
+
+TEST_F(Http2FrameTest, FrameFlagConstants)
+{
+    EXPECT_EQ(frame_flags::none, 0x0);
+    EXPECT_EQ(frame_flags::end_stream, 0x1);
+    EXPECT_EQ(frame_flags::ack, 0x1);
+    EXPECT_EQ(frame_flags::end_headers, 0x4);
+    EXPECT_EQ(frame_flags::padded, 0x8);
+    EXPECT_EQ(frame_flags::priority, 0x20);
+}
+
+// ============================================================================
+// SETTINGS Frame with Multiple Parameters Tests
+// ============================================================================
+
+TEST_F(Http2FrameTest, SettingsFrameWithMultipleParameters)
+{
+    std::vector<setting_parameter> params = {
+        {static_cast<uint16_t>(setting_identifier::header_table_size), 8192},
+        {static_cast<uint16_t>(setting_identifier::max_concurrent_streams), 100},
+        {static_cast<uint16_t>(setting_identifier::initial_window_size), 65535},
+    };
+
+    settings_frame original(params);
+
+    auto serialized = original.serialize();
+    auto parsed_result = frame::parse(serialized);
+    ASSERT_TRUE(parsed_result.is_ok());
+
+    auto parsed = dynamic_cast<settings_frame*>(parsed_result.value().get());
+    ASSERT_NE(parsed, nullptr);
+    EXPECT_FALSE(parsed->is_ack());
+    ASSERT_EQ(parsed->settings().size(), 3u);
+
+    EXPECT_EQ(parsed->settings()[0].identifier,
+              static_cast<uint16_t>(setting_identifier::header_table_size));
+    EXPECT_EQ(parsed->settings()[0].value, 8192u);
+    EXPECT_EQ(parsed->settings()[1].identifier,
+              static_cast<uint16_t>(setting_identifier::max_concurrent_streams));
+    EXPECT_EQ(parsed->settings()[1].value, 100u);
+    EXPECT_EQ(parsed->settings()[2].identifier,
+              static_cast<uint16_t>(setting_identifier::initial_window_size));
+    EXPECT_EQ(parsed->settings()[2].value, 65535u);
+}
+
+TEST_F(Http2FrameTest, SettingsFrameAllSixParameters)
+{
+    std::vector<setting_parameter> params = {
+        {static_cast<uint16_t>(setting_identifier::header_table_size), 4096},
+        {static_cast<uint16_t>(setting_identifier::enable_push), 1},
+        {static_cast<uint16_t>(setting_identifier::max_concurrent_streams), 128},
+        {static_cast<uint16_t>(setting_identifier::initial_window_size), 32768},
+        {static_cast<uint16_t>(setting_identifier::max_frame_size), 16384},
+        {static_cast<uint16_t>(setting_identifier::max_header_list_size), 8192},
+    };
+
+    settings_frame original(params);
+
+    auto serialized = original.serialize();
+    auto parsed_result = frame::parse(serialized);
+    ASSERT_TRUE(parsed_result.is_ok());
+
+    auto parsed = dynamic_cast<settings_frame*>(parsed_result.value().get());
+    ASSERT_NE(parsed, nullptr);
+    ASSERT_EQ(parsed->settings().size(), 6u);
+}
+
+// ============================================================================
+// RST_STREAM with Various Error Codes Tests
+// ============================================================================
+
+TEST_F(Http2FrameTest, RstStreamWithProtocolError)
+{
+    rst_stream_frame original(3, static_cast<uint32_t>(error_code::protocol_error));
+
+    auto serialized = original.serialize();
+    auto parsed_result = frame::parse(serialized);
+    ASSERT_TRUE(parsed_result.is_ok());
+
+    auto parsed = dynamic_cast<rst_stream_frame*>(parsed_result.value().get());
+    ASSERT_NE(parsed, nullptr);
+    EXPECT_EQ(parsed->header().stream_id, 3u);
+    EXPECT_EQ(parsed->error_code(), static_cast<uint32_t>(error_code::protocol_error));
+}
+
+TEST_F(Http2FrameTest, RstStreamWithCancel)
+{
+    rst_stream_frame original(5, static_cast<uint32_t>(error_code::cancel));
+
+    auto serialized = original.serialize();
+    auto parsed_result = frame::parse(serialized);
+    ASSERT_TRUE(parsed_result.is_ok());
+
+    auto parsed = dynamic_cast<rst_stream_frame*>(parsed_result.value().get());
+    ASSERT_NE(parsed, nullptr);
+    EXPECT_EQ(parsed->error_code(), static_cast<uint32_t>(error_code::cancel));
+}
+
+TEST_F(Http2FrameTest, RstStreamWithRefusedStream)
+{
+    rst_stream_frame original(7, static_cast<uint32_t>(error_code::refused_stream));
+
+    auto serialized = original.serialize();
+    auto parsed_result = frame::parse(serialized);
+    ASSERT_TRUE(parsed_result.is_ok());
+
+    auto parsed = dynamic_cast<rst_stream_frame*>(parsed_result.value().get());
+    ASSERT_NE(parsed, nullptr);
+    EXPECT_EQ(parsed->error_code(), static_cast<uint32_t>(error_code::refused_stream));
+}
+
+// ============================================================================
+// GOAWAY with Various Error Codes Tests
+// ============================================================================
+
+TEST_F(Http2FrameTest, GoawayWithNoError)
+{
+    goaway_frame original(100, static_cast<uint32_t>(error_code::no_error));
+
+    auto serialized = original.serialize();
+    auto parsed_result = frame::parse(serialized);
+    ASSERT_TRUE(parsed_result.is_ok());
+
+    auto parsed = dynamic_cast<goaway_frame*>(parsed_result.value().get());
+    ASSERT_NE(parsed, nullptr);
+    EXPECT_EQ(parsed->last_stream_id(), 100u);
+    EXPECT_EQ(parsed->error_code(), static_cast<uint32_t>(error_code::no_error));
+}
+
+TEST_F(Http2FrameTest, GoawayWithEnhanceYourCalm)
+{
+    goaway_frame original(50, static_cast<uint32_t>(error_code::enhance_your_calm));
+
+    auto serialized = original.serialize();
+    auto parsed_result = frame::parse(serialized);
+    ASSERT_TRUE(parsed_result.is_ok());
+
+    auto parsed = dynamic_cast<goaway_frame*>(parsed_result.value().get());
+    ASSERT_NE(parsed, nullptr);
+    EXPECT_EQ(parsed->error_code(), static_cast<uint32_t>(error_code::enhance_your_calm));
+}
+
+// ============================================================================
+// Window Update Flow Control Tests
+// ============================================================================
+
+TEST_F(Http2FrameTest, WindowUpdateMaxIncrement)
+{
+    // Maximum window size increment: 2^31 - 1
+    window_update_frame original(1, 0x7FFFFFFF);
+
+    auto serialized = original.serialize();
+    auto parsed_result = frame::parse(serialized);
+    ASSERT_TRUE(parsed_result.is_ok());
+
+    auto parsed = dynamic_cast<window_update_frame*>(parsed_result.value().get());
+    ASSERT_NE(parsed, nullptr);
+    EXPECT_EQ(parsed->window_size_increment(), 0x7FFFFFFFu);
+}
+
+TEST_F(Http2FrameTest, WindowUpdateSmallIncrement)
+{
+    window_update_frame original(3, 1);
+
+    auto serialized = original.serialize();
+    auto parsed_result = frame::parse(serialized);
+    ASSERT_TRUE(parsed_result.is_ok());
+
+    auto parsed = dynamic_cast<window_update_frame*>(parsed_result.value().get());
+    ASSERT_NE(parsed, nullptr);
+    EXPECT_EQ(parsed->window_size_increment(), 1u);
+}
+
+// ============================================================================
+// Ping Frame Data Preservation Tests
+// ============================================================================
+
+TEST_F(Http2FrameTest, PingFramePreservesOpaqueData)
+{
+    std::array<uint8_t, 8> data = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08};
+    ping_frame original(data);
+
+    auto serialized = original.serialize();
+    auto parsed_result = frame::parse(serialized);
+    ASSERT_TRUE(parsed_result.is_ok());
+
+    auto parsed = dynamic_cast<ping_frame*>(parsed_result.value().get());
+    ASSERT_NE(parsed, nullptr);
+    EXPECT_EQ(parsed->opaque_data(), data);
+    EXPECT_FALSE(parsed->is_ack());
+}
