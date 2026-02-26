@@ -36,9 +36,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "internal/protocols/quic/stream_manager.h"
 #include "internal/protocols/quic/flow_control.h"
 
-#include <vector>
+#include <algorithm>
 #include <array>
 #include <thread>
+#include <vector>
 
 using namespace kcenon::network::protocols::quic;
 
