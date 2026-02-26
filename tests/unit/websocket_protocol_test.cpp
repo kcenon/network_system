@@ -497,3 +497,417 @@ TEST(WebSocketProtocolTest, ReceivePartialFrame) {
 
   EXPECT_TRUE(callback_invoked); // Now should invoke callback
 }
+
+// ============================================================================
+// Close Code Semantics Tests
+// ============================================================================
+
+TEST(WebSocketProtocolTest, ReceiveCloseGoingAway) {
+  websocket_protocol protocol(false);
+
+  bool callback_invoked = false;
+  ws_close_code received_code;
+  protocol.set_close_callback(
+      [&](ws_close_code code, [[maybe_unused]] const std::string &reason) {
+        callback_invoked = true;
+        received_code = code;
+      });
+
+  std::vector<uint8_t> payload = {0x03, 0xE9}; // 1001
+  auto frame = websocket_frame::encode_frame(ws_opcode::close,
+                                             std::move(payload), true, false);
+  protocol.process_data(frame);
+
+  EXPECT_TRUE(callback_invoked);
+  EXPECT_EQ(received_code, ws_close_code::going_away);
+}
+
+TEST(WebSocketProtocolTest, ReceiveCloseProtocolError) {
+  websocket_protocol protocol(false);
+
+  bool callback_invoked = false;
+  ws_close_code received_code;
+  protocol.set_close_callback(
+      [&](ws_close_code code, [[maybe_unused]] const std::string &reason) {
+        callback_invoked = true;
+        received_code = code;
+      });
+
+  std::vector<uint8_t> payload = {0x03, 0xEA}; // 1002
+  auto frame = websocket_frame::encode_frame(ws_opcode::close,
+                                             std::move(payload), true, false);
+  protocol.process_data(frame);
+
+  EXPECT_TRUE(callback_invoked);
+  EXPECT_EQ(received_code, ws_close_code::protocol_error);
+}
+
+TEST(WebSocketProtocolTest, ReceiveCloseUnsupportedData) {
+  websocket_protocol protocol(false);
+
+  bool callback_invoked = false;
+  ws_close_code received_code;
+  protocol.set_close_callback(
+      [&](ws_close_code code, [[maybe_unused]] const std::string &reason) {
+        callback_invoked = true;
+        received_code = code;
+      });
+
+  std::vector<uint8_t> payload = {0x03, 0xEB}; // 1003
+  auto frame = websocket_frame::encode_frame(ws_opcode::close,
+                                             std::move(payload), true, false);
+  protocol.process_data(frame);
+
+  EXPECT_TRUE(callback_invoked);
+  EXPECT_EQ(received_code, ws_close_code::unsupported_data);
+}
+
+TEST(WebSocketProtocolTest, ReceiveCloseInvalidFrame) {
+  websocket_protocol protocol(false);
+
+  bool callback_invoked = false;
+  ws_close_code received_code;
+  protocol.set_close_callback(
+      [&](ws_close_code code, [[maybe_unused]] const std::string &reason) {
+        callback_invoked = true;
+        received_code = code;
+      });
+
+  std::vector<uint8_t> payload = {0x03, 0xEF}; // 1007
+  auto frame = websocket_frame::encode_frame(ws_opcode::close,
+                                             std::move(payload), true, false);
+  protocol.process_data(frame);
+
+  EXPECT_TRUE(callback_invoked);
+  EXPECT_EQ(received_code, ws_close_code::invalid_frame);
+}
+
+TEST(WebSocketProtocolTest, ReceiveClosePolicyViolation) {
+  websocket_protocol protocol(false);
+
+  bool callback_invoked = false;
+  ws_close_code received_code;
+  protocol.set_close_callback(
+      [&](ws_close_code code, [[maybe_unused]] const std::string &reason) {
+        callback_invoked = true;
+        received_code = code;
+      });
+
+  std::vector<uint8_t> payload = {0x03, 0xF0}; // 1008
+  auto frame = websocket_frame::encode_frame(ws_opcode::close,
+                                             std::move(payload), true, false);
+  protocol.process_data(frame);
+
+  EXPECT_TRUE(callback_invoked);
+  EXPECT_EQ(received_code, ws_close_code::policy_violation);
+}
+
+TEST(WebSocketProtocolTest, ReceiveCloseMessageTooBig) {
+  websocket_protocol protocol(false);
+
+  bool callback_invoked = false;
+  ws_close_code received_code;
+  protocol.set_close_callback(
+      [&](ws_close_code code, [[maybe_unused]] const std::string &reason) {
+        callback_invoked = true;
+        received_code = code;
+      });
+
+  std::vector<uint8_t> payload = {0x03, 0xF1}; // 1009
+  auto frame = websocket_frame::encode_frame(ws_opcode::close,
+                                             std::move(payload), true, false);
+  protocol.process_data(frame);
+
+  EXPECT_TRUE(callback_invoked);
+  EXPECT_EQ(received_code, ws_close_code::message_too_big);
+}
+
+TEST(WebSocketProtocolTest, ReceiveCloseInternalError) {
+  websocket_protocol protocol(false);
+
+  bool callback_invoked = false;
+  ws_close_code received_code;
+  protocol.set_close_callback(
+      [&](ws_close_code code, [[maybe_unused]] const std::string &reason) {
+        callback_invoked = true;
+        received_code = code;
+      });
+
+  std::vector<uint8_t> payload = {0x03, 0xF3}; // 1011
+  auto frame = websocket_frame::encode_frame(ws_opcode::close,
+                                             std::move(payload), true, false);
+  protocol.process_data(frame);
+
+  EXPECT_TRUE(callback_invoked);
+  EXPECT_EQ(received_code, ws_close_code::internal_error);
+}
+
+TEST(WebSocketProtocolTest, ReceiveCloseEmptyPayload) {
+  websocket_protocol protocol(false);
+
+  bool callback_invoked = false;
+  protocol.set_close_callback(
+      [&]([[maybe_unused]] ws_close_code code,
+          [[maybe_unused]] const std::string &reason) {
+        callback_invoked = true;
+      });
+
+  auto frame = websocket_frame::encode_frame(ws_opcode::close,
+                                             std::vector<uint8_t>{}, true,
+                                             false);
+  protocol.process_data(frame);
+
+  EXPECT_TRUE(callback_invoked);
+}
+
+// ============================================================================
+// Control Frame Interleaving During Fragmentation Tests
+// ============================================================================
+
+TEST(WebSocketProtocolTest, PingDuringFragmentation) {
+  websocket_protocol protocol(false);
+
+  bool message_received = false;
+  ws_message received_msg;
+  protocol.set_message_callback([&](const ws_message &msg) {
+    message_received = true;
+    received_msg = msg;
+  });
+
+  bool ping_received = false;
+  protocol.set_ping_callback(
+      [&]([[maybe_unused]] const std::vector<uint8_t> &payload) {
+        ping_received = true;
+      });
+
+  // First fragment of text message
+  auto frame1 = websocket_frame::encode_frame(
+      ws_opcode::text, std::vector<uint8_t>{'H', 'e'}, false, false);
+
+  // Ping frame (control frames can appear between fragments)
+  auto ping = websocket_frame::encode_frame(ws_opcode::ping,
+                                            std::vector<uint8_t>{'!'}, true,
+                                            false);
+
+  // Final continuation fragment
+  auto frame2 = websocket_frame::encode_frame(
+      ws_opcode::continuation, std::vector<uint8_t>{'l', 'l', 'o'}, true,
+      false);
+
+  protocol.process_data(frame1);
+  EXPECT_FALSE(message_received);
+  EXPECT_FALSE(ping_received);
+
+  protocol.process_data(ping);
+  EXPECT_FALSE(message_received);
+  EXPECT_TRUE(ping_received); // Ping delivered immediately
+
+  protocol.process_data(frame2);
+  EXPECT_TRUE(message_received);
+  EXPECT_EQ(received_msg.as_text(), "Hello");
+}
+
+TEST(WebSocketProtocolTest, PongDuringFragmentation) {
+  websocket_protocol protocol(false);
+
+  bool message_received = false;
+  ws_message received_msg;
+  protocol.set_message_callback([&](const ws_message &msg) {
+    message_received = true;
+    received_msg = msg;
+  });
+
+  bool pong_received = false;
+  protocol.set_pong_callback(
+      [&]([[maybe_unused]] const std::vector<uint8_t> &payload) {
+        pong_received = true;
+      });
+
+  auto frame1 = websocket_frame::encode_frame(
+      ws_opcode::binary, std::vector<uint8_t>{0x01, 0x02}, false, false);
+  auto pong = websocket_frame::encode_frame(ws_opcode::pong,
+                                            std::vector<uint8_t>{}, true,
+                                            false);
+  auto frame2 = websocket_frame::encode_frame(
+      ws_opcode::continuation, std::vector<uint8_t>{0x03}, true, false);
+
+  protocol.process_data(frame1);
+  protocol.process_data(pong);
+  EXPECT_TRUE(pong_received);
+  EXPECT_FALSE(message_received);
+
+  protocol.process_data(frame2);
+  EXPECT_TRUE(message_received);
+  EXPECT_EQ(received_msg.type, ws_message_type::binary);
+  EXPECT_EQ(received_msg.as_binary().size(), 3);
+}
+
+// ============================================================================
+// Client Masking Tests
+// ============================================================================
+
+TEST(WebSocketProtocolTest, ClientTextMessageAppliesMask) {
+  websocket_protocol client(true);
+  auto frame = client.create_text_message("test");
+
+  // Decode header to verify mask bit is set
+  auto header = websocket_frame::decode_header(frame);
+  ASSERT_TRUE(header.has_value());
+  EXPECT_TRUE(header->mask);
+  EXPECT_EQ(header->opcode, ws_opcode::text);
+}
+
+TEST(WebSocketProtocolTest, ClientBinaryMessageAppliesMask) {
+  websocket_protocol client(true);
+  auto frame = client.create_binary_message(std::vector<uint8_t>{0x01, 0x02});
+
+  auto header = websocket_frame::decode_header(frame);
+  ASSERT_TRUE(header.has_value());
+  EXPECT_TRUE(header->mask);
+  EXPECT_EQ(header->opcode, ws_opcode::binary);
+}
+
+TEST(WebSocketProtocolTest, ServerTextMessageNoMask) {
+  websocket_protocol server(false);
+  auto frame = server.create_text_message("test");
+
+  auto header = websocket_frame::decode_header(frame);
+  ASSERT_TRUE(header.has_value());
+  EXPECT_FALSE(header->mask);
+}
+
+// ============================================================================
+// Masked Frame Reception Tests
+// ============================================================================
+
+TEST(WebSocketProtocolTest, ServerReceivesMaskedClientFrame) {
+  websocket_protocol server(false);
+
+  bool callback_invoked = false;
+  ws_message received_msg;
+  server.set_message_callback([&](const ws_message &msg) {
+    callback_invoked = true;
+    received_msg = msg;
+  });
+
+  // Encode a masked text frame (as a client would send)
+  auto frame = websocket_frame::encode_frame(
+      ws_opcode::text, std::vector<uint8_t>{'H', 'i'}, true, true);
+
+  server.process_data(frame);
+
+  EXPECT_TRUE(callback_invoked);
+  EXPECT_EQ(received_msg.as_text(), "Hi");
+}
+
+// ============================================================================
+// Empty Control Frame Tests
+// ============================================================================
+
+TEST(WebSocketProtocolTest, ReceivePingEmptyPayload) {
+  websocket_protocol protocol(false);
+
+  bool callback_invoked = false;
+  std::vector<uint8_t> received_payload;
+  protocol.set_ping_callback([&](const std::vector<uint8_t> &payload) {
+    callback_invoked = true;
+    received_payload = payload;
+  });
+
+  auto frame = websocket_frame::encode_frame(ws_opcode::ping,
+                                             std::vector<uint8_t>{}, true,
+                                             false);
+  protocol.process_data(frame);
+
+  EXPECT_TRUE(callback_invoked);
+  EXPECT_TRUE(received_payload.empty());
+}
+
+TEST(WebSocketProtocolTest, ReceivePongEmptyPayload) {
+  websocket_protocol protocol(false);
+
+  bool callback_invoked = false;
+  std::vector<uint8_t> received_payload;
+  protocol.set_pong_callback([&](const std::vector<uint8_t> &payload) {
+    callback_invoked = true;
+    received_payload = payload;
+  });
+
+  auto frame = websocket_frame::encode_frame(ws_opcode::pong,
+                                             std::vector<uint8_t>{}, true,
+                                             false);
+  protocol.process_data(frame);
+
+  EXPECT_TRUE(callback_invoked);
+  EXPECT_TRUE(received_payload.empty());
+}
+
+// ============================================================================
+// Sequential Fragmented Messages Tests
+// ============================================================================
+
+TEST(WebSocketProtocolTest, TwoConsecutiveFragmentedMessages) {
+  websocket_protocol protocol(false);
+
+  int callback_count = 0;
+  std::vector<std::string> received_texts;
+  protocol.set_message_callback([&](const ws_message &msg) {
+    callback_count++;
+    received_texts.push_back(msg.as_text());
+  });
+
+  // First fragmented message: "AB"
+  auto f1a = websocket_frame::encode_frame(
+      ws_opcode::text, std::vector<uint8_t>{'A'}, false, false);
+  auto f1b = websocket_frame::encode_frame(
+      ws_opcode::continuation, std::vector<uint8_t>{'B'}, true, false);
+
+  // Second fragmented message: "CD"
+  auto f2a = websocket_frame::encode_frame(
+      ws_opcode::text, std::vector<uint8_t>{'C'}, false, false);
+  auto f2b = websocket_frame::encode_frame(
+      ws_opcode::continuation, std::vector<uint8_t>{'D'}, true, false);
+
+  protocol.process_data(f1a);
+  protocol.process_data(f1b);
+  EXPECT_EQ(callback_count, 1);
+
+  protocol.process_data(f2a);
+  protocol.process_data(f2b);
+  EXPECT_EQ(callback_count, 2);
+
+  EXPECT_EQ(received_texts[0], "AB");
+  EXPECT_EQ(received_texts[1], "CD");
+}
+
+// ============================================================================
+// Concatenated Frames in Single Buffer Tests
+// ============================================================================
+
+TEST(WebSocketProtocolTest, MultipleFramesInSingleBuffer) {
+  websocket_protocol protocol(false);
+
+  int callback_count = 0;
+  std::vector<std::string> received_texts;
+  protocol.set_message_callback([&](const ws_message &msg) {
+    callback_count++;
+    received_texts.push_back(msg.as_text());
+  });
+
+  // Create two complete frames
+  auto frame1 = websocket_frame::encode_frame(
+      ws_opcode::text, std::vector<uint8_t>{'X'}, true, false);
+  auto frame2 = websocket_frame::encode_frame(
+      ws_opcode::text, std::vector<uint8_t>{'Y'}, true, false);
+
+  // Concatenate into a single buffer
+  std::vector<uint8_t> combined;
+  combined.insert(combined.end(), frame1.begin(), frame1.end());
+  combined.insert(combined.end(), frame2.begin(), frame2.end());
+
+  protocol.process_data(combined);
+
+  EXPECT_EQ(callback_count, 2);
+  EXPECT_EQ(received_texts[0], "X");
+  EXPECT_EQ(received_texts[1], "Y");
+}

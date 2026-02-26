@@ -318,3 +318,253 @@ TEST(WebSocketFrameTest, CalculateHeaderSizeLargePayload)
 	EXPECT_EQ(websocket_frame::calculate_header_size(65536, true), 14);
 	EXPECT_EQ(websocket_frame::calculate_header_size(1000000, true), 14);
 }
+
+// ============================================================================
+// Continuation Frame Tests
+// ============================================================================
+
+TEST(WebSocketFrameTest, EncodeContinuationFrame)
+{
+	std::vector<uint8_t> payload = {'c', 'o', 'n', 't'};
+	auto frame = websocket_frame::encode_frame(ws_opcode::continuation, std::move(payload), true, false);
+
+	// FIN=1, opcode=0x0 (continuation) → 0x80
+	EXPECT_EQ(frame[0], 0x80);
+	EXPECT_EQ(frame[1], 0x04);
+}
+
+TEST(WebSocketFrameTest, EncodeContinuationFrameNonFinal)
+{
+	std::vector<uint8_t> payload = {'m', 'i', 'd'};
+	auto frame = websocket_frame::encode_frame(ws_opcode::continuation, std::move(payload), false, false);
+
+	// FIN=0, opcode=0x0 → 0x00
+	EXPECT_EQ(frame[0], 0x00);
+	EXPECT_EQ(frame[1], 0x03);
+}
+
+// ============================================================================
+// RSV Bit Decoding Tests
+// ============================================================================
+
+TEST(WebSocketFrameTest, DecodeHeaderRsv1Set)
+{
+	// FIN=1, RSV1=1, opcode=text → 0xC1
+	std::vector<uint8_t> frame = {0xC1, 0x03, 'a', 'b', 'c'};
+	auto header = websocket_frame::decode_header(frame);
+
+	ASSERT_TRUE(header.has_value());
+	EXPECT_TRUE(header->fin);
+	EXPECT_TRUE(header->rsv1);
+	EXPECT_FALSE(header->rsv2);
+	EXPECT_FALSE(header->rsv3);
+	EXPECT_EQ(header->opcode, ws_opcode::text);
+}
+
+TEST(WebSocketFrameTest, DecodeHeaderRsv2Set)
+{
+	// FIN=1, RSV2=1, opcode=binary → 0xA2
+	std::vector<uint8_t> frame = {0xA2, 0x02, 0x01, 0x02};
+	auto header = websocket_frame::decode_header(frame);
+
+	ASSERT_TRUE(header.has_value());
+	EXPECT_TRUE(header->fin);
+	EXPECT_FALSE(header->rsv1);
+	EXPECT_TRUE(header->rsv2);
+	EXPECT_FALSE(header->rsv3);
+	EXPECT_EQ(header->opcode, ws_opcode::binary);
+}
+
+TEST(WebSocketFrameTest, DecodeHeaderRsv3Set)
+{
+	// FIN=1, RSV3=1, opcode=text → 0x91
+	std::vector<uint8_t> frame = {0x91, 0x01, 'x'};
+	auto header = websocket_frame::decode_header(frame);
+
+	ASSERT_TRUE(header.has_value());
+	EXPECT_TRUE(header->fin);
+	EXPECT_FALSE(header->rsv1);
+	EXPECT_FALSE(header->rsv2);
+	EXPECT_TRUE(header->rsv3);
+}
+
+TEST(WebSocketFrameTest, DecodeHeaderAllRsvSet)
+{
+	// FIN=1, RSV1=1, RSV2=1, RSV3=1, opcode=text → 0xF1
+	std::vector<uint8_t> frame = {0xF1, 0x01, 'x'};
+	auto header = websocket_frame::decode_header(frame);
+
+	ASSERT_TRUE(header.has_value());
+	EXPECT_TRUE(header->rsv1);
+	EXPECT_TRUE(header->rsv2);
+	EXPECT_TRUE(header->rsv3);
+}
+
+// ============================================================================
+// Encode-Decode Round-Trip Tests
+// ============================================================================
+
+TEST(WebSocketFrameTest, EncodeDecodeRoundTripText)
+{
+	std::vector<uint8_t> original = {'H', 'e', 'l', 'l', 'o'};
+	auto frame = websocket_frame::encode_frame(ws_opcode::text, std::vector<uint8_t>(original), true, false);
+
+	auto header = websocket_frame::decode_header(frame);
+	ASSERT_TRUE(header.has_value());
+	EXPECT_TRUE(header->fin);
+	EXPECT_EQ(header->opcode, ws_opcode::text);
+	EXPECT_EQ(header->payload_len, 5);
+
+	auto payload = websocket_frame::decode_payload(*header, frame);
+	EXPECT_EQ(payload, original);
+}
+
+TEST(WebSocketFrameTest, EncodeDecodeRoundTripBinary)
+{
+	std::vector<uint8_t> original = {0x00, 0xFF, 0x7F, 0x80, 0x01};
+	auto frame = websocket_frame::encode_frame(ws_opcode::binary, std::vector<uint8_t>(original), true, false);
+
+	auto header = websocket_frame::decode_header(frame);
+	ASSERT_TRUE(header.has_value());
+	EXPECT_EQ(header->opcode, ws_opcode::binary);
+
+	auto payload = websocket_frame::decode_payload(*header, frame);
+	EXPECT_EQ(payload, original);
+}
+
+TEST(WebSocketFrameTest, EncodeDecodeRoundTripMasked)
+{
+	std::vector<uint8_t> original = {'m', 'a', 's', 'k', 'e', 'd'};
+	auto frame = websocket_frame::encode_frame(ws_opcode::text, std::vector<uint8_t>(original), true, true);
+
+	auto header = websocket_frame::decode_header(frame);
+	ASSERT_TRUE(header.has_value());
+	EXPECT_TRUE(header->mask);
+	EXPECT_EQ(header->payload_len, 6);
+
+	auto payload = websocket_frame::decode_payload(*header, frame);
+	EXPECT_EQ(payload, original);
+}
+
+TEST(WebSocketFrameTest, EncodeDecodeRoundTripMediumPayload)
+{
+	std::vector<uint8_t> original(200, 0xAB);
+	auto frame = websocket_frame::encode_frame(ws_opcode::binary, std::vector<uint8_t>(original), true, false);
+
+	auto header = websocket_frame::decode_header(frame);
+	ASSERT_TRUE(header.has_value());
+	EXPECT_EQ(header->payload_len, 200);
+
+	auto payload = websocket_frame::decode_payload(*header, frame);
+	EXPECT_EQ(payload, original);
+}
+
+// ============================================================================
+// Boundary Payload Size Tests
+// ============================================================================
+
+TEST(WebSocketFrameTest, EncodeMaxSmallPayload)
+{
+	// 125 bytes: last size that fits in 7-bit length field
+	std::vector<uint8_t> payload(125, 'X');
+	auto frame = websocket_frame::encode_frame(ws_opcode::binary, std::move(payload), true, false);
+
+	EXPECT_EQ(frame.size(), 127); // 2 header + 125 payload
+	EXPECT_EQ(frame[1], 125);     // Direct length encoding
+}
+
+TEST(WebSocketFrameTest, EncodeMinMediumPayload)
+{
+	// 126 bytes: first size that requires 16-bit extended length
+	std::vector<uint8_t> payload(126, 'Y');
+	auto frame = websocket_frame::encode_frame(ws_opcode::binary, std::move(payload), true, false);
+
+	EXPECT_EQ(frame.size(), 130); // 2 + 2 extended + 126 payload
+	EXPECT_EQ(frame[1], 126);     // 16-bit length indicator
+}
+
+TEST(WebSocketFrameTest, EncodeMaxMediumPayload)
+{
+	// 65535 bytes: last size that fits in 16-bit length
+	std::vector<uint8_t> payload(65535, 'Z');
+	auto frame = websocket_frame::encode_frame(ws_opcode::binary, std::move(payload), true, false);
+
+	EXPECT_EQ(frame.size(), 65539); // 2 + 2 extended + 65535 payload
+	EXPECT_EQ(frame[1], 126);       // 16-bit length indicator
+	EXPECT_EQ(frame[2], 0xFF);      // High byte
+	EXPECT_EQ(frame[3], 0xFF);      // Low byte
+}
+
+// ============================================================================
+// Mask Edge Case Tests
+// ============================================================================
+
+TEST(WebSocketFrameTest, ApplyMaskEmptyData)
+{
+	std::vector<uint8_t> data;
+	std::array<uint8_t, 4> mask = {0x12, 0x34, 0x56, 0x78};
+
+	websocket_frame::apply_mask(data, mask);
+	EXPECT_TRUE(data.empty());
+}
+
+TEST(WebSocketFrameTest, ApplyMaskSingleByte)
+{
+	std::vector<uint8_t> data = {0x41}; // 'A'
+	std::array<uint8_t, 4> mask = {0x12, 0x34, 0x56, 0x78};
+	auto original = data;
+
+	websocket_frame::apply_mask(data, mask);
+	EXPECT_EQ(data[0], static_cast<uint8_t>(0x41 ^ 0x12));
+
+	websocket_frame::apply_mask(data, mask);
+	EXPECT_EQ(data, original);
+}
+
+TEST(WebSocketFrameTest, ApplyMaskNonAlignedLength)
+{
+	// 7 bytes: not a multiple of 4 (mask key size)
+	std::vector<uint8_t> data = {'A', 'B', 'C', 'D', 'E', 'F', 'G'};
+	std::array<uint8_t, 4> mask = {0x11, 0x22, 0x33, 0x44};
+	auto original = data;
+
+	websocket_frame::apply_mask(data, mask);
+	// Verify each byte is XOR'd with the correct mask byte
+	for (size_t i = 0; i < data.size(); ++i)
+	{
+		EXPECT_EQ(data[i], static_cast<uint8_t>(original[i] ^ mask[i % 4]));
+	}
+
+	websocket_frame::apply_mask(data, mask);
+	EXPECT_EQ(data, original);
+}
+
+// ============================================================================
+// Decode Header Edge Cases
+// ============================================================================
+
+TEST(WebSocketFrameTest, DecodeHeaderEmptyData)
+{
+	std::vector<uint8_t> frame;
+	auto header = websocket_frame::decode_header(frame);
+
+	EXPECT_FALSE(header.has_value());
+}
+
+TEST(WebSocketFrameTest, DecodeHeaderTruncated64BitLength)
+{
+	// 64-bit length indicator but insufficient bytes
+	std::vector<uint8_t> frame = {0x82, 127, 0x00, 0x00, 0x00};
+	auto header = websocket_frame::decode_header(frame);
+
+	EXPECT_FALSE(header.has_value());
+}
+
+TEST(WebSocketFrameTest, DecodeHeaderTruncatedMaskKey)
+{
+	// Mask bit set but not enough bytes for masking key
+	std::vector<uint8_t> frame = {0x81, 0x82, 0x12, 0x34};
+	auto header = websocket_frame::decode_header(frame);
+
+	EXPECT_FALSE(header.has_value());
+}
