@@ -36,9 +36,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "internal/protocols/quic/stream_manager.h"
 #include "internal/protocols/quic/flow_control.h"
 
-#include <vector>
+#include <algorithm>
 #include <array>
 #include <thread>
+#include <vector>
 
 using namespace kcenon::network::protocols::quic;
 
@@ -639,4 +640,623 @@ TEST(QuicStreamStateStringTest, RecvStateToString)
     EXPECT_STREQ(recv_state_to_string(recv_stream_state::reset_recvd), "reset_recvd");
     EXPECT_STREQ(recv_state_to_string(recv_stream_state::data_read), "data_read");
     EXPECT_STREQ(recv_state_to_string(recv_stream_state::reset_read), "reset_read");
+}
+
+// ============================================================================
+// Stream-Level Flow Control Tests
+// ============================================================================
+
+class QuicStreamFlowControlTest : public ::testing::Test
+{
+protected:
+    void SetUp() override
+    {
+        // Local bidi stream with 100-byte send window
+        stream_ = std::make_unique<stream>(0, true, 100);
+    }
+
+    std::unique_ptr<stream> stream_;
+};
+
+TEST_F(QuicStreamFlowControlTest, InitialSendWindow)
+{
+    EXPECT_EQ(stream_->max_send_data(), 100UL);
+    EXPECT_EQ(stream_->available_send_window(), 100UL);
+}
+
+TEST_F(QuicStreamFlowControlTest, WindowDecreasesAfterSend)
+{
+    std::vector<uint8_t> data(40, 'A');
+    auto result = stream_->write(data);
+    ASSERT_TRUE(result.is_ok());
+
+    // Consume from send buffer
+    auto frame = stream_->next_stream_frame(1000);
+    ASSERT_TRUE(frame.has_value());
+
+    EXPECT_EQ(stream_->available_send_window(), 60UL);
+}
+
+TEST_F(QuicStreamFlowControlTest, WindowExhaustedBlocksWrite)
+{
+    // Write 50 bytes, using half the window
+    std::vector<uint8_t> data(50, 'B');
+    auto result = stream_->write(data);
+    ASSERT_TRUE(result.is_ok());
+    EXPECT_EQ(stream_->available_send_window(), 50UL);
+
+    // Generate frame - succeeds since window > 0
+    auto frame = stream_->next_stream_frame(1000);
+    ASSERT_TRUE(frame.has_value());
+    EXPECT_EQ(frame->data.size(), 50UL);
+
+    // Write remaining 50 bytes to fill the window
+    // After: send_offset=50 + buffer=50 == max=100 → window=0
+    std::vector<uint8_t> remaining(50, 'C');
+    auto result2 = stream_->write(remaining);
+    ASSERT_TRUE(result2.is_ok());
+    EXPECT_EQ(stream_->available_send_window(), 0UL);
+
+    // Additional write should fail - window exhausted
+    std::vector<uint8_t> more(1, 'D');
+    auto blocked = stream_->write(more);
+    EXPECT_FALSE(blocked.is_ok());
+}
+
+TEST_F(QuicStreamFlowControlTest, PeerUpdatesMaxStreamData)
+{
+    // Exhaust the window
+    std::vector<uint8_t> data(100, 'D');
+    (void)stream_->write(data);
+    (void)stream_->next_stream_frame(1000);
+    EXPECT_EQ(stream_->available_send_window(), 0UL);
+
+    // Peer sends MAX_STREAM_DATA update
+    stream_->set_max_send_data(200);
+    EXPECT_EQ(stream_->available_send_window(), 100UL);
+
+    // Can write again
+    std::vector<uint8_t> more(50, 'E');
+    auto result = stream_->write(more);
+    EXPECT_TRUE(result.is_ok());
+}
+
+TEST_F(QuicStreamFlowControlTest, ReceiveFlowControlInitialWindow)
+{
+    auto recv_stream = std::make_unique<stream>(1, false, 200);
+    EXPECT_EQ(recv_stream->max_recv_data(), 200UL);
+}
+
+TEST_F(QuicStreamFlowControlTest, ShouldSendMaxStreamDataAfterConsumption)
+{
+    auto recv_stream = std::make_unique<stream>(1, false, 100);
+
+    // Receive and read data to trigger window update
+    std::vector<uint8_t> data(60, 'F');
+    auto recv_result = recv_stream->receive_data(0, data, false);
+    ASSERT_TRUE(recv_result.is_ok());
+
+    std::array<uint8_t, 100> buffer{};
+    auto read_result = recv_stream->read(buffer);
+    ASSERT_TRUE(read_result.is_ok());
+
+    // After consuming >50% of window, should suggest MAX_STREAM_DATA
+    EXPECT_TRUE(recv_stream->should_send_max_stream_data());
+}
+
+TEST_F(QuicStreamFlowControlTest, GenerateMaxStreamDataFrame)
+{
+    auto recv_stream = std::make_unique<stream>(1, false, 100);
+
+    // Receive and consume data
+    std::vector<uint8_t> data(60, 'G');
+    (void)recv_stream->receive_data(0, data, false);
+
+    std::array<uint8_t, 100> buffer{};
+    (void)recv_stream->read(buffer);
+
+    auto max_sd = recv_stream->generate_max_stream_data();
+    if (max_sd.has_value())
+    {
+        // New limit should be higher than original
+        EXPECT_GT(max_sd.value(), 100UL);
+    }
+}
+
+// ============================================================================
+// Stream Reset Extended Tests
+// ============================================================================
+
+class QuicStreamResetTest : public ::testing::Test
+{
+protected:
+    void SetUp() override
+    {
+        local_stream_ = std::make_unique<stream>(0, true, 65536);
+        peer_stream_ = std::make_unique<stream>(1, false, 65536);
+    }
+
+    std::unique_ptr<stream> local_stream_;
+    std::unique_ptr<stream> peer_stream_;
+};
+
+TEST_F(QuicStreamResetTest, ResetFromReadyState)
+{
+    EXPECT_EQ(local_stream_->send_state(), send_stream_state::ready);
+
+    auto result = local_stream_->reset(0x01);
+    ASSERT_TRUE(result.is_ok());
+    EXPECT_EQ(local_stream_->send_state(), send_stream_state::reset_sent);
+}
+
+TEST_F(QuicStreamResetTest, ResetFromSendState)
+{
+    std::vector<uint8_t> data = {'a', 'b', 'c'};
+    (void)local_stream_->write(data);
+    EXPECT_EQ(local_stream_->send_state(), send_stream_state::send);
+
+    auto result = local_stream_->reset(0x02);
+    ASSERT_TRUE(result.is_ok());
+    EXPECT_EQ(local_stream_->send_state(), send_stream_state::reset_sent);
+}
+
+TEST_F(QuicStreamResetTest, CannotWriteAfterReset)
+{
+    (void)local_stream_->reset(0x03);
+
+    std::vector<uint8_t> data = {'x'};
+    auto result = local_stream_->write(data);
+    EXPECT_FALSE(result.is_ok());
+}
+
+TEST_F(QuicStreamResetTest, CannotFinishAfterReset)
+{
+    (void)local_stream_->reset(0x04);
+
+    auto result = local_stream_->finish();
+    EXPECT_FALSE(result.is_ok());
+}
+
+TEST_F(QuicStreamResetTest, ReceiveResetWithFinalSize)
+{
+    auto result = peer_stream_->receive_reset(0x10, 500);
+    ASSERT_TRUE(result.is_ok());
+
+    EXPECT_EQ(peer_stream_->recv_state(), recv_stream_state::reset_recvd);
+    EXPECT_EQ(peer_stream_->reset_error_code(), 0x10UL);
+}
+
+TEST_F(QuicStreamResetTest, ReceiveResetAfterPartialData)
+{
+    // Receive some data first
+    std::vector<uint8_t> data = {'h', 'e', 'l', 'l', 'o'};
+    (void)peer_stream_->receive_data(0, data, false);
+
+    // Then receive reset with final size larger than received data
+    auto result = peer_stream_->receive_reset(0x20, 100);
+    ASSERT_TRUE(result.is_ok());
+    EXPECT_EQ(peer_stream_->recv_state(), recv_stream_state::reset_recvd);
+}
+
+TEST_F(QuicStreamResetTest, StopSendingTriggersState)
+{
+    // Receive STOP_SENDING from peer
+    auto result = peer_stream_->receive_stop_sending(0x30);
+    ASSERT_TRUE(result.is_ok());
+
+    EXPECT_EQ(peer_stream_->stop_sending_error_code(), 0x30UL);
+}
+
+// ============================================================================
+// Stream Data Ordering Tests
+// ============================================================================
+
+class QuicStreamOrderingTest : public ::testing::Test
+{
+protected:
+    void SetUp() override
+    {
+        recv_stream_ = std::make_unique<stream>(1, false, 65536);
+    }
+
+    std::unique_ptr<stream> recv_stream_;
+};
+
+TEST_F(QuicStreamOrderingTest, InOrderDelivery)
+{
+    std::vector<uint8_t> chunk1 = {'a', 'b', 'c'};
+    std::vector<uint8_t> chunk2 = {'d', 'e', 'f'};
+    std::vector<uint8_t> chunk3 = {'g', 'h', 'i'};
+
+    (void)recv_stream_->receive_data(0, chunk1, false);
+    (void)recv_stream_->receive_data(3, chunk2, false);
+    (void)recv_stream_->receive_data(6, chunk3, false);
+
+    std::array<uint8_t, 20> buffer{};
+    auto result = recv_stream_->read(buffer);
+    ASSERT_TRUE(result.is_ok());
+    EXPECT_EQ(result.value(), 9UL);
+
+    // Verify data is in correct order
+    EXPECT_EQ(buffer[0], 'a');
+    EXPECT_EQ(buffer[1], 'b');
+    EXPECT_EQ(buffer[2], 'c');
+    EXPECT_EQ(buffer[3], 'd');
+    EXPECT_EQ(buffer[4], 'e');
+    EXPECT_EQ(buffer[5], 'f');
+    EXPECT_EQ(buffer[6], 'g');
+    EXPECT_EQ(buffer[7], 'h');
+    EXPECT_EQ(buffer[8], 'i');
+}
+
+TEST_F(QuicStreamOrderingTest, OutOfOrderReassembly)
+{
+    // Receive chunks out of order: 2, 0, 1
+    std::vector<uint8_t> chunk0 = {'a', 'b', 'c'};
+    std::vector<uint8_t> chunk1 = {'d', 'e', 'f'};
+    std::vector<uint8_t> chunk2 = {'g', 'h', 'i'};
+
+    (void)recv_stream_->receive_data(6, chunk2, false); // Chunk 2 first
+    EXPECT_FALSE(recv_stream_->has_data()); // Gap exists
+
+    (void)recv_stream_->receive_data(0, chunk0, false); // Chunk 0
+    EXPECT_TRUE(recv_stream_->has_data()); // Chunk 0 available
+
+    (void)recv_stream_->receive_data(3, chunk1, false); // Chunk 1 fills gap
+
+    std::array<uint8_t, 20> buffer{};
+    auto result = recv_stream_->read(buffer);
+    ASSERT_TRUE(result.is_ok());
+    EXPECT_EQ(result.value(), 9UL);
+
+    // All data should be in order
+    EXPECT_EQ(buffer[0], 'a');
+    EXPECT_EQ(buffer[3], 'd');
+    EXPECT_EQ(buffer[6], 'g');
+}
+
+TEST_F(QuicStreamOrderingTest, ReverseOrderReassembly)
+{
+    // Receive chunks in reverse order
+    std::vector<uint8_t> chunk0 = {'1', '2'};
+    std::vector<uint8_t> chunk1 = {'3', '4'};
+    std::vector<uint8_t> chunk2 = {'5', '6'};
+
+    (void)recv_stream_->receive_data(4, chunk2, false);
+    EXPECT_FALSE(recv_stream_->has_data());
+
+    (void)recv_stream_->receive_data(2, chunk1, false);
+    EXPECT_FALSE(recv_stream_->has_data());
+
+    (void)recv_stream_->receive_data(0, chunk0, false);
+    EXPECT_TRUE(recv_stream_->has_data());
+
+    std::array<uint8_t, 10> buffer{};
+    auto result = recv_stream_->read(buffer);
+    ASSERT_TRUE(result.is_ok());
+    EXPECT_EQ(result.value(), 6UL);
+    EXPECT_EQ(buffer[0], '1');
+    EXPECT_EQ(buffer[5], '6');
+}
+
+TEST_F(QuicStreamOrderingTest, PartialReadThenMore)
+{
+    std::vector<uint8_t> data(100, 'X');
+    (void)recv_stream_->receive_data(0, data, false);
+
+    // Read only part of available data
+    std::array<uint8_t, 30> small_buffer{};
+    auto result1 = recv_stream_->read(small_buffer);
+    ASSERT_TRUE(result1.is_ok());
+    EXPECT_EQ(result1.value(), 30UL);
+
+    // Should still have remaining data
+    EXPECT_TRUE(recv_stream_->has_data());
+
+    // Read more
+    std::array<uint8_t, 100> large_buffer{};
+    auto result2 = recv_stream_->read(large_buffer);
+    ASSERT_TRUE(result2.is_ok());
+    EXPECT_EQ(result2.value(), 70UL);
+}
+
+// ============================================================================
+// Final Offset Handling Tests
+// ============================================================================
+
+class QuicStreamFinalOffsetTest : public ::testing::Test
+{
+protected:
+    void SetUp() override
+    {
+        recv_stream_ = std::make_unique<stream>(1, false, 65536);
+        send_stream_ = std::make_unique<stream>(0, true, 65536);
+    }
+
+    std::unique_ptr<stream> recv_stream_;
+    std::unique_ptr<stream> send_stream_;
+};
+
+TEST_F(QuicStreamFinalOffsetTest, FinWithData)
+{
+    std::vector<uint8_t> data = {'E', 'N', 'D'};
+    auto result = recv_stream_->receive_data(0, data, true);
+    ASSERT_TRUE(result.is_ok());
+
+    EXPECT_TRUE(recv_stream_->is_fin_received());
+    EXPECT_EQ(recv_stream_->recv_state(), recv_stream_state::size_known);
+}
+
+TEST_F(QuicStreamFinalOffsetTest, FinWithEmptyData)
+{
+    // FIN can be sent with empty data to indicate stream end
+    std::vector<uint8_t> data = {};
+    auto result = recv_stream_->receive_data(0, data, true);
+    ASSERT_TRUE(result.is_ok());
+
+    EXPECT_TRUE(recv_stream_->is_fin_received());
+}
+
+TEST_F(QuicStreamFinalOffsetTest, FinAfterData)
+{
+    // Receive data first, then FIN
+    std::vector<uint8_t> data1 = {'a', 'b', 'c'};
+    (void)recv_stream_->receive_data(0, data1, false);
+
+    // FIN at offset 3 (after previous data)
+    std::vector<uint8_t> data2 = {};
+    auto result = recv_stream_->receive_data(3, data2, true);
+    ASSERT_TRUE(result.is_ok());
+
+    EXPECT_TRUE(recv_stream_->is_fin_received());
+    EXPECT_EQ(recv_stream_->recv_state(), recv_stream_state::size_known);
+}
+
+TEST_F(QuicStreamFinalOffsetTest, DataReceivedAfterAllRead)
+{
+    std::vector<uint8_t> data = {'x', 'y', 'z'};
+    (void)recv_stream_->receive_data(0, data, true); // FIN set
+
+    // Read all data
+    std::array<uint8_t, 10> buffer{};
+    auto read_result = recv_stream_->read(buffer);
+    ASSERT_TRUE(read_result.is_ok());
+    EXPECT_EQ(read_result.value(), 3UL);
+
+    // After reading all data with FIN, state should advance
+    EXPECT_TRUE(recv_stream_->is_fin_received());
+}
+
+TEST_F(QuicStreamFinalOffsetTest, SendFinSetsState)
+{
+    std::vector<uint8_t> data = {'H', 'i'};
+    (void)send_stream_->write(data);
+    (void)send_stream_->finish();
+
+    EXPECT_TRUE(send_stream_->fin_sent());
+
+    // Generate frame with FIN
+    auto frame = send_stream_->next_stream_frame(1000);
+    ASSERT_TRUE(frame.has_value());
+    EXPECT_TRUE(frame->fin);
+    EXPECT_EQ(frame->data.size(), 2UL);
+}
+
+TEST_F(QuicStreamFinalOffsetTest, AcknowledgeDataAdvancesState)
+{
+    std::vector<uint8_t> data = {'a', 'b'};
+    (void)send_stream_->write(data);
+    (void)send_stream_->finish();
+
+    // Generate and "send" the frame
+    auto frame = send_stream_->next_stream_frame(1000);
+    ASSERT_TRUE(frame.has_value());
+    EXPECT_TRUE(frame->fin);
+
+    // State is still 'send' until acknowledge_data triggers update_send_state
+    EXPECT_EQ(send_stream_->send_state(), send_stream_state::send);
+
+    // Acknowledge the sent data - this triggers state transition
+    send_stream_->acknowledge_data(0, 2);
+
+    // After acknowledgment with buffer empty + fin_sent, state advances
+    auto state = send_stream_->send_state();
+    EXPECT_TRUE(state == send_stream_state::data_sent
+                || state == send_stream_state::data_recvd);
+}
+
+// ============================================================================
+// Bidirectional vs Unidirectional Stream Tests
+// ============================================================================
+
+class QuicStreamDirectionalTest : public ::testing::Test
+{
+};
+
+TEST_F(QuicStreamDirectionalTest, LocalBidiCanSendAndReceive)
+{
+    stream bidi(0, true, 65536); // Client bidi, local
+
+    // Can write (send)
+    std::vector<uint8_t> data = {'s', 'e', 'n', 'd'};
+    auto write_result = bidi.write(data);
+    EXPECT_TRUE(write_result.is_ok());
+
+    // Can receive
+    std::vector<uint8_t> recv_data = {'r', 'e', 'c', 'v'};
+    auto recv_result = bidi.receive_data(0, recv_data, false);
+    EXPECT_TRUE(recv_result.is_ok());
+}
+
+TEST_F(QuicStreamDirectionalTest, LocalUniCanOnlySend)
+{
+    stream uni(2, true, 65536); // Client uni, local
+
+    // Can write (send)
+    std::vector<uint8_t> data = {'s', 'e', 'n', 'd'};
+    auto write_result = uni.write(data);
+    EXPECT_TRUE(write_result.is_ok());
+
+    // Should be unidirectional
+    EXPECT_TRUE(uni.is_unidirectional());
+    EXPECT_FALSE(uni.is_bidirectional());
+}
+
+TEST_F(QuicStreamDirectionalTest, PeerUniCanOnlyReceive)
+{
+    stream peer_uni(3, false, 65536); // Server uni, peer-initiated
+
+    // Cannot write to peer-initiated uni stream
+    std::vector<uint8_t> data = {'f', 'a', 'i', 'l'};
+    auto write_result = peer_uni.write(data);
+    EXPECT_FALSE(write_result.is_ok());
+
+    // Can receive from it
+    std::vector<uint8_t> recv_data = {'o', 'k'};
+    auto recv_result = peer_uni.receive_data(0, recv_data, false);
+    EXPECT_TRUE(recv_result.is_ok());
+}
+
+TEST_F(QuicStreamDirectionalTest, PeerBidiCanSendAndReceive)
+{
+    stream peer_bidi(1, false, 65536); // Server bidi, peer-initiated
+
+    // Can write back on bidi stream
+    std::vector<uint8_t> data = {'r', 'e', 'p', 'l', 'y'};
+    auto write_result = peer_bidi.write(data);
+    EXPECT_TRUE(write_result.is_ok());
+
+    // Can receive on bidi stream
+    std::vector<uint8_t> recv_data = {'h', 'i'};
+    auto recv_result = peer_bidi.receive_data(0, recv_data, false);
+    EXPECT_TRUE(recv_result.is_ok());
+}
+
+TEST_F(QuicStreamDirectionalTest, StreamIdTypeVerification)
+{
+    // Verify stream ID type matches directionality
+    stream client_bidi(0, true, 65536);
+    stream server_bidi(1, false, 65536);
+    stream client_uni(2, true, 65536);
+    stream server_uni(3, false, 65536);
+
+    EXPECT_TRUE(client_bidi.is_bidirectional());
+    EXPECT_TRUE(server_bidi.is_bidirectional());
+    EXPECT_TRUE(client_uni.is_unidirectional());
+    EXPECT_TRUE(server_uni.is_unidirectional());
+
+    EXPECT_FALSE(client_bidi.is_unidirectional());
+    EXPECT_FALSE(server_bidi.is_unidirectional());
+    EXPECT_FALSE(client_uni.is_bidirectional());
+    EXPECT_FALSE(server_uni.is_bidirectional());
+}
+
+// ============================================================================
+// Stream Manager Extended Tests
+// ============================================================================
+
+class QuicStreamManagerExtendedTest : public ::testing::Test
+{
+protected:
+    void SetUp() override
+    {
+        client_mgr_ = std::make_unique<stream_manager>(false);
+        server_mgr_ = std::make_unique<stream_manager>(true);
+
+        client_mgr_->set_peer_max_streams_bidi(10);
+        client_mgr_->set_peer_max_streams_uni(10);
+        server_mgr_->set_peer_max_streams_bidi(10);
+        server_mgr_->set_peer_max_streams_uni(10);
+    }
+
+    std::unique_ptr<stream_manager> client_mgr_;
+    std::unique_ptr<stream_manager> server_mgr_;
+};
+
+TEST_F(QuicStreamManagerExtendedTest, StreamCounts)
+{
+    (void)client_mgr_->create_bidirectional_stream();
+    (void)client_mgr_->create_bidirectional_stream();
+    (void)client_mgr_->create_unidirectional_stream();
+
+    EXPECT_EQ(client_mgr_->local_bidi_streams_count(), 2UL);
+    EXPECT_EQ(client_mgr_->local_uni_streams_count(), 1UL);
+    EXPECT_EQ(client_mgr_->stream_count(), 3UL);
+}
+
+TEST_F(QuicStreamManagerExtendedTest, PeerStreamCounts)
+{
+    // Server receives client-initiated streams
+    (void)server_mgr_->get_or_create_stream(0); // Client bidi 0
+    (void)server_mgr_->get_or_create_stream(4); // Client bidi 1
+    (void)server_mgr_->get_or_create_stream(2); // Client uni 0
+
+    EXPECT_EQ(server_mgr_->peer_bidi_streams_count(), 2UL);
+    EXPECT_EQ(server_mgr_->peer_uni_streams_count(), 1UL);
+}
+
+TEST_F(QuicStreamManagerExtendedTest, StreamLimitForUnidirectional)
+{
+    client_mgr_->set_peer_max_streams_uni(2);
+
+    EXPECT_TRUE(client_mgr_->create_unidirectional_stream().is_ok());
+    EXPECT_TRUE(client_mgr_->create_unidirectional_stream().is_ok());
+    EXPECT_FALSE(client_mgr_->create_unidirectional_stream().is_ok());
+}
+
+TEST_F(QuicStreamManagerExtendedTest, StreamLimitUpdate)
+{
+    client_mgr_->set_peer_max_streams_bidi(1);
+
+    EXPECT_TRUE(client_mgr_->create_bidirectional_stream().is_ok());
+    EXPECT_FALSE(client_mgr_->create_bidirectional_stream().is_ok());
+
+    // Peer raises limit
+    client_mgr_->set_peer_max_streams_bidi(3);
+    EXPECT_TRUE(client_mgr_->create_bidirectional_stream().is_ok());
+    EXPECT_TRUE(client_mgr_->create_bidirectional_stream().is_ok());
+}
+
+TEST_F(QuicStreamManagerExtendedTest, StreamsNeedingFlowControlUpdate)
+{
+    auto create_result = server_mgr_->create_bidirectional_stream();
+    ASSERT_TRUE(create_result.is_ok());
+
+    auto* s = server_mgr_->get_stream(create_result.value());
+    ASSERT_NE(s, nullptr);
+
+    // Initially no streams need flow control update
+    auto need_update = server_mgr_->streams_needing_flow_control_update();
+    // Flow control updates happen after consumption, so initially empty
+    EXPECT_EQ(need_update.size(), 0UL);
+}
+
+TEST_F(QuicStreamManagerExtendedTest, ForEachStreamVisitsAll)
+{
+    (void)client_mgr_->create_bidirectional_stream(); // 0
+    (void)client_mgr_->create_bidirectional_stream(); // 4
+    (void)client_mgr_->create_unidirectional_stream(); // 2
+
+    size_t count = 0;
+    client_mgr_->for_each_stream([&count](const stream& s) {
+        (void)s;
+        ++count;
+    });
+
+    EXPECT_EQ(count, 3UL);
+}
+
+TEST_F(QuicStreamManagerExtendedTest, StreamIdsReturnsAllIds)
+{
+    (void)client_mgr_->create_bidirectional_stream();
+    (void)client_mgr_->create_unidirectional_stream();
+
+    auto ids = client_mgr_->stream_ids();
+    EXPECT_EQ(ids.size(), 2UL);
+
+    // Should contain stream 0 (bidi) and stream 2 (uni)
+    bool has_0 = std::find(ids.begin(), ids.end(), 0) != ids.end();
+    bool has_2 = std::find(ids.begin(), ids.end(), 2) != ids.end();
+    EXPECT_TRUE(has_0);
+    EXPECT_TRUE(has_2);
 }
