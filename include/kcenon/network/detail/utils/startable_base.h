@@ -156,7 +156,7 @@ namespace kcenon::network::utils
 		template<typename... Args>
 		[[nodiscard]] auto do_start(Args&&... args) -> VoidResult
 		{
-			if (lifecycle_.is_running())
+			if (!lifecycle_.try_start())
 			{
 				return error_void(
 					error_codes::common_errors::already_exists,
@@ -165,7 +165,6 @@ namespace kcenon::network::utils
 					std::string(derived().component_name()));
 			}
 
-			lifecycle_.set_running();
 			reset_connection_state();
 
 			auto result = derived().do_start_impl(std::forward<Args>(args)...);

@@ -414,9 +414,10 @@ TEST_F(UdpMultiClientTest, MultipleConcurrentClientsToSingleServer)
 			<< "Only received " << messages_received.load() << "/" << NUM_CLIENTS << " messages";
 	}
 
-	// Stop all clients
+	// Stop all clients and server before locals (cv, mtx) go out of scope
 	for (auto& client : clients)
 	{
 		(void)client->stop_client();
 	}
+	(void)server_->stop_server();
 }

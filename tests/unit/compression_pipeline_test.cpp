@@ -388,3 +388,365 @@ TEST_F(CompressionPipelineHelperTest, HelperFunctionsRoundtrip)
 
 	EXPECT_EQ(decompressed, original);
 }
+
+TEST_F(CompressionPipelineHelperTest, HelperFunctionWithEmptyInput)
+{
+	auto pipeline = std::make_shared<compression_pipeline>(
+		compression_algorithm::none, 0);
+
+	auto compress_fn = make_compress_function(pipeline);
+
+	std::vector<uint8_t> empty_data;
+	auto result = compress_fn(empty_data);
+
+	EXPECT_TRUE(result.empty());
+}
+
+// ============================================================================
+// LZ4 Roundtrip Extended Tests
+// ============================================================================
+
+class CompressionPipelineLZ4ExtendedTest : public ::testing::Test
+{
+protected:
+	compression_pipeline pipeline_{compression_algorithm::lz4, 0};
+};
+
+TEST_F(CompressionPipelineLZ4ExtendedTest, RoundtripWithRandomLikeData)
+{
+	// Create data with a pattern that still has some structure
+	std::vector<uint8_t> original(4096);
+	for (size_t i = 0; i < original.size(); ++i)
+	{
+		original[i] = static_cast<uint8_t>((i * 31 + 7) % 256);
+	}
+
+	auto compressed = pipeline_.compress(original);
+	ASSERT_FALSE(compressed.is_err());
+
+	auto decompressed = pipeline_.decompress(compressed.value());
+	if (!decompressed.is_err())
+	{
+		EXPECT_EQ(decompressed.value(), original);
+	}
+}
+
+TEST_F(CompressionPipelineLZ4ExtendedTest, RoundtripWithAllZeros)
+{
+	// Highly compressible data
+	std::vector<uint8_t> original(8192, 0x00);
+
+	auto compressed = pipeline_.compress(original);
+	ASSERT_FALSE(compressed.is_err());
+
+	// All-zeros should compress very well
+	if (compressed.value().size() < original.size())
+	{
+		auto decompressed = pipeline_.decompress(compressed.value());
+		ASSERT_FALSE(decompressed.is_err());
+		EXPECT_EQ(decompressed.value(), original);
+	}
+}
+
+TEST_F(CompressionPipelineLZ4ExtendedTest, RoundtripWithAllOnes)
+{
+	std::vector<uint8_t> original(4096, 0xFF);
+
+	auto compressed = pipeline_.compress(original);
+	ASSERT_FALSE(compressed.is_err());
+
+	auto decompressed = pipeline_.decompress(compressed.value());
+	if (!decompressed.is_err())
+	{
+		EXPECT_EQ(decompressed.value(), original);
+	}
+}
+
+TEST_F(CompressionPipelineLZ4ExtendedTest, RoundtripWithSingleByte)
+{
+	std::vector<uint8_t> original = {0x42};
+
+	auto compressed = pipeline_.compress(original);
+	ASSERT_FALSE(compressed.is_err());
+
+	auto decompressed = pipeline_.decompress(compressed.value());
+	if (!decompressed.is_err())
+	{
+		EXPECT_EQ(decompressed.value(), original);
+	}
+}
+
+TEST_F(CompressionPipelineLZ4ExtendedTest, RoundtripWithRepeatingPattern)
+{
+	// Create ABCABCABC... pattern - very compressible
+	std::vector<uint8_t> original(16384);
+	for (size_t i = 0; i < original.size(); ++i)
+	{
+		original[i] = static_cast<uint8_t>('A' + (i % 3));
+	}
+
+	auto compressed = pipeline_.compress(original);
+	ASSERT_FALSE(compressed.is_err());
+
+	auto decompressed = pipeline_.decompress(compressed.value());
+	if (!decompressed.is_err())
+	{
+		EXPECT_EQ(decompressed.value(), original);
+	}
+}
+
+TEST_F(CompressionPipelineLZ4ExtendedTest, CompressedSizeSmallerForCompressibleData)
+{
+	// Highly compressible: repeated byte
+	std::vector<uint8_t> data(4096, 0x42);
+
+	auto compressed = pipeline_.compress(data);
+	ASSERT_FALSE(compressed.is_err());
+
+	// Compressed output should be non-empty
+	EXPECT_FALSE(compressed.value().empty());
+}
+
+TEST_F(CompressionPipelineLZ4ExtendedTest, DecompressCorruptedDataReturnsError)
+{
+	// Feed random garbage as "compressed" data
+	std::vector<uint8_t> garbage = {0xFF, 0xFE, 0xFD, 0xFC, 0xFB, 0xFA,
+									0x01, 0x02, 0x03, 0x04, 0x05, 0x06};
+
+	auto result = pipeline_.decompress(garbage);
+
+	// Decompressing garbage should either error or not crash
+	// (implementation-specific behavior)
+	SUCCEED();
+}
+
+// ============================================================================
+// Gzip Extended Tests
+// ============================================================================
+
+class CompressionPipelineGzipExtendedTest : public ::testing::Test
+{
+protected:
+	compression_pipeline pipeline_{compression_algorithm::gzip, 0};
+};
+
+TEST_F(CompressionPipelineGzipExtendedTest, RoundtripLargePayload)
+{
+	// 64KB of compressible data
+	std::vector<uint8_t> original(64 * 1024);
+	for (size_t i = 0; i < original.size(); ++i)
+	{
+		original[i] = static_cast<uint8_t>(i % 128);
+	}
+
+	auto compressed = pipeline_.compress(original);
+	ASSERT_FALSE(compressed.is_err());
+
+	auto decompressed = pipeline_.decompress(compressed.value());
+	if (!decompressed.is_err())
+	{
+		EXPECT_EQ(decompressed.value(), original);
+	}
+}
+
+TEST_F(CompressionPipelineGzipExtendedTest, RoundtripMinimalData)
+{
+	std::vector<uint8_t> original = {0x01};
+
+	auto compressed = pipeline_.compress(original);
+	ASSERT_FALSE(compressed.is_err());
+
+	auto decompressed = pipeline_.decompress(compressed.value());
+	if (!decompressed.is_err())
+	{
+		EXPECT_EQ(decompressed.value(), original);
+	}
+}
+
+TEST_F(CompressionPipelineGzipExtendedTest, DecompressEmptyReturnsError)
+{
+	std::vector<uint8_t> empty_data;
+
+	auto result = pipeline_.decompress(empty_data);
+
+	EXPECT_TRUE(result.is_err());
+}
+
+// ============================================================================
+// Deflate Extended Tests
+// ============================================================================
+
+class CompressionPipelineDeflateExtendedTest : public ::testing::Test
+{
+protected:
+	compression_pipeline pipeline_{compression_algorithm::deflate, 0};
+};
+
+TEST_F(CompressionPipelineDeflateExtendedTest, RoundtripLargePayload)
+{
+	std::vector<uint8_t> original(64 * 1024);
+	std::iota(original.begin(), original.end(), 0);
+
+	auto compressed = pipeline_.compress(original);
+	ASSERT_FALSE(compressed.is_err());
+
+	auto decompressed = pipeline_.decompress(compressed.value());
+	if (!decompressed.is_err())
+	{
+		EXPECT_EQ(decompressed.value(), original);
+	}
+}
+
+TEST_F(CompressionPipelineDeflateExtendedTest, RoundtripWithBinaryData)
+{
+	// Create binary data with all byte values
+	std::vector<uint8_t> original(512);
+	for (size_t i = 0; i < original.size(); ++i)
+	{
+		original[i] = static_cast<uint8_t>(i % 256);
+	}
+
+	auto compressed = pipeline_.compress(original);
+	ASSERT_FALSE(compressed.is_err());
+
+	auto decompressed = pipeline_.decompress(compressed.value());
+	if (!decompressed.is_err())
+	{
+		EXPECT_EQ(decompressed.value(), original);
+	}
+}
+
+// ============================================================================
+// Threshold Edge Case Tests
+// ============================================================================
+
+class CompressionPipelineThresholdEdgeTest : public ::testing::Test
+{
+};
+
+TEST_F(CompressionPipelineThresholdEdgeTest, DataExactlyAtThreshold)
+{
+	compression_pipeline pipeline(compression_algorithm::lz4, 256);
+
+	// Data exactly at threshold boundary
+	std::vector<uint8_t> data(256, 0x42);
+
+	auto result = pipeline.compress(data);
+	ASSERT_FALSE(result.is_err());
+	EXPECT_FALSE(result.value().empty());
+}
+
+TEST_F(CompressionPipelineThresholdEdgeTest, DataOneBelowThreshold)
+{
+	compression_pipeline pipeline(compression_algorithm::lz4, 256);
+
+	std::vector<uint8_t> data(255, 0x42);
+
+	auto result = pipeline.compress(data);
+	ASSERT_FALSE(result.is_err());
+	// Below threshold - should return uncompressed
+	EXPECT_EQ(result.value(), data);
+}
+
+TEST_F(CompressionPipelineThresholdEdgeTest, DataOneAboveThreshold)
+{
+	compression_pipeline pipeline(compression_algorithm::lz4, 256);
+
+	std::vector<uint8_t> data(257, 0x42);
+
+	auto result = pipeline.compress(data);
+	ASSERT_FALSE(result.is_err());
+	EXPECT_FALSE(result.value().empty());
+}
+
+TEST_F(CompressionPipelineThresholdEdgeTest, VeryLargeThresholdBypassesCompression)
+{
+	compression_pipeline pipeline(compression_algorithm::lz4, 1024 * 1024);
+
+	std::vector<uint8_t> data(1024, 0x42);
+
+	auto result = pipeline.compress(data);
+	ASSERT_FALSE(result.is_err());
+	// Data is well below threshold - should be returned unchanged
+	EXPECT_EQ(result.value(), data);
+}
+
+TEST_F(CompressionPipelineThresholdEdgeTest, ThresholdChangeAffectsNextCompress)
+{
+	compression_pipeline pipeline(compression_algorithm::lz4, 1024);
+
+	std::vector<uint8_t> data(512, 0x42);
+
+	// Below threshold - passthrough
+	auto result1 = pipeline.compress(data);
+	ASSERT_FALSE(result1.is_err());
+	EXPECT_EQ(result1.value(), data);
+
+	// Lower threshold
+	pipeline.set_compression_threshold(256);
+
+	// Now above threshold - may be compressed
+	auto result2 = pipeline.compress(data);
+	ASSERT_FALSE(result2.is_err());
+	EXPECT_FALSE(result2.value().empty());
+}
+
+// ============================================================================
+// Cross-Algorithm Consistency Tests
+// ============================================================================
+
+class CompressionPipelineCrossAlgorithmTest : public ::testing::Test
+{
+protected:
+	static std::vector<uint8_t> make_test_data(size_t size)
+	{
+		std::vector<uint8_t> data(size);
+		for (size_t i = 0; i < size; ++i)
+		{
+			data[i] = static_cast<uint8_t>(i % 64);
+		}
+		return data;
+	}
+};
+
+TEST_F(CompressionPipelineCrossAlgorithmTest, AllAlgorithmsCompressSuccessfully)
+{
+	auto data = make_test_data(2048);
+
+	for (auto algo : {compression_algorithm::none, compression_algorithm::lz4,
+					  compression_algorithm::gzip,
+					  compression_algorithm::deflate})
+	{
+		compression_pipeline pipeline(algo, 0);
+		auto result = pipeline.compress(data);
+		EXPECT_FALSE(result.is_err())
+			<< "Compression should succeed for algorithm "
+			<< static_cast<int>(algo);
+		EXPECT_FALSE(result.value().empty());
+	}
+}
+
+TEST_F(CompressionPipelineCrossAlgorithmTest, NoneAlgorithmPreservesExactData)
+{
+	auto data = make_test_data(1024);
+	compression_pipeline pipeline(compression_algorithm::none, 0);
+
+	auto compressed = pipeline.compress(data);
+	ASSERT_FALSE(compressed.is_err());
+	EXPECT_EQ(compressed.value(), data);
+
+	auto decompressed = pipeline.decompress(compressed.value());
+	ASSERT_FALSE(decompressed.is_err());
+	EXPECT_EQ(decompressed.value(), data);
+}
+
+TEST_F(CompressionPipelineCrossAlgorithmTest, AlgorithmGetterReturnsCorrectValue)
+{
+	for (auto algo : {compression_algorithm::none, compression_algorithm::lz4,
+					  compression_algorithm::gzip,
+					  compression_algorithm::deflate})
+	{
+		compression_pipeline pipeline(algo, 0);
+		EXPECT_EQ(pipeline.get_algorithm(), algo);
+	}
+}

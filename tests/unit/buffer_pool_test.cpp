@@ -355,3 +355,227 @@ TEST_F(BufferPoolConcurrencyTest, ConcurrentAcquireWithClear)
 
 	SUCCEED();
 }
+
+TEST_F(BufferPoolConcurrencyTest, ConcurrentAcquireWithVaryingCapacities)
+{
+	constexpr int num_threads = 4;
+	constexpr int ops_per_thread = 50;
+
+	std::vector<std::thread> threads;
+	threads.reserve(num_threads);
+
+	for (int t = 0; t < num_threads; ++t)
+	{
+		threads.emplace_back([this, t]() {
+			for (int i = 0; i < ops_per_thread; ++i)
+			{
+				size_t capacity = static_cast<size_t>((t * 100 + i) % 2048 + 64);
+				auto buffer = pool_->acquire(capacity);
+				ASSERT_NE(buffer, nullptr);
+				EXPECT_GE(buffer->capacity(), capacity);
+				buffer->resize(capacity / 2);
+			}
+		});
+	}
+
+	for (auto& th : threads)
+	{
+		th.join();
+	}
+
+	SUCCEED();
+}
+
+// ============================================================================
+// Memory Limit Enforcement Tests
+// ============================================================================
+
+class BufferPoolMemoryTest : public ::testing::Test
+{
+};
+
+TEST_F(BufferPoolMemoryTest, SmallPoolLimitsBufferCaching)
+{
+	auto pool = std::make_shared<buffer_pool>(1, 1024);
+
+	// Acquire and return multiple buffers
+	{
+		auto buf1 = pool->acquire();
+		auto buf2 = pool->acquire();
+		buf1.reset();
+		buf2.reset();
+	}
+
+	auto [available, total] = pool->get_stats();
+	// Pool should cache at most 1 buffer
+	EXPECT_LE(available, 1);
+}
+
+TEST_F(BufferPoolMemoryTest, LargeDefaultCapacity)
+{
+	auto pool = std::make_shared<buffer_pool>(4, 1024 * 1024);
+
+	auto buffer = pool->acquire();
+	ASSERT_NE(buffer, nullptr);
+	EXPECT_GE(buffer->capacity(), 1024 * 1024);
+}
+
+TEST_F(BufferPoolMemoryTest, ZeroDefaultCapacityProducesUsableBuffer)
+{
+	auto pool = std::make_shared<buffer_pool>(4, 0);
+
+	auto buffer = pool->acquire();
+	ASSERT_NE(buffer, nullptr);
+	// Buffer should still be usable (can resize)
+	buffer->resize(100);
+	EXPECT_EQ(buffer->size(), 100);
+}
+
+TEST_F(BufferPoolMemoryTest, RepeatedAcquireReleaseDoesNotGrowMemory)
+{
+	auto pool = std::make_shared<buffer_pool>(4, 1024);
+
+	for (int i = 0; i < 100; ++i)
+	{
+		auto buffer = pool->acquire();
+		buffer->resize(512);
+	}
+
+	auto [available, total] = pool->get_stats();
+	// All buffers returned, available should not exceed pool size
+	EXPECT_LE(available, 4);
+}
+
+// ============================================================================
+// Buffer Reuse Validation Tests
+// ============================================================================
+
+class BufferPoolReuseValidationTest : public ::testing::Test
+{
+protected:
+	std::shared_ptr<buffer_pool> pool_;
+
+	void SetUp() override { pool_ = std::make_shared<buffer_pool>(8, 1024); }
+};
+
+TEST_F(BufferPoolReuseValidationTest, HighCapacityBufferReusedForSmallRequest)
+{
+	// Return a large buffer
+	{
+		auto buffer = pool_->acquire(4096);
+		buffer->resize(100);
+	}
+
+	// Request a small buffer - should reuse the large one
+	auto buffer = pool_->acquire(512);
+	ASSERT_NE(buffer, nullptr);
+	EXPECT_GE(buffer->capacity(), 512);
+}
+
+TEST_F(BufferPoolReuseValidationTest, BufferContentClearedOnReuse)
+{
+	const uint8_t pattern = 0xDE;
+	{
+		auto buffer = pool_->acquire();
+		buffer->resize(256);
+		std::fill(buffer->begin(), buffer->end(), pattern);
+	}
+
+	auto buffer = pool_->acquire();
+	ASSERT_NE(buffer, nullptr);
+	EXPECT_TRUE(buffer->empty());
+}
+
+TEST_F(BufferPoolReuseValidationTest, MultipleBuffersReturnedAndReused)
+{
+	constexpr int count = 5;
+
+	// Acquire and return multiple buffers
+	{
+		std::vector<std::shared_ptr<std::vector<uint8_t>>> buffers;
+		for (int i = 0; i < count; ++i)
+		{
+			auto buf = pool_->acquire();
+			buf->resize(128);
+			buffers.push_back(buf);
+		}
+	}
+
+	auto [available, total] = pool_->get_stats();
+	EXPECT_EQ(available, count);
+	EXPECT_EQ(total, count);
+
+	// Acquire them all again - should come from pool
+	std::vector<std::shared_ptr<std::vector<uint8_t>>> reacquired;
+	for (int i = 0; i < count; ++i)
+	{
+		auto buf = pool_->acquire();
+		ASSERT_NE(buf, nullptr);
+		EXPECT_TRUE(buf->empty());
+		reacquired.push_back(buf);
+	}
+
+	auto [available2, total2] = pool_->get_stats();
+	EXPECT_EQ(available2, 0);
+}
+
+// ============================================================================
+// Statistics Accuracy Tests
+// ============================================================================
+
+class BufferPoolStatsTest : public ::testing::Test
+{
+protected:
+	std::shared_ptr<buffer_pool> pool_;
+
+	void SetUp() override { pool_ = std::make_shared<buffer_pool>(16, 512); }
+};
+
+TEST_F(BufferPoolStatsTest, StatsAccurateAfterAcquireSequence)
+{
+	auto buf1 = pool_->acquire();
+	auto [avail1, total1] = pool_->get_stats();
+	EXPECT_EQ(total1, 1);
+	EXPECT_EQ(avail1, 0);
+
+	auto buf2 = pool_->acquire();
+	auto [avail2, total2] = pool_->get_stats();
+	EXPECT_EQ(total2, 2);
+	EXPECT_EQ(avail2, 0);
+}
+
+TEST_F(BufferPoolStatsTest, StatsAccurateAfterMixedOperations)
+{
+	auto buf1 = pool_->acquire();
+	auto buf2 = pool_->acquire();
+	auto buf3 = pool_->acquire();
+
+	buf1.reset(); // Return to pool
+
+	auto [avail, total] = pool_->get_stats();
+	EXPECT_EQ(avail, 1);
+	EXPECT_EQ(total, 3);
+
+	buf2.reset();
+	buf3.reset();
+
+	auto [avail2, total2] = pool_->get_stats();
+	EXPECT_EQ(avail2, 3);
+	EXPECT_EQ(total2, 3);
+}
+
+TEST_F(BufferPoolStatsTest, StatsAccurateAfterClearAndReacquire)
+{
+	{
+		auto buf = pool_->acquire();
+	}
+
+	pool_->clear();
+
+	auto [avail, total] = pool_->get_stats();
+	EXPECT_EQ(avail, 0);
+
+	auto buf = pool_->acquire();
+	auto [avail2, total2] = pool_->get_stats();
+	EXPECT_GE(total2, 1);
+}
