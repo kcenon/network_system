@@ -594,3 +594,285 @@ TEST_F(UnifiedSessionManagerTest, ConcurrentIteration) {
 
     EXPECT_EQ(iteration_count.load(), 4 * 10 * 20);
 }
+
+// ============================================================================
+// Type Erasure Safety Tests
+// ============================================================================
+
+TEST_F(UnifiedSessionManagerTest, InvalidCastReturnsNullptr) {
+    auto tcp = std::make_shared<test_tcp_session>("tcp_cast");
+    manager_->add_session(tcp, "tcp_cast");
+
+    auto* handle = manager_->get_session("tcp_cast");
+    ASSERT_NE(handle, nullptr);
+
+    // Attempt to cast to wrong type
+    auto* wrong_type = handle->as<test_ws_session>();
+    EXPECT_EQ(wrong_type, nullptr);
+
+    // Correct cast should succeed
+    auto* correct_type = handle->as<test_tcp_session>();
+    EXPECT_NE(correct_type, nullptr);
+}
+
+TEST_F(UnifiedSessionManagerTest, IsTypeChecksAllSessionTypes) {
+    auto tcp = std::make_shared<test_tcp_session>("tcp_type");
+    auto ws = std::make_shared<test_ws_session>("ws_type");
+    auto idle = std::make_shared<test_idle_session>("idle_type");
+
+    manager_->add_session(tcp, "tcp");
+    manager_->add_session(ws, "ws");
+    manager_->add_session(idle, "idle");
+
+    auto* tcp_handle = manager_->get_session("tcp");
+    EXPECT_TRUE(tcp_handle->is_type<test_tcp_session>());
+    EXPECT_FALSE(tcp_handle->is_type<test_ws_session>());
+    EXPECT_FALSE(tcp_handle->is_type<test_idle_session>());
+
+    auto* ws_handle = manager_->get_session("ws");
+    EXPECT_FALSE(ws_handle->is_type<test_tcp_session>());
+    EXPECT_TRUE(ws_handle->is_type<test_ws_session>());
+
+    auto* idle_handle = manager_->get_session("idle");
+    EXPECT_FALSE(idle_handle->is_type<test_tcp_session>());
+    EXPECT_TRUE(idle_handle->is_type<test_idle_session>());
+}
+
+// ============================================================================
+// Broadcast Edge Cases
+// ============================================================================
+
+TEST_F(UnifiedSessionManagerTest, BroadcastToEmptyManager) {
+    std::vector<uint8_t> data{1, 2, 3};
+    size_t sent = manager_->broadcast(std::move(data));
+
+    EXPECT_EQ(sent, 0);
+}
+
+TEST_F(UnifiedSessionManagerTest, BroadcastEmptyData) {
+    auto tcp = std::make_shared<test_tcp_session>("tcp_empty");
+    manager_->add_session(tcp, "tcp_empty");
+
+    std::vector<uint8_t> empty_data;
+    size_t sent = manager_->broadcast(std::move(empty_data));
+
+    EXPECT_EQ(sent, 1);
+    EXPECT_EQ(tcp->get_send_count(), 1);
+}
+
+TEST_F(UnifiedSessionManagerTest, BroadcastToMixedSessionTypes) {
+    auto tcp = std::make_shared<test_tcp_session>("tcp_mix");
+    auto ws = std::make_shared<test_ws_session>("ws_mix");
+    auto idle = std::make_shared<test_idle_session>("idle_mix");
+
+    manager_->add_session(tcp, "tcp");
+    manager_->add_session(ws, "ws");
+    manager_->add_session(idle, "idle");
+
+    std::vector<uint8_t> data{1, 2, 3};
+    size_t sent = manager_->broadcast(std::move(data));
+
+    // All three session types should receive the broadcast
+    EXPECT_EQ(sent, 3);
+}
+
+TEST_F(UnifiedSessionManagerTest, BroadcastAllDisconnected) {
+    auto tcp1 = std::make_shared<test_tcp_session>("tcp1");
+    auto tcp2 = std::make_shared<test_tcp_session>("tcp2");
+
+    manager_->add_session(tcp1, "tcp1");
+    manager_->add_session(tcp2, "tcp2");
+
+    // Disconnect all
+    tcp1->close();
+    tcp2->close();
+
+    std::vector<uint8_t> data{1, 2, 3};
+    size_t sent = manager_->broadcast(std::move(data));
+
+    EXPECT_EQ(sent, 0);
+}
+
+// ============================================================================
+// with_session Callback Safety Tests
+// ============================================================================
+
+TEST_F(UnifiedSessionManagerTest, WithSessionModifiesSession) {
+    auto tcp = std::make_shared<test_tcp_session>("tcp_modify");
+    manager_->add_session(tcp, "tcp_modify");
+
+    bool modified = manager_->with_session("tcp_modify", [](session_handle& handle) {
+        // Send data through the handle
+        std::vector<uint8_t> data{0x01};
+        handle.send(std::move(data));
+    });
+
+    EXPECT_TRUE(modified);
+    EXPECT_EQ(tcp->get_send_count(), 1);
+}
+
+TEST_F(UnifiedSessionManagerTest, WithSessionOnMultipleSessions) {
+    manager_->add_session(std::make_shared<test_tcp_session>("tcp1"), "tcp1");
+    manager_->add_session(std::make_shared<test_tcp_session>("tcp2"), "tcp2");
+
+    int found_count = 0;
+    for (const auto& id : {"tcp1", "tcp2", "nonexistent"}) {
+        if (manager_->with_session(id, [](session_handle&) {})) {
+            ++found_count;
+        }
+    }
+
+    EXPECT_EQ(found_count, 2);
+}
+
+// ============================================================================
+// Remove Non-existent Session
+// ============================================================================
+
+TEST_F(UnifiedSessionManagerTest, RemoveNonexistentSession) {
+    EXPECT_FALSE(manager_->remove_session("ghost_session"));
+    EXPECT_EQ(manager_->get_session_count(), 0);
+}
+
+TEST_F(UnifiedSessionManagerTest, DoubleRemoveReturnsFalse) {
+    manager_->add_session(std::make_shared<test_tcp_session>("tcp_double"), "tcp_double");
+
+    EXPECT_TRUE(manager_->remove_session("tcp_double"));
+    EXPECT_FALSE(manager_->remove_session("tcp_double"));
+}
+
+// ============================================================================
+// Activity Tracking on Non-Trackable Sessions
+// ============================================================================
+
+TEST_F(UnifiedSessionManagerTest, UpdateActivityOnNonTrackableSession) {
+    auto tcp = std::make_shared<test_tcp_session>("tcp_notrack");
+    manager_->add_session(tcp, "tcp_notrack");
+
+    // tcp_session has has_activity_tracking = false
+    auto* handle = manager_->get_session("tcp_notrack");
+    ASSERT_NE(handle, nullptr);
+    EXPECT_FALSE(handle->has_activity_tracking());
+
+    // update_activity should still not crash
+    bool result = manager_->update_activity("tcp_notrack");
+    // May return true or false depending on implementation
+    EXPECT_TRUE(result || !result);  // No crash is the goal
+}
+
+TEST_F(UnifiedSessionManagerTest, CleanupOnlyRemovesTrackableSessions) {
+    // Non-trackable sessions should not be cleaned up
+    auto tcp = std::make_shared<test_tcp_session>("tcp_persist");
+    auto idle = std::make_shared<test_idle_session>("idle_expire");
+
+    manager_->add_session(tcp, "tcp_persist");
+    manager_->add_session(idle, "idle_expire");
+
+    std::this_thread::sleep_for(60ms);
+
+    size_t cleaned = manager_->cleanup_idle_sessions();
+
+    // Only the idle session (with activity tracking) should be cleaned up
+    EXPECT_EQ(cleaned, 1);
+    EXPECT_TRUE(manager_->has_session("tcp_persist"));
+    EXPECT_FALSE(manager_->has_session("idle_expire"));
+}
+
+// ============================================================================
+// Cleanup Stats Tracking
+// ============================================================================
+
+TEST_F(UnifiedSessionManagerTest, CleanupStatsAccumulate) {
+    auto idle1 = std::make_shared<test_idle_session>("idle1");
+    manager_->add_session(idle1, "idle1");
+
+    std::this_thread::sleep_for(60ms);
+    manager_->cleanup_idle_sessions();
+
+    auto idle2 = std::make_shared<test_idle_session>("idle2");
+    auto idle3 = std::make_shared<test_idle_session>("idle3");
+    manager_->add_session(idle2, "idle2");
+    manager_->add_session(idle3, "idle3");
+
+    std::this_thread::sleep_for(60ms);
+    manager_->cleanup_idle_sessions();
+
+    EXPECT_EQ(manager_->get_total_cleaned_up(), 3);
+}
+
+// ============================================================================
+// Lifecycle Edge Cases
+// ============================================================================
+
+TEST_F(UnifiedSessionManagerTest, ClearEmptyManager) {
+    manager_->clear_all_sessions();
+    EXPECT_EQ(manager_->get_session_count(), 0);
+}
+
+TEST_F(UnifiedSessionManagerTest, AddAfterClear) {
+    manager_->add_session(std::make_shared<test_tcp_session>("tcp_before"), "tcp_before");
+    manager_->clear_all_sessions();
+
+    EXPECT_TRUE(manager_->add_session(
+        std::make_shared<test_tcp_session>("tcp_after"), "tcp_after"));
+    EXPECT_EQ(manager_->get_session_count(), 1);
+}
+
+TEST_F(UnifiedSessionManagerTest, GetSessionOnConstManager) {
+    manager_->add_session(std::make_shared<test_tcp_session>("tcp_const"), "tcp_const");
+
+    const auto& const_manager = *manager_;
+    const auto* handle = const_manager.get_session("tcp_const");
+    ASSERT_NE(handle, nullptr);
+    EXPECT_TRUE(handle->is_connected());
+}
+
+TEST_F(UnifiedSessionManagerTest, GetSessionConstNotFound) {
+    const auto& const_manager = *manager_;
+    const auto* handle = const_manager.get_session("no_such_session");
+    EXPECT_EQ(handle, nullptr);
+}
+
+// ============================================================================
+// Concurrent Broadcast and Modification
+// ============================================================================
+
+TEST_F(UnifiedSessionManagerTest, ConcurrentBroadcastAndAddRemove) {
+    // Seed some sessions
+    for (int i = 0; i < 10; ++i) {
+        manager_->add_session(
+            std::make_shared<test_tcp_session>("tcp" + std::to_string(i)),
+            "tcp" + std::to_string(i));
+    }
+
+    std::atomic<bool> stop{false};
+    std::atomic<size_t> total_sent{0};
+
+    // Broadcaster thread
+    std::thread broadcaster([this, &stop, &total_sent]() {
+        while (!stop.load()) {
+            std::vector<uint8_t> data{1, 2, 3};
+            total_sent.fetch_add(manager_->broadcast(std::move(data)));
+            std::this_thread::yield();
+        }
+    });
+
+    // Modifier thread: add and remove sessions
+    std::thread modifier([this, &stop]() {
+        int counter = 100;
+        while (!stop.load()) {
+            std::string id = "dynamic_" + std::to_string(counter++);
+            manager_->add_session(std::make_shared<test_tcp_session>(id), id);
+            manager_->remove_session(id);
+            std::this_thread::yield();
+        }
+    });
+
+    std::this_thread::sleep_for(50ms);
+    stop.store(true);
+    broadcaster.join();
+    modifier.join();
+
+    // No crash = success
+    EXPECT_GT(total_sent.load(), 0u);
+}

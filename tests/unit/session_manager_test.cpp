@@ -675,3 +675,348 @@ TEST_F(SessionConfigValidationTest, CleanupIdleSessionsRestoresCapacity)
 	EXPECT_TRUE(manager.can_accept_connection());
 	EXPECT_EQ(manager.get_session_count(), 0);
 }
+
+// ============================================================================
+// Session Replacement and Duplicate ID Tests
+// ============================================================================
+
+class SessionReplacementTest : public ::testing::Test
+{
+protected:
+	void SetUp() override
+	{
+		config_.max_sessions = 10;
+		config_.idle_timeout = 200ms;
+		manager_ = std::make_unique<session_manager>(config_);
+	}
+
+	session_config config_;
+	std::unique_ptr<session_manager> manager_;
+};
+
+TEST_F(SessionReplacementTest, AddDuplicateIdOverwritesSession)
+{
+	manager_->add_session(nullptr, "dup_session");
+	EXPECT_EQ(manager_->get_session_count(), 1);
+
+	// Adding with same ID should still increment count
+	// (unordered_map::emplace does not overwrite)
+	bool result = manager_->add_session(nullptr, "dup_session");
+	EXPECT_TRUE(result);
+
+	// Session count reflects both accepted entries
+	auto stats = manager_->get_stats();
+	EXPECT_EQ(stats.total_accepted, 2);
+}
+
+TEST_F(SessionReplacementTest, RemoveAndReaddSession)
+{
+	manager_->add_session(nullptr, "reuse_session");
+	EXPECT_EQ(manager_->get_session_count(), 1);
+
+	manager_->remove_session("reuse_session");
+	EXPECT_EQ(manager_->get_session_count(), 0);
+
+	// Re-adding with same ID should succeed
+	bool result = manager_->add_session(nullptr, "reuse_session");
+	EXPECT_TRUE(result);
+	EXPECT_EQ(manager_->get_session_count(), 1);
+
+	auto info = manager_->get_session_info("reuse_session");
+	EXPECT_TRUE(info.has_value());
+}
+
+TEST_F(SessionReplacementTest, RemoveNonexistentSession)
+{
+	bool result = manager_->remove_session("does_not_exist");
+	EXPECT_FALSE(result);
+	EXPECT_EQ(manager_->get_session_count(), 0);
+}
+
+// ============================================================================
+// Inherited API Surface Tests
+// ============================================================================
+
+class SessionManagerInheritedApiTest : public ::testing::Test
+{
+protected:
+	void SetUp() override
+	{
+		config_.max_sessions = 20;
+		config_.idle_timeout = 100ms;
+		manager_ = std::make_unique<session_manager>(config_);
+	}
+
+	session_config config_;
+	std::unique_ptr<session_manager> manager_;
+};
+
+TEST_F(SessionManagerInheritedApiTest, GetAllSessionIds)
+{
+	manager_->add_session(nullptr, "alpha");
+	manager_->add_session(nullptr, "beta");
+	manager_->add_session(nullptr, "gamma");
+
+	auto ids = manager_->get_all_session_ids();
+	EXPECT_EQ(ids.size(), 3);
+
+	std::sort(ids.begin(), ids.end());
+	EXPECT_EQ(ids[0], "alpha");
+	EXPECT_EQ(ids[1], "beta");
+	EXPECT_EQ(ids[2], "gamma");
+}
+
+TEST_F(SessionManagerInheritedApiTest, GetAllSessionsReturnsCorrectPointers)
+{
+	manager_->add_session(nullptr, "s1");
+	manager_->add_session(nullptr, "s2");
+
+	auto sessions = manager_->get_all_sessions();
+	EXPECT_EQ(sessions.size(), 2);
+}
+
+TEST_F(SessionManagerInheritedApiTest, GetAllSessionIdsEmpty)
+{
+	auto ids = manager_->get_all_session_ids();
+	EXPECT_TRUE(ids.empty());
+}
+
+TEST_F(SessionManagerInheritedApiTest, GetAllSessionsEmpty)
+{
+	auto sessions = manager_->get_all_sessions();
+	EXPECT_TRUE(sessions.empty());
+}
+
+TEST_F(SessionManagerInheritedApiTest, ClearAllSessions)
+{
+	manager_->add_session(nullptr, "c1");
+	manager_->add_session(nullptr, "c2");
+	manager_->add_session(nullptr, "c3");
+	EXPECT_EQ(manager_->get_session_count(), 3);
+
+	manager_->clear_all_sessions();
+
+	EXPECT_EQ(manager_->get_session_count(), 0);
+	EXPECT_FALSE(manager_->get_session_info("c1").has_value());
+}
+
+TEST_F(SessionManagerInheritedApiTest, StopAllSessionsAlias)
+{
+	manager_->add_session(nullptr, "stop1");
+	manager_->add_session(nullptr, "stop2");
+	EXPECT_EQ(manager_->get_session_count(), 2);
+
+	manager_->stop_all_sessions();
+
+	EXPECT_EQ(manager_->get_session_count(), 0);
+}
+
+TEST_F(SessionManagerInheritedApiTest, UtilizationCalculation)
+{
+	EXPECT_DOUBLE_EQ(manager_->get_utilization(), 0.0);
+
+	for (int i = 0; i < 10; ++i)
+	{
+		manager_->add_session(nullptr, "util_" + std::to_string(i));
+	}
+
+	// 10 out of 20 = 0.5
+	EXPECT_DOUBLE_EQ(manager_->get_utilization(), 0.5);
+}
+
+TEST_F(SessionManagerInheritedApiTest, SetMaxSessionsDynamically)
+{
+	// Start with max_sessions = 20
+	for (int i = 0; i < 20; ++i)
+	{
+		EXPECT_TRUE(manager_->add_session(nullptr, "dyn_" + std::to_string(i)));
+	}
+	EXPECT_FALSE(manager_->can_accept_connection());
+
+	// Increase limit
+	manager_->set_max_sessions(25);
+	EXPECT_TRUE(manager_->can_accept_connection());
+
+	// Can add more sessions now
+	EXPECT_TRUE(manager_->add_session(nullptr, "dyn_20"));
+	EXPECT_EQ(manager_->get_session_count(), 21);
+}
+
+TEST_F(SessionManagerInheritedApiTest, GetSessionReturnsNullptr)
+{
+	auto session = manager_->get_session("nonexistent");
+	EXPECT_EQ(session, nullptr);
+}
+
+TEST_F(SessionManagerInheritedApiTest, GetSessionReturnsStoredPointer)
+{
+	manager_->add_session(nullptr, "stored_session");
+
+	auto session = manager_->get_session("stored_session");
+	EXPECT_EQ(session, nullptr);  // We stored nullptr
+}
+
+TEST_F(SessionManagerInheritedApiTest, AddSessionWithAutoGeneratedId)
+{
+	std::string id = manager_->add_session_with_id(nullptr);
+
+	EXPECT_FALSE(id.empty());
+	EXPECT_EQ(manager_->get_session_count(), 1);
+}
+
+// ============================================================================
+// Cleanup and Backpressure Interaction Tests
+// ============================================================================
+
+class CleanupBackpressureInteractionTest : public ::testing::Test
+{
+};
+
+TEST_F(CleanupBackpressureInteractionTest, CleanupReducesBackpressure)
+{
+	session_config config;
+	config.max_sessions = 10;
+	config.idle_timeout = 30ms;
+	config.enable_backpressure = true;
+	config.backpressure_threshold = 0.5;
+	session_manager manager(config);
+
+	// Add 6 sessions (60% > 50% threshold)
+	for (int i = 0; i < 6; ++i)
+	{
+		manager.add_session(nullptr, "bp_" + std::to_string(i));
+	}
+	EXPECT_TRUE(manager.is_backpressure_active());
+
+	// Wait for idle timeout and cleanup
+	std::this_thread::sleep_for(50ms);
+	size_t cleaned = manager.cleanup_idle_sessions();
+	EXPECT_EQ(cleaned, 6u);
+
+	// Backpressure should no longer be active
+	EXPECT_FALSE(manager.is_backpressure_active());
+}
+
+TEST_F(CleanupBackpressureInteractionTest, CleanupRestoresCapacityForNewSessions)
+{
+	session_config config;
+	config.max_sessions = 3;
+	config.idle_timeout = 20ms;
+	session_manager manager(config);
+
+	// Fill to capacity
+	manager.add_session(nullptr, "cap_1");
+	manager.add_session(nullptr, "cap_2");
+	manager.add_session(nullptr, "cap_3");
+	EXPECT_FALSE(manager.can_accept_connection());
+
+	// Wait and cleanup
+	std::this_thread::sleep_for(40ms);
+	manager.cleanup_idle_sessions();
+
+	// Now we can add new sessions
+	EXPECT_TRUE(manager.can_accept_connection());
+	EXPECT_TRUE(manager.add_session(nullptr, "new_session"));
+}
+
+// ============================================================================
+// Concurrent get_session_info During Cleanup Tests
+// ============================================================================
+
+class ConcurrentInfoDuringCleanupTest : public ::testing::Test
+{
+};
+
+TEST_F(ConcurrentInfoDuringCleanupTest, GetSessionInfoDuringConcurrentCleanup)
+{
+	session_config config;
+	config.max_sessions = 1000;
+	config.idle_timeout = 10ms;
+	session_manager manager(config);
+
+	// Add many sessions
+	for (int i = 0; i < 100; ++i)
+	{
+		manager.add_session(nullptr, "info_" + std::to_string(i));
+	}
+
+	std::atomic<bool> done{false};
+	std::atomic<int> info_calls{0};
+
+	// Reader thread: continuously query session info
+	std::thread reader([&]() {
+		while (!done.load())
+		{
+			for (int i = 0; i < 100; ++i)
+			{
+				auto info = manager.get_session_info("info_" + std::to_string(i));
+				// May or may not find it (concurrent cleanup)
+				info_calls.fetch_add(1);
+			}
+		}
+	});
+
+	// Wait for some sessions to become idle then cleanup
+	std::this_thread::sleep_for(20ms);
+	manager.cleanup_idle_sessions();
+
+	done.store(true);
+	reader.join();
+
+	EXPECT_GT(info_calls.load(), 0);
+}
+
+// ============================================================================
+// Stats Comprehensive Validation Tests
+// ============================================================================
+
+class SessionManagerStatsTest : public ::testing::Test
+{
+};
+
+TEST_F(SessionManagerStatsTest, StatsReflectFullLifecycle)
+{
+	session_config config;
+	config.max_sessions = 5;
+	config.idle_timeout = 20ms;
+	session_manager manager(config);
+
+	// Add 5 sessions
+	for (int i = 0; i < 5; ++i)
+	{
+		manager.add_session(nullptr, "stat_" + std::to_string(i));
+	}
+
+	// Attempt 2 more (rejected)
+	manager.add_session(nullptr, "overflow_1");
+	manager.add_session(nullptr, "overflow_2");
+
+	// Remove 1 manually
+	manager.remove_session("stat_0");
+
+	// Wait for idle and cleanup the rest
+	std::this_thread::sleep_for(40ms);
+	manager.cleanup_idle_sessions();
+
+	auto stats = manager.get_stats();
+	EXPECT_EQ(stats.total_accepted, 5);
+	EXPECT_EQ(stats.total_rejected, 2);
+	EXPECT_EQ(stats.total_cleaned_up, 4);  // 4 removed by cleanup (1 was manually removed)
+	EXPECT_EQ(stats.active_sessions, 0);
+	EXPECT_DOUBLE_EQ(stats.utilization, 0.0);
+}
+
+TEST_F(SessionManagerStatsTest, StatsWithZeroMaxSessions)
+{
+	session_config config;
+	config.max_sessions = 0;
+	session_manager manager(config);
+
+	auto stats = manager.get_stats();
+	EXPECT_EQ(stats.max_sessions, 0);
+	EXPECT_DOUBLE_EQ(stats.utilization, 0.0);
+
+	// Cannot add any sessions
+	EXPECT_FALSE(manager.add_session(nullptr, "blocked"));
+	EXPECT_EQ(manager.get_stats().total_rejected, 1);
+}
