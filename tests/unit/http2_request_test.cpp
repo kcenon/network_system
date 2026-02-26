@@ -399,3 +399,178 @@ TEST_F(Http2RequestFromHeadersTest, BuiltRequestIsValid)
 
 	EXPECT_TRUE(req.is_valid());
 }
+
+// ============================================================================
+// Content-Length and Body Consistency Tests
+// ============================================================================
+
+class Http2RequestContentConsistencyTest : public ::testing::Test
+{
+};
+
+TEST_F(Http2RequestContentConsistencyTest, ContentLengthMatchesBody)
+{
+	http2_request req;
+	req.method = "POST";
+	req.path = "/data";
+	req.scheme = "https";
+	req.headers = {{"content-length", "5"}};
+	req.body = {'h', 'e', 'l', 'l', 'o'};
+
+	auto cl = req.content_length();
+	ASSERT_TRUE(cl.has_value());
+	EXPECT_EQ(cl.value(), req.body.size());
+}
+
+TEST_F(Http2RequestContentConsistencyTest, EmptyBodyZeroContentLength)
+{
+	http2_request req;
+	req.method = "GET";
+	req.path = "/";
+	req.scheme = "https";
+	req.headers = {{"content-length", "0"}};
+
+	auto cl = req.content_length();
+	ASSERT_TRUE(cl.has_value());
+	EXPECT_EQ(cl.value(), 0u);
+	EXPECT_TRUE(req.body.empty());
+}
+
+TEST_F(Http2RequestContentConsistencyTest, BodyWithoutContentLength)
+{
+	http2_request req;
+	req.method = "POST";
+	req.path = "/upload";
+	req.scheme = "https";
+	req.body = {0x01, 0x02, 0x03};
+
+	auto cl = req.content_length();
+	EXPECT_FALSE(cl.has_value());
+	EXPECT_EQ(req.body.size(), 3u);
+}
+
+// ============================================================================
+// Path with Query Parameters Tests
+// ============================================================================
+
+class Http2RequestPathTest : public ::testing::Test
+{
+};
+
+TEST_F(Http2RequestPathTest, PathWithQueryString)
+{
+	std::vector<http_header> headers = {
+		{":method", "GET"},
+		{":path", "/search?q=hello&lang=en"},
+		{":scheme", "https"},
+	};
+
+	auto req = http2_request::from_headers(headers);
+
+	EXPECT_EQ(req.path, "/search?q=hello&lang=en");
+	EXPECT_TRUE(req.is_valid());
+}
+
+TEST_F(Http2RequestPathTest, PathWithFragment)
+{
+	std::vector<http_header> headers = {
+		{":method", "GET"},
+		{":path", "/page#section1"},
+		{":scheme", "https"},
+	};
+
+	auto req = http2_request::from_headers(headers);
+
+	EXPECT_EQ(req.path, "/page#section1");
+}
+
+TEST_F(Http2RequestPathTest, RootPath)
+{
+	std::vector<http_header> headers = {
+		{":method", "GET"},
+		{":path", "/"},
+		{":scheme", "https"},
+	};
+
+	auto req = http2_request::from_headers(headers);
+
+	EXPECT_EQ(req.path, "/");
+	EXPECT_TRUE(req.is_valid());
+}
+
+// ============================================================================
+// Authority Format Tests
+// ============================================================================
+
+class Http2RequestAuthorityTest : public ::testing::Test
+{
+};
+
+TEST_F(Http2RequestAuthorityTest, AuthorityWithPort)
+{
+	http2_request req;
+	req.method = "GET";
+	req.path = "/";
+	req.scheme = "https";
+	req.authority = "example.com:8443";
+
+	EXPECT_EQ(req.authority, "example.com:8443");
+	EXPECT_TRUE(req.is_valid());
+}
+
+TEST_F(Http2RequestAuthorityTest, AuthorityWithoutPort)
+{
+	http2_request req;
+	req.method = "GET";
+	req.path = "/";
+	req.scheme = "https";
+	req.authority = "example.com";
+
+	EXPECT_EQ(req.authority, "example.com");
+	EXPECT_TRUE(req.is_valid());
+}
+
+// ============================================================================
+// Multiple Header Lookup Tests
+// ============================================================================
+
+class Http2RequestMultiHeaderTest : public ::testing::Test
+{
+};
+
+TEST_F(Http2RequestMultiHeaderTest, GetHeaderReturnsFirstMatch)
+{
+	http2_request req;
+	req.method = "GET";
+	req.path = "/";
+	req.scheme = "https";
+	req.headers = {
+		{"accept", "text/html"},
+		{"accept", "application/json"},
+	};
+
+	auto accept = req.get_header("accept");
+	ASSERT_TRUE(accept.has_value());
+	EXPECT_EQ(accept.value(), "text/html");
+}
+
+TEST_F(Http2RequestMultiHeaderTest, ContentTypeAccessor)
+{
+	http2_request req;
+	req.method = "POST";
+	req.path = "/api";
+	req.scheme = "https";
+	req.headers = {{"content-type", "application/json; charset=utf-8"}};
+
+	auto ct = req.content_type();
+	ASSERT_TRUE(ct.has_value());
+	EXPECT_EQ(ct.value(), "application/json; charset=utf-8");
+}
+
+TEST_F(Http2RequestMultiHeaderTest, BodyStringConversion)
+{
+	http2_request req;
+	req.body = {'{', '"', 'k', '"', ':', '"', 'v', '"', '}'};
+
+	EXPECT_EQ(req.get_body_string(), "{\"k\":\"v\"}");
+}
