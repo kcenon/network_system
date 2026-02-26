@@ -3297,6 +3297,64 @@ network_gtest_discover_tests(network_result_types_test
 )
 message(STATUS "Result types unit tests enabled")
 
+add_executable(network_common_defs_test
+    unit/common_defs_test.cpp
+)
+
+target_link_libraries(network_common_defs_test PRIVATE
+    NetworkSystem
+    GTest::gtest
+    GTest::gtest_main
+    Threads::Threads
+)
+
+setup_asio_integration(network_common_defs_test)
+
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_common_defs_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_common_defs_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+
+set_target_properties(network_common_defs_test PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+)
+
+network_gtest_discover_tests(network_common_defs_test
+    DISCOVERY_TIMEOUT 60
+)
+message(STATUS "Common defs unit tests enabled")
+
+add_executable(network_quic_transport_params_test
+    unit/quic_transport_params_test.cpp
+)
+
+target_link_libraries(network_quic_transport_params_test PRIVATE
+    NetworkSystem
+    GTest::gtest
+    GTest::gtest_main
+    Threads::Threads
+)
+
+setup_asio_integration(network_quic_transport_params_test)
+
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_quic_transport_params_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_quic_transport_params_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+
+set_target_properties(network_quic_transport_params_test PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+)
+
+network_gtest_discover_tests(network_quic_transport_params_test
+    DISCOVERY_TIMEOUT 60
+)
+message(STATUS "QUIC transport params unit tests enabled")
+
 ##################################################
 # Integration Tests
 ##################################################
