@@ -873,6 +873,231 @@ TEST_F(HttpParserMultipartTest, MissingBoundaryReturnsError)
 }
 
 // ============================================================================
+// Connection Header Tests
+// ============================================================================
+
+class HttpParserConnectionTest : public ::testing::Test
+{
+};
+
+TEST_F(HttpParserConnectionTest, ParseRequestWithKeepAlive)
+{
+	std::string raw =
+		"GET / HTTP/1.1\r\n"
+		"Host: example.com\r\n"
+		"Connection: keep-alive\r\n"
+		"\r\n";
+
+	auto result = http_parser::parse_request(std::string_view(raw));
+	ASSERT_TRUE(result.is_ok());
+
+	const auto& req = result.value();
+	EXPECT_EQ(req.headers.at("Connection"), "keep-alive");
+}
+
+TEST_F(HttpParserConnectionTest, ParseRequestWithClose)
+{
+	std::string raw =
+		"GET / HTTP/1.1\r\n"
+		"Host: example.com\r\n"
+		"Connection: close\r\n"
+		"\r\n";
+
+	auto result = http_parser::parse_request(std::string_view(raw));
+	ASSERT_TRUE(result.is_ok());
+
+	const auto& req = result.value();
+	EXPECT_EQ(req.headers.at("Connection"), "close");
+}
+
+TEST_F(HttpParserConnectionTest, SerializeRequestPreservesConnectionHeader)
+{
+	http_request req;
+	req.method = http_method::HTTP_GET;
+	req.uri = "/";
+	req.version = http_version::HTTP_1_1;
+	req.headers["Host"] = "example.com";
+	req.headers["Connection"] = "keep-alive";
+
+	auto bytes = http_parser::serialize_request(req);
+	std::string result(bytes.begin(), bytes.end());
+
+	EXPECT_NE(result.find("Connection: keep-alive"), std::string::npos);
+}
+
+// ============================================================================
+// HTTP Method Serialization Edge Cases
+// ============================================================================
+
+class HttpParserMethodTest : public ::testing::Test
+{
+};
+
+TEST_F(HttpParserMethodTest, SerializeHeadRequest)
+{
+	http_request req;
+	req.method = http_method::HTTP_HEAD;
+	req.uri = "/status";
+	req.version = http_version::HTTP_1_1;
+	req.headers["Host"] = "example.com";
+
+	auto bytes = http_parser::serialize_request(req);
+	std::string result(bytes.begin(), bytes.end());
+
+	EXPECT_NE(result.find("HEAD /status HTTP/1.1"), std::string::npos);
+}
+
+TEST_F(HttpParserMethodTest, SerializeOptionsRequest)
+{
+	http_request req;
+	req.method = http_method::HTTP_OPTIONS;
+	req.uri = "/api";
+	req.version = http_version::HTTP_1_1;
+	req.headers["Host"] = "example.com";
+
+	auto bytes = http_parser::serialize_request(req);
+	std::string result(bytes.begin(), bytes.end());
+
+	EXPECT_NE(result.find("OPTIONS /api HTTP/1.1"), std::string::npos);
+}
+
+TEST_F(HttpParserMethodTest, SerializePatchRequest)
+{
+	http_request req;
+	req.method = http_method::HTTP_PATCH;
+	req.uri = "/resource/42";
+	req.version = http_version::HTTP_1_1;
+	req.headers["Host"] = "example.com";
+	req.headers["Content-Type"] = "application/json";
+	req.set_body_string("{\"name\":\"updated\"}");
+
+	auto bytes = http_parser::serialize_request(req);
+	std::string result(bytes.begin(), bytes.end());
+
+	EXPECT_NE(result.find("PATCH /resource/42 HTTP/1.1"), std::string::npos);
+	EXPECT_NE(result.find("{\"name\":\"updated\"}"), std::string::npos);
+}
+
+TEST_F(HttpParserMethodTest, ParseHeadRequest)
+{
+	std::string raw =
+		"HEAD /status HTTP/1.1\r\n"
+		"Host: example.com\r\n"
+		"\r\n";
+
+	auto result = http_parser::parse_request(std::string_view(raw));
+	ASSERT_TRUE(result.is_ok());
+	EXPECT_EQ(result.value().method, http_method::HTTP_HEAD);
+}
+
+TEST_F(HttpParserMethodTest, ParseOptionsRequest)
+{
+	std::string raw =
+		"OPTIONS /api HTTP/1.1\r\n"
+		"Host: example.com\r\n"
+		"\r\n";
+
+	auto result = http_parser::parse_request(std::string_view(raw));
+	ASSERT_TRUE(result.is_ok());
+	EXPECT_EQ(result.value().method, http_method::HTTP_OPTIONS);
+}
+
+// ============================================================================
+// Transfer-Encoding Tests
+// ============================================================================
+
+class HttpParserTransferEncodingTest : public ::testing::Test
+{
+};
+
+TEST_F(HttpParserTransferEncodingTest, ParseResponseWithTransferEncoding)
+{
+	std::string raw =
+		"HTTP/1.1 200 OK\r\n"
+		"Transfer-Encoding: chunked\r\n"
+		"\r\n";
+
+	auto result = http_parser::parse_response(std::string_view(raw));
+	ASSERT_TRUE(result.is_ok());
+
+	const auto& resp = result.value();
+	EXPECT_EQ(resp.headers.at("Transfer-Encoding"), "chunked");
+}
+
+TEST_F(HttpParserTransferEncodingTest, ParseRequestWithContentLengthZero)
+{
+	std::string raw =
+		"POST /api HTTP/1.1\r\n"
+		"Host: example.com\r\n"
+		"Content-Length: 0\r\n"
+		"\r\n";
+
+	auto result = http_parser::parse_request(std::string_view(raw));
+	ASSERT_TRUE(result.is_ok());
+
+	const auto& req = result.value();
+	EXPECT_TRUE(req.body.empty());
+}
+
+// ============================================================================
+// Header Edge Case Tests
+// ============================================================================
+
+class HttpParserHeaderEdgeCaseTest : public ::testing::Test
+{
+};
+
+TEST_F(HttpParserHeaderEdgeCaseTest, ParseRequestWithLargeHeader)
+{
+	std::string large_value(1000, 'x');
+	std::string raw =
+		"GET / HTTP/1.1\r\n"
+		"Host: example.com\r\n"
+		"X-Custom: " + large_value + "\r\n"
+		"\r\n";
+
+	auto result = http_parser::parse_request(std::string_view(raw));
+	ASSERT_TRUE(result.is_ok());
+
+	EXPECT_EQ(result.value().headers.at("X-Custom"), large_value);
+}
+
+TEST_F(HttpParserHeaderEdgeCaseTest, ParseResponseWithMultipleStatusCodes)
+{
+	// 301 redirect
+	std::string raw301 =
+		"HTTP/1.1 301 Moved Permanently\r\n"
+		"Location: https://example.com/new\r\n"
+		"\r\n";
+
+	auto result301 = http_parser::parse_response(std::string_view(raw301));
+	ASSERT_TRUE(result301.is_ok());
+	EXPECT_EQ(result301.value().status_code, 301);
+
+	// 204 No Content
+	std::string raw204 =
+		"HTTP/1.1 204 No Content\r\n"
+		"\r\n";
+
+	auto result204 = http_parser::parse_response(std::string_view(raw204));
+	ASSERT_TRUE(result204.is_ok());
+	EXPECT_EQ(result204.value().status_code, 204);
+}
+
+TEST_F(HttpParserHeaderEdgeCaseTest, ParseRequestLongUri)
+{
+	std::string long_path = "/" + std::string(500, 'a');
+	std::string raw =
+		"GET " + long_path + " HTTP/1.1\r\n"
+		"Host: example.com\r\n"
+		"\r\n";
+
+	auto result = http_parser::parse_request(std::string_view(raw));
+	ASSERT_TRUE(result.is_ok());
+	EXPECT_EQ(result.value().uri, long_path);
+}
+
+// ============================================================================
 // HTTP Types Helper Tests
 // ============================================================================
 
