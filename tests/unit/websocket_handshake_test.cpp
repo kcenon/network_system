@@ -399,3 +399,153 @@ TEST(WebSocketHandshakeTest, EndToEndHandshake)
 		response, client_key);
 	EXPECT_TRUE(validate_result.success);
 }
+
+TEST(WebSocketHandshakeTest, EndToEndHandshakeWithExtraHeaders)
+{
+	std::map<std::string, std::string> extra_headers = {
+		{"Origin", "https://example.com"},
+		{"Sec-WebSocket-Protocol", "chat, superchat"}
+	};
+
+	auto request = websocket_handshake::create_client_handshake(
+		"example.com", "/ws", 8080, extra_headers);
+
+	auto parse_result = websocket_handshake::parse_client_request(request);
+	ASSERT_TRUE(parse_result.success);
+
+	// Verify extra headers are preserved
+	EXPECT_EQ(parse_result.headers["origin"], "https://example.com");
+	EXPECT_EQ(parse_result.headers["sec-websocket-protocol"], "chat, superchat");
+
+	std::string client_key = parse_result.headers["sec-websocket-key"];
+	auto response = websocket_handshake::create_server_response(client_key);
+	auto validate_result = websocket_handshake::validate_server_response(
+		response, client_key);
+	EXPECT_TRUE(validate_result.success);
+}
+
+// ============================================================================
+// Extension and Subprotocol Negotiation Tests
+// ============================================================================
+
+TEST(WebSocketHandshakeTest, CreateClientHandshakeWithExtensions)
+{
+	std::map<std::string, std::string> extra_headers = {
+		{"Sec-WebSocket-Extensions", "permessage-deflate; client_max_window_bits"}
+	};
+
+	auto request = websocket_handshake::create_client_handshake(
+		"example.com", "/", 80, extra_headers);
+
+	EXPECT_NE(request.find("Sec-WebSocket-Extensions: permessage-deflate"),
+			  std::string::npos);
+}
+
+TEST(WebSocketHandshakeTest, CreateClientHandshakeWithSubprotocol)
+{
+	std::map<std::string, std::string> extra_headers = {
+		{"Sec-WebSocket-Protocol", "graphql-ws, graphql-transport-ws"}
+	};
+
+	auto request = websocket_handshake::create_client_handshake(
+		"example.com", "/graphql", 443, extra_headers);
+
+	EXPECT_NE(request.find("Sec-WebSocket-Protocol: graphql-ws, graphql-transport-ws"),
+			  std::string::npos);
+}
+
+// ============================================================================
+// Server Response Validation - Error Codes
+// ============================================================================
+
+TEST(WebSocketHandshakeTest, ValidateServerResponse403)
+{
+	const std::string client_key = "dGhlIHNhbXBsZSBub25jZQ==";
+	std::string response =
+		"HTTP/1.1 403 Forbidden\r\n"
+		"Content-Type: text/html\r\n"
+		"\r\n";
+
+	auto result = websocket_handshake::validate_server_response(response, client_key);
+
+	EXPECT_FALSE(result.success);
+	EXPECT_NE(result.error_message.find("status code"), std::string::npos);
+}
+
+TEST(WebSocketHandshakeTest, ValidateServerResponse500)
+{
+	const std::string client_key = "dGhlIHNhbXBsZSBub25jZQ==";
+	std::string response =
+		"HTTP/1.1 500 Internal Server Error\r\n"
+		"Content-Type: text/html\r\n"
+		"\r\n";
+
+	auto result = websocket_handshake::validate_server_response(response, client_key);
+
+	EXPECT_FALSE(result.success);
+	EXPECT_NE(result.error_message.find("status code"), std::string::npos);
+}
+
+TEST(WebSocketHandshakeTest, ValidateServerResponseMissingConnection)
+{
+	const std::string client_key = "dGhlIHNhbXBsZSBub25jZQ==";
+	std::string response =
+		"HTTP/1.1 101 Switching Protocols\r\n"
+		"Upgrade: websocket\r\n"
+		"Sec-WebSocket-Accept: s3pPLMBiTxaQ9kYGzzhZRbK+xOo=\r\n"
+		"\r\n";
+
+	auto result = websocket_handshake::validate_server_response(response, client_key);
+
+	EXPECT_FALSE(result.success);
+}
+
+TEST(WebSocketHandshakeTest, ValidateServerResponseMissingAcceptKey)
+{
+	const std::string client_key = "dGhlIHNhbXBsZSBub25jZQ==";
+	std::string response =
+		"HTTP/1.1 101 Switching Protocols\r\n"
+		"Upgrade: websocket\r\n"
+		"Connection: Upgrade\r\n"
+		"\r\n";
+
+	auto result = websocket_handshake::validate_server_response(response, client_key);
+
+	EXPECT_FALSE(result.success);
+}
+
+// ============================================================================
+// Parse Client Request Edge Cases
+// ============================================================================
+
+TEST(WebSocketHandshakeTest, ParseClientRequestEmptyString)
+{
+	auto result = websocket_handshake::parse_client_request("");
+
+	EXPECT_FALSE(result.success);
+}
+
+TEST(WebSocketHandshakeTest, ParseClientRequestMalformedStatusLine)
+{
+	std::string request = "INVALID\r\n\r\n";
+
+	auto result = websocket_handshake::parse_client_request(request);
+
+	EXPECT_FALSE(result.success);
+}
+
+// ============================================================================
+// Accept Key Edge Cases
+// ============================================================================
+
+TEST(WebSocketHandshakeTest, CalculateAcceptKeyDifferentInputs)
+{
+	auto accept1 = websocket_handshake::calculate_accept_key("key-one");
+	auto accept2 = websocket_handshake::calculate_accept_key("key-two");
+
+	// Different keys must produce different accept values
+	EXPECT_NE(accept1, accept2);
+	// Both should be non-empty
+	EXPECT_FALSE(accept1.empty());
+	EXPECT_FALSE(accept2.empty());
+}
