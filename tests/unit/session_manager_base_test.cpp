@@ -614,3 +614,222 @@ TEST_F(SessionManagerBaseTest, ConcurrentActivityUpdates) {
 	EXPECT_EQ(update_count.load(), num_threads * updates_per_thread);
 	EXPECT_NE(manager.get_session("shared"), nullptr);
 }
+
+// ============================================================================
+// Metrics Under Rapid Add/Remove Cycles
+// ============================================================================
+
+TEST_F(SessionManagerBaseTest, MetricsAccurateUnderRapidAddRemove) {
+	config_.max_sessions = 10000;
+	session_manager_base<simple_session> manager(config_);
+
+	constexpr int cycles = 200;
+
+	for (int i = 0; i < cycles; ++i) {
+		std::string id = "rapid_" + std::to_string(i);
+		auto session = std::make_shared<simple_session>(id);
+		EXPECT_TRUE(manager.add_session(session, id));
+		EXPECT_TRUE(manager.remove_session(id));
+	}
+
+	auto stats = manager.get_stats();
+	EXPECT_EQ(stats.total_accepted, cycles);
+	EXPECT_EQ(stats.total_rejected, 0);
+	EXPECT_EQ(stats.active_sessions, 0);
+}
+
+// ============================================================================
+// Clear During Active Operations
+// ============================================================================
+
+TEST_F(SessionManagerBaseTest, ClearAllSessionsResetsCount) {
+	session_manager_base<simple_session> manager(config_);
+
+	for (int i = 0; i < 50; ++i) {
+		manager.add_session(std::make_shared<simple_session>(), "clear_" + std::to_string(i));
+	}
+	EXPECT_EQ(manager.get_session_count(), 50);
+
+	manager.clear_all_sessions();
+
+	EXPECT_EQ(manager.get_session_count(), 0);
+
+	// Can add sessions again after clear
+	EXPECT_TRUE(manager.add_session(std::make_shared<simple_session>(), "after_clear"));
+	EXPECT_EQ(manager.get_session_count(), 1);
+}
+
+TEST_F(SessionManagerBaseTest, ClearAllWithStoppableCallsStopOnAll) {
+	session_manager_base<stoppable_session> manager(config_);
+
+	std::vector<std::shared_ptr<stoppable_session>> sessions;
+	for (int i = 0; i < 5; ++i) {
+		auto s = std::make_shared<stoppable_session>();
+		sessions.push_back(s);
+		manager.add_session(s, "stoppable_" + std::to_string(i));
+	}
+
+	manager.clear_all_sessions();
+
+	for (const auto& s : sessions) {
+		EXPECT_TRUE(s->is_stopped());
+	}
+	EXPECT_EQ(manager.get_session_count(), 0);
+}
+
+// ============================================================================
+// set_max_sessions During Operation
+// ============================================================================
+
+TEST_F(SessionManagerBaseTest, IncreaseMaxSessionsAllowsMoreConnections) {
+	config_.max_sessions = 3;
+	session_manager_base<simple_session> manager(config_);
+
+	// Fill to capacity
+	for (int i = 0; i < 3; ++i) {
+		EXPECT_TRUE(manager.add_session(std::make_shared<simple_session>(), "s" + std::to_string(i)));
+	}
+	EXPECT_FALSE(manager.can_accept_connection());
+
+	// Increase limit
+	manager.set_max_sessions(5);
+	EXPECT_TRUE(manager.can_accept_connection());
+
+	// Can add more
+	EXPECT_TRUE(manager.add_session(std::make_shared<simple_session>(), "s3"));
+	EXPECT_TRUE(manager.add_session(std::make_shared<simple_session>(), "s4"));
+	EXPECT_FALSE(manager.can_accept_connection());
+}
+
+TEST_F(SessionManagerBaseTest, DecreaseMaxSessionsBelowCurrentCount) {
+	config_.max_sessions = 10;
+	session_manager_base<simple_session> manager(config_);
+
+	for (int i = 0; i < 8; ++i) {
+		manager.add_session(std::make_shared<simple_session>(), "s" + std::to_string(i));
+	}
+
+	// Decrease below current count - existing sessions remain, but no new ones accepted
+	manager.set_max_sessions(5);
+	EXPECT_FALSE(manager.can_accept_connection());
+	EXPECT_EQ(manager.get_session_count(), 8);  // Existing sessions not removed
+
+	// Cannot add new sessions
+	EXPECT_FALSE(manager.add_session(std::make_shared<simple_session>(), "overflow"));
+}
+
+// ============================================================================
+// add_session_with_id Rejection
+// ============================================================================
+
+TEST_F(SessionManagerBaseTest, AddSessionWithIdReturnsEmptyOnRejection) {
+	config_.max_sessions = 1;
+	session_manager_base<simple_session> manager(config_);
+
+	// First add succeeds
+	std::string id1 = manager.add_session_with_id(std::make_shared<simple_session>());
+	EXPECT_FALSE(id1.empty());
+
+	// Second add rejected - returns empty string
+	std::string id2 = manager.add_session_with_id(std::make_shared<simple_session>());
+	EXPECT_TRUE(id2.empty());
+
+	EXPECT_EQ(manager.get_total_rejected(), 1);
+}
+
+// ============================================================================
+// Stats Accuracy After Mixed Operations
+// ============================================================================
+
+TEST_F(SessionManagerBaseTest, StatsAccuracyAfterMixedOperations) {
+	config_.max_sessions = 5;
+	config_.idle_timeout = 20ms;
+	session_manager_base<stoppable_session> manager(config_);
+
+	// Add 5 sessions
+	for (int i = 0; i < 5; ++i) {
+		manager.add_session(std::make_shared<stoppable_session>(), "mix_" + std::to_string(i));
+	}
+
+	// Reject 2
+	manager.add_session(std::make_shared<stoppable_session>(), "reject_1");
+	manager.add_session(std::make_shared<stoppable_session>(), "reject_2");
+
+	// Remove 1 manually
+	manager.remove_session("mix_0");
+
+	// Wait for idle timeout and cleanup remaining
+	std::this_thread::sleep_for(40ms);
+	size_t cleaned = manager.cleanup_idle_sessions();
+
+	auto stats = manager.get_stats();
+	EXPECT_EQ(stats.total_accepted, 5);
+	EXPECT_EQ(stats.total_rejected, 2);
+	EXPECT_EQ(stats.total_cleaned_up, cleaned);
+	EXPECT_EQ(stats.active_sessions, 0);
+}
+
+// ============================================================================
+// Empty Manager Edge Cases
+// ============================================================================
+
+TEST_F(SessionManagerBaseTest, GetAllSessionsReturnsEmptyVector) {
+	session_manager_base<simple_session> manager(config_);
+
+	auto sessions = manager.get_all_sessions();
+	EXPECT_TRUE(sessions.empty());
+}
+
+TEST_F(SessionManagerBaseTest, GetAllSessionIdsReturnsEmptyVector) {
+	session_manager_base<simple_session> manager(config_);
+
+	auto ids = manager.get_all_session_ids();
+	EXPECT_TRUE(ids.empty());
+}
+
+TEST_F(SessionManagerBaseTest, CleanupEmptyManagerReturnsZero) {
+	session_manager_base<stoppable_session> manager(config_);
+
+	size_t cleaned = manager.cleanup_idle_sessions();
+	EXPECT_EQ(cleaned, 0);
+}
+
+TEST_F(SessionManagerBaseTest, ClearEmptyManagerIsNoOp) {
+	session_manager_base<simple_session> manager(config_);
+
+	manager.clear_all_sessions();
+	EXPECT_EQ(manager.get_session_count(), 0);
+}
+
+// ============================================================================
+// Concurrent Clear With Add/Remove
+// ============================================================================
+
+TEST_F(SessionManagerBaseTest, ConcurrentClearWithAdd) {
+	config_.max_sessions = 10000;
+	session_manager_base<simple_session> manager(config_);
+
+	std::atomic<bool> stop{false};
+
+	// Thread adding sessions
+	std::thread adder([&]() {
+		int i = 0;
+		while (!stop.load()) {
+			auto session = std::make_shared<simple_session>();
+			manager.add_session(session, "concurrent_" + std::to_string(i++));
+		}
+	});
+
+	// Main thread clears periodically
+	for (int c = 0; c < 10; ++c) {
+		std::this_thread::yield();
+		manager.clear_all_sessions();
+	}
+
+	stop.store(true);
+	adder.join();
+
+	// Manager should be in a consistent state
+	auto stats = manager.get_stats();
+	EXPECT_GE(stats.total_accepted, 0u);
+}

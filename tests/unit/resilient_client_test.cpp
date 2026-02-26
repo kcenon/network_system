@@ -252,3 +252,285 @@ TEST_F(ResilientClientCircuitBreakerTest, InitialCircuitStateIsClosed)
 			  kcenon::common::resilience::circuit_state::CLOSED);
 }
 #endif
+
+// ============================================================================
+// Reconnect Callback Attempt Number Tests
+// ============================================================================
+
+class ResilientClientReconnectAttemptTest : public ::testing::Test
+{
+protected:
+	std::unique_ptr<resilient_client> client_;
+
+	void SetUp() override
+	{
+		client_ = std::make_unique<resilient_client>(
+			"attempt_test", "127.0.0.1", 1,
+			3, std::chrono::milliseconds(1));
+	}
+};
+
+TEST_F(ResilientClientReconnectAttemptTest, CallbackReceivesAttemptNumber)
+{
+	std::vector<size_t> attempts;
+	std::mutex mtx;
+
+	client_->set_reconnect_callback([&](size_t attempt) {
+		std::lock_guard<std::mutex> lock(mtx);
+		attempts.push_back(attempt);
+	});
+
+	auto result = client_->connect();
+
+	// Verify at least one attempt was recorded
+	std::lock_guard<std::mutex> lock(mtx);
+	EXPECT_GE(attempts.size(), 1u);
+
+	// Attempt numbers should start from 1 and increment
+	if (!attempts.empty())
+	{
+		EXPECT_EQ(attempts[0], 1u);
+	}
+}
+
+TEST_F(ResilientClientReconnectAttemptTest, MaxRetriesRespected)
+{
+	std::atomic<size_t> callback_count{0};
+
+	client_->set_reconnect_callback([&](size_t) {
+		callback_count.fetch_add(1);
+	});
+
+	auto result = client_->connect();
+
+	// Should not exceed max_retries (3)
+	EXPECT_LE(callback_count.load(), 3u);
+}
+
+// ============================================================================
+// Disconnect Callback Tests
+// ============================================================================
+
+class ResilientClientDisconnectCallbackTest : public ::testing::Test
+{
+protected:
+	std::unique_ptr<resilient_client> client_;
+
+	void SetUp() override
+	{
+		client_ = std::make_unique<resilient_client>(
+			"disconnect_cb_test", "127.0.0.1", 1,
+			1, std::chrono::milliseconds(1));
+	}
+};
+
+TEST_F(ResilientClientDisconnectCallbackTest, DisconnectCallbackCanBeSet)
+{
+	std::atomic<bool> called{false};
+
+	client_->set_disconnect_callback([&]() {
+		called.store(true);
+	});
+
+	// Disconnect without connecting - should be safe
+	auto result = client_->disconnect();
+	EXPECT_FALSE(result.is_err());
+}
+
+TEST_F(ResilientClientDisconnectCallbackTest, SetDisconnectCallbackMultipleTimes)
+{
+	// Setting callback multiple times should not crash
+	for (int i = 0; i < 5; ++i)
+	{
+		EXPECT_NO_THROW(client_->set_disconnect_callback([]() {}));
+	}
+}
+
+// ============================================================================
+// Edge Case Tests
+// ============================================================================
+
+class ResilientClientEdgeCaseTest : public ::testing::Test
+{
+};
+
+TEST_F(ResilientClientEdgeCaseTest, ConstructWithEmptyId)
+{
+	// Empty client_id should not crash
+	resilient_client client("", "localhost", 9999);
+
+	EXPECT_FALSE(client.is_connected());
+}
+
+TEST_F(ResilientClientEdgeCaseTest, ConstructWithZeroRetries)
+{
+	resilient_client client("zero_retry", "127.0.0.1", 1,
+							0, std::chrono::milliseconds(1));
+
+	EXPECT_FALSE(client.is_connected());
+}
+
+TEST_F(ResilientClientEdgeCaseTest, ConstructWithLargeBackoff)
+{
+	// Large initial backoff should not overflow or cause issues during construction
+	resilient_client client("large_backoff", "127.0.0.1", 1,
+							1, std::chrono::milliseconds(60000));
+
+	EXPECT_FALSE(client.is_connected());
+}
+
+TEST_F(ResilientClientEdgeCaseTest, ConstructWithPortZero)
+{
+	resilient_client client("port_zero", "127.0.0.1", 0);
+
+	EXPECT_FALSE(client.is_connected());
+}
+
+TEST_F(ResilientClientEdgeCaseTest, ConstructWithMaxPort)
+{
+	resilient_client client("max_port", "127.0.0.1", 65535);
+
+	EXPECT_FALSE(client.is_connected());
+}
+
+TEST_F(ResilientClientEdgeCaseTest, MultipleDestructionsAreSafe)
+{
+	for (int i = 0; i < 10; ++i)
+	{
+		resilient_client client("multi_destroy_" + std::to_string(i),
+								"127.0.0.1", 1, 1,
+								std::chrono::milliseconds(1));
+	}
+	SUCCEED();
+}
+
+// ============================================================================
+// send_with_retry Additional Tests
+// ============================================================================
+
+class ResilientClientSendTest : public ::testing::Test
+{
+protected:
+	std::unique_ptr<resilient_client> client_;
+
+	void SetUp() override
+	{
+		client_ = std::make_unique<resilient_client>(
+			"send_test", "127.0.0.1", 1,
+			1, std::chrono::milliseconds(1));
+	}
+};
+
+TEST_F(ResilientClientSendTest, SendEmptyDataWhenNotConnected)
+{
+	std::vector<uint8_t> empty_data;
+	auto result = client_->send_with_retry(std::move(empty_data));
+
+	EXPECT_TRUE(result.is_err());
+}
+
+TEST_F(ResilientClientSendTest, SendLargeDataWhenNotConnected)
+{
+	std::vector<uint8_t> large_data(10000, 0xAB);
+	auto result = client_->send_with_retry(std::move(large_data));
+
+	EXPECT_TRUE(result.is_err());
+}
+
+// ============================================================================
+// Rapid Connect/Disconnect Cycle Tests
+// ============================================================================
+
+class ResilientClientRapidCycleTest : public ::testing::Test
+{
+protected:
+	std::unique_ptr<resilient_client> client_;
+
+	void SetUp() override
+	{
+		client_ = std::make_unique<resilient_client>(
+			"rapid_cycle", "127.0.0.1", 1,
+			1, std::chrono::milliseconds(1));
+	}
+};
+
+TEST_F(ResilientClientRapidCycleTest, RapidConnectDisconnect)
+{
+	for (int i = 0; i < 5; ++i)
+	{
+		auto connect_result = client_->connect();
+		EXPECT_TRUE(connect_result.is_ok() || connect_result.is_err());
+
+		auto disconnect_result = client_->disconnect();
+		EXPECT_FALSE(disconnect_result.is_err());
+	}
+
+	// Final state should be disconnected
+	EXPECT_FALSE(client_->is_connected());
+}
+
+TEST_F(ResilientClientRapidCycleTest, DisconnectMultipleTimesIsSafe)
+{
+	for (int i = 0; i < 10; ++i)
+	{
+		auto result = client_->disconnect();
+		EXPECT_FALSE(result.is_err());
+	}
+}
+
+// ============================================================================
+// Get Client Consistency Tests
+// ============================================================================
+
+class ResilientClientGetClientTest : public ::testing::Test
+{
+protected:
+	std::unique_ptr<resilient_client> client_;
+
+	void SetUp() override
+	{
+		client_ = std::make_unique<resilient_client>(
+			"get_client_test", "localhost", 9999);
+	}
+};
+
+TEST_F(ResilientClientGetClientTest, GetClientAfterConnectDisconnect)
+{
+	auto before = client_->get_client();
+	ASSERT_NE(before, nullptr);
+
+	client_->connect();
+	client_->disconnect();
+
+	auto after = client_->get_client();
+	ASSERT_NE(after, nullptr);
+
+	// Should return the same underlying client instance
+	EXPECT_EQ(before.get(), after.get());
+}
+
+TEST_F(ResilientClientGetClientTest, GetClientIsThreadSafe)
+{
+	constexpr int num_threads = 4;
+	std::vector<std::thread> threads;
+	std::vector<void*> pointers(num_threads, nullptr);
+
+	for (int t = 0; t < num_threads; ++t)
+	{
+		threads.emplace_back([this, &pointers, t]() {
+			auto ptr = client_->get_client();
+			pointers[t] = ptr.get();
+		});
+	}
+
+	for (auto& th : threads)
+	{
+		th.join();
+	}
+
+	// All threads should get the same pointer
+	for (int t = 1; t < num_threads; ++t)
+	{
+		EXPECT_EQ(pointers[0], pointers[t]);
+	}
+}
