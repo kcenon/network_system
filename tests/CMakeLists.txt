@@ -127,6 +127,12 @@ if(GTest_FOUND OR GTEST_FOUND)
         GTest::gtest
         GTest::gtest_main
         Threads::Threads
+        OpenSSL::SSL
+        OpenSSL::Crypto
+    )
+
+    target_include_directories(network_tls_config_test PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/helpers
     )
 
     # Setup ASIO integration
