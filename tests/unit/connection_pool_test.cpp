@@ -320,3 +320,91 @@ TEST_F(ConnectionPoolAcquireTest, AcquireFromUninitializedPoolWithZeroSize)
 	EXPECT_EQ(pool.pool_size(), 0);
 	EXPECT_EQ(pool.active_count(), 0);
 }
+
+// ============================================================================
+// Resource Exhaustion Tests
+// ============================================================================
+
+class ConnectionPoolExhaustionTest : public ::testing::Test
+{
+};
+
+TEST_F(ConnectionPoolExhaustionTest, PoolSizeZeroInitializesSuccessfully)
+{
+	// A zero-size pool should initialize without error
+	connection_pool pool("127.0.0.1", 1, 0);
+	auto result = pool.initialize();
+	EXPECT_TRUE(result.is_ok());
+	EXPECT_EQ(pool.pool_size(), 0);
+	EXPECT_EQ(pool.active_count(), 0);
+}
+
+TEST_F(ConnectionPoolExhaustionTest, ConcurrentReleaseNullptr)
+{
+	// Multiple threads releasing nullptr simultaneously should be safe
+	connection_pool pool("localhost", 5555, 10);
+
+	constexpr int num_threads = 8;
+	std::vector<std::thread> threads;
+	for (int t = 0; t < num_threads; ++t)
+	{
+		threads.emplace_back([&pool]() {
+			for (int i = 0; i < 50; ++i)
+			{
+				pool.release(nullptr);
+			}
+		});
+	}
+
+	for (auto& t : threads)
+	{
+		t.join();
+	}
+
+	EXPECT_EQ(pool.active_count(), 0);
+}
+
+TEST_F(ConnectionPoolExhaustionTest, ReleaseNullptrDoesNotAffectState)
+{
+	connection_pool pool("localhost", 5555, 5);
+
+	// Multiple nullptr releases should be completely harmless
+	for (int i = 0; i < 100; ++i)
+	{
+		pool.release(nullptr);
+	}
+
+	EXPECT_EQ(pool.active_count(), 0);
+	EXPECT_EQ(pool.pool_size(), 5);
+}
+
+TEST_F(ConnectionPoolExhaustionTest, InitializeFailureDoesNotCorruptPool)
+{
+	connection_pool pool("127.0.0.1", 1, 10);
+
+	auto result = pool.initialize();
+	EXPECT_TRUE(result.is_err());
+
+	// Pool should remain in a consistent state after failed init
+	EXPECT_EQ(pool.pool_size(), 10);
+	EXPECT_EQ(pool.active_count(), 0);
+
+	// Release nullptr should still be safe
+	pool.release(nullptr);
+	EXPECT_EQ(pool.active_count(), 0);
+}
+
+TEST_F(ConnectionPoolExhaustionTest, MultipleInitializeAttemptsDoNotLeak)
+{
+	connection_pool pool("127.0.0.1", 1, 5);
+
+	// Multiple failed init attempts should not leak resources
+	for (int i = 0; i < 5; ++i)
+	{
+		auto result = pool.initialize();
+		EXPECT_TRUE(result.is_err());
+	}
+
+	EXPECT_EQ(pool.pool_size(), 5);
+	EXPECT_EQ(pool.active_count(), 0);
+}
