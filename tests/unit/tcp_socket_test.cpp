@@ -6,16 +6,19 @@ All rights reserved.
 *****************************************************************************/
 
 #include "internal/tcp/tcp_socket.h"
+#include "kcenon/network-core/interfaces/socket_observer.h"
 #include <gtest/gtest.h>
 
 #include <atomic>
 #include <chrono>
 #include <future>
+#include <numeric>
 #include <span>
 #include <thread>
 #include <vector>
 
 using namespace kcenon::network::internal;
+using namespace kcenon::network_core::interfaces;
 
 /**
  * @file tcp_socket_test.cpp
@@ -613,4 +616,423 @@ TEST_F(TcpSocketCallbackTest, BackpressureActive_InitiallyFalse)
 
 	EXPECT_FALSE(server->is_backpressure_active());
 	EXPECT_FALSE(client->is_backpressure_active());
+}
+
+// ============================================================================
+// Close Lifecycle Tests
+// ============================================================================
+
+TEST_F(TcpSocketCallbackTest, CloseTransitionsToClosedState)
+{
+	auto [server, client] = create_connected_socket_pair();
+	ASSERT_NE(server, nullptr);
+	ASSERT_NE(client, nullptr);
+
+	EXPECT_FALSE(server->is_closed());
+	EXPECT_FALSE(client->is_closed());
+
+	server->close();
+	EXPECT_TRUE(server->is_closed());
+
+	client->close();
+	EXPECT_TRUE(client->is_closed());
+}
+
+TEST_F(TcpSocketCallbackTest, DoubleCloseDoesNotCrash)
+{
+	auto [server, client] = create_connected_socket_pair();
+	ASSERT_NE(server, nullptr);
+
+	EXPECT_NO_THROW(server->close());
+	EXPECT_NO_THROW(server->close());
+	EXPECT_TRUE(server->is_closed());
+}
+
+TEST_F(TcpSocketCallbackTest, StopReadAfterCloseDoesNotCrash)
+{
+	auto [server, client] = create_connected_socket_pair();
+	ASSERT_NE(server, nullptr);
+
+	server->start_read();
+	server->close();
+
+	EXPECT_NO_THROW(server->stop_read());
+}
+
+// ============================================================================
+// Multiple Sequential Sends Tests
+// ============================================================================
+
+TEST_F(TcpSocketCallbackTest, MultipleSequentialSends)
+{
+	auto [server, client] = create_connected_socket_pair();
+	ASSERT_NE(server, nullptr);
+	ASSERT_NE(client, nullptr);
+
+	std::atomic<size_t> total_received{0};
+	std::promise<void> done_promise;
+	auto done_future = done_promise.get_future();
+	std::atomic<bool> done_set{false};
+
+	constexpr size_t kNumSends = 5;
+	constexpr size_t kDataSize = 64;
+	constexpr size_t kExpectedTotal = kNumSends * kDataSize;
+
+	server->set_receive_callback(
+		[&](const std::vector<uint8_t>& data)
+		{
+			total_received.fetch_add(data.size());
+			if (total_received.load() >= kExpectedTotal)
+			{
+				bool expected = false;
+				if (done_set.compare_exchange_strong(expected, true))
+				{
+					done_promise.set_value();
+				}
+			}
+		});
+
+	server->start_read();
+
+	for (size_t i = 0; i < kNumSends; ++i)
+	{
+		std::vector<uint8_t> data(kDataSize, static_cast<uint8_t>(i));
+		std::promise<bool> send_promise;
+		auto send_future = send_promise.get_future();
+
+		client->async_send(std::move(data),
+						   [&send_promise](std::error_code ec, std::size_t)
+						   {
+							   send_promise.set_value(!ec);
+						   });
+
+		ASSERT_TRUE(send_future.wait_for(std::chrono::seconds(5)) == std::future_status::ready);
+		ASSERT_TRUE(send_future.get()) << "Send " << i << " failed";
+	}
+
+	ASSERT_TRUE(done_future.wait_for(std::chrono::seconds(5)) == std::future_status::ready);
+	EXPECT_GE(total_received.load(), kExpectedTotal);
+
+	const auto& metrics = client->metrics();
+	EXPECT_EQ(metrics.send_count.load(), kNumSends);
+
+	server->stop_read();
+}
+
+// ============================================================================
+// Bidirectional Communication Tests
+// ============================================================================
+
+TEST_F(TcpSocketCallbackTest, BidirectionalCommunication)
+{
+	auto [server, client] = create_connected_socket_pair();
+	ASSERT_NE(server, nullptr);
+	ASSERT_NE(client, nullptr);
+
+	std::promise<std::vector<uint8_t>> server_rx_promise;
+	auto server_rx_future = server_rx_promise.get_future();
+	std::atomic<bool> server_rx_set{false};
+
+	std::promise<std::vector<uint8_t>> client_rx_promise;
+	auto client_rx_future = client_rx_promise.get_future();
+	std::atomic<bool> client_rx_set{false};
+
+	server->set_receive_callback(
+		[&](const std::vector<uint8_t>& data)
+		{
+			bool expected = false;
+			if (server_rx_set.compare_exchange_strong(expected, true))
+			{
+				server_rx_promise.set_value(data);
+			}
+		});
+
+	client->set_receive_callback(
+		[&](const std::vector<uint8_t>& data)
+		{
+			bool expected = false;
+			if (client_rx_set.compare_exchange_strong(expected, true))
+			{
+				client_rx_promise.set_value(data);
+			}
+		});
+
+	server->start_read();
+	client->start_read();
+
+	// Client sends to server
+	std::vector<uint8_t> client_msg = {0x10, 0x20, 0x30};
+	{
+		std::promise<bool> p;
+		auto f = p.get_future();
+		client->async_send(std::move(client_msg),
+						   [&p](std::error_code ec, std::size_t) { p.set_value(!ec); });
+		ASSERT_TRUE(f.wait_for(std::chrono::seconds(5)) == std::future_status::ready);
+		ASSERT_TRUE(f.get());
+	}
+
+	ASSERT_TRUE(server_rx_future.wait_for(std::chrono::seconds(5)) == std::future_status::ready);
+	auto server_received = server_rx_future.get();
+	EXPECT_EQ(server_received.size(), 3);
+	EXPECT_EQ(server_received[0], 0x10);
+
+	// Server sends back to client
+	std::vector<uint8_t> server_msg = {0xA0, 0xB0};
+	{
+		std::promise<bool> p;
+		auto f = p.get_future();
+		server->async_send(std::move(server_msg),
+						   [&p](std::error_code ec, std::size_t) { p.set_value(!ec); });
+		ASSERT_TRUE(f.wait_for(std::chrono::seconds(5)) == std::future_status::ready);
+		ASSERT_TRUE(f.get());
+	}
+
+	ASSERT_TRUE(client_rx_future.wait_for(std::chrono::seconds(5)) == std::future_status::ready);
+	auto client_received = client_rx_future.get();
+	EXPECT_EQ(client_received.size(), 2);
+	EXPECT_EQ(client_received[0], 0xA0);
+
+	server->stop_read();
+	client->stop_read();
+}
+
+// ============================================================================
+// Large Data Transfer Tests
+// ============================================================================
+
+TEST_F(TcpSocketCallbackTest, LargeDataTransfer)
+{
+	auto [server, client] = create_connected_socket_pair();
+	ASSERT_NE(server, nullptr);
+	ASSERT_NE(client, nullptr);
+
+	constexpr size_t kLargeSize = 64 * 1024; // 64KB
+	std::atomic<size_t> total_received{0};
+	std::promise<void> done_promise;
+	auto done_future = done_promise.get_future();
+	std::atomic<bool> done_set{false};
+
+	server->set_receive_callback(
+		[&](const std::vector<uint8_t>& data)
+		{
+			total_received.fetch_add(data.size());
+			if (total_received.load() >= kLargeSize)
+			{
+				bool expected = false;
+				if (done_set.compare_exchange_strong(expected, true))
+				{
+					done_promise.set_value();
+				}
+			}
+		});
+
+	server->start_read();
+
+	// Create large payload with pattern
+	std::vector<uint8_t> large_data(kLargeSize);
+	std::iota(large_data.begin(), large_data.end(), static_cast<uint8_t>(0));
+
+	std::promise<bool> send_promise;
+	auto send_future = send_promise.get_future();
+
+	client->async_send(std::move(large_data),
+					   [&send_promise](std::error_code ec, std::size_t)
+					   {
+						   send_promise.set_value(!ec);
+					   });
+
+	ASSERT_TRUE(send_future.wait_for(std::chrono::seconds(10)) == std::future_status::ready);
+	ASSERT_TRUE(send_future.get());
+
+	ASSERT_TRUE(done_future.wait_for(std::chrono::seconds(10)) == std::future_status::ready);
+	EXPECT_GE(total_received.load(), kLargeSize);
+
+	server->stop_read();
+}
+
+// ============================================================================
+// Observer Pattern Tests
+// ============================================================================
+
+TEST_F(TcpSocketCallbackTest, ObserverReceivesData)
+{
+	auto [server, client] = create_connected_socket_pair();
+	ASSERT_NE(server, nullptr);
+	ASSERT_NE(client, nullptr);
+
+	std::promise<std::vector<uint8_t>> rx_promise;
+	auto rx_future = rx_promise.get_future();
+	std::atomic<bool> rx_set{false};
+
+	auto adapter = std::make_shared<socket_callback_adapter>();
+	adapter->on_receive(
+		[&](std::span<const uint8_t> data)
+		{
+			bool expected = false;
+			if (rx_set.compare_exchange_strong(expected, true))
+			{
+				rx_promise.set_value(std::vector<uint8_t>(data.begin(), data.end()));
+			}
+		});
+
+	server->attach_observer(adapter);
+	server->start_read();
+
+	std::vector<uint8_t> test_data = {0xDE, 0xAD, 0xBE, 0xEF};
+	std::promise<bool> send_promise;
+	auto send_future = send_promise.get_future();
+
+	client->async_send(std::move(test_data),
+					   [&send_promise](std::error_code ec, std::size_t)
+					   {
+						   send_promise.set_value(!ec);
+					   });
+
+	ASSERT_TRUE(send_future.wait_for(std::chrono::seconds(5)) == std::future_status::ready);
+	ASSERT_TRUE(send_future.get());
+
+	ASSERT_TRUE(rx_future.wait_for(std::chrono::seconds(5)) == std::future_status::ready);
+	auto received = rx_future.get();
+	EXPECT_EQ(received.size(), 4);
+	EXPECT_EQ(received[0], 0xDE);
+	EXPECT_EQ(received[3], 0xEF);
+
+	server->stop_read();
+	server->detach_observer(adapter);
+}
+
+TEST_F(TcpSocketCallbackTest, ObserverReceivesError)
+{
+	auto [server, client] = create_connected_socket_pair();
+	ASSERT_NE(server, nullptr);
+	ASSERT_NE(client, nullptr);
+
+	std::promise<std::error_code> error_promise;
+	auto error_future = error_promise.get_future();
+	std::atomic<bool> error_set{false};
+
+	auto adapter = std::make_shared<socket_callback_adapter>();
+	adapter->on_error(
+		[&](std::error_code ec)
+		{
+			bool expected = false;
+			if (error_set.compare_exchange_strong(expected, true))
+			{
+				error_promise.set_value(ec);
+			}
+		});
+
+	server->attach_observer(adapter);
+	server->start_read();
+
+	// Close client to trigger error on server
+	client->socket().close();
+
+	ASSERT_TRUE(error_future.wait_for(std::chrono::seconds(5)) == std::future_status::ready);
+	auto ec = error_future.get();
+	EXPECT_TRUE(ec == asio::error::eof ||
+				ec == asio::error::connection_reset ||
+				ec == asio::error::broken_pipe);
+
+	server->detach_observer(adapter);
+}
+
+TEST_F(TcpSocketCallbackTest, DetachObserverStopsNotifications)
+{
+	auto [server, client] = create_connected_socket_pair();
+	ASSERT_NE(server, nullptr);
+	ASSERT_NE(client, nullptr);
+
+	std::atomic<int> receive_count{0};
+
+	auto adapter = std::make_shared<socket_callback_adapter>();
+	adapter->on_receive(
+		[&](std::span<const uint8_t>)
+		{
+			receive_count.fetch_add(1);
+		});
+
+	server->attach_observer(adapter);
+	server->start_read();
+
+	// Send first message
+	{
+		std::vector<uint8_t> data = {0x01};
+		std::promise<bool> p;
+		auto f = p.get_future();
+		client->async_send(std::move(data),
+						   [&p](std::error_code ec, std::size_t) { p.set_value(!ec); });
+		ASSERT_TRUE(f.wait_for(std::chrono::seconds(5)) == std::future_status::ready);
+		ASSERT_TRUE(f.get());
+	}
+
+	std::this_thread::sleep_for(std::chrono::milliseconds(100));
+	int count_before_detach = receive_count.load();
+	EXPECT_GE(count_before_detach, 1);
+
+	// Detach observer
+	server->detach_observer(adapter);
+
+	// Send second message — observer should NOT receive it
+	{
+		std::vector<uint8_t> data = {0x02};
+		std::promise<bool> p;
+		auto f = p.get_future();
+		client->async_send(std::move(data),
+						   [&p](std::error_code ec, std::size_t) { p.set_value(!ec); });
+		ASSERT_TRUE(f.wait_for(std::chrono::seconds(5)) == std::future_status::ready);
+	}
+
+	std::this_thread::sleep_for(std::chrono::milliseconds(100));
+	EXPECT_EQ(receive_count.load(), count_before_detach);
+
+	server->stop_read();
+}
+
+// ============================================================================
+// Error Path Tests
+// ============================================================================
+
+TEST_F(TcpSocketCallbackTest, ConnectToNonListeningPortFails)
+{
+	// Use a port that is very likely not listening
+	asio::ip::tcp::socket raw_socket(*io_context_);
+	std::error_code ec;
+	raw_socket.connect(
+		asio::ip::tcp::endpoint(asio::ip::make_address("127.0.0.1"), 1), ec);
+
+	// Should fail with connection refused or similar
+	EXPECT_TRUE(ec) << "Expected connection to port 1 to fail";
+}
+
+TEST_F(TcpSocketCallbackTest, SendAfterCloseTriggersError)
+{
+	auto [server, client] = create_connected_socket_pair();
+	ASSERT_NE(server, nullptr);
+	ASSERT_NE(client, nullptr);
+
+	client->close();
+	EXPECT_TRUE(client->is_closed());
+
+	std::promise<bool> send_promise;
+	auto send_future = send_promise.get_future();
+	std::atomic<bool> promise_set{false};
+
+	std::vector<uint8_t> data = {0x01, 0x02};
+	client->async_send(std::move(data),
+					   [&send_promise, &promise_set](std::error_code ec, std::size_t)
+					   {
+						   bool expected = false;
+						   if (promise_set.compare_exchange_strong(expected, true))
+						   {
+							   send_promise.set_value(!ec);
+						   }
+					   });
+
+	// Either the send fails immediately or the callback reports error
+	if (send_future.wait_for(std::chrono::seconds(3)) == std::future_status::ready)
+	{
+		// If callback was invoked, it should report failure
+		EXPECT_FALSE(send_future.get());
+	}
 }
