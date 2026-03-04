@@ -813,6 +813,47 @@ if(GTest_FOUND OR GTEST_FOUND)
     )
     message(STATUS "UDP composition tests enabled")
 
+    # UDP socket unit tests (raw udp_socket level)
+    add_executable(network_udp_socket_test
+        unit/udp_socket_test.cpp
+    )
+
+    target_link_libraries(network_udp_socket_test PRIVATE
+        NetworkSystem
+        network-udp
+        GTest::gtest
+        GTest::gtest_main
+        Threads::Threads
+    )
+
+    setup_asio_integration(network_udp_socket_test)
+
+    if(COMMON_SYSTEM_INCLUDE_DIR)
+        target_include_directories(network_udp_socket_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(network_udp_socket_test PRIVATE WITH_COMMON_SYSTEM)
+    endif()
+
+    if(THREAD_SYSTEM_INCLUDE_DIR)
+        target_include_directories(network_udp_socket_test PRIVATE ${THREAD_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(network_udp_socket_test PRIVATE WITH_THREAD_SYSTEM)
+    endif()
+
+    if(LOGGER_SYSTEM_INCLUDE_DIR)
+        target_include_directories(network_udp_socket_test PRIVATE ${LOGGER_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(network_udp_socket_test PRIVATE WITH_LOGGER_SYSTEM)
+    endif()
+
+    set_target_properties(network_udp_socket_test PROPERTIES
+        CXX_STANDARD 20
+        CXX_STANDARD_REQUIRED ON
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+    )
+
+    network_gtest_discover_tests(network_udp_socket_test
+        DISCOVERY_TIMEOUT 60
+    )
+    message(STATUS "UDP socket unit tests enabled")
+
     # WebSocket frame tests
     if(BUILD_WEBSOCKET_SUPPORT)
         add_executable(network_websocket_frame_test
