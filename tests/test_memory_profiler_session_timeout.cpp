@@ -323,6 +323,131 @@ TEST_F(SessionTimeoutTest, ConcurrentAccess)
 }
 
 // ============================================================================
+// Session Timeout Manager - Edge Cases
+// ============================================================================
+
+TEST_F(SessionTimeoutTest, RapidActivityUpdatesKeepAlive)
+{
+    // Even with a very short timeout, rapid updates should prevent timeout
+    kcenon::network::session_timeout_manager mgr(std::chrono::seconds(1));
+
+    for (int i = 0; i < 50; ++i)
+    {
+        mgr.update_activity();
+        std::this_thread::sleep_for(std::chrono::milliseconds(30));
+    }
+
+    // Total elapsed ~1.5s but last update was ~30ms ago
+    EXPECT_FALSE(mgr.is_timed_out());
+}
+
+TEST_F(SessionTimeoutTest, ConcurrentTimeoutChecksConsistent)
+{
+    // Multiple threads checking timeout simultaneously should all agree
+    kcenon::network::session_timeout_manager mgr(std::chrono::seconds(60));
+
+    std::atomic<int> not_timed_out{0};
+    std::atomic<int> timed_out{0};
+    std::vector<std::thread> threads;
+
+    for (int i = 0; i < 8; ++i)
+    {
+        threads.emplace_back([&mgr, &not_timed_out, &timed_out]()
+        {
+            for (int j = 0; j < 200; ++j)
+            {
+                if (mgr.is_timed_out())
+                {
+                    timed_out.fetch_add(1);
+                }
+                else
+                {
+                    not_timed_out.fetch_add(1);
+                }
+            }
+        });
+    }
+
+    for (auto& t : threads)
+    {
+        t.join();
+    }
+
+    // With 60s timeout and near-instant execution, none should be timed out
+    EXPECT_EQ(timed_out.load(), 0);
+    EXPECT_EQ(not_timed_out.load(), 8 * 200);
+}
+
+TEST_F(SessionTimeoutTest, ConcurrentUpdatesAndTimeoutChecks)
+{
+    // Writers call update_activity while readers check is_timed_out
+    kcenon::network::session_timeout_manager mgr(std::chrono::seconds(60));
+
+    std::atomic<bool> stop{false};
+    std::atomic<int> timeout_seen{0};
+
+    // Writer threads
+    std::vector<std::thread> writers;
+    for (int i = 0; i < 4; ++i)
+    {
+        writers.emplace_back([&mgr, &stop]()
+        {
+            while (!stop.load())
+            {
+                mgr.update_activity();
+                std::this_thread::yield();
+            }
+        });
+    }
+
+    // Reader threads
+    std::vector<std::thread> readers;
+    for (int i = 0; i < 4; ++i)
+    {
+        readers.emplace_back([&mgr, &stop, &timeout_seen]()
+        {
+            while (!stop.load())
+            {
+                if (mgr.is_timed_out())
+                {
+                    timeout_seen.fetch_add(1);
+                }
+                std::this_thread::yield();
+            }
+        });
+    }
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    stop.store(true);
+
+    for (auto& t : writers) t.join();
+    for (auto& t : readers) t.join();
+
+    // With continuous updates and 60s timeout, should never see timeout
+    EXPECT_EQ(timeout_seen.load(), 0);
+}
+
+TEST_F(SessionTimeoutTest, LargeTimeoutNeverExpires)
+{
+    kcenon::network::session_timeout_manager mgr(std::chrono::seconds(86400));
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    EXPECT_FALSE(mgr.is_timed_out());
+
+    auto idle = mgr.get_idle_time();
+    EXPECT_LT(idle.count(), 86400);
+}
+
+TEST_F(SessionTimeoutTest, IdleTimeAccumulatesCorrectly)
+{
+    kcenon::network::session_timeout_manager mgr(std::chrono::seconds(300));
+    std::this_thread::sleep_for(std::chrono::milliseconds(1200));
+
+    auto idle = mgr.get_idle_time();
+    EXPECT_GE(idle.count(), 1);
+    EXPECT_LE(idle.count(), 3);
+}
+
+// ============================================================================
 // Memory Snapshot Struct Tests
 // ============================================================================
 
