@@ -254,3 +254,130 @@ TEST_F(NetworkFailureTest, HandlesClientDoubleStop) {
 
   SUCCEED();
 }
+
+// ============================================================================
+// Server Shutdown During Active Sessions
+// ============================================================================
+
+TEST_F(NetworkFailureTest, ServerShutdownWhileClientsSending) {
+  if (is_sanitizer_run()) {
+    GTEST_SKIP() << "Skipping under sanitizer due to asio false positives";
+  }
+
+  auto start_result = server_->start_server(TEST_PORT);
+  ASSERT_TRUE(start_result.is_ok());
+
+  // Connect multiple clients
+  std::vector<std::shared_ptr<messaging_client>> clients;
+  for (int i = 0; i < 3; ++i) {
+    auto client =
+        std::make_shared<messaging_client>("active_client_" + std::to_string(i));
+    auto cr = client->start_client("localhost", TEST_PORT);
+    if (cr.is_ok()) {
+      clients.push_back(client);
+    }
+  }
+
+  wait_for_ready();
+
+  // Abruptly stop server while clients are still connected
+  [[maybe_unused]] auto stop_result2 = server_->stop_server();
+
+  // Clients should handle the disconnection without crashing
+  for (auto &c : clients) {
+    c->stop_client();
+  }
+
+  SUCCEED();
+}
+
+TEST_F(NetworkFailureTest, ClientDisconnectDuringServerActivity) {
+  if (is_sanitizer_run()) {
+    GTEST_SKIP() << "Skipping under sanitizer due to asio false positives";
+  }
+
+  auto start_result = server_->start_server(TEST_PORT);
+  ASSERT_TRUE(start_result.is_ok());
+
+  auto client = std::make_shared<messaging_client>("disconnect_client");
+  auto connect_result = client->start_client("localhost", TEST_PORT);
+  ASSERT_TRUE(connect_result.is_ok());
+
+  wait_for_ready();
+
+  // Immediately disconnect — server should handle in-flight callbacks safely
+  client->stop_client();
+
+  wait_for_ready();
+
+  // Server should remain operational after client disconnects
+  auto client2 = std::make_shared<messaging_client>("reconnect_client");
+  auto reconnect_result = client2->start_client("localhost", TEST_PORT);
+  EXPECT_TRUE(reconnect_result.is_ok());
+
+  wait_for_ready();
+  client2->stop_client();
+
+  SUCCEED();
+}
+
+TEST_F(NetworkFailureTest, RapidConnectDisconnectSingleThread) {
+  if (is_sanitizer_run()) {
+    GTEST_SKIP() << "Skipping under sanitizer due to asio false positives";
+  }
+
+  auto start_result = server_->start_server(TEST_PORT);
+  ASSERT_TRUE(start_result.is_ok());
+
+  // Rapidly connect and disconnect 20 times sequentially
+  int success_count = 0;
+  for (int i = 0; i < 20; ++i) {
+    auto client =
+        std::make_shared<messaging_client>("rapid_client_" + std::to_string(i));
+    auto cr = client->start_client("localhost", TEST_PORT);
+    if (cr.is_ok()) {
+      ++success_count;
+    }
+    client->stop_client();
+  }
+
+  wait_for_ready();
+
+  // Most connections should succeed
+  EXPECT_GT(success_count, 10);
+}
+
+TEST_F(NetworkFailureTest, ServerRestartAfterStop) {
+  if (is_sanitizer_run()) {
+    GTEST_SKIP() << "Skipping under sanitizer due to asio false positives";
+  }
+
+  auto start_result = server_->start_server(TEST_PORT);
+  ASSERT_TRUE(start_result.is_ok());
+
+  // Connect a client, verify
+  auto client1 = std::make_shared<messaging_client>("client_before_restart");
+  auto cr1 = client1->start_client("localhost", TEST_PORT);
+  ASSERT_TRUE(cr1.is_ok());
+  wait_for_ready();
+  client1->stop_client();
+
+  // Stop the server
+  server_->stop_server();
+  wait_for_ready();
+
+  // Restart the server on a different port to avoid bind conflicts
+  static constexpr unsigned short RESTART_PORT = TEST_PORT + 1;
+  auto restart_result = server_->start_server(RESTART_PORT);
+
+  if (restart_result.is_ok()) {
+    // Connect again after restart
+    auto client2 = std::make_shared<messaging_client>("client_after_restart");
+    auto cr2 = client2->start_client("localhost", RESTART_PORT);
+    EXPECT_TRUE(cr2.is_ok());
+    wait_for_ready();
+    [[maybe_unused]] auto sr = client2->stop_client();
+  }
+
+  SUCCEED();
+}
