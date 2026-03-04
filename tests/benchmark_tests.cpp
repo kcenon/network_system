@@ -40,6 +40,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <sstream>
 
 #include "kcenon/network/compatibility.h"
+#include "kcenon/network/detail/metrics/histogram.h"
 #include <container.h>
 
 using namespace network_module;
@@ -195,30 +196,32 @@ BENCHMARK_REGISTER_F(NetworkBenchmarkFixture, BM_MessageSending)
     ->RangeMultiplier(10)
     ->Range(100, 1000000);
 
-// Round-trip latency benchmark
+// Round-trip latency benchmark with percentile tracking
 BENCHMARK_DEFINE_F(NetworkBenchmarkFixture, BM_RoundTripLatency)(benchmark::State& state) {
+    using namespace kcenon::network;
+
     asio::io_context io_context;
     auto client = std::make_shared<messaging_client>(
-        io_context, 
+        io_context,
         "latency_client",
         "latency_key"
     );
-    
+
     if (!client->connect("127.0.0.1", g_server_port)) {
         state.SkipWithError("Failed to connect to server");
         return;
     }
-    
+
     // Setup echo handler
     std::promise<void> response_promise;
     std::atomic<bool> waiting{false};
-    
+
     client->set_message_handler([&](std::shared_ptr<value_container> msg) {
         if (waiting) {
             response_promise.set_value();
         }
     });
-    
+
     // Start io_context in background
     std::atomic<bool> stop_io{false};
     std::thread io_thread([&io_context, &stop_io]() {
@@ -226,36 +229,47 @@ BENCHMARK_DEFINE_F(NetworkBenchmarkFixture, BM_RoundTripLatency)(benchmark::Stat
             io_context.run_one_for(1ms);
         }
     });
-    
+
     auto message = std::make_shared<value_container>();
     message->add_value(std::make_shared<string_value>("type", "echo"));
     message->add_value(std::make_shared<string_value>("data", "test"));
-    
+
+    // Histogram for latency percentile tracking (microseconds)
+    histogram latency_hist(histogram_config::default_latency_config());
+
     for (auto _ : state) {
         response_promise = std::promise<void>();
         auto response_future = response_promise.get_future();
-        
+
         auto start = std::chrono::high_resolution_clock::now();
-        
+
         waiting = true;
         client->send(message);
-        
+
         // Wait for response (with timeout)
         if (response_future.wait_for(100ms) == std::future_status::ready) {
             auto end = std::chrono::high_resolution_clock::now();
-            auto elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start);
-            state.SetIterationTime(elapsed.count() / 1e9);
+            auto elapsed_us = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
+            state.SetIterationTime(elapsed_us / 1e6);
+            latency_hist.record(static_cast<double>(elapsed_us));
         } else {
             state.SkipWithError("Timeout waiting for response");
             break;
         }
-        
+
         waiting = false;
     }
-    
+
+    // Report latency percentiles as custom counters (in microseconds)
+    if (latency_hist.count() > 0) {
+        state.counters["p50_us"] = latency_hist.p50();
+        state.counters["p95_us"] = latency_hist.p95();
+        state.counters["p99_us"] = latency_hist.p99();
+    }
+
     stop_io = true;
     io_thread.join();
-    
+
     client->disconnect();
 }
 BENCHMARK_REGISTER_F(NetworkBenchmarkFixture, BM_RoundTripLatency)
@@ -548,6 +562,113 @@ static void BM_CompressionEfficiency(benchmark::State& state) {
 BENCHMARK(BM_CompressionEfficiency)
     ->RangeMultiplier(10)
     ->Range(1000, 100000);
+
+// Message size latency benchmark with percentile tracking
+BENCHMARK_DEFINE_F(NetworkBenchmarkFixture, BM_MessageSizeLatency)(benchmark::State& state) {
+    using namespace kcenon::network;
+    const int payload_size = state.range(0);
+
+    asio::io_context io_context;
+    auto client = std::make_shared<messaging_client>(
+        io_context,
+        "size_latency_client",
+        "size_latency_key"
+    );
+
+    if (!client->connect("127.0.0.1", g_server_port)) {
+        state.SkipWithError("Failed to connect to server");
+        return;
+    }
+
+    std::atomic<bool> stop_io{false};
+    std::thread io_thread([&io_context, &stop_io]() {
+        while (!stop_io) {
+            io_context.run_one_for(1ms);
+        }
+    });
+
+    // Create message with specified payload size
+    auto message = std::make_shared<value_container>();
+    message->add_value(std::make_shared<string_value>("type", "latency_test"));
+    std::string payload(payload_size, 'A');
+    message->add_value(std::make_shared<string_value>("payload", payload));
+
+    histogram latency_hist(histogram_config::default_latency_config());
+
+    for (auto _ : state) {
+        auto start = std::chrono::high_resolution_clock::now();
+        auto sent = client->send(message);
+        auto end = std::chrono::high_resolution_clock::now();
+
+        if (sent) {
+            auto elapsed_us = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
+            state.SetIterationTime(elapsed_us / 1e6);
+            latency_hist.record(static_cast<double>(elapsed_us));
+        }
+
+        benchmark::DoNotOptimize(sent);
+    }
+
+    if (latency_hist.count() > 0) {
+        state.counters["p50_us"] = latency_hist.p50();
+        state.counters["p95_us"] = latency_hist.p95();
+        state.counters["p99_us"] = latency_hist.p99();
+        state.counters["payload_bytes"] = payload_size;
+    }
+
+    stop_io = true;
+    io_thread.join();
+
+    client->disconnect();
+
+    state.SetBytesProcessed(state.iterations() * payload_size);
+}
+BENCHMARK_REGISTER_F(NetworkBenchmarkFixture, BM_MessageSizeLatency)
+    ->UseManualTime()
+    ->Arg(100)       // 100 B
+    ->Arg(1024)      // 1 KB
+    ->Arg(10240)     // 10 KB
+    ->Arg(102400);   // 100 KB
+
+// Connection setup time benchmark with percentile tracking
+BENCHMARK_DEFINE_F(NetworkBenchmarkFixture, BM_ConnectionSetupLatency)(benchmark::State& state) {
+    using namespace kcenon::network;
+
+    histogram setup_hist(histogram_config::default_latency_config());
+
+    for (auto _ : state) {
+        asio::io_context io_context;
+        auto client = std::make_shared<messaging_client>(
+            io_context,
+            "setup_bench_client",
+            "setup_bench_key"
+        );
+
+        auto start = std::chrono::high_resolution_clock::now();
+        auto connected = client->connect("127.0.0.1", g_server_port);
+        auto end = std::chrono::high_resolution_clock::now();
+
+        auto elapsed_us = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
+        state.SetIterationTime(elapsed_us / 1e6);
+        setup_hist.record(static_cast<double>(elapsed_us));
+
+        benchmark::DoNotOptimize(connected);
+
+        if (connected) {
+            client->disconnect();
+        }
+    }
+
+    if (setup_hist.count() > 0) {
+        state.counters["p50_us"] = setup_hist.p50();
+        state.counters["p95_us"] = setup_hist.p95();
+        state.counters["p99_us"] = setup_hist.p99();
+    }
+
+    state.SetItemsProcessed(state.iterations());
+}
+BENCHMARK_REGISTER_F(NetworkBenchmarkFixture, BM_ConnectionSetupLatency)
+    ->UseManualTime();
 
 int main(int argc, char** argv) {
     // Initialize benchmark
