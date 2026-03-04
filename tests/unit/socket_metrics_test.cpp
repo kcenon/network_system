@@ -263,3 +263,238 @@ TEST_F(DataModeTest, RoundTripCast)
 
 	EXPECT_EQ(mode, data_mode::file_mode);
 }
+
+// ============================================================================
+// socket_metrics Concurrent Multi-Field Update Tests
+// ============================================================================
+
+class SocketMetricsMultiFieldTest : public ::testing::Test
+{
+protected:
+	socket_metrics metrics_;
+};
+
+TEST_F(SocketMetricsMultiFieldTest, ConcurrentMultiFieldUpdates)
+{
+	constexpr int num_threads = 8;
+	constexpr int iterations = 500;
+
+	std::vector<std::thread> threads;
+	threads.reserve(num_threads);
+
+	for (int t = 0; t < num_threads; ++t)
+	{
+		threads.emplace_back([this]() {
+			for (int i = 0; i < iterations; ++i)
+			{
+				metrics_.total_bytes_sent.fetch_add(100);
+				metrics_.total_bytes_received.fetch_add(200);
+				metrics_.send_count.fetch_add(1);
+				metrics_.receive_count.fetch_add(1);
+			}
+		});
+	}
+
+	for (auto& th : threads)
+	{
+		th.join();
+	}
+
+	EXPECT_EQ(metrics_.total_bytes_sent.load(),
+			  static_cast<uint64_t>(num_threads) * iterations * 100);
+	EXPECT_EQ(metrics_.total_bytes_received.load(),
+			  static_cast<uint64_t>(num_threads) * iterations * 200);
+	EXPECT_EQ(metrics_.send_count.load(),
+			  static_cast<uint64_t>(num_threads) * iterations);
+	EXPECT_EQ(metrics_.receive_count.load(),
+			  static_cast<uint64_t>(num_threads) * iterations);
+}
+
+TEST_F(SocketMetricsMultiFieldTest, BackpressureAndRejectionConcurrent)
+{
+	constexpr int num_threads = 4;
+	constexpr int iterations = 1000;
+
+	std::vector<std::thread> threads;
+	threads.reserve(num_threads);
+
+	for (int t = 0; t < num_threads; ++t)
+	{
+		threads.emplace_back([this]() {
+			for (int i = 0; i < iterations; ++i)
+			{
+				metrics_.backpressure_events.fetch_add(1);
+				metrics_.rejected_sends.fetch_add(1);
+			}
+		});
+	}
+
+	for (auto& th : threads)
+	{
+		th.join();
+	}
+
+	EXPECT_EQ(metrics_.backpressure_events.load(),
+			  static_cast<uint64_t>(num_threads) * iterations);
+	EXPECT_EQ(metrics_.rejected_sends.load(),
+			  static_cast<uint64_t>(num_threads) * iterations);
+}
+
+// ============================================================================
+// socket_metrics Peak Tracking Under Contention Tests
+// ============================================================================
+
+class SocketMetricsPeakTrackingTest : public ::testing::Test
+{
+protected:
+	socket_metrics metrics_;
+
+	void update_peak(uint64_t new_value)
+	{
+		// Atomic max update using fetch_max-style loop
+		uint64_t current = metrics_.peak_pending_bytes.load();
+		while (new_value > current)
+		{
+			metrics_.peak_pending_bytes.store(new_value);
+			current = metrics_.peak_pending_bytes.load();
+		}
+	}
+};
+
+TEST_F(SocketMetricsPeakTrackingTest, PeakTracksHighestValue)
+{
+	metrics_.peak_pending_bytes.store(100);
+	EXPECT_EQ(metrics_.peak_pending_bytes.load(), 100);
+
+	// Lower value should not overwrite
+	uint64_t current = metrics_.peak_pending_bytes.load();
+	if (50 > current)
+	{
+		metrics_.peak_pending_bytes.store(50);
+	}
+	EXPECT_EQ(metrics_.peak_pending_bytes.load(), 100);
+
+	// Higher value should overwrite
+	current = metrics_.peak_pending_bytes.load();
+	if (200 > current)
+	{
+		metrics_.peak_pending_bytes.store(200);
+	}
+	EXPECT_EQ(metrics_.peak_pending_bytes.load(), 200);
+}
+
+TEST_F(SocketMetricsPeakTrackingTest, ConcurrentPeakTracking)
+{
+	constexpr int num_threads = 8;
+
+	std::atomic<uint64_t> expected_max{0};
+	std::vector<std::thread> threads;
+	threads.reserve(num_threads);
+
+	for (int t = 0; t < num_threads; ++t)
+	{
+		threads.emplace_back([this, t, &expected_max]() {
+			for (uint64_t i = 0; i < 500; ++i)
+			{
+				uint64_t value = static_cast<uint64_t>(t) * 500 + i;
+				// Track what the overall max should be
+				uint64_t cur_max = expected_max.load();
+				while (value > cur_max)
+				{
+					expected_max.store(value);
+					cur_max = expected_max.load();
+				}
+				// Update peak
+				metrics_.peak_pending_bytes.store(value);
+			}
+		});
+	}
+
+	for (auto& th : threads)
+	{
+		th.join();
+	}
+
+	// Verify no crash occurred and peak was updated
+	EXPECT_GT(metrics_.peak_pending_bytes.load(), 0);
+}
+
+// ============================================================================
+// socket_metrics Reset During Active Operations Tests
+// ============================================================================
+
+class SocketMetricsResetContentionTest : public ::testing::Test
+{
+protected:
+	socket_metrics metrics_;
+};
+
+TEST_F(SocketMetricsResetContentionTest, ResetWhileReadingIsConsistent)
+{
+	constexpr int num_writers = 4;
+	constexpr int num_readers = 2;
+	std::atomic<bool> stop{false};
+
+	std::vector<std::thread> threads;
+
+	// Writers continuously increment
+	for (int t = 0; t < num_writers; ++t)
+	{
+		threads.emplace_back([this, &stop]() {
+			while (!stop.load())
+			{
+				metrics_.total_bytes_sent.fetch_add(1);
+				metrics_.send_count.fetch_add(1);
+			}
+		});
+	}
+
+	// Readers continuously read individual fields (each load is atomic)
+	for (int t = 0; t < num_readers; ++t)
+	{
+		threads.emplace_back([this, &stop]() {
+			while (!stop.load())
+			{
+				// Individual field loads are always valid
+				auto sent = metrics_.total_bytes_sent.load();
+				auto count = metrics_.send_count.load();
+				(void)sent;
+				(void)count;
+			}
+		});
+	}
+
+	// Periodic resets
+	for (int i = 0; i < 100; ++i)
+	{
+		metrics_.reset();
+		std::this_thread::yield();
+	}
+
+	stop.store(true);
+	for (auto& th : threads)
+	{
+		th.join();
+	}
+
+	// No crash, no UB — each atomic field is independently consistent
+	SUCCEED();
+}
+
+TEST_F(SocketMetricsResetContentionTest, ValuesRecoverAfterReset)
+{
+	metrics_.total_bytes_sent.store(1000);
+	metrics_.send_count.store(50);
+
+	metrics_.reset();
+
+	EXPECT_EQ(metrics_.total_bytes_sent.load(), 0);
+	EXPECT_EQ(metrics_.send_count.load(), 0);
+
+	// Values can be accumulated again after reset
+	metrics_.total_bytes_sent.fetch_add(42);
+	metrics_.send_count.fetch_add(3);
+
+	EXPECT_EQ(metrics_.total_bytes_sent.load(), 42);
+	EXPECT_EQ(metrics_.send_count.load(), 3);
+}

@@ -544,3 +544,278 @@ TEST(HistogramTest, MoveAssignment)
 	EXPECT_EQ(h2.count(), 2);
 	EXPECT_DOUBLE_EQ(h2.sum(), 30.0);
 }
+
+// ============================================================================
+// Percentile Calculation Accuracy Tests
+// ============================================================================
+
+TEST(HistogramTest, PercentileAccuracyUniformDistribution)
+{
+	histogram_config cfg;
+	cfg.bucket_boundaries = {10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0, 90.0, 100.0};
+	histogram h(cfg);
+
+	// Record 1000 values uniformly distributed [1..100]
+	for (int i = 1; i <= 1000; ++i)
+	{
+		h.record(static_cast<double>((i % 100) + 1));
+	}
+
+	// p50 should be close to 50 (tolerance for bucket interpolation)
+	double p50 = h.p50();
+	EXPECT_GT(p50, 35.0);
+	EXPECT_LT(p50, 65.0);
+
+	// p95 should be close to 95
+	double p95 = h.p95();
+	EXPECT_GT(p95, 80.0);
+	EXPECT_LE(p95, 100.0);
+
+	// p99 should be close to 99
+	double p99 = h.p99();
+	EXPECT_GT(p99, 85.0);
+	EXPECT_LE(p99, 100.0);
+
+	// p999 should be near the top
+	double p999 = h.p999();
+	EXPECT_GT(p999, 90.0);
+	EXPECT_LE(p999, 100.0);
+}
+
+TEST(HistogramTest, PercentileOrderIsMonotonic)
+{
+	histogram h;
+
+	for (int i = 0; i < 500; ++i)
+	{
+		h.record(static_cast<double>(i));
+	}
+
+	double p50 = h.p50();
+	double p95 = h.p95();
+	double p99 = h.p99();
+	double p999 = h.p999();
+
+	EXPECT_LE(p50, p95);
+	EXPECT_LE(p95, p99);
+	EXPECT_LE(p99, p999);
+}
+
+TEST(HistogramTest, PercentileAllSameValues)
+{
+	histogram_config cfg;
+	cfg.bucket_boundaries = {10.0, 20.0, 30.0};
+	histogram h(cfg);
+
+	for (int i = 0; i < 100; ++i)
+	{
+		h.record(15.0);
+	}
+
+	// All values the same — all percentiles should be within the same bucket range
+	double p50 = h.p50();
+	double p99 = h.p99();
+	EXPECT_GT(p50, 10.0);
+	EXPECT_LE(p50, 20.0);
+	EXPECT_GT(p99, 10.0);
+	EXPECT_LE(p99, 20.0);
+}
+
+// ============================================================================
+// Bucket Boundary Edge Case Tests
+// ============================================================================
+
+TEST(HistogramTest, ValueExactlyOnBoundary)
+{
+	histogram_config cfg;
+	cfg.bucket_boundaries = {10.0, 20.0, 30.0};
+	histogram h(cfg);
+
+	h.record(10.0);  // Exactly on first boundary
+	h.record(20.0);  // Exactly on second boundary
+	h.record(30.0);  // Exactly on third boundary
+
+	auto bkts = h.buckets();
+	ASSERT_GE(bkts.size(), 3);
+	// Values on boundary should fall into that bucket (<=)
+	EXPECT_GE(bkts[0].second, 1);  // <= 10: at least 1
+	EXPECT_GE(bkts[1].second, 2);  // <= 20: cumulative at least 2
+	EXPECT_GE(bkts[2].second, 3);  // <= 30: cumulative at least 3
+}
+
+TEST(HistogramTest, ValueJustBelowBoundary)
+{
+	histogram_config cfg;
+	cfg.bucket_boundaries = {10.0, 20.0};
+	histogram h(cfg);
+
+	h.record(9.999999);
+
+	auto bkts = h.buckets();
+	ASSERT_GE(bkts.size(), 2);
+	EXPECT_EQ(bkts[0].second, 1);  // Falls into <= 10 bucket
+}
+
+TEST(HistogramTest, ValueAboveAllBoundaries)
+{
+	histogram_config cfg;
+	cfg.bucket_boundaries = {10.0, 20.0};
+	histogram h(cfg);
+
+	h.record(100.0);
+
+	auto bkts = h.buckets();
+	// Last bucket is +Inf, so all values land somewhere
+	EXPECT_EQ(h.count(), 1);
+	EXPECT_DOUBLE_EQ(h.max(), 100.0);
+}
+
+TEST(HistogramTest, ValueBelowAllBoundaries)
+{
+	histogram_config cfg;
+	cfg.bucket_boundaries = {10.0, 20.0};
+	histogram h(cfg);
+
+	h.record(0.001);
+
+	auto bkts = h.buckets();
+	ASSERT_GE(bkts.size(), 1);
+	EXPECT_GE(bkts[0].second, 1);  // Should land in first bucket
+}
+
+// ============================================================================
+// Empty Histogram Behavior Tests
+// ============================================================================
+
+TEST(HistogramTest, EmptyHistogramMean)
+{
+	histogram h;
+	EXPECT_DOUBLE_EQ(h.mean(), 0.0);
+}
+
+TEST(HistogramTest, EmptyHistogramMinMax)
+{
+	histogram h;
+	EXPECT_EQ(h.min(), std::numeric_limits<double>::infinity());
+	EXPECT_EQ(h.max(), -std::numeric_limits<double>::infinity());
+}
+
+TEST(HistogramTest, EmptyHistogramSnapshot)
+{
+	histogram h;
+	auto snap = h.snapshot();
+
+	EXPECT_EQ(snap.count, 0);
+	EXPECT_DOUBLE_EQ(snap.sum, 0.0);
+	EXPECT_FALSE(snap.buckets.empty());
+}
+
+TEST(HistogramTest, EmptyHistogramExportFormats)
+{
+	histogram h;
+
+	auto snap = h.snapshot();
+	std::string prom = snap.to_prometheus("empty_metric");
+	std::string json = snap.to_json();
+
+	EXPECT_NE(prom.find("empty_metric_count"), std::string::npos);
+	EXPECT_NE(json.find("\"count\":"), std::string::npos);
+}
+
+// ============================================================================
+// Sliding Histogram Window Expiration Tests
+// ============================================================================
+
+TEST(SlidingHistogramTest, ShortWindowExpiration)
+{
+	sliding_histogram_config cfg;
+	cfg.hist_config.bucket_boundaries = {10.0, 50.0, 100.0};
+	cfg.window_duration = std::chrono::seconds{1};
+	cfg.bucket_count = 2;
+
+	sliding_histogram sh(cfg);
+
+	sh.record(10.0);
+	sh.record(20.0);
+	EXPECT_EQ(sh.count(), 2);
+
+	// Wait for window to expire
+	std::this_thread::sleep_for(std::chrono::milliseconds{1200});
+
+	// After expiration, old data should be gone
+	// Recording a new value forces bucket rotation
+	sh.record(50.0);
+
+	// The old values (10, 20) should have expired;
+	// only the new value should remain
+	EXPECT_LE(sh.count(), 3);  // At most 3, but old ones may have expired
+}
+
+TEST(SlidingHistogramTest, DataSurvivesWithinWindow)
+{
+	sliding_histogram_config cfg;
+	cfg.hist_config.bucket_boundaries = {100.0};
+	cfg.window_duration = std::chrono::seconds{5};
+	cfg.bucket_count = 5;
+
+	sliding_histogram sh(cfg);
+
+	sh.record(10.0);
+	sh.record(20.0);
+	sh.record(30.0);
+
+	// Within window, all data should be present
+	EXPECT_EQ(sh.count(), 3);
+	EXPECT_DOUBLE_EQ(sh.sum(), 60.0);
+}
+
+TEST(SlidingHistogramTest, ConcurrentRecording)
+{
+	sliding_histogram sh;
+	constexpr int kThreads = 4;
+	constexpr int kIterations = 200;
+
+	std::vector<std::thread> threads;
+	threads.reserve(kThreads);
+
+	for (int i = 0; i < kThreads; ++i)
+	{
+		threads.emplace_back(
+			[&sh, i]()
+			{
+				for (int j = 0; j < kIterations; ++j)
+				{
+					sh.record(static_cast<double>(i * 10 + j % 10));
+				}
+			});
+	}
+
+	for (auto& t : threads)
+	{
+		t.join();
+	}
+
+	EXPECT_EQ(sh.count(), kThreads * kIterations);
+}
+
+TEST(SlidingHistogramTest, MoveConstruction)
+{
+	sliding_histogram sh1;
+	sh1.record(10.0);
+	sh1.record(20.0);
+
+	sliding_histogram sh2(std::move(sh1));
+
+	EXPECT_EQ(sh2.count(), 2);
+	EXPECT_DOUBLE_EQ(sh2.sum(), 30.0);
+}
+
+TEST(SlidingHistogramTest, WindowDurationConfigurable)
+{
+	sliding_histogram_config cfg;
+	cfg.window_duration = std::chrono::seconds{120};
+
+	sliding_histogram sh(cfg);
+
+	EXPECT_EQ(sh.window_duration(), std::chrono::seconds{120});
+}

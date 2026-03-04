@@ -26,6 +26,7 @@ All rights reserved.
 #include <cstdint>
 #include <limits>
 #include <memory>
+#include <set>
 #include <thread>
 #include <vector>
 
@@ -444,4 +445,197 @@ TEST(BasicMonitoringTest, ReportWithLabels)
 	EXPECT_NO_THROW(monitor.report_counter("test.counter", 1.0, labels));
 	EXPECT_NO_THROW(monitor.report_gauge("test.gauge", 42.0, labels));
 	EXPECT_NO_THROW(monitor.report_histogram("test.histogram", 10.5, labels));
+}
+
+// ============================================================================
+// Metric Name Consistency Tests
+// ============================================================================
+
+TEST(MetricNamesConsistencyTest, AllNamesUseNetworkPrefix)
+{
+	const std::vector<const char*> all_names = {
+		metric_names::CONNECTIONS_ACTIVE,
+		metric_names::CONNECTIONS_TOTAL,
+		metric_names::CONNECTIONS_FAILED,
+		metric_names::BYTES_SENT,
+		metric_names::BYTES_RECEIVED,
+		metric_names::PACKETS_SENT,
+		metric_names::PACKETS_RECEIVED,
+		metric_names::LATENCY_MS,
+		metric_names::THROUGHPUT_MBPS,
+		metric_names::SESSION_DURATION_MS,
+		metric_names::ERRORS_TOTAL,
+		metric_names::TIMEOUTS_TOTAL,
+		metric_names::SERVER_START_TIME,
+		metric_names::SERVER_ACCEPT_COUNT,
+		metric_names::SERVER_ACCEPT_FAILED,
+		metric_names::LATENCY_HISTOGRAM,
+		metric_names::CONNECTION_TIME_HISTOGRAM,
+		metric_names::REQUEST_DURATION_HISTOGRAM,
+	};
+
+	for (const auto* name : all_names)
+	{
+		std::string s(name);
+		EXPECT_EQ(s.substr(0, 8), "network.") << "Metric '" << s << "' missing 'network.' prefix";
+	}
+}
+
+TEST(MetricNamesConsistencyTest, NoDuplicateNames)
+{
+	const std::vector<const char*> all_names = {
+		metric_names::CONNECTIONS_ACTIVE,
+		metric_names::CONNECTIONS_TOTAL,
+		metric_names::CONNECTIONS_FAILED,
+		metric_names::BYTES_SENT,
+		metric_names::BYTES_RECEIVED,
+		metric_names::PACKETS_SENT,
+		metric_names::PACKETS_RECEIVED,
+		metric_names::LATENCY_MS,
+		metric_names::THROUGHPUT_MBPS,
+		metric_names::SESSION_DURATION_MS,
+		metric_names::ERRORS_TOTAL,
+		metric_names::TIMEOUTS_TOTAL,
+		metric_names::SERVER_START_TIME,
+		metric_names::SERVER_ACCEPT_COUNT,
+		metric_names::SERVER_ACCEPT_FAILED,
+		metric_names::LATENCY_HISTOGRAM,
+		metric_names::CONNECTION_TIME_HISTOGRAM,
+		metric_names::REQUEST_DURATION_HISTOGRAM,
+	};
+
+	std::set<std::string> seen;
+	for (const auto* name : all_names)
+	{
+		auto [it, inserted] = seen.insert(name);
+		EXPECT_TRUE(inserted) << "Duplicate metric name: " << name;
+	}
+}
+
+TEST(MetricNamesTest, HistogramMetrics)
+{
+	EXPECT_STREQ(metric_names::LATENCY_HISTOGRAM, "network.latency.histogram");
+	EXPECT_STREQ(metric_names::CONNECTION_TIME_HISTOGRAM, "network.connection_time.histogram");
+	EXPECT_STREQ(metric_names::REQUEST_DURATION_HISTOGRAM, "network.request_duration.histogram");
+}
+
+// ============================================================================
+// Reporter Method Coverage — Histogram Percentile APIs
+// ============================================================================
+
+TEST_F(MetricReporterTest, ReportLatencyP95)
+{
+	metric_reporter::reset_histograms();
+
+	for (int i = 1; i <= 100; ++i)
+	{
+		metric_reporter::record_latency(static_cast<double>(i));
+	}
+
+	double p95 = metric_reporter::get_latency_p95();
+	EXPECT_GT(p95, 80.0);
+	EXPECT_LE(p95, 100.0);
+
+	metric_reporter::reset_histograms();
+}
+
+TEST_F(MetricReporterTest, MultipleReporterMethodsDoNotInterfere)
+{
+	metric_reporter::report_connection_accepted();
+	metric_reporter::report_bytes_sent(1024);
+	metric_reporter::report_latency(10.0);
+	metric_reporter::report_error("test_error");
+	metric_reporter::report_active_connections(5);
+
+	EXPECT_TRUE(mock_monitor_->has_counter(metric_names::CONNECTIONS_TOTAL));
+	EXPECT_TRUE(mock_monitor_->has_counter(metric_names::BYTES_SENT));
+	EXPECT_TRUE(mock_monitor_->has_histogram(metric_names::LATENCY_MS));
+	EXPECT_TRUE(mock_monitor_->has_counter(metric_names::ERRORS_TOTAL));
+	EXPECT_TRUE(mock_monitor_->has_gauge(metric_names::CONNECTIONS_ACTIVE));
+}
+
+// ============================================================================
+// Concurrent Gauge Reporting Tests
+// ============================================================================
+
+TEST_F(MetricReporterTest, ConcurrentGaugeUpdates)
+{
+	constexpr int kThreads = 8;
+	constexpr int kIterations = 100;
+
+	std::vector<std::thread> threads;
+	threads.reserve(kThreads);
+
+	for (int i = 0; i < kThreads; ++i)
+	{
+		threads.emplace_back(
+			[&, i]()
+			{
+				for (int j = 0; j < kIterations; ++j)
+				{
+					metric_reporter::report_active_connections(
+						static_cast<size_t>(i * kIterations + j));
+				}
+			});
+	}
+
+	for (auto& t : threads)
+	{
+		t.join();
+	}
+
+	EXPECT_EQ(mock_monitor_->gauge_call_count(), kThreads * kIterations);
+}
+
+TEST_F(MetricReporterTest, ConcurrentHistogramReporting)
+{
+	constexpr int kThreads = 6;
+	constexpr int kIterations = 50;
+
+	std::vector<std::thread> threads;
+	threads.reserve(kThreads);
+
+	for (int i = 0; i < kThreads; ++i)
+	{
+		threads.emplace_back(
+			[&]()
+			{
+				for (int j = 0; j < kIterations; ++j)
+				{
+					metric_reporter::report_latency(static_cast<double>(j));
+					metric_reporter::report_session_duration(static_cast<double>(j * 100));
+				}
+			});
+	}
+
+	for (auto& t : threads)
+	{
+		t.join();
+	}
+
+	EXPECT_EQ(mock_monitor_->histogram_call_count(), kThreads * kIterations * 2);
+}
+
+// ============================================================================
+// Monitoring Swap During Active Reporting
+// ============================================================================
+
+TEST(MonitoringIntegrationManagerTest, SwapMonitoringDuringReporting)
+{
+	auto mock1 = std::make_shared<mock_monitor>();
+	auto mock2 = std::make_shared<mock_monitor>();
+
+	monitoring_integration_manager::instance().set_monitoring(mock1);
+	metric_reporter::report_connection_accepted();
+
+	EXPECT_EQ(mock1->counter_call_count(), 1);
+	EXPECT_EQ(mock2->counter_call_count(), 0);
+
+	monitoring_integration_manager::instance().set_monitoring(mock2);
+	metric_reporter::report_connection_accepted();
+
+	EXPECT_EQ(mock1->counter_call_count(), 1);
+	EXPECT_EQ(mock2->counter_call_count(), 1);
+
+	monitoring_integration_manager::instance().set_monitoring(nullptr);
 }
