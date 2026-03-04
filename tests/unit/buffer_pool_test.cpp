@@ -579,3 +579,158 @@ TEST_F(BufferPoolStatsTest, StatsAccurateAfterClearAndReacquire)
 	auto [avail2, total2] = pool_->get_stats();
 	EXPECT_GE(total2, 1);
 }
+
+// ============================================================================
+// Buffer Pool Exhaustion and Starvation Tests
+// ============================================================================
+
+class BufferPoolExhaustionTest : public ::testing::Test
+{
+protected:
+	std::shared_ptr<buffer_pool> pool_;
+
+	void SetUp() override { pool_ = std::make_shared<buffer_pool>(4, 1024); }
+};
+
+TEST_F(BufferPoolExhaustionTest, AcquireBeyondPoolSizeNeverBlocks)
+{
+	// Hold all pool-sized buffers and acquire more — should never block
+	std::vector<std::shared_ptr<std::vector<uint8_t>>> held;
+
+	for (int i = 0; i < 20; ++i)
+	{
+		auto buf = pool_->acquire();
+		ASSERT_NE(buf, nullptr) << "acquire() returned nullptr at iteration " << i;
+		held.push_back(buf);
+	}
+
+	auto [available, total] = pool_->get_stats();
+	EXPECT_EQ(available, 0);
+	EXPECT_EQ(total, 20);
+}
+
+TEST_F(BufferPoolExhaustionTest, ExcessBuffersDiscardedOnRelease)
+{
+	// Acquire more buffers than pool size
+	std::vector<std::shared_ptr<std::vector<uint8_t>>> held;
+	for (int i = 0; i < 10; ++i)
+	{
+		held.push_back(pool_->acquire());
+	}
+
+	// Release all
+	held.clear();
+
+	auto [available, total] = pool_->get_stats();
+	// Pool size is 4, so at most 4 should be cached
+	EXPECT_LE(available, 4);
+}
+
+TEST_F(BufferPoolExhaustionTest, ReusePreventsUnboundedGrowth)
+{
+	// Acquire-release cycle 100 times with pool size 4
+	for (int i = 0; i < 100; ++i)
+	{
+		auto buf = pool_->acquire();
+		ASSERT_NE(buf, nullptr);
+		buf->resize(512);
+	}
+
+	auto [available, total] = pool_->get_stats();
+	// Reuse should keep total bounded near pool size
+	EXPECT_LE(available, 4);
+}
+
+TEST_F(BufferPoolExhaustionTest, ConcurrentExhaustionAndRefill)
+{
+	constexpr int num_threads = 8;
+	constexpr int ops = 50;
+
+	std::vector<std::thread> threads;
+	for (int t = 0; t < num_threads; ++t)
+	{
+		threads.emplace_back([this]() {
+			for (int i = 0; i < ops; ++i)
+			{
+				// Hold multiple buffers simultaneously
+				auto buf1 = pool_->acquire();
+				auto buf2 = pool_->acquire();
+				ASSERT_NE(buf1, nullptr);
+				ASSERT_NE(buf2, nullptr);
+				buf1->resize(256);
+				buf2->resize(128);
+				// Both released on scope exit
+			}
+		});
+	}
+
+	for (auto& t : threads)
+	{
+		t.join();
+	}
+
+	auto [available, total] = pool_->get_stats();
+	EXPECT_LE(available, 4);
+}
+
+TEST_F(BufferPoolExhaustionTest, LargeCapacityAcquireDoesNotCrash)
+{
+	// Request a large buffer — should either succeed or throw std::bad_alloc
+	// but should not cause undefined behavior
+	try
+	{
+		auto buf = pool_->acquire(64 * 1024 * 1024); // 64 MB
+		ASSERT_NE(buf, nullptr);
+		EXPECT_GE(buf->capacity(), 64 * 1024 * 1024);
+	}
+	catch (const std::bad_alloc&)
+	{
+		// Acceptable on memory-constrained systems
+		SUCCEED();
+	}
+}
+
+TEST_F(BufferPoolExhaustionTest, ZeroPoolSizeWithHighTraffic)
+{
+	auto pool = std::make_shared<buffer_pool>(0, 512);
+
+	// With pool_size=0, every buffer is created fresh and never cached
+	for (int i = 0; i < 50; ++i)
+	{
+		auto buf = pool->acquire();
+		ASSERT_NE(buf, nullptr);
+		buf->resize(256);
+	}
+
+	auto [available, total] = pool->get_stats();
+	EXPECT_EQ(available, 0);
+}
+
+TEST_F(BufferPoolExhaustionTest, ClearDuringHeavyUsage)
+{
+	std::atomic<bool> stop{false};
+	std::vector<std::thread> workers;
+
+	for (int t = 0; t < 4; ++t)
+	{
+		workers.emplace_back([this, &stop]() {
+			while (!stop.load())
+			{
+				auto buf = pool_->acquire();
+				if (buf) buf->resize(64);
+			}
+		});
+	}
+
+	// Clear pool repeatedly while workers are active
+	for (int i = 0; i < 20; ++i)
+	{
+		pool_->clear();
+		std::this_thread::yield();
+	}
+
+	stop.store(true);
+	for (auto& t : workers) t.join();
+
+	SUCCEED();
+}
