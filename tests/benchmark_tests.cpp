@@ -670,6 +670,193 @@ BENCHMARK_DEFINE_F(NetworkBenchmarkFixture, BM_ConnectionSetupLatency)(benchmark
 BENCHMARK_REGISTER_F(NetworkBenchmarkFixture, BM_ConnectionSetupLatency)
     ->UseManualTime();
 
+// Throughput baseline validation benchmark
+// Measures sustained message throughput (messages/second) across batch sizes
+BENCHMARK_DEFINE_F(NetworkBenchmarkFixture, BM_ThroughputBaseline)(benchmark::State& state) {
+    const int batch_size = state.range(0);
+
+    asio::io_context io_context;
+    auto client = std::make_shared<messaging_client>(
+        io_context,
+        "throughput_baseline_client",
+        "throughput_baseline_key"
+    );
+
+    if (!client->connect("127.0.0.1", g_server_port)) {
+        state.SkipWithError("Failed to connect to server");
+        return;
+    }
+
+    // Pre-create lightweight messages
+    std::vector<std::shared_ptr<value_container>> messages;
+    for (int i = 0; i < batch_size; ++i) {
+        auto msg = std::make_shared<value_container>();
+        msg->add_value(std::make_shared<string_value>("type", "throughput_baseline"));
+        msg->add_value(std::make_shared<int32_value>("seq", i));
+        messages.push_back(msg);
+    }
+
+    std::atomic<bool> stop_io{false};
+    std::thread io_thread([&io_context, &stop_io]() {
+        while (!stop_io) {
+            io_context.run_one_for(1ms);
+        }
+    });
+
+    int64_t total_sent = 0;
+
+    for (auto _ : state) {
+        auto start = std::chrono::high_resolution_clock::now();
+        int sent_count = 0;
+
+        for (const auto& msg : messages) {
+            if (client->send(msg)) {
+                ++sent_count;
+            }
+        }
+
+        auto end = std::chrono::high_resolution_clock::now();
+        auto elapsed_s = std::chrono::duration<double>(end - start).count();
+        state.SetIterationTime(elapsed_s);
+        total_sent += sent_count;
+
+        // Report throughput as messages/second
+        if (elapsed_s > 0) {
+            state.counters["msgs_per_sec"] = sent_count / elapsed_s;
+        }
+    }
+
+    stop_io = true;
+    io_thread.join();
+    client->disconnect();
+
+    state.SetItemsProcessed(total_sent);
+}
+BENCHMARK_REGISTER_F(NetworkBenchmarkFixture, BM_ThroughputBaseline)
+    ->UseManualTime()
+    ->Arg(10)
+    ->Arg(100)
+    ->Arg(500)
+    ->Arg(1000);
+
+// Compression impact on throughput benchmark
+// Compares throughput of compressible vs random data
+static void BM_CompressionThroughputImpact(benchmark::State& state) {
+    const bool use_compressible = (state.range(0) == 1);
+    const int message_count = 100;
+
+    for (auto _ : state) {
+        std::vector<std::shared_ptr<value_container>> messages;
+
+        for (int i = 0; i < message_count; ++i) {
+            auto msg = std::make_shared<value_container>();
+            msg->add_value(std::make_shared<string_value>("type", "compress_test"));
+
+            if (use_compressible) {
+                // Highly compressible: repeating pattern
+                std::string data(1000, 'A');
+                msg->add_value(std::make_shared<string_value>("payload", data));
+            } else {
+                // Low compressibility: pseudo-random data
+                std::string data(1000, '\0');
+                for (size_t j = 0; j < data.size(); ++j) {
+                    data[j] = static_cast<char>((i * 31 + j * 17) % 256);
+                }
+                msg->add_value(std::make_shared<string_value>("payload", data));
+            }
+
+            messages.push_back(msg);
+        }
+
+        // Serialize all messages and measure total size
+        size_t total_bytes = 0;
+        for (const auto& msg : messages) {
+            auto serialized = msg->serialize();
+            total_bytes += serialized.size();
+            benchmark::DoNotOptimize(serialized);
+        }
+
+        state.counters["total_bytes"] = total_bytes;
+        state.counters["avg_msg_bytes"] = total_bytes / message_count;
+    }
+
+    state.SetItemsProcessed(state.iterations() * message_count);
+}
+BENCHMARK(BM_CompressionThroughputImpact)
+    ->Arg(0)  // Random data (low compressibility)
+    ->Arg(1); // Repeating data (high compressibility)
+
+// Serialization throughput comparison: small vs large messages
+static void BM_SerializationThroughput(benchmark::State& state) {
+    const int payload_size = state.range(0);
+
+    // Create message with specified payload
+    auto message = std::make_shared<value_container>();
+    message->add_value(std::make_shared<string_value>("type", "serial_throughput"));
+    std::string payload(payload_size, 'X');
+    message->add_value(std::make_shared<string_value>("payload", payload));
+
+    size_t serialized_size = 0;
+
+    for (auto _ : state) {
+        auto serialized = message->serialize();
+        serialized_size = serialized.size();
+        benchmark::DoNotOptimize(serialized);
+    }
+
+    state.SetItemsProcessed(state.iterations());
+    state.SetBytesProcessed(state.iterations() * serialized_size);
+    state.counters["serialized_bytes"] = serialized_size;
+    state.counters["payload_bytes"] = payload_size;
+    if (payload_size > 0) {
+        state.counters["overhead_ratio"] =
+            static_cast<double>(serialized_size) / payload_size;
+    }
+}
+BENCHMARK(BM_SerializationThroughput)
+    ->Arg(64)       // 64 B
+    ->Arg(512)      // 512 B
+    ->Arg(4096)     // 4 KB
+    ->Arg(65536)    // 64 KB
+    ->Arg(1048576); // 1 MB
+
+// Batch size impact on throughput
+// Measures how batch size affects per-message overhead
+static void BM_BatchSizeOverhead(benchmark::State& state) {
+    const int batch_size = state.range(0);
+
+    // Pre-create batch of messages
+    std::vector<std::shared_ptr<value_container>> batch;
+    for (int i = 0; i < batch_size; ++i) {
+        auto msg = std::make_shared<value_container>();
+        msg->add_value(std::make_shared<string_value>("type", "batch_overhead"));
+        msg->add_value(std::make_shared<int32_value>("seq", i));
+        msg->add_value(std::make_shared<string_value>("data", "benchmark_payload_data"));
+        batch.push_back(msg);
+    }
+
+    for (auto _ : state) {
+        size_t total_bytes = 0;
+
+        for (const auto& msg : batch) {
+            auto serialized = msg->serialize();
+            total_bytes += serialized.size();
+            benchmark::DoNotOptimize(serialized);
+        }
+
+        state.counters["bytes_per_msg"] =
+            static_cast<double>(total_bytes) / batch_size;
+    }
+
+    state.SetItemsProcessed(state.iterations() * batch_size);
+}
+BENCHMARK(BM_BatchSizeOverhead)
+    ->Arg(1)
+    ->Arg(10)
+    ->Arg(50)
+    ->Arg(100)
+    ->Arg(500);
+
 int main(int argc, char** argv) {
     // Initialize benchmark
     ::benchmark::Initialize(&argc, argv);
