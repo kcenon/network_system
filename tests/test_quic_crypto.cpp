@@ -35,8 +35,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <algorithm>
 
 #include "kcenon/network/detail/protocols/quic/connection_id.h"
+#include "internal/protocols/quic/connection.h"
 #include "internal/protocols/quic/crypto.h"
 #include "internal/protocols/quic/keys.h"
+#include "internal/protocols/quic/packet.h"
 
 using namespace kcenon::network::protocols::quic;
 
@@ -506,6 +508,25 @@ class CryptoIntegrationTest : public ::testing::Test
 {
 };
 
+TEST_F(CryptoIntegrationTest, VersionTwoKeyDerivation)
+{
+    std::vector<uint8_t> dcid_bytes = {0x83, 0x94, 0xc8, 0xf0, 0x3e, 0x51, 0x57, 0x08};
+    connection_id dcid(dcid_bytes);
+
+    auto v1_result = initial_keys::derive(dcid, quic_version::version_1);
+    auto v2_result = initial_keys::derive(dcid, quic_version::version_2);
+
+    ASSERT_TRUE(v1_result.is_ok());
+    ASSERT_TRUE(v2_result.is_ok());
+
+    // Version 1 and 2 should produce different keys (different salts)
+    EXPECT_NE(v1_result.value().write.key, v2_result.value().write.key);
+    EXPECT_NE(v1_result.value().read.key, v2_result.value().read.key);
+
+    // Both should be valid
+    EXPECT_TRUE(v2_result.value().is_valid());
+}
+
 TEST_F(CryptoIntegrationTest, FullInitialPacketProtection)
 {
     // Derive initial keys
@@ -543,4 +564,423 @@ TEST_F(CryptoIntegrationTest, FullInitialPacketProtection)
     ASSERT_TRUE(unprotect_result.is_ok());
 
     EXPECT_EQ(unprotect_result.value().second, payload);
+}
+
+// ============================================================================
+// Packet Protection Error Path Tests
+// ============================================================================
+
+class PacketProtectionErrorTest : public ::testing::Test
+{
+protected:
+    quic_keys test_keys;
+
+    void SetUp() override
+    {
+        for (size_t i = 0; i < test_keys.key.size(); ++i)
+            test_keys.key[i] = static_cast<uint8_t>(i);
+        for (size_t i = 0; i < test_keys.iv.size(); ++i)
+            test_keys.iv[i] = static_cast<uint8_t>(i + 16);
+        for (size_t i = 0; i < test_keys.hp_key.size(); ++i)
+            test_keys.hp_key[i] = static_cast<uint8_t>(i + 32);
+    }
+};
+
+TEST_F(PacketProtectionErrorTest, UnprotectTooShortPacket)
+{
+    // Packet shorter than header_length + aead_tag_size
+    std::vector<uint8_t> short_packet = {0xC0, 0x00, 0x01};
+    auto result = packet_protection::unprotect(test_keys, short_packet, 3, 0);
+    EXPECT_FALSE(result.is_ok());
+}
+
+TEST_F(PacketProtectionErrorTest, UnprotectExactlyTagSize)
+{
+    // Packet with exactly header + tag but no ciphertext
+    std::vector<uint8_t> packet(5 + aead_tag_size, 0x00);
+    auto result = packet_protection::unprotect(test_keys, packet, 5, 0);
+    // Should succeed (0 bytes of payload) or fail cleanly
+    // The behavior depends on AES-GCM with 0 plaintext
+}
+
+TEST_F(PacketProtectionErrorTest, GenerateHpMaskTooShortSample)
+{
+    std::vector<uint8_t> short_sample(hp_sample_size - 1, 0xAB);
+    auto result = packet_protection::generate_hp_mask(test_keys.hp_key, short_sample);
+    EXPECT_FALSE(result.is_ok());
+}
+
+TEST_F(PacketProtectionErrorTest, ProtectEmptyPayload)
+{
+    std::vector<uint8_t> header = {0xC0, 0x00, 0x00, 0x01};
+    std::vector<uint8_t> empty_payload;
+
+    auto result = packet_protection::protect(test_keys, header, empty_payload, 0);
+    ASSERT_TRUE(result.is_ok());
+    // Output should be header + tag only
+    EXPECT_EQ(result.value().size(), header.size() + aead_tag_size);
+}
+
+TEST_F(PacketProtectionErrorTest, ProtectLargePayload)
+{
+    std::vector<uint8_t> header = {0xC0, 0x00};
+    std::vector<uint8_t> large_payload(4096, 0xAB);
+
+    auto protect_result = packet_protection::protect(
+        test_keys, header, large_payload, 42);
+    ASSERT_TRUE(protect_result.is_ok());
+
+    auto unprotect_result = packet_protection::unprotect(
+        test_keys, protect_result.value(), header.size(), 42);
+    ASSERT_TRUE(unprotect_result.is_ok());
+    EXPECT_EQ(unprotect_result.value().second, large_payload);
+}
+
+TEST_F(PacketProtectionErrorTest, WrongKeyFailsDecryption)
+{
+    std::vector<uint8_t> header = {0xC0, 0x00};
+    std::vector<uint8_t> payload = {0x01, 0x02, 0x03};
+
+    auto protect_result = packet_protection::protect(
+        test_keys, header, payload, 0);
+    ASSERT_TRUE(protect_result.is_ok());
+
+    // Use different keys to decrypt
+    quic_keys wrong_keys;
+    wrong_keys.key.fill(0xFF);
+    wrong_keys.iv.fill(0xEE);
+
+    auto unprotect_result = packet_protection::unprotect(
+        wrong_keys, protect_result.value(), header.size(), 0);
+    EXPECT_FALSE(unprotect_result.is_ok());
+}
+
+// ============================================================================
+// Header Protection Edge Cases
+// ============================================================================
+
+TEST_F(PacketProtectionErrorTest, ShortHeaderProtection)
+{
+    // Short header (bit 7 = 0)
+    std::vector<uint8_t> header = {0x43, 0x00, 0x00, 0x00, 0x01};
+    std::vector<uint8_t> original_header = header;
+    std::vector<uint8_t> sample(hp_sample_size, 0x77);
+    size_t pn_offset = 1;
+    size_t pn_length = 4;
+
+    auto protect_result = packet_protection::protect_header(
+        test_keys, header, pn_offset, pn_length, sample);
+    ASSERT_TRUE(protect_result.is_ok());
+
+    // Header should be modified (short header masks 5 bits of first byte)
+    EXPECT_NE(header, original_header);
+
+    auto unprotect_result = packet_protection::unprotect_header(
+        test_keys, header, pn_offset, sample);
+    ASSERT_TRUE(unprotect_result.is_ok());
+
+    EXPECT_EQ(header, original_header);
+}
+
+TEST_F(PacketProtectionErrorTest, HeaderProtectionOneBytePn)
+{
+    std::vector<uint8_t> header = {0xC0, 0x00, 0x00, 0x01, 0x00, 0x42};
+    std::vector<uint8_t> original = header;
+    std::vector<uint8_t> sample(hp_sample_size, 0x33);
+    size_t pn_offset = 5;
+    size_t pn_length = 1;
+
+    auto pr = packet_protection::protect_header(
+        test_keys, header, pn_offset, pn_length, sample);
+    ASSERT_TRUE(pr.is_ok());
+
+    auto ur = packet_protection::unprotect_header(
+        test_keys, header, pn_offset, sample);
+    ASSERT_TRUE(ur.is_ok());
+    EXPECT_EQ(header, original);
+}
+
+// ============================================================================
+// QUIC Crypto Handler Extended Tests
+// ============================================================================
+
+TEST_F(QuicCryptoTest, SetAlpn)
+{
+    quic_crypto crypto;
+    auto result = crypto.init_client("localhost");
+    ASSERT_TRUE(result.is_ok());
+
+    auto alpn_result = crypto.set_alpn({"h3"});
+    (void)alpn_result;
+}
+
+TEST_F(QuicCryptoTest, GetAlpn)
+{
+    quic_crypto crypto;
+    auto alpn = crypto.get_alpn();
+    EXPECT_TRUE(alpn.empty()); // No handshake done
+}
+
+TEST_F(QuicCryptoTest, EarlyDataNotAccepted)
+{
+    quic_crypto crypto;
+    EXPECT_FALSE(crypto.is_early_data_accepted());
+    EXPECT_FALSE(crypto.has_zero_rtt_keys());
+}
+
+// ============================================================================
+// Connection State Tests
+// ============================================================================
+
+class ConnectionStateTest : public ::testing::Test
+{
+};
+
+TEST_F(ConnectionStateTest, StateToStringAll)
+{
+    EXPECT_STREQ(connection_state_to_string(connection_state::idle), "idle");
+    EXPECT_STREQ(connection_state_to_string(connection_state::handshaking), "handshaking");
+    EXPECT_STREQ(connection_state_to_string(connection_state::connected), "connected");
+    EXPECT_STREQ(connection_state_to_string(connection_state::closing), "closing");
+    EXPECT_STREQ(connection_state_to_string(connection_state::draining), "draining");
+    EXPECT_STREQ(connection_state_to_string(connection_state::closed), "closed");
+}
+
+TEST_F(ConnectionStateTest, HandshakeStateToStringAll)
+{
+    EXPECT_STREQ(handshake_state_to_string(handshake_state::initial), "initial");
+    EXPECT_STREQ(handshake_state_to_string(handshake_state::waiting_server_hello),
+                 "waiting_server_hello");
+    EXPECT_STREQ(handshake_state_to_string(handshake_state::waiting_finished),
+                 "waiting_finished");
+    EXPECT_STREQ(handshake_state_to_string(handshake_state::complete), "complete");
+}
+
+TEST_F(ConnectionStateTest, ClientConnectionInitialState)
+{
+    std::vector<uint8_t> dcid_bytes = {0x01, 0x02, 0x03, 0x04};
+    connection_id dcid(dcid_bytes);
+
+    connection conn(false, dcid);
+
+    EXPECT_EQ(conn.state(), connection_state::idle);
+    EXPECT_EQ(conn.handshake_state(), handshake_state::initial);
+    EXPECT_FALSE(conn.is_established());
+    EXPECT_FALSE(conn.is_draining());
+    EXPECT_FALSE(conn.is_closed());
+    EXPECT_FALSE(conn.is_server());
+    EXPECT_EQ(conn.initial_dcid(), dcid);
+    EXPECT_FALSE(conn.local_cid().empty());
+    EXPECT_EQ(conn.remote_cid(), dcid);
+    EXPECT_FALSE(conn.close_error_code().has_value());
+    EXPECT_TRUE(conn.close_reason().empty());
+}
+
+TEST_F(ConnectionStateTest, ServerConnectionInitialState)
+{
+    std::vector<uint8_t> dcid_bytes = {0x05, 0x06, 0x07, 0x08};
+    connection_id dcid(dcid_bytes);
+
+    connection conn(true, dcid);
+
+    EXPECT_EQ(conn.state(), connection_state::idle);
+    EXPECT_TRUE(conn.is_server());
+    EXPECT_FALSE(conn.is_established());
+    // Server's remote CID is empty until client's SCID is received
+}
+
+TEST_F(ConnectionStateTest, AddLocalCid)
+{
+    std::vector<uint8_t> dcid_bytes = {0x01, 0x02};
+    connection conn(false, connection_id(dcid_bytes));
+
+    auto new_cid = connection_id::generate();
+    auto result = conn.add_local_cid(new_cid, 1);
+    EXPECT_TRUE(result.is_ok());
+}
+
+TEST_F(ConnectionStateTest, AddDuplicateCidSequence)
+{
+    std::vector<uint8_t> dcid_bytes = {0x01, 0x02};
+    connection conn(false, connection_id(dcid_bytes));
+
+    auto cid1 = connection_id::generate();
+    auto cid2 = connection_id::generate();
+
+    auto r1 = conn.add_local_cid(cid1, 1);
+    EXPECT_TRUE(r1.is_ok());
+
+    auto r2 = conn.add_local_cid(cid2, 1); // Duplicate sequence
+    EXPECT_FALSE(r2.is_ok());
+}
+
+TEST_F(ConnectionStateTest, RetireCid)
+{
+    std::vector<uint8_t> dcid_bytes = {0x01, 0x02};
+    connection conn(false, connection_id(dcid_bytes));
+
+    auto new_cid = connection_id::generate();
+    (void)conn.add_local_cid(new_cid, 1);
+
+    // Retire CID 1 (still have CID 0 from constructor)
+    auto result = conn.retire_cid(1);
+    EXPECT_TRUE(result.is_ok());
+}
+
+TEST_F(ConnectionStateTest, RetireNonexistentCid)
+{
+    std::vector<uint8_t> dcid_bytes = {0x01, 0x02};
+    connection conn(false, connection_id(dcid_bytes));
+
+    auto result = conn.retire_cid(99);
+    EXPECT_FALSE(result.is_ok());
+}
+
+TEST_F(ConnectionStateTest, RetireLastCid)
+{
+    std::vector<uint8_t> dcid_bytes = {0x01, 0x02};
+    connection conn(false, connection_id(dcid_bytes));
+
+    // Only CID 0 exists, cannot retire it
+    auto result = conn.retire_cid(0);
+    EXPECT_FALSE(result.is_ok());
+}
+
+TEST_F(ConnectionStateTest, SetLocalParams)
+{
+    std::vector<uint8_t> dcid_bytes = {0x01, 0x02};
+    connection conn(false, connection_id(dcid_bytes));
+
+    transport_parameters params;
+    params.initial_max_data = 1048576;
+    params.initial_max_streams_bidi = 100;
+    params.initial_max_streams_uni = 50;
+
+    conn.set_local_params(params);
+
+    auto& lp = conn.local_params();
+    EXPECT_EQ(lp.initial_max_data, 1048576);
+    EXPECT_EQ(lp.initial_max_streams_bidi, 100);
+    EXPECT_EQ(lp.initial_max_streams_uni, 50);
+}
+
+TEST_F(ConnectionStateTest, SetRemoteParams)
+{
+    std::vector<uint8_t> dcid_bytes = {0x01, 0x02};
+    connection conn(false, connection_id(dcid_bytes));
+
+    transport_parameters params;
+    params.initial_max_data = 2097152;
+    params.initial_max_streams_bidi = 200;
+    params.initial_max_streams_uni = 100;
+    params.active_connection_id_limit = 4;
+    params.max_idle_timeout = 30000;
+
+    conn.set_remote_params(params);
+
+    auto& rp = conn.remote_params();
+    EXPECT_EQ(rp.initial_max_data, 2097152);
+    EXPECT_EQ(rp.initial_max_streams_bidi, 200);
+    EXPECT_EQ(rp.active_connection_id_limit, 4);
+}
+
+TEST_F(ConnectionStateTest, StartHandshakeAsServer)
+{
+    std::vector<uint8_t> dcid_bytes = {0x01, 0x02};
+    connection conn(true, connection_id(dcid_bytes));
+
+    auto result = conn.start_handshake("localhost");
+    EXPECT_FALSE(result.is_ok()); // Server cannot start handshake
+}
+
+TEST_F(ConnectionStateTest, StartHandshakeAsClient)
+{
+    std::vector<uint8_t> dcid_bytes = {0x01, 0x02, 0x03, 0x04};
+    connection conn(false, connection_id(dcid_bytes));
+
+    auto result = conn.start_handshake("localhost");
+    ASSERT_TRUE(result.is_ok());
+
+    EXPECT_EQ(conn.state(), connection_state::handshaking);
+    EXPECT_EQ(conn.handshake_state(), handshake_state::waiting_server_hello);
+    EXPECT_FALSE(conn.is_established());
+}
+
+TEST_F(ConnectionStateTest, StartHandshakeTwice)
+{
+    std::vector<uint8_t> dcid_bytes = {0x01, 0x02, 0x03, 0x04};
+    connection conn(false, connection_id(dcid_bytes));
+
+    auto r1 = conn.start_handshake("localhost");
+    ASSERT_TRUE(r1.is_ok());
+
+    auto r2 = conn.start_handshake("localhost");
+    EXPECT_FALSE(r2.is_ok()); // Already started
+}
+
+TEST_F(ConnectionStateTest, CloseIdleConnection)
+{
+    std::vector<uint8_t> dcid_bytes = {0x01, 0x02};
+    connection conn(false, connection_id(dcid_bytes));
+
+    auto result = conn.close(0, "test close");
+    EXPECT_TRUE(result.is_ok());
+    EXPECT_TRUE(conn.is_draining() || conn.is_closed());
+}
+
+TEST_F(ConnectionStateTest, CloseWithErrorCode)
+{
+    std::vector<uint8_t> dcid_bytes = {0x01, 0x02};
+    connection conn(false, connection_id(dcid_bytes));
+
+    auto result = conn.close(0x0A, "flow control error");
+    EXPECT_TRUE(result.is_ok());
+}
+
+TEST_F(ConnectionStateTest, FlowControlAndStreamAccess)
+{
+    std::vector<uint8_t> dcid_bytes = {0x01, 0x02};
+    connection conn(false, connection_id(dcid_bytes));
+
+    // Test accessors compile and return references
+    auto& fc = conn.flow_control();
+    auto& sm = conn.streams();
+    const auto& cfc = std::as_const(conn).flow_control();
+    const auto& csm = std::as_const(conn).streams();
+
+    (void)fc;
+    (void)sm;
+    (void)cfc;
+    (void)csm;
+}
+
+TEST_F(ConnectionStateTest, HasPendingDataInitially)
+{
+    std::vector<uint8_t> dcid_bytes = {0x01, 0x02};
+    connection conn(false, connection_id(dcid_bytes));
+
+    // Idle connection should not have pending data
+    EXPECT_FALSE(conn.has_pending_data());
+}
+
+TEST_F(ConnectionStateTest, ReceiveEmptyPacket)
+{
+    std::vector<uint8_t> dcid_bytes = {0x01, 0x02};
+    connection conn(false, connection_id(dcid_bytes));
+
+    std::vector<uint8_t> empty_packet;
+    auto result = conn.receive_packet(empty_packet);
+    EXPECT_FALSE(result.is_ok());
+}
+
+TEST_F(ConnectionStateTest, PeerCidManagerAccess)
+{
+    std::vector<uint8_t> dcid_bytes = {0x01, 0x02};
+    connection conn(false, connection_id(dcid_bytes));
+
+    auto& mgr = conn.peer_cid_manager();
+    const auto& cmgr = std::as_const(conn).peer_cid_manager();
+
+    (void)mgr;
+    (void)cmgr;
 }
