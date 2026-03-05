@@ -742,3 +742,461 @@ TEST(SpanTest, ConstCharAttributeNotBool)
 	const auto& attrs = span.attributes();
 	EXPECT_EQ(std::get<std::string>(attrs.at("message")), "hello world");
 }
+
+// ============================================================================
+// Exporter Coverage Tests — Exercise internal exporters.cpp code paths
+// through the public API (configure_tracing, export_span, flush_tracing, etc.)
+// ============================================================================
+
+// --- Console exporter with rich span data ---
+
+TEST(ExporterCoverageTest, ConsoleExportWithParentSpanAndEvents)
+{
+	shutdown_tracing();
+
+	auto config = tracing_config::console();
+	config.debug = false;
+	configure_tracing(config);
+
+	// Create parent-child spans to exercise parent_span_id branch in
+	// export_to_console
+	{
+		auto parent = trace_context::create_span("parent_op");
+		parent.set_attribute("string_attr", "hello");
+		parent.set_attribute("int_attr", int64_t{42});
+		parent.set_attribute("double_attr", 3.14);
+		parent.set_attribute("bool_attr", true);
+		parent.set_status(span_status::error, "test error description");
+
+		// Add event with attributes to cover event attribute formatting
+		std::map<std::string, attribute_value> event_attrs = {
+		    {"retry", int64_t{3}}, {"delay_ms", 100.5}};
+		parent.add_event("retry_attempt", event_attrs);
+
+		// Child span exercises parent_span_id branch
+		auto child = parent.context().create_child_span("child_op");
+		child.set_status(span_status::ok);
+		child.add_event("child_event");
+	}
+
+	shutdown_tracing();
+}
+
+TEST(ExporterCoverageTest, ConsoleExportAllSpanKinds)
+{
+	shutdown_tracing();
+
+	auto config = tracing_config::console();
+	config.debug = false;
+	configure_tracing(config);
+
+	// Exercise all span_kind_to_string branches
+	{
+		auto ctx = trace_context::current();
+		auto s1 = span("server_span", trace_context::current(), span_kind::server);
+		s1.set_status(span_status::ok);
+	}
+	{
+		auto s2 = span("client_span", trace_context::current(), span_kind::client);
+		s2.set_status(span_status::unset);
+	}
+	{
+		auto s3 =
+		    span("producer_span", trace_context::current(), span_kind::producer);
+	}
+	{
+		auto s4 =
+		    span("consumer_span", trace_context::current(), span_kind::consumer);
+	}
+
+	shutdown_tracing();
+}
+
+// --- OTLP HTTP exporter path ---
+
+TEST(ExporterCoverageTest, OtlpHttpExportAndFlush)
+{
+	shutdown_tracing();
+
+	auto config = tracing_config::otlp_http("http://localhost:4318/v1/traces");
+	config.debug = true; // Exercise debug output in export_otlp_http
+	config.service_name = "test_service";
+	config.service_version = "1.0.0";
+	config.service_namespace = "test_ns";
+	config.service_instance_id = "instance-1";
+	config.resource_attributes["env"] = "test";
+	config.batch.max_export_batch_size = 100; // High threshold so flush is needed
+	configure_tracing(config);
+
+	// Create spans — they will be queued (below batch threshold)
+	for (int i = 0; i < 3; ++i)
+	{
+		auto s = trace_context::create_span("otlp_test_" + std::to_string(i));
+		s.set_attribute("index", int64_t{i});
+		s.set_attribute("name", "span_" + std::to_string(i));
+		s.set_attribute("active", true);
+		s.set_attribute("latency", 1.5 * i);
+
+		if (i == 1)
+		{
+			s.set_status(span_status::error, "test \"error\" with\nspecial chars");
+		}
+		if (i == 2)
+		{
+			// Add event with attributes for OTLP JSON event serialization
+			std::map<std::string, attribute_value> event_attrs = {
+			    {"key\twith\ttabs", "value\\with\\backslashes"},
+			    {"count", int64_t{99}}};
+			s.add_event("special_event", event_attrs);
+
+			// Child span for parent_span_id in OTLP JSON
+			auto child = s.context().create_child_span("otlp_child");
+			child.set_status(span_status::ok);
+		}
+	}
+
+	// Flush exercises the flush_tracing → export_otlp_http → build_otlp_request
+	// path
+	flush_tracing();
+
+	shutdown_tracing();
+}
+
+TEST(ExporterCoverageTest, OtlpHttpBatchThresholdExport)
+{
+	shutdown_tracing();
+
+	auto config = tracing_config::otlp_http("http://localhost:4318/v1/traces");
+	config.debug = false;
+	config.batch.max_export_batch_size = 2; // Low threshold to trigger auto-export
+	configure_tracing(config);
+
+	// Create enough spans to trigger batch export (>= max_export_batch_size)
+	for (int i = 0; i < 3; ++i)
+	{
+		auto s = trace_context::create_span("batch_" + std::to_string(i));
+		s.set_attribute("i", int64_t{i});
+	}
+
+	shutdown_tracing();
+}
+
+TEST(ExporterCoverageTest, OtlpHttpWithMinimalConfig)
+{
+	shutdown_tracing();
+
+	// No optional fields — exercises empty-check branches in build_otlp_request
+	auto config = tracing_config::otlp_http("http://localhost:4318/v1/traces");
+	config.debug = false;
+	config.service_version = "";
+	config.service_namespace = "";
+	config.service_instance_id = "";
+	config.resource_attributes.clear();
+	config.batch.max_export_batch_size = 1;
+	configure_tracing(config);
+
+	{
+		auto s = trace_context::create_span("minimal_otlp");
+		// No attributes, no events, status unset
+	}
+
+	shutdown_tracing();
+}
+
+// --- Unsupported exporter debug fallback paths ---
+
+TEST(ExporterCoverageTest, OtlpGrpcDebugFallback)
+{
+	shutdown_tracing();
+
+	tracing_config config;
+	config.exporter = exporter_type::otlp_grpc;
+	config.debug = true; // Exercise the debug console fallback
+	configure_tracing(config);
+
+	{
+		auto s = trace_context::create_span("grpc_fallback");
+		s.set_attribute("test", "value");
+	}
+
+	shutdown_tracing();
+}
+
+TEST(ExporterCoverageTest, JaegerDebugFallback)
+{
+	shutdown_tracing();
+
+	tracing_config config;
+	config.exporter = exporter_type::jaeger;
+	config.jaeger_endpoint = "http://jaeger:14268";
+	config.debug = true;
+	configure_tracing(config);
+
+	{
+		auto s = trace_context::create_span("jaeger_fallback");
+		s.set_attribute("key", "value");
+	}
+
+	shutdown_tracing();
+}
+
+TEST(ExporterCoverageTest, ZipkinDebugFallback)
+{
+	shutdown_tracing();
+
+	tracing_config config;
+	config.exporter = exporter_type::zipkin;
+	config.zipkin_endpoint = "http://zipkin:9411";
+	config.debug = true;
+	configure_tracing(config);
+
+	{
+		auto s = trace_context::create_span("zipkin_fallback");
+		s.set_attribute("key", "value");
+	}
+
+	shutdown_tracing();
+}
+
+TEST(ExporterCoverageTest, UnsupportedExporterNonDebug)
+{
+	shutdown_tracing();
+
+	// Without debug, unsupported exporters silently skip
+	tracing_config config;
+	config.exporter = exporter_type::otlp_grpc;
+	config.debug = false;
+	configure_tracing(config);
+
+	{
+		auto s = trace_context::create_span("grpc_no_debug");
+	}
+
+	shutdown_tracing();
+}
+
+// --- Sampler coverage ---
+
+TEST(ExporterCoverageTest, SamplerParentBased)
+{
+	shutdown_tracing();
+
+	auto config = tracing_config::console();
+	config.debug = false;
+	config.sampler = sampler_type::parent_based;
+	configure_tracing(config);
+
+	// Sampled parent context (trace_flags::sampled)
+	{
+		auto s = trace_context::create_span("parent_based_sampled");
+		EXPECT_TRUE(s.context().is_sampled());
+	}
+
+	// Unsampled parent context
+	{
+		trace_id_t tid = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
+		span_id_t sid = {1, 2, 3, 4, 5, 6, 7, 8};
+		trace_context unsampled_ctx(tid, sid, trace_flags::none);
+		auto s = span("unsampled_parent_based", unsampled_ctx, span_kind::internal);
+	}
+
+	shutdown_tracing();
+}
+
+TEST(ExporterCoverageTest, SamplerTraceIdBasedExport)
+{
+	shutdown_tracing();
+
+	// Exercise should_sample with trace_id sampler through export path
+	auto config = tracing_config::console();
+	config.debug = false;
+	config.sampler = sampler_type::trace_id;
+	config.sample_rate = 1.0; // 100% — should_sample returns true immediately
+	configure_tracing(config);
+
+	{
+		auto s = trace_context::create_span("trace_id_sampled_100");
+		s.set_attribute("key", "value");
+	}
+
+	shutdown_tracing();
+
+	// Now test with 0% — should_sample returns false immediately
+	auto config_zero = tracing_config::console();
+	config_zero.debug = false;
+	config_zero.sampler = sampler_type::trace_id;
+	config_zero.sample_rate = 0.0;
+	configure_tracing(config_zero);
+
+	{
+		auto s = trace_context::create_span("trace_id_sampled_0");
+	}
+
+	shutdown_tracing();
+
+	// Partial rate — exercises the hash-based branch
+	auto config_partial = tracing_config::console();
+	config_partial.debug = false;
+	config_partial.sampler = sampler_type::trace_id;
+	config_partial.sample_rate = 0.5;
+	configure_tracing(config_partial);
+
+	for (int i = 0; i < 10; ++i)
+	{
+		auto s = trace_context::create_span("trace_id_partial_" + std::to_string(i));
+	}
+
+	shutdown_tracing();
+}
+
+// --- configure_tracing debug output for each exporter type ---
+
+TEST(ExporterCoverageTest, ConfigureDebugOutputAllTypes)
+{
+	shutdown_tracing();
+
+	// Console exporter with debug
+	{
+		auto config = tracing_config::console();
+		config.debug = true;
+		configure_tracing(config);
+		shutdown_tracing();
+	}
+
+	// OTLP gRPC with debug
+	{
+		tracing_config config;
+		config.exporter = exporter_type::otlp_grpc;
+		config.otlp.endpoint = "http://localhost:4317";
+		config.debug = true;
+		configure_tracing(config);
+		shutdown_tracing();
+	}
+
+	// OTLP HTTP with debug
+	{
+		auto config = tracing_config::otlp_http("http://localhost:4318");
+		config.debug = true;
+		configure_tracing(config);
+		shutdown_tracing();
+	}
+
+	// Jaeger with debug
+	{
+		auto config = tracing_config::jaeger("http://jaeger:14268");
+		config.debug = true;
+		configure_tracing(config);
+		shutdown_tracing();
+	}
+
+	// Zipkin with debug
+	{
+		tracing_config config;
+		config.exporter = exporter_type::zipkin;
+		config.zipkin_endpoint = "http://zipkin:9411";
+		config.debug = true;
+		configure_tracing(config);
+		shutdown_tracing();
+	}
+
+	// None/disabled with debug — should_log is false for none
+	{
+		auto config = tracing_config::disabled();
+		config.debug = true;
+		configure_tracing(config);
+		shutdown_tracing();
+	}
+}
+
+// --- Processor registration edge cases ---
+
+TEST(ExporterCoverageTest, RegisterNullProcessor)
+{
+	shutdown_tracing();
+
+	auto config = tracing_config::console();
+	config.debug = false;
+	configure_tracing(config);
+
+	// Null callback should be rejected silently
+	register_span_processor(nullptr);
+
+	std::atomic<int> count{0};
+	register_span_processor([&count](const span&) { ++count; });
+
+	{
+		auto s = trace_context::create_span("null_processor_test");
+	}
+
+	flush_tracing();
+	EXPECT_EQ(count.load(), 1);
+
+	shutdown_tracing();
+}
+
+TEST(ExporterCoverageTest, MultipleProcessors)
+{
+	shutdown_tracing();
+
+	auto config = tracing_config::console();
+	config.debug = false;
+	configure_tracing(config);
+
+	std::atomic<int> count1{0};
+	std::atomic<int> count2{0};
+	register_span_processor([&count1](const span&) { ++count1; });
+	register_span_processor([&count2](const span&) { ++count2; });
+
+	{
+		auto s = trace_context::create_span("multi_processor");
+	}
+
+	flush_tracing();
+	EXPECT_EQ(count1.load(), 1);
+	EXPECT_EQ(count2.load(), 1);
+
+	shutdown_tracing();
+}
+
+// --- Flush edge cases ---
+
+TEST(ExporterCoverageTest, FlushEmptyQueue)
+{
+	shutdown_tracing();
+
+	auto config = tracing_config::console();
+	config.debug = false;
+	configure_tracing(config);
+
+	// Flush with nothing queued — exercises empty batch path
+	flush_tracing();
+
+	shutdown_tracing();
+}
+
+TEST(ExporterCoverageTest, DoubleShutdown)
+{
+	auto config = tracing_config::console();
+	config.debug = false;
+	configure_tracing(config);
+
+	shutdown_tracing();
+	EXPECT_FALSE(is_tracing_enabled());
+
+	// Second shutdown should be safe
+	shutdown_tracing();
+	EXPECT_FALSE(is_tracing_enabled());
+}
+
+TEST(ExporterCoverageTest, ExportWhenDisabled)
+{
+	shutdown_tracing();
+
+	// export_span when tracing is disabled — early return in process_span
+	EXPECT_FALSE(is_tracing_enabled());
+
+	auto s = trace_context::create_span("disabled_export");
+	export_span(s);
+
+	// Should not crash
+}
