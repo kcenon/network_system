@@ -65,22 +65,18 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * This library requires OpenSSL 3.x. OpenSSL 1.1.x is no longer supported
  * as it reached End-of-Life on September 11, 2023.
  */
-#if OPENSSL_VERSION_NUMBER >= 0x30000000L
-    #define NETWORK_OPENSSL_VERSION_3_X 1
-#else
-    #error "OpenSSL 3.x or newer is required. OpenSSL 1.1.x reached EOL on September 11, 2023."
-#endif
+static_assert(OPENSSL_VERSION_NUMBER >= 0x30000000L,
+    "OpenSSL 3.x or newer is required. OpenSSL 1.1.x reached EOL on September 11, 2023.");
 
 // ============================================================================
 // Deprecation Warning Suppression for OpenSSL 3.x
 // ============================================================================
 
 /*!
- * \brief Suppress OpenSSL 3.x deprecation warnings
+ * \brief Suppress OpenSSL deprecation warnings
  *
- * OpenSSL 3.x marks many 1.1.x APIs as deprecated but they still work.
- * We use these macros to suppress warnings when using legacy-compatible code
- * that needs to work with both versions.
+ * OpenSSL 3.x marks some APIs as deprecated across minor releases.
+ * Use these macros to suppress warnings when using such APIs.
  *
  * Usage:
  *   NETWORK_OPENSSL_SUPPRESS_DEPRECATED_START

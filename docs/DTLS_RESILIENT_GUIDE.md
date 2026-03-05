@@ -716,11 +716,8 @@ io.run();
 The DTLS implementation requires **OpenSSL 3.x** (OpenSSL 1.1.x reached End-of-Life on September 11, 2023). The `openssl_compat.h` header enforces this at compile time:
 
 ```cpp
-#if OPENSSL_VERSION_NUMBER >= 0x30000000L
-    #define NETWORK_OPENSSL_VERSION_3_X 1
-#else
-    #error "OpenSSL 3.x or newer is required."
-#endif
+static_assert(OPENSSL_VERSION_NUMBER >= 0x30000000L,
+    "OpenSSL 3.x or newer is required. OpenSSL 1.1.x reached EOL on September 11, 2023.");
 ```
 
 ### Monitoring Checklist

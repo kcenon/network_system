@@ -20,7 +20,7 @@ make
 ### Dependencies
 
 When `BUILD_QUIC_SUPPORT=ON`:
-- OpenSSL 1.1.1+ is required for TLS 1.3 cryptography
+- OpenSSL 3.0+ is required for TLS 1.3 cryptography
 - The `BUILD_WITH_OPENSSL` macro is automatically defined
 
 ---

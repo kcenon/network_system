@@ -104,7 +104,7 @@ cmake -DBUILD_QUIC_SUPPORT=ON ..
 
 ### Dependencies
 
-- OpenSSL 1.1.1+ (for TLS 1.3 cryptography)
+- OpenSSL 3.0+ (for TLS 1.3 cryptography)
 - C++20 compatible compiler
 - ASIO (header-only networking)
 
