@@ -441,7 +441,7 @@ network_system
   ├── C++20 Compiler (GCC 11+, Clang 14+, MSVC 2022+)
   ├── CMake 3.16+
   ├── ASIO 1.28+ (or Boost.ASIO)
-  └── OpenSSL 1.1.1+ (for TLS/SSL and WebSocket)
+  └── OpenSSL 3.0+ (for TLS/SSL and WebSocket)
 ```
 
 **Optional Dependencies**:

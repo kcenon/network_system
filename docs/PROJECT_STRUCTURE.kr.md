@@ -396,7 +396,7 @@ network_system
   ├── C++20 컴파일러 (GCC 11+, Clang 14+, MSVC 2022+)
   ├── CMake 3.16+
   ├── ASIO 1.28+ (또는 Boost.ASIO)
-  └── OpenSSL 1.1.1+ (TLS/SSL 및 WebSocket용)
+  └── OpenSSL 3.0+ (TLS/SSL 및 WebSocket용)
 ```
 
 **선택적 의존성**:
