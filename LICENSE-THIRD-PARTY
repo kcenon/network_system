@@ -1,0 +1,72 @@
+# Third-Party License Compliance
+
+This file documents third-party dependencies and their license compatibility
+with the project's BSD-3-Clause license.
+
+## ASIO (Standalone)
+
+| Item               | Value                                          |
+|--------------------|--------------------------------------------- --|
+| Component          | Standalone Asio C++ Library                    |
+| License            | BSL-1.0 (Boost Software License 1.0)          |
+| Pinned Version     | 1.30.2 (tag: asio-1-30-2)                     |
+| Usage              | Asynchronous I/O, networking, timers           |
+| Linking            | Header-only (no linking concerns)              |
+| BSD-3 Compatible   | Yes                                            |
+
+### Version Pinning Rationale
+
+ASIO is the core networking dependency. The version is pinned for:
+1. **SOUP traceability** (IEC 62304): Exact version identification required
+2. **Reproducible builds**: Same behavior across vcpkg, system, and FetchContent paths
+3. **Security auditing**: Enables CVE tracking and upgrade planning
+4. **Build consistency**: Prevents subtle behavioral differences between build paths
+
+### Version Synchronization
+
+The pinned ASIO version must be kept in sync across:
+- `vcpkg.json`: `"version>=": "1.30.2"` constraint
+- `cmake/NetworkSystemDependencies.cmake`: `NETWORK_SYSTEM_ASIO_PINNED_TAG` variable
+- `vcpkg-configuration.json`: baseline (indirectly pins vcpkg port version)
+
+## fmt
+
+| Item               | Value                                          |
+|--------------------|--------------------------------------------- --|
+| Component          | {fmt} formatting library                       |
+| License            | MIT                                            |
+| Minimum Version    | 10.0.0                                         |
+| Usage              | String formatting                              |
+| BSD-3 Compatible   | Yes                                            |
+
+## zlib
+
+| Item               | Value                                          |
+|--------------------|--------------------------------------------- --|
+| Component          | zlib compression library                       |
+| License            | zlib License                                   |
+| Usage              | HTTP compression support                       |
+| Linking            | Dynamic (shared library)                       |
+| BSD-3 Compatible   | Yes                                            |
+
+## OpenSSL (Optional — ssl feature)
+
+| Item               | Value                                          |
+|--------------------|--------------------------------------------- --|
+| Component          | OpenSSL                                        |
+| License            | Apache-2.0                                     |
+| Minimum Version    | 3.0.0                                          |
+| Usage              | SSL/TLS encryption for secure connections      |
+| Linking            | Dynamic (shared library)                       |
+| BSD-3 Compatible   | Yes                                            |
+
+## All Dependencies (License Summary)
+
+| Dependency        | License        | Type     | BSD-3 Compatible |
+|-------------------|----------------|----------|------------------|
+| ASIO              | BSL-1.0        | Core     | Yes              |
+| fmt               | MIT            | Core     | Yes              |
+| zlib              | zlib           | Core     | Yes              |
+| OpenSSL           | Apache-2.0     | Optional | Yes              |
+| GTest/GMock       | BSD-3-Clause   | Testing  | Yes              |
+| Google Benchmark  | Apache-2.0     | Testing  | Yes              |
