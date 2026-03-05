@@ -8,15 +8,89 @@
 include(FetchContent)
 
 ##################################################
+# Pinned ASIO version
+#
+# SOUP traceability (IEC 62304): ASIO is a critical networking dependency.
+# This version must be kept in sync with:
+#   - vcpkg.json "version>=" field
+#   - FetchContent GIT_TAG below
+#
+# Version history:
+#   1.30.2 (2024-04) - Pinned to match vcpkg baseline c4af3593
+##################################################
+set(NETWORK_SYSTEM_ASIO_PINNED_VERSION "1.30.2")
+set(NETWORK_SYSTEM_ASIO_PINNED_TAG "asio-1-30-2")
+# ASIO_VERSION macro encodes as: MAJOR*100000 + MINOR*100 + PATCH
+set(NETWORK_SYSTEM_ASIO_MINIMUM_VERSION_INT 103002)
+
+##################################################
+# Detect ASIO version from headers
+#
+# Reads ASIO_VERSION from asio/version.hpp and converts
+# the encoded integer (MAJOR*100000 + MINOR*100 + PATCH)
+# to a human-readable "MAJOR.MINOR.PATCH" string.
+##################################################
+function(_detect_asio_version _include_dir _out_version _out_version_int)
+    set(_version_file "${_include_dir}/asio/version.hpp")
+    if(NOT EXISTS "${_version_file}")
+        set(${_out_version} "unknown" PARENT_SCOPE)
+        set(${_out_version_int} 0 PARENT_SCOPE)
+        return()
+    endif()
+
+    file(STRINGS "${_version_file}" _version_line
+        REGEX "^#define ASIO_VERSION [0-9]+")
+
+    if(_version_line)
+        string(REGEX MATCH "[0-9]+" _version_int "${_version_line}")
+        math(EXPR _major "${_version_int} / 100000")
+        math(EXPR _minor "(${_version_int} / 100) % 1000")
+        math(EXPR _patch "${_version_int} % 100")
+        set(${_out_version} "${_major}.${_minor}.${_patch}" PARENT_SCOPE)
+        set(${_out_version_int} ${_version_int} PARENT_SCOPE)
+    else()
+        set(${_out_version} "unknown" PARENT_SCOPE)
+        set(${_out_version_int} 0 PARENT_SCOPE)
+    endif()
+endfunction()
+
+##################################################
+# Validate ASIO version against pinned minimum
+##################################################
+function(_validate_asio_version _version_str _version_int _source)
+    if(_version_int EQUAL 0)
+        message(STATUS "  ASIO version: unknown (${_source})")
+        return()
+    endif()
+
+    message(STATUS "  ASIO version: ${_version_str} (${_source})")
+
+    if(_version_int LESS ${NETWORK_SYSTEM_ASIO_MINIMUM_VERSION_INT})
+        message(WARNING
+            "ASIO version ${_version_str} is below pinned minimum "
+            "${NETWORK_SYSTEM_ASIO_PINNED_VERSION}. "
+            "Update to ASIO >= ${NETWORK_SYSTEM_ASIO_PINNED_VERSION} for "
+            "consistent behavior across build paths.")
+    endif()
+endfunction()
+
+##################################################
 # Find ASIO (standalone or Boost.ASIO)
 ##################################################
 function(find_asio_library)
-    message(STATUS "Looking for ASIO library...")
+    message(STATUS "Looking for ASIO library (pinned: ${NETWORK_SYSTEM_ASIO_PINNED_VERSION})...")
 
     # Try CMake config package first (vcpkg provides asioConfig.cmake)
     find_package(asio QUIET CONFIG)
     if(TARGET asio::asio)
         message(STATUS "Found ASIO via CMake package (target: asio::asio)")
+        # Detect version from vcpkg-provided headers
+        get_target_property(_asio_inc asio::asio INTERFACE_INCLUDE_DIRECTORIES)
+        if(_asio_inc)
+            list(GET _asio_inc 0 _asio_inc_first)
+            _detect_asio_version("${_asio_inc_first}" _ver _ver_int)
+            _validate_asio_version("${_ver}" "${_ver_int}" "vcpkg")
+        endif()
         set(ASIO_FOUND TRUE PARENT_SCOPE)
         set(ASIO_TARGET asio::asio PARENT_SCOPE)
         return()
@@ -43,6 +117,8 @@ function(find_asio_library)
 
     if(ASIO_INCLUDE_DIR)
         message(STATUS "Found standalone ASIO at: ${ASIO_INCLUDE_DIR}")
+        _detect_asio_version("${ASIO_INCLUDE_DIR}" _ver _ver_int)
+        _validate_asio_version("${_ver}" "${_ver_int}" "system")
         set(ASIO_INCLUDE_DIR ${ASIO_INCLUDE_DIR} PARENT_SCOPE)
         set(ASIO_FOUND TRUE PARENT_SCOPE)
         return()
@@ -54,11 +130,11 @@ function(find_asio_library)
     # Therefore, we skip Boost.ASIO and fetch standalone ASIO directly
 
     # Fetch standalone ASIO as a last resort
-    message(STATUS "Standalone ASIO not found locally - fetching asio-1-36-0 from upstream...")
+    message(STATUS "Standalone ASIO not found locally - fetching ${NETWORK_SYSTEM_ASIO_PINNED_TAG} from upstream...")
 
     FetchContent_Declare(network_system_asio
         GIT_REPOSITORY https://github.com/chriskohlhoff/asio.git
-        GIT_TAG asio-1-36-0
+        GIT_TAG ${NETWORK_SYSTEM_ASIO_PINNED_TAG}
     )
 
     FetchContent_GetProperties(network_system_asio)
@@ -70,6 +146,8 @@ function(find_asio_library)
 
     if(EXISTS "${_asio_include_dir}/asio.hpp")
         message(STATUS "Fetched standalone ASIO headers at: ${_asio_include_dir}")
+        _detect_asio_version("${_asio_include_dir}" _ver _ver_int)
+        _validate_asio_version("${_ver}" "${_ver_int}" "FetchContent")
         set(ASIO_INCLUDE_DIR ${_asio_include_dir} PARENT_SCOPE)
         set(ASIO_FOUND TRUE PARENT_SCOPE)
         set(ASIO_FETCHED TRUE PARENT_SCOPE)
