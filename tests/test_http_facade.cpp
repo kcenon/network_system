@@ -245,3 +245,71 @@ TEST_F(HttpFacadeTest, ServerReturnsProtocolInterface)
 	// Server has no connections before start()
 	EXPECT_EQ(server->connection_count(), 0u);
 }
+
+// ============================================================================
+// Client Guard Path Tests (unconnected operations)
+// ============================================================================
+
+TEST_F(HttpFacadeTest, SendOnUnconnectedClientReturnsError)
+{
+	http_facade::client_config config{};
+	client_ = facade_->create_client(config);
+	ASSERT_NE(client_, nullptr);
+
+	// Sending data when not connected should fail
+	std::vector<uint8_t> data = {0x01, 0x02, 0x03};
+	auto result = client_->send(std::move(data));
+	EXPECT_TRUE(result.is_err());
+}
+
+TEST_F(HttpFacadeTest, IsConnectedReturnsFalseBeforeStart)
+{
+	http_facade::client_config config{};
+	client_ = facade_->create_client(config);
+	ASSERT_NE(client_, nullptr);
+
+	EXPECT_FALSE(client_->is_connected());
+}
+
+TEST_F(HttpFacadeTest, StopClientBeforeStartIsIdempotent)
+{
+	http_facade::client_config config{};
+	client_ = facade_->create_client(config);
+	ASSERT_NE(client_, nullptr);
+
+	// Stop without start should not crash or throw
+	auto result = client_->stop();
+	// Either ok or graceful error - just shouldn't crash
+	(void)result;
+	SUCCEED();
+}
+
+// ============================================================================
+// Server Guard Path Tests (pre-start operations)
+// ============================================================================
+
+TEST_F(HttpFacadeTest, ConnectionCountZeroBeforeStart)
+{
+	http_facade::server_config config{
+		.port = 8080,
+	};
+	server_ = facade_->create_server(config);
+	ASSERT_NE(server_, nullptr);
+
+	EXPECT_EQ(server_->connection_count(), 0u);
+}
+
+TEST_F(HttpFacadeTest, StopServerBeforeStartIsIdempotent)
+{
+	http_facade::server_config config{
+		.port = 8080,
+	};
+	server_ = facade_->create_server(config);
+	ASSERT_NE(server_, nullptr);
+
+	// Stop without start should succeed gracefully
+	auto result = server_->stop();
+	(void)result;
+	SUCCEED();
+}
+

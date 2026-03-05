@@ -378,3 +378,66 @@ TEST_F(WebSocketFacadeTest, CreateClientWithLargePingInterval)
 	ASSERT_NE(client_, nullptr);
 	EXPECT_FALSE(client_->is_connected());
 }
+
+// ============================================================================
+// Client Guard Path Tests (unconnected operations)
+// ============================================================================
+
+TEST_F(WebSocketFacadeTest, SendOnUnconnectedClientReturnsError)
+{
+	websocket_facade::client_config config{};
+	client_ = facade_->create_client(config);
+	ASSERT_NE(client_, nullptr);
+
+	// Sending data when not connected should fail
+	std::vector<uint8_t> data = {0x01, 0x02, 0x03};
+	auto result = client_->send(std::move(data));
+	EXPECT_TRUE(result.is_err());
+}
+
+TEST_F(WebSocketFacadeTest, IsConnectedReturnsFalseBeforeStart)
+{
+	websocket_facade::client_config config{};
+	client_ = facade_->create_client(config);
+	ASSERT_NE(client_, nullptr);
+
+	EXPECT_FALSE(client_->is_connected());
+}
+
+TEST_F(WebSocketFacadeTest, StopClientBeforeStartIsIdempotent)
+{
+	websocket_facade::client_config config{};
+	client_ = facade_->create_client(config);
+	ASSERT_NE(client_, nullptr);
+
+	// Stop without start should not crash or throw
+	EXPECT_NO_THROW(client_->stop());
+}
+
+// ============================================================================
+// Server Guard Path Tests (pre-start operations)
+// ============================================================================
+
+TEST_F(WebSocketFacadeTest, ConnectionCountZeroBeforeStart)
+{
+	websocket_facade::server_config config{
+		.port = 8080,
+	};
+	server_ = facade_->create_server(config);
+	ASSERT_NE(server_, nullptr);
+
+	EXPECT_EQ(server_->connection_count(), 0u);
+}
+
+TEST_F(WebSocketFacadeTest, StopServerBeforeStartIsIdempotent)
+{
+	websocket_facade::server_config config{
+		.port = 8080,
+	};
+	server_ = facade_->create_server(config);
+	ASSERT_NE(server_, nullptr);
+
+	// Stop without start should succeed gracefully
+	EXPECT_NO_THROW(server_->stop());
+}
+
