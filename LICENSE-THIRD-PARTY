@@ -9,7 +9,7 @@ with the project's BSD-3-Clause license.
 |--------------------|--------------------------------------------- --|
 | Component          | Standalone Asio C++ Library                    |
 | License            | BSL-1.0 (Boost Software License 1.0)          |
-| Pinned Version     | 1.36.0 (tag: asio-1-36-0)                     |
+| Pinned Version     | 1.30.2 (tag: asio-1-30-2)                     |
 | Usage              | Asynchronous I/O, networking, timers           |
 | Linking            | Header-only (no linking concerns)              |
 | BSD-3 Compatible   | Yes                                            |
@@ -25,7 +25,7 @@ ASIO is the core networking dependency. The version is pinned for:
 ### Version Synchronization
 
 The pinned ASIO version must be kept in sync across:
-- `vcpkg.json`: `"version>=": "1.36.0"` constraint
+- `vcpkg.json`: `"version>=": "1.30.2"` constraint
 - `cmake/NetworkSystemDependencies.cmake`: `NETWORK_SYSTEM_ASIO_PINNED_TAG` variable
 - `vcpkg-configuration.json`: baseline (indirectly pins vcpkg port version)
 

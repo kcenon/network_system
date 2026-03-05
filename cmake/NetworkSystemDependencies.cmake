@@ -16,12 +16,12 @@ include(FetchContent)
 #   - FetchContent GIT_TAG below
 #
 # Version history:
-#   1.36.0 (2025-12) - Initial pinned version
+#   1.30.2 (2024-04) - Pinned to match vcpkg baseline c4af3593
 ##################################################
-set(NETWORK_SYSTEM_ASIO_PINNED_VERSION "1.36.0")
-set(NETWORK_SYSTEM_ASIO_PINNED_TAG "asio-1-36-0")
+set(NETWORK_SYSTEM_ASIO_PINNED_VERSION "1.30.2")
+set(NETWORK_SYSTEM_ASIO_PINNED_TAG "asio-1-30-2")
 # ASIO_VERSION macro encodes as: MAJOR*100000 + MINOR*100 + PATCH
-set(NETWORK_SYSTEM_ASIO_MINIMUM_VERSION_INT 103600)
+set(NETWORK_SYSTEM_ASIO_MINIMUM_VERSION_INT 103002)
 
 ##################################################
 # Detect ASIO version from headers
