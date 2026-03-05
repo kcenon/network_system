@@ -17,7 +17,7 @@ using namespace kcenon::network::internal;
  * @brief Unit tests for OpenSSL compatibility utilities
  *
  * Tests validate:
- * - NETWORK_OPENSSL_VERSION_3_X macro is defined
+ * - OpenSSL version is 3.x or newer
  * - openssl_version_string() returns valid string
  * - get_openssl_error() returns "No OpenSSL error" on clean queue
  * - clear_openssl_errors() clears the error queue
@@ -25,23 +25,14 @@ using namespace kcenon::network::internal;
  */
 
 // ============================================================================
-// Version Macro Tests
+// Version Tests
 // ============================================================================
 
-class OpenSslVersionMacroTest : public ::testing::Test
+class OpenSslVersionTest : public ::testing::Test
 {
 };
 
-TEST_F(OpenSslVersionMacroTest, Version3XMacroIsDefined)
-{
-#ifdef NETWORK_OPENSSL_VERSION_3_X
-	EXPECT_EQ(NETWORK_OPENSSL_VERSION_3_X, 1);
-#else
-	GTEST_SKIP() << "NETWORK_OPENSSL_VERSION_3_X not defined";
-#endif
-}
-
-TEST_F(OpenSslVersionMacroTest, OpenSslVersionNumberAbove3)
+TEST_F(OpenSslVersionTest, OpenSslVersionIsAtLeast3)
 {
 	EXPECT_GE(OPENSSL_VERSION_NUMBER, 0x30000000L);
 }

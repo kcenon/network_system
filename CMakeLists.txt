@@ -601,9 +601,6 @@ if(BUILD_TLS_SUPPORT)
 
     message(STATUS "TLS/SSL support enabled (TLS 1.2/1.3)")
     message(STATUS "  OpenSSL version: ${OPENSSL_VERSION}")
-    message(STATUS "  OpenSSL 3.x: Using modern API")
-    message(STATUS "  TLS 1.3 support: Available")
-    target_compile_definitions(NetworkSystem PRIVATE NETWORK_OPENSSL_3_X)
 endif()
 
 # WebSocket support (conditional) - part of HTTP layer
@@ -623,7 +620,6 @@ if(BUILD_WEBSOCKET_SUPPORT)
         find_package(OpenSSL 3.0.0 REQUIRED)
         target_link_libraries(NetworkSystem PRIVATE OpenSSL::Crypto)
         message(STATUS "  OpenSSL version: ${OPENSSL_VERSION}")
-        target_compile_definitions(NetworkSystem PRIVATE NETWORK_OPENSSL_3_X)
     endif()
 
     message(STATUS "WebSocket support enabled")

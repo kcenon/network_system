@@ -46,7 +46,7 @@ Before contributing, ensure you have:
 - Git
 - **Required dependencies**:
   - ASIO or Boost.ASIO 1.28+
-  - OpenSSL 1.1.1+ (for TLS/SSL and WebSocket)
+  - OpenSSL 3.0+ (for TLS/SSL and WebSocket)
 - **Optional dependencies**:
   - fmt 10.0+ (formatting)
   - container_system (advanced serialization)
