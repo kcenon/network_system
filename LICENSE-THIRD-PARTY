@@ -45,6 +45,7 @@ The pinned ASIO version must be kept in sync across:
 |--------------------|--------------------------------------------- --|
 | Component          | zlib compression library                       |
 | License            | zlib License                                   |
+| Minimum Version    | 1.3 (CVE-2023-45853 fix)                       |
 | Usage              | HTTP compression support                       |
 | Linking            | Dynamic (shared library)                       |
 | BSD-3 Compatible   | Yes                                            |
