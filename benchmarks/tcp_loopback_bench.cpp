@@ -249,7 +249,7 @@ BENCHMARK_DEFINE_F(TcpLoopbackFixture, TCP_ConnectionEstablish)(benchmark::State
 
     asio::io_context io;
     asio::ip::tcp::endpoint endpoint(
-        asio::ip::address::from_string("127.0.0.1"), port_);
+        asio::ip::make_address("127.0.0.1"), port_);
 
     for (auto _ : state)
     {
@@ -297,7 +297,7 @@ BENCHMARK_DEFINE_F(TcpLoopbackFixture, TCP_EchoRoundtrip)(benchmark::State& stat
     asio::io_context io;
     asio::ip::tcp::socket socket(io);
     asio::ip::tcp::endpoint endpoint(
-        asio::ip::address::from_string("127.0.0.1"), port_);
+        asio::ip::make_address("127.0.0.1"), port_);
 
     asio::error_code ec;
     socket.connect(endpoint, ec);
@@ -366,7 +366,7 @@ BENCHMARK_DEFINE_F(TcpLoopbackFixture, TCP_StreamThroughput)(benchmark::State& s
     asio::io_context io;
     asio::ip::tcp::socket socket(io);
     asio::ip::tcp::endpoint endpoint(
-        asio::ip::address::from_string("127.0.0.1"), port_);
+        asio::ip::make_address("127.0.0.1"), port_);
 
     asio::error_code ec;
     socket.connect(endpoint, ec);
