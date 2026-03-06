@@ -337,8 +337,8 @@ jobs:
           build/Testing/Temporary/
 
   # Phase 0: Sanitizer checks (informational, non-blocking)
-  # Note: ci.yml sanitizers use different ASIO version and dependency config
-  # than the dedicated sanitizers.yml. See sanitizers.yml for blocking checks.
+  # Uses ASIO 1.32.0 from source (matching sanitizers.yml) because Ubuntu 24.04's
+  # libasio-dev (1.28.1) has a recycling allocator bug that causes SEGV under sanitizers.
   sanitizers:
     name: Sanitizers (${{ matrix.sanitizer.name }})
     runs-on: ubuntu-24.04
@@ -402,7 +402,20 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y cmake ninja-build clang libgtest-dev libgmock-dev libasio-dev libfmt-dev libssl-dev liblz4-dev zlib1g-dev
+        # Note: Do NOT install libasio-dev here. Ubuntu 24.04 ships ASIO 1.28.1
+        # which has a bug where the recycling allocator returns null under sanitizers.
+        sudo apt-get install -y cmake ninja-build clang libgtest-dev libgmock-dev libfmt-dev libssl-dev liblz4-dev zlib1g-dev
+
+    - name: Install ASIO from source
+      run: |
+        # Ubuntu 24.04's libasio-dev (1.28.1) has a bug where the recycling allocator
+        # can return null when running under sanitizers, causing SEGV. ASIO 1.32.0
+        # has fixes for the recycling allocator.
+        curl -L https://github.com/chriskohlhoff/asio/archive/asio-1-32-0.tar.gz -o asio.tar.gz
+        tar xzf asio.tar.gz
+        sudo mkdir -p /usr/local/include
+        sudo cp -r asio-asio-1-32-0/asio/include/asio /usr/local/include/
+        sudo cp asio-asio-1-32-0/asio/include/asio.hpp /usr/local/include/
 
     - name: Build ecosystem dependencies
       shell: bash
@@ -515,7 +528,9 @@ jobs:
           -DBUILD_TESTS=ON \
           -DBUILD_SAMPLES=OFF \
           -DCMAKE_C_COMPILER=clang \
-          -DCMAKE_CXX_COMPILER=clang++
+          -DCMAKE_CXX_COMPILER=clang++ \
+          -DASIO_INCLUDE_DIR=/usr/local/include \
+          -DSKIP_ASIO_RECYCLING_WORKAROUND=ON
 
     - name: Build with ${{ matrix.sanitizer.name }}
       run: cmake --build build --config Debug
