@@ -424,7 +424,15 @@ if (result.is_err()) {
 | 1 KB | ~128K msg/s | 7,803 | CPU-only (allocation + memcpy) |
 | 8 KB | ~21K msg/s | 48,000 | CPU-only (allocation + memcpy) |
 
-**Note**: Synthetic benchmarks measure CPU-only operations without real network I/O. Real network throughput/latency measurements are pending.
+### Real I/O Benchmarks (Loopback TCP)
+
+| Benchmark | Payload | Scope |
+|-----------|---------|-------|
+| TCP Connection Establish | N/A | Connect + disconnect via loopback |
+| TCP Echo Roundtrip | 64B, 1KB, 8KB | Send + receive through kernel TCP stack |
+| TCP Stream Throughput | 1KB, 64KB | Sustained bytes/sec over loopback |
+
+**Note**: Synthetic benchmarks measure CPU-only operations without real network I/O. Real I/O benchmarks use a TCP echo server on the loopback interface to measure actual kernel TCP stack overhead.
 
 ### Reproducing Benchmarks
 
@@ -433,11 +441,14 @@ if (result.is_err()) {
 cmake -B build -DCMAKE_BUILD_TYPE=Release -DNETWORK_BUILD_BENCHMARKS=ON
 cmake --build build -j
 
-# Run benchmarks
+# Run all benchmarks
 ./build/benchmarks/network_benchmarks
 
-# Run specific category
+# Run synthetic benchmarks only
 ./build/benchmarks/network_benchmarks --benchmark_filter=MessageThroughput
+
+# Run real I/O benchmarks only
+./build/benchmarks/network_benchmarks --benchmark_filter=TCP
 ```
 
 ⚡ **[Full Benchmarks & Load Testing →](docs/BENCHMARKS.md)**
