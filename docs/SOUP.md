@@ -61,15 +61,15 @@
 
 | ID | Name | Manufacturer | Version | License | Usage | Safety Class | Known Anomalies |
 |----|------|-------------|---------|---------|-------|-------------|-----------------|
-| SOUP-007 | [gRPC](https://github.com/grpc/grpc) | Google | &ge;1.50.0 | Apache-2.0 | Official gRPC transport for inter-service communication | B | None |
-| SOUP-008 | [Protocol Buffers](https://github.com/protocolbuffers/protobuf) | Google | &ge;3.21.0 | BSD-3-Clause | Serialization for gRPC transport | B | None |
-| SOUP-009 | [Abseil](https://github.com/abseil/abseil-cpp) | Google | Latest (transitive) | Apache-2.0 | C++ utility library (transitive dependency via gRPC 1.50+) | A | None |
+| SOUP-007 | [gRPC](https://github.com/grpc/grpc) | Google | vcpkg baseline | Apache-2.0 | Official gRPC transport for inter-service communication | B | Version resolved by vcpkg baseline; not pinned in overrides |
+| SOUP-008 | [Protocol Buffers](https://github.com/protocolbuffers/protobuf) | Google | vcpkg baseline | BSD-3-Clause | Serialization for gRPC transport | B | Version resolved by vcpkg baseline; not pinned in overrides |
+| SOUP-009 | [Abseil](https://github.com/abseil/abseil-cpp) | Google | vcpkg baseline (transitive) | Apache-2.0 | C++ utility library (transitive dependency via gRPC 1.50+) | A | None |
 
 ### Observability (network-core)
 
 | ID | Name | Manufacturer | Version | License | Usage | Safety Class | Known Anomalies |
 |----|------|-------------|---------|---------|-------|-------------|-----------------|
-| SOUP-010 | [opentelemetry-cpp](https://github.com/open-telemetry/opentelemetry-cpp) | OpenTelemetry Authors (CNCF) | Latest | Apache-2.0 | Distributed tracing for network operations (network-core module) | A | None |
+| SOUP-010 | [opentelemetry-cpp](https://github.com/open-telemetry/opentelemetry-cpp) | OpenTelemetry Authors (CNCF) | vcpkg baseline | Apache-2.0 | Distributed tracing for network operations (network-core module) | A | Version resolved by vcpkg baseline; not pinned in overrides |
 
 ---
 
@@ -114,7 +114,13 @@ The vcpkg baseline is locked in `vcpkg-configuration.json` to ensure reproducibl
 
 ### FetchContent Fallback (ASIO)
 
-If standalone ASIO is not found via vcpkg or system paths, `cmake/NetworkSystemDependencies.cmake` fetches `asio-1-36-0` from upstream via CMake `FetchContent`. This fallback version should also be tracked as SOUP.
+If standalone ASIO is not found via vcpkg or system paths, `cmake/NetworkSystemDependencies.cmake` fetches ASIO from upstream via CMake `FetchContent`:
+
+| Fallback ID | Name | Version (Git Tag) | License | Known Anomalies |
+|-------------|------|--------------------|---------|-----------------|
+| SOUP-001-FB | ASIO (FetchContent) | asio-1-36-0 (1.36.0) | BSL-1.0 | Different version from vcpkg override (1.30.2); verify compatibility when fallback is used |
+
+> **Note**: When the FetchContent fallback is used, ASIO version 1.36.0 is resolved instead of the vcpkg-pinned 1.30.2. Both versions must be validated for IEC 62304 compliance.
 
 ---
 
