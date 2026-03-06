@@ -488,7 +488,7 @@ jobs:
     - name: Run tests with ${{ matrix.sanitizer.name }}
       run: |
         cd build
-        ctest -C Debug --output-on-failure --verbose
+        ctest -C Debug --output-on-failure --verbose -LE no_sanitizer
       env:
         ${{ matrix.sanitizer.env_var }}: ${{ matrix.sanitizer.env_value }}
 
