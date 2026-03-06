@@ -336,11 +336,10 @@ jobs:
           build/CMakeFiles/*.log
           build/Testing/Temporary/
 
-  # Phase 0: Allow failures, just collect data
+  # Phase 1: Sanitizer failures block merges
   sanitizers:
     name: Sanitizers (${{ matrix.sanitizer.name }})
     runs-on: ubuntu-24.04
-    continue-on-error: true
     timeout-minutes: 60
 
     strategy:
@@ -489,7 +488,7 @@ jobs:
     - name: Run tests with ${{ matrix.sanitizer.name }}
       run: |
         cd build
-        ctest -C Debug --output-on-failure --verbose || echo "${{ matrix.sanitizer.name }} detected issues (expected in Phase 0)"
+        ctest -C Debug --output-on-failure --verbose
       env:
         ${{ matrix.sanitizer.env_var }}: ${{ matrix.sanitizer.env_value }}
 
