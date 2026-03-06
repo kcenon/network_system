@@ -353,14 +353,17 @@ jobs:
             option: ENABLE_TSAN
             env_var: TSAN_OPTIONS
             env_value: "second_deadlock_stack=1"
+            cxx_flags: "-fsanitize=thread -g"
           - name: AddressSanitizer
             option: ENABLE_ASAN
             env_var: ASAN_OPTIONS
             env_value: "detect_leaks=1:strict_string_checks=1:detect_stack_use_after_return=1:check_initialization_order=1:strict_init_order=1"
+            cxx_flags: "-fsanitize=address -fno-omit-frame-pointer -g"
           - name: UndefinedBehaviorSanitizer
             option: ENABLE_UBSAN
             env_var: UBSAN_OPTIONS
             env_value: "print_stacktrace=1:halt_on_error=0"
+            cxx_flags: "-fsanitize=undefined -fno-omit-frame-pointer -g"
 
     steps:
     - name: Checkout code
@@ -396,15 +399,31 @@ jobs:
         path: container_system
         token: ${{ secrets.GITHUB_TOKEN }}
 
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y cmake ninja-build clang libgtest-dev libgmock-dev libasio-dev libfmt-dev libssl-dev liblz4-dev zlib1g-dev
+
     - name: Build ecosystem dependencies
       shell: bash
       run: |
+        # All ecosystem deps must be built with the same sanitizer flags as
+        # network_system. Mixing instrumented and non-instrumented code causes
+        # heap corruption (glibc malloc assertion failures).
+        SANITIZER_CXX_FLAGS="${{ matrix.sanitizer.cxx_flags }}"
+
         # Build common_system (Tier 0 - must be first)
         if [ -d "common_system" ]; then
           echo "Building common_system..."
           cd common_system
           cmake -B build -G Ninja \
-            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DCMAKE_C_COMPILER=clang \
+            -DCMAKE_CXX_COMPILER=clang++ \
+            -DCMAKE_CXX_FLAGS="$SANITIZER_CXX_FLAGS" \
+            -DCMAKE_C_FLAGS="$SANITIZER_CXX_FLAGS" \
+            -DCMAKE_EXE_LINKER_FLAGS="$SANITIZER_CXX_FLAGS" \
+            -DCMAKE_SHARED_LINKER_FLAGS="$SANITIZER_CXX_FLAGS" \
             -DBUILD_TESTS=OFF \
             -DBUILD_EXAMPLES=OFF \
             -DBUILD_SAMPLES=OFF
@@ -418,7 +437,13 @@ jobs:
           echo "Building thread_system..."
           cd thread_system
           cmake -B build -G Ninja \
-            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DCMAKE_C_COMPILER=clang \
+            -DCMAKE_CXX_COMPILER=clang++ \
+            -DCMAKE_CXX_FLAGS="$SANITIZER_CXX_FLAGS" \
+            -DCMAKE_C_FLAGS="$SANITIZER_CXX_FLAGS" \
+            -DCMAKE_EXE_LINKER_FLAGS="$SANITIZER_CXX_FLAGS" \
+            -DCMAKE_SHARED_LINKER_FLAGS="$SANITIZER_CXX_FLAGS" \
             -DCMAKE_PREFIX_PATH=${{ github.workspace }}/deps/install \
             -DCOMMON_SYSTEM_INCLUDE_DIR=${{ github.workspace }}/deps/install/include \
             -DBUILD_TESTS=OFF \
@@ -435,7 +460,13 @@ jobs:
           echo "Building logger_system..."
           cd logger_system
           cmake -B build -G Ninja \
-            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DCMAKE_C_COMPILER=clang \
+            -DCMAKE_CXX_COMPILER=clang++ \
+            -DCMAKE_CXX_FLAGS="$SANITIZER_CXX_FLAGS" \
+            -DCMAKE_C_FLAGS="$SANITIZER_CXX_FLAGS" \
+            -DCMAKE_EXE_LINKER_FLAGS="$SANITIZER_CXX_FLAGS" \
+            -DCMAKE_SHARED_LINKER_FLAGS="$SANITIZER_CXX_FLAGS" \
             -DCMAKE_PREFIX_PATH=${{ github.workspace }}/deps/install \
             -DCOMMON_SYSTEM_INCLUDE_DIR=${{ github.workspace }}/deps/install/include \
             -DBUILD_TESTS=OFF \
@@ -452,7 +483,13 @@ jobs:
           echo "Building container_system..."
           cd container_system
           cmake -B build -G Ninja \
-            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DCMAKE_C_COMPILER=clang \
+            -DCMAKE_CXX_COMPILER=clang++ \
+            -DCMAKE_CXX_FLAGS="$SANITIZER_CXX_FLAGS" \
+            -DCMAKE_C_FLAGS="$SANITIZER_CXX_FLAGS" \
+            -DCMAKE_EXE_LINKER_FLAGS="$SANITIZER_CXX_FLAGS" \
+            -DCMAKE_SHARED_LINKER_FLAGS="$SANITIZER_CXX_FLAGS" \
             -DCMAKE_PREFIX_PATH=${{ github.workspace }}/deps/install \
             -DCOMMON_SYSTEM_INCLUDE_DIR=${{ github.workspace }}/deps/install/include \
             -DBUILD_TESTS=OFF \
@@ -463,11 +500,6 @@ jobs:
           cmake --install build --prefix ${{ github.workspace }}/deps/install || true
           cd ..
         fi
-
-    - name: Install dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y cmake ninja-build clang libgtest-dev libgmock-dev libasio-dev libfmt-dev libssl-dev liblz4-dev zlib1g-dev
 
     - name: Configure CMake with ${{ matrix.sanitizer.name }}
       run: |
@@ -491,6 +523,23 @@ jobs:
     - name: Run tests with ${{ matrix.sanitizer.name }}
       run: |
         cd build
+        # Apply suppression files for sanitizers that support them
+        if [ "${{ matrix.sanitizer.option }}" = "ENABLE_UBSAN" ]; then
+          SUPP_FILE="${{ github.workspace }}/cmake/ubsan.supp"
+          if [ -f "$SUPP_FILE" ]; then
+            export UBSAN_OPTIONS="${{ matrix.sanitizer.env_value }}:suppressions=$SUPP_FILE"
+          fi
+        elif [ "${{ matrix.sanitizer.option }}" = "ENABLE_ASAN" ]; then
+          SUPP_FILE="${{ github.workspace }}/sanitizers/lsan_suppressions.txt"
+          if [ -f "$SUPP_FILE" ]; then
+            export LSAN_OPTIONS="suppressions=$SUPP_FILE"
+          fi
+        elif [ "${{ matrix.sanitizer.option }}" = "ENABLE_TSAN" ]; then
+          SUPP_FILE="${{ github.workspace }}/tsan_suppressions.txt"
+          if [ -f "$SUPP_FILE" ]; then
+            export TSAN_OPTIONS="${{ matrix.sanitizer.env_value }}:suppressions=$SUPP_FILE"
+          fi
+        fi
         ctest -C Debug --output-on-failure --verbose -LE no_sanitizer
       env:
         ${{ matrix.sanitizer.env_var }}: ${{ matrix.sanitizer.env_value }}
