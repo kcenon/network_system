@@ -61,6 +61,41 @@ The pinned ASIO version must be kept in sync across:
 | Linking            | Dynamic (shared library)                       |
 | BSD-3 Compatible   | Yes                                            |
 
+## LZ4 (Optional — compression)
+
+| Item               | Value                                          |
+|--------------------|----------------------------------------------|
+| Component          | LZ4 compression library                        |
+| License            | BSD-2-Clause                                   |
+| Pinned Version     | 1.9.4                                          |
+| Usage              | LZ4 compression support                        |
+| Linking            | Dynamic (shared library)                       |
+| BSD-3 Compatible   | Yes                                            |
+
+## gRPC (Optional — NETWORK_ENABLE_GRPC_OFFICIAL)
+
+| Item               | Value                                          |
+|--------------------|----------------------------------------------|
+| Component          | gRPC C++ framework                             |
+| License            | Apache-2.0                                     |
+| Pinned Version     | 1.51.1                                         |
+| Usage              | Official gRPC protocol support                 |
+| Linking            | Dynamic (shared library)                       |
+| BSD-3 Compatible   | Yes                                            |
+| Condition          | Enabled when NETWORK_ENABLE_GRPC_OFFICIAL=ON   |
+
+## Protocol Buffers (Optional — with gRPC)
+
+| Item               | Value                                          |
+|--------------------|----------------------------------------------|
+| Component          | Google Protocol Buffers                        |
+| License            | BSD-3-Clause                                   |
+| Pinned Version     | 3.21.12                                        |
+| Usage              | Serialization for gRPC service definitions     |
+| Linking            | Dynamic (shared library)                       |
+| BSD-3 Compatible   | Yes                                            |
+| Condition          | Enabled when NETWORK_ENABLE_GRPC_OFFICIAL=ON   |
+
 ## All Dependencies (License Summary)
 
 | Dependency        | License        | Type     | BSD-3 Compatible |
@@ -69,5 +104,8 @@ The pinned ASIO version must be kept in sync across:
 | fmt               | MIT            | Core     | Yes              |
 | zlib              | zlib           | Core     | Yes              |
 | OpenSSL           | Apache-2.0     | Optional | Yes              |
+| LZ4               | BSD-2-Clause   | Optional | Yes              |
+| gRPC              | Apache-2.0     | Optional | Yes              |
+| Protocol Buffers  | BSD-3-Clause   | Optional | Yes              |
 | GTest/GMock       | BSD-3-Clause   | Testing  | Yes              |
 | Google Benchmark  | Apache-2.0     | Testing  | Yes              |

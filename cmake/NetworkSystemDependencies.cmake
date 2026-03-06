@@ -682,8 +682,8 @@ endfunction()
 #   - vcpkg:  vcpkg install grpc
 #
 # Required versions:
-#   - grpc++ >= 1.50.0
-#   - protobuf >= 3.21.0
+#   - grpc++ >= 1.51.1
+#   - protobuf >= 3.21.12
 #   - abseil (bundled with grpc, but may need explicit linking)
 ##################################################
 function(find_grpc_library)
@@ -702,8 +702,8 @@ function(find_grpc_library)
         # Get version if available
         if(DEFINED gRPC_VERSION)
             message(STATUS "  gRPC version: ${gRPC_VERSION}")
-            if(gRPC_VERSION VERSION_LESS "1.50.0")
-                message(WARNING "gRPC version ${gRPC_VERSION} is below recommended 1.50.0")
+            if(gRPC_VERSION VERSION_LESS "1.51.1")
+                message(WARNING "gRPC version ${gRPC_VERSION} is below recommended 1.51.1")
             endif()
         endif()
 
@@ -714,8 +714,8 @@ function(find_grpc_library)
         endif()
         message(STATUS "  Protobuf version: ${Protobuf_VERSION}")
 
-        if(Protobuf_VERSION VERSION_LESS "3.21.0")
-            message(WARNING "Protobuf version ${Protobuf_VERSION} is below recommended 3.21.0")
+        if(Protobuf_VERSION VERSION_LESS "3.21.12")
+            message(WARNING "Protobuf version ${Protobuf_VERSION} is below recommended 3.21.12")
         endif()
 
         # Find absl (required by gRPC >= 1.50)
@@ -781,8 +781,8 @@ function(find_grpc_library)
     message(WARNING "  Windows: vcpkg install grpc:x64-windows")
     message(WARNING "")
     message(WARNING "Required versions:")
-    message(WARNING "  grpc++ >= 1.50.0")
-    message(WARNING "  protobuf >= 3.21.0")
+    message(WARNING "  grpc++ >= 1.51.1")
+    message(WARNING "  protobuf >= 3.21.12")
     message(WARNING "========================================")
 
     set(GRPC_FOUND FALSE PARENT_SCOPE)
