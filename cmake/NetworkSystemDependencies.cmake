@@ -2,7 +2,7 @@
 # NetworkSystemDependencies.cmake
 #
 # Dependency finding module for NetworkSystem
-# Handles ASIO, FMT, and system integrations
+# Handles ASIO and system integrations
 ##################################################
 
 include(FetchContent)
@@ -155,61 +155,6 @@ function(find_asio_library)
     endif()
 
     message(FATAL_ERROR "Failed to fetch standalone ASIO - cannot build without ASIO")
-endfunction()
-
-##################################################
-# Find FMT library
-##################################################
-function(find_fmt_library)
-    message(STATUS "Looking for fmt library...")
-
-    # Try pkgconfig first
-    find_package(PkgConfig QUIET)
-    if(PkgConfig_FOUND)
-        pkg_check_modules(FMT QUIET IMPORTED_TARGET fmt)
-        if(FMT_FOUND)
-            message(STATUS "Found fmt via pkgconfig: ${FMT_VERSION}")
-            set(FMT_FOUND TRUE PARENT_SCOPE)
-            set(FMT_TARGET PkgConfig::FMT PARENT_SCOPE)
-            return()
-        endif()
-    endif()
-
-    # Manual search
-    find_path(FMT_INCLUDE_DIR
-        NAMES fmt/format.h
-        PATHS
-            /opt/homebrew/include
-            /usr/local/include
-            /usr/include
-    )
-
-    find_library(FMT_LIBRARY
-        NAMES fmt
-        PATHS
-            /opt/homebrew/lib
-            /usr/local/lib
-            /usr/lib
-    )
-
-    if(FMT_INCLUDE_DIR)
-        message(STATUS "Found fmt include dir: ${FMT_INCLUDE_DIR}")
-        if(FMT_LIBRARY)
-            message(STATUS "Found fmt library: ${FMT_LIBRARY}")
-            set(FMT_FOUND TRUE PARENT_SCOPE)
-            set(FMT_INCLUDE_DIR ${FMT_INCLUDE_DIR} PARENT_SCOPE)
-            set(FMT_LIBRARY ${FMT_LIBRARY} PARENT_SCOPE)
-        else()
-            message(STATUS "Using fmt header-only")
-            set(FMT_FOUND TRUE PARENT_SCOPE)
-            set(FMT_INCLUDE_DIR ${FMT_INCLUDE_DIR} PARENT_SCOPE)
-            set(FMT_HEADER_ONLY TRUE PARENT_SCOPE)
-        endif()
-    else()
-        message(STATUS "FMT not found, will use std::format if available")
-        set(FMT_FOUND FALSE PARENT_SCOPE)
-        set(USE_STD_FORMAT ON PARENT_SCOPE)
-    endif()
 endfunction()
 
 ##################################################
@@ -796,7 +741,6 @@ function(find_network_system_dependencies)
     message(STATUS "Finding NetworkSystem dependencies...")
 
     find_asio_library()
-    find_fmt_library()
     find_container_system()
     find_thread_system()
     find_logger_system()
@@ -810,14 +754,6 @@ function(find_network_system_dependencies)
     set(ASIO_INCLUDE_DIR ${ASIO_INCLUDE_DIR} PARENT_SCOPE)
     set(ASIO_TARGET ${ASIO_TARGET} PARENT_SCOPE)
     set(ASIO_FETCHED ${ASIO_FETCHED} PARENT_SCOPE)
-
-    # FMT variables
-    set(FMT_FOUND ${FMT_FOUND} PARENT_SCOPE)
-    set(FMT_INCLUDE_DIR ${FMT_INCLUDE_DIR} PARENT_SCOPE)
-    set(FMT_LIBRARY ${FMT_LIBRARY} PARENT_SCOPE)
-    set(FMT_TARGET ${FMT_TARGET} PARENT_SCOPE)
-    set(FMT_HEADER_ONLY ${FMT_HEADER_ONLY} PARENT_SCOPE)
-    set(USE_STD_FORMAT ${USE_STD_FORMAT} PARENT_SCOPE)
 
     # System integration variables
     set(CONTAINER_SYSTEM_FOUND ${CONTAINER_SYSTEM_FOUND} PARENT_SCOPE)
