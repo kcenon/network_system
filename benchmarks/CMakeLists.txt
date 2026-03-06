@@ -21,6 +21,7 @@ if(benchmark_FOUND OR BENCHMARK_FOUND)
         session_bench.cpp
         http_bench.cpp
         tcp_receive_bench.cpp
+        tcp_loopback_bench.cpp
         facade_vs_direct_bench.cpp
         main_bench.cpp
     )
