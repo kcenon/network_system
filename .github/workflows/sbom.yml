@@ -43,59 +43,73 @@ jobs:
         output-file: sbom-spdx.json
         artifact-name: sbom-spdx
 
+    - name: Scan SBOM for CVEs with Grype
+      uses: anchore/scan-action@v6
+      id: grype-scan
+      with:
+        sbom: sbom-cyclonedx.json
+        severity-cutoff: high
+        fail-build: ${{ github.event_name == 'pull_request' }}
+        output-format: sarif
+
+    - name: Upload Grype SARIF to GitHub Security
+      uses: github/codeql-action/upload-sarif@v3
+      if: always() && steps.grype-scan.outputs.sarif != ''
+      continue-on-error: true
+      with:
+        sarif_file: ${{ steps.grype-scan.outputs.sarif }}
+
     - name: Parse vcpkg dependencies
       run: |
         if [ -f "vcpkg.json" ]; then
-          echo "# vcpkg Dependencies" > vcpkg-dependencies.md
-          echo "" >> vcpkg-dependencies.md
-          echo "**Generated**: $(date -u)" >> vcpkg-dependencies.md
-          echo "" >> vcpkg-dependencies.md
-          echo "## Direct Dependencies" >> vcpkg-dependencies.md
-          echo "" >> vcpkg-dependencies.md
-
-          python3 << 'EOF'
+          python3 << 'PYEOF' > vcpkg-dependencies.md
         import json
 
         with open('vcpkg.json', 'r') as f:
             manifest = json.load(f)
 
+        print("# vcpkg Dependencies")
+        print()
         print(f"**Project**: {manifest.get('name', 'N/A')}")
         print(f"**Version**: {manifest.get('version', 'N/A')}")
         print()
-        print("| Package | Features |")
-        print("|---------|----------|")
+        print("## Direct Dependencies")
+        print()
+        print("| Package | Version Constraint | Features |")
+        print("|---------|-------------------|----------|")
 
         deps = manifest.get('dependencies', [])
         for dep in deps:
             if isinstance(dep, str):
-                print(f"| {dep} | - |")
+                print(f"| {dep} | - | - |")
             elif isinstance(dep, dict):
                 name = dep.get('name', 'unknown')
+                version = dep.get('version>=', '-')
                 features = ', '.join(dep.get('features', [])) or '-'
-                print(f"| {name} | {features} |")
-        EOF
+                print(f"| {name} | {version} | {features} |")
 
-          python3 << 'EOF' >> vcpkg-dependencies.md
-        import json
-
-        with open('vcpkg.json', 'r') as f:
-            manifest = json.load(f)
-
-        print(f"**Project**: {manifest.get('name', 'N/A')}")
-        print(f"**Version**: {manifest.get('version', 'N/A')}")
-        print()
-        print("| Package | Features |")
-        print("|---------|----------|")
-
-        deps = manifest.get('dependencies', [])
-        for dep in deps:
-            if isinstance(dep, str):
-                print(f"| {dep} | - |")
-            elif isinstance(dep, dict):
-                name = dep.get('name', 'unknown')
-                features = ', '.join(dep.get('features', [])) or '-'
-                print(f"| {name} | {features} |")
-        EOF
+        features = manifest.get('features', {})
+        if features:
+            print()
+            print("## Feature Dependencies")
+            print()
+            for feat_name, feat_data in features.items():
+                feat_deps = feat_data.get('dependencies', [])
+                if feat_deps:
+                    print(f"### {feat_name}")
+                    print()
+                    print("| Package | Version Constraint | Features |")
+                    print("|---------|-------------------|----------|")
+                    for dep in feat_deps:
+                        if isinstance(dep, str):
+                            print(f"| {dep} | - | - |")
+                        elif isinstance(dep, dict):
+                            name = dep.get('name', 'unknown')
+                            version = dep.get('version>=', '-')
+                            dep_features = ', '.join(dep.get('features', [])) or '-'
+                            print(f"| {name} | {version} | {dep_features} |")
+                    print()
+        PYEOF
         else
           echo "No vcpkg.json found" > vcpkg-dependencies.md
         fi
@@ -117,8 +131,7 @@ jobs:
         cat vcpkg-dependencies.md >> SBOM_REPORT.md
 
     - name: Upload SBOM artifacts
-      uses: actions/upload-artifact@v4
-      continue-on-error: true
+      uses: actions/upload-artifact@v7
       with:
         name: sbom-${{ github.sha }}
         path: |
@@ -140,7 +153,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Submit SBOM to Dependency Graph
-      uses: advanced-security/spdx-dependency-submission-action@v0.1.1
+      uses: advanced-security/spdx-dependency-submission-action@v0.2.0
       if: github.event_name == 'push' && github.ref == 'refs/heads/main'
       continue-on-error: true
       with:
