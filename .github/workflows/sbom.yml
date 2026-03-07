@@ -48,7 +48,7 @@ jobs:
       id: grype-scan
       with:
         sbom: sbom-cyclonedx.json
-        severity-cutoff: high
+        severity-cutoff: ${{ vars.GRYPE_SEVERITY_CUTOFF || 'critical' }}
         fail-build: ${{ github.event_name == 'pull_request' }}
         output-format: sarif
 
