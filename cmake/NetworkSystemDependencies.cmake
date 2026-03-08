@@ -322,21 +322,29 @@ function(find_thread_system)
         if(THREAD_SYSTEM_LIBRARY)
             message(STATUS "Found thread_system library: ${THREAD_SYSTEM_LIBRARY}")
 
-            # ThreadSystem may depend on simdutf (fetched via FetchContent).
-            # Search for it in the thread_system build tree so linking succeeds.
-            get_filename_component(_thread_lib_dir "${THREAD_SYSTEM_LIBRARY}" DIRECTORY)
-            find_library(THREAD_SYSTEM_SIMDUTF_LIBRARY
-                NAMES simdutf
-                PATHS
-                    "${_thread_lib_dir}"
-                    "${_thread_lib_dir}/../_deps/simdutf-build"
-                    "${_thread_lib_dir}/../_deps/simdutf-build/lib"
-                    "${CMAKE_SOURCE_DIR}/thread_system/build/_deps/simdutf-build"
-                    "${CMAKE_SOURCE_DIR}/thread_system/build/_deps/simdutf-build/lib"
-                NO_DEFAULT_PATH
-            )
-            if(THREAD_SYSTEM_SIMDUTF_LIBRARY)
-                message(STATUS "Found simdutf alongside ThreadSystem: ${THREAD_SYSTEM_SIMDUTF_LIBRARY}")
+            # ThreadSystem may depend on simdutf (fetched via FetchContent and installed
+            # to CMAKE_PREFIX_PATH, or present in the thread_system build tree).
+            # First try find_package so the cmake config from deps/install is used.
+            find_package(simdutf CONFIG QUIET)
+            if(simdutf_FOUND AND TARGET simdutf::simdutf)
+                message(STATUS "Found simdutf via cmake config (alongside ThreadSystem)")
+                set(THREAD_SYSTEM_SIMDUTF_LIBRARY simdutf::simdutf CACHE STRING "" FORCE)
+            else()
+                # Fall back to searching in the thread_system FetchContent build tree
+                get_filename_component(_thread_lib_dir "${THREAD_SYSTEM_LIBRARY}" DIRECTORY)
+                find_library(THREAD_SYSTEM_SIMDUTF_LIBRARY
+                    NAMES simdutf
+                    PATHS
+                        "${_thread_lib_dir}"
+                        "${_thread_lib_dir}/../_deps/simdutf-build"
+                        "${_thread_lib_dir}/../_deps/simdutf-build/lib"
+                        "${CMAKE_SOURCE_DIR}/thread_system/build/_deps/simdutf-build"
+                        "${CMAKE_SOURCE_DIR}/thread_system/build/_deps/simdutf-build/lib"
+                    NO_DEFAULT_PATH
+                )
+                if(THREAD_SYSTEM_SIMDUTF_LIBRARY)
+                    message(STATUS "Found simdutf in thread_system build tree: ${THREAD_SYSTEM_SIMDUTF_LIBRARY}")
+                endif()
             endif()
         else()
             message(WARNING "thread_system library not found")
