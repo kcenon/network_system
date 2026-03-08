@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
     - name: Install Analysis Tools
       run: |
@@ -94,7 +94,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
     - name: Run Trivy Security Scanner
       uses: aquasecurity/trivy-action@master
@@ -116,10 +116,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
     - name: Checkout common_system
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         repository: kcenon/common_system
         path: common_system
@@ -232,7 +232,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
     - name: Check for Vulnerable Dependencies
       run: |

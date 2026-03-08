@@ -15,10 +15,10 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
 
     - name: Checkout common_system
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         repository: kcenon/common_system
         path: common_system
@@ -74,7 +74,7 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         submodules: false  # We don't use submodules for dependencies
 
@@ -295,12 +295,12 @@ jobs:
 
     steps:
     - name: Checkout network_system
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         path: network_system
 
     - name: Checkout database_system
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         repository: kcenon/database_system
         path: database_system
