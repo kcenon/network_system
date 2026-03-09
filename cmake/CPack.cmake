@@ -58,7 +58,7 @@ elseif(UNIX)
     set(CPACK_DEBIAN_FILE_NAME "network-system_${CPACK_PACKAGE_VERSION}_amd64.deb")
 
     # RPM package
-    set(CPACK_RPM_PACKAGE_LICENSE "MIT")
+    set(CPACK_RPM_PACKAGE_LICENSE "BSD-3-Clause")
     set(CPACK_RPM_PACKAGE_GROUP "Development/Libraries")
     set(CPACK_RPM_PACKAGE_REQUIRES "glibc >= 2.27")
     set(CPACK_RPM_FILE_NAME "network-system-${CPACK_PACKAGE_VERSION}.x86_64.rpm")
