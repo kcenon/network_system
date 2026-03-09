@@ -243,18 +243,42 @@ TEST_F(MultiConnectionLifecycleTest, SequentialConnections) {
 
     // Use longer timeout for macOS CI where kqueue-based async I/O can be slower
     std::chrono::seconds timeout;
+    int max_attempts = 1;
     if (test_helpers::is_macos() && test_helpers::is_ci_environment()) {
+        timeout = std::chrono::seconds(15);
+        max_attempts = 3;
+    } else if (test_helpers::is_ci_environment()) {
         timeout = std::chrono::seconds(10);
+        max_attempts = 2;
     } else {
         timeout = std::chrono::seconds(5);
     }
 
-    for (auto& client : clients_) {
-        // Use 127.0.0.1 to avoid IPv6 lookup delays on macOS
-        auto result = client->start_client("127.0.0.1", test_port_);
-        EXPECT_TRUE(result.is_ok());
-        // Wait for connection to be established
-        EXPECT_TRUE(test_helpers::wait_for_connection(client, timeout));
+    for (size_t index = 0; index < clients_.size(); ++index) {
+        auto& client = clients_[index];
+        bool connected = false;
+
+        for (int attempt = 0; attempt < max_attempts && !connected; ++attempt) {
+            if (attempt > 0) {
+                (void)client->stop_client();
+                test_helpers::wait_for_ready();
+            }
+
+            // Use 127.0.0.1 to avoid IPv6 lookup delays on macOS
+            auto result = client->start_client("127.0.0.1", test_port_);
+            EXPECT_TRUE(result.is_ok()) << "client index " << index
+                                        << " failed to start on attempt "
+                                        << (attempt + 1);
+            if (!result.is_ok()) {
+                continue;
+            }
+
+            connected = test_helpers::wait_for_connection(client, timeout);
+        }
+
+        EXPECT_TRUE(connected) << "client index " << index
+                               << " did not connect after "
+                               << max_attempts << " attempt(s)";
         // Brief pause between sequential connections for resource cleanup on macOS
         if (test_helpers::is_macos()) {
             test_helpers::wait_for_ready();

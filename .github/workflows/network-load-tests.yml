@@ -90,7 +90,7 @@ jobs:
 
     - name: Create Pull Request (if baseline updated)
       if: github.event.inputs.update_baseline == 'true'
-      uses: peter-evans/create-pull-request@v5
+      uses: peter-evans/create-pull-request@v8
       with:
         commit-message: "perf: update network performance baseline (Ubuntu)"
         title: "Update Network Performance Baseline (Ubuntu)"
@@ -175,7 +175,7 @@ jobs:
 
     - name: Create Pull Request (if baseline updated)
       if: github.event.inputs.update_baseline == 'true'
-      uses: peter-evans/create-pull-request@v5
+      uses: peter-evans/create-pull-request@v8
       with:
         commit-message: "perf: update network performance baseline (macOS)"
         title: "Update Network Performance Baseline (macOS)"
@@ -261,7 +261,7 @@ jobs:
 
     - name: Create Pull Request (if baseline updated)
       if: github.event.inputs.update_baseline == 'true'
-      uses: peter-evans/create-pull-request@v5
+      uses: peter-evans/create-pull-request@v8
       with:
         commit-message: "perf: update network performance baseline (Windows)"
         title: "Update Network Performance Baseline (Windows)"
