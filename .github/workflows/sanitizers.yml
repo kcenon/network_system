@@ -34,13 +34,13 @@ jobs:
 
     steps:
     - name: Checkout network_system
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         fetch-depth: 0
         path: network_system
 
     - name: Checkout common_system
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         repository: kcenon/common_system
         path: common_system

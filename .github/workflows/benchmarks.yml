@@ -37,12 +37,12 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         fetch-depth: 0  # Full history for comparison
 
     - name: Checkout common_system
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         repository: kcenon/common_system
         path: common_system
