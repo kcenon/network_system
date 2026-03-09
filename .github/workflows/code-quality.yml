@@ -230,9 +230,19 @@ jobs:
   dependency-check:
     name: Dependency Security Check
     runs-on: ubuntu-latest
+    env:
+      VCPKG_MANIFEST_PATH: vcpkg.json
 
     steps:
     - uses: actions/checkout@v6
+
+    - name: Validate canonical vcpkg manifest
+      run: |
+        test -f "${VCPKG_MANIFEST_PATH}"
+        if [ -f "package/vcpkg/vcpkg.json" ]; then
+          echo "::error file=package/vcpkg/vcpkg.json::Legacy package manifest detected. Use ${VCPKG_MANIFEST_PATH} as the canonical source of truth."
+          exit 1
+        fi
 
     - name: Check for Vulnerable Dependencies
       run: |
@@ -244,13 +254,53 @@ jobs:
 
     - name: License Compatibility Check
       run: |
-        echo "## License Check" > license-report.md
-        echo "### Direct Dependencies" >> license-report.md
-        echo "- ASIO: Boost Software License 1.0 ✅" >> license-report.md
-        echo "- fmt: MIT License ✅" >> license-report.md
-        echo "- container_system: BSD-3-Clause ✅" >> license-report.md
-        echo "" >> license-report.md
-        echo "All dependencies are compatible with BSD-3-Clause license" >> license-report.md
+        python3 << 'EOF' > license-report.md
+        import json
+        import os
+
+        manifest_path = os.environ["VCPKG_MANIFEST_PATH"]
+        with open(manifest_path, "r", encoding="utf-8") as f:
+            manifest = json.load(f)
+
+        known_licenses = {
+            "asio": "BSL-1.0",
+            "zlib": "Zlib",
+            "openssl": "Apache-2.0",
+            "lz4": "BSD-2-Clause",
+            "grpc": "Apache-2.0",
+            "protobuf": "BSD-3-Clause",
+            "gtest": "BSD-3-Clause",
+            "benchmark": "Apache-2.0",
+        }
+
+        def collect_deps(entries):
+            names = []
+            for entry in entries:
+                if isinstance(entry, str):
+                    names.append(entry)
+                elif isinstance(entry, dict):
+                    names.append(entry.get("name", "unknown"))
+            return names
+
+        dependency_names = collect_deps(manifest.get("dependencies", []))
+        for feature in manifest.get("features", {}).values():
+            dependency_names.extend(collect_deps(feature.get("dependencies", [])))
+
+        dependency_names = sorted(set(dependency_names))
+
+        print("## License Check")
+        print()
+        print(f"**Project**: {manifest.get('name', 'unknown')}")
+        print(f"**Project License**: {manifest.get('license', 'unknown')}")
+        print()
+        print("### Dependencies")
+        for dependency_name in dependency_names:
+            if dependency_name.startswith("kcenon-"):
+                license_name = "BSD-3-Clause"
+            else:
+                license_name = known_licenses.get(dependency_name, "UNKNOWN")
+            print(f"- {dependency_name}: {license_name}")
+        EOF
 
     - name: Upload License Report
       uses: actions/upload-artifact@v4
