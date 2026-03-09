@@ -17,6 +17,9 @@ permissions:
   packages: read
   security-events: write
 
+env:
+  VCPKG_MANIFEST_PATH: vcpkg.json
+
 jobs:
   generate-sbom:
     runs-on: ubuntu-latest
@@ -26,6 +29,14 @@ jobs:
       uses: actions/checkout@v6
       with:
         submodules: true
+
+    - name: Validate canonical vcpkg manifest
+      run: |
+        test -f "${VCPKG_MANIFEST_PATH}"
+        if [ -f "package/vcpkg/vcpkg.json" ]; then
+          echo "::error file=package/vcpkg/vcpkg.json::Legacy package manifest detected. Use ${VCPKG_MANIFEST_PATH} as the canonical source of truth."
+          exit 1
+        fi
 
     - name: Generate SBOM with Syft (CycloneDX)
       uses: anchore/sbom-action@v0
@@ -61,11 +72,14 @@ jobs:
 
     - name: Parse vcpkg dependencies
       run: |
-        if [ -f "vcpkg.json" ]; then
+        if [ -f "${VCPKG_MANIFEST_PATH}" ]; then
           python3 << 'PYEOF' > vcpkg-dependencies.md
         import json
+        import os
 
-        with open('vcpkg.json', 'r') as f:
+        manifest_path = os.environ["VCPKG_MANIFEST_PATH"]
+
+        with open(manifest_path, 'r', encoding='utf-8') as f:
             manifest = json.load(f)
 
         print("# vcpkg Dependencies")
@@ -111,7 +125,7 @@ jobs:
                     print()
         PYEOF
         else
-          echo "No vcpkg.json found" > vcpkg-dependencies.md
+          echo "No canonical vcpkg manifest found" > vcpkg-dependencies.md
         fi
 
     - name: Create combined SBOM report
