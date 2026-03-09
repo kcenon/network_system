@@ -27,12 +27,12 @@ jobs:
         build_type: [Debug, Release]
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         submodules: recursive
 
     - name: Checkout common_system
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         repository: kcenon/common_system
         path: common_system
