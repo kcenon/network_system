@@ -54,7 +54,7 @@ function(install_cmake_config_files)
     # Generate version file
     write_basic_package_version_file(
         "${CMAKE_CURRENT_BINARY_DIR}/NetworkSystemConfigVersion.cmake"
-        VERSION 0.0.0
+        VERSION ${PROJECT_VERSION}
         COMPATIBILITY AnyNewerVersion
     )
 
