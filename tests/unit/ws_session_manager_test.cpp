@@ -9,6 +9,7 @@ All rights reserved.
 
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <chrono>
 #include <thread>
 #include <vector>
