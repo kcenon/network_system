@@ -207,6 +207,21 @@ jobs:
 
       continue-on-error: true  # Allow to proceed even if some repos don't exist
 
+    # Remove any GTest/GMock libraries leaked from dependency builds.
+    # Dependencies are built in Release mode, but network_system uses Debug,
+    # causing CRT mismatch (LNK2038) on MSVC when find_package picks them up.
+    - name: Clean stale GTest from dependency install
+      shell: bash
+      run: |
+        if [[ "$RUNNER_OS" == "Windows" ]]; then
+          INSTALL_PREFIX=$(cygpath -u "${{ github.workspace }}")/deps/install
+        else
+          INSTALL_PREFIX="${{ github.workspace }}/deps/install"
+        fi
+        rm -f "${INSTALL_PREFIX}"/lib/*gtest* "${INSTALL_PREFIX}"/lib/*gmock* || true
+        rm -rf "${INSTALL_PREFIX}"/lib/cmake/GTest || true
+        rm -rf "${INSTALL_PREFIX}"/include/gtest "${INSTALL_PREFIX}"/include/gmock || true
+
     # Configure with ALL dependencies enabled (production configuration)
     - name: Configure WITH all dependencies (Unix)
       if: runner.os != 'Windows'
