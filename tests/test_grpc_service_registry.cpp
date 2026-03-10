@@ -31,6 +31,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *****************************************************************************/
 
 #include <gtest/gtest.h>
+
+#include <algorithm>
+
 #include <kcenon/network/detail/protocols/grpc/service_registry.h>
 
 namespace grpc = kcenon::network::protocols::grpc;

@@ -8,6 +8,7 @@ All rights reserved.
 #include "internal/core/session_manager.h"
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <chrono>
 #include <thread>
 
