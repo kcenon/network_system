@@ -9,7 +9,6 @@ include(CMakeFindDependencyMacro)
 # Find required dependencies
 find_dependency(Threads REQUIRED)
 find_dependency(asio CONFIG REQUIRED)
-find_dependency(fmt CONFIG REQUIRED)
 
 # Find container system dependency
 find_dependency(ContainerSystem QUIET)

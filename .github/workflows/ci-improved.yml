@@ -78,6 +78,41 @@ jobs:
       with:
         submodules: false  # We don't use submodules for dependencies
 
+    - name: Install system dependencies (Ubuntu)
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y cmake ninja-build gcc-14 g++-14 clang \
+          libgtest-dev libgmock-dev libfmt-dev libssl-dev liblz4-dev zlib1g-dev
+
+    - name: Install system dependencies (macOS)
+      if: runner.os == 'macOS'
+      run: |
+        brew install ninja googletest fmt openssl lz4
+
+    - name: Set up compiler (GCC)
+      if: matrix.compiler == 'gcc'
+      run: |
+        sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-14 100
+        sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-14 100
+        echo "CC=gcc" >> $GITHUB_ENV
+        echo "CXX=g++" >> $GITHUB_ENV
+
+    - name: Set up compiler (Clang - Linux)
+      if: matrix.compiler == 'clang' && runner.os == 'Linux'
+      run: |
+        echo "CC=clang" >> $GITHUB_ENV
+        echo "CXX=clang++" >> $GITHUB_ENV
+
+    - name: Set up compiler (Clang - macOS)
+      if: matrix.compiler == 'clang' && runner.os == 'macOS'
+      run: |
+        echo "CC=clang" >> $GITHUB_ENV
+        echo "CXX=clang++" >> $GITHUB_ENV
+
+    - name: Set up compiler (MSVC)
+      if: matrix.compiler == 'msvc'
+      uses: ilammy/msvc-dev-cmd@v1
 
     # Clone and build required system dependencies
     - name: Build system dependencies
@@ -172,41 +207,20 @@ jobs:
 
       continue-on-error: true  # Allow to proceed even if some repos don't exist
 
-    - name: Install system dependencies (Ubuntu)
-      if: runner.os == 'Linux'
+    # Remove any GTest/GMock libraries leaked from dependency builds.
+    # Dependencies are built in Release mode, but network_system uses Debug,
+    # causing CRT mismatch (LNK2038) on MSVC when find_package picks them up.
+    - name: Clean stale GTest from dependency install
+      shell: bash
       run: |
-        sudo apt-get update
-        sudo apt-get install -y cmake ninja-build gcc-14 g++-14 clang \
-          libgtest-dev libgmock-dev libfmt-dev libssl-dev liblz4-dev zlib1g-dev
-
-    - name: Install system dependencies (macOS)
-      if: runner.os == 'macOS'
-      run: |
-        brew install ninja googletest fmt openssl lz4
-
-    - name: Set up compiler (GCC)
-      if: matrix.compiler == 'gcc'
-      run: |
-        sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-14 100
-        sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-14 100
-        echo "CC=gcc" >> $GITHUB_ENV
-        echo "CXX=g++" >> $GITHUB_ENV
-
-    - name: Set up compiler (Clang - Linux)
-      if: matrix.compiler == 'clang' && runner.os == 'Linux'
-      run: |
-        echo "CC=clang" >> $GITHUB_ENV
-        echo "CXX=clang++" >> $GITHUB_ENV
-
-    - name: Set up compiler (Clang - macOS)
-      if: matrix.compiler == 'clang' && runner.os == 'macOS'
-      run: |
-        echo "CC=clang" >> $GITHUB_ENV
-        echo "CXX=clang++" >> $GITHUB_ENV
-
-    - name: Set up compiler (MSVC)
-      if: matrix.compiler == 'msvc'
-      uses: ilammy/msvc-dev-cmd@v1
+        if [[ "$RUNNER_OS" == "Windows" ]]; then
+          INSTALL_PREFIX=$(cygpath -u "${{ github.workspace }}")/deps/install
+        else
+          INSTALL_PREFIX="${{ github.workspace }}/deps/install"
+        fi
+        rm -f "${INSTALL_PREFIX}"/lib/*gtest* "${INSTALL_PREFIX}"/lib/*gmock* || true
+        rm -rf "${INSTALL_PREFIX}"/lib/cmake/GTest || true
+        rm -rf "${INSTALL_PREFIX}"/include/gtest "${INSTALL_PREFIX}"/include/gmock || true
 
     # Configure with ALL dependencies enabled (production configuration)
     - name: Configure WITH all dependencies (Unix)
