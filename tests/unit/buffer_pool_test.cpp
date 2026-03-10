@@ -8,6 +8,7 @@ All rights reserved.
 #include "internal/utils/buffer_pool.h"
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <thread>
 #include <vector>
 

@@ -9,6 +9,7 @@ All rights reserved.
 #include "../helpers/dtls_test_helpers.h"
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <cstdio>
 #include <cstdlib>
 #include <filesystem>

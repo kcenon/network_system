@@ -41,6 +41,7 @@
 
  */
 
+#include <algorithm>
 #include <atomic>
 #include <cassert>
 #include <chrono>
