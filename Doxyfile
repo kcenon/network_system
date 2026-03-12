@@ -34,7 +34,7 @@ SHORT_NAMES            = NO
 JAVADOC_AUTOBRIEF      = NO
 JAVADOC_BANNER         = NO
 QT_AUTOBRIEF           = NO
-MULTILINE_CPP_IS_BRIEF = NO
+MULTILINE_CPP_IS_BRIEF = YES
 PYTHON_DOCSTRING       = YES
 INHERIT_DOCS           = YES
 SEPARATE_MEMBER_PAGES  = NO
@@ -50,7 +50,7 @@ MARKDOWN_SUPPORT       = YES
 TOC_INCLUDE_HEADINGS   = 5
 MARKDOWN_ID_STYLE      = DOXYGEN
 AUTOLINK_SUPPORT       = YES
-BUILTIN_STL_SUPPORT    = NO
+BUILTIN_STL_SUPPORT    = YES
 CPP_CLI_SUPPORT        = NO
 SIP_SUPPORT            = NO
 IDL_PROPERTY_SUPPORT   = YES
@@ -67,11 +67,11 @@ TIMESTAMP              = NO
 #---------------------------------------------------------------------------
 # Build related configuration options
 #---------------------------------------------------------------------------
-EXTRACT_ALL            = NO
-EXTRACT_PRIVATE        = NO
+EXTRACT_ALL            = YES
+EXTRACT_PRIVATE        = YES
 EXTRACT_PRIV_VIRTUAL   = NO
 EXTRACT_PACKAGE        = NO
-EXTRACT_STATIC         = NO
+EXTRACT_STATIC         = YES
 EXTRACT_LOCAL_CLASSES  = YES
 EXTRACT_LOCAL_METHODS  = NO
 EXTRACT_ANON_NSPACES   = NO
@@ -116,7 +116,7 @@ WARNINGS               = YES
 WARN_IF_UNDOCUMENTED   = YES
 WARN_IF_DOC_ERROR      = YES
 WARN_IF_INCOMPLETE_DOC = YES
-WARN_NO_PARAMDOC       = NO
+WARN_NO_PARAMDOC       = YES
 WARN_AS_ERROR          = NO
 WARN_FORMAT            = "$file:$line: $text"
 WARN_LOGFILE           =
@@ -124,27 +124,44 @@ WARN_LOGFILE           =
 #---------------------------------------------------------------------------
 # Configuration options related to the input files
 #---------------------------------------------------------------------------
-INPUT                  = . \
-                         include \
+INPUT                  = include \
                          src \
-                         mainpage.dox
+                         README.md
 INPUT_ENCODING         = UTF-8
 INPUT_FILTER           =
 FILTER_PATTERNS        =
 FILTER_SOURCE_FILES    = NO
 FILTER_SOURCE_PATTERNS =
+FILE_PATTERNS          = *.c \
+                         *.cc \
+                         *.cxx \
+                         *.cpp \
+                         *.cppm \
+                         *.h \
+                         *.hh \
+                         *.hpp \
+                         *.tpp \
+                         *.md
 RECURSIVE              = YES
-USE_MDFILE_AS_MAINPAGE =
+EXCLUDE                = ./build \
+                         ./vcpkg \
+                         ./vcpkg_installed \
+                         ./documents
+EXCLUDE_PATTERNS       = */CMakeFiles/* \
+                         */.git/* \
+                         */build/* \
+                         */build-*/*
+USE_MDFILE_AS_MAINPAGE = README.md
 FORTRAN_COMMENT_AFTER  = 72
 
 #---------------------------------------------------------------------------
 # Configuration options related to source browsing
 #---------------------------------------------------------------------------
-SOURCE_BROWSER         = NO
-INLINE_SOURCES         = NO
+SOURCE_BROWSER         = YES
+INLINE_SOURCES         = YES
 STRIP_CODE_COMMENTS    = YES
-REFERENCED_BY_RELATION = NO
-REFERENCES_RELATION    = NO
+REFERENCED_BY_RELATION = YES
+REFERENCES_RELATION    = YES
 REFERENCES_LINK_SOURCE = YES
 SOURCE_TOOLTIPS        = YES
 USE_HTAGS              = NO
@@ -196,7 +213,7 @@ CHM_INDEX_ENCODING     =
 BINARY_TOC             = NO
 TOC_EXPAND             = NO
 DISABLE_INDEX          = NO
-GENERATE_TREEVIEW      = NO
+GENERATE_TREEVIEW      = YES
 FULL_SIDEBAR           = NO
 ENUM_VALUES_PER_LINE   = 4
 TREEVIEW_WIDTH         = 250
@@ -299,7 +316,7 @@ PERLMOD_MAKEVAR_PREFIX =
 # Configuration options related to the preprocessor
 #---------------------------------------------------------------------------
 ENABLE_PREPROCESSING   = YES
-MACRO_EXPANSION        = NO
+MACRO_EXPANSION        = YES
 EXPAND_ONLY_PREDEF     = NO
 SEARCH_INCLUDES        = YES
 INCLUDE_PATH           =
@@ -321,7 +338,7 @@ EXTERNAL_PAGES         = YES
 # Configuration options related to diagram generation
 #---------------------------------------------------------------------------
 HIDE_UNDOC_RELATIONS   = YES
-HAVE_DOT               = NO
+HAVE_DOT               = YES
 DOT_NUM_THREADS        = 0
 DOT_FONTNAME           = Helvetica
 DOT_FONTSIZE           = 10
@@ -329,15 +346,15 @@ DOT_FONTPATH           =
 CLASS_GRAPH            = YES
 COLLABORATION_GRAPH    = YES
 GROUP_GRAPHS           = YES
-UML_LOOK               = NO
+UML_LOOK               = YES
 UML_LIMIT_NUM_FIELDS   = 10
 DOT_UML_DETAILS        = NO
 DOT_WRAP_THRESHOLD     = 17
-TEMPLATE_RELATIONS     = NO
+TEMPLATE_RELATIONS     = YES
 INCLUDE_GRAPH          = YES
 INCLUDED_BY_GRAPH      = YES
-CALL_GRAPH             = NO
-CALLER_GRAPH           = NO
+CALL_GRAPH             = YES
+CALLER_GRAPH           = YES
 GRAPHICAL_HIERARCHY    = YES
 DIRECTORY_GRAPH        = YES
 DIR_GRAPH_MAX_DEPTH    = 1

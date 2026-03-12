@@ -32,6 +32,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
+/**
+ * \file i_client.h
+ * \brief Base interface for client-side network components
+ */
+
 #include "i_network_component.h"
 #include "connection_observer.h"
 
