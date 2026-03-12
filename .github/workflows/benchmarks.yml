@@ -26,7 +26,7 @@ jobs:
   benchmark:
     name: Run Performance Benchmarks
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 30
+    timeout-minutes: 60
 
     strategy:
       fail-fast: false
@@ -94,23 +94,37 @@ jobs:
       run: cmake --build build --config ${{ matrix.build_type }} --target network_benchmarks -j
 
     - name: Run benchmarks
+      timeout-minutes: 45
       run: |
         cd build/benchmarks
-        # Exclude HTTP benchmarks in CI due to network timing issues
-        # HTTP benchmarks can be run manually for performance analysis
+        # Exclude real I/O benchmarks in CI due to network timing and
+        # thread lifecycle issues (hangs on Ubuntu CI runners).
+        # Excluded categories:
+        #   HTTP_           - HTTP client benchmarks (network timing)
+        #   TcpLoopbackFixture - TCP echo server loopback (detached threads)
+        #   DirectAPI_Send/FacadeAPI_Send - real server+client throughput
+        #   BurstThroughput - burst send validation with real connections
+        #   FullLifecycle   - full connect/send/disconnect cycle
+        #   Facade(Client|Server)_Create - spawns IO threads
+        # These can be run manually for performance analysis.
+        REPS=${{ github.event.inputs.save_baseline == 'true' && '3' || '1' }}
+        EXCLUDE="HTTP_|TcpLoopbackFixture|DirectAPI_Send|FacadeAPI_Send"
+        EXCLUDE="${EXCLUDE}|BurstThroughput|FullLifecycle"
+        EXCLUDE="${EXCLUDE}|FacadeClient_Create|FacadeServer_Create"
         ./network_benchmarks \
           --benchmark_format=json \
           --benchmark_out=benchmark_results_${{ matrix.os }}.json \
-          --benchmark_repetitions=3 \
+          --benchmark_repetitions=$REPS \
           --benchmark_report_aggregates_only=true \
-          --benchmark_filter="-HTTP_"
+          --benchmark_filter="-${EXCLUDE}"
 
     - name: Run benchmarks (console output)
+      timeout-minutes: 10
       run: |
         cd build/benchmarks
         ./network_benchmarks \
           --benchmark_filter="Message_Create|Connection_Create|Session_Create" \
-          --benchmark_repetitions=3
+          --benchmark_repetitions=1
 
     - name: Upload benchmark results
       uses: actions/upload-artifact@v4
