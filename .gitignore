@@ -56,6 +56,7 @@ compile_commands.json
 !CMakeLists.txt
 !cmake/*.cmake
 !cmake/*.cmake.in
+!vcpkg-ports/**/*.cmake
 
 # CMake presets (user-specific)
 CMakeUserPresets.json
