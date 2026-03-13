@@ -8,13 +8,14 @@ include(CMakeFindDependencyMacro)
 
 # Find required dependencies
 find_dependency(Threads REQUIRED)
+find_dependency(OpenSSL REQUIRED)
+find_dependency(ZLIB REQUIRED)
 find_dependency(asio CONFIG REQUIRED)
 
-# Find container system dependency
-find_dependency(ContainerSystem QUIET)
-if(NOT ContainerSystem_FOUND)
-    # Container system is required
-    message(FATAL_ERROR "NetworkSystem requires ContainerSystem")
+# Find optional container system dependency
+set(_NETWORK_WITH_CONTAINER_SYSTEM @BUILD_WITH_CONTAINER_SYSTEM@)
+if(_NETWORK_WITH_CONTAINER_SYSTEM)
+    find_dependency(ContainerSystem CONFIG QUIET)
 endif()
 
 # Include targets
@@ -30,7 +31,7 @@ set(NETWORKSYSTEM_FOUND TRUE)
 # Provide information about the package
 set(NetworkSystem_VERSION @PROJECT_VERSION@)
 set(NetworkSystem_INCLUDE_DIRS "@PACKAGE_CMAKE_INSTALL_INCLUDEDIR@/network_system")
-set(NetworkSystem_LIBRARIES NetworkSystem::network)
+set(NetworkSystem_LIBRARIES NetworkSystem::NetworkSystem)
 
 # Legacy variables for backward compatibility
 set(NETWORKSYSTEM_VERSION ${NetworkSystem_VERSION})
