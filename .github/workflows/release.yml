@@ -102,7 +102,7 @@ jobs:
         Get-FileHash ${{ matrix.artifact_name }}.zip -Algorithm SHA256 | Select-Object -ExpandProperty Hash > ${{ matrix.artifact_name }}.sha256
 
     - name: Upload Artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       continue-on-error: true
       with:
         name: ${{ matrix.artifact_name }}

@@ -122,7 +122,7 @@ jobs:
 
     - name: Upload sanitizer logs
       if: failure()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       continue-on-error: true
       with:
         name: sanitizer-logs-${{ matrix.sanitizer.name }}-${{ matrix.os }}
