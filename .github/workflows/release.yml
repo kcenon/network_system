@@ -28,12 +28,15 @@ jobs:
           - os: ubuntu-latest
             artifact_name: network_system-linux-x64
             archive_ext: tar.gz
+            build_shell: bash
           - os: macos-latest
             artifact_name: network_system-macos-x64
             archive_ext: tar.gz
+            build_shell: bash
           - os: windows-latest
             artifact_name: network_system-windows-x64
             archive_ext: zip
+            build_shell: msys2 {0}
 
     steps:
     - uses: actions/checkout@v6
@@ -64,7 +67,7 @@ jobs:
           mingw-w64-x86_64-gcc
 
     - name: Configure CMake
-      shell: ${{ matrix.os == 'windows-latest' && 'msys2 {0}' || 'bash' }}
+      shell: ${{ matrix.build_shell }}
       run: |
         cmake -B build -G Ninja \
           -DCMAKE_BUILD_TYPE=Release \
@@ -79,13 +82,13 @@ jobs:
           -DBUILD_SAMPLES=OFF
 
     - name: Build
-      shell: ${{ matrix.os == 'windows-latest' && 'msys2 {0}' || 'bash' }}
+      shell: ${{ matrix.build_shell }}
       run: |
         cmake --build build --config Release
         cmake --install build
 
     - name: Run Tests
-      shell: ${{ matrix.os == 'windows-latest' && 'msys2 {0}' || 'bash' }}
+      shell: ${{ matrix.build_shell }}
       run: |
         cd build
         ctest --output-on-failure --timeout 60
