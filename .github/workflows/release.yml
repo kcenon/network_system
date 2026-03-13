@@ -64,6 +64,7 @@ jobs:
           mingw-w64-x86_64-gcc
 
     - name: Configure CMake
+      shell: ${{ matrix.os == 'windows-latest' && 'msys2 {0}' || 'bash' }}
       run: |
         cmake -B build -G Ninja \
           -DCMAKE_BUILD_TYPE=Release \
@@ -78,11 +79,13 @@ jobs:
           -DBUILD_SAMPLES=OFF
 
     - name: Build
+      shell: ${{ matrix.os == 'windows-latest' && 'msys2 {0}' || 'bash' }}
       run: |
         cmake --build build --config Release
         cmake --install build
 
     - name: Run Tests
+      shell: ${{ matrix.os == 'windows-latest' && 'msys2 {0}' || 'bash' }}
       run: |
         cd build
         ctest --output-on-failure --timeout 60
@@ -93,10 +96,15 @@ jobs:
         cd install
         tar czf ../${{ matrix.artifact_name }}.${{ matrix.archive_ext }} *
         cd ..
-        sha256sum ${{ matrix.artifact_name }}.${{ matrix.archive_ext }} > ${{ matrix.artifact_name }}.sha256
+        if command -v sha256sum &>/dev/null; then
+          sha256sum ${{ matrix.artifact_name }}.${{ matrix.archive_ext }} > ${{ matrix.artifact_name }}.sha256
+        else
+          shasum -a 256 ${{ matrix.artifact_name }}.${{ matrix.archive_ext }} > ${{ matrix.artifact_name }}.sha256
+        fi
 
     - name: Package (Windows)
       if: matrix.os == 'windows-latest'
+      shell: pwsh
       run: |
         Compress-Archive -Path install/* -DestinationPath ${{ matrix.artifact_name }}.zip
         Get-FileHash ${{ matrix.artifact_name }}.zip -Algorithm SHA256 | Select-Object -ExpandProperty Hash > ${{ matrix.artifact_name }}.sha256
