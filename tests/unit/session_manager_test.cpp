@@ -238,15 +238,15 @@ TEST_F(ActivityTrackingTest, GetIdleDuration)
 
 TEST_F(ActivityTrackingTest, GetIdleDurationAfterUpdate)
 {
-	std::this_thread::sleep_for(30ms);
+	std::this_thread::sleep_for(200ms);
 	manager_->update_activity("tracked_session");
-	std::this_thread::sleep_for(10ms);
+	std::this_thread::sleep_for(30ms);
 
 	auto idle_duration = manager_->get_idle_duration("tracked_session");
 
 	ASSERT_TRUE(idle_duration.has_value());
-	// Should be around 10ms, not 40ms
-	EXPECT_LT(idle_duration->count(), 30);
+	// Should reflect time since update (~30ms), not total time (~230ms)
+	EXPECT_LT(idle_duration->count(), 150);
 }
 
 TEST_F(ActivityTrackingTest, GetIdleDurationNotFound)
@@ -295,9 +295,9 @@ TEST_F(IdleCleanupTest, CleanupRemovesIdleSessions)
 
 TEST_F(IdleCleanupTest, CleanupPreservesActiveSessions)
 {
-	// Use longer idle timeout for this specific test to avoid race conditions
+	// Use longer idle timeout to avoid CI timing jitter
 	session_config longer_config;
-	longer_config.idle_timeout = 100ms;
+	longer_config.idle_timeout = 500ms;
 	session_manager test_manager(longer_config);
 
 	// Add sessions
@@ -305,15 +305,15 @@ TEST_F(IdleCleanupTest, CleanupPreservesActiveSessions)
 	test_manager.add_session(nullptr, "idle_session");
 
 	// Wait for partial timeout
-	std::this_thread::sleep_for(60ms);
+	std::this_thread::sleep_for(300ms);
 
 	// Update activity on one session (resets its timer)
 	test_manager.update_activity("active_session");
 
 	// Wait for idle timeout to pass for the idle session only
-	// idle_session: 60ms + 50ms = 110ms > 100ms (idle)
-	// active_session: 50ms < 100ms (not idle)
-	std::this_thread::sleep_for(50ms);
+	// idle_session: 300ms + 250ms = 550ms > 500ms (idle)
+	// active_session: 250ms < 500ms (not idle, 250ms margin)
+	std::this_thread::sleep_for(250ms);
 
 	// Cleanup should only remove idle_session
 	size_t cleaned = test_manager.cleanup_idle_sessions();
