@@ -472,7 +472,7 @@ function(find_common_system)
         return()
     endif()
 
-    foreach(_candidate common_system kcenon::common)
+    foreach(_candidate common_system kcenon::common kcenon::common_system)
         if(TARGET ${_candidate})
             message(STATUS "Found common_system CMake target: ${_candidate}")
             set(COMMON_SYSTEM_FOUND TRUE PARENT_SCOPE)
