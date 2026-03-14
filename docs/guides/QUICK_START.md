@@ -180,31 +180,31 @@ include(FetchContent)
 FetchContent_Declare(
     common_system
     GIT_REPOSITORY https://github.com/kcenon/common_system.git
-    GIT_TAG main
+    GIT_TAG v0.2.0 # Pin to a specific release tag; do NOT use main
 )
 
 FetchContent_Declare(
     thread_system
     GIT_REPOSITORY https://github.com/kcenon/thread_system.git
-    GIT_TAG main
+    GIT_TAG v0.3.0 # Pin to a specific release tag; do NOT use main
 )
 
 FetchContent_Declare(
     logger_system
     GIT_REPOSITORY https://github.com/kcenon/logger_system.git
-    GIT_TAG main
+    GIT_TAG v0.1.0 # Pin to a specific release tag; do NOT use main
 )
 
 FetchContent_Declare(
     container_system
     GIT_REPOSITORY https://github.com/kcenon/container_system.git
-    GIT_TAG main
+    GIT_TAG v0.1.0 # Pin to a specific release tag; do NOT use main
 )
 
 FetchContent_Declare(
     network_system
     GIT_REPOSITORY https://github.com/kcenon/network_system.git
-    GIT_TAG main
+    GIT_TAG v0.1.0 # Pin to a specific release tag; do NOT use main
 )
 
 FetchContent_MakeAvailable(common_system thread_system logger_system container_system network_system)
