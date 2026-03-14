@@ -28,15 +28,12 @@ jobs:
           - os: ubuntu-latest
             artifact_name: network_system-linux-x64
             archive_ext: tar.gz
-            build_shell: bash
           - os: macos-latest
             artifact_name: network_system-macos-x64
             archive_ext: tar.gz
-            build_shell: bash
           - os: windows-latest
             artifact_name: network_system-windows-x64
             archive_ext: zip
-            build_shell: 'msys2 {0}'
 
     steps:
     - uses: actions/checkout@v6
@@ -66,8 +63,9 @@ jobs:
           mingw-w64-x86_64-fmt
           mingw-w64-x86_64-gcc
 
-    - name: Configure CMake
-      shell: ${{ matrix.build_shell }}
+    - name: Configure CMake (Unix)
+      if: runner.os != 'Windows'
+      shell: bash
       run: |
         cmake -B build -G Ninja \
           -DCMAKE_BUILD_TYPE=Release \
@@ -81,14 +79,46 @@ jobs:
           -DBUILD_TESTS=ON \
           -DBUILD_SAMPLES=OFF
 
-    - name: Build
-      shell: ${{ matrix.build_shell }}
+    - name: Configure CMake (Windows)
+      if: runner.os == 'Windows'
+      shell: msys2 {0}
+      run: |
+        cmake -B build -G Ninja \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DBUILD_SHARED_LIBS=OFF \
+          -DCMAKE_INSTALL_PREFIX=install \
+          -DBUILD_WITH_COMMON_SYSTEM=OFF \
+          -DBUILD_WITH_LOGGER_SYSTEM=OFF \
+          -DBUILD_WITH_THREAD_SYSTEM=OFF \
+          -DBUILD_WITH_CONTAINER_SYSTEM=OFF \
+          -DBUILD_MESSAGING_BRIDGE=OFF \
+          -DBUILD_TESTS=ON \
+          -DBUILD_SAMPLES=OFF
+
+    - name: Build (Unix)
+      if: runner.os != 'Windows'
+      shell: bash
       run: |
         cmake --build build --config Release
         cmake --install build
 
-    - name: Run Tests
-      shell: ${{ matrix.build_shell }}
+    - name: Build (Windows)
+      if: runner.os == 'Windows'
+      shell: msys2 {0}
+      run: |
+        cmake --build build --config Release
+        cmake --install build
+
+    - name: Run Tests (Unix)
+      if: runner.os != 'Windows'
+      shell: bash
+      run: |
+        cd build
+        ctest --output-on-failure --timeout 60
+
+    - name: Run Tests (Windows)
+      if: runner.os == 'Windows'
+      shell: msys2 {0}
       run: |
         cd build
         ctest --output-on-failure --timeout 60
@@ -142,7 +172,7 @@ jobs:
         VERSION=${{ github.event.inputs.version || github.ref_name }}
         echo "# Network System Release $VERSION" > release-notes.md
         echo "" >> release-notes.md
-        echo "## 🎉 Release Highlights" >> release-notes.md
+        echo "## Release Highlights" >> release-notes.md
         echo "" >> release-notes.md
 
         # Extract recent changes from CHANGELOG
@@ -152,13 +182,13 @@ jobs:
         fi
 
         echo "" >> release-notes.md
-        echo "## 📊 Performance Metrics" >> release-notes.md
+        echo "## Performance Metrics" >> release-notes.md
         echo "- Average throughput: 305K+ msg/s" >> release-notes.md
         echo "- Concurrent connections: 500+" >> release-notes.md
-        echo "- Latency: < 600μs average" >> release-notes.md
+        echo "- Latency: < 600us average" >> release-notes.md
         echo "" >> release-notes.md
 
-        echo "## 📦 Installation" >> release-notes.md
+        echo "## Installation" >> release-notes.md
         echo '```bash' >> release-notes.md
         echo "# Download and extract the archive for your platform" >> release-notes.md
         echo "tar xzf network_system-<platform>-x64.tar.gz" >> release-notes.md
@@ -169,13 +199,13 @@ jobs:
         echo '```' >> release-notes.md
         echo "" >> release-notes.md
 
-        echo "## 🔧 Requirements" >> release-notes.md
+        echo "## Requirements" >> release-notes.md
         echo "- C++20 compatible compiler" >> release-notes.md
         echo "- CMake 3.16+" >> release-notes.md
         echo "- Standalone ASIO 1.28+ (Boost.ASIO not supported)" >> release-notes.md
         echo "" >> release-notes.md
 
-        echo "## 📄 Checksums" >> release-notes.md
+        echo "## Checksums" >> release-notes.md
         echo '```' >> release-notes.md
         find artifacts -name "*.sha256" -exec cat {} \;
         echo '```' >> release-notes.md
