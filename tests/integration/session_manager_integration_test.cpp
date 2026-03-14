@@ -111,8 +111,8 @@ protected:
 // ============================================================================
 
 TEST_F(SessionManagerIntegrationTest, CompleteSessionLifecycle) {
-	// Use longer idle timeout for this test to avoid race conditions
-	config_.idle_timeout = 200ms;
+	// Use longer idle timeout to avoid CI timing jitter
+	config_.idle_timeout = 500ms;
 	session_manager_base<simulated_session> manager(config_);
 
 	// Phase 1: Create sessions
@@ -126,8 +126,8 @@ TEST_F(SessionManagerIntegrationTest, CompleteSessionLifecycle) {
 
 	EXPECT_EQ(manager.get_session_count(), 10);
 
-	// Phase 2: Wait for partial timeout (120ms < 200ms)
-	std::this_thread::sleep_for(120ms);
+	// Phase 2: Wait for partial timeout (300ms < 500ms)
+	std::this_thread::sleep_for(300ms);
 
 	// Phase 3: Update activity on first 5 sessions (resets their idle timer)
 	for (int i = 0; i < 5; ++i) {
@@ -137,11 +137,12 @@ TEST_F(SessionManagerIntegrationTest, CompleteSessionLifecycle) {
 		session->process_message();
 	}
 
-	// Phase 4: Wait for remaining timeout (100ms more)
-	// At this point: sessions 0-4 are 100ms idle, sessions 5-9 are 220ms idle
-	std::this_thread::sleep_for(100ms);
+	// Phase 4: Wait for remaining timeout (250ms more)
+	// sessions 0-4: 250ms idle (< 500ms, 250ms margin)
+	// sessions 5-9: 550ms idle (> 500ms, should be cleaned)
+	std::this_thread::sleep_for(250ms);
 
-	// Phase 5: Cleanup should remove sessions 5-9 (idle > 200ms)
+	// Phase 5: Cleanup should remove sessions 5-9 (idle > 500ms)
 	size_t cleaned = manager.cleanup_idle_sessions();
 	EXPECT_EQ(cleaned, 5);
 	EXPECT_EQ(manager.get_session_count(), 5);

@@ -385,7 +385,7 @@ TEST_F(SessionManagerBaseTest, CleanupIdleSessions) {
 }
 
 TEST_F(SessionManagerBaseTest, CleanupPreservesActiveSessions) {
-	config_.idle_timeout = 50ms;
+	config_.idle_timeout = 500ms;
 	session_manager_base<stoppable_session> manager(config_);
 
 	auto active = std::make_shared<stoppable_session>();
@@ -395,13 +395,15 @@ TEST_F(SessionManagerBaseTest, CleanupPreservesActiveSessions) {
 	manager.add_session(idle, "idle");
 
 	// Wait partial timeout
-	std::this_thread::sleep_for(30ms);
+	std::this_thread::sleep_for(300ms);
 
 	// Keep active session alive
 	manager.update_activity("active");
 
 	// Wait for idle session to timeout
-	std::this_thread::sleep_for(30ms);
+	// idle: 300ms + 250ms = 550ms > 500ms (idle)
+	// active: 250ms < 500ms (not idle, 250ms margin)
+	std::this_thread::sleep_for(250ms);
 
 	size_t cleaned = manager.cleanup_idle_sessions();
 
