@@ -12,7 +12,7 @@ endif()
 ##################################################
 
 project(NetworkSystem
-    VERSION 0.1.0
+    VERSION 0.1.1
     DESCRIPTION "Independent High-Performance Network System"
     LANGUAGES CXX
 )
