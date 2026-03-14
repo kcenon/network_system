@@ -36,7 +36,7 @@ jobs:
           - os: windows-latest
             artifact_name: network_system-windows-x64
             archive_ext: zip
-            build_shell: msys2 {0}
+            build_shell: 'msys2 {0}'
 
     steps:
     - uses: actions/checkout@v6
