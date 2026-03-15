@@ -246,6 +246,13 @@ jobs:
         /opt/homebrew/opt/openssl@3/bin/openssl version || /usr/local/opt/openssl@3/bin/openssl version || openssl version
         echo "OpenSSL 3.x is recommended for continued security support (1.1.1 reached EOL September 2023)"
 
+    - name: Update vcpkg baseline (Windows)
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        # Fetch latest vcpkg commits so the baseline in vcpkg-configuration.json is available
+        git -C $env:VCPKG_INSTALLATION_ROOT fetch origin --quiet
+
     - name: Install dependencies (Windows)
       if: runner.os == 'Windows'
       shell: pwsh
