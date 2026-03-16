@@ -614,8 +614,8 @@ thread_integration_manager::instance().set_thread_pool(adapted);
 
 | Platform | Compiler | Architecture | Support Level |
 |----------|----------|--------------|---------------|
-| Ubuntu 22.04+ | GCC 11+ | x86_64, ARM64 | ✅ Full Support |
-| Ubuntu 22.04+ | Clang 14+ | x86_64, ARM64 | ✅ Full Support |
+| Ubuntu 22.04+ | GCC 13+ | x86_64, ARM64 | ✅ Full Support |
+| Ubuntu 22.04+ | Clang 17+ | x86_64, ARM64 | ✅ Full Support |
 | Windows 2022+ | MSVC 2022+ | x86_64 | ✅ Full Support |
 | Windows 2022+ | MinGW64 | x86_64 | ✅ Full Support |
 | macOS 12+ | Apple Clang 14+ | x86_64, ARM64 | ✅ Full Support |
@@ -667,7 +667,9 @@ thread_integration_manager::instance().set_thread_pool(adapted);
 ## Dependencies
 
 ### Required
-- **C++20** compatible compiler (GCC 11+, Clang 14+, MSVC 2022+, Apple Clang 14+)
+- **C++20** compatible compiler (GCC 13+, Clang 17+, MSVC 2022+, Apple Clang 14+)
+
+> **Note**: The higher GCC/Clang requirements come from the [thread_system](https://github.com/kcenon/thread_system) dependency, which requires GCC 13+ and Clang 17+ for full C++20 feature support.
 - **CMake** 3.20+
 - **ASIO** or **Boost.ASIO** 1.28+
 - **OpenSSL** 3.x recommended / 1.1.1+ minimum (for TLS/SSL and WebSocket)
