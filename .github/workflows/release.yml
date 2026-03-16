@@ -196,7 +196,7 @@ jobs:
         echo "tar xzf network_system-<platform>-x64.tar.gz" >> release-notes.md
         echo "" >> release-notes.md
         echo "# Include in your CMake project" >> release-notes.md
-        echo "find_package(NetworkSystem REQUIRED)" >> release-notes.md
+        echo "find_package(network_system REQUIRED)" >> release-notes.md
         echo "target_link_libraries(your_app NetworkSystem::NetworkSystem)" >> release-notes.md
         echo '```' >> release-notes.md
         echo "" >> release-notes.md
