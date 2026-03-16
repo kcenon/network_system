@@ -20,7 +20,7 @@ function(install_network_system_library)
     endif()
 
     install(TARGETS ${_INSTALL_TARGETS}
-        EXPORT NetworkSystemTargets
+        EXPORT network_system-targets
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
@@ -46,30 +46,30 @@ endfunction()
 function(install_cmake_config_files)
     # Generate config file
     configure_package_config_file(
-        "${CMAKE_CURRENT_SOURCE_DIR}/cmake/NetworkSystemConfig.cmake.in"
-        "${CMAKE_CURRENT_BINARY_DIR}/NetworkSystemConfig.cmake"
-        INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/NetworkSystem
+        "${CMAKE_CURRENT_SOURCE_DIR}/cmake/network_system-config.cmake.in"
+        "${CMAKE_CURRENT_BINARY_DIR}/network_system-config.cmake"
+        INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/network_system
     )
 
     # Generate version file
     write_basic_package_version_file(
-        "${CMAKE_CURRENT_BINARY_DIR}/NetworkSystemConfigVersion.cmake"
+        "${CMAKE_CURRENT_BINARY_DIR}/network_system-config-version.cmake"
         VERSION ${PROJECT_VERSION}
         COMPATIBILITY AnyNewerVersion
     )
 
     # Install config files
     install(FILES
-        "${CMAKE_CURRENT_BINARY_DIR}/NetworkSystemConfig.cmake"
-        "${CMAKE_CURRENT_BINARY_DIR}/NetworkSystemConfigVersion.cmake"
-        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/NetworkSystem
+        "${CMAKE_CURRENT_BINARY_DIR}/network_system-config.cmake"
+        "${CMAKE_CURRENT_BINARY_DIR}/network_system-config-version.cmake"
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/network_system
     )
 
     # Install export targets
-    install(EXPORT NetworkSystemTargets
-        FILE NetworkSystemTargets.cmake
+    install(EXPORT network_system-targets
+        FILE network_system-targets.cmake
         NAMESPACE NetworkSystem::
-        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/NetworkSystem
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/network_system
     )
 
     message(STATUS "Configured CMake config file installation")
