@@ -147,7 +147,7 @@ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
     set(NETWORK_TCP_EXPORT_SET network-tcp-targets)
 else()
     # Integrated build - use parent's export set
-    set(NETWORK_TCP_EXPORT_SET NetworkSystemTargets)
+    set(NETWORK_TCP_EXPORT_SET network_system-targets)
 endif()
 
 install(TARGETS network-tcp
