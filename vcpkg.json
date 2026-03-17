@@ -26,6 +26,7 @@
     { "name": "lz4", "version": "1.9.4" },
     { "name": "grpc", "version": "1.51.1" },
     { "name": "protobuf", "version": "3.21.12" },
+    { "name": "simdutf", "version": "5.2.5" },
     { "name": "gtest", "version": "1.14.0" },
     { "name": "benchmark", "version": "1.8.3" }
   ],
