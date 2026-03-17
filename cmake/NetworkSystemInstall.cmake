@@ -68,7 +68,7 @@ function(install_cmake_config_files)
     # Install export targets
     install(EXPORT network_system-targets
         FILE network_system-targets.cmake
-        NAMESPACE NetworkSystem::
+        NAMESPACE network_system::
         DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/network_system
     )
 
