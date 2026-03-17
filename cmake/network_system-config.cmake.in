@@ -8,6 +8,8 @@ include(CMakeFindDependencyMacro)
 
 # Find required dependencies
 find_dependency(Threads REQUIRED)
+find_dependency(common_system CONFIG REQUIRED)
+find_dependency(thread_system CONFIG REQUIRED)
 
 # OpenSSL: required when TLS support or WebSocket support (SHA-1 handshake) was enabled
 set(_NETWORK_WITH_TLS @BUILD_TLS_SUPPORT@)
