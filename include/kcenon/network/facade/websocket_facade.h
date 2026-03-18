@@ -46,9 +46,9 @@ namespace kcenon::network::interfaces
 namespace kcenon::network::facade
 {
 
-/*!
- * \class websocket_facade
- * \brief Simplified facade for creating WebSocket clients and servers.
+/**
+ * @class websocket_facade
+ * @brief Simplified facade for creating WebSocket clients and servers.
  *
  * This facade provides a simple, unified API for creating WebSocket protocol
  * clients and servers, hiding the complexity of underlying implementation
@@ -64,7 +64,7 @@ namespace kcenon::network::facade
  * All methods are thread-safe and can be called concurrently.
  *
  * ### Usage Example
- * \code
+ * @code
  * using namespace kcenon::network::facade;
  *
  * // Create WebSocket client
@@ -80,48 +80,48 @@ namespace kcenon::network::facade
  *     .path = "/ws",
  *     .server_id = "my-ws-server"
  * });
- * \endcode
+ * @endcode
  *
- * \see interfaces::i_protocol_client
- * \see interfaces::i_protocol_server
+ * @see interfaces::i_protocol_client
+ * @see interfaces::i_protocol_server
  */
 class websocket_facade
 {
 public:
-	/*!
-	 * \struct client_config
-	 * \brief Configuration for creating a WebSocket client.
+	/**
+	 * @struct client_config
+	 * @brief Configuration for creating a WebSocket client.
 	 */
 	struct client_config
 	{
-		//! Client identifier (auto-generated if not provided)
+		/// Client identifier (auto-generated if not provided)
 		std::string client_id;
 
-		//! Ping interval (default: 30 seconds)
+		/// Ping interval (default: 30 seconds)
 		std::chrono::milliseconds ping_interval = std::chrono::seconds(30);
 	};
 
-	/*!
-	 * \struct server_config
-	 * \brief Configuration for creating a WebSocket server.
+	/**
+	 * @struct server_config
+	 * @brief Configuration for creating a WebSocket server.
 	 */
 	struct server_config
 	{
-		//! Port number to listen on
+		/// Port number to listen on
 		uint16_t port = 0;
 
-		//! WebSocket path (default: "/")
+		/// WebSocket path (default: "/")
 		std::string path = "/";
 
-		//! Server identifier (auto-generated if not provided)
+		/// Server identifier (auto-generated if not provided)
 		std::string server_id;
 	};
 
-	/*!
-	 * \brief Creates a WebSocket client with the specified configuration.
-	 * \param config Client configuration.
-	 * \return Shared pointer to i_protocol_client interface.
-	 * \throws std::invalid_argument if configuration is invalid.
+	/**
+	 * @brief Creates a WebSocket client with the specified configuration.
+	 * @param config Client configuration.
+	 * @return Shared pointer to i_protocol_client interface.
+	 * @throws std::invalid_argument if configuration is invalid.
 	 *
 	 * ### Behavior
 	 * - Creates a WebSocket client adapter wrapping messaging_ws_client
@@ -139,11 +139,11 @@ public:
 	[[nodiscard]] auto create_client(const client_config& config) const
 		-> std::shared_ptr<interfaces::i_protocol_client>;
 
-	/*!
-	 * \brief Creates a WebSocket server with the specified configuration.
-	 * \param config Server configuration.
-	 * \return Shared pointer to i_protocol_server interface.
-	 * \throws std::invalid_argument if configuration is invalid.
+	/**
+	 * @brief Creates a WebSocket server with the specified configuration.
+	 * @param config Server configuration.
+	 * @return Shared pointer to i_protocol_server interface.
+	 * @throws std::invalid_argument if configuration is invalid.
 	 *
 	 * ### Behavior
 	 * - Creates a WebSocket server adapter wrapping messaging_ws_server
@@ -163,16 +163,16 @@ public:
 		-> std::shared_ptr<interfaces::i_protocol_server>;
 
 private:
-	//! \brief Generates a unique client ID
+	/// @brief Generates a unique client ID
 	[[nodiscard]] static auto generate_client_id() -> std::string;
 
-	//! \brief Generates a unique server ID
+	/// @brief Generates a unique server ID
 	[[nodiscard]] static auto generate_server_id() -> std::string;
 
-	//! \brief Validates client configuration
+	/// @brief Validates client configuration
 	static auto validate_client_config(const client_config& config) -> void;
 
-	//! \brief Validates server configuration
+	/// @brief Validates server configuration
 	static auto validate_server_config(const server_config& config) -> void;
 };
 

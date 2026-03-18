@@ -42,9 +42,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace kcenon::network::facade
 {
 
-/*!
- * \class udp_facade
- * \brief Simplified facade for creating UDP clients and servers.
+/**
+ * @class udp_facade
+ * @brief Simplified facade for creating UDP clients and servers.
  *
  * This facade provides a simple, unified API for creating UDP protocol
  * clients and servers, hiding the complexity of template parameters,
@@ -60,7 +60,7 @@ namespace kcenon::network::facade
  * All methods are thread-safe and can be called concurrently.
  *
  * ### Usage Example
- * \code
+ * @code
  * using namespace kcenon::network::facade;
  *
  * // Create UDP client
@@ -76,48 +76,48 @@ namespace kcenon::network::facade
  *     .port = 5555,
  *     .server_id = "my-udp-server"
  * });
- * \endcode
+ * @endcode
  *
- * \see interfaces::i_protocol_client
- * \see interfaces::i_protocol_server
+ * @see interfaces::i_protocol_client
+ * @see interfaces::i_protocol_server
  */
 class udp_facade
 {
 public:
-	/*!
-	 * \struct client_config
-	 * \brief Configuration for creating a UDP client.
+	/**
+	 * @struct client_config
+	 * @brief Configuration for creating a UDP client.
 	 */
 	struct client_config
 	{
-		//! Target hostname or IP address
+		/// Target hostname or IP address
 		std::string host;
 
-		//! Target port number
+		/// Target port number
 		uint16_t port = 0;
 
-		//! Client identifier (optional, auto-generated if not provided)
+		/// Client identifier (optional, auto-generated if not provided)
 		std::string client_id;
 	};
 
-	/*!
-	 * \struct server_config
-	 * \brief Configuration for creating a UDP server.
+	/**
+	 * @struct server_config
+	 * @brief Configuration for creating a UDP server.
 	 */
 	struct server_config
 	{
-		//! Port number to listen on
+		/// Port number to listen on
 		uint16_t port = 0;
 
-		//! Server identifier (optional, auto-generated if not provided)
+		/// Server identifier (optional, auto-generated if not provided)
 		std::string server_id;
 	};
 
-	/*!
-	 * \brief Creates a UDP client with the specified configuration.
-	 * \param config Client configuration.
-	 * \return Shared pointer to IProtocolClient interface.
-	 * \throws std::invalid_argument if configuration is invalid.
+	/**
+	 * @brief Creates a UDP client with the specified configuration.
+	 * @param config Client configuration.
+	 * @return Shared pointer to IProtocolClient interface.
+	 * @throws std::invalid_argument if configuration is invalid.
 	 *
 	 * ### Behavior
 	 * - Creates a UDP client adapter wrapping messaging_udp_client
@@ -131,11 +131,11 @@ public:
 	[[nodiscard]] auto create_client(const client_config& config) const
 		-> std::shared_ptr<interfaces::i_protocol_client>;
 
-	/*!
-	 * \brief Creates a UDP server with the specified configuration.
-	 * \param config Server configuration.
-	 * \return Shared pointer to IProtocolServer interface.
-	 * \throws std::invalid_argument if configuration is invalid.
+	/**
+	 * @brief Creates a UDP server with the specified configuration.
+	 * @param config Server configuration.
+	 * @return Shared pointer to IProtocolServer interface.
+	 * @throws std::invalid_argument if configuration is invalid.
 	 *
 	 * ### Behavior
 	 * - Creates a UDP server adapter wrapping messaging_udp_server
@@ -149,16 +149,16 @@ public:
 		-> std::shared_ptr<interfaces::i_protocol_server>;
 
 private:
-	//! \brief Generates a unique client ID
+	/// @brief Generates a unique client ID
 	[[nodiscard]] static auto generate_client_id() -> std::string;
 
-	//! \brief Generates a unique server ID
+	/// @brief Generates a unique server ID
 	[[nodiscard]] static auto generate_server_id() -> std::string;
 
-	//! \brief Validates client configuration
+	/// @brief Validates client configuration
 	static auto validate_client_config(const client_config& config) -> void;
 
-	//! \brief Validates server configuration
+	/// @brief Validates server configuration
 	static auto validate_server_config(const server_config& config) -> void;
 };
 

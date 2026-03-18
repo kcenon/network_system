@@ -46,9 +46,9 @@ namespace kcenon::network::interfaces
 namespace kcenon::network::facade
 {
 
-/*!
- * \class http_facade
- * \brief Simplified facade for creating HTTP clients and servers.
+/**
+ * @class http_facade
+ * @brief Simplified facade for creating HTTP clients and servers.
  *
  * This facade provides a simple, unified API for creating HTTP/1.1 protocol
  * clients and servers, hiding the complexity of underlying implementation
@@ -64,7 +64,7 @@ namespace kcenon::network::facade
  * All methods are thread-safe and can be called concurrently.
  *
  * ### Usage Example
- * \code
+ * @code
  * using namespace kcenon::network::facade;
  *
  * // Create HTTP client
@@ -79,51 +79,51 @@ namespace kcenon::network::facade
  *     .port = 8080,
  *     .server_id = "my-http-server"
  * });
- * \endcode
+ * @endcode
  *
- * \see interfaces::i_protocol_client
- * \see interfaces::i_protocol_server
+ * @see interfaces::i_protocol_client
+ * @see interfaces::i_protocol_server
  */
 class http_facade
 {
 public:
-	/*!
-	 * \struct client_config
-	 * \brief Configuration for creating an HTTP client.
+	/**
+	 * @struct client_config
+	 * @brief Configuration for creating an HTTP client.
 	 */
 	struct client_config
 	{
-		//! Client identifier (auto-generated if not provided)
+		/// Client identifier (auto-generated if not provided)
 		std::string client_id;
 
-		//! Request timeout
+		/// Request timeout
 		std::chrono::milliseconds timeout = std::chrono::seconds(30);
 
-		//! Whether to use HTTPS
+		/// Whether to use HTTPS
 		bool use_ssl = false;
 
-		//! HTTP path (default: "/")
+		/// HTTP path (default: "/")
 		std::string path = "/";
 	};
 
-	/*!
-	 * \struct server_config
-	 * \brief Configuration for creating an HTTP server.
+	/**
+	 * @struct server_config
+	 * @brief Configuration for creating an HTTP server.
 	 */
 	struct server_config
 	{
-		//! Port number to listen on
+		/// Port number to listen on
 		uint16_t port = 0;
 
-		//! Server identifier (optional, auto-generated if not provided)
+		/// Server identifier (optional, auto-generated if not provided)
 		std::string server_id;
 	};
 
-	/*!
-	 * \brief Creates an HTTP client with the specified configuration.
-	 * \param config Client configuration.
-	 * \return Shared pointer to i_protocol_client interface.
-	 * \throws std::invalid_argument if configuration is invalid.
+	/**
+	 * @brief Creates an HTTP client with the specified configuration.
+	 * @param config Client configuration.
+	 * @return Shared pointer to i_protocol_client interface.
+	 * @throws std::invalid_argument if configuration is invalid.
 	 *
 	 * ### Behavior
 	 * - Creates an HTTP client adapter wrapping http_client
@@ -142,11 +142,11 @@ public:
 	[[nodiscard]] auto create_client(const client_config& config) const
 		-> std::shared_ptr<interfaces::i_protocol_client>;
 
-	/*!
-	 * \brief Creates an HTTP server with the specified configuration.
-	 * \param config Server configuration.
-	 * \return Shared pointer to i_protocol_server interface.
-	 * \throws std::invalid_argument if configuration is invalid.
+	/**
+	 * @brief Creates an HTTP server with the specified configuration.
+	 * @param config Server configuration.
+	 * @return Shared pointer to i_protocol_server interface.
+	 * @throws std::invalid_argument if configuration is invalid.
 	 *
 	 * ### Behavior
 	 * - Creates an HTTP server adapter wrapping http_server
@@ -165,16 +165,16 @@ public:
 		-> std::shared_ptr<interfaces::i_protocol_server>;
 
 private:
-	//! \brief Generates a unique client ID
+	/// @brief Generates a unique client ID
 	[[nodiscard]] static auto generate_client_id() -> std::string;
 
-	//! \brief Generates a unique server ID
+	/// @brief Generates a unique server ID
 	[[nodiscard]] static auto generate_server_id() -> std::string;
 
-	//! \brief Validates client configuration
+	/// @brief Validates client configuration
 	static auto validate_client_config(const client_config& config) -> void;
 
-	//! \brief Validates server configuration
+	/// @brief Validates server configuration
 	static auto validate_server_config(const server_config& config) -> void;
 };
 
