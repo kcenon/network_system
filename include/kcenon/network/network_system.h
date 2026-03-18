@@ -36,6 +36,16 @@
  * This header provides access to all core Network System functionality
  * including messaging clients, servers, and session management.
  *
+ * @code
+ * #include <kcenon/network/network_system.h>
+ * using namespace kcenon::network;
+ *
+ * // Use the facade for simplified TCP client/server creation
+ * facade::tcp_facade tcp;
+ * auto client = tcp.create_client({.host = "127.0.0.1", .port = 8080});
+ * auto server = tcp.create_server({.port = 8080});
+ * @endcode
+ *
  * @author kcenon
  * @date 2025-09-19
  */
