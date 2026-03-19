@@ -2,14 +2,57 @@ name: CI
 
 on:
   push:
-    branches: [ main, phase-* ]
+    branches: [ main, develop, phase-* ]
   pull_request:
     branches: [ main ]
 
 jobs:
+  # Quick minimal build for fast feedback (Linux-only, no dependencies)
+  build-minimal:
+    name: Minimal Build (Fast Feedback)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    if: github.ref != 'refs/heads/gh-pages'
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v6
+
+    - name: Checkout common_system
+      uses: actions/checkout@v6
+      with:
+        repository: kcenon/common_system
+        path: common_system
+
+    - name: Install minimal dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y cmake ninja-build g++ libssl-dev
+        cd common_system
+        cmake -B build -DBUILD_TESTS=OFF -DBUILD_EXAMPLES=OFF
+        sudo cmake --install build --prefix /usr/local
+        cd ..
+
+    - name: Configure minimal build
+      run: |
+        cmake -B build -G Ninja \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DBUILD_WITH_COMMON_SYSTEM=ON \
+          -DBUILD_WITH_LOGGER_SYSTEM=OFF \
+          -DBUILD_WITH_THREAD_SYSTEM=OFF \
+          -DBUILD_WITH_CONTAINER_SYSTEM=OFF \
+          -DBUILD_WITH_MONITORING_SYSTEM=OFF \
+          -DBUILD_TESTS=OFF \
+          -DBUILD_EXAMPLES=OFF \
+          -DBUILD_SAMPLES=OFF
+
+    - name: Build
+      run: cmake --build build --parallel
+
   build:
     name: ${{ matrix.os }} / ${{ matrix.compiler }}
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
     # Skip only if pushed to gh-pages branch
     if: github.ref != 'refs/heads/gh-pages'
 
@@ -576,3 +619,52 @@ jobs:
           build/Testing/
           build/**/*.log
         retention-days: 7
+
+  # Downstream compatibility test (informational, non-blocking)
+  test-downstream:
+    name: Test Downstream Compatibility
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    continue-on-error: true
+
+    steps:
+    - name: Checkout network_system
+      uses: actions/checkout@v6
+      with:
+        path: network_system
+
+    - name: Checkout database_system
+      uses: actions/checkout@v6
+      with:
+        repository: kcenon/database_system
+        path: database_system
+      continue-on-error: true
+
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y cmake ninja-build g++ libssl-dev libfmt-dev libasio-dev
+
+    - name: Build network_system
+      working-directory: network_system
+      run: |
+        cmake -B build -G Ninja \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DBUILD_WITH_COMMON_SYSTEM=ON \
+          -DBUILD_WITH_LOGGER_SYSTEM=ON \
+          -DBUILD_WITH_THREAD_SYSTEM=ON \
+          -DBUILD_WITH_CONTAINER_SYSTEM=ON \
+          -DBUILD_SAMPLES=OFF
+        cmake --build build --config Release --parallel
+        cmake --install build --prefix ${{ github.workspace }}/install
+
+    - name: Test database_system can use network_system
+      if: success()
+      working-directory: database_system
+      continue-on-error: true
+      run: |
+        cmake -B build -G Ninja \
+          -DCMAKE_PREFIX_PATH=${{ github.workspace }}/install \
+          -DUSE_NETWORK_SYSTEM=ON
+        cmake --build build --parallel
