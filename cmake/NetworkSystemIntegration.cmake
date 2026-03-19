@@ -55,6 +55,11 @@ function(setup_container_system_integration target)
         message(STATUS "Linked ${target} with container_system target: ${CONTAINER_SYSTEM_TARGET}")
     elseif(CONTAINER_SYSTEM_INCLUDE_DIR)
         target_include_directories(${target} PRIVATE ${CONTAINER_SYSTEM_INCLUDE_DIR})
+        # After header migration (container_system PR #440), forwarding headers
+        # include <kcenon/container/...> which requires the include/ subdirectory.
+        if(CONTAINER_SYSTEM_NEW_INCLUDE_DIR)
+            target_include_directories(${target} PRIVATE ${CONTAINER_SYSTEM_NEW_INCLUDE_DIR})
+        endif()
         if(CONTAINER_SYSTEM_LIBRARY)
             target_link_libraries(${target} PRIVATE ${CONTAINER_SYSTEM_LIBRARY})
         endif()
