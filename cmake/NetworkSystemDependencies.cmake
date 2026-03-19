@@ -226,12 +226,21 @@ function(find_container_system)
         # The canonical headers live under <root>/include/kcenon/container/.
         # Detect and export this additional include directory so the
         # kcenon/container/ includes resolve correctly.
+        # After the header migration (container_system PR #440), forwarding headers
+        # at core/container.h do #include <kcenon/container/container.h>.
+        # Search multiple possible locations for the include/ directory.
         set(_container_new_include_dir)
-        get_filename_component(_container_root "${CONTAINER_SYSTEM_INCLUDE_DIR}" DIRECTORY)
-        if(EXISTS "${_container_root}/include/kcenon/container/container.h")
-            set(_container_new_include_dir "${_container_root}/include")
-            message(STATUS "  container_system new-style headers at: ${_container_new_include_dir}")
-        endif()
+        foreach(_candidate
+            "${CONTAINER_SYSTEM_INCLUDE_DIR}/../include"
+            "${CONTAINER_SYSTEM_INCLUDE_DIR}/include"
+            "${CMAKE_SOURCE_DIR}/container_system/include"
+        )
+            if(EXISTS "${_candidate}/kcenon/container/container.h")
+                get_filename_component(_container_new_include_dir "${_candidate}" ABSOLUTE)
+                message(STATUS "  container_system new-style headers at: ${_container_new_include_dir}")
+                break()
+            endif()
+        endforeach()
 
         find_library(CONTAINER_SYSTEM_LIBRARY
             NAMES container_system ContainerSystem
