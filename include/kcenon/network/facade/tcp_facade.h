@@ -214,6 +214,10 @@ public:
 
 		/// Number of connections to maintain in the pool
 		size_t pool_size = 10;
+
+		/// Maximum time to wait when acquiring a connection (default: 30s).
+		/// Use std::chrono::seconds::zero() for unlimited wait.
+		std::chrono::seconds acquire_timeout = std::chrono::seconds(30);
 	};
 
 	/**

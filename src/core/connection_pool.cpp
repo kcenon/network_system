@@ -37,8 +37,10 @@ namespace kcenon::network::core
 {
 
 	connection_pool::connection_pool(std::string host, unsigned short port,
-									 size_t pool_size)
-		: host_(std::move(host)), port_(port), pool_size_(pool_size)
+									 size_t pool_size,
+									 std::chrono::seconds acquire_timeout)
+		: host_(std::move(host)), port_(port), pool_size_(pool_size),
+		  acquire_timeout_(acquire_timeout)
 	{
 	}
 
@@ -108,10 +110,28 @@ namespace kcenon::network::core
 	{
 		std::unique_lock<std::mutex> lock(mutex_);
 
-		// Wait until a connection is available or shutdown
-		cv_.wait(lock, [this] {
-			return !available_.empty() || is_shutdown_.load();
-		});
+		// Wait until a connection is available, shutdown, or timeout
+		if (acquire_timeout_.count() > 0)
+		{
+			if (!cv_.wait_for(lock, acquire_timeout_, [this] {
+					return !available_.empty() || is_shutdown_.load();
+				}))
+			{
+				NETWORK_LOG_WARN(
+					"[connection_pool] Acquire timed out after " +
+					std::to_string(acquire_timeout_.count()) +
+					"s. Active: " +
+					std::to_string(active_count_.load()) + "/" +
+					std::to_string(pool_size_));
+				return nullptr;
+			}
+		}
+		else
+		{
+			cv_.wait(lock, [this] {
+				return !available_.empty() || is_shutdown_.load();
+			});
+		}
 
 		// Check if shutdown
 		if (is_shutdown_.load())
