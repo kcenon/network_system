@@ -65,8 +65,17 @@ namespace kcenon::network::core
 			asio::ssl::context::no_tlsv1_1 |
 			asio::ssl::context::single_dh_use);
 
-		// Enforce TLS 1.3 minimum version using native OpenSSL handle
-		// This prevents protocol downgrade attacks (CVSS 7.5)
+		// Enforce TLS 1.3 minimum version using native OpenSSL handle.
+		// This prevents protocol downgrade attacks (CVSS 7.5).
+		//
+		// NOTE: This TLS 1.3-only policy is intentionally stricter than the
+		// BCP 195 basic profile used in pacs_system (which allows TLS 1.2).
+		// Rationale:
+		//   - network_system handles internal service-to-service messaging
+		//     where all endpoints are under our control and support TLS 1.3.
+		//   - pacs_system must interoperate with legacy DICOM equipment that
+		//     may only support TLS 1.2, hence the broader BCP 195 profile.
+		// See: pacs_system/src/security/tls_policy.cpp  bcp195_basic_profile()
 		SSL_CTX* native_ctx = ssl_context_->native_handle();
 		if (native_ctx)
 		{
