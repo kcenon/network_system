@@ -221,6 +221,27 @@ function(find_container_system)
     if(CONTAINER_SYSTEM_INCLUDE_DIR)
         message(STATUS "Found container_system at: ${CONTAINER_SYSTEM_INCLUDE_DIR}")
 
+        # After the header migration (container_system PR #440), forwarding headers
+        # at core/container.h do #include <kcenon/container/container.h>.
+        # The canonical headers live under <root>/include/kcenon/container/.
+        # Detect and export this additional include directory so the
+        # kcenon/container/ includes resolve correctly.
+        # After the header migration (container_system PR #440), forwarding headers
+        # at core/container.h do #include <kcenon/container/container.h>.
+        # Search multiple possible locations for the include/ directory.
+        set(_container_new_include_dir)
+        foreach(_candidate
+            "${CONTAINER_SYSTEM_INCLUDE_DIR}/../include"
+            "${CONTAINER_SYSTEM_INCLUDE_DIR}/include"
+            "${CMAKE_SOURCE_DIR}/container_system/include"
+        )
+            if(EXISTS "${_candidate}/kcenon/container/container.h")
+                get_filename_component(_container_new_include_dir "${_candidate}" ABSOLUTE)
+                message(STATUS "  container_system new-style headers at: ${_container_new_include_dir}")
+                break()
+            endif()
+        endforeach()
+
         find_library(CONTAINER_SYSTEM_LIBRARY
             NAMES container_system ContainerSystem
             PATHS ${_container_lib_paths}
@@ -234,6 +255,7 @@ function(find_container_system)
 
         set(CONTAINER_SYSTEM_FOUND TRUE PARENT_SCOPE)
         set(CONTAINER_SYSTEM_INCLUDE_DIR ${CONTAINER_SYSTEM_INCLUDE_DIR} PARENT_SCOPE)
+        set(CONTAINER_SYSTEM_NEW_INCLUDE_DIR "${_container_new_include_dir}" PARENT_SCOPE)
         set(CONTAINER_SYSTEM_LIBRARY ${CONTAINER_SYSTEM_LIBRARY} PARENT_SCOPE)
     else()
         message(WARNING "container_system not found, integration disabled")
@@ -784,6 +806,7 @@ function(find_network_system_dependencies)
     # System integration variables
     set(CONTAINER_SYSTEM_FOUND ${CONTAINER_SYSTEM_FOUND} PARENT_SCOPE)
     set(CONTAINER_SYSTEM_INCLUDE_DIR ${CONTAINER_SYSTEM_INCLUDE_DIR} PARENT_SCOPE)
+    set(CONTAINER_SYSTEM_NEW_INCLUDE_DIR ${CONTAINER_SYSTEM_NEW_INCLUDE_DIR} PARENT_SCOPE)
     set(CONTAINER_SYSTEM_LIBRARY ${CONTAINER_SYSTEM_LIBRARY} PARENT_SCOPE)
     set(CONTAINER_SYSTEM_TARGET ${CONTAINER_SYSTEM_TARGET} PARENT_SCOPE)
 

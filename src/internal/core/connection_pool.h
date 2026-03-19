@@ -33,6 +33,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 
 #include <atomic>
+#include <chrono>
 #include <condition_variable>
 #include <memory>
 #include <mutex>
@@ -87,9 +88,13 @@ namespace kcenon::network::core
 		 * \param host The remote host to connect to
 		 * \param port The remote port to connect to
 		 * \param pool_size Number of connections to maintain in the pool (default: 10)
+		 * \param acquire_timeout Maximum time to wait for an available connection
+		 *        (default: 30 seconds). Use std::chrono::seconds::zero() for no
+		 *        timeout.
 		 */
-		connection_pool(std::string host, unsigned short port,
-						size_t pool_size = 10);
+		connection_pool(
+			std::string host, unsigned short port, size_t pool_size = 10,
+			std::chrono::seconds acquire_timeout = std::chrono::seconds(30));
 
 		/*!
 		 * \brief Destructor. Stops all connections and cleans up resources.
@@ -107,10 +112,11 @@ namespace kcenon::network::core
 
 		/*!
 		 * \brief Acquires a connection from the pool.
-		 * \return A unique_ptr to messaging_client
+		 * \return A unique_ptr to messaging_client, or nullptr on timeout/shutdown
 		 *
-		 * This method blocks if no connections are available until one is released.
-		 * The acquired connection is guaranteed to be connected and ready to use.
+		 * This method blocks if no connections are available, up to the
+		 * configured acquire timeout. Returns nullptr if the timeout elapses
+		 * or the pool is shutting down.
 		 */
 		auto acquire() -> std::unique_ptr<messaging_client>;
 
@@ -145,6 +151,8 @@ namespace kcenon::network::core
 		std::string host_;              /*!< Remote host to connect to */
 		unsigned short port_;           /*!< Remote port to connect to */
 		size_t pool_size_;              /*!< Total number of connections */
+		std::chrono::seconds acquire_timeout_;
+												/*!< Max wait time for acquire() */
 
 		std::queue<std::unique_ptr<messaging_client>> available_;
 													/*!< Available connections */
