@@ -227,7 +227,7 @@ function(find_container_system)
         # Detect and export this additional include directory so the
         # kcenon/container/ includes resolve correctly.
         set(_container_new_include_dir)
-        get_filename_component(_container_root "${CONTAINER_SYSTEM_INCLUDE_DIR}" ABSOLUTE)
+        get_filename_component(_container_root "${CONTAINER_SYSTEM_INCLUDE_DIR}" DIRECTORY)
         if(EXISTS "${_container_root}/include/kcenon/container/container.h")
             set(_container_new_include_dir "${_container_root}/include")
             message(STATUS "  container_system new-style headers at: ${_container_new_include_dir}")
