@@ -191,7 +191,8 @@ auto tcp_facade::create_connection_pool(const pool_config& config) const
 	return std::make_shared<core::connection_pool>(
 		config.host,
 		config.port,
-		config.pool_size);
+		config.pool_size,
+		config.acquire_timeout);
 }
 
 } // namespace kcenon::network::facade
