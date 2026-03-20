@@ -127,8 +127,6 @@ namespace kcenon::network::metrics {
 class metric_reporter;
 /// @brief Tracks per-connection metrics (latency, throughput)
 class connection_metrics;
-/// @brief Tracks overall network performance metrics
-class performance_metrics;
 } // namespace kcenon::network::metrics
 /// @}
 

@@ -248,21 +248,6 @@ TEST_F(MessagingBridgeInterfaceTest, CreateClientAfterInitialize) {
     ASSERT_NE(client, nullptr) << "Should create client after initialization";
 }
 
-TEST_F(MessagingBridgeInterfaceTest, BackwardCompatibilityPerformanceMetrics) {
-    BridgeConfig config;
-    config.integration_name = "messaging_system";
-    bridge_->initialize(config);
-
-    // Test deprecated performance_metrics getter
-    auto perf_metrics = bridge_->get_performance_metrics();
-
-    EXPECT_EQ(perf_metrics.messages_sent, 0);
-    EXPECT_EQ(perf_metrics.messages_received, 0);
-    EXPECT_EQ(perf_metrics.bytes_sent, 0);
-    EXPECT_EQ(perf_metrics.bytes_received, 0);
-    EXPECT_EQ(perf_metrics.connections_active, 0);
-}
-
 TEST_F(MessagingBridgeInterfaceTest, ResetMetricsPreservesInitialization) {
     BridgeConfig config;
     config.integration_name = "messaging_system";

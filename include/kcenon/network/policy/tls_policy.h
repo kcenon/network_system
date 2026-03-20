@@ -50,7 +50,7 @@ namespace kcenon::network::policy {
  * messaging_client<tcp_protocol, no_tls> plain_client;
  * \endcode
  */
-struct [[deprecated("Use require_tls or optional_tls for production deployments")]] no_tls {
+struct no_tls {
     static constexpr bool enabled = false;
 };
 
@@ -89,7 +89,7 @@ struct tls_enabled {
  * that indicates whether TLS is active.
  *
  * ### Satisfied Types
- * - `no_tls` - TLS disabled
+ * - `no_tls` - Plain-text communication (no TLS)
  * - `tls_enabled` - TLS enabled with configuration
  *
  * ### Usage

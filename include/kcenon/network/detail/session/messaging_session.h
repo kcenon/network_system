@@ -163,8 +163,6 @@ namespace kcenon::network::session
 		/*!
 		 * \brief Checks if the session has been stopped.
 		 * \return true if the session is stopped, false otherwise.
-		 *
-		 * \deprecated Use is_connected() instead (returns opposite value).
 		 */
 		[[nodiscard]] auto is_stopped() const noexcept -> bool {
 			return is_stopped_.load(std::memory_order_relaxed);
@@ -182,7 +180,6 @@ namespace kcenon::network::session
 		 * - Data is moved (not copied) to avoid memory allocation overhead.
 		 * - After calling this function, the original vector will be empty.
 		 *
-		 * \deprecated Use send() instead for Result-based error handling.
 		 */
 		auto send_packet(std::vector<uint8_t>&& data) -> void;
 
