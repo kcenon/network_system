@@ -33,6 +33,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "internal/core/connection_pool.h"
 #include "internal/integration/logger_integration.h"
 
+#include <future>
+
 namespace kcenon::network::core
 {
 
@@ -78,31 +80,87 @@ namespace kcenon::network::core
 			std::to_string(pool_size_) + " connections to " + host_ + ":" +
 			std::to_string(port_));
 
+		// Launch all connections in parallel using std::async
+		struct connect_result
+		{
+			std::unique_ptr<messaging_client> client;
+			bool success = false;
+			std::string error_message;
+		};
+
+		std::vector<std::future<connect_result>> futures;
+		futures.reserve(pool_size_);
+
 		for (size_t i = 0; i < pool_size_; ++i)
 		{
-			auto client = std::make_unique<messaging_client>(
-				"pool_client_" + std::to_string(i));
+			futures.push_back(std::async(std::launch::async,
+				[this, i]() -> connect_result {
+					connect_result cr;
+					cr.client = std::make_unique<messaging_client>(
+						"pool_client_" + std::to_string(i));
 
-			// Connect to server
-			auto result = client->start_client(host_, port_);
-			if (result.is_err())
-			{
-				return error_void(
-					result.error().code,
-					"Failed to create pool connection " + std::to_string(i) +
-						": " + result.error().message,
-					"connection_pool::initialize",
-					"Host: " + host_ + ", Port: " + std::to_string(port_)
-				);
-			}
-
-			// Add to available queue
-			std::lock_guard<std::mutex> lock(mutex_);
-			available_.push(std::move(client));
+					auto result = cr.client->start_client(host_, port_);
+					if (result.is_err())
+					{
+						cr.success = false;
+						cr.error_message = result.error().message;
+						cr.client.reset();
+					}
+					else
+					{
+						cr.success = true;
+					}
+					return cr;
+				}));
 		}
 
-		NETWORK_LOG_INFO("[connection_pool] Successfully initialized " +
-			std::to_string(pool_size_) + " connections");
+		// Collect results
+		size_t success_count = 0;
+		size_t fail_count = 0;
+		{
+			std::lock_guard<std::mutex> lock(mutex_);
+			for (size_t i = 0; i < futures.size(); ++i)
+			{
+				auto cr = futures[i].get();
+				if (cr.success && cr.client)
+				{
+					available_.push(std::move(cr.client));
+					++success_count;
+				}
+				else
+				{
+					++fail_count;
+					NETWORK_LOG_WARN(
+						"[connection_pool] Connection " + std::to_string(i) +
+						" failed: " + cr.error_message);
+				}
+			}
+		}
+
+		if (success_count == 0)
+		{
+			return error_void(
+				-1,
+				"All " + std::to_string(pool_size_) +
+					" pool connections failed",
+				"connection_pool::initialize",
+				"Host: " + host_ + ", Port: " + std::to_string(port_)
+			);
+		}
+
+		if (fail_count > 0)
+		{
+			NETWORK_LOG_WARN("[connection_pool] Initialized with " +
+				std::to_string(success_count) + "/" +
+				std::to_string(pool_size_) +
+				" connections (" + std::to_string(fail_count) + " failed)");
+		}
+		else
+		{
+			NETWORK_LOG_INFO("[connection_pool] Successfully initialized " +
+				std::to_string(success_count) + " connections");
+		}
+
 		return ok();
 	}
 
