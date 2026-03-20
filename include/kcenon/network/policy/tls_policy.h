@@ -50,7 +50,7 @@ namespace kcenon::network::policy {
  * messaging_client<tcp_protocol, no_tls> plain_client;
  * \endcode
  */
-struct no_tls {
+struct [[deprecated("Use require_tls or optional_tls for production deployments")]] no_tls {
     static constexpr bool enabled = false;
 };
 
