@@ -88,8 +88,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "network_websocket/internal/websocket_socket.h"
 
 // Interface headers from main project
-#include "kcenon/network/interfaces/i_websocket_client.h"
-#include "kcenon/network/interfaces/i_websocket_server.h"
+#include "kcenon/network/interfaces/i_protocol_client.h"
+#include "kcenon/network/interfaces/i_protocol_server.h"
 
 namespace network_websocket
 {
