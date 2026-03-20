@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Performance
+
+- Parallelize connection pool initialization with `std::async` ([#870](https://github.com/kcenon/network_system/issues/870))
+
 ### Added
 - Migration guide for transitioning from adapters to NetworkSystemBridge pattern
   - Comprehensive step-by-step migration instructions
