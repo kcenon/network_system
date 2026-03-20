@@ -80,6 +80,13 @@ namespace kcenon::network::core
 			std::to_string(pool_size_) + " connections to " + host_ + ":" +
 			std::to_string(port_));
 
+		// Zero-size pool requires no connections — succeed immediately
+		if (pool_size_ == 0)
+		{
+			NETWORK_LOG_INFO("[connection_pool] Pool size is 0, no connections to create");
+			return ok();
+		}
+
 		// Launch all connections in parallel using std::async
 		struct connect_result
 		{
