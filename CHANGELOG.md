@@ -11,7 +11,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Parallelize connection pool initialization with `std::async` ([#870](https://github.com/kcenon/network_system/issues/870))
 
+### Security
+
+- Mark `no_tls` policy as deprecated with warning to use TLS-enabled policies in production ([#871](https://github.com/kcenon/network_system/issues/871))
+
 ### Added
+
+- Extend `rate_limiter` to support composite session-based identification keys ([#872](https://github.com/kcenon/network_system/issues/872))
 - Migration guide for transitioning from adapters to NetworkSystemBridge pattern
   - Comprehensive step-by-step migration instructions
   - API comparison tables for old vs new patterns
