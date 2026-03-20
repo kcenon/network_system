@@ -161,6 +161,29 @@ public:
     }
 
     /**
+     * @brief Check if request should be allowed (session-aware)
+     *
+     * @param client_id Client identifier (e.g., IP address)
+     * @param session_id Session identifier for per-session rate limiting
+     * @return true if request is allowed, false if rate limited
+     *
+     * When session_id is non-empty, a composite key "client_id:session_id"
+     * is used, enabling per-session rate limiting. When session_id is empty,
+     * falls back to client_id-only behavior.
+     */
+    [[nodiscard]] bool allow(std::string_view client_id, std::string_view session_id) {
+        if (session_id.empty()) {
+            return allow(client_id);
+        }
+        std::string composite_key;
+        composite_key.reserve(client_id.size() + 1 + session_id.size());
+        composite_key.append(client_id);
+        composite_key.push_back(':');
+        composite_key.append(session_id);
+        return allow(std::string_view(composite_key));
+    }
+
+    /**
      * @brief Check if request would be allowed (without consuming token)
      *
      * @param client_id Client identifier
