@@ -563,108 +563,6 @@ function(find_common_system)
 endfunction()
 
 ##################################################
-# Find monitoring_system
-##################################################
-function(find_monitoring_system)
-    if(NOT BUILD_WITH_MONITORING_SYSTEM)
-        return()
-    endif()
-
-    message(STATUS "Looking for monitoring_system...")
-
-    foreach(_candidate monitoring_system MonitoringSystem)
-        if(TARGET ${_candidate})
-            message(STATUS "Found monitoring_system CMake target: ${_candidate}")
-            set(MONITORING_SYSTEM_FOUND TRUE PARENT_SCOPE)
-            set(MONITORING_SYSTEM_TARGET ${_candidate} PARENT_SCOPE)
-            return()
-        endif()
-    endforeach()
-
-    # Check for existing CMake targets first
-    if(TARGET monitoring_system)
-        message(STATUS "Found monitoring_system as existing target")
-        set(MONITORING_SYSTEM_FOUND TRUE PARENT_SCOPE)
-        set(MONITORING_SYSTEM_TARGET monitoring_system PARENT_SCOPE)
-        return()
-    endif()
-
-    if(TARGET MonitoringSystem)
-        message(STATUS "Found MonitoringSystem as existing target")
-        set(MONITORING_SYSTEM_FOUND TRUE PARENT_SCOPE)
-        set(MONITORING_SYSTEM_TARGET MonitoringSystem PARENT_SCOPE)
-        return()
-    endif()
-
-    # Prioritize environment variable, then standard paths
-    set(_monitoring_search_paths)
-    set(_monitoring_lib_paths)
-
-    # 1. Check environment variable
-    if(DEFINED ENV{MONITORING_SYSTEM_ROOT})
-        list(APPEND _monitoring_search_paths "$ENV{MONITORING_SYSTEM_ROOT}/include" "$ENV{MONITORING_SYSTEM_ROOT}/sources")
-        list(APPEND _monitoring_lib_paths "$ENV{MONITORING_SYSTEM_ROOT}/build/lib")
-    endif()
-
-    # 2. Check CMake variable
-    if(DEFINED MONITORING_SYSTEM_ROOT)
-        list(APPEND _monitoring_search_paths "${MONITORING_SYSTEM_ROOT}/include" "${MONITORING_SYSTEM_ROOT}/sources")
-        list(APPEND _monitoring_lib_paths "${MONITORING_SYSTEM_ROOT}/build/lib")
-    endif()
-
-    # 3. Standard search paths
-    list(APPEND _monitoring_search_paths
-        "${CMAKE_CURRENT_SOURCE_DIR}/../monitoring_system/include"
-        "${CMAKE_CURRENT_SOURCE_DIR}/../monitoring_system/sources"
-        "${CMAKE_SOURCE_DIR}/monitoring_system/include"
-        "${CMAKE_SOURCE_DIR}/monitoring_system/sources"
-        "${CMAKE_SOURCE_DIR}/../monitoring_system/include"
-        "${CMAKE_SOURCE_DIR}/../monitoring_system/sources"
-        "../monitoring_system/include"
-        "../monitoring_system/sources"
-    )
-
-    list(APPEND _monitoring_lib_paths
-        "${CMAKE_CURRENT_SOURCE_DIR}/../monitoring_system/build/lib"
-        "${CMAKE_SOURCE_DIR}/monitoring_system/build/lib"
-        "${CMAKE_SOURCE_DIR}/../monitoring_system/build/lib"
-        "../monitoring_system/build/lib"
-    )
-
-    # Look for monitoring headers
-    find_path(MONITORING_SYSTEM_INCLUDE_DIR
-        NAMES kcenon/monitoring/core/performance_monitor.h monitoring/core/performance_monitor.h
-        PATHS ${_monitoring_search_paths}
-        NO_DEFAULT_PATH
-    )
-
-    if(MONITORING_SYSTEM_INCLUDE_DIR)
-        message(STATUS "Found monitoring_system at: ${MONITORING_SYSTEM_INCLUDE_DIR}")
-
-        find_library(MONITORING_SYSTEM_LIBRARY
-            NAMES monitoring_system MonitoringSystem
-            PATHS ${_monitoring_lib_paths}
-            PATH_SUFFIXES Debug Release
-            NO_DEFAULT_PATH
-        )
-
-        if(MONITORING_SYSTEM_LIBRARY)
-            message(STATUS "Found monitoring_system library: ${MONITORING_SYSTEM_LIBRARY}")
-        else()
-            message(WARNING "monitoring_system headers found but library not found")
-        endif()
-
-        set(MONITORING_SYSTEM_FOUND TRUE PARENT_SCOPE)
-        set(MONITORING_SYSTEM_INCLUDE_DIR ${MONITORING_SYSTEM_INCLUDE_DIR} PARENT_SCOPE)
-        set(MONITORING_SYSTEM_LIBRARY ${MONITORING_SYSTEM_LIBRARY} PARENT_SCOPE)
-    else()
-        message(WARNING "monitoring_system not found, integration disabled")
-        set(BUILD_WITH_MONITORING_SYSTEM OFF PARENT_SCOPE)
-        set(MONITORING_SYSTEM_FOUND FALSE PARENT_SCOPE)
-    endif()
-endfunction()
-
-##################################################
 # Find gRPC library (optional - for NETWORK_ENABLE_GRPC_OFFICIAL)
 #
 # gRPC is a complex library with many dependencies (protobuf, abseil, etc.)
@@ -840,7 +738,6 @@ function(find_network_system_dependencies)
     set(BUILD_WITH_CONTAINER_SYSTEM ${BUILD_WITH_CONTAINER_SYSTEM} PARENT_SCOPE)
     set(BUILD_WITH_THREAD_SYSTEM ${BUILD_WITH_THREAD_SYSTEM} PARENT_SCOPE)
     set(BUILD_WITH_LOGGER_SYSTEM ${BUILD_WITH_LOGGER_SYSTEM} PARENT_SCOPE)
-    set(BUILD_WITH_MONITORING_SYSTEM ${BUILD_WITH_MONITORING_SYSTEM} PARENT_SCOPE)
     set(BUILD_WITH_COMMON_SYSTEM ${BUILD_WITH_COMMON_SYSTEM} PARENT_SCOPE)
     set(NETWORK_ENABLE_GRPC_OFFICIAL ${NETWORK_ENABLE_GRPC_OFFICIAL} PARENT_SCOPE)
 

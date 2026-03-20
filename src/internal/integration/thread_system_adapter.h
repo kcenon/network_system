@@ -67,12 +67,7 @@ namespace kcenon::network::integration {
 
 #if KCENON_WITH_THREAD_SYSTEM
 
-/**
- * @deprecated Use ThreadPoolBridge from network_system_bridge.h instead.
- * This class will be removed in v3.0.0. See docs/migration/adapter_to_bridge_migration.md
- * for migration instructions.
- */
-class [[deprecated("Use ThreadPoolBridge from network_system_bridge.h instead. Will be removed in v3.0.0")]] thread_system_pool_adapter : public thread_pool_interface {
+class thread_system_pool_adapter : public thread_pool_interface {
 public:
     explicit thread_system_pool_adapter(std::shared_ptr<kcenon::thread::thread_pool> pool);
     ~thread_system_pool_adapter();
@@ -110,11 +105,6 @@ private:
     std::shared_ptr<kcenon::thread::thread_pool> pool_;
 };
 
-/**
- * @deprecated Use NetworkSystemBridge::with_thread_system() instead.
- * This function will be removed in v3.0.0.
- */
-[[deprecated("Use NetworkSystemBridge::with_thread_system() instead. Will be removed in v3.0.0")]]
 bool bind_thread_system_pool_into_manager(const std::string& pool_name = "network_pool");
 
 #else // KCENON_WITH_THREAD_SYSTEM

@@ -32,42 +32,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
-// Deprecation warning for v2.0 migration
-#ifndef NETWORK_SYSTEM_SUPPRESS_DEPRECATION_WARNINGS
-#if defined(__GNUC__) || defined(__clang__)
-#warning "messaging_client.h is deprecated and will move to internal in v2.0. Use tcp_facade.h instead. See docs/refactoring/MIGRATION_GUIDE_V2.md"
-#elif defined(_MSC_VER)
-#pragma message("Warning: messaging_client.h is deprecated and will move to internal in v2.0. Use tcp_facade.h instead. See docs/refactoring/MIGRATION_GUIDE_V2.md")
-#endif
-#endif
-
 /**
  * @file messaging_client.h
- * @brief TCP client implementation (DEPRECATED - Will be moved to internal in v2.0)
+ * @brief TCP client implementation
  *
- * @deprecated This header will be moved to src/internal/ in network_system v2.0.
- *             Use kcenon/network/facade/tcp_facade.h instead for a simpler, stable API.
- *
- * @warning This header is scheduled for removal from public API in v3.0.
- *          See docs/refactoring/MIGRATION_GUIDE_V2.md for migration instructions.
- *
- * Migration guide:
- * @code
- * // Old code (v1.x):
- * #include "internal/core/messaging_client.h"
- * auto client = std::make_shared<messaging_client>("client-id", "127.0.0.1", 8080);
- *
- * // New code (v2.0+):
- * #include "kcenon/network/facade/tcp_facade.h"
- * tcp_facade facade;
- * auto client = facade.create_client({
- *     .host = "127.0.0.1",
- *     .port = 8080,
- *     .client_id = "client-id"
- * });
- * @endcode
- *
- * @see unified_messaging_client.h for the new template-based API
+ * @see unified_messaging_client.h for the template-based API
+ * @see kcenon/network/facade/tcp_facade.h for the facade API
  */
 
 #include <atomic>
@@ -98,8 +68,6 @@ namespace kcenon::network::core
 	/*!
 	 * \class messaging_client
 	 * \brief A basic TCP client that connects to a remote host, sends/receives
-	 *
-	 * @deprecated Use unified_messaging_client<tcp_protocol> or tcp_client instead.
 	 * data using asynchronous operations, and can apply a pipeline for
 	 * transformations.
 	 *
@@ -260,35 +228,12 @@ namespace kcenon::network::core
 		[[nodiscard]] auto send_packet(std::vector<uint8_t>&& data) -> VoidResult;
 
 		// =====================================================================
-		// Callback Setters (Deprecated - IProtocolClient interface)
+		// Callback Setters (IProtocolClient interface)
 		// =====================================================================
 
-		/*!
-		 * \brief Sets the callback for received data.
-		 * \param callback Function called when data is received.
-		 * \deprecated Use set_observer() with connection_observer instead.
-		 */
 		auto set_receive_callback(receive_callback_t callback) -> void override;
-
-		/*!
-		 * \brief Sets the callback for connection established.
-		 * \param callback Function called when connection is established.
-		 * \deprecated Use set_observer() with connection_observer instead.
-		 */
 		auto set_connected_callback(connected_callback_t callback) -> void override;
-
-		/*!
-		 * \brief Sets the callback for disconnection.
-		 * \param callback Function called when disconnected.
-		 * \deprecated Use set_observer() with connection_observer instead.
-		 */
 		auto set_disconnected_callback(disconnected_callback_t callback) -> void override;
-
-		/*!
-		 * \brief Sets the callback for errors.
-		 * \param callback Function called when an error occurs.
-		 * \deprecated Use set_observer() with connection_observer instead.
-		 */
 		auto set_error_callback(error_callback_t callback) -> void override;
 
 	private:

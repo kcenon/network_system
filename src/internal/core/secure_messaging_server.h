@@ -34,24 +34,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /**
  * @file secure_messaging_server.h
- * @brief Legacy secure TCP server class.
+ * @brief Secure TCP server class with TLS/SSL support.
  *
- * @deprecated This header is deprecated. Use unified_messaging_server.h instead.
- *
- * Migration guide:
- * @code
- * // Old code:
- * #include "internal/core/secure_messaging_server.h>
- * auto server = std::make_shared<secure_messaging_server>("server1");
- *
- * // New code:
- * #include "internal/core/unified_messaging_server.h>
- * tls_enabled tls_config{.cert_path = "server.crt", .key_path = "server.key"};
- * auto server = std::make_shared<secure_tcp_server>("server1", tls_config);
- * // Or: auto server = std::make_shared<unified_messaging_server<tcp_protocol, tls_enabled>>("server1", tls_config);
- * @endcode
- *
- * @see unified_messaging_server.h for the new template-based API
+ * @see unified_messaging_server.h for the template-based API
  */
 
 #include <kcenon/network/detail/config/feature_flags.h>

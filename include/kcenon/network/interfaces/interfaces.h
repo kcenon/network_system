@@ -80,15 +80,3 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // Common protocol interfaces (recommended for facade users)
 #include "i_protocol_client.h"
 #include "i_protocol_server.h"
-
-// Protocol-specific interfaces (deprecated - use facades instead)
-// These will be moved to internal in a future release.
-// Kept for backward compatibility only.
-#ifdef NETWORK_INCLUDE_DEPRECATED_INTERFACES
-#include "i_udp_client.h"
-#include "i_udp_server.h"
-#include "i_websocket_client.h"
-#include "i_websocket_server.h"
-#include "i_quic_client.h"
-#include "i_quic_server.h"
-#endif

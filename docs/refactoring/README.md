@@ -128,9 +128,6 @@ Explicitly include internal headers if absolutely necessary:
 ### Q: What if I need direct access to implementations?
 **A**: Most use cases are covered by facade API. If not, please open an issue describing your use case.
 
-### Q: How do I suppress deprecation warnings?
-**A**: Define `NETWORK_SYSTEM_SUPPRESS_DEPRECATION_WARNINGS` (but you should migrate instead).
-
 ## Contributing
 
 If you're contributing to this refactoring:

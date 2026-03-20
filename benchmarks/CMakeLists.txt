@@ -68,9 +68,6 @@ if(benchmark_FOUND OR BENCHMARK_FOUND)
         target_compile_definitions(network_benchmarks PRIVATE BUILD_MESSAGING_BRIDGE)
     endif()
 
-    # Suppress deprecation warnings for benchmark access to internal APIs
-    target_compile_definitions(network_benchmarks PRIVATE NETWORK_SYSTEM_SUPPRESS_DEPRECATION_WARNINGS)
-
     target_compile_features(network_benchmarks PRIVATE cxx_std_20)
 
     if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")

@@ -167,21 +167,6 @@ function(setup_logger_system_integration target)
 endfunction()
 
 ##################################################
-# Configure monitoring_system integration
-# DEPRECATED: Since issue #342, monitoring uses EventBus pattern
-# This function is kept for backward compatibility but has no effect.
-##################################################
-function(setup_monitoring_system_integration target)
-    # DEPRECATED: No compile-time monitoring_system dependency needed
-    # Metrics are published via common_system's EventBus
-    # External consumers subscribe to network_metric_event
-    if(BUILD_WITH_MONITORING_SYSTEM)
-        message(STATUS "NOTE: BUILD_WITH_MONITORING_SYSTEM is deprecated")
-        message(STATUS "      Monitoring uses EventBus pattern - no compile-time dependency")
-    endif()
-endfunction()
-
-##################################################
 # Configure common_system integration
 ##################################################
 function(setup_common_system_integration target)

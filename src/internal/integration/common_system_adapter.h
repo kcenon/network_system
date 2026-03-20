@@ -93,12 +93,7 @@ private:
     std::string name_;
 };
 
-/**
- * @deprecated Use ThreadPoolBridge from network_system_bridge.h instead.
- * This class will be removed in v3.0.0. See docs/migration/adapter_to_bridge_migration.md
- * for migration instructions.
- */
-class [[deprecated("Use ThreadPoolBridge from network_system_bridge.h instead. Will be removed in v3.0.0")]] common_thread_pool_adapter : public thread_pool_interface {
+class common_thread_pool_adapter : public thread_pool_interface {
 public:
     explicit common_thread_pool_adapter(
         std::shared_ptr<::kcenon::common::interfaces::IExecutor> executor)
@@ -170,12 +165,7 @@ inline ::kcenon::common::interfaces::log_level to_common_log_level(log_level lev
     }
 }
 
-/**
- * @deprecated Use ObservabilityBridge from network_system_bridge.h instead.
- * This class will be removed in v3.0.0. See docs/migration/adapter_to_bridge_migration.md
- * for migration instructions.
- */
-class [[deprecated("Use ObservabilityBridge from network_system_bridge.h instead. Will be removed in v3.0.0")]] common_logger_adapter : public logger_interface {
+class common_logger_adapter : public logger_interface {
 public:
     explicit common_logger_adapter(std::shared_ptr<::kcenon::common::interfaces::ILogger> logger)
         : logger_(std::move(logger)) {}
@@ -219,12 +209,7 @@ private:
     std::shared_ptr<::kcenon::common::interfaces::ILogger> logger_;
 };
 
-/**
- * @deprecated Use ObservabilityBridge from network_system_bridge.h instead.
- * This class will be removed in v3.0.0. See docs/migration/adapter_to_bridge_migration.md
- * for migration instructions.
- */
-class [[deprecated("Use ObservabilityBridge from network_system_bridge.h instead. Will be removed in v3.0.0")]] common_monitoring_adapter : public monitoring_interface {
+class common_monitoring_adapter : public monitoring_interface {
 public:
     explicit common_monitoring_adapter(std::shared_ptr<::kcenon::common::interfaces::IMonitor> monitor)
         : monitor_(std::move(monitor)) {}

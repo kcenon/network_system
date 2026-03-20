@@ -228,27 +228,6 @@ public:
     std::shared_ptr<thread_pool_interface> get_thread_pool_interface() const;
 
     /**
-     * @brief Performance metrics structure (deprecated, use get_metrics() from INetworkBridge)
-     * @deprecated Use BridgeMetrics from INetworkBridge::get_metrics() instead
-     */
-    struct performance_metrics {
-        uint64_t messages_sent = 0;
-        uint64_t messages_received = 0;
-        uint64_t bytes_sent = 0;
-        uint64_t bytes_received = 0;
-        uint64_t connections_active = 0;
-        std::chrono::milliseconds avg_latency{0};
-        std::chrono::steady_clock::time_point start_time;
-    };
-
-    /**
-     * @brief Get current performance metrics (deprecated)
-     * @return Current performance metrics
-     * @deprecated Use get_metrics() from INetworkBridge instead
-     */
-    performance_metrics get_performance_metrics() const;
-
-    /**
      * @brief Reset performance metrics
      */
     void reset_metrics();

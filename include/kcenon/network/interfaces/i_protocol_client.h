@@ -75,9 +75,9 @@ namespace kcenon::network::interfaces
 	 * Use set_observer() with a connection_observer implementation for
 	 * unified event handling across all protocol types.
 	 *
-	 * ### Legacy Callback Support
-	 * Individual callback setters are provided for backward compatibility
-	 * but are deprecated in favor of the observer pattern.
+	 * ### Callback Support
+	 * Individual callback setters are provided as an alternative to the
+	 * observer pattern for simpler use cases.
 	 *
 	 * ### Thread Safety
 	 * - All public methods must be thread-safe
@@ -270,41 +270,25 @@ namespace kcenon::network::interfaces
 		 * ### Thread Safety
 		 * Thread-safe. The callback may be invoked from I/O threads.
 		 * Callback must be thread-safe if it accesses shared state.
-		 *
-		 * \deprecated Use set_observer() with connection_observer instead.
-		 *             Use callback_adapter for gradual migration from legacy code.
 		 */
-		[[deprecated("Use set_observer() with connection_observer instead")]]
 		virtual auto set_receive_callback(receive_callback_t callback) -> void = 0;
 
 		/*!
 		 * \brief Sets the callback for connection established.
 		 * \param callback The callback function.
-		 *
-		 * \deprecated Use set_observer() with connection_observer instead.
-		 *             Use callback_adapter for gradual migration from legacy code.
 		 */
-		[[deprecated("Use set_observer() with connection_observer instead")]]
 		virtual auto set_connected_callback(connected_callback_t callback) -> void = 0;
 
 		/*!
 		 * \brief Sets the callback for disconnection.
 		 * \param callback The callback function.
-		 *
-		 * \deprecated Use set_observer() with connection_observer instead.
-		 *             Use callback_adapter for gradual migration from legacy code.
 		 */
-		[[deprecated("Use set_observer() with connection_observer instead")]]
 		virtual auto set_disconnected_callback(disconnected_callback_t callback) -> void = 0;
 
 		/*!
 		 * \brief Sets the callback for errors.
 		 * \param callback The callback function.
-		 *
-		 * \deprecated Use set_observer() with connection_observer instead.
-		 *             Use callback_adapter for gradual migration from legacy code.
 		 */
-		[[deprecated("Use set_observer() with connection_observer instead")]]
 		virtual auto set_error_callback(error_callback_t callback) -> void = 0;
 	};
 
