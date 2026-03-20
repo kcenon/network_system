@@ -209,7 +209,6 @@ function(setup_network_system_integrations target)
     setup_container_system_integration(${target})
     setup_thread_system_integration(${target})
     setup_logger_system_integration(${target})
-    setup_monitoring_system_integration(${target})
     setup_common_system_integration(${target})
 
     # Platform-specific libraries
