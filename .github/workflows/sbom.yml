@@ -55,7 +55,7 @@ jobs:
         artifact-name: sbom-spdx
 
     - name: Scan SBOM for CVEs with Grype
-      uses: anchore/scan-action@v6
+      uses: anchore/scan-action@v7
       id: grype-scan
       with:
         sbom: sbom-cyclonedx.json
