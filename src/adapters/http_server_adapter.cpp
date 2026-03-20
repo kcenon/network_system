@@ -34,10 +34,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "kcenon/network/detail/utils/result_types.h"
 
-// Suppress deprecation warnings for internal usage
-#define NETWORK_SYSTEM_SUPPRESS_DEPRECATION_WARNINGS
 #include "internal/http/http_server.h"
-#undef NETWORK_SYSTEM_SUPPRESS_DEPRECATION_WARNINGS
 
 #include <sstream>
 

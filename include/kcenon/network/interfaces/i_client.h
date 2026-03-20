@@ -64,23 +64,16 @@ namespace kcenon::network::interfaces
 	 * Use set_observer() with a connection_observer implementation for
 	 * unified event handling. See connection_observer.h for details.
 	 *
-	 * ### Legacy Callback Types (Deprecated)
+	 * ### Callback Types
 	 * - receive_callback_t: Called when data is received
 	 * - connected_callback_t: Called when connection is established
 	 * - disconnected_callback_t: Called when connection is lost
 	 * - error_callback_t: Called when an error occurs
 	 *
-	 * \note Individual callback setters are deprecated in favor of
-	 *       set_observer(). Use callback_adapter for gradual migration.
-	 *
 	 * ### Thread Safety
 	 * - All public methods must be thread-safe
 	 * - Callbacks may be invoked from I/O threads
 	 *
-	 * \see i_tcp_client
-	 * \see i_udp_client
-	 * \see i_websocket_client
-	 * \see i_quic_client
 	 * \see connection_observer
 	 */
 	class i_client : public i_network_component
@@ -175,41 +168,25 @@ namespace kcenon::network::interfaces
 		 *
 		 * ### Thread Safety
 		 * Thread-safe. The callback may be invoked from I/O threads.
-		 *
-		 * \deprecated Use set_observer() with connection_observer instead.
-		 *             Use callback_adapter for gradual migration.
 		 */
-		[[deprecated("Use set_observer() with connection_observer instead")]]
 		virtual auto set_receive_callback(receive_callback_t callback) -> void = 0;
 
 		/*!
 		 * \brief Sets the callback for connection established.
 		 * \param callback The callback function.
-		 *
-		 * \deprecated Use set_observer() with connection_observer instead.
-		 *             Use callback_adapter for gradual migration.
 		 */
-		[[deprecated("Use set_observer() with connection_observer instead")]]
 		virtual auto set_connected_callback(connected_callback_t callback) -> void = 0;
 
 		/*!
 		 * \brief Sets the callback for disconnection.
 		 * \param callback The callback function.
-		 *
-		 * \deprecated Use set_observer() with connection_observer instead.
-		 *             Use callback_adapter for gradual migration.
 		 */
-		[[deprecated("Use set_observer() with connection_observer instead")]]
 		virtual auto set_disconnected_callback(disconnected_callback_t callback) -> void = 0;
 
 		/*!
 		 * \brief Sets the callback for errors.
 		 * \param callback The callback function.
-		 *
-		 * \deprecated Use set_observer() with connection_observer instead.
-		 *             Use callback_adapter for gradual migration.
 		 */
-		[[deprecated("Use set_observer() with connection_observer instead")]]
 		virtual auto set_error_callback(error_callback_t callback) -> void = 0;
 	};
 

@@ -35,18 +35,20 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <array>
 #include <type_traits>
 
-// Include all interfaces
+// Include core interfaces
 #include "kcenon/network/interfaces/i_network_component.h"
 #include "kcenon/network/interfaces/i_session.h"
 #include "kcenon/network/interfaces/connection_observer.h"
 #include "kcenon/network/interfaces/i_client.h"
 #include "kcenon/network/interfaces/i_server.h"
-#include "kcenon/network/interfaces/i_udp_client.h"
-#include "kcenon/network/interfaces/i_udp_server.h"
-#include "kcenon/network/interfaces/i_websocket_client.h"
-#include "kcenon/network/interfaces/i_websocket_server.h"
-#include "kcenon/network/interfaces/i_quic_client.h"
-#include "kcenon/network/interfaces/i_quic_server.h"
+
+// Protocol-specific interfaces (internal)
+#include "internal/interfaces/i_udp_client.h"
+#include "internal/interfaces/i_udp_server.h"
+#include "internal/interfaces/i_websocket_client.h"
+#include "internal/interfaces/i_websocket_server.h"
+#include "internal/interfaces/i_quic_client.h"
+#include "internal/interfaces/i_quic_server.h"
 
 using namespace kcenon::network::interfaces;
 

@@ -34,23 +34,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /**
  * @file secure_messaging_udp_client.h
- * @brief Legacy DTLS client class.
+ * @brief DTLS client class.
  *
- * @deprecated This header is deprecated. Use unified_udp_messaging_client.h instead.
- *
- * Migration guide:
- * @code
- * // Old code:
- * #include <kcenon/network/core/secure_messaging_udp_client.h>
- * auto client = std::make_shared<secure_messaging_udp_client>("client1");
- *
- * // New code:
- * #include <kcenon/network/core/unified_udp_messaging_client.h>
- * policy::tls_enabled tls_config{.verify_peer = false};
- * auto client = std::make_shared<secure_udp_client>("client1", tls_config);
- * @endcode
- *
- * @see unified_udp_messaging_client.h for the new template-based API
+ * @see unified_udp_messaging_client.h for the template-based API
  */
 
 #include <atomic>
@@ -81,8 +67,6 @@ namespace kcenon::network::core
 	/*!
 	 * \class secure_messaging_udp_client
 	 * \brief A secure UDP client using DTLS (Datagram TLS) for encrypted communication.
-	 *
-	 * @deprecated Use unified_udp_messaging_client<tls_enabled> or secure_udp_client instead.
 	 *
 	 * This class uses composition pattern with lifecycle_manager and
 	 * callback_manager for common lifecycle management and callback handling.

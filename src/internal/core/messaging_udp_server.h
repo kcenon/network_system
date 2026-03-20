@@ -32,34 +32,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
-// Deprecation warning for v2.0 migration
-#ifndef NETWORK_SYSTEM_SUPPRESS_DEPRECATION_WARNINGS
-#if defined(__GNUC__) || defined(__clang__)
-#warning "messaging_udp_server.h is deprecated and will move to internal in v2.0. Use udp_facade.h instead. See docs/refactoring/MIGRATION_GUIDE_V2.md"
-#elif defined(_MSC_VER)
-#pragma message("Warning: messaging_udp_server.h is deprecated and will move to internal in v2.0. Use udp_facade.h instead. See docs/refactoring/MIGRATION_GUIDE_V2.md")
-#endif
-#endif
-
 /**
  * @file messaging_udp_server.h
- * @brief Legacy UDP server class.
+ * @brief UDP server class.
  *
- * @deprecated This header is deprecated. Use unified_udp_messaging_server.h instead.
- *
- * Migration guide:
- * @code
- * // Old code:
- * #include "internal/core/messaging_udp_server.h>
- * auto server = std::make_shared<messaging_udp_server>("server1");
- *
- * // New code:
- * #include "internal/core/unified_udp_messaging_server.h>
- * auto server = std::make_shared<udp_server>("server1");
- * // Or: auto server = std::make_shared<unified_udp_messaging_server<no_tls>>("server1");
- * @endcode
- *
- * @see unified_udp_messaging_server.h for the new template-based API
+ * @see unified_udp_messaging_server.h for the template-based API
+ * @see kcenon/network/facade/udp_facade.h for the facade API
  */
 
 #include <functional>
@@ -88,8 +66,6 @@ namespace kcenon::network::core
 	/*!
 	 * \class messaging_udp_server
 	 * \brief A UDP server that receives datagrams and routes them based on sender endpoint.
-	 *
-	 * @deprecated Use unified_udp_messaging_server<no_tls> or udp_server instead.
 	 *
 	 * This class uses composition pattern with lifecycle_manager and
 	 * callback_manager for common lifecycle management and callback handling.

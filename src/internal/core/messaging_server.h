@@ -32,39 +32,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
-// Deprecation warning for v2.0 migration
-#ifndef NETWORK_SYSTEM_SUPPRESS_DEPRECATION_WARNINGS
-#if defined(__GNUC__) || defined(__clang__)
-#warning "messaging_server.h is deprecated and will move to internal in v2.0. Use tcp_facade.h instead. See docs/refactoring/MIGRATION_GUIDE_V2.md"
-#elif defined(_MSC_VER)
-#pragma message("Warning: messaging_server.h is deprecated and will move to internal in v2.0. Use tcp_facade.h instead. See docs/refactoring/MIGRATION_GUIDE_V2.md")
-#endif
-#endif
-
 /**
  * @file messaging_server.h
- * @brief TCP server implementation (DEPRECATED - Will be moved to internal in v2.0)
+ * @brief TCP server implementation
  *
- * @deprecated This header will be moved to src/internal/ in network_system v2.0.
- *             Use kcenon/network/facade/tcp_facade.h instead for a simpler, stable API.
- *
- * @warning This header is scheduled for removal from public API in v3.0.
- *          See docs/refactoring/MIGRATION_GUIDE_V2.md for migration instructions.
- *
- * Migration guide:
- * @code
- * // Old code (v1.x):
- * #include "internal/core/messaging_server.h"
- * auto server = std::make_shared<messaging_server>("server-id", 8080);
- *
- * // New code (v2.0+):
- * #include "kcenon/network/facade/tcp_facade.h"
- * tcp_facade facade;
- * auto server = facade.create_server({
- *     .port = 8080,
- *     .server_id = "server-id"
- * });
- * @endcode
+ * @see kcenon/network/facade/tcp_facade.h for the facade API
  */
 
 #include <kcenon/network/detail/config/feature_flags.h>

@@ -132,11 +132,9 @@ namespace kcenon::network::internal
 		 *
 		 * If no callback is set, received data is effectively discarded.
 		 *
-		 * \deprecated Use attach_observer() with socket_observer instead.
-		 * \note This is the legacy callback API. For better performance,
-		 * consider using set_receive_callback_view() instead.
+		 * \note For better performance, consider using
+		 * set_receive_callback_view() instead.
 		 */
-		[[deprecated("Use attach_observer() with socket_observer instead")]]
 		auto set_receive_callback(
 			std::function<void(const std::vector<uint8_t>&)> callback) -> void;
 
@@ -171,9 +169,7 @@ namespace kcenon::network::internal
 		 * });
 		 * \endcode
 		 *
-		 * \deprecated Use attach_observer() with socket_observer instead.
 		 */
-		[[deprecated("Use attach_observer() with socket_observer instead")]]
 		auto set_receive_callback_view(
 			std::function<void(std::span<const uint8_t>)> callback) -> void;
 
@@ -186,9 +182,7 @@ namespace kcenon::network::internal
 		 * If no callback is set, errors are not explicitly handled here (beyond
 		 * stopping reads).
 		 *
-		 * \deprecated Use attach_observer() with socket_observer instead.
 		 */
-		[[deprecated("Use attach_observer() with socket_observer instead")]]
 		auto set_error_callback(std::function<void(std::error_code)> callback)
 			-> void;
 
@@ -241,9 +235,7 @@ namespace kcenon::network::internal
 		 * (apply backpressure), and `false` when they drop below low_water_mark
 		 * (release backpressure).
 		 *
-		 * \deprecated Use attach_observer() with socket_observer instead.
 		 */
-		[[deprecated("Use attach_observer() with socket_observer instead")]]
 		auto set_backpressure_callback(backpressure_callback callback) -> void;
 
 		/*!

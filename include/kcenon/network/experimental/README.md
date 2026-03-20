@@ -51,5 +51,5 @@ This change is part of EPIC #577 to:
 ## See Also
 
 - `kcenon/network/facade/quic_facade.h` - Recommended facade API
-- `kcenon/network/interfaces/i_quic_client.h` - Public interface
-- `kcenon/network/interfaces/i_quic_server.h` - Public interface
+- `kcenon/network/interfaces/i_client.h` - Client interface
+- `kcenon/network/interfaces/i_server.h` - Server interface

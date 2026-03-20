@@ -58,13 +58,23 @@ namespace kcenon::network::integration {
 
 class messaging_bridge::impl {
 public:
+    struct internal_metrics {
+        uint64_t messages_sent = 0;
+        uint64_t messages_received = 0;
+        uint64_t bytes_sent = 0;
+        uint64_t bytes_received = 0;
+        uint64_t connections_active = 0;
+        std::chrono::milliseconds avg_latency{0};
+        std::chrono::steady_clock::time_point start_time;
+    };
+
     impl() : initialized_(false) {
         metrics_.start_time = std::chrono::steady_clock::now();
     }
 
     std::atomic<bool> initialized_{false};
     mutable std::mutex metrics_mutex_;
-    performance_metrics metrics_;
+    internal_metrics metrics_;
     mutable BridgeMetrics bridge_metrics_;
 
 #if KCENON_WITH_CONTAINER_SYSTEM
@@ -187,14 +197,9 @@ void messaging_bridge::set_thread_pool(
 }
 #endif
 
-messaging_bridge::performance_metrics messaging_bridge::get_performance_metrics() const {
-    std::lock_guard<std::mutex> lock(pimpl_->metrics_mutex_);
-    return pimpl_->metrics_;
-}
-
 void messaging_bridge::reset_metrics() {
     std::lock_guard<std::mutex> lock(pimpl_->metrics_mutex_);
-    pimpl_->metrics_ = performance_metrics{};
+    pimpl_->metrics_ = impl::internal_metrics{};
     pimpl_->metrics_.start_time = std::chrono::steady_clock::now();
 }
 

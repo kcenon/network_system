@@ -185,18 +185,9 @@ The logger integration provides two implementations:
 
 ## Monitoring System Integration
 
-Provides metrics collection and observability capabilities.
+Provides metrics collection and observability capabilities via EventBus-based metric publishing.
 
-**Important**: This integration is **OPTIONAL** (OFF by default) to prevent circular dependencies with monitoring_system.
-
-### Configuration
-```cmake
-cmake .. -DBUILD_WITH_MONITORING_SYSTEM=ON
-```
-
-### Why Optional?
-
-monitoring_system (Tier 3) can optionally depend on network_system (Tier 4) for HTTP metrics export. Making monitoring_system a required dependency would create a circular dependency. Both integrations are optional and use adapter patterns to avoid compile-time cycles.
+No compile-time monitoring_system dependency is needed. External consumers subscribe to `network_metric_event` via EventBus.
 
 ### Features
 - **Counter metrics**: Track connection counts, bytes transferred
@@ -229,25 +220,6 @@ monitor.report_health("connection_1",
     0.0);   // packet_loss_rate
 ```
 
-### Implementation Details
-
-Two implementations are provided:
-
-1. **basic_monitoring**: Standalone mode (default)
-   - Used when BUILD_WITH_MONITORING_SYSTEM is OFF
-   - Logs metrics to console via logger_system
-   - No external dependencies
-
-2. **monitoring_system_adapter**: Integration mode
-   - Used when BUILD_WITH_MONITORING_SYSTEM is ON
-   - Full monitoring_system integration
-   - Uses performance_monitor and health_monitor
-
-### Requirements
-- When BUILD_WITH_MONITORING_SYSTEM=ON:
-  - monitoring_system must be built first (Tier 3)
-  - Headers at `../monitoring_system/include`
-
 For detailed documentation, see [integration/with-monitoring.md](integration/with-monitoring.md).
 
 ## Build Configuration
@@ -258,8 +230,7 @@ cmake .. -G Ninja \
     -DCMAKE_BUILD_TYPE=Release \
     -DBUILD_WITH_THREAD_SYSTEM=ON \
     -DBUILD_WITH_CONTAINER_SYSTEM=ON \
-    -DBUILD_WITH_LOGGER_SYSTEM=ON \
-    -DBUILD_WITH_MONITORING_SYSTEM=ON  # Optional
+    -DBUILD_WITH_LOGGER_SYSTEM=ON
 ```
 
 ### Minimal Build (No External Dependencies)
@@ -310,7 +281,6 @@ The system provides macros to check which integrations are available:
 - `BUILD_WITH_THREAD_SYSTEM` — enable thread pool integration via `thread_integration_manager`.
 - `BUILD_WITH_CONTAINER_SYSTEM` — enable container adapters via `container_manager`.
 - `BUILD_WITH_LOGGER_SYSTEM` — use `logger_system_adapter`; otherwise falls back to `basic_logger`.
-- `BUILD_WITH_MONITORING_SYSTEM` — use `monitoring_system_adapter`; otherwise falls back to `basic_monitoring` (OFF by default).
 
 ## Versioning & Dependencies
 

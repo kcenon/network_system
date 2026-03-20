@@ -2373,10 +2373,6 @@ if(GTest_FOUND OR GTEST_FOUND)
         Threads::Threads
     )
 
-    target_compile_definitions(network_udp_basic_test PRIVATE
-        NETWORK_SYSTEM_SUPPRESS_DEPRECATION_WARNINGS
-    )
-
     setup_asio_integration(network_udp_basic_test)
 
     if(COMMON_SYSTEM_INCLUDE_DIR)

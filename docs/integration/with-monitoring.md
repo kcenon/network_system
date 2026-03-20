@@ -289,10 +289,8 @@ No special build flags required for metric publishing. Metrics are always publis
 ```bash
 cmake .. -G Ninja \
     -DCMAKE_BUILD_TYPE=Release
-# That's it! No BUILD_WITH_MONITORING_SYSTEM needed
+# No special CMake flags needed for monitoring integration
 ```
-
-**Note**: `BUILD_WITH_MONITORING_SYSTEM` is deprecated and has no effect.
 
 ## Requirements
 

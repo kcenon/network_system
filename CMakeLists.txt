@@ -87,10 +87,6 @@ option(BUILD_WITH_LOGGER_SYSTEM "Build with logger_system integration (OPTIONAL 
 # Optional dependencies
 option(BUILD_WITH_CONTAINER_SYSTEM "Build with container_system integration" ON)
 
-# DEPRECATED: Since issue #342, monitoring integration uses EventBus pattern
-# instead of compile-time dependency. This option is kept for backward
-# compatibility but has no effect. It will be removed in a future version.
-option(BUILD_WITH_MONITORING_SYSTEM "DEPRECATED - monitoring uses EventBus pattern (no compile-time dep)" OFF)
 
 # Official gRPC library integration (issue #360)
 # When enabled, wraps the official grpc++ library for production use.
@@ -119,19 +115,6 @@ else()
     message(STATUS "logger_system integration is DISABLED (default - uses common_system's ILogger)")
 endif()
 
-# Monitoring integration status message
-# Note: Since issue #342, monitoring uses EventBus pattern - no compile-time dependency
-if(BUILD_WITH_MONITORING_SYSTEM)
-    message(STATUS "")
-    message(STATUS "========================================")
-    message(STATUS "BUILD_WITH_MONITORING_SYSTEM is DEPRECATED")
-    message(STATUS "")
-    message(STATUS "Since issue #342, network_system uses EventBus-based metric")
-    message(STATUS "publishing. No compile-time monitoring_system dependency needed.")
-    message(STATUS "External consumers subscribe to network_metric_event via EventBus.")
-    message(STATUS "========================================")
-    message(STATUS "")
-endif()
 message(STATUS "Monitoring: EventBus-based metric publishing (no compile-time dependency)")
 
 # Respect global BUILD_INTEGRATION_TESTS flag if set

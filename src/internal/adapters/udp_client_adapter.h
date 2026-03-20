@@ -108,16 +108,9 @@ public:
 
 	auto set_observer(std::shared_ptr<interfaces::connection_observer> observer) -> void override;
 
-	[[deprecated("Use set_observer() with connection_observer instead")]]
 	auto set_receive_callback(receive_callback_t callback) -> void override;
-
-	[[deprecated("Use set_observer() with connection_observer instead")]]
 	auto set_connected_callback(connected_callback_t callback) -> void override;
-
-	[[deprecated("Use set_observer() with connection_observer instead")]]
 	auto set_disconnected_callback(disconnected_callback_t callback) -> void override;
-
-	[[deprecated("Use set_observer() with connection_observer instead")]]
 	auto set_error_callback(error_callback_t callback) -> void override;
 
 private:
