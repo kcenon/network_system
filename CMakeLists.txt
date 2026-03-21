@@ -870,10 +870,10 @@ endif()
 # CPack Configuration
 ##################################################
 
-# CPack configuration temporarily disabled due to recursive include issue
-# if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/cmake/CPack.cmake)
-#     include(cmake/CPack.cmake)
-# endif()
+# CPack only applies to standalone builds (not as a subdirectory)
+if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+    include(cmake/NetworkSystemCPack.cmake)
+endif()
 
 ##################################################
 # C++20 Module Library Target
