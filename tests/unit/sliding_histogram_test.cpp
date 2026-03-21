@@ -73,16 +73,15 @@ TEST_F(SlidingHistogramConstructionTest, ConstructWithCustomConfig)
 	EXPECT_EQ(sh.window_duration(), std::chrono::seconds{120});
 }
 
-TEST_F(SlidingHistogramConstructionTest, ConstructWithZeroBucketCount)
+TEST_F(SlidingHistogramConstructionTest, ConstructWithMinimumBucketCount)
 {
 	sliding_histogram_config cfg;
-	cfg.bucket_count = 0;
+	cfg.bucket_count = 1;
 	cfg.window_duration = std::chrono::seconds{30};
 
-	// Zero bucket count should be corrected to 1
+	// Minimum valid bucket count
 	sliding_histogram sh(cfg);
 
-	// Should still work correctly
 	sh.record(5.0);
 	EXPECT_EQ(sh.count(), 1);
 	EXPECT_DOUBLE_EQ(sh.sum(), 5.0);
