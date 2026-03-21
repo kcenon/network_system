@@ -5,7 +5,7 @@ coverage:
   status:
     project:
       default:
-        target: 21%  # Phase 1: Realistic baseline based on current coverage (~21%)
+        target: 40%  # Phase 2: Increased unit test coverage (Issue #873)
         threshold: 2%
     patch:
       default:
@@ -13,10 +13,10 @@ coverage:
         threshold: 5%
 
 # Gradual improvement plan:
-# - Phase 1 (Current): 21% project, auto patch - establish realistic baseline
-# - Phase 2: 30% project, 50% patch - improve unit test coverage
-# - Phase 3: 45% project, 70% patch - comprehensive coverage
-# - Phase 4: 60% project, 80% patch - production-ready coverage
+# - Phase 1: 21% project, auto patch - establish realistic baseline
+# - Phase 2 (Current): 40% project, auto patch - improved unit test coverage (Issue #873)
+# - Phase 3: 55% project, 70% patch - comprehensive coverage
+# - Phase 4: 70% project, 80% patch - production-ready coverage
 #
 # Note: gRPC wrapper code depends on external gRPC library and is better tested
 # via integration tests rather than unit tests

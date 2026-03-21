@@ -15,6 +15,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Mark `no_tls` policy as deprecated with warning to use TLS-enabled policies in production ([#871](https://github.com/kcenon/network_system/issues/871))
 
+### Tests
+
+- Increase unit test coverage from 21% to 40% target ([#873](https://github.com/kcenon/network_system/issues/873))
+  - Add `network_system_test` covering `network_manager` lifecycle, connection, and disconnection
+  - Add `message_validator_extended_test` for extended message validation edge cases
+  - Add `sliding_histogram_test` for `sliding_histogram` statistics and percentile calculations
+  - Update Codecov configuration to track unit and integration coverage separately
+
 ### Added
 
 - Extend `rate_limiter` to support composite session-based identification keys ([#872](https://github.com/kcenon/network_system/issues/872))

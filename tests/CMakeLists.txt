@@ -3433,6 +3433,180 @@ network_gtest_discover_tests(network_quic_transport_params_test
 message(STATUS "QUIC transport params unit tests enabled")
 
 ##################################################
+# Sliding Histogram Tests (Issue #873)
+##################################################
+
+add_executable(network_sliding_histogram_test
+    unit/sliding_histogram_test.cpp
+)
+
+target_link_libraries(network_sliding_histogram_test PRIVATE
+    NetworkSystem
+    GTest::gtest
+    GTest::gtest_main
+    Threads::Threads
+)
+
+setup_asio_integration(network_sliding_histogram_test)
+
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_sliding_histogram_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_sliding_histogram_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+
+set_target_properties(network_sliding_histogram_test PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+)
+
+network_gtest_discover_tests(network_sliding_histogram_test
+    DISCOVERY_TIMEOUT 60
+)
+message(STATUS "Sliding histogram unit tests enabled")
+
+##################################################
+# Network System Lifecycle Tests (Issue #873)
+##################################################
+
+add_executable(network_system_lifecycle_test
+    unit/network_system_test.cpp
+)
+
+target_link_libraries(network_system_lifecycle_test PRIVATE
+    NetworkSystem
+    GTest::gtest
+    GTest::gtest_main
+    Threads::Threads
+)
+
+setup_asio_integration(network_system_lifecycle_test)
+
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_system_lifecycle_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_system_lifecycle_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+
+if(THREAD_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_system_lifecycle_test PRIVATE ${THREAD_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_system_lifecycle_test PRIVATE WITH_THREAD_SYSTEM)
+endif()
+
+if(LOGGER_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_system_lifecycle_test PRIVATE ${LOGGER_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_system_lifecycle_test PRIVATE WITH_LOGGER_SYSTEM)
+endif()
+
+if(CONTAINER_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_system_lifecycle_test PRIVATE ${CONTAINER_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_system_lifecycle_test PRIVATE WITH_CONTAINER_SYSTEM)
+endif()
+
+set_target_properties(network_system_lifecycle_test PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+)
+
+network_gtest_discover_tests(network_system_lifecycle_test
+    DISCOVERY_TIMEOUT 60
+)
+message(STATUS "Network system lifecycle tests enabled")
+
+##################################################
+# Message Validator Extended Tests (Issue #873)
+##################################################
+
+add_executable(network_message_validator_extended_test
+    unit/message_validator_extended_test.cpp
+)
+
+target_link_libraries(network_message_validator_extended_test PRIVATE
+    NetworkSystem
+    GTest::gtest
+    GTest::gtest_main
+    Threads::Threads
+)
+
+setup_asio_integration(network_message_validator_extended_test)
+
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_message_validator_extended_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_message_validator_extended_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+
+set_target_properties(network_message_validator_extended_test PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+)
+
+network_gtest_discover_tests(network_message_validator_extended_test
+    DISCOVERY_TIMEOUT 60
+)
+message(STATUS "Message validator extended tests enabled")
+
+# Network metrics histogram extended tests (Phase 2)
+add_executable(network_metrics_histogram_test
+    unit/network_metrics_histogram_test.cpp
+)
+
+target_link_libraries(network_metrics_histogram_test PRIVATE
+    NetworkSystem
+    GTest::gtest
+    GTest::gtest_main
+    Threads::Threads
+)
+
+setup_asio_integration(network_metrics_histogram_test)
+
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_metrics_histogram_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_metrics_histogram_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+
+set_target_properties(network_metrics_histogram_test PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+)
+
+network_gtest_discover_tests(network_metrics_histogram_test
+    DISCOVERY_TIMEOUT 60
+)
+message(STATUS "Network metrics histogram tests enabled")
+
+# Facade ID generation and extended validation tests (Phase 2)
+add_executable(network_facade_extended_test
+    unit/facade_id_generation_test.cpp
+)
+
+target_link_libraries(network_facade_extended_test PRIVATE
+    NetworkSystem
+    GTest::gtest
+    GTest::gtest_main
+    Threads::Threads
+)
+
+setup_asio_integration(network_facade_extended_test)
+
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_facade_extended_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_facade_extended_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+
+set_target_properties(network_facade_extended_test PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+)
+
+network_gtest_discover_tests(network_facade_extended_test
+    DISCOVERY_TIMEOUT 60
+)
+message(STATUS "Facade extended tests enabled")
+
+##################################################
 # Integration Tests
 ##################################################
 
