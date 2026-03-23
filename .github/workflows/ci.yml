@@ -51,7 +51,7 @@ jobs:
   build:
     name: ${{ matrix.os }} / ${{ matrix.compiler }}
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 45
+    timeout-minutes: 60
     # Skip only if pushed to gh-pages branch
     if: github.ref != 'refs/heads/gh-pages'
 
@@ -61,12 +61,16 @@ jobs:
         include:
           - os: ubuntu-24.04
             compiler: gcc
+            triplet: x64-linux
           - os: ubuntu-24.04
             compiler: clang
+            triplet: x64-linux
           - os: macos-15
             compiler: clang
+            triplet: arm64-osx
           - os: windows-2022
             compiler: msvc
+            triplet: x64-windows
 
     steps:
     - name: Checkout code
@@ -74,244 +78,20 @@ jobs:
       with:
         submodules: recursive
 
-    - name: Checkout common_system
-      uses: actions/checkout@v6
-      with:
-        repository: kcenon/common_system
-        path: common_system
-        token: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: Checkout thread_system
-      uses: actions/checkout@v6
-      with:
-        repository: kcenon/thread_system
-        path: thread_system
-        token: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: Checkout logger_system
-      uses: actions/checkout@v6
-      with:
-        repository: kcenon/logger_system
-        path: logger_system
-        token: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: Checkout container_system
-      uses: actions/checkout@v6
-      with:
-        repository: kcenon/container_system
-        path: container_system
-        token: ${{ secrets.GITHUB_TOKEN }}
-
-    # MSVC setup must come BEFORE ecosystem dependencies build
-    # so that dependencies are built with the same compiler as network_system
     - name: Set up compiler (MSVC)
       if: matrix.compiler == 'msvc'
       uses: ilammy/msvc-dev-cmd@v1
 
-    - name: Build ecosystem dependencies (Unix)
-      if: runner.os != 'Windows'
-      shell: bash
-      run: |
-        # Build common_system (Tier 0 - must be first)
-        if [ -d "common_system" ]; then
-          echo "Building common_system..."
-          cd common_system
-          cmake -B build -G Ninja \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DBUILD_TESTS=OFF \
-            -DBUILD_EXAMPLES=OFF \
-            -DBUILD_SAMPLES=OFF
-          cmake --build build
-          cmake --install build --prefix ${{ github.workspace }}/deps/install
-          cd ..
-        fi
-
-        # Build thread_system
-        if [ -d "thread_system" ]; then
-          echo "Building thread_system..."
-          cd thread_system
-          cmake -B build -G Ninja \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_PREFIX_PATH=${{ github.workspace }}/deps/install \
-            -DCOMMON_SYSTEM_INCLUDE_DIR=${{ github.workspace }}/deps/install/include \
-            -DBUILD_TESTS=OFF \
-            -DBUILD_EXAMPLES=OFF \
-            -DBUILD_SAMPLES=OFF \
-            -DBUILD_INTEGRATION_TESTS=OFF
-          cmake --build build --target ThreadSystem
-          cmake --install build --prefix ${{ github.workspace }}/deps/install
-          cd ..
-        fi
-
-        # Build logger_system
-        if [ -d "logger_system" ]; then
-          echo "Building logger_system..."
-          cd logger_system
-          cmake -B build -G Ninja \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_PREFIX_PATH=${{ github.workspace }}/deps/install \
-            -DBUILD_TESTS=OFF \
-            -DBUILD_EXAMPLES=OFF \
-            -DBUILD_SAMPLES=OFF \
-            -DLOGGER_BUILD_INTEGRATION_TESTS=OFF
-          cmake --build build
-          cmake --install build --prefix ${{ github.workspace }}/deps/install
-          cd ..
-        fi
-
-        # Build container_system
-        if [ -d "container_system" ]; then
-          echo "Building container_system..."
-          cd container_system
-          cmake -B build -G Ninja \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_PREFIX_PATH=${{ github.workspace }}/deps/install \
-            -DBUILD_TESTS=OFF \
-            -DBUILD_EXAMPLES=OFF \
-            -DBUILD_SAMPLES=OFF
-          cmake --build build
-          # Install may fail due to missing files in container_system CMake config
-          cmake --install build --prefix ${{ github.workspace }}/deps/install || true
-          cd ..
-        fi
-
-        # Remove GoogleTest from deps/install to avoid ABI conflicts with system GoogleTest
-        # This ensures network_system uses the system-installed GoogleTest (brew/apt)
-        # Must remove CMake config files too, otherwise find_package finds broken config
-        echo "Removing GoogleTest from deps/install to avoid ABI conflicts..."
-        rm -f ${{ github.workspace }}/deps/install/lib/libgtest*.a 2>/dev/null || true
-        rm -f ${{ github.workspace }}/deps/install/lib/libgmock*.a 2>/dev/null || true
-        rm -rf ${{ github.workspace }}/deps/install/include/gtest 2>/dev/null || true
-        rm -rf ${{ github.workspace }}/deps/install/include/gmock 2>/dev/null || true
-        rm -rf ${{ github.workspace }}/deps/install/lib/cmake/GTest 2>/dev/null || true
-
-    - name: Build ecosystem dependencies (Windows)
-      if: runner.os == 'Windows'
-      shell: pwsh
-      run: |
-        New-Item -ItemType Directory -Force -Path deps/install | Out-Null
-
-        # Build common_system (Tier 0 - must be first)
-        if (Test-Path "common_system") {
-          Write-Host "Building common_system..."
-          Push-Location common_system
-          cmake -B build -G Ninja `
-            -DCMAKE_BUILD_TYPE=Debug `
-            -DBUILD_TESTS=OFF `
-            -DBUILD_EXAMPLES=OFF `
-            -DBUILD_SAMPLES=OFF
-          cmake --build build
-          cmake --install build --prefix ${{ github.workspace }}/deps/install
-          Pop-Location
-        }
-
-        # Build thread_system
-        # Note: Must use Debug build type to match network_system's Debug configuration
-        # Windows MSVC requires matching RuntimeLibrary settings (MDd vs MD)
-        if (Test-Path "thread_system") {
-          Write-Host "Building thread_system..."
-          Push-Location thread_system
-          cmake -B build -G Ninja `
-            -DCMAKE_BUILD_TYPE=Debug `
-            -DCMAKE_PREFIX_PATH=${{ github.workspace }}/deps/install `
-            -DCOMMON_SYSTEM_INCLUDE_DIR=${{ github.workspace }}/deps/install/include `
-            -DBUILD_TESTS=OFF `
-            -DBUILD_EXAMPLES=OFF `
-            -DBUILD_SAMPLES=OFF `
-            -DBUILD_INTEGRATION_TESTS=OFF
-          cmake --build build --target ThreadSystem
-          cmake --install build --prefix ${{ github.workspace }}/deps/install
-          Pop-Location
-        }
-
-        # Build logger_system
-        if (Test-Path "logger_system") {
-          Write-Host "Building logger_system..."
-          Push-Location logger_system
-          cmake -B build -G Ninja `
-            -DCMAKE_BUILD_TYPE=Debug `
-            -DCMAKE_PREFIX_PATH=${{ github.workspace }}/deps/install `
-            -DBUILD_TESTS=OFF `
-            -DBUILD_EXAMPLES=OFF `
-            -DBUILD_SAMPLES=OFF `
-            -DLOGGER_BUILD_INTEGRATION_TESTS=OFF
-          cmake --build build
-          cmake --install build --prefix ${{ github.workspace }}/deps/install
-          Pop-Location
-        }
-
-        # Build container_system
-        if (Test-Path "container_system") {
-          Write-Host "Building container_system..."
-          Push-Location container_system
-          cmake -B build -G Ninja `
-            -DCMAKE_BUILD_TYPE=Debug `
-            -DCMAKE_PREFIX_PATH=${{ github.workspace }}/deps/install `
-            -DBUILD_TESTS=OFF `
-            -DBUILD_EXAMPLES=OFF `
-            -DBUILD_SAMPLES=OFF
-          cmake --build build
-          # Install may fail due to missing files in container_system CMake config
-          # Capture output and reset exit code to allow script to continue
-          $installOutput = cmake --install build --prefix ${{ github.workspace }}/deps/install 2>&1
-          if ($LASTEXITCODE -ne 0) {
-            Write-Host "container_system install had issues (exit code: $LASTEXITCODE), continuing..."
-            Write-Host $installOutput
-            $global:LASTEXITCODE = 0  # Reset to allow script to continue successfully
-          }
-          Pop-Location
-        }
-
-        # Remove GoogleTest from deps/install to avoid ABI conflicts with vcpkg GoogleTest
-        # Must remove CMake config files too, otherwise find_package finds broken config
-        Write-Host "Removing GoogleTest from deps/install to avoid ABI conflicts..."
-        Remove-Item -Force "${{ github.workspace }}/deps/install/lib/gtest*.lib" -ErrorAction SilentlyContinue
-        Remove-Item -Force "${{ github.workspace }}/deps/install/lib/gmock*.lib" -ErrorAction SilentlyContinue
-        Remove-Item -Recurse -Force "${{ github.workspace }}/deps/install/include/gtest" -ErrorAction SilentlyContinue
-        Remove-Item -Recurse -Force "${{ github.workspace }}/deps/install/include/gmock" -ErrorAction SilentlyContinue
-        Remove-Item -Recurse -Force "${{ github.workspace }}/deps/install/lib/cmake/GTest" -ErrorAction SilentlyContinue
-
-    - name: Install dependencies (Ubuntu)
+    - name: Install build tools (Ubuntu)
       if: runner.os == 'Linux'
       run: |
         sudo apt-get update
-        sudo apt-get install -y cmake ninja-build g++ clang libgtest-dev libgmock-dev libasio-dev libfmt-dev libssl-dev liblz4-dev zlib1g-dev
-        # Verify OpenSSL version (Ubuntu 24.04 provides OpenSSL 3.x)
-        openssl version
-        pkg-config --modversion openssl
+        sudo apt-get install -y cmake ninja-build g++ clang curl zip unzip tar pkg-config
 
-    - name: Install dependencies (macOS)
+    - name: Install build tools (macOS)
       if: runner.os == 'macOS'
       run: |
-        brew install ninja googletest asio fmt openssl@3 lz4 zlib
-        # Verify OpenSSL version
-        /opt/homebrew/opt/openssl@3/bin/openssl version || /usr/local/opt/openssl@3/bin/openssl version || openssl version
-        echo "OpenSSL 3.x is recommended for continued security support (1.1.1 reached EOL September 2023)"
-
-    - name: Update vcpkg baseline (Windows)
-      if: runner.os == 'Windows'
-      shell: pwsh
-      run: |
-        # Fetch latest vcpkg commits so the baseline in vcpkg-configuration.json is available
-        git -C $env:VCPKG_INSTALLATION_ROOT fetch origin --quiet
-
-    - name: Install dependencies (Windows)
-      if: runner.os == 'Windows'
-      shell: pwsh
-      run: |
-        echo "Installing dependencies via vcpkg (manifest mode)..."
-        echo "VCPKG_INSTALLATION_ROOT: $env:VCPKG_INSTALLATION_ROOT"
-        echo "Using vcpkg.json manifest"
-        Get-Content vcpkg.json
-        & "$env:VCPKG_INSTALLATION_ROOT\vcpkg.exe" install --triplet x64-windows
-        if ($LASTEXITCODE -ne 0) {
-          echo "vcpkg install failed with exit code $LASTEXITCODE"
-          exit 1
-        }
-        echo "Dependencies installed successfully"
-        & "$env:VCPKG_INSTALLATION_ROOT\vcpkg.exe" list
-        # Display OpenSSL version from vcpkg
-        echo "OpenSSL 3.x is recommended for continued security support (1.1.1 reached EOL September 2023)"
+        brew install ninja pkg-config
 
     - name: Set up compiler (GCC)
       if: matrix.compiler == 'gcc'
@@ -331,12 +111,88 @@ jobs:
         echo "CC=clang" >> $GITHUB_ENV
         echo "CXX=clang++" >> $GITHUB_ENV
 
-    - name: Configure CMake (Unix)
+    - name: Check architecture (Linux)
+      if: runner.os == 'Linux'
+      run: |
+        if [ "$(uname -m)" = "aarch64" ]; then
+          echo "VCPKG_FORCE_SYSTEM_BINARIES=arm" >> $GITHUB_ENV
+        fi
+
+    - name: Cache vcpkg
+      uses: actions/cache@v5
+      id: vcpkg-cache
+      with:
+        path: |
+          ${{ github.workspace }}/vcpkg
+          !${{ github.workspace }}/vcpkg/buildtrees
+          !${{ github.workspace }}/vcpkg/packages
+          !${{ github.workspace }}/vcpkg/downloads
+        key: ${{ runner.os }}-${{ matrix.compiler }}-vcpkg-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json') }}
+
+    - name: Set up vcpkg (Unix)
       if: runner.os != 'Windows'
+      run: |
+        if [ ! -d "vcpkg" ]; then
+          git clone https://github.com/Microsoft/vcpkg.git
+        fi
+        cd vcpkg
+        git pull
+        ./bootstrap-vcpkg.sh
+        cd ..
+
+    - name: Set up vcpkg (Windows)
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        if (!(Test-Path "vcpkg")) {
+          git clone https://github.com/Microsoft/vcpkg.git
+        }
+        cd vcpkg
+        git pull
+        .\bootstrap-vcpkg.bat
+        cd ..
+
+    - name: Determine vcpkg commit (Unix)
+      if: runner.os != 'Windows'
+      id: vcpkg-commit-unix
+      run: echo "commit=$(git -C vcpkg rev-parse HEAD)" >> $GITHUB_OUTPUT
+
+    - name: Determine vcpkg commit (Windows)
+      if: runner.os == 'Windows'
+      id: vcpkg-commit-windows
+      shell: pwsh
+      run: |
+        $commit = git -C vcpkg rev-parse HEAD
+        "commit=$commit" >> $env:GITHUB_OUTPUT
+
+    - name: Cache vcpkg installed
+      uses: actions/cache@v5
+      id: vcpkg-installed
+      with:
+        path: ${{ github.workspace }}/vcpkg_installed
+        key: ${{ runner.os }}-${{ matrix.compiler }}-vcpkg-installed-${{ matrix.triplet }}-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json') }}-${{ steps.vcpkg-commit-unix.outputs.commit || steps.vcpkg-commit-windows.outputs.commit }}
+        restore-keys: |
+          ${{ runner.os }}-${{ matrix.compiler }}-vcpkg-installed-${{ matrix.triplet }}-
+
+    - name: Install dependencies with vcpkg (Unix)
+      if: runner.os != 'Windows' && steps.vcpkg-installed.outputs.cache-hit != 'true'
+      run: |
+        ./vcpkg/vcpkg install --x-manifest-root=. --x-install-root=${{ github.workspace }}/vcpkg_installed --triplet ${{ matrix.triplet }}
+
+    - name: Install dependencies with vcpkg (Windows)
+      if: runner.os == 'Windows' && steps.vcpkg-installed.outputs.cache-hit != 'true'
+      shell: pwsh
+      run: |
+        .\vcpkg\vcpkg install --x-manifest-root=. --x-install-root=${{ github.workspace }}\vcpkg_installed --triplet ${{ matrix.triplet }}
+
+    - name: Configure and build (vcpkg - Unix)
+      if: runner.os != 'Windows'
+      id: build_vcpkg_unix
+      continue-on-error: true
       run: |
         cmake -B build -G Ninja \
           -DCMAKE_BUILD_TYPE=Debug \
-          -DCMAKE_PREFIX_PATH=${{ github.workspace }}/deps/install \
+          -DCMAKE_TOOLCHAIN_FILE="${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake" \
           -DBUILD_WITH_COMMON_SYSTEM=ON \
           -DBUILD_WITH_LOGGER_SYSTEM=ON \
           -DBUILD_WITH_THREAD_SYSTEM=ON \
@@ -344,20 +200,17 @@ jobs:
           -DBUILD_MESSAGING_BRIDGE=OFF \
           -DBUILD_TESTS=ON \
           -DBUILD_SAMPLES=OFF
+        cmake --build build --config Debug
 
-    - name: Configure CMake (Windows)
+    - name: Configure and build (vcpkg - Windows)
       if: runner.os == 'Windows'
+      id: build_vcpkg_windows
+      continue-on-error: true
       shell: pwsh
       run: |
-        $toolchainFile = "$env:VCPKG_INSTALLATION_ROOT\scripts\buildsystems\vcpkg.cmake"
-        if (-not (Test-Path $toolchainFile)) {
-          Write-Host "ERROR: Toolchain file not found!"
-          exit 1
-        }
         cmake -B build -G Ninja `
           -DCMAKE_BUILD_TYPE=Debug `
-          -DCMAKE_TOOLCHAIN_FILE="$toolchainFile" `
-          -DCMAKE_PREFIX_PATH="${{ github.workspace }}/deps/install" `
+          -DCMAKE_TOOLCHAIN_FILE="${{ github.workspace }}\vcpkg\scripts\buildsystems\vcpkg.cmake" `
           -DBUILD_WITH_COMMON_SYSTEM=ON `
           -DBUILD_WITH_LOGGER_SYSTEM=ON `
           -DBUILD_WITH_THREAD_SYSTEM=ON `
@@ -365,9 +218,44 @@ jobs:
           -DBUILD_MESSAGING_BRIDGE=OFF `
           -DBUILD_TESTS=ON `
           -DBUILD_SAMPLES=OFF
+        cmake --build build --config Debug
 
-    - name: Build
-      run: cmake --build build --config Debug
+    - name: Configure and build (fallback - Unix)
+      if: runner.os != 'Windows' && steps.build_vcpkg_unix.outcome != 'success'
+      run: |
+        echo "vcpkg build failed. Falling back to system libraries..."
+        rm -rf build
+        sudo apt-get install -y libgtest-dev libgmock-dev libasio-dev libfmt-dev libssl-dev liblz4-dev zlib1g-dev 2>/dev/null || \
+          brew install googletest asio fmt openssl@3 lz4 zlib 2>/dev/null || true
+        cmake -B build -G Ninja \
+          -DCMAKE_BUILD_TYPE=Debug \
+          -DBUILD_WITH_COMMON_SYSTEM=ON \
+          -DBUILD_WITH_LOGGER_SYSTEM=ON \
+          -DBUILD_WITH_THREAD_SYSTEM=ON \
+          -DBUILD_WITH_CONTAINER_SYSTEM=ON \
+          -DBUILD_MESSAGING_BRIDGE=OFF \
+          -DBUILD_TESTS=ON \
+          -DBUILD_SAMPLES=OFF
+        cmake --build build --config Debug
+
+    - name: Configure and build (fallback - Windows)
+      if: runner.os == 'Windows' && steps.build_vcpkg_windows.outcome != 'success'
+      shell: pwsh
+      run: |
+        Write-Host "vcpkg build failed. Falling back to system vcpkg..."
+        if (Test-Path build) { Remove-Item -Recurse -Force build }
+        $toolchainFile = "$env:VCPKG_INSTALLATION_ROOT\scripts\buildsystems\vcpkg.cmake"
+        cmake -B build -G Ninja `
+          -DCMAKE_BUILD_TYPE=Debug `
+          -DCMAKE_TOOLCHAIN_FILE="$toolchainFile" `
+          -DBUILD_WITH_COMMON_SYSTEM=ON `
+          -DBUILD_WITH_LOGGER_SYSTEM=ON `
+          -DBUILD_WITH_THREAD_SYSTEM=ON `
+          -DBUILD_WITH_CONTAINER_SYSTEM=ON `
+          -DBUILD_MESSAGING_BRIDGE=OFF `
+          -DBUILD_TESTS=ON `
+          -DBUILD_SAMPLES=OFF
+        cmake --build build --config Debug
 
     - name: Test (Unix)
       if: runner.os != 'Windows'
