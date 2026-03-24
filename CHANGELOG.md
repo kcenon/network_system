@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Unify vcpkg manifest mode across all CI platforms (Linux, macOS, Windows) replacing per-platform manual ecosystem dependency builds ([#885](https://github.com/kcenon/network_system/issues/885))
+
 ### Performance
 
 - Parallelize connection pool initialization with `std::async` ([#870](https://github.com/kcenon/network_system/issues/870))
