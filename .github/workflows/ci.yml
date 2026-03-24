@@ -118,72 +118,30 @@ jobs:
           echo "VCPKG_FORCE_SYSTEM_BINARIES=arm" >> $GITHUB_ENV
         fi
 
-    - name: Cache vcpkg
-      uses: actions/cache@v5
-      id: vcpkg-cache
+    - name: Setup vcpkg
+      uses: kcenon/common_system/.github/actions/setup-vcpkg@main
       with:
-        path: |
-          ${{ github.workspace }}/vcpkg
-          !${{ github.workspace }}/vcpkg/buildtrees
-          !${{ github.workspace }}/vcpkg/packages
-          !${{ github.workspace }}/vcpkg/downloads
-        key: ${{ runner.os }}-${{ matrix.compiler }}-vcpkg-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json') }}
-
-    - name: Set up vcpkg (Unix)
-      if: runner.os != 'Windows'
-      run: |
-        if [ ! -d "vcpkg" ]; then
-          git clone https://github.com/Microsoft/vcpkg.git
-        fi
-        cd vcpkg
-        git pull
-        ./bootstrap-vcpkg.sh
-        cd ..
-
-    - name: Set up vcpkg (Windows)
-      if: runner.os == 'Windows'
-      shell: pwsh
-      run: |
-        if (!(Test-Path "vcpkg")) {
-          git clone https://github.com/Microsoft/vcpkg.git
-        }
-        cd vcpkg
-        git pull
-        .\bootstrap-vcpkg.bat
-        cd ..
-
-    - name: Determine vcpkg commit (Unix)
-      if: runner.os != 'Windows'
-      id: vcpkg-commit-unix
-      run: echo "commit=$(git -C vcpkg rev-parse HEAD)" >> $GITHUB_OUTPUT
-
-    - name: Determine vcpkg commit (Windows)
-      if: runner.os == 'Windows'
-      id: vcpkg-commit-windows
-      shell: pwsh
-      run: |
-        $commit = git -C vcpkg rev-parse HEAD
-        "commit=$commit" >> $env:GITHUB_OUTPUT
+        extra-cache-key: 'network-system'
 
     - name: Cache vcpkg installed
       uses: actions/cache@v5
       id: vcpkg-installed
       with:
         path: ${{ github.workspace }}/vcpkg_installed
-        key: ${{ runner.os }}-${{ matrix.compiler }}-vcpkg-installed-${{ matrix.triplet }}-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json') }}-${{ steps.vcpkg-commit-unix.outputs.commit || steps.vcpkg-commit-windows.outputs.commit }}
+        key: ${{ runner.os }}-${{ matrix.compiler }}-vcpkg-installed-${{ matrix.triplet }}-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json') }}
         restore-keys: |
           ${{ runner.os }}-${{ matrix.compiler }}-vcpkg-installed-${{ matrix.triplet }}-
 
     - name: Install dependencies with vcpkg (Unix)
       if: runner.os != 'Windows' && steps.vcpkg-installed.outputs.cache-hit != 'true'
       run: |
-        ./vcpkg/vcpkg install --x-manifest-root=. --x-install-root=${{ github.workspace }}/vcpkg_installed --triplet ${{ matrix.triplet }}
+        ${{ env.VCPKG_ROOT }}/vcpkg install --x-manifest-root=. --x-install-root=${{ github.workspace }}/vcpkg_installed --triplet ${{ matrix.triplet }}
 
     - name: Install dependencies with vcpkg (Windows)
       if: runner.os == 'Windows' && steps.vcpkg-installed.outputs.cache-hit != 'true'
       shell: pwsh
       run: |
-        .\vcpkg\vcpkg install --x-manifest-root=. --x-install-root=${{ github.workspace }}\vcpkg_installed --triplet ${{ matrix.triplet }}
+        ${{ env.VCPKG_ROOT }}\vcpkg install --x-manifest-root=. --x-install-root=${{ github.workspace }}\vcpkg_installed --triplet ${{ matrix.triplet }}
 
     - name: Configure and build (vcpkg - Unix)
       if: runner.os != 'Windows'
@@ -192,7 +150,7 @@ jobs:
       run: |
         cmake -B build -G Ninja \
           -DCMAKE_BUILD_TYPE=Debug \
-          -DCMAKE_TOOLCHAIN_FILE="${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake" \
+          -DCMAKE_TOOLCHAIN_FILE="${{ env.CMAKE_TOOLCHAIN_FILE }}" \
           -DBUILD_WITH_COMMON_SYSTEM=ON \
           -DBUILD_WITH_LOGGER_SYSTEM=ON \
           -DBUILD_WITH_THREAD_SYSTEM=ON \
@@ -210,7 +168,7 @@ jobs:
       run: |
         cmake -B build -G Ninja `
           -DCMAKE_BUILD_TYPE=Debug `
-          -DCMAKE_TOOLCHAIN_FILE="${{ github.workspace }}\vcpkg\scripts\buildsystems\vcpkg.cmake" `
+          -DCMAKE_TOOLCHAIN_FILE="${{ env.CMAKE_TOOLCHAIN_FILE }}" `
           -DBUILD_WITH_COMMON_SYSTEM=ON `
           -DBUILD_WITH_LOGGER_SYSTEM=ON `
           -DBUILD_WITH_THREAD_SYSTEM=ON `
