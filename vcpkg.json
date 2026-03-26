@@ -10,6 +10,7 @@
   "dependencies": [
     "kcenon-common-system",
     "kcenon-thread-system",
+    "openssl",
     {
       "name": "asio",
       "version>=": "1.30.2"
