@@ -1,0 +1,6 @@
+The package kcenon-network-system provides CMake targets:
+
+    find_package(network_system CONFIG REQUIRED)
+    target_link_libraries(main PRIVATE network_system::NetworkSystem)
+
+Available features: logging
