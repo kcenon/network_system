@@ -147,6 +147,26 @@
                 "NETWORK_BUILD_BENCHMARKS": "OFF",
                 "NETWORK_BUILD_INTEGRATION_TESTS": "OFF"
             }
+        },
+        {
+            "name": "vcpkg",
+            "displayName": "vcpkg Release",
+            "description": "Release build using vcpkg for dependency management",
+            "inherits": "base",
+            "binaryDir": "${sourceDir}/build/vcpkg",
+            "cacheVariables": {
+                "CMAKE_TOOLCHAIN_FILE": {
+                    "type": "FILEPATH",
+                    "value": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+                },
+                "CMAKE_BUILD_TYPE": "Release",
+                "BUILD_TESTS": "OFF",
+                "BUILD_SAMPLES": "OFF",
+                "NETWORK_BUILD_BENCHMARKS": "OFF",
+                "NETWORK_BUILD_INTEGRATION_TESTS": "OFF",
+                "NETWORK_BUILD_MODULES": "OFF",
+                "FETCHCONTENT_FULLY_DISCONNECTED": "ON"
+            }
         }
     ],
     "buildPresets": [
@@ -173,6 +193,10 @@
         {
             "name": "coverage",
             "configurePreset": "coverage"
+        },
+        {
+            "name": "vcpkg",
+            "configurePreset": "vcpkg"
         }
     ],
     "testPresets": [
