@@ -1,5 +1,3 @@
-> **Note**: The canonical version of this document is at the [project root](../../CONTRIBUTING.md). This copy is kept for reference.
-
 # Contributing to Network System
 
 **Version:** 0.1.0.0
