@@ -85,6 +85,12 @@ For migration assistance, please refer to the migration guides in the `docs/migr
 
 ---
 
+> **Note:** Starting from v0.1.0 (2026-03-10), network_system adopted semantic versioning
+> aligned with vcpkg packaging. Earlier versions (v0.2.0 – v2.0.0) reflect the pre-vcpkg
+> release history and are retained for reference.
+
+---
+
 ## [v2.0.0] - 2026-01-18
 
 ### Added
