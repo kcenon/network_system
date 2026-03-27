@@ -2,7 +2,7 @@
   "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
   "name": "kcenon-network-system",
   "version-semver": "0.1.1",
-  "port-version": 0,
+  "port-version": 3,
   "description": "High-performance asynchronous network messaging library",
   "homepage": "https://github.com/kcenon/network_system",
   "license": "BSD-3-Clause",
