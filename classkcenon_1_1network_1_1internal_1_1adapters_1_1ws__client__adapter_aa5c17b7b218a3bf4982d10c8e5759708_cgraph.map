@@ -1,0 +1,6 @@
+<map id="kcenon::network::internal::adapters::ws_client_adapter::start" name="kcenon::network::internal::adapters::ws_client_adapter::start">
+<area shape="rect" id="Node000001" title="Starts the client and connects to the specified server." alt="" coords="5,22,256,62"/>
+<area shape="rect" id="Node000002" href="$namespacekcenon_1_1network.html#a9d2a06a302dea2b45b323b864eacad4a" title=" " alt="" coords="304,29,508,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="256,39,290,39,290,45,256,45"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="362,31,352,21,357,11,375,5,406,3,445,7,456,12,460,18,455,20,453,16,444,12,406,8,376,10,361,15,357,20,366,27"/>
+</map>

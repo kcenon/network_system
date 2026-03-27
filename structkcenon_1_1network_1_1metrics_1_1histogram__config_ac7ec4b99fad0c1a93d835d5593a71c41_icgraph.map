@@ -1,0 +1,7 @@
+<map id="kcenon::network::metrics::histogram_config::default_latency_config" name="kcenon::network::metrics::histogram_config::default_latency_config">
+<area shape="rect" id="Node000001" title="Create default configuration for network latencies." alt="" coords="245,41,441,96"/>
+<area shape="rect" id="Node000002" href="$structkcenon_1_1network_1_1metrics_1_1sliding__histogram__config.html#a59b388c8769e0b21e5ddf3565802843a" title="Create default configuration (60 second window, 6 buckets = 10s each)" alt="" coords="5,5,197,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="231,55,197,50,198,44,232,49"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1metrics_1_1histogram.html#aa6cd62e3dd4e60178e3a8b5bdc3c6f61" title="Construct histogram with configuration." alt="" coords="8,85,195,125"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="232,88,195,93,194,88,231,83"/>
+</map>

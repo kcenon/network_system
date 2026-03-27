@@ -1,0 +1,8 @@
+<map id="kcenon::network::protocols::http2::http2_server_stream::send_headers" name="kcenon::network::protocols::http2::http2_server_stream::send_headers">
+<area shape="rect" id="Node000001" title="Send response headers." alt="" coords="5,40,212,95"/>
+<area shape="rect" id="Node000002" href="$namespacekcenon_1_1network.html#a9d2a06a302dea2b45b323b864eacad4a" title=" " alt="" coords="260,29,464,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="212,54,246,51,247,56,213,60"/>
+<area shape="rect" id="Node000003" href="$namespacekcenon_1_1network.html#aa32d0dbfdee046c2c0cde3667c5f05a8" title=" " alt="" coords="285,79,439,104"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="213,74,271,80,271,85,212,80"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="321,31,312,21,317,11,334,5,362,3,398,7,408,11,412,17,407,20,404,15,396,12,362,8,335,10,320,15,317,20,325,27"/>
+</map>

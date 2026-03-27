@@ -1,0 +1,9 @@
+<map id="src/internal/protocols/http2/http2_server_stream.h" name="src/internal/protocols/http2/http2_server_stream.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="78,5,289,45"/>
+<area shape="rect" id="Node000002" href="$http2__server_8h.html" title=" " alt="" coords="5,93,164,133"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="153,56,108,95,105,91,150,52"/>
+<area shape="rect" id="Node000004" href="$http2__server__stream_8cpp.html" title=" " alt="" coords="188,93,376,133"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="217,52,262,91,258,95,214,56"/>
+<area shape="rect" id="Node000003" href="$http2__server_8cpp.html" title=" " alt="" coords="13,181,156,221"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="87,147,87,181,82,181,82,147"/>
+</map>

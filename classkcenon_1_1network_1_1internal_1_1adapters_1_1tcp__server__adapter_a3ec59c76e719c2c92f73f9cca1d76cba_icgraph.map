@@ -1,0 +1,5 @@
+<map id="kcenon::network::internal::adapters::tcp_server_adapter::setup_internal_callbacks" name="kcenon::network::internal::adapters::tcp_server_adapter::setup_internal_callbacks">
+<area shape="rect" id="Node000001" title="Sets up internal callbacks to bridge legacy callbacks to i_protocol_server callbacks." alt="" coords="265,5,453,75"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1internal_1_1adapters_1_1tcp__server__adapter.html#ad9cfeff22a2bf0f8f0c654ef1bcb7e43" title="Constructs an adapter with a unique server ID." alt="" coords="5,13,217,67"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="252,43,217,43,217,37,252,37"/>
+</map>

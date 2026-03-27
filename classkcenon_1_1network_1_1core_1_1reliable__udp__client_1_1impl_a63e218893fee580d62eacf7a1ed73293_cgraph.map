@@ -1,0 +1,8 @@
+<map id="kcenon::network::core::reliable_udp_client::impl::send_reliable" name="kcenon::network::core::reliable_udp_client::impl::send_reliable">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,49,172,104"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1core_1_1reliable__udp__client_1_1impl.html#a0e2e88b14293d4bb97f126b8c02dc528" title=" " alt="" coords="239,5,405,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="172,58,225,48,226,53,173,64"/>
+<area shape="rect" id="Node000003" href="$namespacekcenon_1_1network.html#a9d2a06a302dea2b45b323b864eacad4a" title=" " alt="" coords="220,108,424,133"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="173,90,241,103,240,108,172,95"/>
+<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="284,110,276,100,280,90,296,84,322,81,355,85,367,95,364,99,353,90,322,87,297,89,284,94,281,99,288,106"/>
+</map>

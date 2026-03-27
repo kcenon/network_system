@@ -1,0 +1,5 @@
+<map id="kcenon::network::integration::ThreadPoolBridge" name="kcenon::network::integration::ThreadPoolBridge">
+<area shape="rect" id="Node000001" title="Bridge for thread pool integration implementing INetworkBridge." alt="" coords="5,213,207,533"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1integration_1_1INetworkBridge.html" title="Abstract interface for external system integration bridges." alt="" coords="5,5,207,165"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="109,179,109,213,103,213,103,179"/>
+</map>

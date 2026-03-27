@@ -1,0 +1,33 @@
+<map id="include/kcenon/network/detail/unified/i_transport.h" name="include/kcenon/network/detail/unified/i_transport.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="496,5,693,45"/>
+<area shape="rect" id="Node000002" href="$types_8h.html" title=" " alt="" coords="415,101,486,126"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="564,48,483,96,480,91,562,43"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="5,189,59,214"/>
+<area shape="poly" id="edge11_Node000001_Node000006" title=" " alt="" coords="518,48,314,103,192,141,72,184,68,185,66,181,70,179,190,136,312,98,516,43"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="509,189,606,214"/>
+<area shape="poly" id="edge12_Node000001_Node000008" title=" " alt="" coords="593,46,565,176,560,175,588,45"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="630,189,693,214"/>
+<area shape="poly" id="edge13_Node000001_Node000010" title=" " alt="" coords="604,45,654,175,649,177,599,47"/>
+<area shape="rect" id="Node000011" title=" " alt="" coords="854,101,925,126"/>
+<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="674,43,843,91,850,93,849,98,842,96,673,48"/>
+<area shape="rect" id="Node000012" href="$result__types_8h.html" title=" " alt="" coords="663,93,830,133"/>
+<area shape="poly" id="edge14_Node000001_Node000012" title=" " alt="" coords="629,43,703,84,700,89,627,48"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="327,189,393,214"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="440,128,385,181,381,177,437,124"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="417,189,484,214"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="453,126,453,174,448,174,448,126"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="83,189,170,214"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="416,125,311,150,182,184,173,187,171,182,181,179,309,144,415,120"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="416,120,264,140,167,158,71,184,66,186,65,181,70,179,166,153,263,134,415,115"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="717,189,776,214"/>
+<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="487,119,586,143,706,179,712,181,710,186,704,184,585,148,486,125"/>
+<area shape="poly" id="edge7_Node000002_Node000008" title=" " alt="" coords="467,124,534,178,531,182,463,128"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="194,189,302,214"/>
+<area shape="poly" id="edge8_Node000002_Node000009" title=" " alt="" coords="424,129,289,185,287,181,422,124"/>
+<area shape="poly" id="edge9_Node000002_Node000010" title=" " alt="" coords="482,124,620,179,624,181,622,186,618,184,480,129"/>
+<area shape="poly" id="edge17_Node000012_Node000007" title=" " alt="" coords="749,134,749,175,744,175,744,134"/>
+<area shape="rect" id="Node000013" href="$detail_2config_2feature__flags_8h.html" title="Feature flags for network_system." alt="" coords="893,181,1059,221"/>
+<area shape="poly" id="edge15_Node000012_Node000013" title=" " alt="" coords="798,131,914,174,912,179,796,136"/>
+<area shape="rect" id="Node000014" title=" " alt="" coords="801,189,869,214"/>
+<area shape="poly" id="edge16_Node000012_Node000014" title=" " alt="" coords="768,132,814,177,811,180,764,136"/>
+</map>

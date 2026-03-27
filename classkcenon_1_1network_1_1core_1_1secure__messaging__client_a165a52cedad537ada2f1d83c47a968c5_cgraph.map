@@ -1,0 +1,9 @@
+<map id="kcenon::network::core::secure_messaging_client::~secure_messaging_client" name="kcenon::network::core::secure_messaging_client::~secure_messaging_client">
+<area shape="rect" id="Node000001" title="Destructor. Calls stop_client() if still connected." alt="" coords="5,45,211,100"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1utils_1_1lifecycle__manager.html#a886ebda2e9af66e367ed4b8a563fcf7c" title="Checks if the component is currently running." alt="" coords="271,5,441,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="210,53,257,46,258,51,211,59"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1core_1_1secure__messaging__client.html#a7c8fea934e820dee6b17f2daa11ac514" title="Stops the client and disconnects from the server." alt="" coords="259,84,453,139"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="211,86,245,91,245,97,210,91"/>
+<area shape="rect" id="Node000004" href="$namespacekcenon_1_1network.html#aa32d0dbfdee046c2c0cde3667c5f05a8" title=" " alt="" coords="501,99,656,124"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="454,109,487,109,487,114,454,114"/>
+</map>

@@ -1,0 +1,5 @@
+<map id="kcenon::network::core::messaging_udp_client::is_running" name="kcenon::network::core::messaging_udp_client::is_running">
+<area shape="rect" id="Node000001" title="Checks if the client is currently running." alt="" coords="5,5,180,60"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1utils_1_1lifecycle__manager.html#a886ebda2e9af66e367ed4b8a563fcf7c" title="Checks if the component is currently running." alt="" coords="228,5,397,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="181,30,214,30,214,35,181,35"/>
+</map>

@@ -1,0 +1,6 @@
+<map id="kcenon::network::metrics::sliding_histogram::sum" name="kcenon::network::metrics::sliding_histogram::sum">
+<area shape="rect" id="Node000001" title="Get sum of all observations in current window." alt="" coords="5,29,192,69"/>
+<area shape="poly" id="edge2_Node000001_Node000001" title=" " alt="" coords="54,30,52,20,59,10,75,5,99,3,126,6,141,13,139,18,125,11,99,8,76,10,62,15,57,21,60,28"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1metrics_1_1sliding__histogram.html#a9c4c18e9ae5893893ea72528beb64638" title="Expire old buckets outside the window." alt="" coords="240,22,435,77"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="192,47,227,47,227,52,192,52"/>
+</map>

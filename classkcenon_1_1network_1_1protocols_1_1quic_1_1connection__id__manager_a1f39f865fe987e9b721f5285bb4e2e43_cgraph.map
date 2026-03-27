@@ -1,0 +1,8 @@
+<map id="kcenon::network::protocols::quic::connection_id_manager::retire_peer_cid" name="kcenon::network::protocols::quic::connection_id_manager::retire_peer_cid">
+<area shape="rect" id="Node000001" title="Mark a specific CID sequence as retired." alt="" coords="5,40,225,95"/>
+<area shape="rect" id="Node000002" href="$namespacekcenon_1_1network.html#a9d2a06a302dea2b45b323b864eacad4a" title=" " alt="" coords="273,29,477,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="225,54,259,51,260,56,226,59"/>
+<area shape="rect" id="Node000003" href="$namespacekcenon_1_1network.html#aa32d0dbfdee046c2c0cde3667c5f05a8" title=" " alt="" coords="298,79,453,104"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="226,75,285,80,284,86,225,80"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="334,31,324,21,329,11,346,5,375,3,412,7,422,11,426,17,422,20,419,15,410,12,375,8,348,10,333,15,330,20,337,27"/>
+</map>

@@ -1,0 +1,11 @@
+<map id="kcenon::network::tracing::span::attributes" name="kcenon::network::tracing::span::attributes">
+<area shape="rect" id="Node000001" title="Get the span attributes." alt="" coords="236,101,419,141"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1tracing_1_1span.html#a1d5745a71e99ab427a865efb7098eddb" title="Set a boolean attribute." alt="" coords="5,5,188,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="272,98,187,60,156,48,158,43,189,55,274,93"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1tracing_1_1span.html#a2fc3bc91fe6e29db90ba7dea26e91785" title="Set a double attribute." alt="" coords="5,69,188,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="222,109,188,105,189,99,223,104"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1tracing_1_1span.html#aef95632f79f44824b2ec829b3862c81f" title="Set an integer attribute." alt="" coords="5,133,188,173"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="223,138,189,143,188,138,222,133"/>
+<area shape="rect" id="Node000005" href="$classkcenon_1_1network_1_1tracing_1_1span.html#a4c7299d46c3a9074efcf7393f981e148" title="Set a string attribute." alt="" coords="5,197,188,237"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="274,150,189,188,158,200,156,195,187,183,272,145"/>
+</map>

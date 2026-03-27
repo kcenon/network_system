@@ -1,0 +1,16 @@
+<map id="kcenon::network::metrics::sliding_histogram::expire_old_buckets" name="kcenon::network::metrics::sliding_histogram::expire_old_buckets">
+<area shape="rect" id="Node000001" title="Expire old buckets outside the window." alt="" coords="512,118,707,173"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1metrics_1_1sliding__histogram.html#ab0737c0166be498ce4e617818e777367" title="Create aggregated histogram from all buckets." alt="" coords="244,5,464,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="556,112,512,85,463,60,432,48,434,43,465,55,514,80,559,108"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1metrics_1_1sliding__histogram.html#ab361b5931e165429f0a9f18b9a3cb454" title="Get total number of observations in current window." alt="" coords="259,93,449,133"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="498,134,449,128,450,123,499,129"/>
+<area shape="rect" id="Node000005" href="$classkcenon_1_1network_1_1metrics_1_1sliding__histogram.html#ad398a3a2d2aa7299b391436dfb71a26d" title="Record a value observation." alt="" coords="257,157,451,197"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="499,162,452,168,451,162,498,157"/>
+<area shape="rect" id="Node000006" href="$classkcenon_1_1network_1_1metrics_1_1sliding__histogram.html#ab0b49683bbaf9f34f793e4cc751aa569" title="Get sum of all observations in current window." alt="" coords="261,245,447,285"/>
+<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="539,181,399,248,397,243,537,176"/>
+<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="397,82,382,75,354,72,329,74,315,79,309,85,312,92,307,94,304,84,312,74,328,69,354,67,383,70,399,77"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1metrics_1_1sliding__histogram.html#a4b942731eea612b99da34f901f538769" title="Get mean of all observations in current window." alt="" coords="5,169,196,209"/>
+<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="271,140,245,148,167,172,165,167,243,143,270,135"/>
+<area shape="poly" id="edge7_Node000006_Node000004" title=" " alt="" coords="272,244,168,212,169,207,274,239"/>
+<area shape="poly" id="edge8_Node000006_Node000006" title=" " alt="" coords="397,234,382,227,354,224,329,226,315,231,309,237,312,244,307,246,304,236,312,226,328,221,354,219,383,222,399,229"/>
+</map>

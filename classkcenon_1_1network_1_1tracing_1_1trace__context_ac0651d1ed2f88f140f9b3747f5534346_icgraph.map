@@ -1,0 +1,7 @@
+<map id="kcenon::network::tracing::trace_context::set_current" name="kcenon::network::tracing::trace_context::set_current">
+<area shape="rect" id="Node000001" title="Set the current thread&#45;local trace context." alt="" coords="236,37,436,77"/>
+<area shape="rect" id="Node000002" href="$structkcenon_1_1network_1_1tracing_1_1span_1_1impl.html#aea28950e53e18527546e348bce93f5a9" title=" " alt="" coords="5,5,188,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="222,45,188,40,189,35,223,40"/>
+<area shape="rect" id="Node000003" href="$structkcenon_1_1network_1_1tracing_1_1span_1_1impl.html#a213772f729459501b6e5285a098c19ef" title=" " alt="" coords="5,69,188,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="223,75,189,80,188,74,222,70"/>
+</map>

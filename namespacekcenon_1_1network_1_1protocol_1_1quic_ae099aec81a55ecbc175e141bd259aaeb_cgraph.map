@@ -1,0 +1,9 @@
+<map id="kcenon::network::protocol::quic::listen" name="kcenon::network::protocol::quic::listen">
+<area shape="rect" id="Node000001" title="Creates and starts a QUIC listener on a specific port." alt="" coords="5,29,196,69"/>
+<area shape="rect" id="Node000002" href="$namespacekcenon_1_1network_1_1protocol_1_1quic.html#a66a1f5c773929dbd78a706f1a8dfd552" title="Creates and starts a QUIC listener in one call." alt="" coords="244,29,435,69"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="196,47,230,47,230,52,196,52"/>
+<area shape="poly" id="edge4_Node000002_Node000002" title=" " alt="" coords="295,30,292,20,300,10,315,5,339,3,367,6,382,13,380,18,366,11,339,8,316,10,303,15,298,21,300,28"/>
+<area shape="rect" id="Node000003" href="$namespacekcenon_1_1network_1_1protocol_1_1quic.html#a15d3e9736fff910f400b88fe2a14fcd0" title="Creates a QUIC listener (not yet listening)" alt="" coords="483,29,673,69"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="435,47,469,47,469,52,435,52"/>
+<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="534,30,531,20,538,10,554,5,578,3,606,6,621,13,618,18,604,11,578,8,555,10,541,15,536,21,539,28"/>
+</map>

@@ -1,0 +1,5 @@
+<map id="kcenon::network::core::ws_session_manager::generate_connection_id" name="kcenon::network::core::ws_session_manager::generate_connection_id">
+<area shape="rect" id="Node000001" title="Generates a unique connection ID." alt="" coords="5,5,191,60"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1core_1_1session__manager__base.html#ae7c18cf762910787435aceea3b954b93" title="Generate a unique session ID." alt="" coords="239,5,472,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="191,30,225,30,225,35,191,35"/>
+</map>

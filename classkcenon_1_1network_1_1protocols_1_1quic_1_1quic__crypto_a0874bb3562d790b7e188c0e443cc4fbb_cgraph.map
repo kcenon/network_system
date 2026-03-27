@@ -1,0 +1,16 @@
+<map id="kcenon::network::protocols::quic::quic_crypto::update_keys" name="kcenon::network::protocols::quic::quic_crypto::update_keys">
+<area shape="rect" id="Node000001" title="Perform a key update (1&#45;RTT only)" alt="" coords="5,105,236,145"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1initial__keys.html#a0dec59e00aa6d65e8b116c9d47d46725" title="Derive keys from an initial secret." alt="" coords="284,48,509,88"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="217,103,286,88,287,93,218,108"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1hkdf.html#a6752af7dc536064ed90aea8bc34141e0" title="HKDF&#45;Expand&#45;Label function (TLS 1.3 style)" alt="" coords="557,5,756,45"/>
+<area shape="poly" id="edge6_Node000001_Node000003" title=" " alt="" coords="148,103,207,65,244,47,283,33,349,20,417,13,544,12,544,18,418,18,350,25,285,39,247,52,210,70,150,107"/>
+<area shape="rect" id="Node000004" href="$namespacekcenon_1_1network.html#aa32d0dbfdee046c2c0cde3667c5f05a8" title=" " alt="" coords="579,85,734,110"/>
+<area shape="poly" id="edge8_Node000001_Node000004" title=" " alt="" coords="236,117,566,99,566,105,237,122"/>
+<area shape="rect" id="Node000005" href="$namespacekcenon_1_1network.html#a9d2a06a302dea2b45b323b864eacad4a" title=" " alt="" coords="295,187,499,213"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="196,143,337,181,335,186,195,148"/>
+<area shape="rect" id="Node000006" href="$namespacekcenon_1_1network.html#a2a241bfe680718c67e366aab3e04036e" title=" " alt="" coords="317,237,476,277"/>
+<area shape="poly" id="edge7_Node000001_Node000006" title=" " alt="" coords="151,143,211,183,285,223,305,231,303,236,283,228,208,188,148,148"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="509,47,543,41,544,46,510,52"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="510,78,566,84,565,90,509,83"/>
+<area shape="poly" id="edge5_Node000005_Node000005" title=" " alt="" coords="355,189,346,179,350,169,368,163,397,161,433,165,443,169,447,175,443,178,440,173,432,170,397,166,369,168,354,173,351,178,359,185"/>
+</map>

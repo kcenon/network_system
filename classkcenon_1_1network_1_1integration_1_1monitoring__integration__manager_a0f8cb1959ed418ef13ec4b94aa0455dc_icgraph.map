@@ -1,0 +1,55 @@
+<map id="kcenon::network::integration::monitoring_integration_manager::get_monitoring" name="kcenon::network::integration::monitoring_integration_manager::get_monitoring">
+<area shape="rect" id="Node000001" title="Get the current monitoring implementation." alt="" coords="821,428,1031,483"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1core_1_1network__context.html#a5fa90513d68d76be48cb4beea034d725" title="Get current monitoring system." alt="" coords="585,244,753,299"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="891,419,838,365,806,338,772,314,749,301,752,297,775,309,809,334,841,361,894,415"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1core_1_1network__context.html#a9d88cbc0a3afc7df773a32afafe3e8a2" title="Initialize all systems." alt="" coords="567,323,770,363"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="865,424,772,378,740,366,742,361,774,373,867,419"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1integration_1_1monitoring__integration__manager.html#a6049b4de0cac7878938b8a4445415e7e" title="Report a counter metric." alt="" coords="564,388,773,443"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="807,440,773,434,774,429,808,434"/>
+<area shape="rect" id="Node000017" href="$classkcenon_1_1network_1_1integration_1_1monitoring__integration__manager.html#a8c079c0755ccbd9f2b7cb9928a919e3c" title="Report a gauge metric." alt="" coords="564,467,773,521"/>
+<area shape="poly" id="edge17_Node000001_Node000017" title=" " alt="" coords="808,476,774,481,773,476,807,470"/>
+<area shape="rect" id="Node000020" href="$classkcenon_1_1network_1_1integration_1_1monitoring__integration__manager.html#a1c00b0b81f26a97b0b36854a98bc8327" title="Report connection health metrics." alt="" coords="564,545,773,600"/>
+<area shape="poly" id="edge21_Node000001_Node000020" title=" " alt="" coords="863,492,774,535,745,548,743,543,772,530,861,487"/>
+<area shape="rect" id="Node000021" href="$classkcenon_1_1network_1_1integration_1_1monitoring__integration__manager.html#a3c2454e76e17e0b203deaabf66a0838e" title="Report a histogram metric." alt="" coords="564,732,773,787"/>
+<area shape="poly" id="edge22_Node000001_Node000021" title=" " alt="" coords="895,495,695,733,691,730,891,492"/>
+<area shape="rect" id="Node000005" href="$classkcenon_1_1network_1_1metrics_1_1metric__reporter.html#ad151833d5ae29b690b46d5e9dc1bf511" title="Report bytes received." alt="" coords="315,77,501,132"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="566,381,562,377,545,352,536,328,534,281,534,234,527,210,514,184,489,156,460,134,463,130,493,152,518,180,532,208,539,233,539,281,541,327,550,350,566,374,570,377"/>
+<area shape="rect" id="Node000008" href="$classkcenon_1_1network_1_1metrics_1_1metric__reporter.html#ad9908fd0ef3ec8950ede742bb774e586" title="Report bytes sent." alt="" coords="315,195,501,249"/>
+<area shape="poly" id="edge7_Node000004_Node000008" title=" " alt="" coords="567,382,562,377,550,362,543,347,538,318,532,290,526,276,514,263,500,251,503,247,518,259,530,274,537,288,543,317,548,346,554,359,566,373,571,378"/>
+<area shape="rect" id="Node000012" href="$classkcenon_1_1network_1_1metrics_1_1metric__reporter.html#a9a8993fa6f5318ed33b32c30d4602ba4" title="Report a new connection accepted." alt="" coords="315,273,501,328"/>
+<area shape="poly" id="edge11_Node000004_Node000012" title=" " alt="" coords="576,385,563,378,538,359,515,342,491,330,494,326,517,337,542,355,565,373,579,380"/>
+<area shape="rect" id="Node000014" href="$classkcenon_1_1network_1_1metrics_1_1metric__reporter.html#a6a84ae950cbc9480ac4522b22fa6a27e" title="Report a failed connection attempt." alt="" coords="315,352,501,407"/>
+<area shape="poly" id="edge13_Node000004_Node000014" title=" " alt="" coords="550,402,501,395,502,390,551,396"/>
+<area shape="rect" id="Node000015" href="$classkcenon_1_1network_1_1metrics_1_1metric__reporter.html#a075fbcc06734cf3dfb43d23097e53c7c" title="Report a network error." alt="" coords="300,431,516,471"/>
+<area shape="poly" id="edge15_Node000004_Node000015" title=" " alt="" coords="551,434,517,439,516,434,550,429"/>
+<area shape="rect" id="Node000016" href="$classkcenon_1_1network_1_1metrics_1_1metric__reporter.html#aa727f62721a37a945e27034294711304" title="Report a timeout." alt="" coords="315,496,501,551"/>
+<area shape="poly" id="edge16_Node000004_Node000016" title=" " alt="" coords="578,450,565,456,517,486,489,498,486,494,515,481,563,452,576,446"/>
+<area shape="rect" id="Node000006" href="$classkcenon_1_1network_1_1session_1_1messaging__session.html#a8c7e3a7f9fa25c1710d412641ed50e15" title="Callback for when data arrives from the client." alt="" coords="35,5,222,60"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="301,80,222,59,223,54,302,75"/>
+<area shape="rect" id="Node000007" href="$classkcenon_1_1network_1_1session_1_1quic__session.html#a953c93b3e3cdab4c660055e193933c95" title=" " alt="" coords="15,85,242,125"/>
+<area shape="poly" id="edge6_Node000005_Node000007" title=" " alt="" coords="301,107,242,107,242,102,301,102"/>
+<area shape="rect" id="Node000009" href="$classkcenon_1_1network_1_1session_1_1quic__session.html#a7001a8a2e3bb5ad9792d5120f5349c60" title="Sends data to the client (interface version)." alt="" coords="35,149,222,189"/>
+<area shape="poly" id="edge8_Node000008_Node000009" title=" " alt="" coords="301,204,222,189,223,184,302,199"/>
+<area shape="rect" id="Node000010" href="$classkcenon_1_1network_1_1session_1_1quic__session.html#a6e72ebe913f8c4f94561c0b35d659644" title="Sends data on a specific stream (interface version)." alt="" coords="15,213,243,253"/>
+<area shape="poly" id="edge9_Node000008_Node000010" title=" " alt="" coords="301,229,243,231,243,226,301,223"/>
+<area shape="rect" id="Node000011" href="$classkcenon_1_1network_1_1session_1_1messaging__session.html#a48e209b1237d72b9ffe10e3b7f984145" title="Sends data to the connected client, optionally using compression/encryption." alt="" coords="5,277,252,317"/>
+<area shape="poly" id="edge10_Node000008_Node000011" title=" " alt="" coords="302,254,253,267,208,279,207,274,251,262,301,249"/>
+<area shape="rect" id="Node000013" href="$classkcenon_1_1network_1_1core_1_1messaging__server.html#a933a59d1bbad0d45d0c0ff84b87383b9" title="Handler called when an asynchronous accept finishes." alt="" coords="42,352,215,407"/>
+<area shape="poly" id="edge12_Node000012_Node000013" title=" " alt="" coords="302,333,216,358,215,352,301,328"/>
+<area shape="poly" id="edge14_Node000014_Node000013" title=" " alt="" coords="301,382,216,382,216,377,301,377"/>
+<area shape="rect" id="Node000018" href="$classkcenon_1_1network_1_1metrics_1_1metric__reporter.html#ab0c0481d89ca11f1ed000b0f1af7ea93" title="Report active connections count." alt="" coords="315,575,501,629"/>
+<area shape="poly" id="edge18_Node000017_Node000018" title=" " alt="" coords="578,529,565,535,517,564,489,577,486,572,515,560,563,530,576,524"/>
+<area shape="poly" id="edge19_Node000018_Node000013" title=" " alt="" coords="309,570,298,564,252,527,209,485,147,409,151,406,213,481,255,523,302,560,311,566"/>
+<area shape="rect" id="Node000019" href="$classkcenon_1_1network_1_1core_1_1messaging__quic__server.html#a1489b8e64b0549d6cb33e22bccabb7f5" title=" " alt="" coords="37,575,220,629"/>
+<area shape="poly" id="edge20_Node000018_Node000019" title=" " alt="" coords="301,605,220,605,220,599,301,599"/>
+<area shape="rect" id="Node000022" href="$classkcenon_1_1network_1_1metrics_1_1metric__reporter.html#a1f3bcb7624320ba5b91887307b383fb8" title="Record connection time to internal histogram." alt="" coords="315,653,501,708"/>
+<area shape="poly" id="edge23_Node000021_Node000022" title=" " alt="" coords="563,730,499,711,500,706,565,725"/>
+<area shape="rect" id="Node000023" href="$classkcenon_1_1network_1_1metrics_1_1metric__reporter.html#a9ee5295d26b397a9c1df5d8cab7965be" title="Record request duration to internal histogram." alt="" coords="315,732,501,787"/>
+<area shape="poly" id="edge24_Node000021_Node000023" title=" " alt="" coords="550,762,502,762,502,757,550,757"/>
+<area shape="rect" id="Node000024" href="$classkcenon_1_1network_1_1metrics_1_1metric__reporter.html#a34136cb6ae69fb7e2eb0c0e5e96bde11" title="Report network latency." alt="" coords="315,811,501,865"/>
+<area shape="poly" id="edge25_Node000021_Node000024" title=" " alt="" coords="565,793,500,813,499,808,563,788"/>
+<area shape="rect" id="Node000026" href="$classkcenon_1_1network_1_1metrics_1_1metric__reporter.html#a26c08d36c1b01f1af19d5804f3d428d8" title="Report session duration." alt="" coords="315,889,501,944"/>
+<area shape="poly" id="edge27_Node000021_Node000026" title=" " alt="" coords="629,798,577,839,517,879,491,892,489,887,515,874,574,835,626,794"/>
+<area shape="rect" id="Node000025" href="$classkcenon_1_1network_1_1metrics_1_1metric__reporter.html#a5413725d7637114e7e1e0f097313ff43" title="Record latency to internal histogram." alt="" coords="35,811,222,865"/>
+<area shape="poly" id="edge26_Node000024_Node000025" title=" " alt="" coords="301,841,222,841,222,835,301,835"/>
+</map>

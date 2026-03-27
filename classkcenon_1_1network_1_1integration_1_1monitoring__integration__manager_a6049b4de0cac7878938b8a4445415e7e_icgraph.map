@@ -1,0 +1,28 @@
+<map id="kcenon::network::integration::monitoring_integration_manager::report_counter" name="kcenon::network::integration::monitoring_integration_manager::report_counter">
+<area shape="rect" id="Node000001" title="Report a counter metric." alt="" coords="564,319,773,373"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1metrics_1_1metric__reporter.html#ad151833d5ae29b690b46d5e9dc1bf511" title="Report bytes received." alt="" coords="315,77,501,132"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="632,310,578,252,514,189,446,134,449,130,518,185,582,248,636,306"/>
+<area shape="rect" id="Node000005" href="$classkcenon_1_1network_1_1metrics_1_1metric__reporter.html#ad9908fd0ef3ec8950ede742bb774e586" title="Report bytes sent." alt="" coords="315,200,501,255"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="606,314,515,268,488,257,490,252,517,264,609,310"/>
+<area shape="rect" id="Node000009" href="$classkcenon_1_1network_1_1metrics_1_1metric__reporter.html#a9a8993fa6f5318ed33b32c30d4602ba4" title="Report a new connection accepted." alt="" coords="315,279,501,333"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="550,330,501,323,502,318,551,325"/>
+<area shape="rect" id="Node000011" href="$classkcenon_1_1network_1_1metrics_1_1metric__reporter.html#a6a84ae950cbc9480ac4522b22fa6a27e" title="Report a failed connection attempt." alt="" coords="315,357,501,412"/>
+<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="551,366,502,373,501,368,550,361"/>
+<area shape="rect" id="Node000012" href="$classkcenon_1_1network_1_1metrics_1_1metric__reporter.html#a075fbcc06734cf3dfb43d23097e53c7c" title="Report a network error." alt="" coords="300,437,516,477"/>
+<area shape="poly" id="edge12_Node000001_Node000012" title=" " alt="" coords="610,382,517,427,484,439,482,434,515,422,607,377"/>
+<area shape="rect" id="Node000013" href="$classkcenon_1_1network_1_1metrics_1_1metric__reporter.html#aa727f62721a37a945e27034294711304" title="Report a timeout." alt="" coords="315,501,501,556"/>
+<area shape="poly" id="edge13_Node000001_Node000013" title=" " alt="" coords="637,386,584,439,552,467,517,491,494,504,491,499,515,486,548,462,580,435,633,382"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1session_1_1messaging__session.html#a8c7e3a7f9fa25c1710d412641ed50e15" title="Callback for when data arrives from the client." alt="" coords="35,5,222,60"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="301,80,222,59,223,54,302,75"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1session_1_1quic__session.html#a953c93b3e3cdab4c660055e193933c95" title=" " alt="" coords="15,85,242,125"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="301,107,242,107,242,102,301,102"/>
+<area shape="rect" id="Node000006" href="$classkcenon_1_1network_1_1session_1_1quic__session.html#a7001a8a2e3bb5ad9792d5120f5349c60" title="Sends data to the client (interface version)." alt="" coords="35,149,222,189"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="301,208,222,191,223,186,302,202"/>
+<area shape="rect" id="Node000007" href="$classkcenon_1_1network_1_1session_1_1quic__session.html#a6e72ebe913f8c4f94561c0b35d659644" title="Sends data on a specific stream (interface version)." alt="" coords="15,213,243,253"/>
+<area shape="poly" id="edge6_Node000005_Node000007" title=" " alt="" coords="301,232,243,233,243,228,301,227"/>
+<area shape="rect" id="Node000008" href="$classkcenon_1_1network_1_1session_1_1messaging__session.html#a48e209b1237d72b9ffe10e3b7f984145" title="Sends data to the connected client, optionally using compression/encryption." alt="" coords="5,277,252,317"/>
+<area shape="poly" id="edge7_Node000005_Node000008" title=" " alt="" coords="302,256,211,279,209,274,301,251"/>
+<area shape="rect" id="Node000010" href="$classkcenon_1_1network_1_1core_1_1messaging__server.html#a933a59d1bbad0d45d0c0ff84b87383b9" title="Handler called when an asynchronous accept finishes." alt="" coords="42,347,215,401"/>
+<area shape="poly" id="edge9_Node000009_Node000010" title=" " alt="" coords="302,334,216,356,215,350,301,329"/>
+<area shape="poly" id="edge11_Node000011_Node000010" title=" " alt="" coords="301,383,216,380,216,375,301,378"/>
+</map>

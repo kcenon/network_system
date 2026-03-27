@@ -1,0 +1,5 @@
+<map id="kcenon::network::core::messaging_ws_server::set_error_callback" name="kcenon::network::core::messaging_ws_server::set_error_callback">
+<area shape="rect" id="Node000001" title="Sets the callback for errors (interface version)." alt="" coords="5,5,180,60"/>
+<area shape="rect" id="Node000002" href="$namespacekcenon_1_1network.html#a15edd0988aec7155616b3ad3478471a5" title="Helper to convert enum to std::size_t for callback_manager access." alt="" coords="228,13,379,53"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="180,30,214,30,214,35,180,35"/>
+</map>

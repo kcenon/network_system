@@ -1,0 +1,5 @@
+<map id="kcenon::network::protocols::quic::packet_protection::unprotect" name="kcenon::network::protocols::quic::packet_protection::unprotect">
+<area shape="rect" id="Node000001" title="Unprotect (decrypt) a QUIC packet." alt="" coords="261,5,460,60"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1internal_1_1quic__socket.html#aa0137c13227154b4c7e244f39921b1bd" title="Handle received packet data." alt="" coords="5,13,213,53"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="247,35,214,35,214,30,247,30"/>
+</map>

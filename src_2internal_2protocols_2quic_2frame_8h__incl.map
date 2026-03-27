@@ -1,0 +1,30 @@
+<map id="src/internal/protocols/quic/frame.h" name="src/internal/protocols/quic/frame.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="514,5,673,45"/>
+<area shape="rect" id="Node000002" href="$frame__types_8h.html" title=" " alt="" coords="247,101,363,126"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="531,48,357,99,356,94,529,43"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="721,189,783,214"/>
+<area shape="poly" id="edge15_Node000001_Node000009" title=" " alt="" coords="596,45,601,88,609,111,621,131,656,153,715,181,713,185,654,157,617,135,604,113,596,89,591,46"/>
+<area shape="rect" id="Node000010" href="$result__types_8h.html" title=" " alt="" coords="389,93,555,133"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="568,48,511,88,508,83,565,43"/>
+<area shape="rect" id="Node000012" title=" " alt="" coords="631,101,684,126"/>
+<area shape="poly" id="edge13_Node000001_Node000012" title=" " alt="" coords="610,44,642,88,638,91,605,47"/>
+<area shape="rect" id="Node000013" title=" " alt="" coords="709,101,769,126"/>
+<area shape="poly" id="edge14_Node000001_Node000013" title=" " alt="" coords="627,43,709,91,706,96,624,48"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,189,61,214"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="258,129,172,152,74,184,70,185,68,180,72,179,170,147,257,123"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="85,189,152,214"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="281,129,157,185,155,180,279,124"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="176,189,251,214"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="295,128,238,181,235,177,291,124"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="355,189,413,214"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="318,124,366,176,362,180,314,128"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="275,189,330,214"/>
+<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="308,126,306,174,301,174,302,126"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="438,189,506,214"/>
+<area shape="poly" id="edge7_Node000002_Node000008" title=" " alt="" coords="329,124,438,180,436,185,327,129"/>
+<area shape="poly" id="edge8_Node000002_Node000009" title=" " alt="" coords="346,123,377,131,470,145,544,150,618,158,710,179,717,181,715,186,709,184,617,163,543,156,469,150,375,136,345,129"/>
+<area shape="poly" id="edge12_Node000010_Node000006" title=" " alt="" coords="454,136,408,180,404,177,451,132"/>
+<area shape="poly" id="edge11_Node000010_Node000008" title=" " alt="" coords="475,134,475,175,469,175,469,134"/>
+<area shape="rect" id="Node000011" href="$detail_2config_2feature__flags_8h.html" title="Feature flags for network_system." alt="" coords="530,181,697,221"/>
+<area shape="poly" id="edge10_Node000010_Node000011" title=" " alt="" coords="504,131,572,172,569,177,502,136"/>
+</map>

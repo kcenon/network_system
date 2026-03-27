@@ -1,0 +1,15 @@
+<map id="kcenon::network::session::quic_session::send_on_stream" name="kcenon::network::session::quic_session::send_on_stream">
+<area shape="rect" id="Node000001" title="Sends data on a specific stream (interface version)." alt="" coords="5,54,233,94"/>
+<area shape="rect" id="Node000002" href="$namespacekcenon_1_1network.html#a9d2a06a302dea2b45b323b864eacad4a" title=" " alt="" coords="281,29,485,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="233,58,268,53,268,59,234,63"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1metrics_1_1metric__reporter.html#ad9908fd0ef3ec8950ede742bb774e586" title="Report bytes sent." alt="" coords="290,79,477,133"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="234,85,277,90,276,96,233,90"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="342,31,333,21,338,11,355,5,383,3,419,7,429,11,433,17,429,20,426,15,418,12,383,8,356,10,342,15,339,20,346,27"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1integration_1_1monitoring__integration__manager.html#a3a3880025d000147e508a14e7391e77c" title="Get the singleton instance." alt="" coords="533,39,743,93"/>
+<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="476,89,519,82,520,87,477,94"/>
+<area shape="rect" id="Node000005" href="$classkcenon_1_1network_1_1integration_1_1monitoring__integration__manager.html#a6049b4de0cac7878938b8a4445415e7e" title="Report a counter metric." alt="" coords="533,117,743,172"/>
+<area shape="poly" id="edge6_Node000003_Node000005" title=" " alt="" coords="477,117,520,124,519,129,476,123"/>
+<area shape="poly" id="edge5_Node000004_Node000004" title=" " alt="" coords="589,39,589,28,598,20,614,14,638,12,667,15,683,23,680,28,665,20,638,17,615,19,601,24,594,30,594,39"/>
+<area shape="rect" id="Node000006" href="$classkcenon_1_1network_1_1integration_1_1monitoring__integration__manager.html#a0f8cb1959ed418ef13ec4b94aa0455dc" title="Get the current monitoring implementation." alt="" coords="791,117,1000,172"/>
+<area shape="poly" id="edge7_Node000005_Node000006" title=" " alt="" coords="743,142,777,142,777,147,743,147"/>
+</map>

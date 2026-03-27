@@ -1,0 +1,5 @@
+<map id="kcenon::network::protocols::quic::flow_controller::is_send_blocked" name="kcenon::network::protocols::quic::flow_controller::is_send_blocked">
+<area shape="rect" id="Node000001" title="Check if send is blocked." alt="" coords="257,5,456,60"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1flow__controller.html#a64ac3518f09c2218910569584954d815" title="Check if DATA_BLOCKED frame should be sent." alt="" coords="5,5,209,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="244,35,209,35,209,30,244,30"/>
+</map>

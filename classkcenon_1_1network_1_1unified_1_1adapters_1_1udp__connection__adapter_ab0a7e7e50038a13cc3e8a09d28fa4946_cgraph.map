@@ -1,0 +1,6 @@
+<map id="kcenon::network::unified::adapters::udp_connection_adapter::connect" name="kcenon::network::unified::adapters::udp_connection_adapter::connect">
+<area shape="rect" id="Node000001" title="Connects to a remote endpoint using URL." alt="" coords="5,15,203,69"/>
+<area shape="rect" id="Node000002" href="$namespacekcenon_1_1network.html#a9d2a06a302dea2b45b323b864eacad4a" title=" " alt="" coords="251,29,455,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="203,39,237,39,237,45,203,45"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="312,31,304,21,308,11,325,5,353,3,388,7,398,11,401,17,397,20,394,15,386,12,353,8,326,10,312,15,309,20,316,27"/>
+</map>

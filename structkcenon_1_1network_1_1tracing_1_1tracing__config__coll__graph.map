@@ -1,0 +1,22 @@
+<map id="kcenon::network::tracing::tracing_config" name="kcenon::network::tracing::tracing_config">
+<area shape="rect" id="Node000001" title="Main configuration structure for tracing." alt="" coords="345,724,520,944"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="271,148,349,213"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="351,199,404,235,429,260,448,289,469,341,482,395,489,450,492,506,485,613,469,708,464,708,480,613,487,506,484,451,477,396,464,343,444,292,425,264,401,239,348,203"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="58,291,213,371"/>
+<area shape="poly" id="edge4_Node000004_Node000002" title=" " alt="" coords="272,203,216,239,176,280,172,276,212,235,269,199"/>
+<area shape="rect" id="Node000008" href="$structkcenon_1_1network_1_1tracing_1_1otlp__config.html" title="OTLP exporter configuration." alt="" coords="252,541,427,641"/>
+<area shape="poly" id="edge9_Node000008_Node000002" title=" " alt="" coords="315,213,337,525,332,525,310,214"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="245,5,375,85"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="313,99,313,148,307,148,307,99"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="119,372,96,432,78,507,74,546,76,586,84,624,100,660,121,689,146,714,204,756,268,786,330,808,328,813,266,791,202,760,142,718,117,692,96,663,79,626,71,587,69,546,73,506,91,430,114,370"/>
+<area shape="poly" id="edge10_Node000008_Node000004" title=" " alt="" coords="153,370,183,432,203,465,225,496,258,529,255,533,221,499,198,468,178,434,148,372"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="5,148,132,213"/>
+<area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="66,227,67,247,72,266,88,289,83,292,68,268,62,248,60,227"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="20,13,43,78"/>
+<area shape="poly" id="edge6_Node000005_Node000006" title=" " alt="" coords="31,78,31,101,35,123,39,132,34,134,30,125,26,101,25,78"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="96,13,119,78"/>
+<area shape="poly" id="edge7_Node000005_Node000007" title=" " alt="" coords="101,79,85,133,80,131,96,77"/>
+<area shape="poly" id="edge8_Node000001_Node000008" title=" " alt="" coords="361,641,387,708,382,709,356,643"/>
+<area shape="rect" id="Node000009" href="$structkcenon_1_1network_1_1tracing_1_1batch__config.html" title="Batch export configuration." alt="" coords="503,521,685,661"/>
+<area shape="poly" id="edge11_Node000001_Node000009" title=" " alt="" coords="550,663,517,712,513,709,546,660"/>
+</map>

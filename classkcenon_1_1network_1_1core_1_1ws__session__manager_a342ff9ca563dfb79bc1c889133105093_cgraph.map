@@ -1,0 +1,5 @@
+<map id="kcenon::network::core::ws_session_manager::get_connection_count" name="kcenon::network::core::ws_session_manager::get_connection_count">
+<area shape="rect" id="Node000001" title="Gets the current connection count." alt="" coords="5,13,177,67"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1core_1_1session__manager__base.html#ae7e9c8abed9599045d5bffc4a63112b6" title="Get current session count." alt="" coords="225,5,408,75"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="177,37,212,37,212,43,177,43"/>
+</map>

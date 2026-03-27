@@ -1,0 +1,6 @@
+<map id="kcenon::network::integration::monitoring_integration_manager::set_monitoring" name="kcenon::network::integration::monitoring_integration_manager::set_monitoring">
+<area shape="rect" id="Node000001" title="Set the monitoring implementation." alt="" coords="220,29,429,84"/>
+<area shape="poly" id="edge2_Node000001_Node000001" title=" " alt="" coords="364,18,350,11,325,8,304,10,290,15,284,21,284,29,279,29,279,19,287,10,303,5,325,3,351,6,366,14"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1core_1_1network__context.html#a6b772e58b69b91e7a141b4ef873be7df" title="Set custom monitoring system." alt="" coords="5,29,172,84"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="206,59,172,59,172,54,206,54"/>
+</map>

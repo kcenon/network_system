@@ -1,0 +1,9 @@
+<map id="src/internal/integration/thread_pool_bridge.h" name="src/internal/integration/thread_pool_bridge.h">
+<area shape="rect" id="Node000001" title="Thread pool integration bridge for network_system." alt="" coords="130,5,301,45"/>
+<area shape="rect" id="Node000002" href="$network__system__bridge_8h.html" title="Unified facade for all network_system integration bridges." alt="" coords="5,93,215,148"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="186,56,141,95,138,91,182,52"/>
+<area shape="rect" id="Node000004" href="$thread__pool__bridge_8cpp.html" title=" " alt="" coords="239,101,402,141"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="248,52,301,99,298,103,245,56"/>
+<area shape="rect" id="Node000003" href="$network__system__bridge_8cpp.html" title=" " alt="" coords="23,196,197,236"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="113,162,113,196,107,196,107,162"/>
+</map>

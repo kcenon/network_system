@@ -1,0 +1,33 @@
+<map id="include/kcenon/network/detail/config/network_system_config.h" name="include/kcenon/network/detail/config/network_system_config.h">
+<area shape="rect" id="Node000001" title="Configuration for network_system with external dependencies." alt="" coords="5,5,183,60"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="299,372,377,397"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="81,61,54,115,31,184,25,221,26,257,34,292,52,322,67,334,89,345,151,361,221,371,285,378,285,383,220,377,150,366,88,350,64,339,48,326,29,294,21,258,20,221,26,183,49,113,76,59"/>
+<area shape="rect" id="Node000003" href="$network__config_8h.html" title="Configuration structures for standalone network_system initialization." alt="" coords="75,108,255,148"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="116,59,144,96,140,99,112,62"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="762,372,829,397"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="255,135,401,152,570,182,650,201,721,224,778,251,800,266,816,282,825,301,825,322,812,360,807,359,820,321,819,302,812,286,796,270,776,256,719,229,649,206,569,187,401,158,255,140"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="62,291,121,317"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="150,150,134,172,119,197,105,239,97,278,92,277,100,238,114,195,129,169,146,147"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="129,203,200,229"/>
+<area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="167,148,167,189,162,189,162,148"/>
+<area shape="rect" id="Node000007" href="$logger__integration_8h.html" title="Logger system integration interface for network_system." alt="" coords="225,196,382,236"/>
+<area shape="poly" id="edge6_Node000003_Node000007" title=" " alt="" coords="196,146,263,187,260,191,194,150"/>
+<area shape="poly" id="edge9_Node000007_Node000002" title=" " alt="" coords="321,235,336,257,347,283,351,323,347,359,342,358,346,323,342,285,331,260,317,238"/>
+<area shape="poly" id="edge10_Node000007_Node000005" title=" " alt="" coords="254,239,134,286,130,288,128,283,132,282,252,234"/>
+<area shape="rect" id="Node000008" href="$detail_2config_2feature__flags_8h.html" title="Feature flags for network_system." alt="" coords="635,284,801,324"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="383,231,622,280,621,285,382,236"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="145,291,211,317"/>
+<area shape="poly" id="edge8_Node000007_Node000009" title=" " alt="" coords="277,238,208,286,205,281,274,234"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="236,291,333,317"/>
+<area shape="poly" id="edge11_Node000007_Node000010" title=" " alt="" coords="302,237,293,278,288,277,297,236"/>
+<area shape="rect" id="Node000011" href="$thread__integration_8h.html" title="Thread system integration interface for network_system." alt="" coords="409,284,611,324"/>
+<area shape="poly" id="edge12_Node000007_Node000011" title=" " alt="" coords="350,234,453,276,451,281,348,239"/>
+<area shape="poly" id="edge14_Node000011_Node000002" title=" " alt="" coords="470,326,377,369,375,364,468,322"/>
+<area shape="poly" id="edge16_Node000011_Node000004" title=" " alt="" coords="579,321,749,368,748,373,578,327"/>
+<area shape="rect" id="Node000012" title=" " alt="" coords="401,372,488,397"/>
+<area shape="poly" id="edge13_Node000011_Node000012" title=" " alt="" coords="496,326,465,363,461,360,492,323"/>
+<area shape="rect" id="Node000013" title=" " alt="" coords="513,372,574,397"/>
+<area shape="poly" id="edge15_Node000011_Node000013" title=" " alt="" coords="521,323,535,358,531,360,516,325"/>
+<area shape="rect" id="Node000014" title=" " alt="" coords="599,372,661,397"/>
+<area shape="poly" id="edge17_Node000011_Node000014" title=" " alt="" coords="541,322,602,362,599,367,538,326"/>
+</map>

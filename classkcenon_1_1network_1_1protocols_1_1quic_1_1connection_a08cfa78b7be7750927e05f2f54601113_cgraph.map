@@ -1,0 +1,13 @@
+<map id="kcenon::network::protocols::quic::connection::enable_pmtud" name="kcenon::network::protocols::quic::connection::enable_pmtud">
+<area shape="rect" id="Node000001" title="Enable Path MTU Discovery." alt="" coords="5,91,243,131"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1pmtud__controller.html#abd35304ce8ab5196a3616d53447e02a9" title="Get current validated MTU." alt="" coords="294,5,493,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="193,89,285,61,287,66,194,94"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1pmtud__controller.html#a41204283118e8fc9fd544ddead2d61ab" title="Enable PMTUD and start probing." alt="" coords="294,84,493,139"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="243,109,280,109,280,114,243,114"/>
+<area shape="rect" id="Node000006" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1congestion__controller.html#a1317294d595488d6c689083794755989" title="Set max datagram size." alt="" coords="291,163,496,217"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="194,129,287,156,285,161,193,134"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1pmtud__controller.html#aac2441ca2314da33167c834745306412" title="Start probing from base MTU." alt="" coords="544,84,743,139"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="493,109,530,109,530,114,493,114"/>
+<area shape="rect" id="Node000005" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1pmtud__controller.html#aef9fc3094a35a731b13c5a7b2c0d4bb6" title="Calculate next probe size using binary search." alt="" coords="791,84,993,139"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="743,109,777,109,777,114,743,114"/>
+</map>

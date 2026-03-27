@@ -1,0 +1,27 @@
+<map id="src/internal/http/http_error.h" name="src/internal/http/http_error.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="289,5,444,45"/>
+<area shape="rect" id="Node000002" href="$http__types_8h.html" title=" " alt="" coords="254,93,357,119"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="354,47,325,84,321,81,350,44"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,262,64,287"/>
+<area shape="poly" id="edge11_Node000001_Node000003" title=" " alt="" coords="290,41,228,56,162,81,100,118,72,141,49,168,39,187,34,208,34,248,28,248,29,207,34,185,44,165,69,138,97,114,160,77,227,51,288,36"/>
+<area shape="rect" id="Node000011" title=" " alt="" coords="381,93,478,119"/>
+<area shape="poly" id="edge12_Node000001_Node000011" title=" " alt="" coords="384,44,413,81,409,84,380,47"/>
+<area shape="rect" id="Node000012" title=" " alt="" coords="503,93,569,119"/>
+<area shape="poly" id="edge13_Node000001_Node000012" title=" " alt="" coords="408,43,500,85,497,90,406,48"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="254,111,212,115,166,125,120,142,79,169,64,186,53,207,41,249,36,247,48,205,60,183,76,165,117,137,164,120,211,110,254,105"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="280,174,331,199"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="308,119,308,160,303,160,303,119"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="355,174,418,199"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="319,117,367,163,363,166,315,121"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="443,174,509,199"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="331,116,440,166,438,171,329,121"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="533,174,608,199"/>
+<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="352,116,522,164,530,167,528,172,521,169,351,121"/>
+<area shape="rect" id="Node000008" href="$result__types_8h.html" title=" " alt="" coords="89,167,255,207"/>
+<area shape="poly" id="edge7_Node000002_Node000008" title=" " alt="" coords="287,121,217,162,215,157,284,117"/>
+<area shape="poly" id="edge10_Node000008_Node000003" title=" " alt="" coords="143,209,66,257,63,252,140,204"/>
+<area shape="rect" id="Node000009" href="$detail_2config_2feature__flags_8h.html" title="Feature flags for network_system." alt="" coords="89,255,255,295"/>
+<area shape="poly" id="edge8_Node000008_Node000009" title=" " alt="" coords="175,207,175,241,169,241,169,207"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="279,262,347,287"/>
+<area shape="poly" id="edge9_Node000008_Node000010" title=" " alt="" coords="204,204,284,253,282,257,202,209"/>
+</map>

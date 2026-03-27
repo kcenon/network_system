@@ -1,0 +1,9 @@
+<map id="include/kcenon/network/detail/protocol/protocol_tags.h" name="include/kcenon/network/detail/protocol/protocol_tags.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="70,5,247,60"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,108,85,133"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="126,62,73,102,70,97,122,58"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="110,108,207,133"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="161,60,161,94,156,94,156,60"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="231,108,323,133"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="196,58,252,98,249,102,193,62"/>
+</map>

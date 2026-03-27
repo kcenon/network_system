@@ -1,0 +1,28 @@
+var searchData=
+[
+  ['half_5fclosed_5flocal_0',['half_closed_local',['../namespacekcenon_1_1network_1_1protocols_1_1http2.html#ae2e1ce369793e8da55ae725ca1076043ae60ac8952eb01c5cfaf2e5fcb39002e1',1,'kcenon::network::protocols::http2']]],
+  ['half_5fclosed_5fremote_1',['half_closed_remote',['../namespacekcenon_1_1network_1_1protocols_1_1http2.html#ae2e1ce369793e8da55ae725ca1076043a9e9b23d70c6c769ee106f6671967920d',1,'kcenon::network::protocols::http2']]],
+  ['handshake_2',['handshake',['../namespacekcenon_1_1network_1_1protocols_1_1quic.html#a8381ea489dfe1b9e5f1d4b9d2c07c282ab62ddf5022a23734d4927324ba8eb3b8',1,'kcenon::network::protocols::quic::handshake'],['../namespacekcenon_1_1network_1_1protocols_1_1quic.html#aa89e53b65d0e7a8f56a9a0e550dbc73dab62ddf5022a23734d4927324ba8eb3b8',1,'kcenon::network::protocols::quic::handshake'],['../namespacekcenon_1_1network_1_1internal.html#ab2cc63fc89b93d24d1458dfd9812e8d7ab62ddf5022a23734d4927324ba8eb3b8',1,'kcenon::network::internal::handshake']]],
+  ['handshake_5fdone_3',['handshake_done',['../namespacekcenon_1_1network_1_1protocols_1_1quic.html#a32af302166a80bcd687c7d6895502defae67b909a06e2b2c2aa4c3be624f316aa',1,'kcenon::network::protocols::quic']]],
+  ['handshake_5fstart_4',['handshake_start',['../namespacekcenon_1_1network_1_1internal.html#ab2cc63fc89b93d24d1458dfd9812e8d7aecc63c667a9b65c8b9d7b46adaadb929',1,'kcenon::network::internal']]],
+  ['handshaking_5',['handshaking',['../namespacekcenon_1_1network_1_1protocols_1_1quic.html#a300c24cbdc0671e75b37d2d8e3ce0dd9a19483675c94dd990882c3c65a5a6edbe',1,'kcenon::network::protocols::quic']]],
+  ['header_5fcount_5fexceeded_6',['header_count_exceeded',['../namespacekcenon_1_1network.html#a97a1657a626078d88a70b095bd084741acfbbe0ee9eb2fd2ee97f750e01cb91b7',1,'kcenon::network']]],
+  ['header_5ftable_5fsize_7',['header_table_size',['../namespacekcenon_1_1network_1_1protocols_1_1http2.html#ae17ee95b7f88e09ec441bbdca4a72e21a92a2de1c699da39a5d93d23374a8e674',1,'kcenon::network::protocols::http2']]],
+  ['header_5ftoo_5flarge_8',['header_too_large',['../namespacekcenon_1_1network_1_1internal.html#ae46ab26c306ce01aabd1bdb3fcb53f04a8fcb28f14dbb08403d19f68a1d4856aa',1,'kcenon::network::internal']]],
+  ['headers_9',['headers',['../namespacekcenon_1_1network_1_1protocols_1_1http2.html#af0442b5506df78cb9075116c18a4a181a4340fd73e75df7a9d9e45902a59ba3a4',1,'kcenon::network::protocols::http2']]],
+  ['histogram_10',['histogram',['../namespacekcenon_1_1network_1_1events.html#a65a25f09a3090bb124bc2bdeb0e830a1abdfb01f3ea1f6351d0d53d79625c347f',1,'kcenon::network::events::histogram'],['../namespacekcenon_1_1network_1_1integration.html#a1cd90348d098f028367ed92c80d32744abdfb01f3ea1f6351d0d53d79625c347f',1,'kcenon::network::integration::histogram']]],
+  ['http_5f1_5f0_11',['HTTP_1_0',['../namespacekcenon_1_1network_1_1internal.html#a578ef6d9576c5cb152f7ac6fc5a583bca1d02efaf46c41999ba900c92b1e39df1',1,'kcenon::network::internal']]],
+  ['http_5f1_5f1_12',['HTTP_1_1',['../namespacekcenon_1_1network_1_1internal.html#a578ef6d9576c5cb152f7ac6fc5a583bca5f1f9932b84e67c4a4b7e91c03335077',1,'kcenon::network::internal']]],
+  ['http_5f1_5f1_5frequired_13',['http_1_1_required',['../namespacekcenon_1_1network_1_1protocols_1_1http2.html#a0df6e8ddecc2f94e8c52a17c9b8ed47baf4e1d04458bd87209b474edbb7cdfc83',1,'kcenon::network::protocols::http2']]],
+  ['http_5f2_5f0_14',['HTTP_2_0',['../namespacekcenon_1_1network_1_1internal.html#a578ef6d9576c5cb152f7ac6fc5a583bca2fc9daa01c5f9c2d4d84b7e2ed4a91df',1,'kcenon::network::internal']]],
+  ['http_5fconnect_15',['HTTP_CONNECT',['../namespacekcenon_1_1network_1_1internal.html#af5a510a33e8abe4e4f14dd4a56dd8131a616c2abc08415a7c36ffedcc7f622f24',1,'kcenon::network::internal']]],
+  ['http_5fdelete_16',['HTTP_DELETE',['../namespacekcenon_1_1network_1_1internal.html#af5a510a33e8abe4e4f14dd4a56dd8131a12e304c13d7c0ac8e8ee4a636ffedb08',1,'kcenon::network::internal']]],
+  ['http_5fget_17',['HTTP_GET',['../namespacekcenon_1_1network_1_1internal.html#af5a510a33e8abe4e4f14dd4a56dd8131a90a9b84d456f88378c6b9bebc45918f1',1,'kcenon::network::internal']]],
+  ['http_5fhead_18',['HTTP_HEAD',['../namespacekcenon_1_1network_1_1internal.html#af5a510a33e8abe4e4f14dd4a56dd8131ad397752026568e4770340e6208a4bc01',1,'kcenon::network::internal']]],
+  ['http_5foptions_19',['HTTP_OPTIONS',['../namespacekcenon_1_1network_1_1internal.html#af5a510a33e8abe4e4f14dd4a56dd8131a304d975a7e3523d8469c080d59ac53c9',1,'kcenon::network::internal']]],
+  ['http_5fpatch_20',['HTTP_PATCH',['../namespacekcenon_1_1network_1_1internal.html#af5a510a33e8abe4e4f14dd4a56dd8131a58ec7c4df34d16181f524b9ec645659c',1,'kcenon::network::internal']]],
+  ['http_5fpost_21',['HTTP_POST',['../namespacekcenon_1_1network_1_1internal.html#af5a510a33e8abe4e4f14dd4a56dd8131a1635345aae18e1204bb847f4c78a11e2',1,'kcenon::network::internal']]],
+  ['http_5fput_22',['HTTP_PUT',['../namespacekcenon_1_1network_1_1internal.html#af5a510a33e8abe4e4f14dd4a56dd8131ab48b1d2c4afbba8502f2cdb2bd481072',1,'kcenon::network::internal']]],
+  ['http_5ftrace_23',['HTTP_TRACE',['../namespacekcenon_1_1network_1_1internal.html#af5a510a33e8abe4e4f14dd4a56dd8131a2d2c8732a55a4f0194b397eda886dbb5',1,'kcenon::network::internal']]],
+  ['http_5fversion_5fnot_5fsupported_24',['http_version_not_supported',['../namespacekcenon_1_1network_1_1internal.html#a86204ce59ef1afbff2a069cdfe73bae2afd476d25163868fcc2d5a6800b844ee2',1,'kcenon::network::internal']]]
+];

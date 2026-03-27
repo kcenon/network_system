@@ -1,0 +1,13 @@
+<map id="kcenon::network::protocols::grpc::grpc_message::parse" name="kcenon::network::protocols::grpc::grpc_message::parse">
+<area shape="rect" id="Node000001" title="Parse gRPC message from raw bytes." alt="" coords="516,131,720,171"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1protocols_1_1grpc_1_1grpc__client_1_1impl.html#a19da0c3df010229bc59dd7941c9f88ed" title=" " alt="" coords="261,5,459,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="570,127,467,74,440,63,442,58,469,69,572,122"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1protocols_1_1grpc_1_1client__stream__writer__impl.html#a4042e2b7548d0d5592b28f2724d862ee" title=" " alt="" coords="260,84,460,139"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="502,136,460,129,461,124,503,131"/>
+<area shape="rect" id="Node000005" href="$classkcenon_1_1network_1_1protocols_1_1grpc_1_1server__stream__reader__impl.html#a5081629e4b81b51ba4d04ae7e1eba129" title="Read next message from stream." alt="" coords="255,163,465,217"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="503,171,465,177,464,172,502,166"/>
+<area shape="rect" id="Node000006" href="$classkcenon_1_1network_1_1protocols_1_1grpc_1_1bidi__stream__impl.html#a743c8009b352aa6ea0f05234291f3f4b" title="Read next message from stream." alt="" coords="252,242,468,282"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="571,181,469,231,433,244,431,239,467,226,569,176"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1protocols_1_1grpc_1_1grpc__client_1_1impl.html#af482c55fd98e4fc15fa798c01ecfb2d9" title=" " alt="" coords="5,5,204,60"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="247,35,204,35,204,30,247,30"/>
+</map>

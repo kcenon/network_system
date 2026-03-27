@@ -1,0 +1,5 @@
+<map id="kcenon::network::integration::monitoring_integration_manager::report_counter" name="kcenon::network::integration::monitoring_integration_manager::report_counter">
+<area shape="rect" id="Node000001" title="Report a counter metric." alt="" coords="5,5,215,60"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1integration_1_1monitoring__integration__manager.html#a0f8cb1959ed418ef13ec4b94aa0455dc" title="Get the current monitoring implementation." alt="" coords="263,5,472,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="215,30,249,30,249,35,215,35"/>
+</map>

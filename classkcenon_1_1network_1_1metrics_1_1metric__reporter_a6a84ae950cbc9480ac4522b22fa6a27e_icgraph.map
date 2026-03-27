@@ -1,0 +1,5 @@
+<map id="kcenon::network::metrics::metric_reporter::report_connection_failed" name="kcenon::network::metrics::metric_reporter::report_connection_failed">
+<area shape="rect" id="Node000001" title="Report a failed connection attempt." alt="" coords="227,5,413,60"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1core_1_1messaging__server.html#a933a59d1bbad0d45d0c0ff84b87383b9" title="Handler called when an asynchronous accept finishes." alt="" coords="5,5,179,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="213,35,179,35,179,30,213,30"/>
+</map>

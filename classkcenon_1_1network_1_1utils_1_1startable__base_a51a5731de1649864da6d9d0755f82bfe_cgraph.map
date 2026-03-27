@@ -1,0 +1,5 @@
+<map id="kcenon::network::utils::startable_base::wait_for_stop" name="kcenon::network::utils::startable_base::wait_for_stop">
+<area shape="rect" id="Node000001" title="Blocks until stop is called." alt="" coords="5,5,172,60"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1utils_1_1lifecycle__manager.html#aa046623b5c242665aa0fea54ba4dc84c" title="Blocks until the component has stopped." alt="" coords="220,5,407,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="172,30,206,30,206,35,172,35"/>
+</map>

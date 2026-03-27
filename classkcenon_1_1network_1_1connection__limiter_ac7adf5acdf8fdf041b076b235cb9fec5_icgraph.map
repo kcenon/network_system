@@ -1,0 +1,11 @@
+<map id="kcenon::network::connection_limiter::current" name="kcenon::network::connection_limiter::current">
+<area shape="rect" id="Node000001" title="Get current connection count." alt="" coords="504,77,713,117"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1connection__limiter.html#ab091110dc45ab233a2d4d206613ff2d9" title="Get available connection slots." alt="" coords="247,5,456,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="523,76,423,48,424,43,524,71"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1per__client__connection__limiter.html#ad8716bb1032c4205702262f7b7674718" title="Get total connection count." alt="" coords="255,70,448,125"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="490,100,448,100,448,95,490,95"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1connection__limiter.html#a1fd29e367aab364c74509a148d4b42a8" title="Try to accept a connection." alt="" coords="247,149,456,189"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="524,124,424,152,423,147,523,119"/>
+<area shape="rect" id="Node000005" href="$classkcenon_1_1network_1_1per__client__connection__limiter.html#ac8708381b5c52acc656be4c1d5682f2e" title="Try to accept a connection from a client." alt="" coords="5,142,199,197"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="233,172,199,172,199,167,233,167"/>
+</map>

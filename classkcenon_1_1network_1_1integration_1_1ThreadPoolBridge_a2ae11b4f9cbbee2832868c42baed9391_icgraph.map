@@ -1,0 +1,5 @@
+<map id="kcenon::network::integration::ThreadPoolBridge::shutdown" name="kcenon::network::integration::ThreadPoolBridge::shutdown">
+<area shape="rect" id="Node000001" title="Shutdown the bridge." alt="" coords="332,5,548,45"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1integration_1_1ThreadPoolBridge.html#ad15a6a2ed1b587b605ff7cb0821b4f73" title="Destructor." alt="" coords="5,5,284,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="318,28,284,28,284,23,318,23"/>
+</map>

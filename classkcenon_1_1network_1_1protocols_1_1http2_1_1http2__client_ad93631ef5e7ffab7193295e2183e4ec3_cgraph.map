@@ -1,0 +1,16 @@
+<map id="kcenon::network::protocols::http2::http2_client::connect" name="kcenon::network::protocols::http2::http2_client::connect">
+<area shape="rect" id="Node000001" title="Connect to HTTP/2 server." alt="" coords="5,148,213,188"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1tracing_1_1trace__context.html#a0618b3e17f57071584025d5e47aa0541" title="Create a new root span with a new trace context." alt="" coords="261,37,468,77"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="145,146,198,117,260,88,283,79,285,84,262,93,201,122,147,150"/>
+<area shape="rect" id="Node000005" href="$namespacekcenon_1_1network.html#a9d2a06a302dea2b45b323b864eacad4a" title=" " alt="" coords="263,126,467,151"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="213,153,249,149,249,155,214,159"/>
+<area shape="rect" id="Node000006" href="$namespacekcenon_1_1network_1_1tracing.html#a6ab950c88c5666f30b2db30609a6834a" title="Check if tracing is enabled." alt="" coords="273,176,456,216"/>
+<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="214,177,260,182,260,187,213,182"/>
+<area shape="rect" id="Node000007" href="$namespacekcenon_1_1network.html#aa32d0dbfdee046c2c0cde3667c5f05a8" title=" " alt="" coords="287,241,442,266"/>
+<area shape="poly" id="edge7_Node000001_Node000007" title=" " alt="" coords="157,186,262,225,294,235,293,240,260,231,155,191"/>
+<area shape="rect" id="Node000003" href="$namespacekcenon_1_1network_1_1tracing.html#a933bb00747359508e4c9b490d42c495d" title="Generate a random span ID." alt="" coords="516,5,699,45"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="468,41,502,36,503,42,468,46"/>
+<area shape="rect" id="Node000004" href="$namespacekcenon_1_1network_1_1tracing.html#ab38da93c9d82d6795e6950368611ea35" title="Generate a random trace ID." alt="" coords="516,69,699,109"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="468,68,503,73,502,78,468,74"/>
+<area shape="poly" id="edge5_Node000005_Node000005" title=" " alt="" coords="325,128,317,118,321,108,338,102,365,99,399,103,409,108,412,114,408,117,405,112,398,108,365,105,339,107,325,112,322,117,329,124"/>
+</map>

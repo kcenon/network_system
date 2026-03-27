@@ -1,0 +1,8 @@
+<map id="kcenon::network::core::network_context::get_monitoring" name="kcenon::network::core::network_context::get_monitoring">
+<area shape="rect" id="Node000001" title="Get current monitoring system." alt="" coords="5,57,173,112"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1integration_1_1monitoring__integration__manager.html#a0f8cb1959ed418ef13ec4b94aa0455dc" title="Get the current monitoring implementation." alt="" coords="221,5,431,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="173,64,208,56,209,61,174,69"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1integration_1_1monitoring__integration__manager.html#a3a3880025d000147e508a14e7391e77c" title="Get the singleton instance." alt="" coords="221,108,431,163"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="174,100,209,108,208,113,173,105"/>
+<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="280,108,280,98,289,89,304,83,326,81,353,84,368,92,365,97,351,90,326,87,305,89,292,93,285,100,286,108"/>
+</map>

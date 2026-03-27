@@ -1,0 +1,10 @@
+<map id="kcenon::network::tracing::trace_context::is_valid" name="kcenon::network::tracing::trace_context::is_valid">
+<area shape="rect" id="Node000001" title="Check if this context is valid." alt="" coords="523,63,705,103"/>
+<area shape="rect" id="Node000002" href="$structkcenon_1_1network_1_1tracing_1_1span_1_1impl.html#aea28950e53e18527546e348bce93f5a9" title=" " alt="" coords="272,5,455,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="512,62,451,48,452,43,513,57"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1tracing_1_1trace__context.html#a56bf939763d5b57aa794104406b35ba1" title="Convert context to HTTP headers for propagation." alt="" coords="5,92,204,132"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="509,91,204,109,204,104,508,86"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1tracing_1_1trace__context.html#af4f2157b68da1caa1269127613ca1de1" title="Convert context to W3C traceparent header value." alt="" coords="252,120,475,160"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="513,108,452,123,451,117,512,103"/>
+<area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="238,129,204,125,205,120,239,124"/>
+</map>

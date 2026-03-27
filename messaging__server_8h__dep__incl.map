@@ -1,0 +1,22 @@
+<map id="src/internal/core/messaging_server.h" name="src/internal/core/messaging_server.h">
+<area shape="rect" id="Node000001" title="TCP server implementation." alt="" coords="197,5,400,45"/>
+<area shape="rect" id="Node000002" href="$network__system_8h.html" title="Main header for the Network System." alt="" coords="36,181,214,221"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="184,42,81,62,40,77,15,95,9,107,9,118,14,129,23,141,49,162,81,179,79,184,47,166,19,144,9,132,4,119,4,105,11,92,38,72,80,57,183,36"/>
+<area shape="rect" id="Node000004" href="$tcp__server__adapter_8cpp.html" title=" " alt="" coords="26,93,200,133"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="246,54,155,96,153,91,244,49"/>
+<area shape="rect" id="Node000005" href="$messaging__server_8cpp.html" title=" " alt="" coords="224,93,372,133"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="301,59,301,93,296,93,296,59"/>
+<area shape="rect" id="Node000006" href="$http__server_8h.html" title=" " alt="" coords="602,93,757,133"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="396,46,603,92,601,97,395,51"/>
+<area shape="rect" id="Node000009" href="$messaging__bridge_8h.html" title="Bridge for messaging_system compatibility implementing INetworkBridge." alt="" coords="397,93,568,133"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="352,49,443,91,441,96,350,54"/>
+<area shape="rect" id="Node000003" href="$network__system_8cpp.html" title=" " alt="" coords="35,269,215,295"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="128,235,128,269,122,269,122,235"/>
+<area shape="rect" id="Node000007" href="$http__server__adapter_8cpp.html" title=" " alt="" coords="590,181,770,221"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="682,147,682,181,677,181,677,147"/>
+<area shape="rect" id="Node000008" href="$http__server_8cpp.html" title=" " alt="" coords="794,189,968,214"/>
+<area shape="poly" id="edge7_Node000006_Node000008" title=" " alt="" coords="738,136,855,186,853,191,735,141"/>
+<area shape="poly" id="edge9_Node000009_Node000002" title=" " alt="" coords="391,139,204,184,203,179,390,134"/>
+<area shape="rect" id="Node000010" href="$messaging__bridge_8cpp.html" title="Implementation of messaging_bridge for messaging_system compatibility." alt="" coords="375,181,566,221"/>
+<area shape="poly" id="edge10_Node000009_Node000010" title=" " alt="" coords="480,147,476,181,470,181,475,147"/>
+</map>

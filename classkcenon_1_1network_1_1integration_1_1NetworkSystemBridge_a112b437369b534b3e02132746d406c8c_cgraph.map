@@ -1,0 +1,10 @@
+<map id="kcenon::network::integration::NetworkSystemBridge::create_default" name="kcenon::network::integration::NetworkSystemBridge::create_default">
+<area shape="rect" id="Node000001" title="Create bridge with default configuration." alt="" coords="5,57,231,112"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1integration_1_1ThreadPoolBridge.html#a6130525696d08becdc50c06455c90dd1" title="Create bridge from thread_system." alt="" coords="279,57,488,112"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="231,82,265,82,265,87,231,87"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1integration_1_1thread__integration__manager.html#ad6f8a98e075e47accb0a849e11f61fde" title="Get the current thread pool." alt="" coords="536,5,751,60"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="488,61,522,54,523,59,489,66"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1integration_1_1thread__integration__manager.html#a90d93374dd61a18d654e2f7cedf38f57" title="Get the singleton instance." alt="" coords="536,108,751,163"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="489,102,523,109,522,114,488,108"/>
+<area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="593,108,593,98,602,89,619,83,643,81,672,84,689,92,687,97,671,90,643,87,620,89,605,93,598,100,598,108"/>
+</map>

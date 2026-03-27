@@ -1,0 +1,8 @@
+<map id="kcenon::network::core::messaging_quic_client::do_stop_impl" name="kcenon::network::core::messaging_quic_client::do_stop_impl">
+<area shape="rect" id="Node000001" title="QUIC&#45;specific implementation of client stop." alt="" coords="5,40,184,95"/>
+<area shape="rect" id="Node000002" href="$namespacekcenon_1_1network.html#a9d2a06a302dea2b45b323b864eacad4a" title=" " alt="" coords="232,29,436,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="184,55,218,52,219,57,184,61"/>
+<area shape="rect" id="Node000003" href="$namespacekcenon_1_1network.html#aa32d0dbfdee046c2c0cde3667c5f05a8" title=" " alt="" coords="257,79,411,104"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="184,74,243,80,242,85,184,79"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="295,31,287,21,291,11,307,5,334,3,367,7,380,16,377,20,365,11,334,8,309,10,295,15,292,20,299,27"/>
+</map>

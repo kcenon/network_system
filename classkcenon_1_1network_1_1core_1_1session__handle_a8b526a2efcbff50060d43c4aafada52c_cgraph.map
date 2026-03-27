@@ -1,0 +1,7 @@
+<map id="kcenon::network::core::session_handle::send" name="kcenon::network::core::session_handle::send">
+<area shape="rect" id="Node000001" title="Sends data through the session." alt="" coords="5,5,175,45"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1Result.html#a7b79908eec88976bed49a6ae14031a50" title=" " alt="" coords="223,13,428,38"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="175,23,209,23,209,28,175,28"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1Result.html#a804e77909e5e6e85b7a36cdf72c9de9e" title=" " alt="" coords="476,5,655,45"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="428,23,462,23,462,28,428,28"/>
+</map>

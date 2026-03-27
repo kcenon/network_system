@@ -1,0 +1,8 @@
+<map id="kcenon::network::protocols::quic::quic_crypto::set_alpn" name="kcenon::network::protocols::quic::quic_crypto::set_alpn">
+<area shape="rect" id="Node000001" title="Set ALPN protocols to offer/accept." alt="" coords="5,47,208,87"/>
+<area shape="rect" id="Node000002" href="$namespacekcenon_1_1network.html#a9d2a06a302dea2b45b323b864eacad4a" title=" " alt="" coords="256,29,460,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="208,54,242,51,243,56,208,60"/>
+<area shape="rect" id="Node000003" href="$namespacekcenon_1_1network.html#aa32d0dbfdee046c2c0cde3667c5f05a8" title=" " alt="" coords="281,79,435,104"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="208,74,267,80,267,85,208,80"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="317,31,309,21,313,11,330,5,358,3,393,7,403,11,407,17,403,20,400,15,392,12,358,8,331,10,317,15,314,20,321,27"/>
+</map>

@@ -1,0 +1,13 @@
+<map id="src/internal/core/unified_messaging_server.h" name="src/internal/core/unified_messaging_server.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="105,5,280,45"/>
+<area shape="rect" id="Node000002" href="$network__system_8h.html" title="Main header for the Network System." alt="" coords="7,101,184,141"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="165,57,117,103,113,99,161,53"/>
+<area shape="rect" id="Node000004" href="$tcp__listener__adapter_8h.html" title=" " alt="" coords="209,93,371,148"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="224,53,264,91,261,95,220,57"/>
+<area shape="rect" id="Node000003" href="$network__system_8cpp.html" title=" " alt="" coords="5,203,185,229"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="98,155,98,203,93,203,93,155"/>
+<area shape="rect" id="Node000005" href="$tcp_8cpp.html" title=" " alt="" coords="213,203,362,229"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="292,162,290,203,285,203,286,162"/>
+<area shape="rect" id="Node000006" href="$tcp__listener__adapter_8cpp.html" title=" " alt="" coords="387,196,572,236"/>
+<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="357,152,442,193,440,198,354,156"/>
+</map>

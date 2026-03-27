@@ -1,0 +1,5 @@
+<map id="kcenon::network::core::http_server::should_close_connection" name="kcenon::network::core::http_server::should_close_connection">
+<area shape="rect" id="Node000001" title="Determine if connection should be closed after response." alt="" coords="5,5,172,60"/>
+<area shape="rect" id="Node000002" href="$structkcenon_1_1network_1_1internal_1_1http__response.html#aeb2d243f31f355fb80ecae7dcb96c7da" title="Get the value of a header (case&#45;insensitive)" alt="" coords="220,13,423,53"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="172,30,206,30,206,35,172,35"/>
+</map>

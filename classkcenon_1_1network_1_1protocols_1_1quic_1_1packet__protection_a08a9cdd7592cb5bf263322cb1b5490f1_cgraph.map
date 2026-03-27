@@ -1,0 +1,7 @@
+<map id="kcenon::network::protocols::quic::packet_protection::unprotect_header" name="kcenon::network::protocols::quic::packet_protection::unprotect_header">
+<area shape="rect" id="Node000001" title="Remove header protection." alt="" coords="5,27,204,82"/>
+<area shape="rect" id="Node000002" href="$namespacekcenon_1_1network.html#a2a241bfe680718c67e366aab3e04036e" title=" " alt="" coords="252,5,411,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="204,39,238,35,239,40,205,44"/>
+<area shape="rect" id="Node000003" href="$namespacekcenon_1_1network.html#aa32d0dbfdee046c2c0cde3667c5f05a8" title=" " alt="" coords="254,70,409,95"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="205,64,241,69,240,74,204,70"/>
+</map>

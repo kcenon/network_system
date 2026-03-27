@@ -1,0 +1,27 @@
+<map id="kcenon::network::protocols::quic::connection::on_timeout" name="kcenon::network::protocols::quic::connection::on_timeout">
+<area shape="rect" id="Node000001" title="Handle timeout event." alt="" coords="5,310,224,350"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1connection.html#ab1805696f146ed2b58a2853684c5ee1e" title="Handle loss detection result (RFC 9002)" alt="" coords="280,195,479,249"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="159,307,271,260,290,252,292,257,273,264,162,312"/>
+<area shape="rect" id="Node000011" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1connection.html#a286833dc951b1290c0cd2be50d4bf0f8" title="Check if connection is draining or closing." alt="" coords="272,274,487,314"/>
+<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="224,313,258,308,259,313,224,318"/>
+<area shape="rect" id="Node000012" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1loss__detector.html#a9c4b747a0f11452c5e25940047fbe942" title="Get the time of the next scheduled timeout." alt="" coords="280,339,479,393"/>
+<area shape="poly" id="edge11_Node000001_Node000012" title=" " alt="" coords="224,342,267,348,266,353,224,347"/>
+<area shape="rect" id="Node000013" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1loss__detector.html#a2f3fe93a6c0da8b557914fec86cb931d" title="Handle timeout expiry (RFC 9002 Section 6.2)" alt="" coords="280,417,479,472"/>
+<area shape="poly" id="edge12_Node000001_Node000013" title=" " alt="" coords="157,348,273,402,291,410,289,415,271,407,155,353"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1connection.html#a06bc4eb8eddacc230d3ca1022c607662" title="Generate probe packets for PTO (RFC 9002 Section 6.2.4) Sends one or two ack&#45;eliciting packets to pro..." alt="" coords="536,37,739,92"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="409,193,465,147,533,101,544,96,546,100,536,106,468,151,412,197"/>
+<area shape="rect" id="Node000007" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1congestion__controller.html#ad090868538b0241400040dc03e66edc6" title="Handle ECN congestion signal (RFC 9002 Section 7.1)" alt="" coords="535,116,740,171"/>
+<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="469,192,533,172,535,177,470,197"/>
+<area shape="rect" id="Node000008" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1congestion__controller.html#a0bf259fc868f705c6ecbef48b2285adf" title="Handle packet acknowledgment (RFC 9002 Section 7.3)" alt="" coords="535,195,740,249"/>
+<area shape="poly" id="edge7_Node000002_Node000008" title=" " alt="" coords="479,219,521,219,521,225,479,225"/>
+<area shape="rect" id="Node000009" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1congestion__controller.html#a1556b9b237f0b5d1c0ecf1ac9673888f" title="Handle packet loss (RFC 9002 Section 7.3.2)" alt="" coords="535,273,740,328"/>
+<area shape="poly" id="edge8_Node000002_Node000009" title=" " alt="" coords="470,247,535,267,533,272,469,252"/>
+<area shape="rect" id="Node000010" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1connection.html#a9c7b2e77e7efe646fd9570cd739fbd6e" title="Queue frames from lost packet for retransmission." alt="" coords="535,352,739,407"/>
+<area shape="poly" id="edge9_Node000002_Node000010" title=" " alt="" coords="470,247,488,260,505,280,513,300,521,319,537,337,543,342,539,346,533,341,516,321,508,302,501,283,485,264,467,252"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1quic__crypto.html#a50edbd655637b1d9aadcbe6bf24b359b" title="Get write keys for an encryption level." alt="" coords="788,37,987,92"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="739,62,774,62,774,67,739,67"/>
+<area shape="rect" id="Node000005" href="$namespacekcenon_1_1network_1_1protocols_1_1quic.html#a3366bf6044882f933e0621081d76882a" title="Convert encryption level to string for debugging." alt="" coords="1035,5,1233,60"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="987,49,1021,45,1021,50,987,54"/>
+<area shape="rect" id="Node000006" href="$namespacekcenon_1_1network.html#aa32d0dbfdee046c2c0cde3667c5f05a8" title=" " alt="" coords="1057,84,1211,109"/>
+<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="987,75,1043,82,1042,88,987,80"/>
+</map>

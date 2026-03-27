@@ -1,0 +1,33 @@
+<map id="include/kcenon/network/interfaces/i_protocol_server.h" name="include/kcenon/network/interfaces/i_protocol_server.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="354,5,531,60"/>
+<area shape="rect" id="Node000002" href="$i__network__component_8h.html" title=" " alt="" coords="5,108,184,133"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="355,58,155,107,153,102,353,53"/>
+<area shape="rect" id="Node000003" href="$i__session_8h.html" title=" " alt="" coords="310,108,405,133"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="418,62,381,100,377,96,415,58"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="160,189,227,214"/>
+<area shape="poly" id="edge11_Node000001_Node000004" title=" " alt="" coords="375,63,330,84,287,110,246,145,213,180,210,176,242,141,284,106,328,79,373,58"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="251,189,349,214"/>
+<area shape="poly" id="edge14_Node000001_Node000005" title=" " alt="" coords="356,62,324,82,300,109,293,125,291,142,295,175,290,175,286,142,288,123,295,107,321,78,353,58"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="373,189,435,214"/>
+<area shape="poly" id="edge16_Node000001_Node000006" title=" " alt="" coords="439,61,412,176,407,175,434,60"/>
+<area shape="rect" id="Node000007" href="$result_8h.html" title="Public header for Result&lt;T&gt; error handling types." alt="" coords="459,181,626,221"/>
+<area shape="poly" id="edge17_Node000001_Node000007" title=" " alt="" coords="461,59,527,168,522,171,456,62"/>
+<area shape="rect" id="Node000012" title=" " alt="" coords="531,108,618,133"/>
+<area shape="poly" id="edge12_Node000001_Node000012" title=" " alt="" coords="484,58,547,98,544,103,482,62"/>
+<area shape="rect" id="Node000013" title=" " alt="" coords="643,108,720,133"/>
+<area shape="poly" id="edge13_Node000001_Node000013" title=" " alt="" coords="516,58,637,101,636,106,515,63"/>
+<area shape="rect" id="Node000014" title=" " alt="" coords="745,108,853,133"/>
+<area shape="poly" id="edge15_Node000001_Node000014" title=" " alt="" coords="532,53,739,102,738,107,531,58"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="335,136,231,185,228,180,332,131"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="351,135,319,179,314,176,347,132"/>
+<area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="367,132,392,175,388,178,362,135"/>
+<area shape="poly" id="edge6_Node000003_Node000007" title=" " alt="" coords="385,131,487,174,485,178,383,136"/>
+<area shape="rect" id="Node000008" href="$result__types_8h.html" title=" " alt="" coords="459,269,626,309"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="545,222,545,255,540,255,540,222"/>
+<area shape="rect" id="Node000009" href="$detail_2config_2feature__flags_8h.html" title="Feature flags for network_system." alt="" coords="318,357,485,397"/>
+<area shape="poly" id="edge8_Node000008_Node000009" title=" " alt="" coords="513,312,445,353,443,348,510,307"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="509,365,577,390"/>
+<area shape="poly" id="edge9_Node000008_Node000010" title=" " alt="" coords="545,310,545,351,540,351,540,310"/>
+<area shape="rect" id="Node000011" title=" " alt="" coords="601,365,660,390"/>
+<area shape="poly" id="edge10_Node000008_Node000011" title=" " alt="" coords="564,308,610,353,607,356,560,312"/>
+</map>

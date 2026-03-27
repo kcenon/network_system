@@ -1,0 +1,7 @@
+<map id="kcenon::network::protocols::http2::dynamic_table::current_size" name="kcenon::network::protocols::http2::dynamic_table::current_size">
+<area shape="rect" id="Node000001" title="Get current table size." alt="" coords="252,45,451,100"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1protocols_1_1http2_1_1hpack__encoder.html#aa2ec406c46d97f08c331a4b52646d170" title="Get current dynamic table size." alt="" coords="5,5,204,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="238,57,204,51,205,46,239,52"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1protocols_1_1http2_1_1hpack__decoder.html#a4331ffcff3501963fa990a8ec988e016" title="Get current dynamic table size." alt="" coords="5,84,204,139"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="239,93,205,98,204,93,238,88"/>
+</map>

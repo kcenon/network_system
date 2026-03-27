@@ -1,0 +1,5 @@
+<map id="kcenon::network::core::session_handle::update_activity" name="kcenon::network::core::session_handle::update_activity">
+<area shape="rect" id="Node000001" title="Updates the last activity timestamp." alt="" coords="248,5,431,60"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1core_1_1unified__session__manager.html#a3187a68bed04144fe67cc648f03988ea" title="Update activity timestamp for a session." alt="" coords="5,5,200,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="234,35,200,35,200,30,234,30"/>
+</map>

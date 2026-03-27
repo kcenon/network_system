@@ -1,0 +1,13 @@
+<map id="kcenon::network::protocols::grpc::grpc_message::serialize" name="kcenon::network::protocols::grpc::grpc_message::serialize">
+<area shape="rect" id="Node000001" title="Serialize message to bytes with length prefix." alt="" coords="520,131,743,171"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1protocols_1_1grpc_1_1grpc__client_1_1impl.html#a19da0c3df010229bc59dd7941c9f88ed" title=" " alt="" coords="263,5,461,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="580,127,471,74,443,63,445,58,473,69,583,122"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1protocols_1_1grpc_1_1grpc__client_1_1impl.html#ada211ff7dd4a1a8bd25846f61db2fc11" title=" " alt="" coords="263,84,461,139"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="506,135,461,129,462,123,507,130"/>
+<area shape="rect" id="Node000005" href="$classkcenon_1_1network_1_1protocols_1_1grpc_1_1client__stream__writer__impl.html#a610f64b81bd77fc9a484069d8c559e53" title="Write message to stream." alt="" coords="262,163,462,217"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="507,172,463,178,462,173,506,167"/>
+<area shape="rect" id="Node000006" href="$classkcenon_1_1network_1_1protocols_1_1grpc_1_1bidi__stream__impl.html#a0b89fd16ee8eca1b6fde6a6db297f0f2" title="Write message to stream." alt="" coords="252,242,472,282"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="582,180,473,231,436,244,434,239,471,226,580,175"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1protocols_1_1grpc_1_1grpc__client_1_1impl.html#af482c55fd98e4fc15fa798c01ecfb2d9" title=" " alt="" coords="5,5,204,60"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="249,35,204,35,204,30,249,30"/>
+</map>

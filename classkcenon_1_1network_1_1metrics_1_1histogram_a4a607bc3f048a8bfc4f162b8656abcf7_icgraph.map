@@ -1,0 +1,5 @@
+<map id="kcenon::network::metrics::histogram::update_max" name="kcenon::network::metrics::histogram::update_max">
+<area shape="rect" id="Node000001" title="Update max value atomically." alt="" coords="240,5,427,45"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1metrics_1_1histogram.html#a1c62b705f04a0088aa4991e76f7d51f0" title="Record a value observation." alt="" coords="5,5,192,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="227,28,192,28,192,23,227,23"/>
+</map>

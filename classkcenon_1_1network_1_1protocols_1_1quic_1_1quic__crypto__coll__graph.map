@@ -1,0 +1,43 @@
+<map id="kcenon::network::protocols::quic::quic_crypto" name="kcenon::network::protocols::quic::quic_crypto">
+<area shape="rect" id="Node000001" title="QUIC&#45;TLS integration handler (RFC 9001)" alt="" coords="751,1449,942,1729"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="758,1292,934,1387"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="849,1387,849,1433,844,1433,844,1387"/>
+<area shape="rect" id="Node000003" href="$structkcenon_1_1network_1_1protocols_1_1quic_1_1quic__crypto_1_1impl.html" title=" " alt="" coords="650,909,840,1229"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="808,1229,826,1276,821,1278,803,1231"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="303,737,507,832"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="463,830,639,977,636,981,459,834"/>
+<area shape="rect" id="Node000005" href="$structkcenon_1_1network_1_1protocols_1_1quic_1_1quic__keys.html" title="QUIC encryption keys for a single encryption level (RFC 9001 Section 5)" alt="" coords="310,505,500,645"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="408,645,408,721,402,721,402,645"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="230,312,370,392"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="321,391,368,489,363,492,316,393"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="417,133,532,199"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="404,175,377,181,351,191,327,205,307,224,297,244,292,266,293,311,288,312,287,266,292,242,303,221,324,201,349,186,376,176,403,169"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="394,312,544,392"/>
+<area shape="poly" id="edge9_Node000009_Node000007" title=" " alt="" coords="476,213,473,312,468,312,470,212"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="568,312,708,392"/>
+<area shape="poly" id="edge11_Node000010_Node000007" title=" " alt="" coords="546,183,577,198,604,221,619,242,629,265,639,311,634,312,624,267,614,244,600,224,575,203,544,187"/>
+<area shape="rect" id="Node000011" title=" " alt="" coords="66,312,206,392"/>
+<area shape="poly" id="edge13_Node000011_Node000007" title=" " alt="" coords="404,180,224,206,119,225,109,244,107,266,111,289,118,311,113,312,106,290,102,266,104,242,116,221,223,201,403,175"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="622,5,644,71"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="623,50,528,125,525,121,620,46"/>
+<area shape="rect" id="Node000012" title=" " alt="" coords="114,133,240,199"/>
+<area shape="poly" id="edge16_Node000012_Node000008" title=" " alt="" coords="622,45,257,145,256,140,621,40"/>
+<area shape="rect" id="Node000017" title=" " alt="" coords="640,133,762,199"/>
+<area shape="poly" id="edge21_Node000017_Node000008" title=" " alt="" coords="647,59,678,117,674,120,642,62"/>
+<area shape="rect" id="Node000018" title=" " alt="" coords="873,223,1022,288"/>
+<area shape="poly" id="edge23_Node000018_Node000008" title=" " alt="" coords="646,41,694,61,755,92,836,151,904,209,901,213,833,155,752,97,692,66,644,46"/>
+<area shape="poly" id="edge8_Node000005_Node000009" title=" " alt="" coords="460,393,432,490,427,489,455,392"/>
+<area shape="poly" id="edge10_Node000005_Node000010" title=" " alt="" coords="599,394,491,496,488,492,595,390"/>
+<area shape="poly" id="edge12_Node000005_Node000011" title=" " alt="" coords="190,390,216,414,242,448,252,463,267,479,298,505,295,510,263,483,247,466,237,451,212,418,186,394"/>
+<area shape="poly" id="edge14_Node000004_Node000012" title=" " alt="" coords="117,209,102,224,50,288,31,317,18,346,10,376,9,408,15,442,30,480,55,523,85,563,119,600,157,634,235,691,309,735,306,740,232,696,153,638,116,604,81,567,50,526,25,482,10,444,4,408,5,376,13,345,27,314,46,284,98,221,114,205"/>
+<area shape="rect" id="Node000013" title=" " alt="" coords="166,5,188,71"/>
+<area shape="poly" id="edge15_Node000012_Node000013" title=" " alt="" coords="180,71,180,117,174,117,174,71"/>
+<area shape="rect" id="Node000014" title=" " alt="" coords="648,752,727,817"/>
+<area shape="poly" id="edge17_Node000003_Node000014" title=" " alt="" coords="697,817,712,893,707,894,692,818"/>
+<area shape="rect" id="Node000015" title=" " alt="" coords="609,535,740,615"/>
+<area shape="poly" id="edge18_Node000014_Node000015" title=" " alt="" coords="681,629,688,751,683,752,675,629"/>
+<area shape="rect" id="Node000016" title=" " alt="" coords="703,416,862,481"/>
+<area shape="poly" id="edge19_Node000003_Node000016" title=" " alt="" coords="783,482,760,885,759,893,754,893,754,885,778,482"/>
+<area shape="poly" id="edge20_Node000016_Node000017" title=" " alt="" coords="751,208,760,222,777,272,786,326,789,375,788,416,783,416,784,375,781,326,772,274,755,224,747,211"/>
+<area shape="poly" id="edge22_Node000002_Node000018" title=" " alt="" coords="950,301,950,447,950,1071,943,1133,926,1193,902,1248,878,1293,873,1290,897,1246,920,1192,938,1132,945,1071,945,447,945,301"/>
+</map>

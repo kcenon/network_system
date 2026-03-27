@@ -1,0 +1,11 @@
+<map id="kcenon::network::unified::i_listener" name="kcenon::network::unified::i_listener">
+<area shape="rect" id="Node000001" title="Core interface for passive network listeners (server&#45;side)" alt="" coords="349,5,523,305"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1unified_1_1adapters_1_1quic__listener__adapter.html" title="Adapter that implements i_listener for QUIC protocol." alt="" coords="5,353,200,1028"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="339,226,273,285,241,319,214,355,202,374,198,371,210,352,237,315,269,281,336,222"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1unified_1_1adapters_1_1tcp__listener__adapter.html" title="Adapter that wraps unified_messaging_server to implement i_listener." alt="" coords="224,433,424,948"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="405,319,381,433,375,432,399,318"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1unified_1_1adapters_1_1udp__listener__adapter.html" title="Adapter that wraps messaging_udp_server to implement i_listener." alt="" coords="448,433,648,948"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="473,318,497,432,491,433,467,319"/>
+<area shape="rect" id="Node000005" href="$classkcenon_1_1network_1_1unified_1_1adapters_1_1ws__listener__adapter.html" title="Adapter that wraps messaging_ws_server to implement i_listener." alt="" coords="672,443,872,938"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="537,223,603,281,635,315,662,352,688,396,709,442,705,444,683,398,658,355,631,319,599,285,533,227"/>
+</map>

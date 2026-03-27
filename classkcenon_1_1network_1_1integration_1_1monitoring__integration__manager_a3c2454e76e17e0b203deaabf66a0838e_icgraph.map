@@ -1,0 +1,13 @@
+<map id="kcenon::network::integration::monitoring_integration_manager::report_histogram" name="kcenon::network::integration::monitoring_integration_manager::report_histogram">
+<area shape="rect" id="Node000001" title="Report a histogram metric." alt="" coords="475,124,684,179"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1metrics_1_1metric__reporter.html#a1f3bcb7624320ba5b91887307b383fb8" title="Record connection time to internal histogram." alt="" coords="240,5,427,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="516,120,426,74,401,62,403,58,428,69,518,115"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1metrics_1_1metric__reporter.html#a9ee5295d26b397a9c1df5d8cab7965be" title="Record request duration to internal histogram." alt="" coords="240,84,427,139"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="461,135,427,129,427,124,461,129"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1metrics_1_1metric__reporter.html#a34136cb6ae69fb7e2eb0c0e5e96bde11" title="Report network latency." alt="" coords="240,163,427,217"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="461,173,427,178,427,173,461,167"/>
+<area shape="rect" id="Node000006" href="$classkcenon_1_1network_1_1metrics_1_1metric__reporter.html#a26c08d36c1b01f1af19d5804f3d428d8" title="Report session duration." alt="" coords="240,241,427,296"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="515,187,428,231,400,244,398,239,426,226,513,183"/>
+<area shape="rect" id="Node000005" href="$classkcenon_1_1network_1_1metrics_1_1metric__reporter.html#a5413725d7637114e7e1e0f097313ff43" title="Record latency to internal histogram." alt="" coords="5,163,192,217"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="227,193,192,193,192,187,227,187"/>
+</map>

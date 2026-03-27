@@ -1,0 +1,9 @@
+<map id="kcenon::network::protocols::grpc::status_code_to_string" name="kcenon::network::protocols::grpc::status_code_to_string">
+<area shape="rect" id="Node000001" title="Convert status code to string." alt="" coords="524,49,732,89"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1protocols_1_1grpc_1_1grpc__client_1_1impl.html#a19da0c3df010229bc59dd7941c9f88ed" title=" " alt="" coords="265,5,463,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="510,55,463,49,464,44,511,50"/>
+<area shape="rect" id="Node000004" href="$structkcenon_1_1network_1_1protocols_1_1grpc_1_1grpc__status.html#a0c1d57bfb775d1e8dea8b104f0efe453" title="Get status code as string." alt="" coords="252,85,476,125"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="511,87,477,92,476,87,510,82"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1protocols_1_1grpc_1_1grpc__client_1_1impl.html#af482c55fd98e4fc15fa798c01ecfb2d9" title=" " alt="" coords="5,5,204,60"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="251,35,204,35,204,30,251,30"/>
+</map>

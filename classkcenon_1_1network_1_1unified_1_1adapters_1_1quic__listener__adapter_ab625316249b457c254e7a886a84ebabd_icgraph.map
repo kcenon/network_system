@@ -1,0 +1,5 @@
+<map id="kcenon::network::unified::adapters::quic_listener_adapter::accept_thread_func" name="kcenon::network::unified::adapters::quic_listener_adapter::accept_thread_func">
+<area shape="rect" id="Node000001" title="Accept thread function." alt="" coords="236,5,451,60"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1unified_1_1adapters_1_1quic__listener__adapter.html#a08d3dc64f9ba842c201a0d6395b766a2" title="Starts listening for incoming connections." alt="" coords="5,5,188,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="222,35,188,35,188,30,222,30"/>
+</map>

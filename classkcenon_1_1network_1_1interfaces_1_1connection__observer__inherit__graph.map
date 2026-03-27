@@ -1,0 +1,7 @@
+<map id="kcenon::network::interfaces::connection_observer" name="kcenon::network::interfaces::connection_observer">
+<area shape="rect" id="Node000001" title="Observer interface for client connection events." alt="" coords="115,5,309,165"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1interfaces_1_1callback__adapter.html" title="Adapter to use function callbacks with the observer pattern." alt="" coords="5,213,200,493"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="177,179,162,214,157,212,172,177"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1interfaces_1_1null__connection__observer.html" title="No&#45;op implementation of connection_observer." alt="" coords="224,283,419,423"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="252,177,295,282,291,284,247,179"/>
+</map>

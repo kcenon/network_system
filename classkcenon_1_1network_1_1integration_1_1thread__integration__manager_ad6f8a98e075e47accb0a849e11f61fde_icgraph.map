@@ -1,0 +1,11 @@
+<map id="kcenon::network::integration::thread_integration_manager::get_thread_pool" name="kcenon::network::integration::thread_integration_manager::get_thread_pool">
+<area shape="rect" id="Node000001" title="Get the current thread pool." alt="" coords="553,84,768,139"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1integration_1_1ThreadPoolBridge.html#a6130525696d08becdc50c06455c90dd1" title="Create bridge from thread_system." alt="" coords="287,44,497,99"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="539,96,496,90,497,84,540,91"/>
+<area shape="rect" id="Node000005" href="$classkcenon_1_1network_1_1integration_1_1messaging__bridge.html#ae440f6b9cd79a46fc86d14e7123e16e2" title="Get the thread pool interface." alt="" coords="279,123,505,177"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="540,131,506,136,505,131,539,126"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1integration_1_1NetworkSystemBridge.html#a112b437369b534b3e02132746d406c8c" title="Create bridge with default configuration." alt="" coords="5,5,231,60"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="273,57,231,51,231,46,274,52"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1integration_1_1NetworkSystemBridge.html#a716ed464845cd062da4f077f51732f96" title="Create bridge with thread_system integration." alt="" coords="12,84,224,139"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="275,91,225,99,224,93,274,86"/>
+</map>

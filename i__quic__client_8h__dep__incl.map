@@ -1,0 +1,27 @@
+<map id="src/internal/interfaces/i_quic_client.h" name="src/internal/interfaces/i_quic_client.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="653,5,817,45"/>
+<area shape="rect" id="Node000002" href="$quic__client_8h.html" title=" " alt="" coords="642,93,829,133"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="738,59,738,93,733,93,733,59"/>
+<area shape="rect" id="Node000003" href="$quic__session_8h.html" title=" " alt="" coords="300,181,515,221"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="651,139,480,184,478,179,650,134"/>
+<area shape="rect" id="Node000010" href="$quic__client__adapter_8cpp.html" title=" " alt="" coords="750,181,926,221"/>
+<area shape="poly" id="edge9_Node000002_Node000010" title=" " alt="" coords="770,140,817,179,814,183,767,144"/>
+<area shape="rect" id="Node000011" href="$quic__client_8cpp.html" title=" " alt="" coords="950,181,1113,221"/>
+<area shape="poly" id="edge10_Node000002_Node000011" title=" " alt="" coords="814,135,967,179,966,184,813,140"/>
+<area shape="rect" id="Node000012" href="$quic__server_8h.html" title=" " alt="" coords="539,181,726,221"/>
+<area shape="poly" id="edge11_Node000002_Node000012" title=" " alt="" coords="704,144,657,183,654,179,700,140"/>
+<area shape="rect" id="Node000004" href="$session_8h.html" title="Unified session header for network_system." alt="" coords="7,269,184,309"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="326,228,164,272,163,267,325,222"/>
+<area shape="rect" id="Node000007" href="$quic__server__adapter_8cpp.html" title=" " alt="" coords="441,269,622,309"/>
+<area shape="poly" id="edge6_Node000003_Node000007" title=" " alt="" coords="448,227,505,267,502,271,445,231"/>
+<area shape="rect" id="Node000008" href="$quic__server_8cpp.html" title=" " alt="" coords="646,269,809,309"/>
+<area shape="poly" id="edge7_Node000003_Node000008" title=" " alt="" coords="492,222,658,267,657,272,490,228"/>
+<area shape="rect" id="Node000009" href="$quic__session_8cpp.html" title=" " alt="" coords="209,277,417,302"/>
+<area shape="poly" id="edge8_Node000003_Node000009" title=" " alt="" coords="378,233,328,278,324,274,374,229"/>
+<area shape="rect" id="Node000005" href="$network__system_8h.html" title="Main header for the Network System." alt="" coords="7,357,184,397"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="98,323,98,357,93,357,93,323"/>
+<area shape="rect" id="Node000006" href="$network__system_8cpp.html" title=" " alt="" coords="5,445,185,471"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="98,411,98,445,93,445,93,411"/>
+<area shape="poly" id="edge12_Node000012_Node000007" title=" " alt="" coords="601,232,555,271,552,267,598,228"/>
+<area shape="poly" id="edge13_Node000012_Node000008" title=" " alt="" coords="666,229,708,267,705,271,662,233"/>
+</map>

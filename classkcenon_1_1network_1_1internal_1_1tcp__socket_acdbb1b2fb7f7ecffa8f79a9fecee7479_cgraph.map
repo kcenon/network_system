@@ -1,0 +1,5 @@
+<map id="kcenon::network::internal::tcp_socket::reset_metrics" name="kcenon::network::internal::tcp_socket::reset_metrics">
+<area shape="rect" id="Node000001" title="Resets socket metrics to zero." alt="" coords="5,5,201,45"/>
+<area shape="rect" id="Node000002" href="$structkcenon_1_1network_1_1internal_1_1socket__metrics.html#aa2c5a5a85a31a76fe81035504d7f9e9d" title=" " alt="" coords="249,5,437,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="202,23,236,23,236,28,202,28"/>
+</map>

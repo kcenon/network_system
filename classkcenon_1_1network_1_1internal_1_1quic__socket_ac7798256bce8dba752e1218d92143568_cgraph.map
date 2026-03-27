@@ -1,0 +1,8 @@
+<map id="kcenon::network::internal::quic_socket::close_stream" name="kcenon::network::internal::quic_socket::close_stream">
+<area shape="rect" id="Node000001" title="Close a stream." alt="" coords="5,47,207,87"/>
+<area shape="rect" id="Node000002" href="$namespacekcenon_1_1network.html#a9d2a06a302dea2b45b323b864eacad4a" title=" " alt="" coords="255,29,459,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="207,55,241,51,241,56,207,60"/>
+<area shape="rect" id="Node000003" href="$namespacekcenon_1_1network.html#aa32d0dbfdee046c2c0cde3667c5f05a8" title=" " alt="" coords="279,79,434,104"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="207,74,266,80,265,85,207,80"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="316,31,307,21,312,11,329,5,357,3,392,7,402,11,406,17,401,20,399,15,391,12,357,8,330,10,315,15,313,20,320,27"/>
+</map>

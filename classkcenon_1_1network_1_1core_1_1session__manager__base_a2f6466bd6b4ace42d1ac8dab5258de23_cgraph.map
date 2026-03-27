@@ -1,0 +1,7 @@
+<map id="kcenon::network::core::session_manager_base::get_stats" name="kcenon::network::core::session_manager_base::get_stats">
+<area shape="rect" id="Node000001" title="Get comprehensive statistics." alt="" coords="5,45,188,100"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1core_1_1session__manager__base.html#a59aa684f597b3d1894484bc46679c745" title="Get current session utilization." alt="" coords="236,5,419,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="188,54,222,48,223,53,189,59"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1core_1_1session__manager__base.html#aafda1dc660dab89c8820ee1703e8f321" title="Check if backpressure should be applied." alt="" coords="236,84,419,139"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="189,85,223,91,222,96,188,91"/>
+</map>

@@ -1,0 +1,7 @@
+<map id="kcenon::network::metrics::metric_reporter::report_active_connections" name="kcenon::network::metrics::metric_reporter::report_active_connections">
+<area shape="rect" id="Node000001" title="Report active connections count." alt="" coords="236,45,423,100"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1core_1_1messaging__server.html#a933a59d1bbad0d45d0c0ff84b87383b9" title="Handler called when an asynchronous accept finishes." alt="" coords="10,5,183,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="222,57,183,50,184,45,223,52"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1core_1_1messaging__quic__server.html#a1489b8e64b0549d6cb33e22bccabb7f5" title=" " alt="" coords="5,84,188,139"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="223,93,189,99,188,94,222,88"/>
+</map>

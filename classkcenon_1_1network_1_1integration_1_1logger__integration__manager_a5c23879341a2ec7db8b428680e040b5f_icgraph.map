@@ -1,0 +1,9 @@
+<map id="kcenon::network::integration::logger_integration_manager::set_logger" name="kcenon::network::integration::logger_integration_manager::set_logger">
+<area shape="rect" id="Node000001" title="Set the logger implementation." alt="" coords="256,48,471,103"/>
+<area shape="rect" id="Node000002" href="$namespacekcenon_1_1network.html#af20cba7cf1e55a5530e9207dc0eed9ab" title="Initialize the network system with custom settings." alt="" coords="9,5,204,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="242,51,164,33,165,28,243,46"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1core_1_1network__context.html#a9d88cbc0a3afc7df773a32afafe3e8a2" title="Initialize all systems." alt="" coords="5,55,208,95"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="242,78,208,78,208,73,242,73"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1core_1_1network__context.html#aa1c6f1517885922075824aa0a8439a4c" title="Set custom logger." alt="" coords="23,120,190,175"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="253,109,191,127,190,121,252,104"/>
+</map>

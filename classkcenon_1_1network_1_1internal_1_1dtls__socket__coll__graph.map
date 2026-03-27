@@ -1,0 +1,18 @@
+<map id="kcenon::network::internal::dtls_socket" name="kcenon::network::internal::dtls_socket">
+<area shape="rect" id="Node000001" title="A wrapper around ASIO UDP socket with OpenSSL DTLS encryption." alt="" coords="253,463,441,1043"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,261,192,341"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="129,352,255,580,250,582,124,355"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="217,261,357,341"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="288,341,291,438,291,446,286,447,285,439,283,342"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="240,133,355,199"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="296,212,292,261,287,261,291,212"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="357,5,379,71"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="359,54,329,96,317,119,313,117,324,93,354,51"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="383,133,508,199"/>
+<area shape="poly" id="edge8_Node000008_Node000005" title=" " alt="" coords="382,55,406,93,421,118,416,120,402,96,377,58"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="554,269,638,334"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="595,334,587,385,569,440,544,490,516,539,453,630,448,627,511,537,540,488,564,438,581,384,590,334"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="381,269,526,334"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="429,336,412,366,385,448,380,446,407,364,425,333"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="451,212,454,268,449,268,445,212"/>
+</map>

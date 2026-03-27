@@ -1,0 +1,6 @@
+<map id="kcenon::network::metrics::sliding_histogram::count" name="kcenon::network::metrics::sliding_histogram::count">
+<area shape="rect" id="Node000001" title="Get total number of observations in current window." alt="" coords="244,29,435,69"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="380,18,366,11,339,8,316,10,303,15,298,21,300,28,295,30,292,20,300,10,315,5,339,3,367,6,382,13"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1metrics_1_1sliding__histogram.html#a4b942731eea612b99da34f901f538769" title="Get mean of all observations in current window." alt="" coords="5,29,196,69"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="230,52,196,52,196,47,230,47"/>
+</map>

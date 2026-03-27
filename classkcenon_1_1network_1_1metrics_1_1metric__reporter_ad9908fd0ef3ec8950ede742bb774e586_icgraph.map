@@ -1,0 +1,9 @@
+<map id="kcenon::network::metrics::metric_reporter::report_bytes_sent" name="kcenon::network::metrics::metric_reporter::report_bytes_sent">
+<area shape="rect" id="Node000001" title="Report bytes sent." alt="" coords="300,62,487,117"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1session_1_1quic__session.html#a7001a8a2e3bb5ad9792d5120f5349c60" title="Sends data to the client (interface version)." alt="" coords="35,5,222,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="286,66,212,48,213,43,287,61"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1session_1_1quic__session.html#a6e72ebe913f8c4f94561c0b35d659644" title="Sends data on a specific stream (interface version)." alt="" coords="15,69,243,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="286,92,243,92,243,87,286,87"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1session_1_1messaging__session.html#a48e209b1237d72b9ffe10e3b7f984145" title="Sends data to the connected client, optionally using compression/encryption." alt="" coords="5,133,252,173"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="287,118,213,136,212,131,286,112"/>
+</map>

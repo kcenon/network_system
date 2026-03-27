@@ -1,0 +1,10 @@
+<map id="kcenon::network::utils::memory_profiler::start" name="kcenon::network::utils::memory_profiler::start">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,77,181,117"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1utils_1_1memory__profiler.html#a6df143a94d978f9aad21a349e6effd14" title=" " alt="" coords="229,69,433,124"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="182,94,216,94,216,99,182,99"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1integration_1_1thread__integration__manager.html#a90d93374dd61a18d654e2f7cedf38f57" title="Get the singleton instance." alt="" coords="481,29,696,84"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="433,78,467,73,468,78,434,83"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1integration_1_1thread__integration__manager.html#a5243355b3b331dcd4212b3652f8d15f4" title="Submit a task with delay." alt="" coords="481,108,696,163"/>
+<area shape="poly" id="edge4_Node000002_Node000004" title=" " alt="" coords="434,109,468,115,467,120,433,115"/>
+<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="539,29,539,19,548,10,565,5,589,3,618,6,634,14,632,18,616,11,589,8,566,10,551,15,544,21,544,29"/>
+</map>

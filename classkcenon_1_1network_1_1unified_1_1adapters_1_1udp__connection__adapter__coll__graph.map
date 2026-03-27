@@ -1,0 +1,77 @@
+<map id="kcenon::network::unified::adapters::udp_connection_adapter" name="kcenon::network::unified::adapters::udp_connection_adapter">
+<area shape="rect" id="Node000001" title="Adapter that wraps messaging_udp_client to implement i_connection." alt="" coords="445,2759,655,3073"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1unified_1_1i__connection.html" title="Core interface for active network connections." alt="" coords="5,2356,180,2696"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="187,2705,212,2733,266,2778,327,2817,388,2849,446,2875,444,2880,386,2854,324,2822,263,2782,208,2737,183,2709"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1unified_1_1i__transport.html" title="Core interface for data transport abstraction." alt="" coords="5,1708,180,2008"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="95,2022,95,2356,90,2356,90,2022"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="340,1336,419,1401"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="379,1402,369,1547,359,1776,358,1910,361,2050,369,2193,383,2332,402,2439,428,2547,457,2650,488,2743,483,2744,452,2651,422,2549,397,2440,378,2332,364,2193,356,2050,353,1910,354,1776,363,1547,374,1401"/>
+<area shape="rect" id="Node000007" href="$classkcenon_1_1network_1_1core_1_1messaging__udp__client.html" title="A UDP client that sends datagrams to a target endpoint and can receive responses." alt="" coords="1183,1648,1381,2068"/>
+<area shape="poly" id="edge10_Node000007_Node000004" title=" " alt="" coords="420,1399,530,1477,600,1518,672,1553,702,1561,727,1562,752,1565,781,1578,792,1589,798,1600,803,1611,812,1622,898,1686,992,1739,1085,1783,1169,1817,1167,1822,1083,1788,990,1744,895,1690,808,1626,798,1614,793,1602,788,1592,778,1582,751,1570,727,1567,701,1566,670,1559,597,1523,527,1481,417,1404"/>
+<area shape="rect" id="Node000030" href="$structkcenon_1_1network_1_1unified_1_1endpoint__info.html" title="Network endpoint information (host/port or URL)" alt="" coords="152,2092,327,2332"/>
+<area shape="poly" id="edge42_Node000030_Node000004" title=" " alt="" coords="371,1402,345,1483,319,1581,295,1711,277,1843,252,2076,247,2075,271,1843,290,1710,314,1579,340,1481,366,1401"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="314,566,445,646"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="382,660,382,1336,377,1336,377,660"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="544,2479,735,2573"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="631,2574,592,2743,587,2742,626,2573"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="1185,1940,1088,2021,975,2122,858,2237,748,2358,708,2412,675,2466,670,2463,704,2409,744,2354,854,2233,971,2118,1084,2017,1181,1936"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="1808,1321,1977,1416"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="1874,1430,1843,1495,1822,1528,1797,1558,1750,1603,1698,1645,1587,1719,1477,1778,1382,1821,1380,1816,1475,1773,1584,1714,1694,1641,1746,1599,1793,1554,1817,1525,1838,1492,1869,1428"/>
+<area shape="rect" id="Node000009" href="$classkcenon_1_1network_1_1interfaces_1_1i__udp__client.html" title="Interface for UDP client components." alt="" coords="2002,1279,2197,1459"/>
+<area shape="poly" id="edge8_Node000007_Node000009" title=" " alt="" coords="2057,1472,2027,1518,1990,1558,1918,1614,1839,1664,1756,1707,1673,1744,1591,1776,1513,1802,1382,1838,1380,1833,1512,1796,1589,1771,1671,1739,1754,1702,1836,1659,1915,1610,1987,1554,2023,1514,2052,1469"/>
+<area shape="rect" id="Node000010" href="$classkcenon_1_1network_1_1interfaces_1_1i__network__component.html" title="Base interface for all network components." alt="" coords="2002,496,2197,716"/>
+<area shape="poly" id="edge9_Node000009_Node000010" title=" " alt="" coords="2102,730,2102,1278,2097,1278,2097,730"/>
+<area shape="rect" id="Node000011" href="$classkcenon_1_1network_1_1utils_1_1lifecycle__manager.html" title="Thread&#45;safe lifecycle state management for network components." alt="" coords="524,817,693,1157"/>
+<area shape="poly" id="edge11_Node000007_Node000011" title=" " alt="" coords="594,1157,597,1259,603,1313,614,1366,630,1418,651,1468,679,1514,714,1554,734,1569,753,1575,772,1577,791,1575,833,1569,857,1571,883,1577,963,1614,1039,1660,1110,1708,1172,1756,1169,1761,1107,1713,1036,1664,960,1619,881,1583,856,1576,833,1575,792,1580,772,1582,752,1581,732,1573,711,1558,675,1517,647,1470,625,1420,609,1367,598,1313,592,1260,589,1158"/>
+<area shape="rect" id="Node000012" title=" " alt="" coords="512,269,657,334"/>
+<area shape="poly" id="edge43_Node000001_Node000012" title=" " alt="" coords="565,336,551,366,534,432,524,489,520,540,520,588,524,689,525,817,504,1346,498,1757,507,2168,534,2696,537,2742,532,2742,529,2696,502,2168,493,1757,499,1345,519,817,519,689,514,588,515,540,519,489,529,431,546,364,560,333"/>
+<area shape="poly" id="edge12_Node000011_Node000012" title=" " alt="" coords="569,335,558,366,557,380,558,394,572,605,590,800,585,801,567,605,553,395,551,380,553,365,564,333"/>
+<area shape="rect" id="Node000021" href="$classkcenon_1_1network_1_1internal_1_1udp__socket.html" title="A lightweight wrapper around asio::ip::udp::socket, enabling asynchronous datagram operations." alt="" coords="712,436,892,776"/>
+<area shape="poly" id="edge29_Node000021_Node000012" title=" " alt="" coords="631,332,664,364,707,420,703,424,660,367,627,336"/>
+<area shape="rect" id="Node000013" title=" " alt="" coords="713,133,838,199"/>
+<area shape="poly" id="edge13_Node000012_Node000013" title=" " alt="" coords="721,209,632,271,629,266,718,204"/>
+<area shape="rect" id="Node000014" title=" " alt="" coords="1068,5,1091,71"/>
+<area shape="poly" id="edge14_Node000013_Node000014" title=" " alt="" coords="1069,47,854,135,852,130,1067,42"/>
+<area shape="rect" id="Node000019" title=" " alt="" coords="1333,573,1482,639"/>
+<area shape="poly" id="edge21_Node000019_Node000014" title=" " alt="" coords="1092,45,1119,65,1148,93,1160,112,1170,132,1247,274,1322,417,1389,557,1384,559,1317,420,1242,276,1165,135,1156,114,1144,96,1116,69,1089,49"/>
+<area shape="rect" id="Node000024" title=" " alt="" coords="943,133,1058,199"/>
+<area shape="poly" id="edge27_Node000024_Node000014" title=" " alt="" coords="1070,59,1032,120,1027,117,1065,56"/>
+<area shape="rect" id="Node000025" title=" " alt="" coords="927,573,1077,639"/>
+<area shape="poly" id="edge31_Node000025_Node000014" title=" " alt="" coords="1093,47,1112,67,1127,94,1154,177,1162,213,1166,247,1165,280,1158,316,1146,353,1127,396,1120,405,1112,410,1096,421,1072,454,1051,490,1021,559,1016,557,1047,488,1068,451,1092,417,1109,405,1116,401,1122,393,1141,352,1153,314,1160,280,1161,247,1157,214,1149,178,1122,96,1107,70,1089,51"/>
+<area shape="rect" id="Node000015" href="$classkcenon_1_1network_1_1utils_1_1callback__manager.html" title=" " alt="" coords="1569,1181,1784,1556"/>
+<area shape="poly" id="edge15_Node000007_Node000015" title=" " alt="" coords="1571,1541,1559,1558,1477,1656,1394,1747,1390,1743,1473,1653,1555,1554,1567,1538"/>
+<area shape="rect" id="Node000016" title=" " alt="" coords="1824,269,1908,334"/>
+<area shape="poly" id="edge39_Node000001_Node000016" title=" " alt="" coords="1908,300,1967,303,2039,312,2116,331,2153,345,2189,363,2246,402,2308,458,2336,491,2359,527,2374,565,2379,604,2379,2527,2376,2560,2364,2590,2346,2619,2322,2646,2292,2671,2256,2695,2169,2738,2064,2774,1945,2806,1815,2832,1677,2854,1535,2872,1390,2886,1110,2905,862,2915,671,2918,671,2912,862,2909,1110,2900,1390,2881,1534,2867,1677,2849,1814,2827,1944,2800,2062,2769,2167,2733,2253,2690,2288,2667,2318,2642,2342,2616,2360,2588,2370,2559,2374,2527,2374,605,2369,566,2354,529,2332,494,2305,462,2243,406,2186,368,2151,350,2114,336,2038,317,1966,308,1908,305"/>
+<area shape="poly" id="edge35_Node000007_Node000016" title=" " alt="" coords="1908,300,1977,305,2061,322,2104,337,2144,358,2181,384,2211,418,2217,474,2222,604,2225,987,2222,1371,2217,1501,2211,1557,2188,1583,2157,1607,2074,1653,1970,1695,1852,1733,1728,1767,1606,1796,1397,1839,1396,1834,1605,1791,1727,1762,1850,1728,1968,1690,2071,1648,2154,1602,2184,1579,2206,1555,2212,1501,2216,1371,2220,987,2216,604,2212,474,2206,420,2177,388,2141,362,2102,342,2060,328,1977,311,1908,305"/>
+<area shape="poly" id="edge16_Node000015_Node000016" title=" " alt="" coords="1825,319,1790,335,1753,357,1718,385,1691,420,1651,510,1623,605,1606,703,1599,803,1599,901,1605,995,1616,1084,1630,1164,1624,1165,1611,1085,1600,996,1594,901,1593,802,1601,703,1618,604,1646,508,1686,417,1714,381,1750,352,1788,330,1823,314"/>
+<area shape="rect" id="Node000017" href="$classkcenon_1_1network_1_1utils_1_1callback__manager.html" title="Thread&#45;safe callback storage and invocation utility." alt="" coords="1760,419,1972,793"/>
+<area shape="poly" id="edge18_Node000017_Node000016" title=" " alt="" coords="1869,334,1869,402,1863,402,1863,334"/>
+<area shape="poly" id="edge28_Node000021_Node000016" title=" " alt="" coords="1824,308,1619,324,1333,351,1066,384,970,403,937,412,917,421,906,429,903,424,914,416,935,407,969,397,1065,379,1333,346,1619,319,1823,303"/>
+<area shape="poly" id="edge17_Node000015_Node000017" title=" " alt="" coords="1819,808,1726,1182,1721,1180,1814,806"/>
+<area shape="rect" id="Node000018" title=" " alt="" coords="1392,1329,1545,1409"/>
+<area shape="poly" id="edge19_Node000007_Node000018" title=" " alt="" coords="1456,1410,1370,1633,1366,1632,1451,1408"/>
+<area shape="poly" id="edge20_Node000018_Node000019" title=" " alt="" coords="1414,652,1468,1328,1463,1329,1408,653"/>
+<area shape="rect" id="Node000028" title=" " alt="" coords="1197,1336,1367,1401"/>
+<area shape="poly" id="edge37_Node000028_Node000019" title=" " alt="" coords="1398,653,1359,818,1334,969,1313,1118,1288,1336,1283,1335,1308,1118,1329,968,1354,817,1393,652"/>
+<area shape="rect" id="Node000020" title=" " alt="" coords="797,1321,970,1416"/>
+<area shape="poly" id="edge22_Node000007_Node000020" title=" " alt="" coords="906,1415,939,1483,984,1554,1028,1610,1077,1664,1173,1759,1169,1763,1073,1667,1024,1613,980,1558,935,1485,901,1417"/>
+<area shape="poly" id="edge23_Node000020_Node000021" title=" " alt="" coords="788,776,784,864,784,960,790,1060,803,1157,826,1235,855,1305,850,1307,821,1237,798,1158,785,1060,779,961,779,864,783,776"/>
+<area shape="rect" id="Node000022" title=" " alt="" coords="706,261,893,341"/>
+<area shape="poly" id="edge24_Node000021_Node000022" title=" " alt="" coords="802,355,803,436,798,436,797,355"/>
+<area shape="rect" id="Node000023" title=" " alt="" coords="917,261,1057,341"/>
+<area shape="poly" id="edge25_Node000021_Node000023" title=" " alt="" coords="918,340,895,355,880,367,862,393,847,422,842,419,857,390,876,364,892,350,915,336"/>
+<area shape="poly" id="edge26_Node000023_Node000024" title=" " alt="" coords="990,213,989,223,987,261,982,261,983,222,985,212"/>
+<area shape="poly" id="edge38_Node000006_Node000025" title=" " alt="" coords="992,653,979,688,961,726,936,764,905,795,892,803,879,806,855,806,832,807,822,811,812,819,796,840,785,861,776,903,779,945,788,987,796,1030,799,1073,789,1116,778,1138,761,1159,748,1169,735,1173,708,1171,682,1170,671,1174,660,1183,646,1211,635,1257,626,1320,620,1395,613,1577,613,1784,625,2195,639,2478,634,2479,620,2195,608,1784,608,1577,614,1395,621,1319,630,1256,641,1209,656,1180,668,1169,682,1165,708,1166,734,1168,746,1164,757,1155,774,1135,784,1114,794,1072,791,1031,782,988,774,945,771,902,780,859,791,837,808,815,820,806,831,801,855,801,878,801,890,798,902,791,932,760,956,724,974,686,987,651"/>
+<area shape="poly" id="edge30_Node000020_Node000025" title=" " alt="" coords="989,653,956,724,933,761,905,795,894,803,883,807,873,810,866,819,838,883,822,952,817,1023,820,1093,829,1161,841,1223,869,1320,864,1322,836,1224,824,1162,815,1094,812,1023,817,951,833,881,861,816,870,806,881,802,891,798,902,791,928,758,951,721,984,651"/>
+<area shape="rect" id="Node000026" title=" " alt="" coords="994,1321,1173,1416"/>
+<area shape="poly" id="edge34_Node000026_Node000025" title=" " alt="" coords="1007,652,1023,910,1045,1157,1059,1244,1075,1321,1070,1322,1054,1245,1039,1158,1018,911,1002,652"/>
+<area shape="poly" id="edge32_Node000007_Node000026" title=" " alt="" coords="1104,1415,1186,1623,1189,1631,1184,1633,1181,1625,1099,1417"/>
+<area shape="rect" id="Node000027" href="$classkcenon_1_1network_1_1integration_1_1thread__pool__interface.html" title="Interface for thread pool integration." alt="" coords="1107,476,1308,736"/>
+<area shape="poly" id="edge33_Node000026_Node000027" title=" " alt="" coords="1216,737,1217,830,1212,937,1201,1048,1181,1158,1154,1238,1120,1308,1115,1306,1149,1236,1175,1157,1196,1048,1207,936,1211,830,1211,737"/>
+<area shape="poly" id="edge36_Node000007_Node000028" title=" " alt="" coords="1285,1402,1285,1632,1279,1632,1279,1402"/>
+<area shape="rect" id="Node000029" href="$structkcenon_1_1network_1_1unified_1_1connection__callbacks.html" title="Callback functions for connection events." alt="" coords="759,2456,933,2596"/>
+<area shape="poly" id="edge40_Node000001_Node000029" title=" " alt="" coords="812,2598,748,2698,668,2795,664,2792,744,2694,807,2595"/>
+<area shape="poly" id="edge41_Node000001_Node000030" title=" " alt="" coords="216,2332,206,2417,205,2510,209,2558,217,2605,231,2651,250,2695,285,2747,330,2791,381,2829,432,2860,429,2864,378,2834,327,2796,281,2750,245,2697,226,2653,212,2607,204,2559,199,2510,201,2416,210,2332"/>
+<area shape="rect" id="Node000031" href="$structkcenon_1_1network_1_1unified_1_1connection__options.html" title="Configuration options for connections." alt="" coords="2415,2446,2589,2606"/>
+<area shape="poly" id="edge44_Node000001_Node000031" title=" " alt="" coords="2484,2607,2470,2642,2451,2678,2427,2710,2397,2737,2358,2755,2297,2772,2121,2803,1890,2831,1625,2855,1084,2891,671,2912,671,2907,1084,2886,1625,2849,1889,2825,2120,2798,2296,2767,2356,2750,2394,2732,2423,2707,2447,2675,2465,2640,2479,2605"/>
+</map>

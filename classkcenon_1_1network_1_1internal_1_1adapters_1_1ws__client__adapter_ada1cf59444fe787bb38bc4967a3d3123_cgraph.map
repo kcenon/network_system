@@ -1,0 +1,6 @@
+<map id="kcenon::network::internal::adapters::ws_client_adapter::send" name="kcenon::network::internal::adapters::ws_client_adapter::send">
+<area shape="rect" id="Node000001" title="Sends data to the connected server." alt="" coords="5,22,257,62"/>
+<area shape="rect" id="Node000002" href="$namespacekcenon_1_1network.html#a9d2a06a302dea2b45b323b864eacad4a" title=" " alt="" coords="305,29,509,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="257,39,292,39,292,45,257,45"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="363,31,353,21,358,11,377,5,407,3,447,7,457,12,461,18,457,20,454,16,445,12,407,8,378,10,362,15,359,20,367,27"/>
+</map>

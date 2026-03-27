@@ -1,0 +1,32 @@
+<map id="kcenon::network::internal::quic_socket::send_packet" name="kcenon::network::internal::quic_socket::send_packet">
+<area shape="rect" id="Node000001" title="Build and send a packet with frames." alt="" coords="5,235,200,275"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1frame__builder.html#aac668069df7c7e5ff0e93169e6e293bd" title="Build any frame from variant." alt="" coords="251,5,449,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="111,233,131,196,160,148,199,98,246,55,255,49,258,54,250,59,203,102,165,151,135,198,116,236"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1packet__builder.html#a126a5926c947bdef4ce14e6108b54733" title="Build a Handshake packet header." alt="" coords="251,149,449,203"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="166,232,250,205,251,210,167,237"/>
+<area shape="rect" id="Node000007" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1packet__builder.html#aae56df8b95c768ea642f7697a8719ce0" title="Build an Initial packet header." alt="" coords="251,227,449,282"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="200,252,237,252,237,257,200,257"/>
+<area shape="rect" id="Node000009" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1packet__builder.html#a72c85f6e6902001982ab1e87b02a3293" title="Build a Short Header (1&#45;RTT) packet." alt="" coords="251,70,449,125"/>
+<area shape="poly" id="edge11_Node000001_Node000009" title=" " alt="" coords="123,232,176,184,247,134,256,128,259,133,249,138,180,188,126,236"/>
+<area shape="rect" id="Node000010" href="$namespacekcenon_1_1network.html#a9d2a06a302dea2b45b323b864eacad4a" title=" " alt="" coords="248,330,452,355"/>
+<area shape="poly" id="edge14_Node000001_Node000010" title=" " alt="" coords="161,272,301,323,299,328,159,277"/>
+<area shape="rect" id="Node000011" href="$namespacekcenon_1_1network.html#aa32d0dbfdee046c2c0cde3667c5f05a8" title=" " alt="" coords="561,426,715,451"/>
+<area shape="poly" id="edge16_Node000001_Node000011" title=" " alt="" coords="114,274,132,313,161,361,200,408,223,428,249,444,291,461,335,471,381,476,426,476,512,467,582,452,583,457,513,472,427,481,381,481,335,476,289,466,247,449,220,433,196,412,157,364,128,315,109,276"/>
+<area shape="rect" id="Node000012" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1packet__protection.html#ad0d7f5425a976193fd64ae6a68431599" title="Protect (encrypt) a QUIC packet." alt="" coords="251,379,449,434"/>
+<area shape="poly" id="edge17_Node000001_Node000012" title=" " alt="" coords="127,273,181,319,249,366,259,371,257,376,247,370,177,323,124,277"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1packet__number.html#ae8b95fe0c15c5789c62a967cacd22316" title="Encode a packet number for transmission." alt="" coords="528,156,748,196"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="450,173,514,173,514,179,450,179"/>
+<area shape="rect" id="Node000005" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1packet__number.html#ab69a8fb162e9f4b52fd9abc0a45a0d4d" title="Get the minimum number of bytes needed to encode a packet number." alt="" coords="500,92,776,132"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="449,151,533,132,535,138,450,157"/>
+<area shape="rect" id="Node000006" href="$namespacekcenon_1_1network.html#a343917741c1ba5e287360d73f47a2f50" title="Get the network system version string." alt="" coords="545,221,731,246"/>
+<area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="450,195,501,205,553,216,552,221,499,211,449,200"/>
+<area shape="poly" id="edge7_Node000007_Node000004" title=" " alt="" coords="438,225,499,207,537,197,539,202,501,212,439,230"/>
+<area shape="poly" id="edge9_Node000007_Node000005" title=" " alt="" coords="434,225,450,214,465,196,473,178,481,160,498,142,508,136,510,141,502,146,486,163,478,180,470,199,454,218,437,229"/>
+<area shape="poly" id="edge10_Node000007_Node000006" title=" " alt="" coords="449,245,531,239,531,244,450,250"/>
+<area shape="rect" id="Node000008" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1varint.html#a8d95e6a90e4df550528c222198bf8acb" title="Encode a value to variable&#45;length format." alt="" coords="539,271,737,311"/>
+<area shape="poly" id="edge8_Node000007_Node000008" title=" " alt="" coords="450,264,525,274,525,279,449,270"/>
+<area shape="poly" id="edge12_Node000009_Node000004" title=" " alt="" coords="436,122,501,141,534,150,533,155,499,147,434,127"/>
+<area shape="poly" id="edge13_Node000009_Node000005" title=" " alt="" coords="450,100,487,102,486,107,449,105"/>
+<area shape="poly" id="edge15_Node000010_Node000010" title=" " alt="" coords="310,332,302,322,306,312,323,306,350,303,385,307,395,312,398,318,394,321,391,316,383,312,350,309,324,311,310,316,307,321,314,328"/>
+<area shape="poly" id="edge18_Node000012_Node000011" title=" " alt="" coords="450,415,547,426,547,431,449,420"/>
+</map>

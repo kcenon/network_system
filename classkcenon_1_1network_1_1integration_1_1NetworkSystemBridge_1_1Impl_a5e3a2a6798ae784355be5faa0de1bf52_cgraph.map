@@ -1,0 +1,8 @@
+<map id="kcenon::network::integration::NetworkSystemBridge::Impl::initialize" name="kcenon::network::integration::NetworkSystemBridge::Impl::initialize">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,40,219,95"/>
+<area shape="rect" id="Node000002" href="$namespacekcenon_1_1network.html#a9d2a06a302dea2b45b323b864eacad4a" title=" " alt="" coords="267,29,471,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="219,54,253,51,254,56,219,59"/>
+<area shape="rect" id="Node000003" href="$namespacekcenon_1_1network.html#aa32d0dbfdee046c2c0cde3667c5f05a8" title=" " alt="" coords="291,79,446,104"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="219,75,278,80,277,86,219,80"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="327,31,318,21,323,11,340,5,369,3,405,7,415,11,419,17,414,20,412,15,403,12,369,8,341,10,326,15,324,20,331,27"/>
+</map>

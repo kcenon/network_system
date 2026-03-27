@@ -1,0 +1,5 @@
+<map id="kcenon::network::protocols::quic::quic_crypto::is_handshake_complete" name="kcenon::network::protocols::quic::quic_crypto::is_handshake_complete">
+<area shape="rect" id="Node000001" title="Check if the handshake is complete." alt="" coords="283,5,481,60"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1connection.html#a209f39ab0bcc70fe9a985328355ee1b3" title="Update connection state based on handshake progress." alt="" coords="5,13,235,53"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="269,35,235,35,235,30,269,30"/>
+</map>

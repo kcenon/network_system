@@ -1,0 +1,8 @@
+<map id="kcenon::network::integration::ThreadPoolBridge::initialize" name="kcenon::network::integration::ThreadPoolBridge::initialize">
+<area shape="rect" id="Node000001" title="Initialize the bridge with configuration." alt="" coords="5,47,215,87"/>
+<area shape="rect" id="Node000002" href="$namespacekcenon_1_1network.html#a9d2a06a302dea2b45b323b864eacad4a" title=" " alt="" coords="263,29,467,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="215,54,249,51,250,56,215,60"/>
+<area shape="rect" id="Node000003" href="$namespacekcenon_1_1network.html#aa32d0dbfdee046c2c0cde3667c5f05a8" title=" " alt="" coords="287,79,442,104"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="215,75,274,80,273,85,215,80"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="324,31,315,21,319,11,336,5,365,3,400,7,411,11,414,17,410,20,407,15,399,12,365,8,337,10,323,15,320,20,328,27"/>
+</map>

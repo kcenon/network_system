@@ -1,0 +1,103 @@
+<map id="src/internal/utils/common_defs.h" name="src/internal/utils/common_defs.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="1735,5,1865,45"/>
+<area shape="rect" id="Node000002" href="$quic__socket_8h.html" title=" " alt="" coords="387,101,573,126"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="1721,34,574,109,573,103,1721,29"/>
+<area shape="rect" id="Node000007" href="$dtls__socket_8h.html" title=" " alt="" coords="1197,93,1344,133"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="1722,42,1344,103,1344,98,1721,37"/>
+<area shape="rect" id="Node000011" href="$secure__tcp__socket_8h.html" title=" " alt="" coords="1717,93,1883,133"/>
+<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="1803,59,1803,93,1797,93,1797,59"/>
+<area shape="rect" id="Node000021" href="$tcp__socket_8h.html" title=" " alt="" coords="2862,93,3005,133"/>
+<area shape="poly" id="edge20_Node000001_Node000021" title=" " alt="" coords="1879,30,2862,104,2862,109,1879,35"/>
+<area shape="rect" id="Node000046" href="$udp__socket_8h.html" title=" " alt="" coords="3751,93,3902,133"/>
+<area shape="poly" id="edge49_Node000001_Node000046" title=" " alt="" coords="1879,27,3751,106,3751,111,1879,33"/>
+<area shape="rect" id="Node000003" href="$quic__client_8cpp.html" title=" " alt="" coords="5,189,168,229"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="412,131,181,184,153,191,152,186,179,179,411,126"/>
+<area shape="rect" id="Node000004" href="$quic__server_8cpp.html" title=" " alt="" coords="192,189,355,229"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="443,134,316,191,314,186,441,129"/>
+<area shape="rect" id="Node000005" href="$quic__socket_8cpp.html" title=" " alt="" coords="379,196,581,221"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="483,140,483,196,477,196,477,140"/>
+<area shape="rect" id="Node000006" href="$quic__session_8cpp.html" title=" " alt="" coords="605,196,813,221"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="522,129,682,193,680,198,520,134"/>
+<area shape="rect" id="Node000008" href="$secure__messaging__udp__client_8cpp.html" title=" " alt="" coords="838,189,1037,229"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="1191,140,1005,191,1004,186,1190,134"/>
+<area shape="rect" id="Node000009" href="$secure__messaging__udp__server_8cpp.html" title=" " alt="" coords="1061,189,1259,229"/>
+<area shape="poly" id="edge8_Node000007_Node000009" title=" " alt="" coords="1239,144,1184,191,1181,187,1236,140"/>
+<area shape="rect" id="Node000010" href="$dtls__socket_8cpp.html" title=" " alt="" coords="1283,196,1482,221"/>
+<area shape="poly" id="edge9_Node000007_Node000010" title=" " alt="" coords="1306,140,1370,194,1367,198,1302,144"/>
+<area shape="rect" id="Node000012" href="$secure__session_8h.html" title=" " alt="" coords="1506,181,1683,236"/>
+<area shape="poly" id="edge11_Node000011_Node000012" title=" " alt="" coords="1747,141,1654,184,1651,179,1745,137"/>
+<area shape="rect" id="Node000018" href="$secure__messaging__client_8h.html" title="Secure TCP client class with TLS/SSL support." alt="" coords="1713,189,1887,229"/>
+<area shape="poly" id="edge17_Node000011_Node000018" title=" " alt="" coords="1803,147,1803,189,1797,189,1797,147"/>
+<area shape="rect" id="Node000020" href="$secure__tcp__socket_8cpp.html" title=" " alt="" coords="1911,189,2054,229"/>
+<area shape="poly" id="edge19_Node000011_Node000020" title=" " alt="" coords="1850,137,1947,186,1945,191,1848,142"/>
+<area shape="rect" id="Node000013" href="$session_8h.html" title="Unified session header for network_system." alt="" coords="1502,284,1679,324"/>
+<area shape="poly" id="edge12_Node000012_Node000013" title=" " alt="" coords="1596,250,1594,284,1589,284,1590,250"/>
+<area shape="rect" id="Node000016" href="$secure__messaging__server_8cpp.html" title=" " alt="" coords="1114,284,1313,324"/>
+<area shape="poly" id="edge15_Node000012_Node000016" title=" " alt="" coords="1493,239,1294,287,1293,281,1492,234"/>
+<area shape="rect" id="Node000017" href="$secure__session_8cpp.html" title=" " alt="" coords="1336,284,1477,324"/>
+<area shape="poly" id="edge16_Node000012_Node000017" title=" " alt="" coords="1531,244,1446,286,1444,281,1528,240"/>
+<area shape="rect" id="Node000014" href="$network__system_8h.html" title="Main header for the Network System." alt="" coords="2779,372,2957,412"/>
+<area shape="poly" id="edge13_Node000013_Node000014" title=" " alt="" coords="1693,321,2010,352,2318,371,2585,382,2779,387,2779,392,2585,387,2318,377,2009,357,1693,327"/>
+<area shape="rect" id="Node000015" href="$network__system_8cpp.html" title=" " alt="" coords="2778,460,2958,485"/>
+<area shape="poly" id="edge14_Node000014_Node000015" title=" " alt="" coords="2871,426,2871,460,2865,460,2865,426"/>
+<area shape="rect" id="Node000019" href="$secure__messaging__client_8cpp.html" title=" " alt="" coords="1703,284,1902,324"/>
+<area shape="poly" id="edge18_Node000018_Node000019" title=" " alt="" coords="1804,242,1805,284,1799,284,1798,242"/>
+<area shape="rect" id="Node000022" href="$messaging__session_8h.html" title=" " alt="" coords="2289,181,2479,236"/>
+<area shape="poly" id="edge21_Node000021_Node000022" title=" " alt="" coords="2848,132,2480,194,2479,189,2847,126"/>
+<area shape="rect" id="Node000028" href="$websocket__client_8cpp.html" title=" " alt="" coords="2693,189,2837,229"/>
+<area shape="poly" id="edge28_Node000021_Node000028" title=" " alt="" coords="2889,142,2801,191,2798,186,2886,138"/>
+<area shape="rect" id="Node000029" href="$websocket__server_8cpp.html" title=" " alt="" coords="2861,189,3005,229"/>
+<area shape="poly" id="edge29_Node000021_Node000029" title=" " alt="" coords="2936,147,2936,189,2931,189,2931,147"/>
+<area shape="rect" id="Node000030" href="$messaging__client_8h.html" title="TCP client implementation." alt="" coords="3029,189,3232,229"/>
+<area shape="poly" id="edge30_Node000021_Node000030" title=" " alt="" coords="2987,137,3092,186,3090,191,2984,142"/>
+<area shape="rect" id="Node000044" href="$tcp__socket_8cpp.html" title=" " alt="" coords="3256,196,3451,221"/>
+<area shape="poly" id="edge47_Node000021_Node000044" title=" " alt="" coords="3019,130,3245,179,3307,193,3306,199,3243,184,3018,135"/>
+<area shape="rect" id="Node000045" href="$websocket__socket_8cpp.html" title=" " alt="" coords="3475,189,3643,229"/>
+<area shape="poly" id="edge48_Node000021_Node000045" title=" " alt="" coords="3019,119,3222,141,3343,158,3463,179,3495,186,3494,191,3462,184,3342,163,3221,146,3018,124"/>
+<area shape="poly" id="edge22_Node000022_Node000013" title=" " alt="" coords="2275,222,2009,247,1691,287,1680,288,1679,283,1690,281,2008,242,2275,216"/>
+<area shape="rect" id="Node000023" href="$tcp__server__adapter_8cpp.html" title=" " alt="" coords="1926,284,2101,324"/>
+<area shape="poly" id="edge23_Node000022_Node000023" title=" " alt="" coords="2276,240,2089,287,2087,281,2275,235"/>
+<area shape="rect" id="Node000024" href="$messaging__server_8cpp.html" title=" " alt="" coords="2125,284,2273,324"/>
+<area shape="poly" id="edge24_Node000022_Node000024" title=" " alt="" coords="2321,244,2237,286,2235,281,2319,240"/>
+<area shape="rect" id="Node000025" href="$http__server_8cpp.html" title=" " alt="" coords="2297,291,2471,317"/>
+<area shape="poly" id="edge25_Node000022_Node000025" title=" " alt="" coords="2387,250,2387,291,2381,291,2381,250"/>
+<area shape="rect" id="Node000026" href="$session__manager_8h.html" title=" " alt="" coords="2495,284,2675,324"/>
+<area shape="poly" id="edge26_Node000022_Node000026" title=" " alt="" coords="2454,239,2546,281,2543,286,2452,244"/>
+<area shape="rect" id="Node000027" href="$messaging__session_8cpp.html" title=" " alt="" coords="2699,284,2869,324"/>
+<area shape="poly" id="edge27_Node000022_Node000027" title=" " alt="" coords="2493,233,2704,281,2703,287,2492,238"/>
+<area shape="poly" id="edge31_Node000030_Node000014" title=" " alt="" coords="3032,235,2980,256,2934,286,2914,306,2898,329,2877,373,2872,371,2894,327,2910,303,2930,282,2978,251,3030,230"/>
+<area shape="rect" id="Node000031" href="$messaging__client_8cpp.html" title=" " alt="" coords="2945,284,3093,324"/>
+<area shape="poly" id="edge32_Node000030_Node000031" title=" " alt="" coords="3099,240,3043,286,3040,282,3096,236"/>
+<area shape="rect" id="Node000032" href="$tcp__facade_8cpp.html" title=" " alt="" coords="2981,379,3171,405"/>
+<area shape="poly" id="edge33_Node000030_Node000032" title=" " alt="" coords="3127,243,3107,325,3084,380,3079,378,3101,323,3122,241"/>
+<area shape="rect" id="Node000033" href="$connection__pool_8h.html" title=" " alt="" coords="3168,284,3371,324"/>
+<area shape="poly" id="edge34_Node000030_Node000033" title=" " alt="" coords="3172,234,3243,282,3240,286,3169,239"/>
+<area shape="rect" id="Node000035" href="$http__client_8h.html" title=" " alt="" coords="3395,284,3549,324"/>
+<area shape="poly" id="edge37_Node000030_Node000035" title=" " alt="" coords="3214,230,3404,281,3402,287,3212,235"/>
+<area shape="rect" id="Node000038" href="$messaging__bridge_8h.html" title="Bridge for messaging_system compatibility implementing INetworkBridge." alt="" coords="3573,284,3744,324"/>
+<area shape="poly" id="edge40_Node000030_Node000038" title=" " alt="" coords="3222,229,3244,233,3403,258,3562,281,3574,283,3573,289,3561,287,3402,264,3244,239,3221,234"/>
+<area shape="rect" id="Node000040" href="$health__monitor_8h.html" title=" " alt="" coords="3876,284,4012,324"/>
+<area shape="poly" id="edge43_Node000030_Node000040" title=" " alt="" coords="3220,229,3244,233,3388,253,3500,263,3612,270,3756,281,3876,293,3875,298,3756,287,3612,275,3499,268,3387,258,3244,239,3219,234"/>
+<area shape="rect" id="Node000042" href="$resilient__client_8h.html" title=" " alt="" coords="4098,284,4233,324"/>
+<area shape="poly" id="edge45_Node000030_Node000042" title=" " alt="" coords="3218,229,3244,233,3362,248,3462,257,3633,263,3805,267,4024,281,4098,290,4098,295,4024,287,3805,272,3633,269,3462,262,3362,254,3244,239,3217,234"/>
+<area shape="poly" id="edge36_Node000033_Node000032" title=" " alt="" coords="3215,332,3103,382,3101,377,3213,327"/>
+<area shape="rect" id="Node000034" href="$connection__pool_8cpp.html" title=" " alt="" coords="3195,372,3343,412"/>
+<area shape="poly" id="edge35_Node000033_Node000034" title=" " alt="" coords="3272,338,3272,372,3267,372,3267,338"/>
+<area shape="rect" id="Node000036" href="$http__client__adapter_8cpp.html" title=" " alt="" coords="3367,372,3542,412"/>
+<area shape="poly" id="edge38_Node000035_Node000036" title=" " alt="" coords="3468,338,3461,372,3456,371,3463,337"/>
+<area shape="rect" id="Node000037" href="$http__client_8cpp.html" title=" " alt="" coords="3567,379,3737,405"/>
+<area shape="poly" id="edge39_Node000035_Node000037" title=" " alt="" coords="3525,327,3629,377,3627,382,3523,332"/>
+<area shape="poly" id="edge41_Node000038_Node000014" title=" " alt="" coords="3560,327,3393,344,3262,351,3132,358,2968,375,2957,376,2956,371,2968,369,3132,352,3262,346,3392,339,3560,321"/>
+<area shape="rect" id="Node000039" href="$messaging__bridge_8cpp.html" title="Implementation of messaging_bridge for messaging_system compatibility." alt="" coords="3762,372,3953,412"/>
+<area shape="poly" id="edge42_Node000038_Node000039" title=" " alt="" coords="3716,327,3815,370,3813,374,3714,332"/>
+<area shape="rect" id="Node000041" href="$health__monitor_8cpp.html" title=" " alt="" coords="3977,372,4127,412"/>
+<area shape="poly" id="edge44_Node000040_Node000041" title=" " alt="" coords="3980,331,4030,370,4026,374,3977,335"/>
+<area shape="rect" id="Node000043" href="$resilient__client_8cpp.html" title=" " alt="" coords="4152,372,4301,412"/>
+<area shape="poly" id="edge46_Node000042_Node000043" title=" " alt="" coords="4189,334,4215,370,4211,373,4185,337"/>
+<area shape="rect" id="Node000047" href="$messaging__udp__client_8cpp.html" title=" " alt="" coords="3667,189,3815,229"/>
+<area shape="poly" id="edge50_Node000046_Node000047" title=" " alt="" coords="3802,145,3761,190,3757,187,3798,142"/>
+<area shape="rect" id="Node000048" href="$messaging__udp__server_8cpp.html" title=" " alt="" coords="3839,189,3987,229"/>
+<area shape="poly" id="edge51_Node000046_Node000048" title=" " alt="" coords="3856,142,3898,187,3894,190,3852,145"/>
+<area shape="rect" id="Node000049" href="$udp__socket_8cpp.html" title=" " alt="" coords="4011,196,4210,221"/>
+<area shape="poly" id="edge52_Node000046_Node000049" title=" " alt="" coords="3898,135,4076,193,4075,198,3896,140"/>
+</map>

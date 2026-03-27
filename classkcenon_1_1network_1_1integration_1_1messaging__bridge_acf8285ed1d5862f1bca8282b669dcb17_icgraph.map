@@ -1,0 +1,5 @@
+<map id="kcenon::network::integration::messaging_bridge::shutdown" name="kcenon::network::integration::messaging_bridge::shutdown">
+<area shape="rect" id="Node000001" title="Shutdown the bridge." alt="" coords="340,5,560,45"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1integration_1_1messaging__bridge.html#ac89ef6a05e5617cd93e24a6651334f46" title="Destructor." alt="" coords="5,5,292,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="326,28,292,28,292,23,326,23"/>
+</map>

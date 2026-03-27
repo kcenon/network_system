@@ -1,0 +1,5 @@
+<map id="kcenon::network::core::secure_messaging_client::stop_client" name="kcenon::network::core::secure_messaging_client::stop_client">
+<area shape="rect" id="Node000001" title="Stops the client and disconnects from the server." alt="" coords="259,5,453,60"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1core_1_1secure__messaging__client.html#a165a52cedad537ada2f1d83c47a968c5" title="Destructor. Calls stop_client() if still connected." alt="" coords="5,5,211,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="245,35,211,35,211,30,245,30"/>
+</map>

@@ -1,0 +1,7 @@
+<map id="kcenon::network::connection_guard::operator=" name="kcenon::network::connection_guard::operator=">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,215,45"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1connection__guard.html#aa19674a52c1f6112885b009d7a82db0b" title="Release the connection early." alt="" coords="263,5,472,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="215,23,249,23,249,28,215,28"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1connection__limiter.html#a7120338471d09bdd758ef9418b3f7435" title="Unregister a connection." alt="" coords="520,5,729,45"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="472,23,507,23,507,28,472,28"/>
+</map>

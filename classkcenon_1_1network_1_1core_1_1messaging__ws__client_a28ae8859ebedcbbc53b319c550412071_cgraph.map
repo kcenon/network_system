@@ -1,0 +1,5 @@
+<map id="kcenon::network::core::messaging_ws_client::stop_client" name="kcenon::network::core::messaging_ws_client::stop_client">
+<area shape="rect" id="Node000001" title="Stops the client and releases all resources." alt="" coords="5,5,175,60"/>
+<area shape="rect" id="Node000002" href="$namespacekcenon_1_1network.html#aa32d0dbfdee046c2c0cde3667c5f05a8" title=" " alt="" coords="223,20,377,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="175,30,209,30,209,35,175,35"/>
+</map>

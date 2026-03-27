@@ -1,0 +1,11 @@
+<map id="kcenon::network::protocols::http2::frame" name="kcenon::network::protocols::http2::frame">
+<area shape="rect" id="Node000001" title="Base class for HTTP/2 frames." alt="" coords="79,484,269,684"/>
+<area shape="rect" id="Node000002" href="$structkcenon_1_1network_1_1protocols_1_1http2_1_1frame__header.html" title="HTTP/2 frame header (9 bytes)" alt="" coords="5,261,196,421"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="127,421,142,467,136,469,122,423"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="220,309,379,374"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="285,375,236,471,231,468,281,373"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="239,133,360,199"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="302,213,302,309,297,309,297,213"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="288,5,311,71"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="302,71,302,117,297,117,297,71"/>
+</map>

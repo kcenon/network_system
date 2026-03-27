@@ -1,0 +1,13 @@
+<map id="kcenon::network::core::messaging_client::do_start_impl" name="kcenon::network::core::messaging_client::do_start_impl">
+<area shape="rect" id="Node000001" title="TCP&#45;specific implementation of client start." alt="" coords="5,135,173,189"/>
+<area shape="rect" id="Node000002" href="$namespacekcenon_1_1network.html#a9d2a06a302dea2b45b323b864eacad4a" title=" " alt="" coords="225,29,429,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="119,132,165,96,220,64,239,56,241,61,223,68,168,101,122,137"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1integration_1_1io__context__thread__manager.html#a8c27fbfcb3c01a1e6a4cb331ce29aade" title="Get the singleton instance." alt="" coords="221,103,433,157"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="173,148,207,143,208,149,174,153"/>
+<area shape="rect" id="Node000004" href="$namespacekcenon_1_1network.html#aa32d0dbfdee046c2c0cde3667c5f05a8" title=" " alt="" coords="250,181,405,207"/>
+<area shape="poly" id="edge5_Node000001_Node000004" title=" " alt="" coords="174,171,237,179,236,184,173,176"/>
+<area shape="rect" id="Node000005" href="$classkcenon_1_1network_1_1integration_1_1io__context__thread__manager.html#af6e81773ddf1d7ab10915afa4e45e9c2" title="Run an io_context on the shared thread pool." alt="" coords="221,231,433,285"/>
+<area shape="poly" id="edge6_Node000001_Node000005" title=" " alt="" coords="155,187,222,216,242,223,240,228,220,220,153,192"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="289,31,280,21,285,11,301,5,327,3,361,7,373,16,370,20,359,11,327,8,302,10,288,15,286,20,293,27"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="281,103,281,92,290,84,305,78,327,76,354,79,369,87,367,92,353,84,327,81,306,83,293,88,286,94,286,103"/>
+</map>

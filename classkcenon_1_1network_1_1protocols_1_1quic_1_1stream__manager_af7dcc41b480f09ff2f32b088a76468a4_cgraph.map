@@ -1,0 +1,12 @@
+<map id="kcenon::network::protocols::quic::stream_manager::validate_stream_id" name="kcenon::network::protocols::quic::stream_manager::validate_stream_id">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,119,204,173"/>
+<area shape="rect" id="Node000002" href="$namespacekcenon_1_1network.html#a9d2a06a302dea2b45b323b864eacad4a" title=" " alt="" coords="252,29,456,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="148,116,196,89,251,64,274,56,276,61,253,68,199,93,151,121"/>
+<area shape="rect" id="Node000003" href="$namespacekcenon_1_1network_1_1protocols_1_1quic_1_1stream__id__type.html#a8efd28f160580d23e2ee2b20cbbf2de0" title="Get stream type bits (0&#45;3)" alt="" coords="255,79,453,133"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="204,127,241,121,242,127,205,133"/>
+<area shape="rect" id="Node000004" href="$namespacekcenon_1_1network_1_1protocols_1_1quic_1_1stream__id__type.html#a5a2ee0a6d010e8c6931b554cc72243d5" title="Check if stream is bidirectional." alt="" coords="255,157,453,212"/>
+<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="205,159,242,165,241,170,204,164"/>
+<area shape="rect" id="Node000005" href="$namespacekcenon_1_1network.html#aa32d0dbfdee046c2c0cde3667c5f05a8" title=" " alt="" coords="277,236,431,261"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="153,171,200,197,253,221,280,230,278,235,251,226,198,202,150,176"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="314,31,305,21,310,11,326,5,354,3,389,7,399,11,403,17,398,20,395,15,388,12,354,8,327,10,313,15,310,20,318,27"/>
+</map>

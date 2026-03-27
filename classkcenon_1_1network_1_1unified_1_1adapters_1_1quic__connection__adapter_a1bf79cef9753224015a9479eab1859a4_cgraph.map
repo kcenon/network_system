@@ -1,0 +1,8 @@
+<map id="kcenon::network::unified::adapters::quic_connection_adapter::send" name="kcenon::network::unified::adapters::quic_connection_adapter::send">
+<area shape="rect" id="Node000001" title="Sends data from a uint8_t vector." alt="" coords="5,40,205,95"/>
+<area shape="rect" id="Node000002" href="$namespacekcenon_1_1network.html#a9d2a06a302dea2b45b323b864eacad4a" title=" " alt="" coords="253,29,457,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="205,55,240,51,240,56,206,60"/>
+<area shape="rect" id="Node000003" href="$namespacekcenon_1_1network.html#aa32d0dbfdee046c2c0cde3667c5f05a8" title=" " alt="" coords="278,79,433,104"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="206,74,264,80,264,85,205,80"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="315,31,306,21,311,11,328,5,355,3,390,7,400,11,404,17,400,20,397,15,389,12,355,8,329,10,315,15,312,20,319,27"/>
+</map>

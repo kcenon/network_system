@@ -1,0 +1,6 @@
+<map id="kcenon::network::unified::adapters::ws_connection_adapter::send" name="kcenon::network::unified::adapters::ws_connection_adapter::send">
+<area shape="rect" id="Node000001" title="Sends raw data to the remote endpoint." alt="" coords="5,15,196,69"/>
+<area shape="rect" id="Node000002" href="$namespacekcenon_1_1network.html#a9d2a06a302dea2b45b323b864eacad4a" title=" " alt="" coords="244,29,448,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="196,39,230,39,230,45,196,45"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="306,31,298,21,302,11,319,5,346,3,381,7,391,11,394,17,390,20,387,15,379,12,346,8,320,10,306,15,303,20,310,27"/>
+</map>

@@ -1,0 +1,5 @@
+<map id="kcenon::network::core::ws_session_manager::clear_all_connections" name="kcenon::network::core::ws_session_manager::clear_all_connections">
+<area shape="rect" id="Node000001" title="Clears all connections." alt="" coords="5,13,176,67"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1core_1_1session__manager__base.html#af46fd65751420d9af30fed5032fd9483" title="Clear all sessions." alt="" coords="224,5,412,75"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="176,37,211,37,211,43,176,43"/>
+</map>

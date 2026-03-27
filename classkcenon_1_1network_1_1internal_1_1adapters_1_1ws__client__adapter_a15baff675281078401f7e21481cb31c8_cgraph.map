@@ -1,0 +1,6 @@
+<map id="kcenon::network::internal::adapters::ws_client_adapter::stop" name="kcenon::network::internal::adapters::ws_client_adapter::stop">
+<area shape="rect" id="Node000001" title="Stops the client and closes the connection." alt="" coords="5,22,255,62"/>
+<area shape="rect" id="Node000002" href="$namespacekcenon_1_1network.html#a9d2a06a302dea2b45b323b864eacad4a" title=" " alt="" coords="303,29,507,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="255,39,289,39,289,45,255,45"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="360,31,351,21,356,11,374,5,405,3,444,7,455,12,458,18,454,20,451,16,443,12,405,8,375,10,359,15,356,20,364,27"/>
+</map>

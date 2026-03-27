@@ -1,0 +1,19 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="Node000000" title=" " alt="" coords="5,323,124,348"/>
+<area shape="rect" id="Node000001" href="$structkcenon_1_1network_1_1core_1_1session__model_1_1has__close__method.html" title=" " alt="" coords="172,5,451,60"/>
+<area shape="poly" id="edge110_Node000000_Node000001" title=" " alt="" coords="66,309,75,258,94,194,124,127,145,96,170,69,185,58,189,62,174,73,149,100,129,130,99,196,80,260,71,310"/>
+<area shape="rect" id="Node000002" href="$structkcenon_1_1network_1_1core_1_1session__model_1_1has__id__method.html" title=" " alt="" coords="183,84,439,139"/>
+<area shape="poly" id="edge111_Node000000_Node000002" title=" " alt="" coords="71,308,85,273,106,230,134,186,170,149,190,137,193,141,174,153,138,190,110,232,90,275,76,310"/>
+<area shape="rect" id="Node000003" href="$structkcenon_1_1network_1_1core_1_1session__model_1_1has__is__connected__method.html" title=" " alt="" coords="200,163,423,233"/>
+<area shape="poly" id="edge112_Node000000_Node000003" title=" " alt="" coords="85,311,123,276,171,242,199,229,201,233,173,247,127,280,89,315"/>
+<area shape="rect" id="Node000004" href="$structkcenon_1_1network_1_1core_1_1session__model_1_1has__is__stopped__method.html" title=" " alt="" coords="200,257,423,326"/>
+<area shape="poly" id="edge113_Node000000_Node000004" title=" " alt="" coords="137,320,199,309,200,314,138,325"/>
+<area shape="rect" id="Node000005" href="$structkcenon_1_1network_1_1core_1_1session__model_1_1has__send__method.html" title=" " alt="" coords="174,351,449,405"/>
+<area shape="poly" id="edge114_Node000000_Node000005" title=" " alt="" coords="138,345,174,352,173,357,137,351"/>
+<area shape="rect" id="Node000006" href="$structkcenon_1_1network_1_1core_1_1session__model_1_1has__send__packet__method.html" title=" " alt="" coords="200,430,423,499"/>
+<area shape="poly" id="edge115_Node000000_Node000006" title=" " alt="" coords="92,356,129,386,173,414,201,428,199,432,171,419,126,390,89,360"/>
+<area shape="rect" id="Node000007" href="$structkcenon_1_1network_1_1core_1_1session__model_1_1has__server__id__method.html" title=" " alt="" coords="200,523,423,593"/>
+<area shape="poly" id="edge116_Node000000_Node000007" title=" " alt="" coords="77,360,91,394,112,434,140,474,174,509,201,527,199,531,170,513,135,478,108,437,87,396,72,362"/>
+<area shape="rect" id="Node000008" href="$structkcenon_1_1network_1_1core_1_1session__model_1_1has__stop__session__method.html" title=" " alt="" coords="200,617,423,686"/>
+<area shape="poly" id="edge117_Node000000_Node000008" title=" " alt="" coords="72,361,81,412,99,477,129,544,150,575,174,603,201,622,198,626,170,607,145,579,125,547,94,479,76,413,66,362"/>
+</map>

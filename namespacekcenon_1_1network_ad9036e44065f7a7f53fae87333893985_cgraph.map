@@ -1,0 +1,10 @@
+<map id="kcenon::network::shutdown" name="kcenon::network::shutdown">
+<area shape="rect" id="Node000001" title="Shutdown the network system." alt="" coords="5,87,207,112"/>
+<area shape="rect" id="Node000002" href="$namespacekcenon_1_1network.html#a9d2a06a302dea2b45b323b864eacad4a" title=" " alt="" coords="255,29,459,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="162,84,286,55,288,60,163,89"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1core_1_1network__context.html#ae0e066c4c55aef2c848e60b572a616f7" title="Get the singleton instance." alt="" coords="255,79,458,119"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="207,97,242,97,242,102,207,102"/>
+<area shape="rect" id="Node000004" href="$namespacekcenon_1_1network.html#aa32d0dbfdee046c2c0cde3667c5f05a8" title=" " alt="" coords="279,144,434,169"/>
+<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="163,109,288,138,286,143,162,115"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="316,31,307,21,312,11,329,5,357,3,392,7,402,11,406,17,401,20,399,15,391,12,357,8,330,10,315,15,313,20,320,27"/>
+</map>

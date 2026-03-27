@@ -1,0 +1,9 @@
+<map id="kcenon::network::protocols::grpc::service_registry::impl::configure_server" name="kcenon::network::protocols::grpc::service_registry::impl::configure_server">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,41,204,96"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1protocols_1_1grpc_1_1generic__service.html#a08bda6d2dcc6ed508d6fdd35597c4491" title="Get the service descriptor." alt="" coords="252,5,451,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="204,52,238,47,239,52,205,57"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1Result.html#a71f6ed7945c754e2fd7ac76c9a911c61" title=" " alt="" coords="262,85,441,125"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="205,81,249,87,248,92,204,86"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1Result.html#a9ec10acf6813bbb5cb5d5c44b43d2f6d" title=" " alt="" coords="499,85,677,125"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="441,102,485,102,485,107,441,107"/>
+</map>

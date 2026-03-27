@@ -1,0 +1,8 @@
+<map id="kcenon::network::protocols::http2::http2_server_connection::handle_headers_frame" name="kcenon::network::protocols::http2::http2_server_connection::handle_headers_frame">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,40,237,95"/>
+<area shape="rect" id="Node000002" href="$namespacekcenon_1_1network.html#a9d2a06a302dea2b45b323b864eacad4a" title=" " alt="" coords="285,29,489,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="237,54,272,50,272,56,238,59"/>
+<area shape="rect" id="Node000003" href="$namespacekcenon_1_1network.html#aa32d0dbfdee046c2c0cde3667c5f05a8" title=" " alt="" coords="310,79,465,104"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="238,75,297,81,296,86,237,80"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="345,31,335,21,340,11,358,5,387,3,425,7,436,12,439,18,435,20,432,16,424,12,387,8,359,10,344,15,341,20,349,27"/>
+</map>

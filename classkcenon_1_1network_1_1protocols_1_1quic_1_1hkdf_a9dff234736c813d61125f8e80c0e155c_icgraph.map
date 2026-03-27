@@ -1,0 +1,9 @@
+<map id="kcenon::network::protocols::quic::hkdf::extract" name="kcenon::network::protocols::quic::hkdf::extract">
+<area shape="rect" id="Node000001" title="HKDF&#45;Extract function." alt="" coords="499,49,697,89"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1initial__keys.html#aba7f6695801373b00ea1eb77831e5064" title="Derive client and server initial keys." alt="" coords="252,13,451,53"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="485,55,451,50,451,45,486,50"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1quic__crypto.html#ab18f907eef79c7acd74144003d345b2f" title="Derive 0&#45;RTT keys from session ticket." alt="" coords="252,77,451,132"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="486,88,451,93,451,88,485,82"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1quic__crypto.html#adbd8daf4cf209111555af502d4443a4c" title="Derive initial secrets from destination connection ID." alt="" coords="5,5,204,60"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="238,35,204,35,204,30,238,30"/>
+</map>

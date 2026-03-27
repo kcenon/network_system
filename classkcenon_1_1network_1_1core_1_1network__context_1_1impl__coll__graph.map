@@ -1,0 +1,23 @@
+<map id="kcenon::network::core::network_context::impl" name="kcenon::network::core::network_context::impl">
+<area shape="rect" id="Node000001" title=" " alt="" coords="561,643,729,743"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="257,485,435,580"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="420,578,487,616,547,646,544,650,485,621,418,583"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1integration_1_1thread__pool__interface.html" title="Interface for thread pool integration." alt="" coords="5,133,207,393"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="209,385,276,460,288,472,284,476,272,463,205,388"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="487,231,637,296"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="530,308,490,352,445,395,427,407,411,419,387,452,368,486,363,484,382,449,407,415,424,403,442,391,487,348,526,305"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="459,485,633,580"/>
+<area shape="poly" id="edge7_Node000006_Node000004" title=" " alt="" coords="562,310,551,485,546,485,557,310"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="657,485,830,580"/>
+<area shape="poly" id="edge10_Node000008_Node000004" title=" " alt="" coords="605,305,651,356,695,416,729,484,724,486,690,419,647,359,601,308"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="551,5,573,71"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="565,71,565,214,559,214,559,71"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="577,579,608,627,603,630,573,582"/>
+<area shape="rect" id="Node000007" href="$classkcenon_1_1network_1_1integration_1_1logger__interface.html" title="Interface for logger integration." alt="" coords="231,133,432,393"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="311,393,318,429,335,460,356,477,380,480,409,479,444,483,443,488,409,485,380,486,354,481,331,463,313,430,306,394"/>
+<area shape="poly" id="edge8_Node000001_Node000008" title=" " alt="" coords="717,582,686,630,682,627,712,579"/>
+<area shape="rect" id="Node000009" href="$classkcenon_1_1network_1_1integration_1_1monitoring__interface.html" title="Interface for monitoring integration." alt="" coords="809,143,1011,383"/>
+<area shape="poly" id="edge9_Node000008_Node000009" title=" " alt="" coords="913,384,902,425,883,463,846,486,843,481,879,460,897,423,908,383"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="855,500,939,565"/>
+<area shape="poly" id="edge11_Node000001_Node000010" title=" " alt="" coords="861,568,844,582,821,602,797,621,745,650,742,646,794,616,818,598,840,578,857,564"/>
+</map>

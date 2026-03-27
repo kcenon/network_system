@@ -1,0 +1,5 @@
+<map id="kcenon::network::utils::startable_base::reset_connection_state" name="kcenon::network::utils::startable_base::reset_connection_state">
+<area shape="rect" id="Node000001" title="Resets connection state flags for a fresh start." alt="" coords="240,5,407,60"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1utils_1_1startable__base.html#a1fb9401c25a1196298ad186713d8392c" title="Unified start operation with lifecycle management." alt="" coords="5,13,192,53"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="226,35,192,35,192,30,226,30"/>
+</map>

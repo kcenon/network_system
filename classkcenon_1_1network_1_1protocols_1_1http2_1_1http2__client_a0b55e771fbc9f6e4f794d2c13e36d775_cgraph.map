@@ -1,0 +1,8 @@
+<map id="kcenon::network::protocols::http2::http2_client::write_stream" name="kcenon::network::protocols::http2::http2_client::write_stream">
+<area shape="rect" id="Node000001" title="Write data to an open stream." alt="" coords="5,47,248,87"/>
+<area shape="rect" id="Node000002" href="$namespacekcenon_1_1network.html#a9d2a06a302dea2b45b323b864eacad4a" title=" " alt="" coords="296,29,500,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="248,53,282,50,282,55,248,59"/>
+<area shape="rect" id="Node000003" href="$namespacekcenon_1_1network.html#aa32d0dbfdee046c2c0cde3667c5f05a8" title=" " alt="" coords="321,79,475,104"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="248,75,307,81,307,86,248,81"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="355,31,345,21,350,11,368,5,398,3,437,7,447,12,451,18,446,20,444,16,435,12,398,8,369,10,353,15,350,20,358,27"/>
+</map>

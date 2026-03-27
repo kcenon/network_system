@@ -1,0 +1,16 @@
+<map id="kcenon::network::internal::get_error_status_text" name="kcenon::network::internal::get_error_status_text">
+<area shape="rect" id="Node000001" title="Get status text for HTTP error code." alt="" coords="691,91,879,131"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1internal_1_1http__error__response.html#a8e87c39930786cbcc495d5f7b880714b" title="Build HTML format error response." alt="" coords="455,5,643,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="710,89,631,63,632,58,712,84"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1internal_1_1http__error__response.html#a3fa582522833af04174cd5bdd47da40f" title="Build JSON format error response (RFC 7807)" alt="" coords="455,84,643,139"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="677,114,643,114,643,109,677,109"/>
+<area shape="rect" id="Node000005" href="$classkcenon_1_1network_1_1internal_1_1http__error__response.html#aaa59be30d58b5b8f4ff329d1656218e8" title="Create http_error from error code." alt="" coords="455,163,643,217"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="712,138,632,165,631,160,710,133"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1core_1_1http__server.html#ada7b9ac3f340cfc7573ca117bb97ae16" title="Build error response using registered handlers." alt="" coords="240,45,407,100"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="441,54,407,61,406,55,440,49"/>
+<area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="440,95,406,90,407,84,441,90"/>
+<area shape="rect" id="Node000006" href="$classkcenon_1_1network_1_1core_1_1http__server.html#a3e1bd2755c14e23db62469aa4c0cfb33" title="Create default error response." alt="" coords="240,163,407,217"/>
+<area shape="poly" id="edge6_Node000005_Node000006" title=" " alt="" coords="441,193,407,193,407,187,441,187"/>
+<area shape="rect" id="Node000007" href="$classkcenon_1_1network_1_1core_1_1http__server.html#a1481dd09d1f4534ac023c4db17a815a7" title="Construct HTTP server with server ID." alt="" coords="5,170,192,210"/>
+<area shape="poly" id="edge7_Node000006_Node000007" title=" " alt="" coords="226,193,192,193,192,187,226,187"/>
+</map>

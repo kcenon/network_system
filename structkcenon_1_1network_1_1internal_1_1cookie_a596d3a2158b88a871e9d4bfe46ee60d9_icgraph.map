@@ -1,0 +1,11 @@
+<map id="kcenon::network::internal::cookie::to_header_value" name="kcenon::network::internal::cookie::to_header_value">
+<area shape="rect" id="Node000001" title="Convert cookie to Set&#45;Cookie header value." alt="" coords="456,53,645,93"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1internal_1_1http__parser.html#ad312aad587f491bcf7d06f8e0a5e2267" title=" " alt="" coords="220,5,408,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="442,57,408,51,409,46,443,52"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1internal_1_1http__parser.html#ae2259c0ab0c8f47d5d1161c3f0ae26e6" title="Serialize HTTP response to raw bytes." alt="" coords="220,84,408,139"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="443,93,409,99,408,93,442,88"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1core_1_1http__server.html#ab2eed37710e1cbf831e6221b8135e094" title="Handle incoming HTTP request." alt="" coords="5,48,172,103"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="206,97,172,91,173,86,207,91"/>
+<area shape="rect" id="Node000005" href="$classkcenon_1_1network_1_1core_1_1http__server.html#a0e6902061e1106c591cf21beb2c325ec" title="Start HTTP server on specified port." alt="" coords="5,127,172,167"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="207,131,173,137,172,131,206,126"/>
+</map>

@@ -1,0 +1,91 @@
+<map id="include/kcenon/network/detail/unified/types.h" name="include/kcenon/network/detail/unified/types.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="951,5,1128,45"/>
+<area shape="rect" id="Node000002" href="$quic_8h.html" title=" " alt="" coords="724,379,901,419"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="1005,56,964,95,927,140,901,177,854,270,832,329,819,380,814,378,827,328,849,268,896,175,923,137,960,92,1001,52"/>
+<area shape="rect" id="Node000011" href="$tcp_8h.html" title=" " alt="" coords="925,379,1103,419"/>
+<area shape="poly" id="edge12_Node000001_Node000011" title=" " alt="" coords="1019,58,961,150,932,208,911,270,905,298,906,309,911,323,922,340,937,354,971,377,968,381,934,358,918,343,906,325,900,310,900,297,906,269,927,206,956,147,1014,55"/>
+<area shape="rect" id="Node000013" href="$udp_8h.html" title=" " alt="" coords="1365,379,1543,419"/>
+<area shape="poly" id="edge15_Node000001_Node000013" title=" " alt="" coords="1142,28,1186,35,1230,48,1274,66,1313,91,1346,124,1374,162,1397,203,1415,244,1441,322,1454,379,1448,380,1436,324,1411,246,1392,205,1369,165,1342,127,1310,95,1271,70,1229,53,1184,41,1141,33"/>
+<area shape="rect" id="Node000015" href="$websocket_8h.html" title=" " alt="" coords="257,379,462,419"/>
+<area shape="poly" id="edge18_Node000001_Node000015" title=" " alt="" coords="994,54,395,382,392,377,992,50"/>
+<area shape="rect" id="Node000017" href="$i__connection_8h.html" title=" " alt="" coords="1071,181,1280,221"/>
+<area shape="poly" id="edge21_Node000001_Node000017" title=" " alt="" coords="1052,57,1069,95,1092,132,1118,158,1146,179,1143,183,1115,162,1088,135,1064,97,1047,59"/>
+<area shape="rect" id="Node000018" href="$i__listener_8h.html" title=" " alt="" coords="921,277,1107,317"/>
+<area shape="poly" id="edge53_Node000001_Node000018" title=" " alt="" coords="1039,59,1018,277,1013,276,1034,59"/>
+<area shape="rect" id="Node000019" href="$unified_8h.html" title="Convenience header for the unified network interface API." alt="" coords="2327,379,2504,419"/>
+<area shape="poly" id="edge57_Node000001_Node000019" title=" " alt="" coords="1142,34,1321,53,1555,83,1819,125,2082,179,2164,193,2229,202,2259,210,2290,222,2321,240,2356,267,2378,293,2395,324,2414,378,2409,380,2390,326,2374,297,2352,271,2318,245,2287,227,2258,215,2228,207,2163,198,2082,184,1818,130,1555,89,1320,58,1142,39"/>
+<area shape="rect" id="Node000032" href="$i__transport_8h.html" title=" " alt="" coords="1102,93,1299,133"/>
+<area shape="poly" id="edge54_Node000001_Node000032" title=" " alt="" coords="1088,49,1167,91,1164,96,1085,54"/>
+<area shape="rect" id="Node000003" href="$protocol_8h.html" title="Convenience header for all protocol factory functions." alt="" coords="843,482,1020,522"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="847,426,911,480,907,484,844,430"/>
+<area shape="rect" id="Node000006" href="$quic__connection__adapter_8h.html" title=" " alt="" coords="1045,475,1237,529"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="888,421,1056,472,1054,477,886,426"/>
+<area shape="rect" id="Node000007" href="$quic_8cpp.html" title=" " alt="" coords="695,585,851,610"/>
+<area shape="poly" id="edge11_Node000002_Node000007" title=" " alt="" coords="809,433,778,585,772,584,804,432"/>
+<area shape="rect" id="Node000009" href="$quic__listener__adapter_8h.html" title=" " alt="" coords="597,475,767,529"/>
+<area shape="poly" id="edge8_Node000002_Node000009" title=" " alt="" coords="779,430,718,477,715,472,776,425"/>
+<area shape="rect" id="Node000004" href="$network__system_8h.html" title="Main header for the Network System." alt="" coords="875,577,1052,617"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="945,534,959,576,954,578,940,536"/>
+<area shape="rect" id="Node000005" href="$network__system_8cpp.html" title=" " alt="" coords="873,665,1053,691"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="966,631,966,665,961,665,961,631"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="1032,533,819,587,817,582,1031,528"/>
+<area shape="rect" id="Node000008" href="$quic__connection__adapter_8cpp.html" title=" " alt="" coords="1076,577,1291,617"/>
+<area shape="poly" id="edge7_Node000006_Node000008" title=" " alt="" coords="1161,541,1177,576,1172,578,1156,543"/>
+<area shape="poly" id="edge9_Node000009_Node000007" title=" " alt="" coords="719,537,763,582,759,586,715,541"/>
+<area shape="rect" id="Node000010" href="$quic__listener__adapter_8cpp.html" title=" " alt="" coords="478,577,670,617"/>
+<area shape="poly" id="edge10_Node000009_Node000010" title=" " alt="" coords="643,541,598,579,594,575,639,536"/>
+<area shape="poly" id="edge13_Node000011_Node000003" title=" " alt="" coords="992,432,949,484,945,480,988,428"/>
+<area shape="rect" id="Node000012" href="$tcp_8cpp.html" title=" " alt="" coords="1261,489,1410,515"/>
+<area shape="poly" id="edge14_Node000011_Node000012" title=" " alt="" coords="1088,421,1299,487,1298,492,1086,426"/>
+<area shape="poly" id="edge16_Node000013_Node000003" title=" " alt="" coords="1372,425,1353,429,1263,445,1193,453,1123,462,1033,477,1001,485,1000,479,1032,472,1122,456,1192,448,1263,440,1352,424,1371,420"/>
+<area shape="rect" id="Node000014" href="$udp_8cpp.html" title=" " alt="" coords="1644,489,1797,515"/>
+<area shape="poly" id="edge17_Node000013_Node000014" title=" " alt="" coords="1518,422,1691,487,1689,492,1516,427"/>
+<area shape="poly" id="edge19_Node000015_Node000003" title=" " alt="" coords="453,420,474,424,627,449,780,472,843,483,842,488,779,477,626,455,474,429,452,425"/>
+<area shape="rect" id="Node000016" href="$websocket_8cpp.html" title=" " alt="" coords="167,489,365,515"/>
+<area shape="poly" id="edge20_Node000015_Node000016" title=" " alt="" coords="334,432,279,491,275,487,330,428"/>
+<area shape="poly" id="edge22_Node000017_Node000002" title=" " alt="" coords="1058,217,982,237,945,252,910,272,881,296,857,326,824,380,819,378,852,323,877,292,907,267,942,247,980,232,1056,212"/>
+<area shape="poly" id="edge43_Node000017_Node000006" title=" " alt="" coords="1174,235,1146,475,1141,474,1169,235"/>
+<area shape="poly" id="edge23_Node000017_Node000011" title=" " alt="" coords="1168,236,1150,280,1121,326,1087,357,1051,381,1048,377,1084,353,1117,322,1145,278,1163,234"/>
+<area shape="poly" id="edge24_Node000017_Node000013" title=" " alt="" coords="1215,227,1429,377,1426,382,1212,231"/>
+<area shape="poly" id="edge25_Node000017_Node000015" title=" " alt="" coords="1065,227,852,272,618,330,427,382,426,377,616,325,851,267,1064,221"/>
+<area shape="poly" id="edge26_Node000017_Node000018" title=" " alt="" coords="1132,230,1048,279,1045,274,1130,226"/>
+<area shape="poly" id="edge42_Node000017_Node000019" title=" " alt="" coords="1294,203,1542,212,1838,225,2103,244,2197,255,2254,267,2394,377,2390,381,2252,272,2197,260,2102,249,1838,231,1541,217,1294,209"/>
+<area shape="rect" id="Node000026" href="$tcp__connection__adapter_8h.html" title=" " alt="" coords="1488,269,1673,324"/>
+<area shape="poly" id="edge44_Node000017_Node000026" title=" " alt="" coords="1271,222,1488,271,1487,277,1270,227"/>
+<area shape="rect" id="Node000028" href="$udp__connection__adapter_8h.html" title=" " alt="" coords="2051,269,2241,324"/>
+<area shape="poly" id="edge47_Node000017_Node000028" title=" " alt="" coords="1294,211,2051,284,2051,289,1294,217"/>
+<area shape="rect" id="Node000030" href="$ws__connection__adapter_8h.html" title=" " alt="" coords="39,269,221,324"/>
+<area shape="poly" id="edge50_Node000017_Node000030" title=" " alt="" coords="1057,216,222,290,221,285,1057,211"/>
+<area shape="poly" id="edge27_Node000018_Node000002" title=" " alt="" coords="965,325,852,382,849,377,963,320"/>
+<area shape="poly" id="edge32_Node000018_Node000009" title=" " alt="" coords="908,315,792,339,744,355,713,374,698,397,688,423,683,474,678,474,683,422,693,394,709,370,742,350,790,334,907,309"/>
+<area shape="poly" id="edge28_Node000018_Node000011" title=" " alt="" coords="1017,331,1017,379,1011,379,1011,331"/>
+<area shape="poly" id="edge29_Node000018_Node000013" title=" " alt="" coords="1117,317,1353,369,1383,377,1381,382,1352,375,1116,322"/>
+<area shape="poly" id="edge30_Node000018_Node000015" title=" " alt="" coords="907,313,706,338,474,375,438,382,437,377,474,369,705,333,907,307"/>
+<area shape="poly" id="edge31_Node000018_Node000019" title=" " alt="" coords="1121,301,1781,339,2264,369,2327,378,2326,384,2263,375,1780,344,1121,307"/>
+<area shape="rect" id="Node000020" href="$tcp__listener__adapter_8h.html" title=" " alt="" coords="1178,372,1341,427"/>
+<area shape="poly" id="edge33_Node000018_Node000020" title=" " alt="" coords="1074,319,1196,369,1194,374,1072,324"/>
+<area shape="rect" id="Node000022" href="$udp__listener__adapter_8h.html" title=" " alt="" coords="1619,372,1785,427"/>
+<area shape="poly" id="edge36_Node000018_Node000022" title=" " alt="" coords="1121,309,1556,369,1619,380,1618,385,1555,375,1121,314"/>
+<area shape="rect" id="Node000024" href="$ws__listener__adapter_8h.html" title=" " alt="" coords="487,372,648,427"/>
+<area shape="poly" id="edge39_Node000018_Node000024" title=" " alt="" coords="908,322,668,375,649,379,647,374,667,369,907,317"/>
+<area shape="poly" id="edge34_Node000020_Node000012" title=" " alt="" coords="1290,436,1329,487,1324,491,1285,439"/>
+<area shape="rect" id="Node000021" href="$tcp__listener__adapter_8cpp.html" title=" " alt="" coords="1435,482,1620,522"/>
+<area shape="poly" id="edge35_Node000020_Node000021" title=" " alt="" coords="1343,429,1478,479,1476,484,1341,434"/>
+<area shape="poly" id="edge37_Node000022_Node000014" title=" " alt="" coords="1712,440,1721,489,1716,490,1707,441"/>
+<area shape="rect" id="Node000023" href="$udp__listener__adapter_8cpp.html" title=" " alt="" coords="1822,482,2011,522"/>
+<area shape="poly" id="edge38_Node000022_Node000023" title=" " alt="" coords="1772,430,1877,479,1875,484,1769,435"/>
+<area shape="poly" id="edge40_Node000024_Node000016" title=" " alt="" coords="477,433,301,492,300,487,475,428"/>
+<area shape="rect" id="Node000025" href="$ws__listener__adapter_8cpp.html" title=" " alt="" coords="389,482,572,522"/>
+<area shape="poly" id="edge41_Node000024_Node000025" title=" " alt="" coords="537,439,499,483,495,480,533,436"/>
+<area shape="poly" id="edge45_Node000026_Node000012" title=" " alt="" coords="1585,338,1579,384,1571,408,1557,429,1485,456,1373,492,1372,487,1483,451,1554,425,1566,405,1574,383,1580,338"/>
+<area shape="rect" id="Node000027" href="$tcp__connection__adapter_8cpp.html" title=" " alt="" coords="1809,379,2016,419"/>
+<area shape="poly" id="edge46_Node000026_Node000027" title=" " alt="" coords="1681,325,1851,377,1850,382,1679,330"/>
+<area shape="poly" id="edge48_Node000028_Node000014" title=" " alt="" coords="2225,329,2248,348,2266,371,2276,400,2274,414,2265,428,2250,442,2229,452,2178,466,2117,472,2049,474,1913,472,1855,473,1810,477,1755,492,1754,487,1810,472,1855,467,1913,467,2049,469,2116,467,2177,461,2228,447,2247,437,2261,425,2269,413,2271,401,2261,373,2244,351,2222,333"/>
+<area shape="rect" id="Node000029" href="$udp__connection__adapter_8cpp.html" title=" " alt="" coords="2041,379,2251,419"/>
+<area shape="poly" id="edge49_Node000028_Node000029" title=" " alt="" coords="2149,338,2149,379,2143,379,2143,338"/>
+<area shape="poly" id="edge51_Node000030_Node000016" title=" " alt="" coords="56,333,34,351,18,373,8,400,10,412,17,425,44,445,89,462,195,487,194,492,87,467,42,449,13,428,5,414,3,400,13,371,31,348,53,329"/>
+<area shape="rect" id="Node000031" href="$ws__connection__adapter_8cpp.html" title=" " alt="" coords="27,379,233,419"/>
+<area shape="poly" id="edge52_Node000030_Node000031" title=" " alt="" coords="133,338,133,379,127,379,127,338"/>
+<area shape="poly" id="edge55_Node000032_Node000017" title=" " alt="" coords="1194,147,1183,182,1178,180,1189,146"/>
+<area shape="poly" id="edge56_Node000032_Node000019" title=" " alt="" coords="1313,118,1548,134,1838,163,1982,183,2113,206,2224,234,2269,250,2306,267,2340,291,2368,321,2407,377,2403,380,2364,325,2336,295,2303,272,2267,255,2223,239,2112,212,1981,188,1837,168,1548,139,1313,123"/>
+</map>

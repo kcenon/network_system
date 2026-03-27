@@ -1,0 +1,7 @@
+<map id="include/kcenon/network/detail/protocols/grpc/service_registry.h" name="include/kcenon/network/detail/protocols/grpc/service_registry.h">
+<area shape="rect" id="Node000001" title="gRPC service registration mechanism" alt="" coords="100,5,277,60"/>
+<area shape="rect" id="Node000002" href="$grpc_8h.html" title="Unified gRPC protocol header." alt="" coords="5,108,183,148"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="154,72,115,110,111,106,150,68"/>
+<area shape="rect" id="Node000003" href="$service__registry_8cpp.html" title="gRPC service registration mechanism implementation" alt="" coords="207,108,362,148"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="228,68,267,106,263,110,224,72"/>
+</map>

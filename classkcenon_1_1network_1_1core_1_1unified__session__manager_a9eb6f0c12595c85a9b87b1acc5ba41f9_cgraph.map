@@ -1,0 +1,9 @@
+<map id="kcenon::network::core::unified_session_manager::add_session_with_id" name="kcenon::network::core::unified_session_manager::add_session_with_id">
+<area shape="rect" id="Node000001" title="Add a session and return the assigned ID." alt="" coords="5,84,200,139"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1core_1_1unified__session__manager.html#a145acecc2969bf34a40c0882eda11eac" title=" " alt="" coords="248,5,448,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="188,81,248,62,250,67,189,86"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1core_1_1unified__session__manager.html#aca930435e12be105f3a618793dd55947" title="Check if new connection can be accepted." alt="" coords="251,84,445,139"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="200,109,237,109,237,114,200,114"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1core_1_1unified__session__manager.html#a8a7367428b942319bec53232d58d7e4f" title=" " alt="" coords="251,163,445,217"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="189,136,250,156,248,161,188,141"/>
+</map>

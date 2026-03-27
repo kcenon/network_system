@@ -1,0 +1,21 @@
+<map id="kcenon::network::protocols::http2::http2_server_connection::read_frame_payload" name="kcenon::network::protocols::http2::http2_server_connection::read_frame_payload">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,222,237,277"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1protocols_1_1http2_1_1frame.html#a4021592f8f32bea6ed64fd080acec34b" title="Parse frame from raw bytes." alt="" coords="285,229,484,269"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="237,247,272,247,272,252,237,252"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1protocols_1_1http2_1_1data__frame.html#ac7e15f0779a2ad2b18fd86a7190c5c59" title="Parse DATA frame from raw bytes." alt="" coords="565,5,763,45"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="393,228,413,190,444,143,483,95,530,55,551,44,553,49,534,60,487,99,448,146,418,193,398,230"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1protocols_1_1http2_1_1goaway__frame.html#af93c819369ec390f77eee3e09cd4db91" title="Parse GOAWAY frame from raw bytes." alt="" coords="557,69,771,109"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="401,227,455,173,491,144,531,119,546,112,549,117,533,124,494,148,459,177,405,231"/>
+<area shape="rect" id="Node000005" href="$classkcenon_1_1network_1_1protocols_1_1http2_1_1headers__frame.html#ad669007f2deb682c4511d21e9524ea27" title="Parse HEADERS frame from raw bytes." alt="" coords="557,133,771,173"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="426,227,531,183,558,174,560,180,533,188,428,232"/>
+<area shape="rect" id="Node000006" href="$classkcenon_1_1network_1_1protocols_1_1http2_1_1ping__frame.html#aea56c0480653c43c962835a57a192f22" title="Parse PING frame from raw bytes." alt="" coords="565,197,763,237"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="484,235,551,228,551,233,485,241"/>
+<area shape="rect" id="Node000007" href="$classkcenon_1_1network_1_1protocols_1_1http2_1_1rst__stream__frame.html#aa929d74a3ae7f6cd2bfd1b42fe7b4156" title="Parse RST_STREAM frame from raw bytes." alt="" coords="548,261,780,301"/>
+<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="485,258,535,264,534,269,484,263"/>
+<area shape="rect" id="Node000008" href="$classkcenon_1_1network_1_1protocols_1_1http2_1_1settings__frame.html#a0ead4a280322d2a062b220ed1d7c3cb3" title="Parse SETTINGS frame from raw bytes." alt="" coords="557,325,771,365"/>
+<area shape="poly" id="edge7_Node000002_Node000008" title=" " alt="" coords="428,267,533,311,560,319,558,324,531,316,426,272"/>
+<area shape="rect" id="Node000009" href="$classkcenon_1_1network_1_1protocols_1_1http2_1_1window__update__frame.html#ac80308b89049d15e08945be4d14eeab0" title="Parse WINDOW_UPDATE frame from raw bytes." alt="" coords="532,389,796,429"/>
+<area shape="poly" id="edge8_Node000002_Node000009" title=" " alt="" coords="405,268,459,322,494,351,533,375,549,382,546,387,531,380,491,355,455,326,401,271"/>
+<area shape="rect" id="Node000010" href="$structkcenon_1_1network_1_1protocols_1_1http2_1_1frame__header.html#a244d89f5eff6a9cc797e618a76197a4c" title="Parse frame header from raw bytes." alt="" coords="561,453,767,493"/>
+<area shape="poly" id="edge9_Node000002_Node000010" title=" " alt="" coords="398,269,418,306,448,352,487,399,534,439,549,448,547,453,530,444,483,403,444,355,413,308,393,271"/>
+</map>

@@ -1,0 +1,9 @@
+<map id="kcenon::network::core::messaging_ws_client::~messaging_ws_client" name="kcenon::network::core::messaging_ws_client::~messaging_ws_client">
+<area shape="rect" id="Node000001" title="Destructor. Automatically stops the client if still running." alt="" coords="5,45,185,100"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1utils_1_1lifecycle__manager.html#a886ebda2e9af66e367ed4b8a563fcf7c" title="Checks if the component is currently running." alt="" coords="233,5,403,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="185,54,219,48,220,53,186,59"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1core_1_1messaging__ws__client.html#a28ae8859ebedcbbc53b319c550412071" title="Stops the client and releases all resources." alt="" coords="233,84,403,139"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="186,86,220,92,219,97,185,91"/>
+<area shape="rect" id="Node000004" href="$namespacekcenon_1_1network.html#aa32d0dbfdee046c2c0cde3667c5f05a8" title=" " alt="" coords="451,99,605,124"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="403,109,437,109,437,114,403,114"/>
+</map>

@@ -1,0 +1,140 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="Node000000" title=" " alt="" coords="289,1137,435,1177"/>
+<area shape="rect" id="Node000001" href="$classkcenon_1_1network_1_1core_1_1http__client.html" title="HTTP/1.1 client built on top of messaging_client." alt="" coords="549,149,715,189"/>
+<area shape="poly" id="edge37_Node000000_Node000001" title=" " alt="" coords="361,1123,369,934,378,800,392,657,411,513,437,382,453,324,471,273,491,231,514,199,529,186,547,177,549,182,532,190,518,202,496,234,476,275,458,326,442,383,416,514,397,657,383,801,374,934,367,1123"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1core_1_1http__server.html" title="HTTP/1.1 server built on top of messaging_server." alt="" coords="549,213,715,253"/>
+<area shape="poly" id="edge38_Node000000_Node000002" title=" " alt="" coords="362,1123,371,945,381,821,396,688,415,554,441,432,473,332,493,293,514,263,529,250,547,241,549,246,532,254,518,266,497,296,478,334,446,434,420,555,401,688,386,822,377,946,367,1123"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1core_1_1messaging__client.html" title="A basic TCP client that connects to a remote host, sends/receives data using asynchronous operations,..." alt="" coords="549,2131,715,2171"/>
+<area shape="poly" id="edge39_Node000000_Node000003" title=" " alt="" coords="373,1190,416,1418,471,1735,476,1822,478,1935,482,1991,489,2043,501,2087,518,2118,532,2130,550,2139,547,2144,529,2134,514,2121,496,2089,484,2044,477,1992,473,1935,470,1822,465,1736,411,1419,367,1191"/>
+<area shape="rect" id="Node000018" href="$classkcenon_1_1network_1_1core_1_1messaging__quic__client.html" title="A QUIC client that provides reliable, multiplexed communication." alt="" coords="543,1939,721,1979"/>
+<area shape="poly" id="edge40_Node000000_Node000018" title=" " alt="" coords="372,1189,451,1608,494,1826,518,1926,544,1944,541,1948,514,1929,489,1827,445,1609,367,1190"/>
+<area shape="rect" id="Node000020" href="$classkcenon_1_1network_1_1core_1_1messaging__quic__server.html" title="A QUIC server that manages incoming client connections." alt="" coords="541,2003,723,2043"/>
+<area shape="poly" id="edge41_Node000000_Node000020" title=" " alt="" coords="372,1190,518,1990,542,2007,539,2011,514,1993,367,1191"/>
+<area shape="rect" id="Node000033" href="$classkcenon_1_1network_1_1core_1_1messaging__server.html" title="A server class that manages incoming TCP connections, creating messaging_session instances for each a..." alt="" coords="549,2067,715,2107"/>
+<area shape="poly" id="edge42_Node000000_Node000033" title=" " alt="" coords="372,1190,415,1418,471,1735,476,1808,481,1901,493,1992,503,2028,518,2054,532,2066,549,2074,547,2079,529,2070,514,2057,498,2030,487,1993,476,1902,471,1808,465,1736,410,1419,367,1191"/>
+<area shape="rect" id="Node000035" href="$classkcenon_1_1network_1_1core_1_1messaging__session.html" title="Represents a client session on the server." alt="" coords="549,277,715,317"/>
+<area shape="poly" id="edge43_Node000000_Node000035" title=" " alt="" coords="362,1123,374,956,399,718,419,595,445,483,476,390,494,354,514,327,529,314,547,305,550,310,532,318,518,330,499,357,481,392,450,484,425,596,405,718,379,957,368,1123"/>
+<area shape="rect" id="Node000023" href="$classkcenon_1_1network_1_1core_1_1messaging__udp__client.html" title="A UDP client that sends datagrams to a target endpoint and can receive responses." alt="" coords="545,85,719,125"/>
+<area shape="poly" id="edge44_Node000000_Node000023" title=" " alt="" coords="361,1123,367,923,375,781,388,627,407,473,434,332,450,269,469,215,490,170,514,135,528,123,543,114,546,119,531,127,518,138,495,172,474,217,455,271,439,333,412,474,393,627,380,781,372,923,366,1123"/>
+<area shape="rect" id="Node000026" href="$classkcenon_1_1network_1_1core_1_1messaging__udp__server.html" title="A UDP server that receives datagrams and routes them based on sender endpoint." alt="" coords="542,1747,722,1787"/>
+<area shape="poly" id="edge45_Node000000_Node000026" title=" " alt="" coords="371,1190,389,1311,421,1473,442,1556,465,1630,490,1691,518,1732,543,1750,540,1754,514,1736,486,1694,460,1632,436,1557,416,1475,384,1312,365,1191"/>
+<area shape="rect" id="Node000029" href="$classkcenon_1_1network_1_1core_1_1messaging__ws__client.html" title="High&#45;level WebSocket client with automatic connection management." alt="" coords="547,1811,717,1851"/>
+<area shape="poly" id="edge46_Node000000_Node000029" title=" " alt="" coords="370,1190,386,1323,417,1506,437,1598,461,1682,488,1751,502,1778,518,1797,532,1809,548,1817,546,1822,529,1813,514,1801,498,1781,483,1753,456,1684,432,1600,411,1507,381,1324,364,1191"/>
+<area shape="rect" id="Node000031" href="$classkcenon_1_1network_1_1core_1_1messaging__ws__server.html" title="High&#45;level WebSocket server with connection management." alt="" coords="545,1875,719,1915"/>
+<area shape="poly" id="edge47_Node000000_Node000031" title=" " alt="" coords="371,1190,396,1344,435,1558,478,1755,499,1824,518,1862,546,1880,543,1885,514,1865,494,1826,473,1756,430,1559,391,1345,366,1191"/>
+<area shape="rect" id="Node000036" href="$classkcenon_1_1network_1_1core_1_1reliable__udp__client.html" title="A UDP client with optional reliability layer for configurable delivery guarantees." alt="" coords="549,341,715,381"/>
+<area shape="poly" id="edge48_Node000000_Node000036" title=" " alt="" coords="363,1123,376,968,403,748,424,636,448,533,478,449,495,416,514,391,530,378,547,369,550,374,532,383,518,395,500,419,483,451,454,535,429,637,409,749,381,968,368,1123"/>
+<area shape="rect" id="Node000037" href="$classkcenon_1_1network_1_1core_1_1secure__messaging__client.html" title="A secure client for establishing TLS/SSL encrypted TCP connections to a server." alt="" coords="535,405,729,445"/>
+<area shape="poly" id="edge49_Node000000_Node000037" title=" " alt="" coords="363,1123,378,979,408,779,428,677,452,584,481,507,497,478,514,455,533,440,536,444,518,459,501,481,486,510,457,586,433,678,413,780,384,980,369,1123"/>
+<area shape="rect" id="Node000038" href="$classkcenon_1_1network_1_1core_1_1secure__messaging__server.html" title="A secure server class that manages incoming TLS/SSL encrypted TCP connections, creating secure_sessio..." alt="" coords="533,469,731,509"/>
+<area shape="poly" id="edge50_Node000000_Node000038" title=" " alt="" coords="364,1123,381,991,412,810,432,718,456,635,483,566,498,539,514,519,531,506,534,510,518,523,503,542,488,568,461,636,437,720,417,811,386,992,370,1123"/>
+<area shape="rect" id="Node000039" href="$classkcenon_1_1network_1_1core_1_1secure__messaging__udp__client.html" title="A secure UDP client using DTLS (Datagram TLS) for encrypted communication." alt="" coords="541,533,723,588"/>
+<area shape="poly" id="edge51_Node000000_Node000039" title=" " alt="" coords="360,1122,363,1021,370,955,382,881,401,806,429,731,466,660,514,597,539,579,542,583,518,601,470,663,434,733,406,807,388,883,375,955,368,1022,365,1122"/>
+<area shape="rect" id="Node000040" href="$classkcenon_1_1network_1_1core_1_1secure__messaging__udp__server.html" title="A secure UDP server using DTLS (Datagram TLS) for encrypted communication." alt="" coords="541,612,723,667"/>
+<area shape="poly" id="edge52_Node000000_Node000040" title=" " alt="" coords="361,1123,369,1035,378,978,392,916,411,851,437,788,471,729,514,676,539,658,542,662,518,680,476,732,442,791,416,853,397,917,383,979,374,1036,367,1123"/>
+<area shape="rect" id="Node000041" href="$classkcenon_1_1network_1_1core_1_1unified__messaging__client.html" title="Unified TCP client template parameterized by protocol and TLS policy." alt="" coords="535,691,729,745"/>
+<area shape="poly" id="edge53_Node000000_Node000041" title=" " alt="" coords="364,1123,376,1048,402,949,421,897,446,846,477,797,514,755,533,741,536,745,518,759,481,801,451,848,426,899,407,951,381,1049,369,1123"/>
+<area shape="rect" id="Node000042" href="$classkcenon_1_1network_1_1core_1_1unified__messaging__server.html" title="Unified TCP server template parameterized by protocol and TLS policy." alt="" coords="532,769,732,824"/>
+<area shape="poly" id="edge54_Node000000_Node000042" title=" " alt="" coords="368,1123,384,1062,413,985,432,944,456,905,483,867,514,835,531,822,535,826,518,839,487,871,460,907,437,947,418,987,389,1063,373,1124"/>
+<area shape="rect" id="Node000024" href="$classkcenon_1_1network_1_1core_1_1unified__udp__messaging__client.html" title="Unified UDP client template parameterized by TLS policy." alt="" coords="541,5,723,60"/>
+<area shape="poly" id="edge55_Node000000_Node000024" title=" " alt="" coords="361,1123,366,912,374,762,387,598,406,434,432,283,449,216,468,158,489,109,514,71,539,51,542,55,518,74,494,111,473,160,454,218,437,284,411,435,392,598,379,762,371,912,366,1123"/>
+<area shape="rect" id="Node000027" href="$classkcenon_1_1network_1_1core_1_1unified__udp__messaging__server.html" title="Unified UDP server template parameterized by TLS policy." alt="" coords="541,1668,723,1723"/>
+<area shape="poly" id="edge56_Node000000_Node000027" title=" " alt="" coords="367,1190,375,1280,384,1338,398,1401,417,1466,443,1531,476,1592,518,1647,542,1666,539,1670,514,1651,472,1595,438,1533,412,1468,393,1402,379,1339,370,1280,362,1191"/>
+<area shape="rect" id="Node000043" href="$classkcenon_1_1network_1_1internal_1_1dtls__socket.html" title="A wrapper around ASIO UDP socket with OpenSSL DTLS encryption." alt="" coords="538,849,726,889"/>
+<area shape="poly" id="edge57_Node000000_Node000043" title=" " alt="" coords="371,1123,391,1073,421,1012,462,951,487,923,514,899,536,886,539,890,518,903,490,927,466,954,426,1015,396,1075,376,1125"/>
+<area shape="rect" id="Node000044" href="$classkcenon_1_1network_1_1internal_1_1quic__socket.html" title="A QUIC socket that wraps UDP and integrates QUIC packet protection." alt="" coords="538,913,726,953"/>
+<area shape="poly" id="edge58_Node000000_Node000044" title=" " alt="" coords="378,1123,401,1086,432,1043,470,999,515,962,537,950,539,955,517,967,474,1003,436,1046,405,1089,382,1126"/>
+<area shape="rect" id="Node000045" href="$classkcenon_1_1network_1_1internal_1_1secure__tcp__socket.html" title="A lightweight wrapper around asio::ssl::stream&lt;asio::ip::tcp::socket&gt;, enabling asynchronous TLS/SSL ..." alt="" coords="538,977,726,1017"/>
+<area shape="poly" id="edge59_Node000000_Node000045" title=" " alt="" coords="390,1125,444,1074,479,1049,515,1026,542,1014,544,1019,517,1031,482,1053,448,1078,393,1129"/>
+<area shape="rect" id="Node000046" href="$classkcenon_1_1network_1_1internal_1_1tcp__socket.html" title="A lightweight wrapper around asio::ip::tcp::socket, enabling asynchronous read and write operations." alt="" coords="538,1041,726,1081"/>
+<area shape="poly" id="edge60_Node000000_Node000046" title=" " alt="" coords="419,1128,515,1090,553,1078,555,1083,517,1095,421,1133"/>
+<area shape="rect" id="Node000047" href="$classkcenon_1_1network_1_1internal_1_1udp__socket.html" title="A lightweight wrapper around asio::ip::udp::socket, enabling asynchronous datagram operations." alt="" coords="538,1105,726,1145"/>
+<area shape="poly" id="edge61_Node000000_Node000047" title=" " alt="" coords="448,1144,537,1133,538,1138,449,1149"/>
+<area shape="rect" id="Node000048" href="$classkcenon_1_1network_1_1internal_1_1websocket__socket.html" title="WebSocket framing layer built on top of tcp_socket." alt="" coords="538,1169,726,1209"/>
+<area shape="poly" id="edge62_Node000000_Node000048" title=" " alt="" coords="449,1164,538,1175,537,1180,448,1169"/>
+<area shape="rect" id="Node000049" href="$classkcenon_1_1network_1_1protocols_1_1http2_1_1http2__client.html" title="HTTP/2 client with TLS support." alt="" coords="533,1233,731,1273"/>
+<area shape="poly" id="edge63_Node000000_Node000049" title=" " alt="" coords="421,1180,517,1218,555,1230,553,1235,515,1223,419,1185"/>
+<area shape="rect" id="Node000050" href="$classkcenon_1_1network_1_1protocols_1_1http2_1_1http2__server.html" title="HTTP/2 server with TLS support." alt="" coords="533,1297,731,1337"/>
+<area shape="poly" id="edge64_Node000000_Node000050" title=" " alt="" coords="393,1185,448,1235,482,1260,517,1282,544,1294,542,1299,515,1287,479,1265,444,1239,390,1189"/>
+<area shape="rect" id="Node000051" href="$classkcenon_1_1network_1_1protocols_1_1http2_1_1http2__server__connection.html" title="Represents a single HTTP/2 connection on the server side." alt="" coords="516,1361,748,1401"/>
+<area shape="poly" id="edge65_Node000000_Node000051" title=" " alt="" coords="382,1187,405,1224,436,1267,474,1310,517,1346,539,1358,537,1363,515,1351,470,1314,432,1271,401,1227,378,1190"/>
+<area shape="rect" id="Node000052" href="$classkcenon_1_1network_1_1session_1_1messaging__session.html" title="Manages a single connected client session on the server side, providing asynchronous read/write opera..." alt="" coords="539,2498,725,2538"/>
+<area shape="poly" id="edge66_Node000000_Node000052" title=" " alt="" coords="373,1190,420,1417,447,1574,471,1735,475,1878,479,2117,483,2241,491,2352,502,2437,509,2466,518,2483,540,2501,537,2505,514,2486,504,2467,497,2438,485,2352,478,2241,474,2117,470,1878,465,1736,442,1575,415,1418,368,1191"/>
+<area shape="rect" id="Node000055" href="$classkcenon_1_1network_1_1session_1_1quic__session.html" title="Represents a single QUIC client session on the server side." alt="" coords="796,2277,983,2317"/>
+<area shape="poly" id="edge67_Node000000_Node000055" title=" " alt="" coords="367,1190,375,1275,384,1328,397,1386,416,1446,442,1503,476,1557,518,1603,547,1622,575,1629,604,1629,633,1626,662,1622,692,1623,721,1632,750,1653,767,1675,782,1703,809,1776,832,1865,851,1962,877,2150,889,2276,884,2276,872,2150,846,1963,827,1866,804,1778,777,1705,762,1678,746,1657,719,1637,691,1628,663,1628,634,1631,604,1635,575,1634,544,1626,514,1607,472,1560,438,1506,412,1448,392,1388,378,1329,369,1275,362,1191"/>
+<area shape="rect" id="Node000062" href="$classkcenon_1_1network_1_1session_1_1secure__session.html" title="Manages a single connected secure (TLS/SSL) client session on the server side, providing asynchronous..." alt="" coords="539,1425,725,1465"/>
+<area shape="poly" id="edge68_Node000000_Node000062" title=" " alt="" coords="376,1189,396,1238,426,1298,466,1359,490,1387,518,1411,539,1423,537,1428,514,1415,487,1390,462,1362,421,1301,391,1240,371,1190"/>
+<area shape="rect" id="Node000063" href="$classkcenon_1_1network_1_1utils_1_1buffer__pool.html" title="Thread&#45;safe memory pool for reusable byte buffers." alt="" coords="549,1489,715,1529"/>
+<area shape="poly" id="edge69_Node000000_Node000063" title=" " alt="" coords="372,1189,388,1251,416,1328,436,1368,459,1407,486,1443,518,1475,550,1493,547,1497,514,1479,482,1447,454,1410,431,1371,411,1330,383,1252,367,1191"/>
+<area shape="rect" id="Node000064" href="$classkcenon_1_1network_1_1utils_1_1health__monitor.html" title="Monitors connection health with heartbeat mechanism." alt="" coords="549,1553,715,1593"/>
+<area shape="poly" id="edge70_Node000000_Node000064" title=" " alt="" coords="369,1190,382,1262,408,1357,427,1406,451,1455,481,1500,518,1539,550,1557,547,1562,514,1543,477,1503,447,1457,422,1408,402,1358,377,1264,364,1191"/>
+<area shape="rect" id="Node000009" href="$classkcenon_1_1network_1_1interfaces_1_1i__network__component.html" title="Base interface for all network components." alt="" coords="5,1971,208,2011"/>
+<area shape="rect" id="Node000010" href="$classkcenon_1_1network_1_1interfaces_1_1i__client.html" title="Base interface for client&#45;side network components." alt="" coords="261,2067,463,2107"/>
+<area shape="poly" id="edge71_Node000009_Node000010" title=" " alt="" coords="164,2014,257,2053,292,2065,290,2070,255,2058,162,2019"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1interfaces_1_1i__protocol__client.html" title="Unified interface for all protocol client implementations." alt="" coords="261,2290,463,2330"/>
+<area shape="poly" id="edge72_Node000009_Node000004" title=" " alt="" coords="119,2024,136,2078,164,2146,204,2215,229,2247,258,2275,278,2288,275,2292,254,2279,225,2250,200,2218,159,2148,131,2080,114,2025"/>
+<area shape="rect" id="Node000011" href="$classkcenon_1_1network_1_1interfaces_1_1i__protocol__server.html" title="Unified interface for all protocol server implementations." alt="" coords="261,2687,463,2727"/>
+<area shape="poly" id="edge78_Node000009_Node000011" title=" " alt="" coords="122,2023,356,2686,351,2688,117,2025"/>
+<area shape="rect" id="Node000017" href="$classkcenon_1_1network_1_1interfaces_1_1i__quic__client.html" title="Interface for QUIC client components." alt="" coords="261,1939,463,1979"/>
+<area shape="poly" id="edge84_Node000009_Node000017" title=" " alt="" coords="221,1974,260,1969,261,1975,222,1980"/>
+<area shape="rect" id="Node000019" href="$classkcenon_1_1network_1_1interfaces_1_1i__quic__server.html" title="Interface for QUIC server components." alt="" coords="261,2003,463,2043"/>
+<area shape="poly" id="edge86_Node000009_Node000019" title=" " alt="" coords="222,2003,261,2008,260,2013,221,2008"/>
+<area shape="rect" id="Node000021" href="$classkcenon_1_1network_1_1interfaces_1_1i__server.html" title="Base interface for server&#45;side network components." alt="" coords="261,2354,463,2394"/>
+<area shape="poly" id="edge88_Node000009_Node000021" title=" " alt="" coords="115,2024,129,2091,155,2176,174,2220,197,2264,225,2305,258,2340,274,2352,271,2356,254,2344,220,2308,192,2267,169,2223,150,2178,124,2092,110,2025"/>
+<area shape="rect" id="Node000022" href="$classkcenon_1_1network_1_1interfaces_1_1i__udp__client.html" title="Interface for UDP client components." alt="" coords="261,85,463,125"/>
+<area shape="poly" id="edge89_Node000009_Node000022" title=" " alt="" coords="110,1957,355,125,361,125,115,1958"/>
+<area shape="rect" id="Node000025" href="$classkcenon_1_1network_1_1interfaces_1_1i__udp__server.html" title="Interface for UDP server components." alt="" coords="261,1747,463,1787"/>
+<area shape="poly" id="edge92_Node000009_Node000025" title=" " alt="" coords="122,1958,144,1921,174,1877,211,1834,254,1797,276,1785,279,1790,258,1802,215,1838,178,1881,149,1923,127,1960"/>
+<area shape="rect" id="Node000028" href="$classkcenon_1_1network_1_1interfaces_1_1i__websocket__client.html" title="Interface for WebSocket client components." alt="" coords="261,1811,463,1851"/>
+<area shape="poly" id="edge95_Node000009_Node000028" title=" " alt="" coords="134,1959,187,1909,220,1883,255,1861,281,1849,283,1854,257,1866,223,1888,190,1913,137,1963"/>
+<area shape="rect" id="Node000030" href="$classkcenon_1_1network_1_1interfaces_1_1i__websocket__server.html" title="Interface for WebSocket server components." alt="" coords="261,1875,463,1915"/>
+<area shape="poly" id="edge97_Node000009_Node000030" title=" " alt="" coords="162,1963,255,1925,290,1913,292,1918,257,1930,164,1968"/>
+<area shape="poly" id="edge73_Node000004_Node000003" title=" " alt="" coords="458,2281,466,2275,483,2252,489,2229,496,2205,514,2181,547,2163,550,2168,518,2185,501,2207,494,2230,488,2255,470,2279,461,2285"/>
+<area shape="rect" id="Node000005" href="$classkcenon_1_1network_1_1internal_1_1adapters_1_1http__client__adapter.html" title="Adapter that wraps http_client to implement i_protocol_client." alt="" coords="538,2419,726,2473"/>
+<area shape="poly" id="edge74_Node000004_Node000005" title=" " alt="" coords="460,2334,470,2340,486,2356,495,2373,503,2388,518,2404,539,2417,536,2421,514,2408,498,2392,490,2375,482,2359,466,2344,458,2339"/>
+<area shape="rect" id="Node000006" href="$classkcenon_1_1network_1_1internal_1_1adapters_1_1quic__client__adapter.html" title="Adapter that wraps messaging_quic_client to implement i_protocol_client." alt="" coords="538,2196,726,2251"/>
+<area shape="poly" id="edge75_Node000004_Node000006" title=" " alt="" coords="439,2283,467,2274,547,2248,548,2253,469,2279,440,2288"/>
+<area shape="rect" id="Node000007" href="$classkcenon_1_1network_1_1internal_1_1adapters_1_1udp__client__adapter.html" title="Adapter that wraps messaging_udp_client to implement i_protocol_client." alt="" coords="538,2275,726,2329"/>
+<area shape="poly" id="edge76_Node000004_Node000007" title=" " alt="" coords="477,2304,538,2302,538,2307,478,2309"/>
+<area shape="rect" id="Node000008" href="$classkcenon_1_1network_1_1internal_1_1adapters_1_1ws__client__adapter.html" title="Adapter that wraps messaging_ws_client to implement i_protocol_client." alt="" coords="525,2354,739,2394"/>
+<area shape="poly" id="edge77_Node000004_Node000008" title=" " alt="" coords="461,2331,548,2351,546,2357,460,2336"/>
+<area shape="rect" id="Node000012" href="$classkcenon_1_1network_1_1internal_1_1adapters_1_1http__server__adapter.html" title="Adapter that wraps http_server to implement i_protocol_server." alt="" coords="538,2864,726,2919"/>
+<area shape="poly" id="edge79_Node000011_Node000012" title=" " alt="" coords="390,2736,445,2793,480,2823,517,2849,541,2861,539,2866,515,2854,477,2827,442,2797,386,2739"/>
+<area shape="rect" id="Node000013" href="$classkcenon_1_1network_1_1internal_1_1adapters_1_1quic__server__adapter.html" title="Adapter that wraps messaging_quic_server to implement i_protocol_server." alt="" coords="538,2563,726,2617"/>
+<area shape="poly" id="edge80_Node000011_Node000013" title=" " alt="" coords="410,2678,515,2626,543,2615,545,2620,517,2631,412,2683"/>
+<area shape="rect" id="Node000014" href="$classkcenon_1_1network_1_1internal_1_1adapters_1_1tcp__server__adapter.html" title="Adapter that wraps messaging_server to implement i_protocol_server." alt="" coords="538,2641,726,2696"/>
+<area shape="poly" id="edge81_Node000011_Node000014" title=" " alt="" coords="476,2688,537,2679,538,2685,477,2694"/>
+<area shape="rect" id="Node000015" href="$classkcenon_1_1network_1_1internal_1_1adapters_1_1udp__server__adapter.html" title="Adapter that wraps messaging_udp_server to implement i_protocol_server." alt="" coords="538,2720,726,2775"/>
+<area shape="poly" id="edge82_Node000011_Node000015" title=" " alt="" coords="477,2722,538,2731,537,2736,476,2727"/>
+<area shape="rect" id="Node000016" href="$classkcenon_1_1network_1_1internal_1_1adapters_1_1ws__server__adapter.html" title="Adapter that wraps messaging_ws_server to implement i_protocol_server." alt="" coords="523,2799,741,2839"/>
+<area shape="poly" id="edge83_Node000011_Node000016" title=" " alt="" coords="411,2732,461,2758,517,2784,555,2797,553,2802,515,2788,459,2763,408,2736"/>
+<area shape="poly" id="edge85_Node000017_Node000018" title=" " alt="" coords="477,1957,543,1957,543,1962,477,1962"/>
+<area shape="poly" id="edge87_Node000019_Node000020" title=" " alt="" coords="477,2021,540,2021,540,2026,477,2026"/>
+<area shape="poly" id="edge90_Node000022_Node000023" title=" " alt="" coords="477,102,544,102,544,107,477,107"/>
+<area shape="poly" id="edge91_Node000022_Node000024" title=" " alt="" coords="450,79,540,54,541,60,451,84"/>
+<area shape="poly" id="edge93_Node000025_Node000026" title=" " alt="" coords="477,1765,542,1765,542,1770,477,1770"/>
+<area shape="poly" id="edge94_Node000025_Node000027" title=" " alt="" coords="450,1741,540,1717,541,1722,451,1746"/>
+<area shape="poly" id="edge96_Node000028_Node000029" title=" " alt="" coords="477,1829,547,1829,547,1834,477,1834"/>
+<area shape="poly" id="edge98_Node000030_Node000031" title=" " alt="" coords="477,1893,544,1893,544,1898,477,1898"/>
+<area shape="rect" id="Node000053" href="$classkcenon_1_1network_1_1interfaces_1_1i__session.html" title="Interface for a single client session on the server side." alt="" coords="261,3087,463,3127"/>
+<area shape="poly" id="edge107_Node000053_Node000052" title=" " alt="" coords="371,3074,465,2739,474,2683,475,2636,477,2615,484,2593,495,2571,514,2548,537,2532,540,2536,518,2552,500,2574,489,2595,483,2616,480,2637,479,2683,471,2740,376,3075"/>
+<area shape="rect" id="Node000054" href="$classkcenon_1_1network_1_1interfaces_1_1i__quic__session.html" title="Interface for a QUIC session on the server side." alt="" coords="531,2943,733,2983"/>
+<area shape="poly" id="edge99_Node000053_Node000054" title=" " alt="" coords="394,3076,448,3033,515,2993,544,2981,546,2986,517,2998,451,3038,397,3080"/>
+<area shape="rect" id="Node000056" href="$classkcenon_1_1network_1_1interfaces_1_1i__websocket__session.html" title="Interface for a WebSocket session on the server side." alt="" coords="531,3087,733,3127"/>
+<area shape="poly" id="edge101_Node000053_Node000056" title=" " alt="" coords="477,3105,530,3105,530,3110,477,3110"/>
+<area shape="rect" id="Node000058" href="$classkcenon_1_1network_1_1internal_1_1adapters_1_1http__request__session.html" title="Session wrapper for HTTP request connections implementing i_session." alt="" coords="538,3152,726,3207"/>
+<area shape="poly" id="edge103_Node000053_Node000058" title=" " alt="" coords="451,3128,538,3152,537,3157,450,3133"/>
+<area shape="rect" id="Node000059" href="$classkcenon_1_1network_1_1internal_1_1adapters_1_1quic__session__wrapper.html" title="Wrapper for QUIC session to implement i_session interface." alt="" coords="538,3231,726,3285"/>
+<area shape="poly" id="edge104_Node000053_Node000059" title=" " alt="" coords="398,3134,452,3176,517,3217,542,3228,540,3233,515,3222,449,3181,395,3139"/>
+<area shape="rect" id="Node000060" href="$classkcenon_1_1network_1_1internal_1_1adapters_1_1udp__endpoint__session.html" title="Session wrapper for UDP endpoint connections." alt="" coords="538,3309,726,3364"/>
+<area shape="poly" id="edge105_Node000053_Node000060" title=" " alt="" coords="383,3138,437,3217,475,3259,518,3296,539,3308,536,3313,514,3300,471,3263,433,3220,379,3141"/>
+<area shape="rect" id="Node000061" href="$classkcenon_1_1network_1_1internal_1_1adapters_1_1ws__session__wrapper.html" title="Session wrapper for WebSocket connections implementing i_session." alt="" coords="538,3008,726,3063"/>
+<area shape="poly" id="edge106_Node000053_Node000061" title=" " alt="" coords="450,3081,537,3058,538,3063,451,3086"/>
+<area shape="poly" id="edge100_Node000054_Node000055" title=" " alt="" coords="741,2933,746,2928,762,2907,776,2880,803,2808,825,2720,844,2625,871,2441,884,2317,889,2317,876,2441,849,2626,830,2722,808,2810,781,2882,766,2910,750,2932,745,2937"/>
+<area shape="rect" id="Node000057" href="$classkcenon_1_1network_1_1core_1_1ws__connection.html" title="Represents a WebSocket connection to a client." alt="" coords="806,3087,973,3127"/>
+<area shape="poly" id="edge102_Node000056_Node000057" title=" " alt="" coords="747,3105,806,3105,806,3110,747,3110"/>
+<area shape="rect" id="Node000032" href="$classkcenon_1_1network_1_1utils_1_1startable__base.html" title=" " alt="" coords="256,2211,468,2265"/>
+<area shape="poly" id="edge108_Node000032_Node000003" title=" " alt="" coords="448,2204,515,2181,555,2169,557,2174,517,2186,450,2209"/>
+<area shape="rect" id="Node000034" href="$classkcenon_1_1network_1_1utils_1_1startable__base.html" title=" " alt="" coords="256,2132,468,2187"/>
+<area shape="poly" id="edge109_Node000034_Node000033" title=" " alt="" coords="477,2126,555,2105,557,2110,479,2131"/>
+</map>

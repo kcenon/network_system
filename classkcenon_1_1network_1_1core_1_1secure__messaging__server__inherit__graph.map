@@ -1,0 +1,5 @@
+<map id="kcenon::network::core::secure_messaging_server" name="kcenon::network::core::secure_messaging_server">
+<area shape="rect" id="Node000001" title="A secure server class that manages incoming TLS/SSL encrypted TCP connections, creating secure_sessio..." alt="" coords="5,148,227,888"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="7,5,225,100"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="119,114,119,148,113,148,113,114"/>
+</map>
