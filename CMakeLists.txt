@@ -866,6 +866,14 @@ if(NETWORK_BUILD_BENCHMARKS AND EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/benchmarks)
 endif()
 
 ##################################################
+# Fuzzing Targets
+##################################################
+
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/fuzz/CMakeLists.txt)
+    add_subdirectory(fuzz)
+endif()
+
+##################################################
 # Installation
 ##################################################
 
