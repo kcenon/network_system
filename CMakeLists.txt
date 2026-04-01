@@ -33,6 +33,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 option(BUILD_SHARED_LIBS "Build using shared libraries" OFF)
 option(BUILD_TESTS "Build tests" ON)
 option(BUILD_SAMPLES "Build samples" ON)
+option(BUILD_EXAMPLES "Build usage examples" OFF)
 option(BUILD_WEBSOCKET_SUPPORT "Build WebSocket protocol support (RFC 6455)" ON)
 option(BUILD_MESSAGING_BRIDGE "Build messaging_system bridge" ON)
 option(ENABLE_COVERAGE "Enable code coverage" OFF)
@@ -846,6 +847,15 @@ if(BUILD_SAMPLES)
     endif()
 endif()
 
+if(BUILD_EXAMPLES)
+    message(STATUS "Building network_system examples")
+
+    if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/examples/CMakeLists.txt)
+        add_subdirectory(examples)
+        message(STATUS "Network system examples enabled")
+    endif()
+endif()
+
 ##################################################
 # Benchmarks
 ##################################################
@@ -977,6 +987,7 @@ message(STATUS "  Shared libs: ${BUILD_SHARED_LIBS}")
 message(STATUS "  Tests: ${BUILD_TESTS}")
 message(STATUS "  Integration tests: ${NETWORK_BUILD_INTEGRATION_TESTS}")
 message(STATUS "  Samples: ${BUILD_SAMPLES}")
+message(STATUS "  Examples: ${BUILD_EXAMPLES}")
 message(STATUS "  Verify build: ${BUILD_VERIFY_BUILD}")
 message(STATUS "  TLS/SSL support: ${BUILD_TLS_SUPPORT}")
 message(STATUS "  WebSocket support: ${BUILD_WEBSOCKET_SUPPORT}")
