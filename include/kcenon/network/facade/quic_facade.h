@@ -2,7 +2,21 @@
 // Copyright (c) 2024, 🍀☀🌕🌥 🌊
 // See the LICENSE file in the project root for full license information.
 
+/**
+ * @file quic_facade.h
+ * @brief Simplified facade for creating QUIC clients and servers.
+ *
+ */
+
 #pragma once
+
+/**
+ * @file quic_facade.h
+ * @brief Simplified facade for creating QUIC clients and servers
+ *
+ * Provides a template-free API for QUIC client/server creation,
+ * encapsulating experimental API opt-in and configuration details.
+ */
 
 #include <cstdint>
 #include <memory>

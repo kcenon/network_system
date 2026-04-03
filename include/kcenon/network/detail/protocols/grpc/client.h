@@ -2,7 +2,22 @@
 // Copyright (c) 2024, 🍀☀🌕🌥 🌊
 // See the LICENSE file in the project root for full license information.
 
+/**
+ * @file client.h
+ * @brief gRPC client channel configuration and connection.
+ *
+ * @see detail/protocols/grpc/server.h
+ */
+
 #pragma once
+
+/**
+ * @file client.h
+ * @brief gRPC client interface for unary and streaming RPCs
+ *
+ * Defines the grpc_client class for making gRPC calls over HTTP/2,
+ * supporting unary, server-streaming, client-streaming, and bidirectional RPCs.
+ */
 
 #include "kcenon/network/detail/protocols/grpc/frame.h"
 #include "kcenon/network/detail/protocols/grpc/status.h"

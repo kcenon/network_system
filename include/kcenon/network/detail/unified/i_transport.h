@@ -2,7 +2,21 @@
 // Copyright (c) 2025, 🍀☀🌕🌥 🌊
 // See the LICENSE file in the project root for full license information.
 
+/**
+ * @file i_transport.h
+ * @brief Core interface for data transport abstraction.
+ *
+ */
+
 #pragma once
+
+/**
+ * @file i_transport.h
+ * @brief Core interface for protocol-agnostic data transport
+ *
+ * Defines the fundamental send/receive operations shared by all
+ * network transport implementations regardless of protocol.
+ */
 
 #include "types.h"
 

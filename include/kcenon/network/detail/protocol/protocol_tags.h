@@ -2,7 +2,22 @@
 // Copyright (c) 2024, 🍀☀🌕🌥 🌊
 // See the LICENSE file in the project root for full license information.
 
+/**
+ * @file protocol_tags.h
+ * @brief Protocol tag types for compile-time protocol selection.
+ *
+ * @see concepts/ For Protocol concept constraints
+ */
+
 #pragma once
+
+/**
+ * @file protocol_tags.h
+ * @brief Protocol tag types and the Protocol concept
+ *
+ * Defines compile-time protocol tags (tcp_protocol, udp_protocol, etc.)
+ * with C++20 concept constraints for protocol metadata.
+ */
 
 #include <concepts>
 #include <string_view>

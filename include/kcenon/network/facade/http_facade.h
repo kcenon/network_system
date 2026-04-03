@@ -2,7 +2,22 @@
 // Copyright (c) 2024, 🍀☀🌕🌥 🌊
 // See the LICENSE file in the project root for full license information.
 
+/**
+ * @file http_facade.h
+ * @brief Simplified facade for creating HTTP clients and servers.
+ *
+ * @see tcp_facade.h
+ */
+
 #pragma once
+
+/**
+ * @file http_facade.h
+ * @brief Simplified facade for creating HTTP clients and servers
+ *
+ * Provides a template-free API for HTTP/1.1 client/server creation,
+ * hiding protocol implementation details behind configuration structs.
+ */
 
 #include <chrono>
 #include <cstdint>

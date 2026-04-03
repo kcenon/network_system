@@ -2,7 +2,22 @@
 // Copyright (c) 2024, 🍀☀🌕🌥 🌊
 // See the LICENSE file in the project root for full license information.
 
+/**
+ * @file messaging_session.h
+ * @brief Messaging session managing bidirectional message exchange.
+ *
+ * @see i_session
+ */
+
 #pragma once
+
+/**
+ * @file messaging_session.h
+ * @brief TCP messaging session for length-prefixed message framing
+ *
+ * Implements the i_session interface for plain TCP connections with
+ * asynchronous send/receive and message queuing via ASIO.
+ */
 
 #include <atomic>
 #include <deque>

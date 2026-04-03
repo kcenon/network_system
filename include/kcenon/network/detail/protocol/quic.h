@@ -2,7 +2,22 @@
 // Copyright (c) 2025, 🍀☀🌕🌥 🌊
 // See the LICENSE file in the project root for full license information.
 
+/**
+ * @file quic.h
+ * @brief QUIC protocol connection factory and configuration.
+ *
+ * @see quic_facade.h
+ */
+
 #pragma once
+
+/**
+ * @file quic.h
+ * @brief QUIC protocol factory functions for the unified transport layer
+ *
+ * Provides create_connection() and create_listener() factory functions
+ * for QUIC transport with configuration for streams, timeouts, and TLS.
+ */
 
 #include "kcenon/network/detail/unified/i_connection.h"
 #include "kcenon/network/detail/unified/i_listener.h"

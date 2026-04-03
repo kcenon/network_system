@@ -2,7 +2,22 @@
 // Copyright (c) 2025, 🍀☀🌕🌥 🌊
 // See the LICENSE file in the project root for full license information.
 
+/**
+ * @file websocket.h
+ * @brief WebSocket protocol connection factory functions.
+ *
+ * @see websocket_facade.h
+ */
+
 #pragma once
+
+/**
+ * @file websocket.h
+ * @brief WebSocket protocol factory functions for the unified transport layer
+ *
+ * Provides create_connection() and create_listener() factory functions
+ * for WebSocket transport with optional TLS (wss://) support.
+ */
 
 #include "kcenon/network/detail/unified/i_connection.h"
 #include "kcenon/network/detail/unified/i_listener.h"

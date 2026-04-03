@@ -2,7 +2,22 @@
 // Copyright (c) 2025, 🍀☀🌕🌥 🌊
 // See the LICENSE file in the project root for full license information.
 
+/**
+ * @file tcp.h
+ * @brief TCP protocol connection and listener factory functions.
+ *
+ * @see tcp_facade.h
+ */
+
 #pragma once
+
+/**
+ * @file tcp.h
+ * @brief TCP protocol factory functions for the unified transport layer
+ *
+ * Provides create_connection() and create_listener() factory functions
+ * for TCP transport using the unified i_connection/i_listener interfaces.
+ */
 
 #include "kcenon/network/detail/unified/i_connection.h"
 #include "kcenon/network/detail/unified/i_listener.h"

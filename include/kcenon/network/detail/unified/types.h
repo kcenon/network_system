@@ -2,7 +2,21 @@
 // Copyright (c) 2025, 🍀☀🌕🌥 🌊
 // See the LICENSE file in the project root for full license information.
 
+/**
+ * @file types.h
+ * @brief Network endpoint types (host/port, URL) and common type aliases.
+ *
+ */
+
 #pragma once
+
+/**
+ * @file types.h
+ * @brief Common types for the unified transport layer
+ *
+ * Defines endpoint_info, connection_callbacks, transport_error, and
+ * other shared types used across the unified transport interfaces.
+ */
 
 #include <chrono>
 #include <cstdint>
