@@ -2,7 +2,21 @@
 // Copyright (c) 2024, 🍀☀🌕🌥 🌊
 // See the LICENSE file in the project root for full license information.
 
+/**
+ * @file i_network_component.h
+ * @brief Base interface for all network components.
+ *
+ */
+
 #pragma once
+
+/**
+ * @file i_network_component.h
+ * @brief Base interface for all network components
+ *
+ * Defines the common contract for both client and server network
+ * components, providing basic lifecycle query methods.
+ */
 
 namespace kcenon::network::interfaces
 {

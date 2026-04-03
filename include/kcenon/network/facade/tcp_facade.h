@@ -2,7 +2,21 @@
 // Copyright (c) 2024, 🍀☀🌕🌥 🌊
 // See the LICENSE file in the project root for full license information.
 
+/**
+ * @file tcp_facade.h
+ * @brief Simplified facade for creating TCP clients and servers.
+ *
+ */
+
 #pragma once
+
+/**
+ * @file tcp_facade.h
+ * @brief Simplified facade for creating TCP clients and servers
+ *
+ * Provides a template-free API for TCP client/server creation with
+ * optional TLS support and connection pooling.
+ */
 
 #include <chrono>
 #include <cstdint>

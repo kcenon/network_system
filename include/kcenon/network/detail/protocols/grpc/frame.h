@@ -2,7 +2,21 @@
 // Copyright (c) 2024, 🍀☀🌕🌥 🌊
 // See the LICENSE file in the project root for full license information.
 
+/**
+ * @file frame.h
+ * @brief gRPC message framing and serialization.
+ *
+ */
+
 #pragma once
+
+/**
+ * @file frame.h
+ * @brief gRPC message framing (length-prefixed binary protocol)
+ *
+ * Implements gRPC's 5-byte header framing for encoding and decoding
+ * length-prefixed messages over HTTP/2 streams.
+ */
 
 #include "kcenon/network/detail/utils/result_types.h"
 #include <cstdint>

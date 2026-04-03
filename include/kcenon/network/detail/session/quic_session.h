@@ -2,7 +2,22 @@
 // Copyright (c) 2024, 🍀☀🌕🌥 🌊
 // See the LICENSE file in the project root for full license information.
 
+/**
+ * @file quic_session.h
+ * @brief QUIC-specific session with stream multiplexing.
+ *
+ * @see messaging_session.h
+ */
+
 #pragma once
+
+/**
+ * @file quic_session.h
+ * @brief QUIC session implementation for stream-multiplexed connections
+ *
+ * Implements the session interface for QUIC connections with
+ * connection ID management and experimental QUIC API support.
+ */
 
 #include <atomic>
 #include <functional>

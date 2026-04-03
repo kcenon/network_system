@@ -2,7 +2,21 @@
 // Copyright (c) 2024, 🍀☀🌕🌥 🌊
 // See the LICENSE file in the project root for full license information.
 
+/**
+ * @file connection_id.h
+ * @brief QUIC connection identifier type.
+ *
+ */
+
 #pragma once
+
+/**
+ * @file connection_id.h
+ * @brief QUIC Connection ID implementation (RFC 9000 Section 5.1)
+ *
+ * Provides the connection_id class for generating, comparing, and
+ * managing QUIC connection identifiers (0-20 bytes).
+ */
 
 #include <array>
 #include <cstdint>

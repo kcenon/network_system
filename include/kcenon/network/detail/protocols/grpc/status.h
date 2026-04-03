@@ -2,7 +2,21 @@
 // Copyright (c) 2024, 🍀☀🌕🌥 🌊
 // See the LICENSE file in the project root for full license information.
 
+/**
+ * @file status.h
+ * @brief gRPC status codes and error representation.
+ *
+ */
+
 #pragma once
+
+/**
+ * @file status.h
+ * @brief gRPC status codes and status result type
+ *
+ * Defines standard gRPC status codes (RFC) and the grpc_status type
+ * for representing RPC operation outcomes.
+ */
 
 #include <cstdint>
 #include <optional>

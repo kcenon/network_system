@@ -2,7 +2,22 @@
 // Copyright (c) 2024, 🍀☀🌕🌥 🌊
 // See the LICENSE file in the project root for full license information.
 
+/**
+ * @file startable_base.h
+ * @brief Base class for components with start/stop lifecycle.
+ *
+ * @see lifecycle_manager.h
+ */
+
 #pragma once
+
+/**
+ * @file startable_base.h
+ * @brief CRTP base class providing unified start/stop lifecycle management
+ *
+ * Extracts the common start/stop lifecycle pattern from client and
+ * server implementations with thread-safe state transitions.
+ */
 
 #include <atomic>
 #include <string>

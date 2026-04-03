@@ -2,7 +2,22 @@
 // Copyright (c) 2024, 🍀☀🌕🌥 🌊
 // See the LICENSE file in the project root for full license information.
 
+/**
+ * @file i_protocol_client.h
+ * @brief Protocol-specific client interface extending i_client.
+ *
+ * @see i_protocol_server.h
+ */
+
 #pragma once
+
+/**
+ * @file i_protocol_client.h
+ * @brief Unified interface for all protocol client implementations
+ *
+ * Defines the common contract for TCP, UDP, HTTP, WebSocket, and QUIC
+ * clients, providing consistent lifecycle management and data transmission.
+ */
 
 #include "i_network_component.h"
 #include "connection_observer.h"

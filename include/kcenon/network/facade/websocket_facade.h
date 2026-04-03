@@ -2,7 +2,21 @@
 // Copyright (c) 2024, 🍀☀🌕🌥 🌊
 // See the LICENSE file in the project root for full license information.
 
+/**
+ * @file websocket_facade.h
+ * @brief Simplified facade for creating WebSocket clients and servers.
+ *
+ */
+
 #pragma once
+
+/**
+ * @file websocket_facade.h
+ * @brief Simplified facade for creating WebSocket clients and servers
+ *
+ * Provides a template-free API for WebSocket client/server creation
+ * with optional TLS support via configuration structs.
+ */
 
 #include <chrono>
 #include <cstdint>

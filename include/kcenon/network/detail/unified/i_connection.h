@@ -2,7 +2,22 @@
 // Copyright (c) 2025, 🍀☀🌕🌥 🌊
 // See the LICENSE file in the project root for full license information.
 
+/**
+ * @file i_connection.h
+ * @brief Core interface for active network connections.
+ *
+ * @see i_listener.h
+ */
+
 #pragma once
+
+/**
+ * @file i_connection.h
+ * @brief Core interface for active network connections
+ *
+ * Extends i_transport with connection lifecycle operations (connect,
+ * disconnect, reconnect) for both client-initiated and accepted connections.
+ */
 
 #include "i_transport.h"
 #include "types.h"

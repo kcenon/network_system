@@ -2,7 +2,22 @@
 // Copyright (c) 2024, 🍀☀🌕🌥 🌊
 // See the LICENSE file in the project root for full license information.
 
+/**
+ * @file i_protocol_server.h
+ * @brief Protocol-specific server interface extending i_server.
+ *
+ * @see i_protocol_client.h
+ */
+
 #pragma once
+
+/**
+ * @file i_protocol_server.h
+ * @brief Unified interface for all protocol server implementations
+ *
+ * Defines the common contract for TCP, UDP, HTTP, WebSocket, and QUIC
+ * servers, providing consistent lifecycle, session management, and broadcasting.
+ */
 
 #include "i_network_component.h"
 #include "i_session.h"

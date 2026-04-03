@@ -2,7 +2,21 @@
 // Copyright (c) 2024, 🍀☀🌕🌥 🌊
 // See the LICENSE file in the project root for full license information.
 
+/**
+ * @file result_types.h
+ * @brief Network-specific error and result type definitions.
+ *
+ */
+
 #pragma once
+
+/**
+ * @file result_types.h
+ * @brief Result type aliases for network_system error handling
+ *
+ * Bridges common_system's Result<T> into network_system with
+ * fallback types when common_system is not available.
+ */
 
 #include <kcenon/network/detail/config/feature_flags.h>
 

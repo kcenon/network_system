@@ -2,7 +2,22 @@
 // Copyright (c) 2025, 🍀☀🌕🌥 🌊
 // See the LICENSE file in the project root for full license information.
 
+/**
+ * @file i_listener.h
+ * @brief Core interface for passive network listeners (server-side).
+ *
+ * @see i_connection.h
+ */
+
 #pragma once
+
+/**
+ * @file i_listener.h
+ * @brief Core interface for passive network listeners (server-side)
+ *
+ * Defines the server-side listener interface for binding to local addresses,
+ * accepting incoming connections, and managing connection callbacks.
+ */
 
 #include "i_connection.h"
 #include "types.h"

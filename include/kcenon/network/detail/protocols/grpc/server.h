@@ -2,7 +2,22 @@
 // Copyright (c) 2024, 🍀☀🌕🌥 🌊
 // See the LICENSE file in the project root for full license information.
 
+/**
+ * @file server.h
+ * @brief gRPC server configuration and service hosting.
+ *
+ * @see detail/protocols/grpc/client.h
+ */
+
 #pragma once
+
+/**
+ * @file server.h
+ * @brief gRPC server interface for handling incoming RPCs
+ *
+ * Defines the grpc_server class for accepting and processing gRPC calls,
+ * with service registration and request routing over HTTP/2.
+ */
 
 #include "kcenon/network/detail/protocols/grpc/frame.h"
 #include "kcenon/network/detail/protocols/grpc/status.h"
