@@ -81,7 +81,7 @@ jobs:
               -DBUILD_EXAMPLES=OFF \
               -DBUILD_SAMPLES=OFF \
               -DBUILD_INTEGRATION_TESTS=OFF
-            cmake --build build --target ThreadSystem
+            cmake --build build --target thread_system
             cmake --install build --prefix ${{ github.workspace }}/deps/install
             cd ..
           fi
@@ -317,7 +317,7 @@ jobs:
               -DBUILD_EXAMPLES=OFF \
               -DBUILD_SAMPLES=OFF \
               -DBUILD_INTEGRATION_TESTS=OFF
-            cmake --build build --target ThreadSystem
+            cmake --build build --target thread_system
             cmake --install build --prefix ${{ github.workspace }}/deps/install
             cd ..
           fi
