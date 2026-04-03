@@ -16,6 +16,18 @@ category: "ARCH"
 
 ## Overview
 
+> **Cross-reference**:
+> [API Reference](./API_REFERENCE.md) — Public API details for all network components
+> [Integration Guide](./INTEGRATION.md) — Ecosystem integration patterns and adapters
+> [Facade Guide](./FACADE_GUIDE.md) — Simplified protocol facade API documentation
+> [Design Decisions](./DESIGN_DECISIONS.md) — ADRs and rationale for architectural choices
+
+> **Ecosystem reference**:
+> [common_system Result&lt;T&gt;](https://github.com/kcenon/common_system/blob/main/docs/API_REFERENCE.md) — Error handling base used throughout network operations
+> [thread_system Thread Pool](https://github.com/kcenon/thread_system/blob/main/docs/ARCHITECTURE.md) — Thread pool architecture integrated via adapters
+> [container_system Serialization](https://github.com/kcenon/container_system/blob/main/docs/API_REFERENCE.md) — Message serialization for network payloads
+> [logger_system Logging](https://github.com/kcenon/logger_system/blob/main/docs/ARCHITECTURE.md) — Logging infrastructure for network diagnostics
+
 This document provides a comprehensive architectural overview of network_system, a high-performance asynchronous networking library built on ASIO (Asynchronous I/O). Originally extracted from messaging_system for enhanced modularity and reusability, network_system delivers 305K+ messages/second with sub-microsecond latency through zero-copy pipelines and efficient connection management.
 
 **Version**: 0.1.0.0
@@ -507,6 +519,15 @@ private:
 
 ## Integration Architecture
 
+> **Cross-reference**:
+> [Integration Guide](./INTEGRATION.md) — Detailed integration patterns and configuration
+> [Benchmarks](./BENCHMARKS.md) — Performance impact of different integration configurations
+
+> **Ecosystem reference**:
+> [thread_system Architecture](https://github.com/kcenon/thread_system/blob/main/docs/ARCHITECTURE.md) — Thread pool internals and adaptive job queue
+> [logger_system Architecture](https://github.com/kcenon/logger_system/blob/main/docs/ARCHITECTURE.md) — Logger integration and log level management
+> [container_system API](https://github.com/kcenon/container_system/blob/main/docs/API_REFERENCE.md) — Serialization formats and container operations
+
 ### Thread System Integration
 
 **Purpose**: Unified thread pool management for async operations
@@ -672,6 +693,9 @@ client.on_message_received([](const std::vector<uint8_t>& data) {
 
 ### Common System Integration
 
+> **Ecosystem reference**:
+> [common_system API Reference](https://github.com/kcenon/common_system/blob/main/docs/API_REFERENCE.md) — Result&lt;T&gt; type, error codes, and monadic operations
+
 **Purpose**: Standardized error handling
 
 ```cpp
@@ -696,6 +720,13 @@ auto result = client.connect()
 ---
 
 ## Threading Model
+
+> **Cross-reference**:
+> [Benchmarks §Concurrency](./BENCHMARKS.md) — Thread scaling and concurrency benchmarks
+> [Production Quality](./PRODUCTION_QUALITY.md) — Thread sanitizer (TSAN) verification results
+
+> **Ecosystem reference**:
+> [thread_system Architecture](https://github.com/kcenon/thread_system/blob/main/docs/ARCHITECTURE.md) — Underlying thread pool implementation and adaptive queue
 
 ### ASIO Event Loop
 
@@ -927,6 +958,35 @@ Session Pool → Acquire → Use → Release → Pool
 | WebSocket Support | 📋 Planned | P2 | Q2 2026 |
 | QUIC Protocol | 📋 Planned | P3 | Q3 2026 |
 | Load Balancing | 📋 Planned | P3 | Q4 2026 |
+
+---
+
+## Ecosystem Dependencies
+
+network_system sits at **Tier 4** in the kcenon ecosystem, providing transport primitives consumed by higher-tier systems.
+
+```mermaid
+graph TD
+    A[common_system] --> B[thread_system]
+    A --> C[container_system]
+    B --> D[logger_system]
+    B --> E[monitoring_system]
+    D --> F[database_system]
+    E --> F
+    F --> G[network_system]
+    G --> H[pacs_system]
+
+    style G fill:#f9f,stroke:#333,stroke-width:3px
+```
+
+> **Ecosystem reference**:
+> [common_system](https://github.com/kcenon/common_system) — Tier 0: Result&lt;T&gt;, interfaces, utilities
+> [thread_system](https://github.com/kcenon/thread_system) — Tier 1: Thread pool and async execution
+> [container_system](https://github.com/kcenon/container_system) — Tier 1: Data serialization
+> [logger_system](https://github.com/kcenon/logger_system) — Tier 2: Logging infrastructure
+> [monitoring_system](https://github.com/kcenon/monitoring_system) — Tier 3: Metrics and observability
+> [database_system](https://github.com/kcenon/database_system) — Tier 3: Database operations
+> [pacs_system](https://github.com/kcenon/pacs_system) — Tier 5: DICOM/PACS (consumes network_system)
 
 ---
 
