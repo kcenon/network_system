@@ -318,17 +318,17 @@ chmod +x .git/hooks/pre-commit
 
 ## 통합
 
-### 프로젝트에서 NetworkSystem 사용
+### 프로젝트에서 network_system 사용
 
 #### CMake 통합
 ```cmake
 # 패키지 찾기
-find_package(NetworkSystem REQUIRED)
+find_package(network_system REQUIRED)
 
 # 타겟에 링크
 target_link_libraries(your_target
   PRIVATE
-    NetworkSystem::NetworkSystem
+    network_system::network_system
 )
 ```
 
@@ -343,7 +343,7 @@ target_include_directories(your_target
 # 라이브러리 링크
 target_link_libraries(your_target
   PRIVATE
-    /path/to/network_system/build/libNetworkSystem.a
+    /path/to/network_system/build/libnetwork_system.a
 )
 ```
 

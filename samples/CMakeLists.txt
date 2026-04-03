@@ -18,7 +18,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Include integration module for ASIO setup
-include(NetworkSystemIntegration)
+include(network_system_integration)
 
 # Find required packages
 find_package(Threads REQUIRED)
@@ -67,11 +67,11 @@ foreach(SAMPLE ${SAMPLE_PROGRAMS})
         CXX_EXTENSIONS OFF
     )
 
-    # Include directories are provided by NetworkSystem target linkage
+    # Include directories are provided by network_system target linkage
 
     # Link libraries
     target_link_libraries(network_${SAMPLE} PRIVATE
-        NetworkSystem
+        network_system
         Threads::Threads
     )
 

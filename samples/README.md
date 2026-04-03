@@ -141,7 +141,7 @@ The samples use the following default configuration:
 - **Timeout**: `5000` ms (5 seconds)
 
 ### HTTP Client Configuration
-- **User-Agent**: `NetworkSystem/1.0`
+- **User-Agent**: `network_system/1.0`
 - **Timeout**: `30000` ms (30 seconds)
 - **Maximum Redirects**: `5`
 - **Default Headers**: Accept, Accept-Language, Accept-Encoding

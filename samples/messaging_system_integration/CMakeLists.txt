@@ -6,20 +6,20 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Find network_system (assuming it's built in ../../build)
-set(NetworkSystem_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../..")
-set(NetworkSystem_BUILD_DIR "${NetworkSystem_DIR}/build")
+set(network_system_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../..")
+set(network_system_BUILD_DIR "${network_system_DIR}/build")
 
 # Add include directories
-include_directories(${NetworkSystem_DIR}/include)
+include_directories(${network_system_DIR}/include)
 
 # Link to network_system library
-link_directories(${NetworkSystem_BUILD_DIR})
+link_directories(${network_system_BUILD_DIR})
 
 # Legacy compatibility example
 add_executable(legacy_compatibility legacy_compatibility.cpp)
 target_link_libraries(legacy_compatibility
     PRIVATE
-    ${NetworkSystem_BUILD_DIR}/libNetworkSystem.a
+    ${network_system_BUILD_DIR}/libnetwork_system.a
     pthread
 )
 
@@ -27,7 +27,7 @@ target_link_libraries(legacy_compatibility
 add_executable(modern_usage modern_usage.cpp)
 target_link_libraries(modern_usage
     PRIVATE
-    ${NetworkSystem_BUILD_DIR}/libNetworkSystem.a
+    ${network_system_BUILD_DIR}/libnetwork_system.a
     pthread
 )
 

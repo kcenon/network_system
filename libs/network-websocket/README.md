@@ -34,7 +34,7 @@ When building as part of the main network_system project, the library is automat
 
 ```cmake
 # In your CMakeLists.txt
-find_package(NetworkSystem REQUIRED)
+find_package(network_system REQUIRED)
 target_link_libraries(your_target PRIVATE kcenon::network-websocket)
 ```
 

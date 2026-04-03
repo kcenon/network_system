@@ -56,7 +56,7 @@ The network module has been separated from `messaging_system` into an independen
 |--------|---------------------------|------------------------|
 | **Namespace** | `messaging::network` | `kcenon::network::core` |
 | **Header Path** | `<messaging/network/*>` | `<network_system/*>` |
-| **CMake Target** | `messaging_system` | `NetworkSystem::NetworkSystem` |
+| **CMake Target** | `messaging_system` | `network_system::network_system` |
 | **Repository** | Part of messaging_system | Independent repository |
 | **Dependencies** | Tightly coupled | Optional integration |
 
@@ -107,7 +107,7 @@ Use this checklist for a high-level overview of migration tasks:
 - [ ] **Choose migration path** (compatibility mode vs. full migration)
 
 ### Build System Migration
-- [ ] **Update CMakeLists.txt** (replace MessagingSystem with NetworkSystem)
+- [ ] **Update CMakeLists.txt** (replace MessagingSystem with network_system)
 - [ ] **Configure package dependencies** (add network_system to vcpkg.json or equivalent)
 - [ ] **Set C++ standard** (ensure C++20 is enabled)
 - [ ] **Test build** (verify clean compilation)
@@ -249,18 +249,18 @@ project(YourApplication)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Find NetworkSystem
-find_package(NetworkSystem REQUIRED
+# Find network_system
+find_package(network_system REQUIRED
     PATHS /path/to/network_system/build
 )
 
 # Create executable
 add_executable(your_app main.cpp network_client.cpp)
 
-# Link NetworkSystem
+# Link network_system
 target_link_libraries(your_app
     PRIVATE
-    NetworkSystem::NetworkSystem
+    network_system::network_system
 )
 
 # Platform-specific dependencies
@@ -569,7 +569,7 @@ Compile and run:
 g++ -std=c++20 migration_verify.cpp \
     -I/path/to/network_system/include \
     -L/path/to/network_system/build \
-    -lNetworkSystem -lpthread \
+    -lnetwork_system -lpthread \
     -o migration_verify
 
 ./migration_verify
@@ -615,10 +615,10 @@ cmake_minimum_required(VERSION 3.16)
 project(MyNetworkApp CXX)
 
 set(CMAKE_CXX_STANDARD 20)  # Upgraded to C++20
-find_package(NetworkSystem REQUIRED)
+find_package(network_system REQUIRED)
 
 add_executable(app main.cpp)
-target_link_libraries(app NetworkSystem::NetworkSystem)
+target_link_libraries(app network_system::network_system)
 
 # Platform-specific libraries
 if(WIN32)
@@ -829,13 +829,13 @@ This section addresses frequently encountered problems during migration.
 undefined reference to `network_system::core::messaging_server::start_server(unsigned short)'
 ```
 
-**Cause:** NetworkSystem library not properly linked.
+**Cause:** network_system library not properly linked.
 
 **Solution:**
 ```cmake
-# Ensure NetworkSystem is found and linked
-find_package(NetworkSystem REQUIRED)
-target_link_libraries(your_app PRIVATE NetworkSystem::NetworkSystem)
+# Ensure network_system is found and linked
+find_package(network_system REQUIRED)
+target_link_libraries(your_app PRIVATE network_system::network_system)
 
 # Also ensure threading support
 find_package(Threads REQUIRED)
@@ -1396,7 +1396,7 @@ Components reverted:
   - src/network/session_manager.cpp
 
 Files kept:
-  - CMakeLists.txt (using NetworkSystem)
+  - CMakeLists.txt (using network_system)
   - Basic client/server code (compatibility mode)
 
 Next steps:

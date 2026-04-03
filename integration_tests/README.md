@@ -167,7 +167,7 @@ xdg-open coverage_html/index.html  # Linux
 
 ## Test Framework
 
-### NetworkSystemFixture
+### network_system_fixture
 
 Base fixture providing:
 - `StartServer()` - Start test server
