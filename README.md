@@ -537,6 +537,30 @@ cmake --build build -j
 
 ## Ecosystem Integration
 
+### Ecosystem Dependency Map
+
+```mermaid
+graph TD
+    A[common_system] --> B[thread_system]
+    A --> C[container_system]
+    B --> D[logger_system]
+    B --> E[monitoring_system]
+    D --> F[database_system]
+    E --> F
+    F --> G[network_system]
+    G --> H[pacs_system]
+
+    style G fill:#f9f,stroke:#333,stroke-width:3px
+```
+
+> **Ecosystem reference**:
+> [common_system](https://github.com/kcenon/common_system) — Result&lt;T&gt;, interfaces, and shared utilities
+> [thread_system](https://github.com/kcenon/thread_system) — Thread pool and async execution primitives
+> [container_system](https://github.com/kcenon/container_system) — Type-safe data serialization
+> [logger_system](https://github.com/kcenon/logger_system) — Logging infrastructure
+> [database_system](https://github.com/kcenon/database_system) — Database operations (depends on network_system)
+> [pacs_system](https://github.com/kcenon/pacs_system) — DICOM/PACS system (consumes network_system)
+
 ### Related Projects
 
 This system integrates seamlessly with:

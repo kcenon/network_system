@@ -13,7 +13,7 @@ category: "GUID"
 > **SSOT**: This file is the single source of truth for the documentation index
 > of **network_system**.
 
-Total documents: **75**
+Total documents: **78**
 
 ## Document Index
 
@@ -82,18 +82,21 @@ Total documents: **75**
 | 61 | NET-INTR-006 | NetworkSystemBridge Migration Guide | [network_system_bridge.md](./migration/network_system_bridge.md) | Released |
 | 62 | NET-QUAL-001 | Network System 프로덕션 품질 | [PRODUCTION_QUALITY.kr.md](./PRODUCTION_QUALITY.kr.md) | Released |
 | 63 | NET-QUAL-002 | Network System Production Quality | [PRODUCTION_QUALITY.md](./PRODUCTION_QUALITY.md) | Released |
-| 64 | NET-QUAL-003 | Static Analysis Guide | [STATIC_ANALYSIS.md](./advanced/STATIC_ANALYSIS.md) | Released |
-| 65 | NET-QUAL-004 | Dependency & Testing | [02-dependency-and-testing.md](./implementation/02-dependency-and-testing.md) | Released |
-| 66 | NET-SECU-001 | network_system을 위한 TLS/SSL 설정 가이드 | [TLS_SETUP_GUIDE.kr.md](./guides/TLS_SETUP_GUIDE.kr.md) | Released |
-| 67 | NET-SECU-002 | TLS/SSL Setup Guide for network_system | [TLS_SETUP_GUIDE.md](./guides/TLS_SETUP_GUIDE.md) | Released |
-| 68 | NET-ADR-001 | ADR-001: gRPC Official Library Wrapper Strategy | [ADR-001-grpc-official-library-wrapper.md](./adr/ADR-001-grpc-official-library-wrapper.md) | Released |
-| 69 | NET-PROJ-001 | 변경 이력 - Network System | [CHANGELOG.kr.md](./CHANGELOG.kr.md) | Released |
-| 70 | NET-PROJ-002 | Changelog - Network System | [CHANGELOG.md](./CHANGELOG.md) | Released |
-| 71 | NET-PROJ-003 | Network System 프로젝트 구조 | [PROJECT_STRUCTURE.kr.md](./PROJECT_STRUCTURE.kr.md) | Released |
-| 72 | NET-PROJ-004 | Network System Project Structure | [PROJECT_STRUCTURE.md](./PROJECT_STRUCTURE.md) | Released |
-| 73 | NET-PROJ-005 | SOUP List &mdash; network_system | [SOUP.md](./SOUP.md) | Released |
-| 74 | NET-PROJ-006 | Contributing to Network System | [CONTRIBUTING.md](./contributing/CONTRIBUTING.md) | Released |
-| 75 | NET-PROJ-007 | Header Audit - Phase 1: Preparation for Internal Migration | [HEADER_AUDIT_PHASE1.md](./refactoring/HEADER_AUDIT_PHASE1.md) | Released |
+| 64 | NET-QUAL-002 | Feature-Test-Module Traceability Matrix | [TRACEABILITY.md](./TRACEABILITY.md) | Released |
+| 65 | NET-QUAL-003 | Static Analysis Guide | [STATIC_ANALYSIS.md](./advanced/STATIC_ANALYSIS.md) | Released |
+| 66 | NET-QUAL-004 | Dependency & Testing | [02-dependency-and-testing.md](./implementation/02-dependency-and-testing.md) | Released |
+| 67 | NET-SECU-001 | network_system을 위한 TLS/SSL 설정 가이드 | [TLS_SETUP_GUIDE.kr.md](./guides/TLS_SETUP_GUIDE.kr.md) | Released |
+| 68 | NET-SECU-002 | TLS/SSL Setup Guide for network_system | [TLS_SETUP_GUIDE.md](./guides/TLS_SETUP_GUIDE.md) | Released |
+| 69 | NET-ADR-001 | ADR-001: gRPC Official Library Wrapper Strategy | [ADR-001-grpc-official-library-wrapper.md](./adr/ADR-001-grpc-official-library-wrapper.md) | Released |
+| 70 | NET-ADR-002 | ADR-002: Facade API Introduction | [ADR-002-facade-api-introduction.md](./adr/ADR-002-facade-api-introduction.md) | Accepted |
+| 71 | NET-ADR-003 | ADR-003: Protocol Modularization Strategy | [ADR-003-protocol-modularization.md](./adr/ADR-003-protocol-modularization.md) | Accepted |
+| 72 | NET-PROJ-001 | 변경 이력 - Network System | [CHANGELOG.kr.md](./CHANGELOG.kr.md) | Released |
+| 73 | NET-PROJ-002 | Changelog - Network System | [CHANGELOG.md](./CHANGELOG.md) | Released |
+| 74 | NET-PROJ-003 | Network System 프로젝트 구조 | [PROJECT_STRUCTURE.kr.md](./PROJECT_STRUCTURE.kr.md) | Released |
+| 75 | NET-PROJ-004 | Network System Project Structure | [PROJECT_STRUCTURE.md](./PROJECT_STRUCTURE.md) | Released |
+| 76 | NET-PROJ-005 | SOUP List &mdash; network_system | [SOUP.md](./SOUP.md) | Released |
+| 77 | NET-PROJ-006 | Contributing to Network System | [CONTRIBUTING.md](./contributing/CONTRIBUTING.md) | Released |
+| 78 | NET-PROJ-007 | Header Audit - Phase 1: Preparation for Internal Migration | [HEADER_AUDIT_PHASE1.md](./refactoring/HEADER_AUDIT_PHASE1.md) | Released |
 
 ## Documents by Category
 
@@ -193,12 +196,13 @@ Total documents: **75**
 | NET-INTR-005 | Network System Integration with Monitoring System | [with-monitoring.md](./integration/with-monitoring.md) | Released |
 | NET-INTR-006 | NetworkSystemBridge Migration Guide | [network_system_bridge.md](./migration/network_system_bridge.md) | Released |
 
-### Quality (4)
+### Quality (5)
 
 | doc_id | Topic | Document | Status |
 |--------|-------|----------|--------|
 | NET-QUAL-001 | Network System 프로덕션 품질 | [PRODUCTION_QUALITY.kr.md](./PRODUCTION_QUALITY.kr.md) | Released |
 | NET-QUAL-002 | Network System Production Quality | [PRODUCTION_QUALITY.md](./PRODUCTION_QUALITY.md) | Released |
+| NET-QUAL-002 | Feature-Test-Module Traceability Matrix | [TRACEABILITY.md](./TRACEABILITY.md) | Released |
 | NET-QUAL-003 | Static Analysis Guide | [STATIC_ANALYSIS.md](./advanced/STATIC_ANALYSIS.md) | Released |
 | NET-QUAL-004 | Dependency & Testing | [02-dependency-and-testing.md](./implementation/02-dependency-and-testing.md) | Released |
 
@@ -209,11 +213,13 @@ Total documents: **75**
 | NET-SECU-001 | network_system을 위한 TLS/SSL 설정 가이드 | [TLS_SETUP_GUIDE.kr.md](./guides/TLS_SETUP_GUIDE.kr.md) | Released |
 | NET-SECU-002 | TLS/SSL Setup Guide for network_system | [TLS_SETUP_GUIDE.md](./guides/TLS_SETUP_GUIDE.md) | Released |
 
-### Architecture Decision Records (1)
+### Architecture Decision Records (3)
 
 | doc_id | Topic | Document | Status |
 |--------|-------|----------|--------|
 | NET-ADR-001 | ADR-001: gRPC Official Library Wrapper Strategy | [ADR-001-grpc-official-library-wrapper.md](./adr/ADR-001-grpc-official-library-wrapper.md) | Released |
+| NET-ADR-002 | ADR-002: Facade API Introduction | [ADR-002-facade-api-introduction.md](./adr/ADR-002-facade-api-introduction.md) | Accepted |
+| NET-ADR-003 | ADR-003: Protocol Modularization Strategy | [ADR-003-protocol-modularization.md](./adr/ADR-003-protocol-modularization.md) | Accepted |
 
 ### Project (7)
 
