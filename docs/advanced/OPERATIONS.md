@@ -10,6 +10,8 @@ category: "GUID"
 
 # Operations Guide
 
+> **SSOT**: This document is the single source of truth for **Operations Guide**.
+
 > **Language:** **English** | [한국어](OPERATIONS.kr.md)
 
 This guide covers deployment, configuration, monitoring, and operational best practices for the Network System.

@@ -10,6 +10,8 @@ category: "INTR"
 
 # Integrating Logger System with Network System
 
+> **SSOT**: This document is the single source of truth for **Integrating Logger System with Network System**.
+
 ## Overview
 
 The network system provides unified logging through common_system's ILogger interface and

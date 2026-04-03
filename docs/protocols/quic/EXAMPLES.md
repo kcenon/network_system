@@ -10,6 +10,8 @@ category: "GUID"
 
 # QUIC Examples
 
+> **SSOT**: This document is the single source of truth for **QUIC Examples**.
+
 ## Basic Echo Server and Client
 
 ### Echo Server

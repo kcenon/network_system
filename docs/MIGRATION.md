@@ -10,6 +10,8 @@ category: "MIGR"
 
 # Migration Guide: Monolithic to Modular Architecture
 
+> **SSOT**: This document is the single source of truth for **Migration Guide: Monolithic to Modular Architecture**.
+
 This guide helps you migrate from the monolithic `network_system` to the new modular architecture introduced in v2.0.
 
 ## Overview

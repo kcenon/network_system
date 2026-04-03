@@ -10,6 +10,8 @@ category: "SECU"
 
 # network_system을 위한 TLS/SSL 설정 가이드
 
+> **SSOT**: This document is the single source of truth for **network_system을 위한 TLS/SSL 설정 가이드**.
+
 > **Language:** [English](TLS_SETUP_GUIDE.md) | **한국어**
 
 ## 목차

@@ -10,6 +10,8 @@ category: "API"
 
 # C++20 Concepts for Network System
 
+> **SSOT**: This document is the single source of truth for **C++20 Concepts for Network System**.
+
 **Version:** 0.1.0
 **Last Updated:** 2025-12-10
 **Status:** Complete

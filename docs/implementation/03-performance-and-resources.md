@@ -10,6 +10,8 @@ category: "PERF"
 
 # Performance & Resources
 
+> **SSOT**: This document is the single source of truth for **Performance & Resources**.
+
 > **Part 3 of 4** | [📑 Index](README.md) | [← Previous: Testing](02-dependency-and-testing.md) | [Next: Error Handling →](04-error-handling.md)
 
 > **Language:** **English** | [한국어](03-performance-and-resources.kr.md)

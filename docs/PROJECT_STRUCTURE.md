@@ -10,6 +10,8 @@ category: "PROJ"
 
 # Network System Project Structure
 
+> **SSOT**: This document is the single source of truth for **Network System Project Structure**.
+
 **Last Updated**: 2025-11-15
 
 This document provides a comprehensive guide to the project directory structure, file organization, and module descriptions.

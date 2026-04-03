@@ -10,6 +10,8 @@ category: "INTR"
 
 # Integration Guide
 
+> **SSOT**: This document is the single source of truth for **Integration Guide**.
+
 > **Language:** [English](INTEGRATION.md) | **한국어**
 
 이 가이드는 network_system을 외부 시스템 및 라이브러리와 통합하는 방법을 설명합니다.

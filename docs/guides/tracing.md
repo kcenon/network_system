@@ -10,6 +10,8 @@ category: "GUID"
 
 # OpenTelemetry Tracing Guide
 
+> **SSOT**: This document is the single source of truth for **OpenTelemetry Tracing Guide**.
+
 This guide covers the OpenTelemetry-compatible distributed tracing support in network_system.
 
 ## Overview

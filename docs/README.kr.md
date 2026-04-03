@@ -10,6 +10,8 @@ category: "GUID"
 
 # Network System 문서
 
+> **SSOT**: This document is the single source of truth for **Network System 문서**.
+
 > **Language:** [English](README.md) | **한국어**
 
 **버전:** 2.0

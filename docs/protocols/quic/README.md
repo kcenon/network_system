@@ -10,6 +10,8 @@ category: "GUID"
 
 # QUIC Protocol Support
 
+> **SSOT**: This document is the single source of truth for **QUIC Protocol Support**.
+
 ## Overview
 
 network_system provides native QUIC protocol support implementing RFC 9000, RFC 9001, and RFC 9002. The implementation follows the same design philosophy as other protocols in the library: direct RFC implementation with minimal external dependencies.

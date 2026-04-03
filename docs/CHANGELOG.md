@@ -10,6 +10,8 @@ category: "PROJ"
 
 # Changelog - Network System
 
+> **SSOT**: This document is the single source of truth for **Changelog - Network System**.
+
 > **Language:** **English** | [한국어](CHANGELOG.kr.md)
 
 All notable changes to the Network System project will be documented in this file.

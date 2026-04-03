@@ -10,6 +10,8 @@ category: "PROJ"
 
 # Network System 프로젝트 구조
 
+> **SSOT**: This document is the single source of truth for **Network System 프로젝트 구조**.
+
 **언어:** [English](PROJECT_STRUCTURE.md) | **한국어**
 
 **최종 업데이트**: 2025-11-28

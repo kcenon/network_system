@@ -10,6 +10,8 @@ category: "GUID"
 
 # DTLS Socket and Resilient Client Guide
 
+> **SSOT**: This document is the single source of truth for **DTLS Socket and Resilient Client Guide**.
+
 > **Language:** **English**
 
 A comprehensive guide to two internal utility components in the `network_system` library: the DTLS (Datagram Transport Layer Security) socket for encrypted UDP communication, and the resilient client with automatic reconnection and circuit breaker support.

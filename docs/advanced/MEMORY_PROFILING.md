@@ -10,6 +10,8 @@ category: "PERF"
 
 # Memory Profiling Guide
 
+> **SSOT**: This document is the single source of truth for **Memory Profiling Guide**.
+
 This guide explains how to profile memory usage in the Network System library and detect memory leaks.
 
 ## Quick Start

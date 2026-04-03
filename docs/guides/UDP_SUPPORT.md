@@ -10,6 +10,8 @@ category: "GUID"
 
 # UDP Support in Network System
 
+> **SSOT**: This document is the single source of truth for **UDP Support in Network System**.
+
 This document describes the UDP protocol support added to the network_system library.
 
 ## Overview

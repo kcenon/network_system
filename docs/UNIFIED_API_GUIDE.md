@@ -10,6 +10,8 @@ category: "GUID"
 
 # Unified API Guide
 
+> **SSOT**: This document is the single source of truth for **Unified API Guide**.
+
 > **Language:** **English**
 
 A comprehensive guide to the Unified API interface layer, which provides protocol-agnostic abstractions for connections, listeners, and transports in the `network_system` library.

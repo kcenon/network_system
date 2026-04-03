@@ -10,6 +10,8 @@ category: "PERF"
 
 # Network System - Performance Baseline Metrics
 
+> **SSOT**: This document is the single source of truth for **Network System - Performance Baseline Metrics**.
+
 **English** | [한국어](BASELINE.kr.md)
 
 **Version**: development (matches `VERSION`)
