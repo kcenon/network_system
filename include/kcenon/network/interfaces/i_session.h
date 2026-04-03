@@ -2,7 +2,21 @@
 // Copyright (c) 2024, 🍀☀🌕🌥 🌊
 // See the LICENSE file in the project root for full license information.
 
+/**
+ * @file i_session.h
+ * @brief Session interface representing an active client-server connection.
+ *
+ */
+
 #pragma once
+
+/**
+ * @file i_session.h
+ * @brief Interface for a single client session on the server side
+ *
+ * Represents a connection to a single client, allowing data transmission
+ * and individual connection management within a server context.
+ */
 
 #include <cstdint>
 #include <string_view>

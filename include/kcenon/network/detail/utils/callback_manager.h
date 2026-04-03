@@ -2,7 +2,21 @@
 // Copyright (c) 2024, 🍀☀🌕🌥 🌊
 // See the LICENSE file in the project root for full license information.
 
+/**
+ * @file callback_manager.h
+ * @brief Thread-safe callback registration and invocation manager.
+ *
+ */
+
 #pragma once
+
+/**
+ * @file callback_manager.h
+ * @brief Thread-safe callback storage and invocation utility
+ *
+ * Provides centralized, mutex-protected callback management replacing
+ * duplicated callback handling code across CRTP base classes.
+ */
 
 #include <cstdint>
 #include <functional>

@@ -2,7 +2,22 @@
 // Copyright (c) 2024, 🍀☀🌕🌥 🌊
 // See the LICENSE file in the project root for full license information.
 
+/**
+ * @file secure_session.h
+ * @brief TLS-secured session wrapper for encrypted communication.
+ *
+ * @see tls_policy.h
+ */
+
 #pragma once
+
+/**
+ * @file secure_session.h
+ * @brief TLS-encrypted messaging session over secure TCP sockets
+ *
+ * Implements the session interface for TLS-secured TCP connections
+ * using ASIO SSL streams with asynchronous send/receive.
+ */
 
 #include <atomic>
 #include <deque>

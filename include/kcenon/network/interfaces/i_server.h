@@ -2,7 +2,22 @@
 // Copyright (c) 2024, 🍀☀🌕🌥 🌊
 // See the LICENSE file in the project root for full license information.
 
+/**
+ * @file i_server.h
+ * @brief Abstract server interface for protocol-agnostic server operations.
+ *
+ * @see i_client.h
+ */
+
 #pragma once
+
+/**
+ * @file i_server.h
+ * @brief Base interface for server-side network components
+ *
+ * Extends i_network_component with server-specific operations such as
+ * listening for connections, managing sessions, and broadcasting data.
+ */
 
 #include "i_network_component.h"
 #include "i_session.h"

@@ -2,7 +2,21 @@
 // Copyright (c) 2024, 🍀☀🌕🌥 🌊
 // See the LICENSE file in the project root for full license information.
 
+/**
+ * @file lifecycle_manager.h
+ * @brief Component lifecycle management (start, stop, restart).
+ *
+ */
+
 #pragma once
+
+/**
+ * @file lifecycle_manager.h
+ * @brief Thread-safe lifecycle state management for network components
+ *
+ * Encapsulates running-state tracking and stop synchronization logic
+ * shared across client and server implementations.
+ */
 
 #include <atomic>
 #include <future>

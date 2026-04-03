@@ -2,7 +2,21 @@
 // Copyright (c) 2024, 🍀☀🌕🌥 🌊
 // See the LICENSE file in the project root for full license information.
 
+/**
+ * @file connection_observer.h
+ * @brief Observer interface for connection state change notifications.
+ *
+ */
+
 #pragma once
+
+/**
+ * @file connection_observer.h
+ * @brief Observer interface for client connection events
+ *
+ * Provides a unified Observer pattern for handling connection-related
+ * events (connect, disconnect, receive, error) in client components.
+ */
 
 #include <cstdint>
 #include <functional>

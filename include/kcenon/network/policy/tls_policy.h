@@ -2,7 +2,21 @@
 // Copyright (c) 2024, 🍀☀🌕🌥 🌊
 // See the LICENSE file in the project root for full license information.
 
+/**
+ * @file tls_policy.h
+ * @brief Policy-based TLS configuration (no_tls, require_tls, optional_tls).
+ *
+ */
+
 #pragma once
+
+/**
+ * @file tls_policy.h
+ * @brief Policy types and concept for TLS configuration
+ *
+ * Defines no_tls, tls_enabled policy types and the TlsPolicy concept
+ * used as template parameters to control encryption behavior.
+ */
 
 #include <concepts>
 #include <string>

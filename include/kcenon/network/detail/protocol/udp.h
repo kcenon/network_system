@@ -2,7 +2,22 @@
 // Copyright (c) 2025, 🍀☀🌕🌥 🌊
 // See the LICENSE file in the project root for full license information.
 
+/**
+ * @file udp.h
+ * @brief UDP protocol connection factory functions.
+ *
+ * @see udp_facade.h
+ */
+
 #pragma once
+
+/**
+ * @file udp.h
+ * @brief UDP protocol factory functions for the unified transport layer
+ *
+ * Provides create_connection() and create_listener() factory functions
+ * for UDP transport using the unified i_connection/i_listener interfaces.
+ */
 
 #include "kcenon/network/detail/unified/i_connection.h"
 #include "kcenon/network/detail/unified/i_listener.h"

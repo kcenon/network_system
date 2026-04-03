@@ -2,7 +2,21 @@
 // Copyright (c) 2024, 🍀☀🌕🌥 🌊
 // See the LICENSE file in the project root for full license information.
 
+/**
+ * @file udp_facade.h
+ * @brief Simplified facade for creating UDP clients and servers.
+ *
+ */
+
 #pragma once
+
+/**
+ * @file udp_facade.h
+ * @brief Simplified facade for creating UDP clients and servers
+ *
+ * Provides a template-free API for UDP client/server creation,
+ * hiding protocol tag and implementation details from the user.
+ */
 
 #include <cstdint>
 #include <memory>
