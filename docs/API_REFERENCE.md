@@ -10,6 +10,8 @@ category: "API"
 
 # API Reference
 
+> **SSOT**: This document is the single source of truth for **API Reference**.
+
 > **Language:** **English** | [한국어](API_REFERENCE.kr.md)
 
 Comprehensive API documentation for the Network System library.

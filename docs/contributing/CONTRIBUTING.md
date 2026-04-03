@@ -12,6 +12,8 @@ category: "PROJ"
 
 # Contributing to Network System
 
+> **SSOT**: This document is the single source of truth for **Contributing to Network System**.
+
 **Version:** 0.1.0.0
 **Last Updated:** 2025-11-28
 

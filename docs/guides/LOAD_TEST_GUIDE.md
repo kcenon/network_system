@@ -10,6 +10,8 @@ category: "PERF"
 
 # Network Load Testing Guide
 
+> **SSOT**: This document is the single source of truth for **Network Load Testing Guide**.
+
 **Version**: 0.1.0.0
 **Last Updated**: 2025-10-26
 **Phase**: Phase 7 - Network Load Testing & Real Baseline Metrics

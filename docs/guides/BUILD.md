@@ -10,6 +10,8 @@ category: "GUID"
 
 # Build Instructions
 
+> **SSOT**: This document is the single source of truth for **Build Instructions**.
+
 > **Language:** **English** | [한국어](BUILD.kr.md)
 
 ## Table of Contents

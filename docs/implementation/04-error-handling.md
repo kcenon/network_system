@@ -10,6 +10,8 @@ category: "GUID"
 
 # Error Handling Strategy
 
+> **SSOT**: This document is the single source of truth for **Error Handling Strategy**.
+
 > **Part 4 of 4** | [📑 Index](README.md) | [← Previous: Performance](03-performance-and-resources.md)
 
 > **Language:** **English** | [한국어](04-error-handling.kr.md)

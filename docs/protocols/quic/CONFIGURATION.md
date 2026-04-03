@@ -10,6 +10,8 @@ category: "GUID"
 
 # QUIC Configuration Guide
 
+> **SSOT**: This document is the single source of truth for **QUIC Configuration Guide**.
+
 ## Build Configuration
 
 ### Enabling QUIC Support

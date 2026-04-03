@@ -10,6 +10,8 @@ category: "GUID"
 
 # Connection Pooling Guide
 
+> **SSOT**: This document is the single source of truth for **Connection Pooling Guide**.
+
 ## Overview
 
 Connection pooling allows efficient reuse of network connections, reducing the overhead of establishing new connections for each request. The `connection_pool` class manages a pool of `messaging_client` instances that can be borrowed and returned.

@@ -10,6 +10,8 @@ category: "GUID"
 
 # gRPC Integration Guide
 
+> **SSOT**: This document is the single source of truth for **gRPC Integration Guide**.
+
 > **Language:** **English** | [한국어](GRPC_GUIDE.kr.md)
 
 ---

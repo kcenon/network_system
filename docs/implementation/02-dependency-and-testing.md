@@ -10,6 +10,8 @@ category: "QUAL"
 
 # Dependency & Testing
 
+> **SSOT**: This document is the single source of truth for **Dependency & Testing**.
+
 > **Part 2 of 4** | [📑 Index](README.md) | [← Previous: Architecture](01-architecture-and-components.md) | [Next: Performance →](03-performance-and-resources.md)
 
 > **Language:** **English** | [한국어](02-dependency-and-testing.kr.md)

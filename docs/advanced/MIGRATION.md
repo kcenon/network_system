@@ -10,6 +10,8 @@ category: "MIGR"
 
 # Migration Guide: messaging_system to network_system
 
+> **SSOT**: This document is the single source of truth for **Migration Guide: messaging_system to network_system**.
+
 > **Language:** **English** | [한국어](MIGRATION_KO.md)
 
 **Document Version**: 1.0.0

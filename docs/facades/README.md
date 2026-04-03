@@ -10,6 +10,8 @@ category: "GUID"
 
 # Network System Facade API
 
+> **SSOT**: This document is the single source of truth for **Network System Facade API**.
+
 > **Version:** 2.0.0
 > **Last Updated:** 2025-02-04
 > **Status:** Complete

@@ -10,6 +10,8 @@ category: "API"
 
 # QUIC API Reference
 
+> **SSOT**: This document is the single source of truth for **QUIC API Reference**.
+
 ## Namespace
 
 ```cpp

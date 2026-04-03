@@ -10,6 +10,8 @@ category: "ARCH"
 
 # Composition-Based Design Specification
 
+> **SSOT**: This document is the single source of truth for **Composition-Based Design Specification**.
+
 > **Document Version:** 1.1.0
 > **Related Issue:** [#411](https://github.com/kcenon/network_system/issues/411), [#422](https://github.com/kcenon/network_system/issues/422), [#423](https://github.com/kcenon/network_system/issues/423)
 > **Last Updated:** 2025-01-13

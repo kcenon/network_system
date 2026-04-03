@@ -10,6 +10,8 @@ category: "INTR"
 
 # Integrating Common System with Network System
 
+> **SSOT**: This document is the single source of truth for **Integrating Common System with Network System**.
+
 ## Overview
 
 The network system depends on common_system for:

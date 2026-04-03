@@ -10,6 +10,8 @@ category: "ARCH"
 
 # CRTP Base Classes Analysis
 
+> **SSOT**: This document is the single source of truth for **CRTP Base Classes Analysis**.
+
 > **Document Version:** 2.0.0
 > **Related Issue:** [#411](https://github.com/kcenon/network_system/issues/411), [#422](https://github.com/kcenon/network_system/issues/422)
 > **Last Updated:** 2025-01-15

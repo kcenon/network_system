@@ -10,6 +10,8 @@ category: "ARCH"
 
 # Network System Architecture
 
+> **SSOT**: This document is the single source of truth for **Network System Architecture**.
+
 > **Language:** **English** | [한국어](ARCHITECTURE.kr.md)
 
 ## Overview

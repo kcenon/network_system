@@ -10,6 +10,8 @@ category: "GUID"
 
 # Refactoring Documentation
 
+> **SSOT**: This document is the single source of truth for **Refactoring Documentation**.
+
 > **Epic**: #577 - Apply Facade pattern to reduce protocol header complexity
 > **Issue**: #610 - Move protocol implementation headers to internal
 > **Goal**: Reduce public headers from 153 to < 40

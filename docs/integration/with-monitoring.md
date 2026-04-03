@@ -10,6 +10,8 @@ category: "INTR"
 
 # Network System Integration with Monitoring System
 
+> **SSOT**: This document is the single source of truth for **Network System Integration with Monitoring System**.
+
 ## Overview
 
 This guide explains how network_system publishes metrics that can be consumed by monitoring_system or other metric collectors.

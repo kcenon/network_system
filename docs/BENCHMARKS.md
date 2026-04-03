@@ -10,6 +10,8 @@ category: "PERF"
 
 # Network System Performance Benchmarks
 
+> **SSOT**: This document is the single source of truth for **Network System Performance Benchmarks**.
+
 **Last Updated**: 2025-11-15
 
 This document provides comprehensive performance metrics, benchmarking methodologies, and load testing results for the network system.

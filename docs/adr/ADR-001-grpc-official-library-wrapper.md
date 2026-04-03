@@ -10,6 +10,8 @@ category: "ADR"
 
 # ADR-001: gRPC Official Library Wrapper Strategy
 
+> **SSOT**: This document is the single source of truth for **ADR-001: gRPC Official Library Wrapper Strategy**.
+
 **Status:** Accepted
 **Date:** 2024-12-28
 **Decision Makers:** Development Team

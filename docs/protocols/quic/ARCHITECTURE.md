@@ -10,6 +10,8 @@ category: "ARCH"
 
 # QUIC Implementation Architecture
 
+> **SSOT**: This document is the single source of truth for **QUIC Implementation Architecture**.
+
 ## Layer Structure
 
 The QUIC implementation follows a layered architecture consistent with the existing network_system design. The public API classes use the composition-based pattern with interfaces and utility classes for lifecycle management.

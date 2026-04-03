@@ -10,6 +10,8 @@ category: "INTR"
 
 # NetworkSystemBridge Migration Guide
 
+> **SSOT**: This document is the single source of truth for **NetworkSystemBridge Migration Guide**.
+
 ## Overview
 
 This guide explains how to migrate from individual integration adapters to the unified `NetworkSystemBridge` facade.

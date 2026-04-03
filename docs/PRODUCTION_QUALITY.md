@@ -10,6 +10,8 @@ category: "QUAL"
 
 # Network System Production Quality
 
+> **SSOT**: This document is the single source of truth for **Network System Production Quality**.
+
 **Last Updated**: 2025-11-15
 
 This document details the production-quality assurance measures, CI/CD infrastructure, security features, and quality metrics for the network system.
