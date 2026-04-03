@@ -1,3 +1,13 @@
+---
+doc_id: "NET-GUID-023"
+doc_title: "Error Handling Strategy"
+doc_version: "1.0.0"
+doc_date: "2026-04-04"
+doc_status: "Released"
+project: "network_system"
+category: "GUID"
+---
+
 # Error Handling Strategy
 
 > **Part 4 of 4** | [📑 Index](README.md) | [← Previous: Performance](03-performance-and-resources.md)

@@ -1,3 +1,13 @@
+---
+doc_id: "NET-GUID-002"
+doc_title: "DTLS Socket and Resilient Client Guide"
+doc_version: "1.0.0"
+doc_date: "2026-04-04"
+doc_status: "Released"
+project: "network_system"
+category: "GUID"
+---
+
 # DTLS Socket and Resilient Client Guide
 
 > **Language:** **English**

@@ -1,3 +1,13 @@
+---
+doc_id: "NET-GUID-024"
+doc_title: "Network System Implementation Details"
+doc_version: "1.0.0"
+doc_date: "2026-04-04"
+doc_status: "Released"
+project: "network_system"
+category: "GUID"
+---
+
 # Network System Implementation Details
 
 > **Language:** **English** | [한국어](README.kr.md)

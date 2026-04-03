@@ -1,3 +1,13 @@
+---
+doc_id: "NET-GUID-022"
+doc_title: "OpenTelemetry Tracing Guide"
+doc_version: "1.0.0"
+doc_date: "2026-04-04"
+doc_status: "Released"
+project: "network_system"
+category: "GUID"
+---
+
 # OpenTelemetry Tracing Guide
 
 This guide covers the OpenTelemetry-compatible distributed tracing support in network_system.

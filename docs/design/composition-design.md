@@ -1,3 +1,13 @@
+---
+doc_id: "NET-ARCH-003"
+doc_title: "Composition-Based Design Specification"
+doc_version: "1.0.0"
+doc_date: "2026-04-04"
+doc_status: "Released"
+project: "network_system"
+category: "ARCH"
+---
+
 # Composition-Based Design Specification
 
 > **Document Version:** 1.1.0

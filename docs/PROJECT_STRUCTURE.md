@@ -1,3 +1,13 @@
+---
+doc_id: "NET-PROJ-004"
+doc_title: "Network System Project Structure"
+doc_version: "1.0.0"
+doc_date: "2026-04-04"
+doc_status: "Released"
+project: "network_system"
+category: "PROJ"
+---
+
 # Network System Project Structure
 
 **Last Updated**: 2025-11-15

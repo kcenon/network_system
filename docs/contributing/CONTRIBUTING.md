@@ -1,3 +1,13 @@
+---
+doc_id: "NET-PROJ-006"
+doc_title: "Contributing to Network System"
+doc_version: "1.0.0"
+doc_date: "2026-04-04"
+doc_status: "Released"
+project: "network_system"
+category: "PROJ"
+---
+
 > **Note**: The canonical version of this document is at the [project root](../../CONTRIBUTING.md). This copy is kept for reference.
 
 # Contributing to Network System

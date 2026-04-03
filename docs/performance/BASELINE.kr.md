@@ -1,3 +1,13 @@
+---
+doc_id: "NET-PERF-007"
+doc_title: "Network System - 성능 기준 메트릭"
+doc_version: "1.0.0"
+doc_date: "2026-04-04"
+doc_status: "Released"
+project: "network_system"
+category: "PERF"
+---
+
 # Network System - 성능 기준 메트릭
 
 [English](BASELINE.md) | **한국어**

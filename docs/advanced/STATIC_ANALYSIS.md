@@ -1,3 +1,13 @@
+---
+doc_id: "NET-QUAL-003"
+doc_title: "Static Analysis Guide"
+doc_version: "1.0.0"
+doc_date: "2026-04-04"
+doc_status: "Released"
+project: "network_system"
+category: "QUAL"
+---
+
 # Static Analysis Guide
 
 This guide explains how to run static analysis tools for the Network System library.

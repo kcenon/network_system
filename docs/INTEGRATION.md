@@ -1,3 +1,13 @@
+---
+doc_id: "NET-INTR-002"
+doc_title: "Integration Guide"
+doc_version: "1.0.0"
+doc_date: "2026-04-04"
+doc_status: "Released"
+project: "network_system"
+category: "INTR"
+---
+
 # Integration Guide
 
 > **Language:** **English** | [한국어](INTEGRATION.kr.md)

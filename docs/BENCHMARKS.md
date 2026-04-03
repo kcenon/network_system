@@ -1,3 +1,13 @@
+---
+doc_id: "NET-PERF-002"
+doc_title: "Network System Performance Benchmarks"
+doc_version: "1.0.0"
+doc_date: "2026-04-04"
+doc_status: "Released"
+project: "network_system"
+category: "PERF"
+---
+
 # Network System Performance Benchmarks
 
 **Last Updated**: 2025-11-15

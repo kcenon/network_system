@@ -1,3 +1,13 @@
+---
+doc_id: "NET-MIGR-001"
+doc_title: "Migration Guide: Monolithic to Modular Architecture"
+doc_version: "1.0.0"
+doc_date: "2026-04-04"
+doc_status: "Released"
+project: "network_system"
+category: "MIGR"
+---
+
 # Migration Guide: Monolithic to Modular Architecture
 
 This guide helps you migrate from the monolithic `network_system` to the new modular architecture introduced in v2.0.

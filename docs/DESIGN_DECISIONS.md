@@ -1,3 +1,13 @@
+---
+doc_id: "NET-GUID-001"
+doc_title: "Design Decisions"
+doc_version: "1.0.0"
+doc_date: "2026-04-04"
+doc_status: "Released"
+project: "network_system"
+category: "GUID"
+---
+
 # Design Decisions
 
 > **Language:** **English** | [한국어](DESIGN_DECISIONS.kr.md)

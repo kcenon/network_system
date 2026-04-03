@@ -1,3 +1,13 @@
+---
+doc_id: "NET-PERF-006"
+doc_title: "Performance & Resources"
+doc_version: "1.0.0"
+doc_date: "2026-04-04"
+doc_status: "Released"
+project: "network_system"
+category: "PERF"
+---
+
 # Performance & Resources
 
 > **Part 3 of 4** | [📑 Index](README.md) | [← Previous: Testing](02-dependency-and-testing.md) | [Next: Error Handling →](04-error-handling.md)

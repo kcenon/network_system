@@ -1,3 +1,13 @@
+---
+doc_id: "NET-ARCH-004"
+doc_title: "CRTP Base Classes Analysis"
+doc_version: "1.0.0"
+doc_date: "2026-04-04"
+doc_status: "Released"
+project: "network_system"
+category: "ARCH"
+---
+
 # CRTP Base Classes Analysis
 
 > **Document Version:** 2.0.0

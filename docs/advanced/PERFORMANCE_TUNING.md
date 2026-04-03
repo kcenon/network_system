@@ -1,3 +1,13 @@
+---
+doc_id: "NET-PERF-004"
+doc_title: "Performance Tuning Guide"
+doc_version: "1.0.0"
+doc_date: "2026-04-04"
+doc_status: "Released"
+project: "network_system"
+category: "PERF"
+---
+
 # Performance Tuning Guide
 
 **Last Updated**: 2025-11-25

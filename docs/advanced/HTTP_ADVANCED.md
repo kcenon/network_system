@@ -1,3 +1,13 @@
+---
+doc_id: "NET-GUID-009"
+doc_title: "HTTP Server Advanced Features Guide"
+doc_version: "1.0.0"
+doc_date: "2026-04-04"
+doc_status: "Released"
+project: "network_system"
+category: "GUID"
+---
+
 # HTTP Server Advanced Features Guide
 
 **Last Updated**: 2025-11-24

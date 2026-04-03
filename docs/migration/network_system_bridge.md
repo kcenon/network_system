@@ -1,3 +1,13 @@
+---
+doc_id: "NET-INTR-006"
+doc_title: "NetworkSystemBridge Migration Guide"
+doc_version: "1.0.0"
+doc_date: "2026-04-04"
+doc_status: "Released"
+project: "network_system"
+category: "INTR"
+---
+
 # NetworkSystemBridge Migration Guide
 
 ## Overview
