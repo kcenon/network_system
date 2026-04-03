@@ -1,7 +1,7 @@
 ##################################################
 # NetworkSystemInstall.cmake
 #
-# Installation configuration for NetworkSystem
+# Installation configuration for network_system
 ##################################################
 
 include(GNUInstallDirs)
@@ -12,7 +12,7 @@ include(CMakePackageConfigHelpers)
 ##################################################
 function(install_network_system_library)
     # Build list of targets to install
-    set(_INSTALL_TARGETS NetworkSystem)
+    set(_INSTALL_TARGETS network_system)
 
     # Include network-core if it exists (Issue #538, #539)
     if(TARGET network-core)

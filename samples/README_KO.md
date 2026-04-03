@@ -141,7 +141,7 @@ make
 - **타임아웃**: `5000` ms (5초)
 
 ### HTTP 클라이언트 구성
-- **User-Agent**: `NetworkSystem/1.0`
+- **User-Agent**: `network_system/1.0`
 - **타임아웃**: `30000` ms (30초)
 - **최대 리다이렉트**: `5`
 - **기본 헤더**: Accept, Accept-Language, Accept-Encoding

@@ -28,7 +28,7 @@ if(benchmark_FOUND OR BENCHMARK_FOUND)
 
     target_link_libraries(network_benchmarks
         PRIVATE
-            NetworkSystem
+            network_system
             benchmark::benchmark
             benchmark::benchmark_main
     )
@@ -40,7 +40,7 @@ if(benchmark_FOUND OR BENCHMARK_FOUND)
             ${CMAKE_CURRENT_SOURCE_DIR}/../src
     )
 
-    # Setup integrations for benchmarks (same as NetworkSystem target)
+    # Setup integrations for benchmarks (same as network_system target)
     setup_asio_integration(network_benchmarks)
 
     # Add system integration paths and definitions

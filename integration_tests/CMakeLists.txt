@@ -82,7 +82,7 @@ target_include_directories(connection_lifecycle_test PRIVATE
 )
 
 target_link_libraries(connection_lifecycle_test PRIVATE
-    NetworkSystem
+    network_system
     GTest::gtest
     GTest::gtest_main
     Threads::Threads
@@ -143,7 +143,7 @@ target_include_directories(protocol_integration_test PRIVATE
 )
 
 target_link_libraries(protocol_integration_test PRIVATE
-    NetworkSystem
+    network_system
     GTest::gtest
     GTest::gtest_main
     Threads::Threads
@@ -203,7 +203,7 @@ target_include_directories(network_performance_test PRIVATE
 )
 
 target_link_libraries(network_performance_test PRIVATE
-    NetworkSystem
+    network_system
     GTest::gtest
     GTest::gtest_main
     Threads::Threads
@@ -263,7 +263,7 @@ target_include_directories(error_handling_test PRIVATE
 )
 
 target_link_libraries(error_handling_test PRIVATE
-    NetworkSystem
+    network_system
     GTest::gtest
     GTest::gtest_main
     Threads::Threads
@@ -364,7 +364,7 @@ target_include_directories(tcp_load_test PRIVATE
 )
 
 target_link_libraries(tcp_load_test PRIVATE
-    NetworkSystem
+    network_system
     network_integration_test_framework
     GTest::gtest
     GTest::gtest_main
@@ -418,7 +418,7 @@ target_include_directories(udp_load_test PRIVATE
 )
 
 target_link_libraries(udp_load_test PRIVATE
-    NetworkSystem
+    network_system
     network-udp
     network_integration_test_framework
     GTest::gtest
@@ -473,7 +473,7 @@ target_include_directories(websocket_load_test PRIVATE
 )
 
 target_link_libraries(websocket_load_test PRIVATE
-    NetworkSystem
+    network_system
     network_integration_test_framework
     GTest::gtest
     GTest::gtest_main

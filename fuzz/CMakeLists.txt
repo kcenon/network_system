@@ -20,7 +20,7 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 
         # --- HTTP/2 frame parser fuzz target ---
         add_executable(fuzz_http2_frame fuzz_http2_frame.cpp)
-        target_link_libraries(fuzz_http2_frame PRIVATE NetworkSystem)
+        target_link_libraries(fuzz_http2_frame PRIVATE network_system)
         target_include_directories(fuzz_http2_frame PRIVATE ${FUZZ_INCLUDE_DIRS})
         set_target_properties(fuzz_http2_frame PROPERTIES
             COMPILE_FLAGS "${FUZZ_COMPILE_FLAGS}"
@@ -29,7 +29,7 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 
         # --- QUIC varint decoder fuzz target ---
         add_executable(fuzz_quic_varint fuzz_quic_varint.cpp)
-        target_link_libraries(fuzz_quic_varint PRIVATE NetworkSystem)
+        target_link_libraries(fuzz_quic_varint PRIVATE network_system)
         target_include_directories(fuzz_quic_varint PRIVATE ${FUZZ_INCLUDE_DIRS})
         set_target_properties(fuzz_quic_varint PROPERTIES
             COMPILE_FLAGS "${FUZZ_COMPILE_FLAGS}"
@@ -38,7 +38,7 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 
         # --- QUIC frame parser fuzz target ---
         add_executable(fuzz_quic_frame fuzz_quic_frame.cpp)
-        target_link_libraries(fuzz_quic_frame PRIVATE NetworkSystem)
+        target_link_libraries(fuzz_quic_frame PRIVATE network_system)
         target_include_directories(fuzz_quic_frame PRIVATE ${FUZZ_INCLUDE_DIRS})
         set_target_properties(fuzz_quic_frame PROPERTIES
             COMPILE_FLAGS "${FUZZ_COMPILE_FLAGS}"
@@ -47,7 +47,7 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 
         # --- gRPC message parser fuzz target ---
         add_executable(fuzz_grpc_frame fuzz_grpc_frame.cpp)
-        target_link_libraries(fuzz_grpc_frame PRIVATE NetworkSystem)
+        target_link_libraries(fuzz_grpc_frame PRIVATE network_system)
         target_include_directories(fuzz_grpc_frame PRIVATE ${FUZZ_INCLUDE_DIRS})
         set_target_properties(fuzz_grpc_frame PROPERTIES
             COMPILE_FLAGS "${FUZZ_COMPILE_FLAGS}"
@@ -56,7 +56,7 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 
         # --- HPACK header decoder fuzz target ---
         add_executable(fuzz_hpack_decode fuzz_hpack_decode.cpp)
-        target_link_libraries(fuzz_hpack_decode PRIVATE NetworkSystem)
+        target_link_libraries(fuzz_hpack_decode PRIVATE network_system)
         target_include_directories(fuzz_hpack_decode PRIVATE ${FUZZ_INCLUDE_DIRS})
         set_target_properties(fuzz_hpack_decode PROPERTIES
             COMPILE_FLAGS "${FUZZ_COMPILE_FLAGS}"

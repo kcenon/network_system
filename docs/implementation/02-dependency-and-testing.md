@@ -13,19 +13,19 @@ This document covers dependency management (CMake, pkg-config) and testing strat
 ### 1. CMake Module Files
 
 ```cmake
-# cmake/FindNetworkSystem.cmake
+# cmake/Findnetwork_system.cmake
 find_package(PkgConfig QUIET)
 
 # ASIO dependency
 find_package(asio CONFIG REQUIRED)
 if(NOT asio_FOUND)
-    message(FATAL_ERROR "ASIO library is required for NetworkSystem")
+    message(FATAL_ERROR "ASIO library is required for network_system")
 endif()
 
 # fmt dependency
 find_package(fmt CONFIG REQUIRED)
 if(NOT fmt_FOUND)
-    message(FATAL_ERROR "fmt library is required for NetworkSystem")
+    message(FATAL_ERROR "fmt library is required for network_system")
 endif()
 
 # Check conditional dependencies
@@ -46,39 +46,39 @@ if(BUILD_WITH_THREAD_SYSTEM)
 endif()
 
 # Define library target
-if(NOT TARGET NetworkSystem::Core)
-    add_library(NetworkSystem::Core INTERFACE)
-    target_include_directories(NetworkSystem::Core INTERFACE
+if(NOT TARGET network_system::Core)
+    add_library(network_system::Core INTERFACE)
+    target_include_directories(network_system::Core INTERFACE
         ${CMAKE_CURRENT_LIST_DIR}/../include
     )
-    target_link_libraries(NetworkSystem::Core INTERFACE
+    target_link_libraries(network_system::Core INTERFACE
         asio::asio
         fmt::fmt
     )
 
     if(BUILD_WITH_CONTAINER_SYSTEM)
-        target_link_libraries(NetworkSystem::Core INTERFACE
+        target_link_libraries(network_system::Core INTERFACE
             ContainerSystem::Core
         )
-        target_compile_definitions(NetworkSystem::Core INTERFACE
+        target_compile_definitions(network_system::Core INTERFACE
             BUILD_WITH_CONTAINER_SYSTEM
         )
     endif()
 
     if(BUILD_WITH_THREAD_SYSTEM)
-        target_link_libraries(NetworkSystem::Core INTERFACE
+        target_link_libraries(network_system::Core INTERFACE
             ThreadSystem::Core
         )
-        target_compile_definitions(NetworkSystem::Core INTERFACE
+        target_compile_definitions(network_system::Core INTERFACE
             BUILD_WITH_THREAD_SYSTEM
         )
     endif()
 endif()
 
 # Set variables
-set(NetworkSystem_FOUND TRUE)
-set(NetworkSystem_VERSION "2.0.0")
-set(NetworkSystem_INCLUDE_DIRS ${CMAKE_CURRENT_LIST_DIR}/../include)
+set(network_system_FOUND TRUE)
+set(network_system_VERSION "2.0.0")
+set(network_system_INCLUDE_DIRS ${CMAKE_CURRENT_LIST_DIR}/../include)
 ```
 
 ### 2. pkg-config File
@@ -90,12 +90,12 @@ exec_prefix=${prefix}
 libdir=${exec_prefix}/@CMAKE_INSTALL_LIBDIR@
 includedir=${prefix}/@CMAKE_INSTALL_INCLUDEDIR@
 
-Name: NetworkSystem
+Name: network_system
 Description: High-performance modular network system
 Version: @PROJECT_VERSION@
 Requires: asio fmt
 Requires.private: @PRIVATE_DEPENDENCIES@
-Libs: -L${libdir} -lNetworkSystem
+Libs: -L${libdir} -lnetwork_system
 Libs.private: @PRIVATE_LIBS@
 Cflags: -I${includedir}
 ```

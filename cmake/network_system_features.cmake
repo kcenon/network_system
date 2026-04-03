@@ -1,7 +1,7 @@
 ##################################################
 # NetworkSystemFeatures.cmake
 #
-# Feature detection module for NetworkSystem
+# Feature detection module for network_system
 # Checks ASIO and coroutine support
 ##################################################
 
@@ -98,7 +98,7 @@ endfunction()
 # Main feature check function
 ##################################################
 function(check_network_system_features)
-    message(STATUS "Checking NetworkSystem feature support...")
+    message(STATUS "Checking network_system feature support...")
 
     check_asio_support()
     check_coroutine_support()

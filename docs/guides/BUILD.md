@@ -353,17 +353,17 @@ chmod +x .git/hooks/pre-commit
 
 ## Integration
 
-### Using NetworkSystem in Your Project
+### Using network_system in Your Project
 
 #### CMake Integration
 ```cmake
 # Find the package
-find_package(NetworkSystem REQUIRED)
+find_package(network_system REQUIRED)
 
 # Link to your target
 target_link_libraries(your_target
   PRIVATE
-    NetworkSystem::NetworkSystem
+    network_system::network_system
 )
 ```
 
@@ -378,7 +378,7 @@ target_include_directories(your_target
 # Link library
 target_link_libraries(your_target
   PRIVATE
-    /path/to/network_system/build/libNetworkSystem.a
+    /path/to/network_system/build/libnetwork_system.a
 )
 ```
 

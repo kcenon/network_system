@@ -43,16 +43,6 @@ set(network_system_FOUND TRUE)
 # Provide information about the package
 set(network_system_VERSION @PROJECT_VERSION@)
 set(network_system_INCLUDE_DIRS "@PACKAGE_CMAKE_INSTALL_INCLUDEDIR@/network_system")
-set(network_system_LIBRARIES network_system::NetworkSystem)
-
-# Legacy variables for backward compatibility
-set(NetworkSystem_FOUND TRUE)
-set(NETWORKSYSTEM_FOUND TRUE)
-set(NetworkSystem_VERSION ${network_system_VERSION})
-set(NetworkSystem_INCLUDE_DIRS ${network_system_INCLUDE_DIRS})
-set(NetworkSystem_LIBRARIES ${network_system_LIBRARIES})
-set(NETWORKSYSTEM_VERSION ${network_system_VERSION})
-set(NETWORKSYSTEM_INCLUDE_DIRS ${network_system_INCLUDE_DIRS})
-set(NETWORKSYSTEM_LIBRARIES ${network_system_LIBRARIES})
+set(network_system_LIBRARIES network_system::network_system)
 
 message(STATUS "Found network_system: ${network_system_VERSION}")

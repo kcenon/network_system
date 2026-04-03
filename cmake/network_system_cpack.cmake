@@ -1,6 +1,6 @@
 # CPack Configuration for Network System
 
-set(CPACK_PACKAGE_NAME "NetworkSystem")
+set(CPACK_PACKAGE_NAME "network_system")
 set(CPACK_PACKAGE_VENDOR "Network System Team")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "High-performance asynchronous network communication library")
 set(CPACK_PACKAGE_VERSION_MAJOR "${PROJECT_VERSION_MAJOR}")
@@ -35,7 +35,7 @@ if(WIN32)
 
     # Start menu shortcuts
     set(CPACK_NSIS_CREATE_ICONS_EXTRA
-        "CreateShortCut '$SMPROGRAMS\\\\$STARTMENU_FOLDER\\\\Documentation.lnk' '$INSTDIR\\\\share\\\\doc\\\\NetworkSystem\\\\API_REFERENCE.md'"
+        "CreateShortCut '$SMPROGRAMS\\\\$STARTMENU_FOLDER\\\\Documentation.lnk' '$INSTDIR\\\\share\\\\doc\\\\network_system\\\\API_REFERENCE.md'"
     )
     set(CPACK_NSIS_DELETE_ICONS_EXTRA
         "Delete '$SMPROGRAMS\\\\$START_MENU\\\\Documentation.lnk'"
@@ -43,7 +43,7 @@ if(WIN32)
 
 elseif(APPLE)
     set(CPACK_GENERATOR "TGZ;DragNDrop")
-    set(CPACK_DMG_VOLUME_NAME "NetworkSystem-${CPACK_PACKAGE_VERSION}")
+    set(CPACK_DMG_VOLUME_NAME "network_system-${CPACK_PACKAGE_VERSION}")
     set(CPACK_DMG_FORMAT "UDZO")  # Compressed
     set(CPACK_PACKAGE_FILE_NAME "network_system-${CPACK_PACKAGE_VERSION}-macos")
 

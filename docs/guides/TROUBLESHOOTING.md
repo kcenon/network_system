@@ -801,8 +801,8 @@ grep -r "KCENON_WITH_COMMON_SYSTEM" build/compile_commands.json
 2. Ensure consuming project receives the definition:
 ```cmake
 # In consuming project's CMakeLists.txt
-get_target_property(DEFS NetworkSystem INTERFACE_COMPILE_DEFINITIONS)
-message(STATUS "NetworkSystem definitions: ${DEFS}")
+get_target_property(DEFS network_system INTERFACE_COMPILE_DEFINITIONS)
+message(STATUS "network_system definitions: ${DEFS}")
 ```
 
 > **See also:** [GitHub Issue #338](https://github.com/kcenon/network_system/issues/338)

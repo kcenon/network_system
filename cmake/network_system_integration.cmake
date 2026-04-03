@@ -1,7 +1,7 @@
 ##################################################
 # NetworkSystemIntegration.cmake
 #
-# Integration configuration for NetworkSystem
+# Integration configuration for network_system
 # Handles linking with external systems
 ##################################################
 
@@ -21,8 +21,8 @@ function(setup_asio_integration target)
     elseif(ASIO_INCLUDE_DIR)
         # Standalone ASIO via include directory
         # Use PUBLIC because:
-        # 1. NetworkSystem's source files (network_system.cpp) include headers that use <asio.hpp>
-        # 2. NetworkSystem's public headers include <asio.hpp>
+        # 1. network_system's source files (network_system.cpp) include headers that use <asio.hpp>
+        # 2. network_system's public headers include <asio.hpp>
         # 3. Dependent systems (like database_system) need access to ASIO headers
         target_include_directories(${target}
             PUBLIC

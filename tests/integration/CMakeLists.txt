@@ -21,7 +21,7 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/test_e2e.cpp)
     add_executable(test_e2e test_e2e.cpp)
 
     target_link_libraries(test_e2e PRIVATE
-        NetworkSystem
+        network_system
         GTest::gtest
         GTest::gtest_main
         Threads::Threads
@@ -68,7 +68,7 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/test_integration.cpp)
     add_executable(stress_test test_integration.cpp)
 
     target_link_libraries(stress_test PRIVATE
-        NetworkSystem
+        network_system
         Threads::Threads
     )
 
@@ -114,7 +114,7 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/test_websocket_e2e.cpp)
     add_executable(test_websocket_e2e test_websocket_e2e.cpp)
 
     target_link_libraries(test_websocket_e2e PRIVATE
-        NetworkSystem
+        network_system
         GTest::gtest
         GTest::gtest_main
         Threads::Threads
@@ -168,7 +168,7 @@ if(BUILD_QUIC_SUPPORT AND EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/test_quic_e2e.cpp)
     add_executable(test_quic_e2e test_quic_e2e.cpp)
 
     target_link_libraries(test_quic_e2e PRIVATE
-        NetworkSystem
+        network_system
         GTest::gtest
         GTest::gtest_main
         Threads::Threads
@@ -222,7 +222,7 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/test_metrics_integration.cpp)
     add_executable(test_metrics_integration test_metrics_integration.cpp)
 
     target_link_libraries(test_metrics_integration PRIVATE
-        NetworkSystem
+        network_system
         GTest::gtest
         GTest::gtest_main
         Threads::Threads
@@ -274,7 +274,7 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/test_tracing_integration.cpp)
     add_executable(test_tracing_integration test_tracing_integration.cpp)
 
     target_link_libraries(test_tracing_integration PRIVATE
-        NetworkSystem
+        network_system
         GTest::gtest
         GTest::gtest_main
         Threads::Threads

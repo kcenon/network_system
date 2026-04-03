@@ -47,7 +47,7 @@ if(GTest_FOUND OR GTEST_FOUND)
 
     # Link dependencies
     target_link_libraries(network_unit_tests PRIVATE
-        NetworkSystem
+        network_system
         GTest::gtest
         GTest::gtest_main
         Threads::Threads
@@ -99,7 +99,7 @@ if(GTest_FOUND OR GTEST_FOUND)
     )
 
     target_link_libraries(network_thread_safety_test PRIVATE
-        NetworkSystem
+        network_system
         GTest::gtest
         GTest::gtest_main
         Threads::Threads
@@ -148,7 +148,7 @@ if(GTest_FOUND OR GTEST_FOUND)
     )
 
     target_link_libraries(network_tls_config_test PRIVATE
-        NetworkSystem
+        network_system
         GTest::gtest
         GTest::gtest_main
         Threads::Threads
@@ -186,7 +186,7 @@ if(GTest_FOUND OR GTEST_FOUND)
         )
 
         target_link_libraries(network_thread_system_adapter_test PRIVATE
-            NetworkSystem
+            network_system
             GTest::gtest
             GTest::gtest_main
             Threads::Threads
@@ -237,7 +237,7 @@ if(GTest_FOUND OR GTEST_FOUND)
         )
 
         target_link_libraries(network_thread_pool_adapters_test PRIVATE
-            NetworkSystem
+            network_system
             GTest::gtest
             GTest::gtest_main
             Threads::Threads
@@ -278,7 +278,7 @@ if(GTest_FOUND OR GTEST_FOUND)
     )
 
     target_link_libraries(network_thread_pool_bridge_test PRIVATE
-        NetworkSystem
+        network_system
         GTest::gtest
         GTest::gtest_main
         Threads::Threads
@@ -293,7 +293,7 @@ if(GTest_FOUND OR GTEST_FOUND)
     )
 
     target_link_libraries(network_system_bridge_test PRIVATE
-        NetworkSystem
+        network_system
         GTest::gtest
         GTest::gtest_main
         Threads::Threads
@@ -362,7 +362,7 @@ if(GTest_FOUND OR GTEST_FOUND)
     )
 
     target_link_libraries(network_observability_bridge_test PRIVATE
-        NetworkSystem
+        network_system
         GTest::gtest
         GTest::gtest_main
         Threads::Threads
@@ -404,7 +404,7 @@ if(GTest_FOUND OR GTEST_FOUND)
     )
 
     target_link_libraries(network_messaging_bridge_interface_test PRIVATE
-        NetworkSystem
+        network_system
         GTest::gtest
         GTest::gtest_main
         Threads::Threads
@@ -446,7 +446,7 @@ if(GTest_FOUND OR GTEST_FOUND)
     )
 
     target_link_libraries(network_tcp_socket_test PRIVATE
-        NetworkSystem
+        network_system
         GTest::gtest
         GTest::gtest_main
         Threads::Threads
@@ -478,7 +478,7 @@ if(GTest_FOUND OR GTEST_FOUND)
     )
 
     target_link_libraries(network_socket_concepts_test PRIVATE
-        NetworkSystem
+        network_system
         network-udp
         GTest::gtest
         GTest::gtest_main
@@ -511,7 +511,7 @@ if(GTest_FOUND OR GTEST_FOUND)
     )
 
     target_link_libraries(network_session_manager_test PRIVATE
-        NetworkSystem
+        network_system
         GTest::gtest
         GTest::gtest_main
         Threads::Threads
@@ -543,7 +543,7 @@ if(GTest_FOUND OR GTEST_FOUND)
     )
 
     target_link_libraries(network_session_manager_base_test PRIVATE
-        NetworkSystem
+        network_system
         GTest::gtest
         GTest::gtest_main
         Threads::Threads
@@ -573,7 +573,7 @@ if(GTest_FOUND OR GTEST_FOUND)
     )
 
     target_link_libraries(network_ws_session_manager_test PRIVATE
-        NetworkSystem
+        network_system
         GTest::gtest
         GTest::gtest_main
         Threads::Threads
@@ -603,7 +603,7 @@ if(GTest_FOUND OR GTEST_FOUND)
     )
 
     target_link_libraries(network_session_manager_integration_test PRIVATE
-        NetworkSystem
+        network_system
         GTest::gtest
         GTest::gtest_main
         Threads::Threads
@@ -636,7 +636,7 @@ if(GTest_FOUND OR GTEST_FOUND)
     )
 
     target_link_libraries(network_composition_utilities_test PRIVATE
-        NetworkSystem
+        network_system
         GTest::gtest
         GTest::gtest_main
         Threads::Threads
@@ -668,7 +668,7 @@ if(GTest_FOUND OR GTEST_FOUND)
     )
 
     target_link_libraries(network_interfaces_test PRIVATE
-        NetworkSystem
+        network_system
         GTest::gtest
         GTest::gtest_main
         Threads::Threads
@@ -700,7 +700,7 @@ if(GTest_FOUND OR GTEST_FOUND)
     )
 
     target_link_libraries(network_policy_protocol_test PRIVATE
-        NetworkSystem
+        network_system
         GTest::gtest
         GTest::gtest_main
         Threads::Threads
@@ -732,7 +732,7 @@ if(GTest_FOUND OR GTEST_FOUND)
     )
 
     target_link_libraries(network_unified_messaging_client_test PRIVATE
-        NetworkSystem
+        network_system
         GTest::gtest
         GTest::gtest_main
         Threads::Threads
@@ -774,7 +774,7 @@ if(GTest_FOUND OR GTEST_FOUND)
     )
 
     target_link_libraries(network_unified_messaging_server_test PRIVATE
-        NetworkSystem
+        network_system
         GTest::gtest
         GTest::gtest_main
         Threads::Threads
@@ -816,7 +816,7 @@ if(GTest_FOUND OR GTEST_FOUND)
     )
 
     target_link_libraries(network_udp_composition_test PRIVATE
-        NetworkSystem
+        network_system
         network-udp
         GTest::gtest
         GTest::gtest_main
@@ -859,7 +859,7 @@ if(GTest_FOUND OR GTEST_FOUND)
     )
 
     target_link_libraries(network_udp_socket_test PRIVATE
-        NetworkSystem
+        network_system
         network-udp
         GTest::gtest
         GTest::gtest_main
@@ -901,7 +901,7 @@ if(GTest_FOUND OR GTEST_FOUND)
         )
 
         target_link_libraries(network_websocket_frame_test PRIVATE
-            NetworkSystem
+            network_system
             GTest::gtest
             GTest::gtest_main
             Threads::Threads
@@ -927,7 +927,7 @@ if(GTest_FOUND OR GTEST_FOUND)
         )
 
         target_link_libraries(network_websocket_handshake_test PRIVATE
-            NetworkSystem
+            network_system
             GTest::gtest
             GTest::gtest_main
             Threads::Threads
@@ -953,7 +953,7 @@ if(GTest_FOUND OR GTEST_FOUND)
         )
 
         target_link_libraries(network_websocket_protocol_test PRIVATE
-            NetworkSystem
+            network_system
             GTest::gtest
             GTest::gtest_main
             Threads::Threads
@@ -979,7 +979,7 @@ if(GTest_FOUND OR GTEST_FOUND)
         )
 
         target_link_libraries(network_messaging_ws_client_test PRIVATE
-            NetworkSystem
+            network_system
             GTest::gtest
             GTest::gtest_main
             Threads::Threads
@@ -1011,7 +1011,7 @@ if(GTest_FOUND OR GTEST_FOUND)
         )
 
         target_link_libraries(network_messaging_ws_server_test PRIVATE
-            NetworkSystem
+            network_system
             GTest::gtest
             GTest::gtest_main
             Threads::Threads
@@ -1048,7 +1048,7 @@ if(GTest_FOUND OR GTEST_FOUND)
     )
 
     target_link_libraries(network_http2_frame_test PRIVATE
-        NetworkSystem
+        network_system
         GTest::gtest
         GTest::gtest_main
         Threads::Threads
@@ -1080,7 +1080,7 @@ if(GTest_FOUND OR GTEST_FOUND)
     )
 
     target_link_libraries(network_http2_hpack_test PRIVATE
-        NetworkSystem
+        network_system
         GTest::gtest
         GTest::gtest_main
         Threads::Threads
@@ -1113,7 +1113,7 @@ if(GTest_FOUND OR GTEST_FOUND)
         )
 
         target_link_libraries(network_http2_client_test PRIVATE
-            NetworkSystem
+            network_system
             GTest::gtest
             GTest::gtest_main
             Threads::Threads
@@ -1147,7 +1147,7 @@ if(GTest_FOUND OR GTEST_FOUND)
         )
 
         target_link_libraries(network_http2_server_test PRIVATE
-            NetworkSystem
+            network_system
             GTest::gtest
             GTest::gtest_main
             Threads::Threads
@@ -1185,7 +1185,7 @@ if(GTest_FOUND OR GTEST_FOUND)
         )
 
         target_link_libraries(network_dtls_socket_test PRIVATE
-            NetworkSystem
+            network_system
             GTest::gtest
             GTest::gtest_main
             Threads::Threads
@@ -1229,7 +1229,7 @@ if(GTest_FOUND OR GTEST_FOUND)
     )
 
     target_link_libraries(network_metrics_test PRIVATE
-        NetworkSystem
+        network_system
         GTest::gtest
         GTest::gtest_main
         Threads::Threads
@@ -1280,7 +1280,7 @@ if(GTest_FOUND OR GTEST_FOUND)
     )
 
     target_link_libraries(network_histogram_test PRIVATE
-        NetworkSystem
+        network_system
         GTest::gtest
         GTest::gtest_main
         Threads::Threads
@@ -1331,7 +1331,7 @@ if(GTest_FOUND OR GTEST_FOUND)
     )
 
     target_link_libraries(network_tracing_test PRIVATE
-        NetworkSystem
+        network_system
         GTest::gtest
         GTest::gtest_main
         Threads::Threads
@@ -1382,7 +1382,7 @@ if(GTest_FOUND OR GTEST_FOUND)
     )
 
     target_link_libraries(network_grpc_frame_test PRIVATE
-        NetworkSystem
+        network_system
         GTest::gtest
         GTest::gtest_main
         Threads::Threads
@@ -1414,7 +1414,7 @@ if(GTest_FOUND OR GTEST_FOUND)
     )
 
     target_link_libraries(network_grpc_client_server_test PRIVATE
-        NetworkSystem
+        network_system
         GTest::gtest
         GTest::gtest_main
         Threads::Threads
@@ -1446,7 +1446,7 @@ if(GTest_FOUND OR GTEST_FOUND)
     )
 
     target_link_libraries(network_grpc_service_registry_test PRIVATE
-        NetworkSystem
+        network_system
         GTest::gtest
         GTest::gtest_main
         Threads::Threads
@@ -1478,7 +1478,7 @@ if(GTest_FOUND OR GTEST_FOUND)
     )
 
     target_link_libraries(network_grpc_official_wrapper_test PRIVATE
-        NetworkSystem
+        network_system
         GTest::gtest
         GTest::gtest_main
         Threads::Threads
@@ -1510,7 +1510,7 @@ if(GTest_FOUND OR GTEST_FOUND)
     )
 
     target_link_libraries(network_grpc_integration_test PRIVATE
-        NetworkSystem
+        network_system
         GTest::gtest
         GTest::gtest_main
         Threads::Threads
@@ -1546,7 +1546,7 @@ if(GTest_FOUND OR GTEST_FOUND)
     )
 
     target_link_libraries(network_quic_varint_test PRIVATE
-        NetworkSystem
+        network_system
         GTest::gtest
         GTest::gtest_main
         Threads::Threads
@@ -1578,7 +1578,7 @@ if(GTest_FOUND OR GTEST_FOUND)
     )
 
     target_link_libraries(network_quic_frame_test PRIVATE
-        NetworkSystem
+        network_system
         GTest::gtest
         GTest::gtest_main
         Threads::Threads
@@ -1610,7 +1610,7 @@ if(GTest_FOUND OR GTEST_FOUND)
     )
 
     target_link_libraries(network_quic_packet_test PRIVATE
-        NetworkSystem
+        network_system
         GTest::gtest
         GTest::gtest_main
         Threads::Threads
@@ -1643,7 +1643,7 @@ if(GTest_FOUND OR GTEST_FOUND)
         )
 
         target_link_libraries(network_quic_crypto_test PRIVATE
-            NetworkSystem
+            network_system
             GTest::gtest
             GTest::gtest_main
             Threads::Threads
@@ -1677,7 +1677,7 @@ if(GTest_FOUND OR GTEST_FOUND)
         )
 
         target_link_libraries(network_quic_socket_test PRIVATE
-            NetworkSystem
+            network_system
             GTest::gtest
             GTest::gtest_main
             Threads::Threads
@@ -1712,7 +1712,7 @@ if(GTest_FOUND OR GTEST_FOUND)
     )
 
     target_link_libraries(network_quic_stream_test PRIVATE
-        NetworkSystem
+        network_system
         GTest::gtest
         GTest::gtest_main
         Threads::Threads
@@ -1744,7 +1744,7 @@ if(GTest_FOUND OR GTEST_FOUND)
     )
 
     target_link_libraries(network_quic_connection_test PRIVATE
-        NetworkSystem
+        network_system
         GTest::gtest
         GTest::gtest_main
         Threads::Threads
@@ -1776,7 +1776,7 @@ if(GTest_FOUND OR GTEST_FOUND)
     )
 
     target_link_libraries(network_quic_loss_detection_test PRIVATE
-        NetworkSystem
+        network_system
         GTest::gtest
         GTest::gtest_main
         Threads::Threads
@@ -1808,7 +1808,7 @@ if(GTest_FOUND OR GTEST_FOUND)
     )
 
     target_link_libraries(network_quic_pmtud_test PRIVATE
-        NetworkSystem
+        network_system
         GTest::gtest
         GTest::gtest_main
         Threads::Threads
@@ -1840,7 +1840,7 @@ if(GTest_FOUND OR GTEST_FOUND)
     )
 
     target_link_libraries(network_quic_ecn_test PRIVATE
-        NetworkSystem
+        network_system
         GTest::gtest
         GTest::gtest_main
         Threads::Threads
@@ -1872,7 +1872,7 @@ if(GTest_FOUND OR GTEST_FOUND)
     )
 
     target_link_libraries(network_quic_session_ticket_test PRIVATE
-        NetworkSystem
+        network_system
         GTest::gtest
         GTest::gtest_main
         Threads::Threads
@@ -1904,7 +1904,7 @@ if(GTest_FOUND OR GTEST_FOUND)
     )
 
     target_link_libraries(network_quic_flow_congestion_rtt_test PRIVATE
-        NetworkSystem
+        network_system
         GTest::gtest
         GTest::gtest_main
         Threads::Threads
@@ -1936,7 +1936,7 @@ if(GTest_FOUND OR GTEST_FOUND)
     )
 
     target_link_libraries(network_messaging_quic_client_test PRIVATE
-        NetworkSystem
+        network_system
         GTest::gtest
         GTest::gtest_main
         Threads::Threads
@@ -1968,7 +1968,7 @@ if(GTest_FOUND OR GTEST_FOUND)
     )
 
     target_link_libraries(network_messaging_quic_server_test PRIVATE
-        NetworkSystem
+        network_system
         GTest::gtest
         GTest::gtest_main
         Threads::Threads
@@ -2002,7 +2002,7 @@ if(GTest_FOUND OR GTEST_FOUND)
     )
 
     target_link_libraries(network_unified_interfaces_test PRIVATE
-        NetworkSystem
+        network_system
         GTest::gtest
         GTest::gtest_main
         Threads::Threads
@@ -2036,7 +2036,7 @@ if(GTest_FOUND OR GTEST_FOUND)
     )
 
     target_link_libraries(network_session_type_erasure_test PRIVATE
-        NetworkSystem
+        network_system
         GTest::gtest
         GTest::gtest_main
         Threads::Threads
@@ -2066,7 +2066,7 @@ if(GTest_FOUND OR GTEST_FOUND)
     )
 
     target_link_libraries(network_unified_session_manager_test PRIVATE
-        NetworkSystem
+        network_system
         GTest::gtest
         GTest::gtest_main
         Threads::Threads
@@ -2099,7 +2099,7 @@ if(GTest_FOUND OR GTEST_FOUND)
     )
 
     target_link_libraries(network_connection_pool_test PRIVATE
-        NetworkSystem
+        network_system
         GTest::gtest
         GTest::gtest_main
         Threads::Threads
@@ -2142,7 +2142,7 @@ if(GTest_FOUND OR GTEST_FOUND)
     )
 
     target_link_libraries(network_buffer_pool_test PRIVATE
-        NetworkSystem
+        network_system
         GTest::gtest
         GTest::gtest_main
         Threads::Threads
@@ -2185,7 +2185,7 @@ if(GTest_FOUND OR GTEST_FOUND)
     )
 
     target_link_libraries(network_compression_pipeline_test PRIVATE
-        NetworkSystem
+        network_system
         GTest::gtest
         GTest::gtest_main
         Threads::Threads
@@ -2228,7 +2228,7 @@ if(GTest_FOUND OR GTEST_FOUND)
     )
 
     target_link_libraries(network_resilient_client_test PRIVATE
-        NetworkSystem
+        network_system
         GTest::gtest
         GTest::gtest_main
         Threads::Threads
@@ -2272,7 +2272,7 @@ if(GTest_FOUND OR GTEST_FOUND)
         )
 
         target_link_libraries(network_secure_messaging_client_test PRIVATE
-            NetworkSystem
+            network_system
             GTest::gtest
             GTest::gtest_main
             Threads::Threads
@@ -2317,7 +2317,7 @@ if(GTest_FOUND OR GTEST_FOUND)
         )
 
         target_link_libraries(network_secure_messaging_server_test PRIVATE
-            NetworkSystem
+            network_system
             GTest::gtest
             GTest::gtest_main
             Threads::Threads
@@ -2367,7 +2367,7 @@ if(GTest_FOUND OR GTEST_FOUND)
     )
 
     target_link_libraries(network_udp_basic_test PRIVATE
-        NetworkSystem
+        network_system
         GTest::gtest
         GTest::gtest_main
         Threads::Threads
@@ -2410,7 +2410,7 @@ if(GTest_FOUND OR GTEST_FOUND)
     )
 
     target_link_libraries(network_http_client_test PRIVATE
-        NetworkSystem
+        network_system
         GTest::gtest
         GTest::gtest_main
         Threads::Threads
@@ -2449,7 +2449,7 @@ if(GTest_FOUND OR GTEST_FOUND)
     )
 
     target_link_libraries(network_http_server_test PRIVATE
-        NetworkSystem
+        network_system
         GTest::gtest
         GTest::gtest_main
         Threads::Threads
@@ -2492,7 +2492,7 @@ if(GTest_FOUND OR GTEST_FOUND)
     )
 
     target_link_libraries(network_http_parser_test PRIVATE
-        NetworkSystem
+        network_system
         GTest::gtest
         GTest::gtest_main
         Threads::Threads
@@ -2544,7 +2544,7 @@ if(FALSE AND benchmark_FOUND)
 
     # Link dependencies
     target_link_libraries(network_benchmark_tests PRIVATE
-        NetworkSystem
+        network_system
         benchmark::benchmark
         benchmark::benchmark_main
         Threads::Threads
@@ -2607,7 +2607,7 @@ if(benchmark_FOUND)
     )
 
     target_link_libraries(network_grpc_benchmarks PRIVATE
-        NetworkSystem
+        network_system
         benchmark::benchmark
         benchmark::benchmark_main
         Threads::Threads
@@ -2657,7 +2657,7 @@ add_executable(network_tcp_facade_test
 )
 
 target_link_libraries(network_tcp_facade_test PRIVATE
-    NetworkSystem
+    network_system
     GTest::gtest
     GTest::gtest_main
     Threads::Threads
@@ -2690,7 +2690,7 @@ add_executable(network_udp_facade_test
 )
 
 target_link_libraries(network_udp_facade_test PRIVATE
-    NetworkSystem
+    network_system
     network-udp
     GTest::gtest
     GTest::gtest_main
@@ -2724,7 +2724,7 @@ add_executable(network_http_facade_test
 )
 
 target_link_libraries(network_http_facade_test PRIVATE
-    NetworkSystem
+    network_system
     GTest::gtest
     GTest::gtest_main
     Threads::Threads
@@ -2758,7 +2758,7 @@ if(BUILD_WEBSOCKET_SUPPORT)
     )
 
     target_link_libraries(network_websocket_facade_test PRIVATE
-        NetworkSystem
+        network_system
         GTest::gtest
         GTest::gtest_main
         Threads::Threads
@@ -2793,7 +2793,7 @@ add_executable(network_memory_profiler_session_timeout_test
 )
 
 target_link_libraries(network_memory_profiler_session_timeout_test PRIVATE
-    NetworkSystem
+    network_system
     GTest::gtest
     GTest::gtest_main
     Threads::Threads
@@ -2825,7 +2825,7 @@ add_executable(network_facade_validation_test
 )
 
 target_link_libraries(network_facade_validation_test PRIVATE
-    NetworkSystem
+    network_system
     GTest::gtest
     GTest::gtest_main
     Threads::Threads
@@ -2857,7 +2857,7 @@ add_executable(network_config_http_error_test
 )
 
 target_link_libraries(network_config_http_error_test PRIVATE
-    NetworkSystem
+    network_system
     GTest::gtest
     GTest::gtest_main
     Threads::Threads
@@ -2892,7 +2892,7 @@ add_executable(network_socket_metrics_test
 )
 
 target_link_libraries(network_socket_metrics_test PRIVATE
-    NetworkSystem
+    network_system
     GTest::gtest
     GTest::gtest_main
     Threads::Threads
@@ -2925,7 +2925,7 @@ add_executable(network_callback_indices_test
 )
 
 target_link_libraries(network_callback_indices_test PRIVATE
-    NetworkSystem
+    network_system
     GTest::gtest
     GTest::gtest_main
     Threads::Threads
@@ -2958,7 +2958,7 @@ add_executable(network_http2_request_test
 )
 
 target_link_libraries(network_http2_request_test PRIVATE
-    NetworkSystem
+    network_system
     GTest::gtest
     GTest::gtest_main
     Threads::Threads
@@ -2991,7 +2991,7 @@ add_executable(network_quic_varint_unit_test
 )
 
 target_link_libraries(network_quic_varint_unit_test PRIVATE
-    NetworkSystem
+    network_system
     GTest::gtest
     GTest::gtest_main
     Threads::Threads
@@ -3024,7 +3024,7 @@ add_executable(network_quic_frame_types_unit_test
 )
 
 target_link_libraries(network_quic_frame_types_unit_test PRIVATE
-    NetworkSystem
+    network_system
     GTest::gtest
     GTest::gtest_main
     Threads::Threads
@@ -3057,7 +3057,7 @@ add_executable(network_openssl_compat_test
 )
 
 target_link_libraries(network_openssl_compat_test PRIVATE
-    NetworkSystem
+    network_system
     GTest::gtest
     GTest::gtest_main
     Threads::Threads
@@ -3090,7 +3090,7 @@ add_executable(network_context_test
 )
 
 target_link_libraries(network_context_test PRIVATE
-    NetworkSystem
+    network_system
     GTest::gtest
     GTest::gtest_main
     Threads::Threads
@@ -3123,7 +3123,7 @@ add_executable(network_metric_event_test
 )
 
 target_link_libraries(network_metric_event_test PRIVATE
-    NetworkSystem
+    network_system
     GTest::gtest
     GTest::gtest_main
     Threads::Threads
@@ -3156,7 +3156,7 @@ add_executable(network_concepts_test
 )
 
 target_link_libraries(network_concepts_test PRIVATE
-    NetworkSystem
+    network_system
     GTest::gtest
     GTest::gtest_main
     Threads::Threads
@@ -3185,7 +3185,7 @@ add_executable(network_http_types_test
 )
 
 target_link_libraries(network_http_types_test PRIVATE
-    NetworkSystem
+    network_system
     GTest::gtest
     GTest::gtest_main
     Threads::Threads
@@ -3218,7 +3218,7 @@ add_executable(network_quic_connection_id_test
 )
 
 target_link_libraries(network_quic_connection_id_test PRIVATE
-    NetworkSystem
+    network_system
     GTest::gtest
     GTest::gtest_main
     Threads::Threads
@@ -3251,7 +3251,7 @@ add_executable(network_quic_keys_test
 )
 
 target_link_libraries(network_quic_keys_test PRIVATE
-    NetworkSystem
+    network_system
     GTest::gtest
     GTest::gtest_main
     Threads::Threads
@@ -3284,7 +3284,7 @@ add_executable(network_startable_base_test
 )
 
 target_link_libraries(network_startable_base_test PRIVATE
-    NetworkSystem
+    network_system
     GTest::gtest
     GTest::gtest_main
     Threads::Threads
@@ -3317,7 +3317,7 @@ add_executable(network_session_info_traits_test
 )
 
 target_link_libraries(network_session_info_traits_test PRIVATE
-    NetworkSystem
+    network_system
     GTest::gtest
     GTest::gtest_main
     Threads::Threads
@@ -3350,7 +3350,7 @@ add_executable(network_result_types_test
 )
 
 target_link_libraries(network_result_types_test PRIVATE
-    NetworkSystem
+    network_system
     GTest::gtest
     GTest::gtest_main
     Threads::Threads
@@ -3379,7 +3379,7 @@ add_executable(network_common_defs_test
 )
 
 target_link_libraries(network_common_defs_test PRIVATE
-    NetworkSystem
+    network_system
     GTest::gtest
     GTest::gtest_main
     Threads::Threads
@@ -3408,7 +3408,7 @@ add_executable(network_quic_transport_params_test
 )
 
 target_link_libraries(network_quic_transport_params_test PRIVATE
-    NetworkSystem
+    network_system
     GTest::gtest
     GTest::gtest_main
     Threads::Threads
@@ -3441,7 +3441,7 @@ add_executable(network_sliding_histogram_test
 )
 
 target_link_libraries(network_sliding_histogram_test PRIVATE
-    NetworkSystem
+    network_system
     GTest::gtest
     GTest::gtest_main
     Threads::Threads
@@ -3474,7 +3474,7 @@ add_executable(network_system_lifecycle_test
 )
 
 target_link_libraries(network_system_lifecycle_test PRIVATE
-    NetworkSystem
+    network_system
     GTest::gtest
     GTest::gtest_main
     Threads::Threads
@@ -3522,7 +3522,7 @@ add_executable(network_message_validator_extended_test
 )
 
 target_link_libraries(network_message_validator_extended_test PRIVATE
-    NetworkSystem
+    network_system
     GTest::gtest
     GTest::gtest_main
     Threads::Threads
@@ -3552,7 +3552,7 @@ add_executable(network_metrics_histogram_test
 )
 
 target_link_libraries(network_metrics_histogram_test PRIVATE
-    NetworkSystem
+    network_system
     GTest::gtest
     GTest::gtest_main
     Threads::Threads
@@ -3582,7 +3582,7 @@ add_executable(network_facade_extended_test
 )
 
 target_link_libraries(network_facade_extended_test PRIVATE
-    NetworkSystem
+    network_system
     GTest::gtest
     GTest::gtest_main
     Threads::Threads

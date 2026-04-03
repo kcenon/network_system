@@ -167,7 +167,7 @@ xdg-open coverage_html/index.html  # Linux
 
 ## 테스트 프레임워크
 
-### NetworkSystemFixture
+### network_system_fixture
 
 다음을 제공하는 기본 픽스처:
 - `StartServer()` - 테스트 서버 시작
