@@ -9,7 +9,7 @@ if(GTest_FOUND OR GTEST_FOUND)
     )
 
     target_link_libraries(network_failure_test PRIVATE
-        NetworkSystem
+        network_system
         GTest::gtest
         GTest::gtest_main
         Threads::Threads
@@ -53,7 +53,7 @@ if(GTest_FOUND OR GTEST_FOUND)
     )
 
     target_link_libraries(network_boundary_test PRIVATE
-        NetworkSystem
+        network_system
         GTest::gtest
         GTest::gtest_main
         Threads::Threads

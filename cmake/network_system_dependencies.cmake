@@ -1,7 +1,7 @@
 ##################################################
 # NetworkSystemDependencies.cmake
 #
-# Dependency finding module for NetworkSystem
+# Dependency finding module for network_system
 # Handles ASIO and system integrations
 ##################################################
 
@@ -684,7 +684,7 @@ endfunction()
 # Main dependency finding function
 ##################################################
 function(find_network_system_dependencies)
-    message(STATUS "Finding NetworkSystem dependencies...")
+    message(STATUS "Finding network_system dependencies...")
 
     find_asio_library()
     find_container_system()

@@ -32,8 +32,8 @@ vcpkg_cmake_configure(
 vcpkg_cmake_install()
 
 vcpkg_cmake_config_fixup(
-    PACKAGE_NAME NetworkSystem
-    CONFIG_PATH lib/cmake/NetworkSystem
+    PACKAGE_NAME network_system
+    CONFIG_PATH lib/cmake/network_system
 )
 
 # Remove empty directories that cause vcpkg post-build validation warnings

@@ -71,7 +71,7 @@ CMD ["/usr/local/bin/network_server"]
 #### Windows Service
 ```powershell
 # Install as Windows service
-sc create NetworkService binPath= "C:\Program Files\NetworkSystem\network_server.exe"
+sc create NetworkService binPath= "C:\Program Files\network_system\network_server.exe"
 sc config NetworkService start= auto
 sc start NetworkService
 ```

@@ -11,7 +11,7 @@ endif()
 # Independent high-performance network system
 ##################################################
 
-project(NetworkSystem
+project(network_system
     VERSION 0.1.1
     DESCRIPTION "Independent High-Performance Network System"
     LANGUAGES CXX
@@ -271,10 +271,10 @@ endfunction()
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
-include(NetworkSystemFeatures)
-include(NetworkSystemDependencies)
-include(NetworkSystemIntegration)
-include(NetworkSystemInstall)
+include(network_system_features)
+include(network_system_dependencies)
+include(network_system_integration)
+include(network_system_install)
 
 ##################################################
 # Dependency Detection
@@ -305,7 +305,7 @@ endif()
 ##################################################
 # Shared Integration Objects (ODR Fix - Issue #555)
 #
-# These sources are shared between NetworkSystem and network-tcp.
+# These sources are shared between network_system and network-tcp.
 # Using an OBJECT library ensures symbols are defined exactly once,
 # preventing ODR (One Definition Rule) violations that cause SEGV
 # in sanitizer tests.
@@ -414,7 +414,7 @@ endif()
 # Create Main Library
 ##################################################
 
-add_library(NetworkSystem
+add_library(network_system
     # Main API implementation
     src/network_system.cpp
 
@@ -537,7 +537,7 @@ add_library(NetworkSystem
 # WARNING: Suppressions removed for strict code quality check. 
 # Fix the code instead of suppressing warnings!
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-    # target_compile_options(NetworkSystem PRIVATE
+    # target_compile_options(network_system PRIVATE
     #     -Wno-sign-conversion
     #     -Wno-conversion
     #     -Wno-implicit-fallthrough
@@ -547,7 +547,7 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     #     -Wno-unused-variable
     # )
 elseif(MSVC)
-    # target_compile_options(NetworkSystem PRIVATE
+    # target_compile_options(network_system PRIVATE
     #     /wd4244  # conversion from 'type1' to 'type2', possible loss of data
     #     /wd4267  # conversion from 'size_t' to 'type', possible loss of data
     #     /wd4100  # unreferenced formal parameter
@@ -562,7 +562,7 @@ option(BUILD_TLS_SUPPORT "Build with TLS/SSL support for secure messaging" ON)
 option(BUILD_LZ4_COMPRESSION "Build with LZ4 compression support" ON)
 
 if(BUILD_TLS_SUPPORT)
-    target_sources(NetworkSystem PRIVATE
+    target_sources(network_system PRIVATE
         # secure_tcp_socket moved to libs/network-tcp (Issue #554)
         # secure_messaging_udp moved to libs/network-udp (Issue #561)
         src/internal/dtls_socket.cpp
@@ -575,13 +575,13 @@ if(BUILD_TLS_SUPPORT)
         src/protocols/http2/http2_server.cpp
         src/protocols/http2/http2_server_stream.cpp
     )
-    target_compile_definitions(NetworkSystem PUBLIC BUILD_TLS_SUPPORT)
+    target_compile_definitions(network_system PUBLIC BUILD_TLS_SUPPORT)
 
     # Find OpenSSL for TLS/SSL
     # Minimum requirement: OpenSSL 3.0.0
     # OpenSSL 1.1.x reached EOL on September 11, 2023 and is no longer supported
     find_package(OpenSSL 3.0.0 REQUIRED)
-    target_link_libraries(NetworkSystem PUBLIC OpenSSL::SSL OpenSSL::Crypto)
+    target_link_libraries(network_system PUBLIC OpenSSL::SSL OpenSSL::Crypto)
 
     message(STATUS "TLS/SSL support enabled (TLS 1.2/1.3)")
     message(STATUS "  OpenSSL version: ${OPENSSL_VERSION}")
@@ -589,7 +589,7 @@ endif()
 
 # WebSocket support (conditional) - part of HTTP layer
 if(BUILD_WEBSOCKET_SUPPORT)
-    target_sources(NetworkSystem PRIVATE
+    target_sources(network_system PRIVATE
         src/internal/websocket_frame.cpp
         src/internal/websocket_handshake.cpp
         src/internal/websocket_protocol.cpp
@@ -597,12 +597,12 @@ if(BUILD_WEBSOCKET_SUPPORT)
         src/http/websocket_client.cpp
         src/http/websocket_server.cpp
     )
-    target_compile_definitions(NetworkSystem PUBLIC BUILD_WEBSOCKET_SUPPORT)
+    target_compile_definitions(network_system PUBLIC BUILD_WEBSOCKET_SUPPORT)
 
     # Find OpenSSL for SHA-1 hashing in handshake (if not already found)
     if(NOT BUILD_TLS_SUPPORT)
         find_package(OpenSSL 3.0.0 REQUIRED)
-        target_link_libraries(NetworkSystem PRIVATE OpenSSL::Crypto)
+        target_link_libraries(network_system PRIVATE OpenSSL::Crypto)
         message(STATUS "  OpenSSL version: ${OPENSSL_VERSION}")
     endif()
 
@@ -616,9 +616,9 @@ if(BUILD_LZ4_COMPRESSION)
     find_path(LZ4_INCLUDE_DIR NAMES lz4.h)
 
     if(LZ4_LIBRARY AND LZ4_INCLUDE_DIR)
-        target_compile_definitions(NetworkSystem PUBLIC BUILD_LZ4_COMPRESSION)
-        target_include_directories(NetworkSystem PRIVATE ${LZ4_INCLUDE_DIR})
-        target_link_libraries(NetworkSystem PRIVATE ${LZ4_LIBRARY})
+        target_compile_definitions(network_system PUBLIC BUILD_LZ4_COMPRESSION)
+        target_include_directories(network_system PRIVATE ${LZ4_INCLUDE_DIR})
+        target_link_libraries(network_system PRIVATE ${LZ4_LIBRARY})
         message(STATUS "LZ4 compression enabled")
         message(STATUS "  LZ4 library: ${LZ4_LIBRARY}")
         message(STATUS "  LZ4 include: ${LZ4_INCLUDE_DIR}")
@@ -628,9 +628,9 @@ if(BUILD_LZ4_COMPRESSION)
         if(PkgConfig_FOUND)
             pkg_check_modules(LZ4 QUIET liblz4)
             if(LZ4_FOUND)
-                target_compile_definitions(NetworkSystem PUBLIC BUILD_LZ4_COMPRESSION)
-                target_include_directories(NetworkSystem PRIVATE ${LZ4_INCLUDE_DIRS})
-                target_link_libraries(NetworkSystem PRIVATE ${LZ4_LIBRARIES})
+                target_compile_definitions(network_system PUBLIC BUILD_LZ4_COMPRESSION)
+                target_include_directories(network_system PRIVATE ${LZ4_INCLUDE_DIRS})
+                target_link_libraries(network_system PRIVATE ${LZ4_LIBRARIES})
                 message(STATUS "LZ4 compression enabled (via pkg-config)")
                 message(STATUS "  LZ4 version: ${LZ4_VERSION}")
             else()
@@ -651,8 +651,8 @@ if(BUILD_ZLIB_COMPRESSION)
     find_package(ZLIB QUIET)
 
     if(ZLIB_FOUND)
-        target_compile_definitions(NetworkSystem PUBLIC BUILD_ZLIB_COMPRESSION)
-        target_link_libraries(NetworkSystem PRIVATE ZLIB::ZLIB)
+        target_compile_definitions(network_system PUBLIC BUILD_ZLIB_COMPRESSION)
+        target_link_libraries(network_system PRIVATE ZLIB::ZLIB)
         message(STATUS "ZLIB compression enabled (gzip/deflate)")
         message(STATUS "  ZLIB version: ${ZLIB_VERSION_STRING}")
     else()
@@ -671,13 +671,13 @@ if(NETWORK_ENABLE_GRPC_OFFICIAL AND GRPC_FOUND)
     message(STATUS "========================================")
 
     # Add gRPC wrapper sources
-    target_sources(NetworkSystem PRIVATE
+    target_sources(network_system PRIVATE
         src/protocols/grpc/grpc_official_wrapper.cpp
     )
 
     if(GRPC_CMAKE_CONFIG)
         # Use CMake config targets (preferred)
-        target_link_libraries(NetworkSystem PRIVATE
+        target_link_libraries(network_system PRIVATE
             gRPC::grpc++
             gRPC::grpc++_reflection
             protobuf::libprotobuf
@@ -697,12 +697,12 @@ if(NETWORK_ENABLE_GRPC_OFFICIAL AND GRPC_FOUND)
         endif()
     elseif(GRPC_PKGCONFIG)
         # Use pkg-config libraries
-        target_include_directories(NetworkSystem PRIVATE
+        target_include_directories(network_system PRIVATE
             ${GRPCPP_INCLUDE_DIRS}
             ${PROTOBUF_INCLUDE_DIRS}
         )
 
-        target_link_libraries(NetworkSystem PRIVATE
+        target_link_libraries(network_system PRIVATE
             ${GRPCPP_LIBRARIES}
             ${PROTOBUF_LIBRARIES}
         )
@@ -712,7 +712,7 @@ if(NETWORK_ENABLE_GRPC_OFFICIAL AND GRPC_FOUND)
     endif()
 
     # Define compile-time flag
-    target_compile_definitions(NetworkSystem PUBLIC NETWORK_GRPC_OFFICIAL=1)
+    target_compile_definitions(network_system PUBLIC NETWORK_GRPC_OFFICIAL=1)
 
     message(STATUS "")
     message(STATUS "Note: Existing gRPC API (grpc_server, grpc_client) remains unchanged.")
@@ -726,13 +726,13 @@ else()
 endif()
 
 # Set target properties
-set_target_properties(NetworkSystem PROPERTIES
+set_target_properties(network_system PROPERTIES
     CXX_STANDARD 20
     CXX_STANDARD_REQUIRED ON
 )
 
 # Include directories
-target_include_directories(NetworkSystem
+target_include_directories(network_system
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
@@ -742,34 +742,34 @@ target_include_directories(NetworkSystem
 
 # Link to network-core for shared interfaces (Issue #538, #539)
 if(TARGET network-core)
-    target_link_libraries(NetworkSystem PUBLIC network-core)
+    target_link_libraries(network_system PUBLIC network-core)
 endif()
 
 # Link to network-tcp for TCP protocol support (Issue #554)
 if(TARGET network-tcp)
-    target_link_libraries(NetworkSystem PUBLIC network-tcp)
+    target_link_libraries(network_system PUBLIC network-tcp)
 endif()
 
 # Link to network-udp for UDP protocol support (Issue #618)
 if(TARGET network-udp)
-    target_link_libraries(NetworkSystem PUBLIC network-udp)
+    target_link_libraries(network_system PUBLIC network-udp)
 endif()
 
 # Note: Integration objects are provided by network-tcp (ODR fix - Issue #555)
-# NetworkSystem gets these symbols through linking with network-tcp
+# network_system gets these symbols through linking with network-tcp
 
 ##################################################
 # Configure Integrations
 ##################################################
 
-setup_network_system_integrations(NetworkSystem)
+setup_network_system_integrations(network_system)
 
 # Messaging bridge (optional - requires external systems)
 if(BUILD_MESSAGING_BRIDGE)
-    target_sources(NetworkSystem PRIVATE
+    target_sources(network_system PRIVATE
         src/integration/messaging_bridge.cpp
     )
-    target_compile_definitions(NetworkSystem PRIVATE BUILD_MESSAGING_BRIDGE)
+    target_compile_definitions(network_system PRIVATE BUILD_MESSAGING_BRIDGE)
 endif()
 
 ##################################################
@@ -782,7 +782,7 @@ option(BUILD_VERIFY_BUILD "Build verify_build executable" OFF)
 
 if(BUILD_VERIFY_BUILD)
     add_executable(verify_build verify_build.cpp)
-    target_link_libraries(verify_build PRIVATE NetworkSystem)
+    target_link_libraries(verify_build PRIVATE network_system)
 
     # Add system include paths to verify_build
     if(CONTAINER_SYSTEM_INCLUDE_DIR)
@@ -890,7 +890,7 @@ endif()
 
 # CPack only applies to standalone builds (not as a subdirectory)
 if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
-    include(cmake/NetworkSystemCPack.cmake)
+    include(cmake/network_system_cpack.cmake)
 endif()
 
 ##################################################
@@ -973,7 +973,7 @@ endif()
 ##################################################
 
 message(STATUS "========================================")
-message(STATUS "NetworkSystem Build Configuration:")
+message(STATUS "network_system Build Configuration:")
 message(STATUS "========================================")
 message(STATUS "")
 message(STATUS "Dependency Chain (Tier 4):")

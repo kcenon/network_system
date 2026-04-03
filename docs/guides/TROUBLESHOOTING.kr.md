@@ -801,8 +801,8 @@ grep -r "KCENON_WITH_COMMON_SYSTEM" build/compile_commands.json
 2. 소비 프로젝트가 정의를 받는지 확인:
 ```cmake
 # 소비 프로젝트의 CMakeLists.txt에서
-get_target_property(DEFS NetworkSystem INTERFACE_COMPILE_DEFINITIONS)
-message(STATUS "NetworkSystem definitions: ${DEFS}")
+get_target_property(DEFS network_system INTERFACE_COMPILE_DEFINITIONS)
+message(STATUS "network_system definitions: ${DEFS}")
 ```
 
 > **참고:** [GitHub Issue #338](https://github.com/kcenon/network_system/issues/338)
