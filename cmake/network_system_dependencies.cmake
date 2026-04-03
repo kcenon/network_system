@@ -282,7 +282,7 @@ function(find_thread_system)
         return()
     endif()
 
-    foreach(_candidate ThreadSystem utilities thread_system::thread_system)
+    foreach(_candidate thread_system ThreadSystem utilities thread_system::thread_system)
         if(TARGET ${_candidate})
             message(STATUS "Found thread_system CMake target: ${_candidate}")
             set(THREAD_SYSTEM_FOUND TRUE PARENT_SCOPE)
@@ -336,7 +336,7 @@ function(find_thread_system)
         message(STATUS "Found thread_system at: ${THREAD_SYSTEM_INCLUDE_DIR}")
 
         find_library(THREAD_SYSTEM_LIBRARY
-            NAMES ThreadSystem
+            NAMES thread_system ThreadSystem
             PATHS ${_thread_lib_paths}
             NO_DEFAULT_PATH
         )

@@ -81,10 +81,10 @@ function(setup_thread_system_integration target)
 
     set(_thread_integration FALSE)
 
-    # First check if ThreadSystem CMake target exists (from FetchContent or add_subdirectory)
+    # First check if thread_system CMake target exists (from FetchContent or add_subdirectory)
     # This is the preferred method when building as part of a larger project
-    if(TARGET ThreadSystem)
-        target_link_libraries(${target} PUBLIC ThreadSystem)
+    if(TARGET thread_system)
+        target_link_libraries(${target} PUBLIC thread_system)
         target_compile_definitions(${target} PRIVATE WITH_THREAD_SYSTEM)
         # thread_system builds with KCENON_HAS_COMMON_EXECUTOR when common_system is available
         # We must match this definition to ensure consistent class layout across compilation units
@@ -92,7 +92,7 @@ function(setup_thread_system_integration target)
             target_compile_definitions(${target} PRIVATE KCENON_HAS_COMMON_EXECUTOR=1)
         endif()
         set(_thread_integration TRUE)
-        message(STATUS "Configured ${target} with ThreadSystem CMake target")
+        message(STATUS "Configured ${target} with thread_system CMake target")
     elseif(THREAD_SYSTEM_TARGET)
         target_link_libraries(${target} PUBLIC ${THREAD_SYSTEM_TARGET})
         target_compile_definitions(${target} PRIVATE WITH_THREAD_SYSTEM)
