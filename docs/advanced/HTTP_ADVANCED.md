@@ -10,6 +10,8 @@ category: "GUID"
 
 # HTTP Server Advanced Features Guide
 
+> **SSOT**: This document is the single source of truth for **HTTP Server Advanced Features Guide**.
+
 **Last Updated**: 2025-11-24
 **Version**: 0.1.0.0
 

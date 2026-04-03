@@ -10,6 +10,8 @@ category: "GUID"
 
 # Network System Integration Guide
 
+> **SSOT**: This document is the single source of truth for **Network System Integration Guide**.
+
 ## Overview
 
 This directory contains integration guides for using network_system with other KCENON systems and components.

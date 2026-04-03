@@ -10,6 +10,8 @@ category: "FEAT"
 
 # Network System Features
 
+> **SSOT**: This document is the single source of truth for **Network System Features**.
+
 **Last Updated**: 2026-02-08
 
 This document provides comprehensive details on all features available in the network system.

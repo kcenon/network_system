@@ -10,6 +10,8 @@ category: "GUID"
 
 # HTTP/2 Advanced Features Guide
 
+> **SSOT**: This document is the single source of truth for **HTTP/2 Advanced Features Guide**.
+
 > **Language:** **English**
 
 A comprehensive guide to the HTTP/2 protocol implementation in the `network_system` library, covering HPACK header compression, server-side streaming, client API, frame internals, flow control, and performance characteristics.

@@ -10,6 +10,8 @@ category: "GUID"
 
 # UDP Reliability Layer Guide
 
+> **SSOT**: This document is the single source of truth for **UDP Reliability Layer Guide**.
+
 **Last Updated**: 2025-11-24
 **Version**: 0.1.0.0
 

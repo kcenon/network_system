@@ -10,6 +10,8 @@ category: "PERF"
 
 # Performance Tuning Guide
 
+> **SSOT**: This document is the single source of truth for **Performance Tuning Guide**.
+
 **Last Updated**: 2025-11-25
 
 This guide provides comprehensive guidance on optimizing network system performance for different workloads and environments.

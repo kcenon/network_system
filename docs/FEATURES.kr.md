@@ -10,6 +10,8 @@ category: "FEAT"
 
 # Network System - 상세 기능
 
+> **SSOT**: This document is the single source of truth for **Network System - 상세 기능**.
+
 **언어:** [English](ARCHITECTURE.md) | **한국어**
 
 **최종 업데이트**: 2026-02-08

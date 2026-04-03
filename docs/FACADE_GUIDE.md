@@ -10,6 +10,8 @@ category: "GUID"
 
 # Facade API Guide
 
+> **SSOT**: This document is the single source of truth for **Facade API Guide**.
+
 > **Language:** **English**
 
 A comprehensive guide to the Facade v2.0 API layer, which provides simplified, high-level interfaces for each network protocol in the `network_system` library.

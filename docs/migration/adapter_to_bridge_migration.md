@@ -10,6 +10,8 @@ category: "MIGR"
 
 # Migration Guide: From Adapters to NetworkSystemBridge
 
+> **SSOT**: This document is the single source of truth for **Migration Guide: From Adapters to NetworkSystemBridge**.
+
 ## Overview
 
 This guide helps you migrate from the deprecated adapter classes to the new `NetworkSystemBridge` facade pattern. The new bridge pattern provides a unified, simplified interface for all external system integrations.

@@ -10,6 +10,8 @@ category: "MIGR"
 
 # Migration Guide: network_system v1.x → v2.0
 
+> **SSOT**: This document is the single source of truth for **Migration Guide: network_system v1.x → v2.0**.
+
 > **Version**: 0.2.0.0
 > **Issue**: #610 (Part of Epic #577)
 > **Breaking Changes**: Yes - Core implementation headers moved to internal

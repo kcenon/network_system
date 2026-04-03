@@ -10,6 +10,8 @@ category: "QUAL"
 
 # Static Analysis Guide
 
+> **SSOT**: This document is the single source of truth for **Static Analysis Guide**.
+
 This guide explains how to run static analysis tools for the Network System library.
 
 ## Quick Start

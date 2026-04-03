@@ -10,6 +10,8 @@ category: "GUID"
 
 # Network System Implementation Details
 
+> **SSOT**: This document is the single source of truth for **Network System Implementation Details**.
+
 > **Language:** **English** | [한국어](README.kr.md)
 
 This directory contains detailed technical implementation documentation for the network_system separation project.

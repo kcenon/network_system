@@ -10,6 +10,8 @@ category: "API"
 
 # API 참조
 
+> **SSOT**: This document is the single source of truth for **API 참조**.
+
 > **Language:** [English](API_REFERENCE.md) | **한국어**
 
 Network System 라이브러리에 대한 포괄적인 API 문서입니다.

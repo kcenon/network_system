@@ -10,6 +10,8 @@ category: "ARCH"
 
 # 아키텍처 개요
 
+> **SSOT**: This document is the single source of truth for **아키텍처 개요**.
+
 > **Language:** [English](ARCHITECTURE.md) | **한국어**
 
 ## 목적

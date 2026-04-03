@@ -10,6 +10,8 @@ category: "GUID"
 
 # 운영 가이드
 
+> **SSOT**: This document is the single source of truth for **운영 가이드**.
+
 > **Language:** [English](OPERATIONS.md) | **한국어**
 
 이 가이드는 Network System의 배포, 구성, 모니터링 및 운영 모범 사례를 다룹니다.

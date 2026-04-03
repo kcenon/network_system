@@ -10,6 +10,8 @@ category: "MIGR"
 
 # Migration Guide: Unified Interface API
 
+> **SSOT**: This document is the single source of truth for **Migration Guide: Unified Interface API**.
+
 This guide helps you migrate from the legacy protocol-specific interfaces (12+ interfaces) to the new unified interface API (3 core interfaces).
 
 ## Overview

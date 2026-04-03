@@ -10,6 +10,8 @@ category: "GUID"
 
 # 문제 해결 가이드
 
+> **SSOT**: This document is the single source of truth for **문제 해결 가이드**.
+
 > **Language:** [English](TROUBLESHOOTING.md) | **한국어**
 
 이 가이드는 Network System의 일반적인 문제, 디버깅 기법 및 문제 해결 전략에 대한 솔루션을 제공합니다.

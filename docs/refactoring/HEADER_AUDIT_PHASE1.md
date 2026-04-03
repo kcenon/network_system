@@ -10,6 +10,8 @@ category: "PROJ"
 
 # Header Audit - Phase 1: Preparation for Internal Migration
 
+> **SSOT**: This document is the single source of truth for **Header Audit - Phase 1: Preparation for Internal Migration**.
+
 > **Issue**: #610
 > **Epic**: #577
 > **Date**: 2026-02-02

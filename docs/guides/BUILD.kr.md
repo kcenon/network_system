@@ -10,6 +10,8 @@ category: "GUID"
 
 # 빌드 지침
 
+> **SSOT**: This document is the single source of truth for **빌드 지침**.
+
 > **Language:** [English](BUILD.md) | **한국어**
 
 ## 목차

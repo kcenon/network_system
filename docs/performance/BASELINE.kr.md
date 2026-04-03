@@ -10,6 +10,8 @@ category: "PERF"
 
 # Network System - 성능 기준 메트릭
 
+> **SSOT**: This document is the single source of truth for **Network System - 성능 기준 메트릭**.
+
 [English](BASELINE.md) | **한국어**
 
 **버전**: development (matches `VERSION`)

@@ -10,6 +10,8 @@ category: "ARCH"
 
 # Architecture & Components
 
+> **SSOT**: This document is the single source of truth for **Architecture & Components**.
+
 > **Part 1 of 4** | [📑 Index](README.md) | [Next: Dependency & Testing →](02-dependency-and-testing.md)
 
 > **Language:** **English** | [한국어](01-architecture-and-components.kr.md)

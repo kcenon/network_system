@@ -10,6 +10,8 @@ category: "ARCH"
 
 # SessionManager<T> Template Design
 
+> **SSOT**: This document is the single source of truth for **SessionManager<T> Template Design**.
+
 > **Issue**: #461 (Phase 2.2 of #412)
 > **Status**: Draft
 > **Author**: TBD
