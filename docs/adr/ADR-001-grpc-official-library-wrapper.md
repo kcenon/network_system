@@ -1,3 +1,13 @@
+---
+doc_id: "NET-ADR-001"
+doc_title: "ADR-001: gRPC Official Library Wrapper Strategy"
+doc_version: "1.0.0"
+doc_date: "2026-04-04"
+doc_status: "Released"
+project: "network_system"
+category: "ADR"
+---
+
 # ADR-001: gRPC Official Library Wrapper Strategy
 
 **Status:** Accepted

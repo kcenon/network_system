@@ -1,3 +1,13 @@
+---
+doc_id: "NET-ARCH-007"
+doc_title: "QUIC Implementation Architecture"
+doc_version: "1.0.0"
+doc_date: "2026-04-04"
+doc_status: "Released"
+project: "network_system"
+category: "ARCH"
+---
+
 # QUIC Implementation Architecture
 
 ## Layer Structure

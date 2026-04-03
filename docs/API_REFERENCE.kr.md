@@ -1,3 +1,13 @@
+---
+doc_id: "NET-API-001"
+doc_title: "API 참조"
+doc_version: "1.0.0"
+doc_date: "2026-04-04"
+doc_status: "Released"
+project: "network_system"
+category: "API"
+---
+
 # API 참조
 
 > **Language:** [English](API_REFERENCE.md) | **한국어**

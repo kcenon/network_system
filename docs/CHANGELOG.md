@@ -1,3 +1,13 @@
+---
+doc_id: "NET-PROJ-002"
+doc_title: "Changelog - Network System"
+doc_version: "1.0.0"
+doc_date: "2026-04-04"
+doc_status: "Released"
+project: "network_system"
+category: "PROJ"
+---
+
 # Changelog - Network System
 
 > **Language:** **English** | [한국어](CHANGELOG.kr.md)

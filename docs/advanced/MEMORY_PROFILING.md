@@ -1,3 +1,13 @@
+---
+doc_id: "NET-PERF-003"
+doc_title: "Memory Profiling Guide"
+doc_version: "1.0.0"
+doc_date: "2026-04-04"
+doc_status: "Released"
+project: "network_system"
+category: "PERF"
+---
+
 # Memory Profiling Guide
 
 This guide explains how to profile memory usage in the Network System library and detect memory leaks.

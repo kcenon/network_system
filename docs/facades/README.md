@@ -1,3 +1,13 @@
+---
+doc_id: "NET-GUID-013"
+doc_title: "Network System Facade API"
+doc_version: "1.0.0"
+doc_date: "2026-04-04"
+doc_status: "Released"
+project: "network_system"
+category: "GUID"
+---
+
 # Network System Facade API
 
 > **Version:** 2.0.0

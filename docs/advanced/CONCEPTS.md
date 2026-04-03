@@ -1,3 +1,13 @@
+---
+doc_id: "NET-API-003"
+doc_title: "C++20 Concepts for Network System"
+doc_version: "1.0.0"
+doc_date: "2026-04-04"
+doc_status: "Released"
+project: "network_system"
+category: "API"
+---
+
 # C++20 Concepts for Network System
 
 **Version:** 0.1.0

@@ -1,3 +1,13 @@
+---
+doc_id: "NET-GUID-026"
+doc_title: "QUIC Configuration Guide"
+doc_version: "1.0.0"
+doc_date: "2026-04-04"
+doc_status: "Released"
+project: "network_system"
+category: "GUID"
+---
+
 # QUIC Configuration Guide
 
 ## Build Configuration

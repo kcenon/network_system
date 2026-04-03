@@ -1,3 +1,13 @@
+---
+doc_id: "NET-GUID-019"
+doc_title: "문제 해결 가이드"
+doc_version: "1.0.0"
+doc_date: "2026-04-04"
+doc_status: "Released"
+project: "network_system"
+category: "GUID"
+---
+
 # 문제 해결 가이드
 
 > **Language:** [English](TROUBLESHOOTING.md) | **한국어**

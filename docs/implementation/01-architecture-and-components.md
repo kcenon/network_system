@@ -1,3 +1,13 @@
+---
+doc_id: "NET-ARCH-006"
+doc_title: "Architecture & Components"
+doc_version: "1.0.0"
+doc_date: "2026-04-04"
+doc_status: "Released"
+project: "network_system"
+category: "ARCH"
+---
+
 # Architecture & Components
 
 > **Part 1 of 4** | [📑 Index](README.md) | [Next: Dependency & Testing →](02-dependency-and-testing.md)

@@ -1,3 +1,13 @@
+---
+doc_id: "NET-GUID-010"
+doc_title: "운영 가이드"
+doc_version: "1.0.0"
+doc_date: "2026-04-04"
+doc_status: "Released"
+project: "network_system"
+category: "GUID"
+---
+
 # 운영 가이드
 
 > **Language:** [English](OPERATIONS.md) | **한국어**

@@ -1,3 +1,13 @@
+---
+doc_id: "NET-QUAL-002"
+doc_title: "Network System Production Quality"
+doc_version: "1.0.0"
+doc_date: "2026-04-04"
+doc_status: "Released"
+project: "network_system"
+category: "QUAL"
+---
+
 # Network System Production Quality
 
 **Last Updated**: 2025-11-15

@@ -1,3 +1,13 @@
+---
+doc_id: "NET-INTR-003"
+doc_title: "Integrating Common System with Network System"
+doc_version: "1.0.0"
+doc_date: "2026-04-04"
+doc_status: "Released"
+project: "network_system"
+category: "INTR"
+---
+
 # Integrating Common System with Network System
 
 ## Overview

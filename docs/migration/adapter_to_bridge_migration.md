@@ -1,3 +1,13 @@
+---
+doc_id: "NET-MIGR-005"
+doc_title: "Migration Guide: From Adapters to NetworkSystemBridge"
+doc_version: "1.0.0"
+doc_date: "2026-04-04"
+doc_status: "Released"
+project: "network_system"
+category: "MIGR"
+---
+
 # Migration Guide: From Adapters to NetworkSystemBridge
 
 ## Overview

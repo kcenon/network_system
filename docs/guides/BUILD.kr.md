@@ -1,3 +1,13 @@
+---
+doc_id: "NET-GUID-014"
+doc_title: "빌드 지침"
+doc_version: "1.0.0"
+doc_date: "2026-04-04"
+doc_status: "Released"
+project: "network_system"
+category: "GUID"
+---
+
 # 빌드 지침
 
 > **Language:** [English](BUILD.md) | **한국어**

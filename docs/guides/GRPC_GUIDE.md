@@ -1,3 +1,13 @@
+---
+doc_id: "NET-GUID-016"
+doc_title: "gRPC Integration Guide"
+doc_version: "1.0.0"
+doc_date: "2026-04-04"
+doc_status: "Released"
+project: "network_system"
+category: "GUID"
+---
+
 # gRPC Integration Guide
 
 > **Language:** **English** | [한국어](GRPC_GUIDE.kr.md)

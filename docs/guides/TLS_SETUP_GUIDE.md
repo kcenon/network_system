@@ -1,3 +1,13 @@
+---
+doc_id: "NET-SECU-002"
+doc_title: "TLS/SSL Setup Guide for network_system"
+doc_version: "1.0.0"
+doc_date: "2026-04-04"
+doc_status: "Released"
+project: "network_system"
+category: "SECU"
+---
+
 # TLS/SSL Setup Guide for network_system
 
 > **Language:** **English** | [한국어](TLS_SETUP_GUIDE.kr.md)
