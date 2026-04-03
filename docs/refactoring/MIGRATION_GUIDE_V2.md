@@ -1,3 +1,13 @@
+---
+doc_id: "NET-MIGR-006"
+doc_title: "Migration Guide: network_system v1.x → v2.0"
+doc_version: "1.0.0"
+doc_date: "2026-04-04"
+doc_status: "Released"
+project: "network_system"
+category: "MIGR"
+---
+
 # Migration Guide: network_system v1.x → v2.0
 
 > **Version**: 0.2.0.0

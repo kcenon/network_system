@@ -1,3 +1,13 @@
+---
+doc_id: "NET-PROJ-007"
+doc_title: "Header Audit - Phase 1: Preparation for Internal Migration"
+doc_version: "1.0.0"
+doc_date: "2026-04-04"
+doc_status: "Released"
+project: "network_system"
+category: "PROJ"
+---
+
 # Header Audit - Phase 1: Preparation for Internal Migration
 
 > **Issue**: #610

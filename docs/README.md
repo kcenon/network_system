@@ -1,3 +1,13 @@
+---
+doc_id: "NET-GUID-006"
+doc_title: "Network System Documentation"
+doc_version: "1.0.0"
+doc_date: "2026-04-04"
+doc_status: "Released"
+project: "network_system"
+category: "GUID"
+---
+
 # Network System Documentation
 
 > **Language:** **English** | [한국어](README.kr.md)

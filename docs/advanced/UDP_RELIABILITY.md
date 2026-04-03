@@ -1,3 +1,13 @@
+---
+doc_id: "NET-GUID-012"
+doc_title: "UDP Reliability Layer Guide"
+doc_version: "1.0.0"
+doc_date: "2026-04-04"
+doc_status: "Released"
+project: "network_system"
+category: "GUID"
+---
+
 # UDP Reliability Layer Guide
 
 **Last Updated**: 2025-11-24

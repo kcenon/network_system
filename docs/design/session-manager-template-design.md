@@ -1,3 +1,13 @@
+---
+doc_id: "NET-ARCH-005"
+doc_title: "SessionManager<T> Template Design"
+doc_version: "1.0.0"
+doc_date: "2026-04-04"
+doc_status: "Released"
+project: "network_system"
+category: "ARCH"
+---
+
 # SessionManager<T> Template Design
 
 > **Issue**: #461 (Phase 2.2 of #412)

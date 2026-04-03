@@ -1,3 +1,13 @@
+---
+doc_id: "NET-MIGR-002"
+doc_title: "Migration Guide: messaging_system to network_system"
+doc_version: "1.0.0"
+doc_date: "2026-04-04"
+doc_status: "Released"
+project: "network_system"
+category: "MIGR"
+---
+
 # Migration Guide: messaging_system to network_system
 
 > **Language:** **English** | [한국어](MIGRATION_KO.md)

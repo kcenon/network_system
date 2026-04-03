@@ -1,3 +1,13 @@
+---
+doc_id: "NET-GUID-021"
+doc_title: "UDP Support in Network System"
+doc_version: "1.0.0"
+doc_date: "2026-04-04"
+doc_status: "Released"
+project: "network_system"
+category: "GUID"
+---
+
 # UDP Support in Network System
 
 This document describes the UDP protocol support added to the network_system library.

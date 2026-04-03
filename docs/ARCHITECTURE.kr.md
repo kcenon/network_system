@@ -1,3 +1,13 @@
+---
+doc_id: "NET-ARCH-001"
+doc_title: "아키텍처 개요"
+doc_version: "1.0.0"
+doc_date: "2026-04-04"
+doc_status: "Released"
+project: "network_system"
+category: "ARCH"
+---
+
 # 아키텍처 개요
 
 > **Language:** [English](ARCHITECTURE.md) | **한국어**

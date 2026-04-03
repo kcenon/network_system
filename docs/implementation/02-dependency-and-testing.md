@@ -1,3 +1,13 @@
+---
+doc_id: "NET-QUAL-004"
+doc_title: "Dependency & Testing"
+doc_version: "1.0.0"
+doc_date: "2026-04-04"
+doc_status: "Released"
+project: "network_system"
+category: "QUAL"
+---
+
 # Dependency & Testing
 
 > **Part 2 of 4** | [📑 Index](README.md) | [← Previous: Architecture](01-architecture-and-components.md) | [Next: Performance →](03-performance-and-resources.md)

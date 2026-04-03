@@ -1,3 +1,13 @@
+---
+doc_id: "NET-PROJ-001"
+doc_title: "변경 이력 - Network System"
+doc_version: "1.0.0"
+doc_date: "2026-04-04"
+doc_status: "Released"
+project: "network_system"
+category: "PROJ"
+---
+
 # 변경 이력 - Network System
 
 > **언어:** [English](CHANGELOG.md) | **한국어**

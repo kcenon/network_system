@@ -1,3 +1,13 @@
+---
+doc_id: "NET-GUID-015"
+doc_title: "Build Instructions"
+doc_version: "1.0.0"
+doc_date: "2026-04-04"
+doc_status: "Released"
+project: "network_system"
+category: "GUID"
+---
+
 # Build Instructions
 
 > **Language:** **English** | [한국어](BUILD.kr.md)

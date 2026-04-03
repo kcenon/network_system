@@ -1,3 +1,13 @@
+---
+doc_id: "NET-GUID-003"
+doc_title: "Facade API Guide"
+doc_version: "1.0.0"
+doc_date: "2026-04-04"
+doc_status: "Released"
+project: "network_system"
+category: "GUID"
+---
+
 # Facade API Guide
 
 > **Language:** **English**

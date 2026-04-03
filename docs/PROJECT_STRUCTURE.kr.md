@@ -1,3 +1,13 @@
+---
+doc_id: "NET-PROJ-003"
+doc_title: "Network System 프로젝트 구조"
+doc_version: "1.0.0"
+doc_date: "2026-04-04"
+doc_status: "Released"
+project: "network_system"
+category: "PROJ"
+---
+
 # Network System 프로젝트 구조
 
 **언어:** [English](PROJECT_STRUCTURE.md) | **한국어**

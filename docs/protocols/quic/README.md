@@ -1,3 +1,13 @@
+---
+doc_id: "NET-GUID-028"
+doc_title: "QUIC Protocol Support"
+doc_version: "1.0.0"
+doc_date: "2026-04-04"
+doc_status: "Released"
+project: "network_system"
+category: "GUID"
+---
+
 # QUIC Protocol Support
 
 ## Overview
