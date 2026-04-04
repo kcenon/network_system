@@ -82,7 +82,7 @@ Total documents: **78**
 | 61 | NET-INTR-006 | NetworkSystemBridge Migration Guide | [network_system_bridge.md](./migration/network_system_bridge.md) | Released |
 | 62 | NET-QUAL-001 | Network System 프로덕션 품질 | [PRODUCTION_QUALITY.kr.md](./PRODUCTION_QUALITY.kr.md) | Released |
 | 63 | NET-QUAL-002 | Network System Production Quality | [PRODUCTION_QUALITY.md](./PRODUCTION_QUALITY.md) | Released |
-| 64 | NET-QUAL-002 | Feature-Test-Module Traceability Matrix | [TRACEABILITY.md](./TRACEABILITY.md) | Released |
+| 64 | NET-QUAL-005 | Feature-Test-Module Traceability Matrix | [TRACEABILITY.md](./TRACEABILITY.md) | Released |
 | 65 | NET-QUAL-003 | Static Analysis Guide | [STATIC_ANALYSIS.md](./advanced/STATIC_ANALYSIS.md) | Released |
 | 66 | NET-QUAL-004 | Dependency & Testing | [02-dependency-and-testing.md](./implementation/02-dependency-and-testing.md) | Released |
 | 67 | NET-SECU-001 | network_system을 위한 TLS/SSL 설정 가이드 | [TLS_SETUP_GUIDE.kr.md](./guides/TLS_SETUP_GUIDE.kr.md) | Released |
@@ -202,7 +202,7 @@ Total documents: **78**
 |--------|-------|----------|--------|
 | NET-QUAL-001 | Network System 프로덕션 품질 | [PRODUCTION_QUALITY.kr.md](./PRODUCTION_QUALITY.kr.md) | Released |
 | NET-QUAL-002 | Network System Production Quality | [PRODUCTION_QUALITY.md](./PRODUCTION_QUALITY.md) | Released |
-| NET-QUAL-002 | Feature-Test-Module Traceability Matrix | [TRACEABILITY.md](./TRACEABILITY.md) | Released |
+| NET-QUAL-005 | Feature-Test-Module Traceability Matrix | [TRACEABILITY.md](./TRACEABILITY.md) | Released |
 | NET-QUAL-003 | Static Analysis Guide | [STATIC_ANALYSIS.md](./advanced/STATIC_ANALYSIS.md) | Released |
 | NET-QUAL-004 | Dependency & Testing | [02-dependency-and-testing.md](./implementation/02-dependency-and-testing.md) | Released |
 
