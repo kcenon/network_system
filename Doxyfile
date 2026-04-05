@@ -48,7 +48,7 @@ OPTIMIZE_OUTPUT_VHDL   = NO
 OPTIMIZE_OUTPUT_SLICE  = NO
 EXTENSION_MAPPING      =
 MARKDOWN_SUPPORT       = YES
-TOC_INCLUDE_HEADINGS   = 5
+TOC_INCLUDE_HEADINGS   = 6
 MARKDOWN_ID_STYLE      = DOXYGEN
 AUTOLINK_SUPPORT       = YES
 BUILTIN_STL_SUPPORT    = YES
@@ -127,7 +127,9 @@ WARN_LOGFILE           =
 #---------------------------------------------------------------------------
 INPUT                  = include \
                          src \
-                         README.md
+                         README.md \
+                         ./docs/mainpage.dox \
+                         ./examples
 INPUT_ENCODING         = UTF-8
 INPUT_FILTER           =
 FILTER_PATTERNS        =
@@ -142,7 +144,8 @@ FILE_PATTERNS          = *.c \
                          *.hh \
                          *.hpp \
                          *.tpp \
-                         *.md
+                         *.md \
+                         *.dox
 RECURSIVE              = YES
 EXCLUDE                = ./build \
                          ./vcpkg \
@@ -155,7 +158,11 @@ EXCLUDE_PATTERNS       = */CMakeFiles/* \
                          */vcpkg*/* \
                          */build/* \
                          */build-*/*
-USE_MDFILE_AS_MAINPAGE = README.md
+EXAMPLE_PATH           = ./examples
+EXAMPLE_PATTERNS       = *.cpp \
+                         *.h
+EXAMPLE_RECURSIVE      = YES
+USE_MDFILE_AS_MAINPAGE =
 FORTRAN_COMMENT_AFTER  = 72
 
 #---------------------------------------------------------------------------
@@ -187,12 +194,17 @@ IGNORE_PREFIX          =
 GENERATE_HTML          = YES
 HTML_OUTPUT            = html
 HTML_FILE_EXTENSION    = .html
-HTML_HEADER            =
+HTML_HEADER            = docs/header.html
 HTML_FOOTER            =
 HTML_STYLESHEET        =
-HTML_EXTRA_STYLESHEET  =
-HTML_EXTRA_FILES       =
-HTML_COLORSTYLE        = AUTO_LIGHT
+HTML_EXTRA_STYLESHEET  = docs/doxygen-awesome-css/doxygen-awesome.css \
+                         docs/doxygen-awesome-css/doxygen-awesome-sidebar-only.css \
+                         docs/custom.css
+HTML_EXTRA_FILES       = docs/doxygen-awesome-css/doxygen-awesome-darkmode-toggle.js \
+                         docs/doxygen-awesome-css/doxygen-awesome-fragment-copy-button.js \
+                         docs/doxygen-awesome-css/doxygen-awesome-paragraph-link.js \
+                         docs/doxygen-awesome-css/doxygen-awesome-interactive-toc.js
+HTML_COLORSTYLE        = LIGHT
 HTML_COLORSTYLE_HUE    = 220
 HTML_COLORSTYLE_SAT    = 100
 HTML_COLORSTYLE_GAMMA  = 80
@@ -200,7 +212,7 @@ HTML_TIMESTAMP         = NO
 HTML_DYNAMIC_MENUS     = YES
 HTML_DYNAMIC_SECTIONS  = NO
 HTML_CODE_FOLDING      = YES
-HTML_COPY_CLIPBOARD    = YES
+HTML_COPY_CLIPBOARD    = NO
 HTML_PROJECT_COOKIE    =
 HTML_INDEX_NUM_ENTRIES = 100
 GENERATE_DOCSET        = NO
