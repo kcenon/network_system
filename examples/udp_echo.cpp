@@ -8,6 +8,10 @@ All rights reserved.
 /**
  * @file udp_echo.cpp
  * @brief Minimal UDP echo server and client
+ * @example udp_echo.cpp
+ *
+ * @par Category
+ * Basic - UDP networking
  *
  * Demonstrates:
  * - Creating a UDP server via udp_facade
@@ -18,6 +22,10 @@ All rights reserved.
  *
  * The server echoes each received datagram back to its sender.
  * The client sends a series of messages and prints the echoed responses.
+ *
+ * @see kcenon::network::facade::udp_facade
+ * @see kcenon::network::interfaces::i_protocol_client
+ * @see kcenon::network::interfaces::i_protocol_server
  */
 
 #include <kcenon/network/facade/udp_facade.h>

@@ -8,6 +8,10 @@ All rights reserved.
 /**
  * @file tcp_client.cpp
  * @brief Minimal TCP client using the facade API
+ * @example tcp_client.cpp
+ *
+ * @par Category
+ * Basic - TCP networking
  *
  * Demonstrates:
  * - Creating a TCP client via tcp_facade
@@ -20,6 +24,9 @@ All rights reserved.
  * Pair with the tcp_echo_server example:
  *   1. Start tcp_echo_server
  *   2. Run this tcp_client
+ *
+ * @see kcenon::network::facade::tcp_facade
+ * @see kcenon::network::interfaces::i_protocol_client
  */
 
 #include <kcenon/network/facade/tcp_facade.h>

@@ -8,6 +8,10 @@ All rights reserved.
 /**
  * @file tcp_echo_server.cpp
  * @brief Minimal TCP echo server using the facade API
+ * @example tcp_echo_server.cpp
+ *
+ * @par Category
+ * Basic - TCP networking
  *
  * Demonstrates:
  * - Creating a TCP server via tcp_facade
@@ -18,6 +22,10 @@ All rights reserved.
  *
  * Run this server, then connect with the tcp_client example or any TCP client:
  *   echo "hello" | nc localhost 9000
+ *
+ * @see kcenon::network::facade::tcp_facade
+ * @see kcenon::network::interfaces::i_protocol_server
+ * @see kcenon::network::interfaces::i_session
  */
 
 #include <kcenon/network/facade/tcp_facade.h>
