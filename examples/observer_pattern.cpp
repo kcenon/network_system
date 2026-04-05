@@ -8,6 +8,10 @@ All rights reserved.
 /**
  * @file observer_pattern.cpp
  * @brief Demonstrates the connection_observer and callback_adapter patterns
+ * @example observer_pattern.cpp
+ *
+ * @par Category
+ * Patterns - Observer pattern
  *
  * Demonstrates:
  * - Implementing connection_observer for unified event handling
@@ -17,6 +21,10 @@ All rights reserved.
  *
  * These patterns provide alternatives to individual callback setters
  * and centralize event handling in a single object.
+ *
+ * @see kcenon::network::interfaces::connection_observer
+ * @see kcenon::network::interfaces::null_connection_observer
+ * @see kcenon::network::interfaces::callback_adapter
  */
 
 #include <kcenon/network/facade/tcp_facade.h>
