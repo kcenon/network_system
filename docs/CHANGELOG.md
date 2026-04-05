@@ -23,6 +23,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Modernized Doxygen Documentation with doxygen-awesome-css (#927)**
+  - Vendored doxygen-awesome-css theme with dark mode toggle, code copy buttons, and responsive sidebar
+  - Added custom header (`docs/header.html`) and branding CSS (`docs/custom.css`)
+  - Updated Doxyfile: `HTML_COLORSTYLE=LIGHT`, `HTML_HEADER`, `HTML_EXTRA_STYLESHEET`, `EXAMPLE_PATH`
+  - Refactored `mainpage.dox` to 8-section ecosystem standard template (overview, features, architecture diagram, quick start, installation, modules, examples, related systems)
+  - Moved `mainpage.dox` from project root to `docs/` directory
+
 ### Changed
 - **Consolidated Result Type Aliases (#494)**
   - Clarified that `network::Result<T>`, `network::VoidResult`, and `network::error_info` are deprecated for external use
