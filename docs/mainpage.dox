@@ -1,0 +1,247 @@
+/**
+@mainpage Network System
+
+@tableofcontents
+
+@section overview System Overview
+
+Network System is a high-performance, modular C++20 networking library for building
+scalable client-server applications. Built on ASIO non-blocking I/O with coroutine
+support, it provides a clean facade API over TCP, UDP, WebSocket, HTTP/2, QUIC, and
+gRPC protocols with pluggable TLS policies and pipeline-based message processing.
+
+As the Tier 4 transport layer of the kcenon ecosystem, Network System depends on
+common_system, thread_system, and optionally container_system, logger_system, and
+monitoring_system.
+
+@section features Key Features
+
+| Category | Feature | Description |
+|----------|---------|-------------|
+| **Protocols** | TCP / UDP / WebSocket | Full-duplex, reliable and unreliable transports |
+| **Protocols** | HTTP/2 / QUIC / gRPC | Modern multiplexed and RPC protocols |
+| **API** | Facade Layer | `tcp_facade`, `udp_facade`, `websocket_facade`, `http_facade`, `quic_facade` with config structs |
+| **API** | Unified Templates | `unified_messaging_client<Protocol, TlsPolicy>` / `unified_messaging_server<Protocol, TlsPolicy>` |
+| **API** | Protocol Factories | `protocol::tcp::connect()`, `protocol::tcp::listen()` returning interface pointers |
+| **Security** | TLS Policies | Policy-based TLS 1.2/1.3 configuration with OpenSSL 3.x |
+| **Performance** | Pipeline Architecture | Pluggable compression/encryption hooks before async send |
+| **Performance** | Connection Pooling | Efficient connection reuse and resource management |
+| **Concepts** | C++20 Protocol Concept | Compile-time protocol tag constraints (`name`, `is_connection_oriented`, `is_reliable`) |
+| **Monitoring** | EventBus Metrics | Zero compile-time dependency metric publishing via common_system EventBus |
+
+@section architecture Architecture Diagram
+
+The library is organized in layers. Higher layers depend on lower layers,
+but never the reverse. The facade layer provides simplified access to all
+protocol implementations.
+
+@dot
+digraph architecture {
+    rankdir=TB;
+    node [shape=box, style="filled,rounded", fontname="Helvetica", fontsize=11];
+    edge [color="#555555"];
+
+    subgraph cluster_facade {
+        label="Facade Layer";
+        style="dashed";
+        color="#1a73e8";
+        fontcolor="#1a73e8";
+        TcpFacade   [label="tcp_facade",       fillcolor="#e8f0fe"];
+        UdpFacade   [label="udp_facade",       fillcolor="#e8f0fe"];
+        WsFacade    [label="websocket_facade",  fillcolor="#e8f0fe"];
+        HttpFacade  [label="http_facade",       fillcolor="#e8f0fe"];
+        QuicFacade  [label="quic_facade",       fillcolor="#e8f0fe"];
+    }
+
+    subgraph cluster_protocol {
+        label="Protocol Layer";
+        style="dashed";
+        color="#34a853";
+        fontcolor="#34a853";
+        ProtoFactory [label="Protocol Factories", fillcolor="#e6f4ea"];
+        ProtoTags    [label="Protocol Tags\n(tcp, udp, ws, quic)", fillcolor="#e6f4ea"];
+        Unified      [label="Unified Templates",  fillcolor="#e6f4ea"];
+    }
+
+    subgraph cluster_interfaces {
+        label="Interfaces";
+        style="dashed";
+        color="#ea8600";
+        fontcolor="#ea8600";
+        IClient  [label="i_protocol_client",  fillcolor="#fef7e0"];
+        IServer  [label="i_protocol_server",  fillcolor="#fef7e0"];
+        ISession [label="i_session",          fillcolor="#fef7e0"];
+    }
+
+    subgraph cluster_detail {
+        label="Detail / Config / Policy";
+        style="dashed";
+        color="#9334e6";
+        fontcolor="#9334e6";
+        Pipeline [label="Pipeline\n(compress / encrypt)", fillcolor="#f3e8fd"];
+        TLS      [label="TLS Policies",                   fillcolor="#f3e8fd"];
+        Config   [label="Config Structs",                  fillcolor="#f3e8fd"];
+        Concepts [label="C++20 Concepts",                  fillcolor="#f3e8fd"];
+    }
+
+    TcpFacade  -> ProtoFactory;
+    UdpFacade  -> ProtoFactory;
+    WsFacade   -> ProtoFactory;
+    HttpFacade -> ProtoFactory;
+    QuicFacade -> ProtoFactory;
+
+    ProtoFactory -> IClient;
+    ProtoFactory -> IServer;
+    Unified      -> ProtoTags;
+    Unified      -> IClient;
+    Unified      -> IServer;
+
+    IClient  -> Pipeline;
+    IServer  -> Pipeline;
+    ISession -> Pipeline;
+    IClient  -> TLS;
+    IServer  -> TLS;
+
+    ProtoTags -> Concepts;
+    Config    -> TLS;
+}
+@enddot
+
+@section quickstart Quick Start
+
+A minimal TCP echo client using the facade API:
+
+@code{.cpp}
+#include <kcenon/network/facade/tcp_facade.h>
+#include <iostream>
+
+int main() {
+    using namespace kcenon::network;
+
+    // Configure and create a TCP client via the facade
+    tcp_client_config config;
+    config.host = "127.0.0.1";
+    config.port = 9090;
+
+    auto client = tcp_facade::connect(config);
+    if (!client) {
+        std::cerr << "Connection failed\n";
+        return 1;
+    }
+
+    // Send a message
+    client->send("Hello, Server!");
+
+    // Receive echo response
+    auto response = client->receive();
+    if (response.is_ok()) {
+        std::cout << "Echo: " << response.value() << "\n";
+    }
+
+    return 0;
+}
+@endcode
+
+A minimal TCP echo server:
+
+@code{.cpp}
+#include <kcenon/network/facade/tcp_facade.h>
+#include <iostream>
+
+int main() {
+    using namespace kcenon::network;
+
+    tcp_server_config config;
+    config.port = 9090;
+
+    auto server = tcp_facade::listen(config);
+
+    server->on_message([](auto session, const std::string& msg) {
+        std::cout << "Received: " << msg << "\n";
+        session->send(msg);  // echo back
+    });
+
+    server->run();  // blocks
+    return 0;
+}
+@endcode
+
+@section installation Installation
+
+@subsection install_fetchcontent CMake FetchContent (Recommended)
+
+@code{.cmake}
+include(FetchContent)
+FetchContent_Declare(
+    network_system
+    GIT_REPOSITORY https://github.com/kcenon/network_system.git
+    GIT_TAG        main
+)
+FetchContent_MakeAvailable(network_system)
+
+target_link_libraries(your_target PRIVATE kcenon::network)
+@endcode
+
+@subsection install_vcpkg vcpkg
+
+@code{.bash}
+vcpkg install kcenon-network-system
+@endcode
+
+@code{.cmake}
+find_package(network_system CONFIG REQUIRED)
+target_link_libraries(your_target PRIVATE kcenon::network)
+@endcode
+
+@subsection install_manual Manual Clone
+
+@code{.bash}
+git clone https://github.com/kcenon/network_system.git
+cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+cmake --build build
+@endcode
+
+@section modules Module Overview
+
+| Module | Directory | Description |
+|--------|-----------|-------------|
+| **Facade** | `include/kcenon/network/facade/` | Simplified protocol facades (tcp, udp, websocket, http, quic) hiding template complexity |
+| **Protocol** | `include/kcenon/network/protocol/` | Protocol factory functions and tag types |
+| **Interfaces** | `include/kcenon/network/interfaces/` | Core abstractions: `i_protocol_client`, `i_protocol_server`, `i_session` |
+| **Unified** | `include/kcenon/network/unified/` | `unified_messaging_client/server<Protocol, TlsPolicy>` templates |
+| **Detail** | `include/kcenon/network/detail/` | Implementation details: protocol tags, session types, metrics, tracing |
+| **Config** | `include/kcenon/network/config/` | Configuration types for clients, servers, and protocols |
+| **Policy** | `include/kcenon/network/policy/` | TLS policies (policy-based TLS configuration) |
+| **Concepts** | `include/kcenon/network/concepts/` | C++20 concepts constraining protocol tags |
+| **Core** | `src/core/` | `messaging_client`, `messaging_server`, `connection_pool` implementations |
+| **Internal** | `src/internal/` | Socket implementations (tcp, udp, websocket, quic, dtls, secure_tcp) |
+| **Libs** | `libs/` | Modular protocol libraries: network-core, network-tcp, network-udp, network-websocket, network-http2, network-quic, network-grpc, network-all |
+
+@section examples Examples
+
+| Example | Source | Description |
+|---------|--------|-------------|
+| TCP Client | @ref tcp_client.cpp | Basic TCP client connecting to a server and sending messages |
+| TCP Echo Server | @ref tcp_echo_server.cpp | TCP server that echoes received messages back to clients |
+| WebSocket Chat | @ref websocket_chat.cpp | WebSocket-based chat application demonstrating bidirectional messaging |
+| UDP Echo | @ref udp_echo.cpp | Unreliable datagram echo demonstrating UDP transport |
+| Connection Pool | @ref connection_pool.cpp | Efficient connection reuse and lifecycle management |
+| Observer Pattern | @ref observer_pattern.cpp | Event-driven networking with observer callbacks |
+
+@section related Related Systems
+
+Network System is the transport layer (Tier 4) of the kcenon ecosystem.
+It depends on lower-tier systems and is consumed by higher-tier applications:
+
+| System | Tier | Relationship | Repository |
+|--------|------|--------------|------------|
+| common_system | 0 | Required dependency (Result\<T\>, IExecutor) | https://github.com/kcenon/common_system |
+| thread_system | 1 | Required dependency (thread pool, async execution) | https://github.com/kcenon/thread_system |
+| container_system | 1 | Optional dependency (serialization) | https://github.com/kcenon/container_system |
+| logger_system | 2 | Optional dependency (runtime ILogger binding) | https://github.com/kcenon/logger_system |
+| monitoring_system | 3 | Optional (EventBus metric subscriber) | https://github.com/kcenon/monitoring_system |
+| pacs_system | 5 | Downstream consumer | https://github.com/kcenon/pacs_system |
+| messaging_system | -- | Downstream consumer | https://github.com/kcenon/messaging_system |
+| database_system | 3 | Downstream consumer | https://github.com/kcenon/database_system |
+
+*/
