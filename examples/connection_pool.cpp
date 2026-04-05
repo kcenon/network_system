@@ -8,6 +8,10 @@ All rights reserved.
 /**
  * @file connection_pool.cpp
  * @brief TCP connection pool usage example
+ * @example connection_pool.cpp
+ *
+ * @par Category
+ * Advanced - Connection management
  *
  * Demonstrates:
  * - Creating a connection pool via tcp_facade
@@ -18,6 +22,9 @@ All rights reserved.
  *
  * The example starts a local echo server, then exercises the pool
  * with single-threaded and multi-threaded workloads.
+ *
+ * @see kcenon::network::facade::tcp_facade
+ * @see kcenon::network::core::connection_pool
  */
 
 #include <kcenon/network/facade/tcp_facade.h>

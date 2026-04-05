@@ -8,6 +8,10 @@ All rights reserved.
 /**
  * @file websocket_chat.cpp
  * @brief WebSocket chat server and client in a single program
+ * @example websocket_chat.cpp
+ *
+ * @par Category
+ * Protocols - WebSocket
  *
  * Demonstrates:
  * - Creating a WebSocket server via websocket_facade
@@ -18,6 +22,10 @@ All rights reserved.
  *
  * This example starts a server and two clients in separate threads,
  * simulating a simple chat room.
+ *
+ * @see kcenon::network::facade::websocket_facade
+ * @see kcenon::network::interfaces::i_protocol_client
+ * @see kcenon::network::interfaces::i_protocol_server
  */
 
 #include <kcenon/network/facade/websocket_facade.h>
