@@ -1,0 +1,193 @@
+/**
+@page tutorial_websocket Tutorial: WebSocket Chat Application
+
+@tableofcontents
+
+@section ws_intro Introduction
+
+WebSockets (RFC 6455) provide a full-duplex message channel layered over an
+HTTP/1.1 upgrade handshake. Network System exposes WebSocket support through
+the @ref kcenon::network::facade::websocket_facade "websocket_facade" class
+which mirrors the TCP facade API but is purpose-built for framed messages.
+
+This tutorial builds a small chat room: a server that broadcasts each
+incoming message to every connected participant, plus a client that posts
+messages and prints incoming traffic.
+
+@section ws_concepts Concepts
+
+| Concept | Notes |
+|---------|-------|
+| Upgrade handshake | Network System performs the HTTP `Upgrade: websocket` exchange transparently |
+| Frames | The facade delivers and accepts complete WebSocket frames as `std::vector<uint8_t>` |
+| Path | A server is bound to a single URL path (default `/`) |
+| Ping interval | Clients send periodic pings to keep idle connections alive |
+
+By default the facade emits binary frames. If you need text frames or other
+WebSocket-specific features, cast the returned interface to
+`i_websocket_client` or `i_websocket_server`.
+
+@section ws_server Tutorial 1: A Broadcasting Chat Server
+
+Start with a server bound to `/chat`. Track every connected session and
+forward each message to all peers.
+
+@code{.cpp}
+#include <kcenon/network/facade/websocket_facade.h>
+#include <kcenon/network/interfaces/i_session.h>
+
+#include <iostream>
+#include <map>
+#include <mutex>
+#include <thread>
+
+using namespace kcenon::network;
+
+int main() {
+    facade::websocket_facade ws;
+
+    auto server = ws.create_server({
+        .port = 9001,
+        .path = "/chat",
+        .server_id = "chat-server",
+    });
+
+    std::mutex mtx;
+    std::map<std::string, std::shared_ptr<interfaces::i_session>> sessions;
+
+    server->set_connection_callback(
+        [&](std::shared_ptr<interfaces::i_session> session) {
+            std::lock_guard lock(mtx);
+            sessions[std::string(session->id())] = session;
+            std::cout << "[chat] join " << session->id()
+                      << " (" << sessions.size() << " online)\n";
+        });
+
+    server->set_disconnection_callback(
+        [&](std::string_view id) {
+            std::lock_guard lock(mtx);
+            sessions.erase(std::string(id));
+            std::cout << "[chat] leave " << id << '\n';
+        });
+
+    server->set_receive_callback(
+        [&](std::string_view sender_id, const std::vector<uint8_t>& payload) {
+            std::string broadcast = std::string(sender_id) + ": ";
+            broadcast.append(payload.begin(), payload.end());
+            std::vector<uint8_t> frame(broadcast.begin(), broadcast.end());
+
+            std::lock_guard lock(mtx);
+            for (auto& [id, session] : sessions) {
+                session->send(std::vector<uint8_t>(frame));
+            }
+        });
+
+    if (auto r = server->start(9001); r.is_err()) {
+        std::cerr << "start failed: " << r.error().message << '\n';
+        return 1;
+    }
+
+    std::cout << "[chat] ws://localhost:9001/chat\n";
+    std::this_thread::sleep_for(std::chrono::minutes(10));
+    server->stop();
+    return 0;
+}
+@endcode
+
+Notes:
+
+- The `path` field is part of the upgrade handshake. Clients that target a
+  different URL path will be rejected during the upgrade.
+- Broadcasting is done from the receive callback, which already runs on a
+  worker thread, so it is safe to send synchronously.
+- Always copy the frame vector when fanning out to multiple peers; sending
+  consumes the rvalue.
+
+@section ws_client Tutorial 2: A Chat Client
+
+The client is similarly compact. It connects to the server, posts a few
+messages, and prints any broadcasts received in between.
+
+@code{.cpp}
+#include <kcenon/network/facade/websocket_facade.h>
+
+#include <chrono>
+#include <iostream>
+#include <string>
+#include <thread>
+
+using namespace kcenon::network;
+
+int main(int argc, char** argv) {
+    std::string nick = (argc > 1) ? argv[1] : "alice";
+
+    facade::websocket_facade ws;
+    auto client = ws.create_client({
+        .client_id = nick,
+        .ping_interval = std::chrono::seconds(15),
+    });
+
+    client->set_receive_callback([&](const std::vector<uint8_t>& data) {
+        std::string msg(data.begin(), data.end());
+        std::cout << "[" << nick << "] " << msg << '\n';
+    });
+
+    client->set_error_callback([&](std::error_code ec) {
+        std::cerr << "[" << nick << "] error: " << ec.message() << '\n';
+    });
+
+    if (auto r = client->start("127.0.0.1", 9001); r.is_err()) {
+        std::cerr << "connect failed: " << r.error().message << '\n';
+        return 1;
+    }
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+
+    for (auto* line : {"hello chat", "anyone here?", "goodbye"}) {
+        std::string s(line);
+        client->send(std::vector<uint8_t>(s.begin(), s.end()));
+        std::this_thread::sleep_for(std::chrono::milliseconds(300));
+    }
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    client->stop();
+    return 0;
+}
+@endcode
+
+Run the server in one terminal and two clients with different nicknames in
+two more terminals; each broadcast prefixed with the sender id should appear
+in every client's output.
+
+@section ws_framing Tutorial 3: Working with Message Framing
+
+The facade delivers exactly one logical message per receive callback invocation.
+Internally the framework reassembles continuation frames so applications never
+see partial messages. To send larger payloads, build the entire byte vector
+and let the framework split it into frames if necessary.
+
+@code{.cpp}
+// Construct a 64 KiB binary payload and send as a single message.
+std::vector<uint8_t> blob(64 * 1024, 0xAB);
+auto result = client->send(std::move(blob));
+if (result.is_err()) {
+    std::cerr << "send failed: " << result.error().message << '\n';
+}
+@endcode
+
+Tips:
+
+- Keep individual messages under a few megabytes. WebSocket allows larger
+  payloads, but most proxies and middleboxes drop oversized frames.
+- For realtime applications enable `ping_interval` so dropped TCP connections
+  are detected within a known interval.
+- TLS WebSocket (`wss://`) is enabled at the unified-templates layer; the
+  facade currently exposes plain WebSocket only.
+
+@section ws_next Next Steps
+
+- @ref tutorial_tcp covers raw TCP if you need a custom binary protocol.
+- @ref tutorial_protocols compares TCP, UDP, and WebSocket trade-offs.
+- See @ref websocket_chat.cpp for a runnable client/server combination.
+
+*/

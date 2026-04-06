@@ -1,0 +1,166 @@
+/**
+@page troubleshooting Troubleshooting Guide
+
+@tableofcontents
+
+This guide covers the most common runtime problems we see when applications
+adopt Network System. Each entry includes the symptoms, the underlying root
+cause, and a concrete fix.
+
+@section trouble_timeout 1. Connection timeouts
+
+@par Symptoms
+- `client->start(...)` returns successfully but `is_connected()` stays
+  `false`.
+- The error callback fires with
+  `std::errc::timed_out` / `boost::asio::error::timed_out`.
+- TCP retries are visible in `tcpdump` but the SYN never receives an ACK.
+
+@par Likely causes
+- The server is not listening on the host or port you supplied.
+- A firewall (host, cloud security group, or router) is dropping packets.
+- DNS resolution succeeded but the resolved address is unreachable.
+- The default 30-second timeout is too aggressive for high-latency links.
+
+@par Fixes
+@code{.cpp}
+auto client = tcp.create_client({
+    .host = "remote.example.com",
+    .port = 9000,
+    .timeout = std::chrono::seconds(60), // raise the connect timeout
+});
+@endcode
+
+Then verify reachability with `nc -vz remote.example.com 9000` and inspect
+listening ports on the server with `ss -tnlp` (Linux) or `lsof -iTCP
+-sTCP:LISTEN` (macOS). When running inside containers, double-check that
+the port is actually published to the host.
+
+@section trouble_tls 2. TLS handshake failures
+
+@par Symptoms
+- The client connects, then immediately disconnects.
+- The error callback reports `Errors::ssl_handshake_failed`,
+  `certificate verify failed`, or `unsupported protocol`.
+- OpenSSL logs `SSL alert number 40` (handshake failure).
+
+@par Likely causes
+- The CA bundle does not include the server certificate's issuer.
+- The server presents a certificate whose hostname does not match the
+  `host` field used by the client.
+- Client and server negotiate incompatible TLS versions or cipher suites.
+- `verify_certificate` is `true` but the server uses a self-signed cert.
+
+@par Fixes
+- Point `ca_cert_path` at a bundle that contains the issuer chain.
+- Set the `host` field to the exact name on the certificate (Common Name
+  or a SAN entry).
+- Force a modern TLS version on the server side via the `tls_version`
+  field, for example `"TLSv1_3"`.
+- For development with self-signed certificates, set
+  `verify_certificate = false`. Never disable verification in production.
+- Confirm the build links against OpenSSL 3.x. OpenSSL 1.1.1 emits a
+  warning at configure time and is unsupported upstream.
+
+@section trouble_buffer 3. Buffer overflow / oversized payloads
+
+@par Symptoms
+- `client->send(...)` returns an error with message
+  `payload exceeds maximum`.
+- The receiver disconnects mid-message and the connection is reset.
+- WebSocket peers report `frame too large`.
+
+@par Likely causes
+- The application is trying to send a payload larger than the configured
+  pipeline buffer.
+- A WebSocket peer enforces a smaller maximum frame size than the sender.
+- An intermediate proxy truncates large messages.
+
+@par Fixes
+- Split large payloads into chunks at the application layer and reassemble
+  them on the receiver.
+- Reduce per-message size on WebSocket connections by streaming smaller
+  messages instead of one giant blob.
+- For genuine bulk transfer use TCP with length-prefixed framing rather
+  than WebSocket frames.
+- If you must send very large payloads, raise the configured maximum at
+  the unified templates layer (the facade enforces conservative defaults).
+
+@section trouble_leak 4. Memory leaks in long-running connections
+
+@par Symptoms
+- `RSS` (resident set size) grows steadily over hours or days.
+- Heap profilers attribute the growth to `std::map` or `std::shared_ptr`
+  instances under `network_system`.
+- Connections that briefly disconnect leave behind orphan session entries.
+
+@par Likely causes
+- The application stores `std::shared_ptr<i_session>` in a map but never
+  erases entries from the `disconnection` callback.
+- A receive callback captures large objects by value, keeping them alive
+  for the lifetime of the session.
+- Background reconnect logic creates a fresh client on each attempt
+  without releasing the previous one.
+
+@par Fixes
+- Always erase the session map entry inside the `disconnection` callback,
+  under the same mutex used by the `connection` callback.
+- Capture by reference (or weak pointer) in callbacks; copy only the data
+  you actually need.
+- Reuse a single client object across reconnect attempts instead of
+  recreating it.
+- Periodically run the `tsan` or `asan` preset against integration tests
+  to catch missed cleanup paths.
+
+@code{.cpp}
+server->set_disconnection_callback([&](std::string_view session_id) {
+    std::lock_guard lock(sessions_mutex);
+    sessions.erase(std::string(session_id)); // critical: prevents leaks
+});
+@endcode
+
+@section trouble_platform 5. Platform-specific socket issues
+
+@par Symptoms
+- A program that runs fine on Linux fails on macOS or Windows with errors
+  about `EADDRINUSE`, `WSAEACCES`, or `bind: permission denied`.
+- The number of accepted connections plateaus at exactly 1024 or 4096.
+- Closing a listening socket on Windows takes several seconds before the
+  port can be reused.
+
+@par Likely causes
+- macOS and Windows treat ports below 1024 as privileged; running as a
+  normal user denies the bind.
+- File-descriptor limits cap simultaneous sockets at the default of 1024
+  on many Linux distributions.
+- Windows holds sockets in `TIME_WAIT` longer than POSIX systems by
+  default, blocking immediate rebind.
+- Antivirus or endpoint protection on Windows can intercept localhost
+  traffic.
+
+@par Fixes
+- Bind to ports above 1024 unless your service truly requires a privileged
+  port. If it does, run with `sudo`/`CAP_NET_BIND_SERVICE` (Linux),
+  elevation (Windows), or `authopen`/launchd (macOS).
+- Raise the file-descriptor limit with `ulimit -n 65535` (Linux/macOS) or
+  the equivalent registry key on Windows.
+- During development call `server->stop()` and wait briefly before
+  rebinding, or use `SO_REUSEADDR` (already enabled by default in
+  `tcp_facade`).
+- Whitelist your binary in Windows Defender / antivirus tools if you see
+  silent connection failures only on Windows.
+
+@section trouble_more More help
+
+If your symptoms do not match anything above:
+
+- Check the related questions in @ref faq.
+- Re-run the failing scenario under one of the sanitizer presets
+  (`asan`, `tsan`, `ubsan`) to surface hidden races or memory bugs.
+- Capture a packet trace with `tcpdump` or Wireshark; most "library bugs"
+  turn out to be middlebox or firewall problems.
+- Open an issue at
+  https://github.com/kcenon/network_system/issues with the failing
+  configuration, build flags, OS, and a minimal reproduction.
+
+*/

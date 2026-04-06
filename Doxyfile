@@ -129,6 +129,11 @@ INPUT                  = include \
                          src \
                          README.md \
                          ./docs/mainpage.dox \
+                         ./docs/tutorial_tcp.dox \
+                         ./docs/tutorial_websocket.dox \
+                         ./docs/tutorial_protocols.dox \
+                         ./docs/faq.dox \
+                         ./docs/troubleshooting.dox \
                          ./examples
 INPUT_ENCODING         = UTF-8
 INPUT_FILTER           =

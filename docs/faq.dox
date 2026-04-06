@@ -1,0 +1,201 @@
+/**
+@page faq Frequently Asked Questions
+
+@tableofcontents
+
+This page collects the most common questions developers ask when integrating
+Network System into their projects. For deeper coverage see the tutorials
+listed under @ref tutorial_protocols and the @ref troubleshooting guide.
+
+@section faq_drops 1. How do I handle connection drops?
+
+The facade interfaces report drops through the `disconnected` callback on
+clients and the `disconnection` callback on servers. To recover, register a
+callback that schedules a retry with exponential backoff:
+
+@code{.cpp}
+client->set_disconnected_callback([&] {
+    auto delay = next_backoff();
+    std::thread([client, delay] {
+        std::this_thread::sleep_for(delay);
+        client->start("server.example.com", 9000);
+    }).detach();
+});
+@endcode
+
+Always cap the backoff (for example, 30 seconds) and add jitter so a
+restarted server is not flooded by reconnecting clients. The
+`is_connected()` accessor lets you avoid duplicate reconnect attempts when
+multiple events fire concurrently.
+
+@section faq_tls 2. How do I configure TLS / SSL?
+
+The TCP facade enables TLS via the `use_ssl` flag plus optional certificate
+paths.
+
+@code{.cpp}
+auto secure_client = tcp.create_client({
+    .host = "example.com",
+    .port = 8443,
+    .use_ssl = true,
+    .ca_cert_path = "/etc/ssl/ca-bundle.crt",
+    .verify_certificate = true,
+});
+
+auto secure_server = tcp.create_server({
+    .port = 8443,
+    .use_ssl = true,
+    .cert_path = "/etc/ssl/server.crt",
+    .key_path = "/etc/ssl/server.key",
+});
+@endcode
+
+Important notes:
+
+- TLS support requires OpenSSL 3.x at build time. OpenSSL 1.1.1 is allowed
+  but emits a build-time warning because it is end-of-life upstream.
+- Setting `verify_certificate = false` disables certificate verification.
+  Only use it for development against self-signed certificates.
+- For mutual TLS or custom cipher policies, use the unified templates layer
+  (`unified_messaging_client<protocol::tcp_protocol, tls_policy>`) directly.
+
+@section faq_concurrency 3. What is the maximum number of concurrent connections?
+
+Network System imposes no hard cap. Practical limits come from the operating
+system file-descriptor budget and the thread pool size you configure on
+`thread_system`. On Linux raise the limit with `ulimit -n` (or
+`LimitNOFILE` in systemd units). The library has been tested with tens of
+thousands of concurrent TCP connections per process.
+
+If you expect very high fan-out, prefer the unified templates with a
+dedicated thread pool sized to match your CPU core count and use the
+connection pool API to amortise socket creation.
+
+@section faq_container 4. How does Network System integrate with container_system?
+
+`container_system` provides serialisation primitives that pair naturally with
+`network_system`. Enable the optional dependency at build time
+(`BUILD_WITH_CONTAINER_SYSTEM=ON`, the default), then serialise your
+container into a byte vector and hand it to `client->send(...)`:
+
+@code{.cpp}
+auto bytes = container.serialize();      // container_system API
+client->send(std::move(bytes));
+@endcode
+
+On the receiving side reconstruct the container in the receive callback:
+
+@code{.cpp}
+client->set_receive_callback([&](const std::vector<uint8_t>& data) {
+    auto container = container_system::value_container::deserialize(data);
+    handle(container);
+});
+@endcode
+
+The bridge in `BUILD_MESSAGING_BRIDGE` glues `messaging_system` to this
+serialisation flow when both libraries are linked.
+
+@section faq_threads 5. What is the threading model?
+
+Each facade uses an ASIO `io_context` driven by a worker thread pool. By
+default the pool follows `thread_system`'s configuration; you can also
+attach a custom pool through the unified templates layer.
+
+Key invariants:
+
+- All callbacks (connect, receive, error, etc.) run on IO worker threads,
+  not on the thread that called `start()`.
+- Multiple callbacks for the same session are serialised; you do not need
+  to synchronise access to per-session state inside a callback.
+- Callbacks for different sessions can run concurrently. Protect any shared
+  state (such as a session map) with a mutex.
+
+@section faq_buffers 6. How do I tune buffer sizes?
+
+Most applications never need to touch buffer sizes; the defaults are tuned
+for high throughput. When you do need to override them:
+
+- TCP socket buffers can be set via the underlying `messaging_client` /
+  `messaging_server` constructors. The facade exposes only the most common
+  knobs; drop down to the unified templates for the full set.
+- Application-level batching (sending many small messages as a single
+  payload) is usually a bigger win than tuning kernel buffers.
+- For UDP, keep payloads under the path MTU (about 1200 bytes for IPv6) to
+  avoid fragmentation, which silently drops packets at many routers.
+
+@section faq_protocol_choice 7. How do I pick the right protocol?
+
+Use this short checklist:
+
+1. Will a browser ever talk to the server? Use **WebSocket**.
+2. Do you need low latency and can tolerate loss? Use **UDP**.
+3. Do you need a guaranteed in-order byte stream? Use **TCP**.
+4. Do you need HTTP semantics (headers, methods)? Use **HTTP/2** via
+   `http_facade`.
+5. Do you need multiplexed streams without head-of-line blocking? Use
+   **QUIC** via `quic_facade`.
+
+A more detailed comparison lives in @ref tutorial_protocols.
+
+@section faq_perf 8. How do I tune performance?
+
+Several actionable steps:
+
+- Build in `Release` mode (`cmake --preset release`) to enable
+  optimisations and disable assertions.
+- Reuse connections through `tcp_facade::create_connection_pool` instead of
+  reconnecting per request.
+- Run the `network_system` benchmarks (`NETWORK_BUILD_BENCHMARKS=ON`) to
+  baseline your machine.
+- Batch small messages into a single `send` call. The TCP layer will not
+  combine writes for you.
+- Pin the worker threads to cores when running on dedicated hardware.
+
+For deeper analysis enable the EventBus metrics and forward them to
+`monitoring_system`. The metrics expose connection counts, bytes per
+second, and pipeline timings.
+
+@section faq_recovery 9. How do I recover from errors safely?
+
+Every facade method returns either a `Result<T>` or invokes the error
+callback. The recovery checklist is:
+
+1. Inspect `result.is_err()` before assuming a send or receive succeeded.
+2. Log `result.error().message` (or the `std::error_code` from the error
+   callback).
+3. Decide whether the error is transient (timeout, connection reset) or
+   terminal (invalid configuration, unsupported feature).
+4. For transient errors, schedule a retry with backoff. For terminal
+   errors, surface the failure to the application layer and stop the
+   client/server.
+
+Avoid swallowing errors silently; the network is the most common source of
+runtime failures in distributed systems.
+
+@section faq_testing 10. How do I test code that uses Network System?
+
+Three patterns work well:
+
+- **Loopback integration tests.** Spin up a server and a client on
+  `127.0.0.1` inside the test. The library is fast enough that thousands
+  of round trips fit in milliseconds. The `examples/` directory shows the
+  pattern.
+- **Mocking the interfaces.** Code that depends on `i_protocol_client` or
+  `i_protocol_server` can be tested with a hand-written mock that records
+  calls and triggers callbacks synchronously.
+- **Sanitizer-enabled CI.** Network System ships ASAN, TSAN, and UBSAN
+  build presets. Run them periodically on integration tests to catch race
+  conditions and use-after-free bugs early.
+
+For long-running soak testing the project provides Google Benchmark suites
+(`NETWORK_BUILD_BENCHMARKS=ON`) and load tests
+(`NETWORK_BUILD_INTEGRATION_TESTS=ON`).
+
+@section faq_more More Resources
+
+- @ref tutorial_tcp
+- @ref tutorial_websocket
+- @ref tutorial_protocols
+- @ref troubleshooting
+
+*/

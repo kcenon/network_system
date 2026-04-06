@@ -1,0 +1,218 @@
+/**
+@page tutorial_tcp Tutorial: TCP Client and Server
+
+@tableofcontents
+
+@section tcp_intro Introduction
+
+This tutorial walks through building TCP client and server applications using
+Network System's facade API. By the end you will know how to:
+
+- Create a TCP client and connect to a remote endpoint
+- Stand up a TCP server and accept connections
+- Track sessions, send and receive arbitrary byte payloads
+- Implement an echo pattern for round-trip messaging
+- Handle connection, disconnection, and error callbacks safely
+
+All examples target the @ref kcenon::network::facade::tcp_facade "tcp_facade"
+class. The facade hides protocol tags and template parameters, returning the
+unified interfaces @ref kcenon::network::interfaces::i_protocol_client
+"i_protocol_client" and
+@ref kcenon::network::interfaces::i_protocol_server "i_protocol_server".
+
+@section tcp_concepts Core Concepts
+
+| Concept | Description |
+|---------|-------------|
+| Facade  | Type-erased entry point that returns interface pointers |
+| Session | Server-side handle for a single connected client (`i_session`) |
+| Callback| User-supplied function invoked on connect, receive, error, etc. |
+| Result  | `Result<T>` from common_system represents success or error code |
+
+The facade API uses byte vectors (`std::vector<uint8_t>`) as the canonical
+payload format. Text messages are simply byte vectors initialised from a
+string range.
+
+@section tcp_client Tutorial 1: Connecting a Client
+
+The simplest TCP client connects to a server, sends a payload, and prints
+incoming data through a receive callback.
+
+@code{.cpp}
+#include <kcenon/network/facade/tcp_facade.h>
+
+#include <chrono>
+#include <iostream>
+#include <thread>
+#include <vector>
+
+using namespace kcenon::network;
+
+int main() {
+    facade::tcp_facade tcp;
+
+    auto client = tcp.create_client({
+        .host = "127.0.0.1",
+        .port = 9000,
+        .client_id = "tutorial-client",
+    });
+
+    client->set_connected_callback([] {
+        std::cout << "[client] connected\n";
+    });
+
+    client->set_receive_callback([](const std::vector<uint8_t>& data) {
+        std::string msg(data.begin(), data.end());
+        std::cout << "[client] received: " << msg << '\n';
+    });
+
+    client->set_error_callback([](std::error_code ec) {
+        std::cerr << "[client] error: " << ec.message() << '\n';
+    });
+
+    if (auto r = client->start("127.0.0.1", 9000); r.is_err()) {
+        std::cerr << "connect failed: " << r.error().message << '\n';
+        return 1;
+    }
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+
+    std::string msg = "hello, server";
+    client->send(std::vector<uint8_t>(msg.begin(), msg.end()));
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    client->stop();
+    return 0;
+}
+@endcode
+
+Notes:
+
+- `start(host, port)` initiates the asynchronous connect; the call returns
+  immediately and connection state is reported through callbacks.
+- `is_connected()` can be polled if you need a blocking wait, but production
+  code should react to the `connected` callback.
+- `send()` accepts an rvalue byte vector for zero-copy ownership transfer.
+
+@section tcp_server Tutorial 2: Accepting Connections
+
+A server tracks incoming sessions in a thread-safe map and responds to
+each client. The facade publishes three callbacks for the server lifecycle:
+`connection`, `disconnection`, and `receive`.
+
+@code{.cpp}
+#include <kcenon/network/facade/tcp_facade.h>
+#include <kcenon/network/interfaces/i_session.h>
+
+#include <atomic>
+#include <chrono>
+#include <iostream>
+#include <map>
+#include <mutex>
+#include <thread>
+
+using namespace kcenon::network;
+
+int main() {
+    facade::tcp_facade tcp;
+    auto server = tcp.create_server({
+        .port = 9000,
+        .server_id = "tutorial-server",
+    });
+
+    std::mutex sessions_mutex;
+    std::map<std::string, std::shared_ptr<interfaces::i_session>> sessions;
+
+    server->set_connection_callback(
+        [&](std::shared_ptr<interfaces::i_session> session) {
+            std::lock_guard lock(sessions_mutex);
+            sessions[std::string(session->id())] = session;
+            std::cout << "[server] connect: " << session->id() << '\n';
+        });
+
+    server->set_disconnection_callback(
+        [&](std::string_view session_id) {
+            std::lock_guard lock(sessions_mutex);
+            sessions.erase(std::string(session_id));
+            std::cout << "[server] disconnect: " << session_id << '\n';
+        });
+
+    server->set_receive_callback(
+        [&](std::string_view session_id, const std::vector<uint8_t>& data) {
+            std::cout << "[server] " << session_id << " bytes=" << data.size() << '\n';
+        });
+
+    if (auto r = server->start(9000); r.is_err()) {
+        std::cerr << "start failed: " << r.error().message << '\n';
+        return 1;
+    }
+
+    std::cout << "[server] listening on 9000, Ctrl+C to stop\n";
+    std::this_thread::sleep_for(std::chrono::seconds(60));
+
+    server->stop();
+    return 0;
+}
+@endcode
+
+Important details about session storage:
+
+- The `connection` callback hands you a `std::shared_ptr<i_session>`. Holding
+  the shared pointer is what keeps the session alive; if you discard it the
+  framework still owns its internal copy, but you cannot send to it later.
+- Always guard the session map with a mutex. Callbacks may fire from any of
+  the IO threads.
+- The `disconnection` callback receives only the session id. Erase the entry
+  immediately to release the session shared pointer.
+
+@section tcp_echo Tutorial 3: Building an Echo Server
+
+The echo pattern is the canonical "hello world" of network programming. It
+exercises the full receive-then-send round trip in a single callback. Combine
+the previous server skeleton with a send-back step:
+
+@code{.cpp}
+server->set_receive_callback(
+    [&](std::string_view session_id, const std::vector<uint8_t>& data) {
+        std::shared_ptr<interfaces::i_session> session;
+        {
+            std::lock_guard lock(sessions_mutex);
+            if (auto it = sessions.find(std::string(session_id));
+                it != sessions.end()) {
+                session = it->second;
+            }
+        }
+
+        if (!session) {
+            return;
+        }
+
+        // Echo the original payload back to the sender.
+        if (auto r = session->send(std::vector<uint8_t>(data));
+            r.is_err()) {
+            std::cerr << "[server] echo failed: "
+                      << r.error().message << '\n';
+        }
+    });
+@endcode
+
+Pair this server with the client from Tutorial 1 and you should observe the
+client receive the same bytes it sent. For a complete runnable program see
+@ref tcp_echo_server.cpp and @ref tcp_client.cpp under `examples/`.
+
+@section tcp_session_lifetime Session Lifetime and Cleanup
+
+The Network System's session model has two important rules:
+
+1. The server keeps an internal reference until disconnect; user code should
+   release sessions in the `disconnection` callback to avoid leaks.
+2. Calls on a closed session return `Result<>` errors rather than throwing.
+   Always check `is_err()` before assuming a send succeeded.
+
+@section tcp_next Next Steps
+
+- Read @ref tutorial_websocket for full-duplex messaging over HTTP.
+- Read @ref tutorial_protocols to choose between TCP, UDP, and WebSocket.
+- Browse @ref faq for common questions, and @ref troubleshooting for fixes.
+
+*/
