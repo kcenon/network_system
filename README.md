@@ -12,6 +12,7 @@
 ## Table of Contents
 
 - [Overview](#overview)
+- [Installation via vcpkg](#installation-via-vcpkg)
 - [Requirements](#requirements)
 - [Quick Start](#quick-start)
 - [Modular Architecture](#modular-architecture-new)
@@ -40,6 +41,60 @@ A modern C++20 asynchronous network library providing reusable transport primiti
 - 🛡️ **Production Grade**: Comprehensive sanitizer coverage (TSAN/ASAN/UBSAN clean), RAII Grade A, multi-platform CI/CD
 - 🔒 **Secure**: TLS 1.2/1.3 support, certificate validation, modern cipher suites
 - 🌐 **Cross-Platform**: Ubuntu, Windows, macOS with GCC, Clang, MSVC support
+
+---
+
+## Installation via vcpkg
+
+### Quick Start
+
+```bash
+# Using overlay ports from the kcenon vcpkg registry
+vcpkg install kcenon-network-system \
+  --overlay-ports=path/to/kcenon/vcpkg-registry/ports
+
+# With SSL and ecosystem features enabled
+vcpkg install kcenon-network-system[ssl,ecosystem] \
+  --overlay-ports=path/to/kcenon/vcpkg-registry/ports
+```
+
+> **Registry-based consumption**: For projects already using [kcenon/vcpkg-registry](https://github.com/kcenon/vcpkg-registry), add the registry to your `vcpkg-configuration.json` and install without `--overlay-ports`.
+
+### Feature Matrix
+
+| Feature | Default | Description | Transitive Dependencies |
+|---------|---------|-------------|------------------------|
+| (core) | always | Async TCP/UDP, WebSocket, HTTP/1.1, TLS | common_system, thread_system, asio, openssl, zlib |
+| `ssl` | off | Explicit SSL/TLS support flag | openssl >= 3.0.0 |
+| `ecosystem` | off | Logger and container integration | logger_system, container_system |
+| `testing` | off | Unit tests and benchmarks | gtest, benchmark |
+| `samples` | off | Sample applications | — |
+| `docs` | off | Doxygen documentation | — |
+
+### CMake Integration
+
+```cmake
+find_package(network_system CONFIG REQUIRED)
+target_link_libraries(your_target PRIVATE network_system::network_system)
+```
+
+### Minimal Example
+
+```cpp
+#include <kcenon/network/facade/tcp_facade.h>
+#include <iostream>
+
+int main() {
+    auto server = kcenon::network::tcp_facade::create_server({
+        .port = 9090,
+        .on_message = [](auto session, auto data) {
+            std::cout << "Received: " << data << std::endl;
+        }
+    });
+    server->start();
+    return 0;
+}
+```
 
 ---
 
