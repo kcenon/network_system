@@ -228,6 +228,20 @@ cmake --build build
 | Connection Pool | @ref connection_pool.cpp | Efficient connection reuse and lifecycle management |
 | Observer Pattern | @ref observer_pattern.cpp | Event-driven networking with observer callbacks |
 
+@section learning Learning Resources
+
+New to Network System? Start with the tutorials below for a guided tour
+of the facade API, then keep the FAQ and troubleshooting guide handy as
+references during integration.
+
+| Resource | Description |
+|----------|-------------|
+| @ref tutorial_tcp | TCP client and server walkthrough including session management and the echo pattern |
+| @ref tutorial_websocket | WebSocket chat application covering the upgrade handshake and message framing |
+| @ref tutorial_protocols | Decision matrix and code samples for choosing between TCP, UDP, WebSocket, HTTP/2, and QUIC |
+| @ref faq | Frequently asked questions: connection drops, TLS, threading, performance, testing, and more |
+| @ref troubleshooting | Common runtime issues such as connect timeouts, TLS handshakes, leaks, and platform quirks |
+
 @section related Related Systems
 
 Network System is the transport layer (Tier 4) of the kcenon ecosystem.
