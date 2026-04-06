@@ -1,0 +1,194 @@
+/**
+@page tutorial_protocols Tutorial: Choosing the Right Protocol
+
+@tableofcontents
+
+@section proto_intro Introduction
+
+Network System ships facades for several transport protocols. Picking the
+wrong one early in a project leads to expensive rewrites later, so this
+tutorial walks through the trade-offs and shows how each facade is used.
+
+You will learn:
+
+- When to reach for TCP, UDP, or WebSocket
+- How the facade API stays consistent across protocols
+- How to write code that targets the unified
+  @ref kcenon::network::interfaces::i_protocol_client "i_protocol_client"
+  interface so you can swap transports later
+
+@section proto_matrix Decision Matrix
+
+| Concern              | TCP            | UDP             | WebSocket           |
+|----------------------|----------------|-----------------|---------------------|
+| Reliability          | Guaranteed     | Best-effort     | Guaranteed (over TCP) |
+| Ordering             | In-order       | Unordered       | In-order            |
+| Connection-oriented  | Yes            | No              | Yes (with handshake)|
+| Framing              | Stream of bytes| Datagrams       | Discrete messages   |
+| Browser-friendly     | No             | No              | Yes                 |
+| NAT/firewall         | Generally allowed | Frequently blocked | Allowed (HTTP port) |
+| Overhead per message | Low            | Lowest          | ~6 bytes header     |
+| Typical use cases    | RPC, file transfer | Telemetry, gaming, voice | Browser realtime, chat |
+
+Rules of thumb:
+
+- Choose **TCP** when you need reliable byte streams and full control over
+  framing. It is the safest default for new server-to-server protocols.
+- Choose **UDP** when latency matters more than reliability, when you can
+  tolerate (or recover from) lost or reordered packets, or when you need
+  multicast.
+- Choose **WebSocket** when one peer is a web browser, when you need to
+  traverse HTTP proxies, or when the framework's automatic message framing
+  saves you from writing your own length-prefix protocol.
+
+@section proto_facades Facade Quick Reference
+
+Each protocol has a facade in the `kcenon::network::facade` namespace:
+
+| Facade | Header | Purpose |
+|--------|--------|---------|
+| `tcp_facade`       | `kcenon/network/facade/tcp_facade.h`       | Reliable byte-stream client/server with optional TLS |
+| `udp_facade`       | `kcenon/network/facade/udp_facade.h`       | Datagram client/server |
+| `websocket_facade` | `kcenon/network/facade/websocket_facade.h` | Framed full-duplex messaging over an HTTP upgrade |
+| `http_facade`      | `kcenon/network/facade/http_facade.h`      | HTTP/2 client/server |
+| `quic_facade`      | `kcenon/network/facade/quic_facade.h`      | QUIC transport |
+
+All facades follow the same shape:
+
+@code{.cpp}
+facade_type fac;
+auto client = fac.create_client({ /* config */ });
+auto server = fac.create_server({ /* config */ });
+@endcode
+
+The returned objects implement
+@ref kcenon::network::interfaces::i_protocol_client and
+@ref kcenon::network::interfaces::i_protocol_server, so once a connection is
+established the rest of your code is protocol-agnostic.
+
+@section proto_tcp_example Example 1: TCP Reliable Stream
+
+Use TCP for binary protocols where ordering and reliability are mandatory.
+
+@code{.cpp}
+#include <kcenon/network/facade/tcp_facade.h>
+
+using namespace kcenon::network;
+
+int main() {
+    facade::tcp_facade tcp;
+    auto client = tcp.create_client({
+        .host = "127.0.0.1",
+        .port = 9000,
+        .client_id = "rpc-client",
+    });
+
+    client->set_receive_callback([](const std::vector<uint8_t>& data) {
+        // Length-prefixed framing is up to the application.
+    });
+
+    client->start("127.0.0.1", 9000);
+
+    std::vector<uint8_t> request{0x01, 0x02, 0x03};
+    client->send(std::move(request));
+    return 0;
+}
+@endcode
+
+@section proto_udp_example Example 2: UDP Datagrams
+
+Use UDP for telemetry, low-latency control loops, and any traffic that can
+tolerate loss. UDP datagrams are independent and unordered.
+
+@code{.cpp}
+#include <kcenon/network/facade/udp_facade.h>
+
+using namespace kcenon::network;
+
+int main() {
+    facade::udp_facade udp;
+    auto client = udp.create_client({
+        .host = "127.0.0.1",
+        .port = 5555,
+        .client_id = "telemetry-emitter",
+    });
+
+    client->set_receive_callback([](const std::vector<uint8_t>& data) {
+        // Drop or accept stragglers as appropriate for the workload.
+    });
+
+    client->start("127.0.0.1", 5555);
+
+    std::vector<uint8_t> sample = {/* serialized telemetry sample */};
+    client->send(std::move(sample));
+    return 0;
+}
+@endcode
+
+When designing UDP protocols you must handle:
+
+- Packet loss (retransmit at the application layer if necessary)
+- Reordering (include sequence numbers in the payload)
+- Path MTU (keep payloads under ~1200 bytes for IPv6 safety)
+
+@section proto_ws_example Example 3: WebSocket for Browsers
+
+Use WebSocket when browsers are part of the topology or when an HTTP path
+makes routing through proxies easier.
+
+@code{.cpp}
+#include <kcenon/network/facade/websocket_facade.h>
+
+using namespace kcenon::network;
+
+int main() {
+    facade::websocket_facade ws;
+    auto client = ws.create_client({
+        .client_id = "browser-bridge",
+        .ping_interval = std::chrono::seconds(20),
+    });
+
+    client->set_receive_callback([](const std::vector<uint8_t>& data) {
+        // Each callback delivers exactly one message.
+    });
+
+    client->start("127.0.0.1", 9001);
+
+    std::string hello = "hello world";
+    client->send(std::vector<uint8_t>(hello.begin(), hello.end()));
+    return 0;
+}
+@endcode
+
+@section proto_swap Swapping Protocols Without Rewriting
+
+Because all facades return the same `i_protocol_client` interface, you can
+isolate the choice of transport in a single factory function:
+
+@code{.cpp}
+std::shared_ptr<interfaces::i_protocol_client>
+make_client(std::string_view kind) {
+    if (kind == "tcp") {
+        facade::tcp_facade tcp;
+        return tcp.create_client({.host = "127.0.0.1", .port = 9000});
+    }
+    if (kind == "udp") {
+        facade::udp_facade udp;
+        return udp.create_client({.host = "127.0.0.1", .port = 5555});
+    }
+    facade::websocket_facade ws;
+    return ws.create_client({.client_id = "default"});
+}
+@endcode
+
+Application code that calls `client->send(...)` and registers callbacks
+remains unchanged across transports.
+
+@section proto_next Next Steps
+
+- @ref tutorial_tcp for an in-depth TCP walkthrough.
+- @ref tutorial_websocket for WebSocket-specific patterns.
+- @ref faq for protocol selection FAQs.
+- @ref troubleshooting for common runtime issues.
+
+*/
