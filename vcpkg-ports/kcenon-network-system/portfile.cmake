@@ -21,6 +21,10 @@ else()
     )
 endif()
 
+# Static-only: the modular library targets (network-tcp, network-http2, etc.)
+# do not export DLL symbols, causing LNK1104 on Windows shared builds.
+vcpkg_check_linkage(ONLY_STATIC_LIBRARY)
+
 vcpkg_check_features(OUT_FEATURE_OPTIONS FEATURE_OPTIONS
     FEATURES
         logging BUILD_WITH_LOGGER_SYSTEM
