@@ -533,6 +533,9 @@ add_library(network_system
     src/internal/quic_socket.cpp
 )
 
+# Alias for build-tree consumers (FetchContent / add_subdirectory)
+add_library(network_system::network_system ALIAS network_system)
+
 # Suppress warnings inherited from parent project (especially from ASIO)
 # WARNING: Suppressions removed for strict code quality check. 
 # Fix the code instead of suppressing warnings!
