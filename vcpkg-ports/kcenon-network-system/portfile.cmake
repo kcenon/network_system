@@ -25,11 +25,28 @@ vcpkg_cmake_configure(
         -DNETWORK_BUILD_INTEGRATION_TESTS=OFF
         -DNETWORK_BUILD_MODULES=OFF
         -DBUILD_WITH_COMMON_SYSTEM=ON
+        -DBUILD_WITH_THREAD_SYSTEM=ON
         -DFETCHCONTENT_FULLY_DISCONNECTED=ON
+        "-DTHREAD_SYSTEM_INCLUDE_DIR=${CURRENT_INSTALLED_DIR}/include"
+        "-DCOMMON_SYSTEM_INCLUDE_DIR=${CURRENT_INSTALLED_DIR}/include"
         ${FEATURE_OPTIONS}
 )
 
 vcpkg_cmake_install()
+
+# Ensure debug cmake config directory exists for vcpkg_cmake_config_fixup.
+# The upstream install may only produce cmake config files in the release tree;
+# copy them from release so the fixup can merge both configurations.
+set(_rel_config_dir "${CURRENT_PACKAGES_DIR}/lib/cmake/network_system")
+set(_dbg_config_dir "${CURRENT_PACKAGES_DIR}/debug/lib/cmake/network_system")
+if(EXISTS "${_rel_config_dir}" AND NOT EXISTS "${_dbg_config_dir}")
+    file(MAKE_DIRECTORY "${_dbg_config_dir}")
+    file(GLOB _rel_configs "${_rel_config_dir}/*")
+    foreach(_f ${_rel_configs})
+        get_filename_component(_fname "${_f}" NAME)
+        file(COPY "${_f}" DESTINATION "${_dbg_config_dir}")
+    endforeach()
+endif()
 
 vcpkg_cmake_config_fixup(
     PACKAGE_NAME network_system
