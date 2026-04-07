@@ -10,6 +10,7 @@
     "kcenon-common-system",
     "kcenon-thread-system",
     "asio",
+    "fmt",
     "openssl",
     {
       "name": "zlib",

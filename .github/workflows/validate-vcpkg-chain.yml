@@ -1,0 +1,96 @@
+name: Validate vcpkg Build Chain
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'vcpkg-ports/**'
+      - 'vcpkg.json'
+      - 'vcpkg-configuration.json'
+      - 'tests/vcpkg-consumer/**'
+      - 'scripts/validate_vcpkg_chain.sh'
+      - '.github/workflows/validate-vcpkg-chain.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'vcpkg-ports/**'
+      - 'vcpkg.json'
+      - 'vcpkg-configuration.json'
+      - 'tests/vcpkg-consumer/**'
+      - 'scripts/validate_vcpkg_chain.sh'
+      - '.github/workflows/validate-vcpkg-chain.yml'
+
+jobs:
+  validate:
+    name: ${{ matrix.os }} / ${{ matrix.triplet }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            triplet: x64-linux
+          - os: macos-14
+            triplet: arm64-osx
+          - os: windows-2022
+            triplet: x64-windows
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup vcpkg
+        uses: kcenon/common_system/.github/actions/setup-vcpkg@main
+        with:
+          extra-cache-key: 'network-system'
+
+      - name: Install GCC 13 (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-13 g++-13
+          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-13 100
+          sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-13 100
+          sudo update-alternatives --install /usr/bin/c++ c++ /usr/bin/g++-13 100
+
+      - name: Run validation script
+        shell: bash
+        run: |
+          chmod +x scripts/validate_vcpkg_chain.sh
+          scripts/validate_vcpkg_chain.sh \
+            --vcpkg-root "$VCPKG_ROOT" \
+            --triplet ${{ matrix.triplet }} \
+            --clean \
+            --json > validation_results.json 2>validation_stderr.log
+          echo "=== Validation Results ==="
+          cat validation_results.json
+
+      - name: Check validation results
+        if: always()
+        shell: bash
+        run: |
+          if [ -f validation_results.json ]; then
+            CONSUMER=$(sed -n 's/.*"consumer_build"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' validation_results.json)
+            CONSUMER="${CONSUMER:-unknown}"
+            if [ "$CONSUMER" != "pass" ]; then
+              echo "::error::Consumer build result: $CONSUMER"
+              cat validation_results.json
+              exit 1
+            fi
+          fi
+
+      - name: Upload validation results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: vcpkg-validation-${{ matrix.os }}-${{ matrix.triplet }}
+          path: |
+            validation_results.json
+            validation_stderr.log
+            build_vcpkg_validation/vcpkg_install.log
+            build_vcpkg_validation/cmake_configure.log
+            build_vcpkg_validation/cmake_build.log
+          retention-days: 30
