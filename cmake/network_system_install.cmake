@@ -37,6 +37,26 @@ function(install_network_system_headers)
         DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
         FILES_MATCHING PATTERN "*.h"
     )
+
+    # Install internal headers referenced by public headers (Issue #944)
+    # Public headers use #include "internal/..." which resolves via the
+    # PRIVATE src/ include directory at build time. At install time these
+    # must be available under the include directory.
+    install(DIRECTORY src/internal/
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/internal
+        FILES_MATCHING PATTERN "*.h"
+    )
+
+    # Install network-core headers (Issue #944)
+    # network-core is an INTERFACE library whose headers are needed by
+    # internal headers (e.g. tcp_socket.h includes network-core interfaces).
+    if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/network-core/include/)
+        install(DIRECTORY network-core/include/
+            DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+            FILES_MATCHING PATTERN "*.h"
+        )
+    endif()
+
     message(STATUS "Configured header installation")
 endfunction()
 
