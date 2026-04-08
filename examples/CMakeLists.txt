@@ -37,6 +37,18 @@ set(EXAMPLE_PROGRAMS
     observer_pattern
 )
 
+# Protocol facade examples
+list(APPEND EXAMPLE_PROGRAMS
+    http_facade_example
+    quic_facade_example
+    tls_policy_example
+    unified_messaging_example
+    network_tracing_example
+    thread_integration_example
+    network_metrics_example
+    grpc_service_example
+)
+
 # WebSocket example (requires BUILD_WEBSOCKET_SUPPORT)
 if(BUILD_WEBSOCKET_SUPPORT)
     list(APPEND EXAMPLE_PROGRAMS websocket_chat)
