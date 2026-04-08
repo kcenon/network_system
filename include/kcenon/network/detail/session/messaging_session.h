@@ -32,7 +32,11 @@
 #include <asio.hpp>
 
 #include "kcenon/network/interfaces/i_session.h"
-#include "internal/tcp/tcp_socket.h"
+
+namespace kcenon::network::internal
+{
+	class tcp_socket;
+}
 
 // Use nested namespace definition in C++17
 namespace kcenon::network::session
