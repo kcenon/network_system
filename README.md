@@ -12,9 +12,9 @@
 ## Table of Contents
 
 - [Overview](#overview)
-- [Installation via vcpkg](#installation-via-vcpkg)
-- [Requirements](#requirements)
 - [Quick Start](#quick-start)
+- [Requirements](#requirements)
+- [Installation via vcpkg](#installation-via-vcpkg)
 - [Modular Architecture](#modular-architecture-new)
 - [Core Features](#core-features)
 - [Performance Highlights](#performance-highlights)
