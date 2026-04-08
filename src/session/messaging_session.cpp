@@ -6,6 +6,7 @@
 
 #include <span>
 
+#include "internal/tcp/tcp_socket.h"
 #include "internal/integration/logger_integration.h"
 #include "kcenon/network/detail/metrics/network_metrics.h"
 
