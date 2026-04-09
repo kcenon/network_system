@@ -1,7 +1,7 @@
 {
   "name": "kcenon-network-system",
   "version-semver": "0.1.1",
-  "port-version": 3,
+  "port-version": 7,
   "description": "Modern C++20 async network library with TCP/UDP, HTTP/1.1, WebSocket, and TLS 1.3 support",
   "homepage": "https://github.com/kcenon/network_system",
   "license": "BSD-3-Clause",
@@ -10,7 +10,6 @@
     "kcenon-common-system",
     "kcenon-thread-system",
     "asio",
-    "fmt",
     "openssl",
     {
       "name": "zlib",

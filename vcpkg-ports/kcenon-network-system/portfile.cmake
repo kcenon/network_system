@@ -50,6 +50,23 @@ vcpkg_cmake_configure(
 
 vcpkg_cmake_install()
 
+# Install internal headers required by public headers.
+# Several installed headers (messaging_session.h, secure_session.h, network_system.h,
+# quic_session.h, network_system_bridge.h, network_config.h) reference headers from
+# src/internal/ which are not installed by CMake. Copy them to the install tree so
+# downstream consumers can compile against the package.
+file(COPY "${SOURCE_PATH}/src/internal/"
+    DESTINATION "${CURRENT_PACKAGES_DIR}/include/internal/"
+    FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp" PATTERN "*.inl"
+)
+
+# Install network-core modular library headers required by internal headers.
+# src/internal/tcp/tcp_socket.h includes kcenon/network-core/interfaces/socket_observer.h
+file(COPY "${SOURCE_PATH}/network-core/include/"
+    DESTINATION "${CURRENT_PACKAGES_DIR}/include/"
+    FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp"
+)
+
 # Ensure debug cmake config directory exists for vcpkg_cmake_config_fixup.
 # The upstream install may only produce cmake config files in the release tree;
 # copy them from release so the fixup can merge both configurations.
