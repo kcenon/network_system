@@ -27,7 +27,7 @@
 #include <chrono>
 #include <string>
 #include <cstddef>
-#include "internal/integration/logger_integration.h"
+#include "kcenon/network/internal/integration/logger_integration.h"
 
 namespace kcenon::network::config {
 

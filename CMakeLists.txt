@@ -302,6 +302,17 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/libs/network-core/CMakeLists.txt)
     message(STATUS "network-core library enabled")
 endif()
 
+# Create namespaced symlink for internal headers (vcpkg-registry#79)
+# Public headers use #include "kcenon/network/internal/..." which must resolve
+# from the PRIVATE src/ include directory at build time.
+set(_INTERNAL_LINK_DIR "${CMAKE_CURRENT_BINARY_DIR}/internal_include/kcenon/network")
+file(MAKE_DIRECTORY "${_INTERNAL_LINK_DIR}")
+file(CREATE_LINK
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/internal"
+    "${_INTERNAL_LINK_DIR}/internal"
+    SYMBOLIC
+)
+
 ##################################################
 # Shared Integration Objects (ODR Fix - Issue #555)
 #
@@ -337,6 +348,7 @@ target_include_directories(network-integration-objects
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/network-core/include>
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/src
+        ${CMAKE_CURRENT_BINARY_DIR}/internal_include
 )
 
 target_compile_features(network-integration-objects PUBLIC cxx_std_20)
@@ -741,6 +753,7 @@ target_include_directories(network_system
         $<INSTALL_INTERFACE:include>
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/src
+        ${CMAKE_CURRENT_BINARY_DIR}/internal_include
 )
 
 # Link to network-core for shared interfaces (Issue #538, #539)

@@ -33,8 +33,8 @@
 #ifndef NETWORK_USE_EXPERIMENTAL
 #define NETWORK_USE_EXPERIMENTAL
 #endif
-#include "internal/experimental/quic_client.h"
-#include "internal/interfaces/i_quic_server.h"
+#include "kcenon/network/internal/experimental/quic_client.h"
+#include "kcenon/network/internal/interfaces/i_quic_server.h"
 #include "kcenon/network/detail/protocols/quic/connection_id.h"
 #include "kcenon/network/detail/utils/result_types.h"
 
