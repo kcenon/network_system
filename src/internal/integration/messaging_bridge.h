@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for full license information.
 
 #pragma once
+#ifndef KCENON_NETWORK_INTERNAL_INTEGRATION_MESSAGING_BRIDGE_H_
+#define KCENON_NETWORK_INTERNAL_INTEGRATION_MESSAGING_BRIDGE_H_
 
 /**
  * @file messaging_bridge.h
@@ -221,3 +223,5 @@ namespace network_module {
     using messaging_client = kcenon::network::core::messaging_client;
     using messaging_session = kcenon::network::session::messaging_session;
 }
+
+#endif // KCENON_NETWORK_INTERNAL_INTEGRATION_MESSAGING_BRIDGE_H_

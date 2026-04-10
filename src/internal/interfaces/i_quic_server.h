@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for full license information.
 
 #pragma once
+#ifndef KCENON_NETWORK_INTERNAL_INTERFACES_I_QUIC_SERVER_H_
+#define KCENON_NETWORK_INTERNAL_INTERFACES_I_QUIC_SERVER_H_
 
 #include "kcenon/network/interfaces/i_network_component.h"
 #include "kcenon/network/interfaces/i_session.h"
@@ -163,3 +165,5 @@ namespace kcenon::network::interfaces
 	};
 
 } // namespace kcenon::network::interfaces
+
+#endif // KCENON_NETWORK_INTERNAL_INTERFACES_I_QUIC_SERVER_H_

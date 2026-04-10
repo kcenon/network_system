@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for full license information.
 
 #pragma once
+#ifndef KCENON_NETWORK_INTERNAL_INTEGRATION_MONITORING_INTEGRATION_H_
+#define KCENON_NETWORK_INTERNAL_INTEGRATION_MONITORING_INTEGRATION_H_
 
 /**
  * @file monitoring_integration.h
@@ -230,3 +232,5 @@ namespace kcenon::network::integration
 } // namespace kcenon::network::integration
 
 // Backward compatibility namespace alias is defined in thread_integration.h
+
+#endif // KCENON_NETWORK_INTERNAL_INTEGRATION_MONITORING_INTEGRATION_H_

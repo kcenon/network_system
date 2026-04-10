@@ -27,7 +27,6 @@ Facade API documentation for the Network System library, covering TCP, UDP, WebS
 - [Configuration](#configuration)
 - [Examples](#examples)
 - [Thread Safety](#thread-safety)
-- [Performance Considerations](#performance-considerations)
 - [Platform-Specific Notes](#platform-specific-notes)
 
 ## Overview
@@ -57,7 +56,7 @@ namespace network {
 #include <network/connection.hpp>      // Connection management
 #include <network/error.hpp>           // Error handling
 #include <network/config.hpp>          // Configuration
-
+```
 
 ## C++20 Concepts
 
@@ -338,6 +337,7 @@ public:
 };
 
 } // namespace network
+```
 
 
 ## Networking Components
@@ -668,6 +668,7 @@ public:
 };
 
 } // namespace network
+```
 
 
 ## Error Handling

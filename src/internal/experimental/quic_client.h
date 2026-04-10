@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for full license information.
 
 #pragma once
+#ifndef KCENON_NETWORK_INTERNAL_EXPERIMENTAL_QUIC_CLIENT_H_
+#define KCENON_NETWORK_INTERNAL_EXPERIMENTAL_QUIC_CLIENT_H_
 
 // Experimental API marker - users must opt-in to use this header
 #include "internal/experimental/experimental_api.h"
@@ -622,3 +624,5 @@ using quic_client = messaging_quic_client;
 using secure_quic_client = messaging_quic_client;
 
 } // namespace kcenon::network::core
+
+#endif // KCENON_NETWORK_INTERNAL_EXPERIMENTAL_QUIC_CLIENT_H_

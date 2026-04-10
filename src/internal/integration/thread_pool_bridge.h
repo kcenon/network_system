@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for full license information.
 
 #pragma once
+#ifndef KCENON_NETWORK_INTERNAL_INTEGRATION_THREAD_POOL_BRIDGE_H_
+#define KCENON_NETWORK_INTERNAL_INTEGRATION_THREAD_POOL_BRIDGE_H_
 
 /**
  * @file thread_pool_bridge.h
@@ -254,3 +256,5 @@ private:
 namespace network_system {
     namespace integration = kcenon::network::integration;
 }
+
+#endif // KCENON_NETWORK_INTERNAL_INTEGRATION_THREAD_POOL_BRIDGE_H_
