@@ -38,14 +38,23 @@ function(install_network_system_headers)
         FILES_MATCHING PATTERN "*.h"
     )
 
-    # Install internal headers referenced by public headers (Issue #944)
-    # Public headers use #include "internal/..." which resolves via the
-    # PRIVATE src/ include directory at build time. At install time these
-    # must be available under the include directory.
+    # Install internal headers under namespaced path (Issue #944, vcpkg-registry#79)
+    # Public headers use #include "kcenon/network/internal/..." which resolves
+    # via the PRIVATE src/ include directory at build time. At install time
+    # these must be available under the namespaced include directory.
     install(DIRECTORY src/internal/
-        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/internal
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/kcenon/network/internal
         FILES_MATCHING PATTERN "*.h"
     )
+
+    # Backward-compatible wrapper headers at the old install path (Issue vcpkg-registry#79)
+    # These forward to the new namespaced location with a deprecation warning.
+    if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/cmake/compat/internal/)
+        install(DIRECTORY cmake/compat/internal/
+            DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/internal
+            FILES_MATCHING PATTERN "*.h"
+        )
+    endif()
 
     # Install network-core headers (Issue #944)
     # network-core is an INTERFACE library whose headers are needed by

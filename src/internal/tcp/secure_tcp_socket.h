@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for full license information.
 
 #pragma once
+#ifndef KCENON_NETWORK_INTERNAL_TCP_SECURE_TCP_SOCKET_H_
+#define KCENON_NETWORK_INTERNAL_TCP_SECURE_TCP_SOCKET_H_
 
 #include <array>
 #include <atomic>
@@ -233,3 +235,5 @@ namespace kcenon::network::internal
 		std::atomic<bool> is_closed_{false};  /*!< Flag to indicate socket is closed. */
 	};
 } // namespace kcenon::network::internal
+
+#endif // KCENON_NETWORK_INTERNAL_TCP_SECURE_TCP_SOCKET_H_

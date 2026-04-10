@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for full license information.
 
 #pragma once
+#ifndef KCENON_NETWORK_INTERNAL_CORE_UNIFIED_MESSAGING_CLIENT_H_
+#define KCENON_NETWORK_INTERNAL_CORE_UNIFIED_MESSAGING_CLIENT_H_
 
 #include <atomic>
 #include <concepts>
@@ -321,3 +323,5 @@ using secure_tcp_client = unified_messaging_client<protocol::tcp_protocol, polic
 
 // Include template implementation
 #include "unified_messaging_client.inl"
+
+#endif // KCENON_NETWORK_INTERNAL_CORE_UNIFIED_MESSAGING_CLIENT_H_

@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for full license information.
 
 #pragma once
+#ifndef KCENON_NETWORK_INTERNAL_CORE_MESSAGING_SERVER_H_
+#define KCENON_NETWORK_INTERNAL_CORE_MESSAGING_SERVER_H_
 
 /**
  * @file messaging_server.h
@@ -385,3 +387,5 @@ namespace kcenon::network::core {
 	};
 
 } // namespace kcenon::network::core
+
+#endif // KCENON_NETWORK_INTERNAL_CORE_MESSAGING_SERVER_H_

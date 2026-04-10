@@ -56,7 +56,7 @@ namespace network {
 #include <network/connection.hpp>      // Connection management
 #include <network/error.hpp>           // Error handling
 #include <network/config.hpp>          // Configuration
-
+```
 
 ```
 ## C++20 Concepts
@@ -338,6 +338,7 @@ public:
 };
 
 } // namespace network
+```
 
 
 ```
@@ -669,6 +670,7 @@ public:
 };
 
 } // namespace network
+```
 
 
 ```

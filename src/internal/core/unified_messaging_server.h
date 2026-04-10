@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for full license information.
 
 #pragma once
+#ifndef KCENON_NETWORK_INTERNAL_CORE_UNIFIED_MESSAGING_SERVER_H_
+#define KCENON_NETWORK_INTERNAL_CORE_UNIFIED_MESSAGING_SERVER_H_
 
 #include <atomic>
 #include <concepts>
@@ -329,3 +331,5 @@ using secure_tcp_server = unified_messaging_server<protocol::tcp_protocol, polic
 
 // Include template implementation
 #include "unified_messaging_server.inl"
+
+#endif // KCENON_NETWORK_INTERNAL_CORE_UNIFIED_MESSAGING_SERVER_H_

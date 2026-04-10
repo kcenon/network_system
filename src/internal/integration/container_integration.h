@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for full license information.
 
 #pragma once
+#ifndef KCENON_NETWORK_INTERNAL_INTEGRATION_CONTAINER_INTEGRATION_H_
+#define KCENON_NETWORK_INTERNAL_INTEGRATION_CONTAINER_INTEGRATION_H_
 
 #include <kcenon/network/detail/config/feature_flags.h>
 
@@ -222,3 +224,5 @@ private:
 } // namespace kcenon::network::integration
 
 // Backward compatibility namespace alias is defined in thread_integration.h
+
+#endif // KCENON_NETWORK_INTERNAL_INTEGRATION_CONTAINER_INTEGRATION_H_

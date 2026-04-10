@@ -11,6 +11,8 @@
  */
 
 #pragma once
+#ifndef KCENON_NETWORK_INTERNAL_CORE_NETWORK_CONTEXT_H_
+#define KCENON_NETWORK_INTERNAL_CORE_NETWORK_CONTEXT_H_
 
 #include <memory>
 #include "kcenon/network/integration/thread_integration.h"
@@ -128,3 +130,5 @@ private:
 };
 
 } // namespace kcenon::network::core
+
+#endif // KCENON_NETWORK_INTERNAL_CORE_NETWORK_CONTEXT_H_
