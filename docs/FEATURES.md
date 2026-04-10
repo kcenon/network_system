@@ -958,7 +958,7 @@ The following features are tracked in [IMPROVEMENTS.md](../IMPROVEMENTS.md):
   - Server reflection for debugging and service discovery
   - TLS/mTLS support with configurable channel and server options
   - Call options: deadlines, metadata, compression, wait-for-ready
-  - See [gRPC Protocol Support](#grpc-protocol-rfc-7540--prototype) for details
+  - See [gRPC Protocol Support](#grpc-protocol-rfc-7540----prototype) for details
 
 ### Long-term
 
