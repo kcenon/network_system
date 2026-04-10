@@ -39,11 +39,12 @@ function(install_network_system_headers)
     )
 
     # Install internal headers referenced by public headers (Issue #944)
-    # Public headers use #include "internal/..." which resolves via the
-    # PRIVATE src/ include directory at build time. At install time these
-    # must be available under the include directory.
+    # Public headers use #include "internal/..." which resolves as a relative
+    # path from the including file's directory (include/kcenon/network/).
+    # Install under the namespaced path so relative lookup succeeds and avoids
+    # polluting the top-level include/ with a bare "internal/" directory.
     install(DIRECTORY src/internal/
-        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/internal
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/kcenon/network/internal
         FILES_MATCHING PATTERN "*.h"
     )
 

@@ -57,7 +57,7 @@ namespace network {
 #include <network/connection.hpp>      // Connection management
 #include <network/error.hpp>           // Error handling
 #include <network/config.hpp>          // Configuration
-
+```
 
 ## C++20 Concepts
 
@@ -338,7 +338,7 @@ public:
 };
 
 } // namespace network
-
+```
 
 ## Networking Components
 
@@ -668,7 +668,7 @@ public:
 };
 
 } // namespace network
-
+```
 
 ## Error Handling
 
@@ -1193,6 +1193,8 @@ All public methods in the Network System library are thread-safe unless explicit
 5. **Buffer Classes**: Not thread-safe; use separate instances per thread or add external synchronization
 
 
+
+## Performance Considerations
 
 ### Zero-Copy Operations
 
