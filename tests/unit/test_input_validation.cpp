@@ -25,25 +25,19 @@ protected:
 };
 
 TEST_F(MessageValidatorTest, ValidateSizeWithinLimit) {
-    EXPECT_TRUE(message_validator::validate_size(1024));
-    EXPECT_TRUE(message_validator::validate_size(0));
-    EXPECT_TRUE(message_validator::validate_size(message_limits::MAX_MESSAGE_SIZE));
+    EXPECT_EQ(message_validator::validate_size(1024), validation_result::ok);
+    EXPECT_EQ(message_validator::validate_size(0), validation_result::ok);
+    EXPECT_EQ(message_validator::validate_size(message_limits::MAX_MESSAGE_SIZE), validation_result::ok);
 }
 
 TEST_F(MessageValidatorTest, ValidateSizeExceedsLimit) {
-    EXPECT_FALSE(message_validator::validate_size(message_limits::MAX_MESSAGE_SIZE + 1));
-    EXPECT_FALSE(message_validator::validate_size(100 * 1024 * 1024)); // 100MB
+    EXPECT_EQ(message_validator::validate_size(message_limits::MAX_MESSAGE_SIZE + 1), validation_result::size_exceeded);
+    EXPECT_EQ(message_validator::validate_size(100 * 1024 * 1024), validation_result::size_exceeded); // 100MB
 }
 
 TEST_F(MessageValidatorTest, ValidateSizeCustomLimit) {
-    EXPECT_TRUE(message_validator::validate_size(100, 1000));
-    EXPECT_FALSE(message_validator::validate_size(1001, 1000));
-}
-
-TEST_F(MessageValidatorTest, ValidateSizeResult) {
-    EXPECT_EQ(message_validator::validate_size(1024), validation_result::ok);
-    EXPECT_EQ(message_validator::validate_size(message_limits::MAX_MESSAGE_SIZE + 1),
-              validation_result::size_exceeded);
+    EXPECT_EQ(message_validator::validate_size(100, 1000), validation_result::ok);
+    EXPECT_EQ(message_validator::validate_size(1001, 1000), validation_result::size_exceeded);
 }
 
 TEST_F(MessageValidatorTest, SafeCopyNormalCase) {

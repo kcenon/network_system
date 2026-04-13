@@ -53,8 +53,8 @@ TEST(ValidationResultToStringTest, AllEnumValues)
 
 TEST(MessageValidatorExtendedTest, ValidateZeroSize)
 {
-	EXPECT_TRUE(message_validator::validate_size(0));
-	EXPECT_TRUE(message_validator::validate_size(0, 0));
+	EXPECT_EQ(message_validator::validate_size(0), validation_result::ok);
+	EXPECT_EQ(message_validator::validate_size(0, 0), validation_result::ok);
 }
 
 TEST(MessageValidatorExtendedTest, ValidateSizeResultCustomLimit)
