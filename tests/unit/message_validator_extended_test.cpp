@@ -57,10 +57,10 @@ TEST(MessageValidatorExtendedTest, ValidateZeroSize)
 	EXPECT_TRUE(message_validator::validate_size(0, 0));
 }
 
-TEST(MessageValidatorExtendedTest, ValidateSizeOrThrowCustomLimit)
+TEST(MessageValidatorExtendedTest, ValidateSizeResultCustomLimit)
 {
-	EXPECT_NO_THROW(message_validator::validate_size_or_throw(100, 200));
-	EXPECT_THROW(message_validator::validate_size_or_throw(201, 200), std::length_error);
+	EXPECT_EQ(message_validator::validate_size(100, 200), validation_result::ok);
+	EXPECT_EQ(message_validator::validate_size(201, 200), validation_result::size_exceeded);
 }
 
 TEST(MessageValidatorExtendedTest, SafeCopyZeroSourceSize)
