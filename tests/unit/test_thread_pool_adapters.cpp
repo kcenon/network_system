@@ -409,10 +409,14 @@ TEST_F(AdapterIntegrationTest, RoundTripAdaptation) {
     auto pool = std::make_shared<mock_thread_pool>();
 
     // Adapt to IExecutor
-    auto executor = std::make_shared<network_to_common_thread_adapter>(pool);
+    auto executor_result = network_to_common_thread_adapter::create(pool);
+    ASSERT_TRUE(executor_result.is_ok());
+    auto executor = executor_result.value();
 
     // Adapt back to thread_pool_interface
-    auto adapted_pool = std::make_shared<common_to_network_thread_adapter>(executor);
+    auto adapted_pool_result = common_to_network_thread_adapter::create(executor);
+    ASSERT_TRUE(adapted_pool_result.is_ok());
+    auto adapted_pool = adapted_pool_result.value();
 
     // Use the adapted pool
     std::atomic<bool> executed{false};
@@ -428,8 +432,13 @@ TEST_F(AdapterIntegrationTest, RoundTripWorkerCount) {
     auto pool = std::make_shared<mock_thread_pool>();
     pool->set_worker_count(16);
 
-    auto executor = std::make_shared<network_to_common_thread_adapter>(pool);
-    auto adapted_pool = std::make_shared<common_to_network_thread_adapter>(executor);
+    auto executor_result = network_to_common_thread_adapter::create(pool);
+    ASSERT_TRUE(executor_result.is_ok());
+    auto executor = executor_result.value();
+
+    auto adapted_pool_result = common_to_network_thread_adapter::create(executor);
+    ASSERT_TRUE(adapted_pool_result.is_ok());
+    auto adapted_pool = adapted_pool_result.value();
 
     EXPECT_EQ(adapted_pool->worker_count(), 16u);
 }
