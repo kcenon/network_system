@@ -98,11 +98,13 @@ auto client = std::make_shared<
 **After:**
 ```cpp
 tcp_facade facade;
-auto client = facade.create_client({
+auto result = facade.create_client({
     .host = "127.0.0.1",
     .port = 8080,
     .client_id = "my-client"
 });
+if (result.is_err()) { /* handle error */ }
+auto client = result.value();
 ```
 
 ### Step 5: Update Configuration
@@ -118,13 +120,15 @@ client->set_verify_certificate(true);
 
 **After:**
 ```cpp
-auto client = facade.create_client({
+auto result = facade.create_client({
     .host = "127.0.0.1",
     .port = 8080,
     .timeout = std::chrono::seconds(30),
     .use_ssl = true,
     .verify_certificate = true
 });
+if (result.is_err()) { /* handle error */ }
+auto client = result.value();
 ```
 
 ### Step 6: Test Incrementally
@@ -179,13 +183,17 @@ using namespace kcenon::network;
 auto create_client() -> std::shared_ptr<interfaces::i_protocol_client> {
     facade::tcp_facade facade;
 
-    // Declarative configuration
-    auto client = facade.create_client({
+    // Declarative configuration — returns Result<shared_ptr>
+    auto create_result = facade.create_client({
         .host = "127.0.0.1",
         .port = 8080,
         .client_id = "my-client",
         .timeout = std::chrono::seconds(30)
     });
+    if (create_result.is_err()) {
+        throw std::runtime_error(create_result.error().message);
+    }
+    auto client = create_result.value();
 
     // Callback registration (unchanged)
     client->set_receive_callback([](const std::vector<uint8_t>& data) {
@@ -257,8 +265,8 @@ using namespace kcenon::network;
 auto create_secure_server() -> std::shared_ptr<interfaces::i_protocol_server> {
     facade::tcp_facade facade;
 
-    // Declarative SSL configuration
-    auto server = facade.create_server({
+    // Declarative SSL configuration — returns Result<shared_ptr>
+    auto create_result = facade.create_server({
         .port = 8443,
         .server_id = "my-server",
         .use_ssl = true,
@@ -266,6 +274,10 @@ auto create_secure_server() -> std::shared_ptr<interfaces::i_protocol_server> {
         .key_path = "/path/to/key.pem",
         .tls_version = "TLS1.3"
     });
+    if (create_result.is_err()) {
+        throw std::runtime_error(create_result.error().message);
+    }
+    auto server = create_result.value();
 
     // Callback registration (unchanged)
     server->set_receive_callback([](auto session_id, const auto& data) {
@@ -327,19 +339,21 @@ using namespace kcenon::network;
 auto create_udp_components() {
     facade::udp_facade facade;
 
-    // Client
-    auto client = facade.create_client({
+    // Client — create_client returns Result<shared_ptr>
+    auto client_result = facade.create_client({
         .host = "127.0.0.1",
         .port = 5555,
         .client_id = "udp-client"
     });
+    auto client = client_result.value();
     client->start("127.0.0.1", 5555);
 
-    // Server
-    auto server = facade.create_server({
+    // Server — create_server returns Result<shared_ptr>
+    auto server_result = facade.create_server({
         .port = 5555,
         .server_id = "udp-server"
     });
+    auto server = server_result.value();
     server->start(5555);
 
     return std::make_pair(client, server);
@@ -386,11 +400,15 @@ using namespace kcenon::network;
 auto create_websocket_client() -> std::shared_ptr<interfaces::i_protocol_client> {
     facade::websocket_facade facade;
 
-    // Declarative configuration
-    auto client = facade.create_client({
+    // Declarative configuration — returns Result<shared_ptr>
+    auto result = facade.create_client({
         .client_id = "ws-client",
         .ping_interval = std::chrono::seconds(30)
     });
+    if (result.is_err()) {
+        throw std::runtime_error(result.error().message);
+    }
+    auto client = result.value();
 
     // Start connection
     client->start("127.0.0.1", 8080);
@@ -441,8 +459,8 @@ using namespace kcenon::network;
 auto create_quic_client() -> std::shared_ptr<interfaces::i_protocol_client> {
     facade::quic_facade facade;
 
-    // Declarative QUIC + TLS configuration
-    auto client = facade.create_client({
+    // Declarative QUIC + TLS configuration — returns Result<shared_ptr>
+    auto result = facade.create_client({
         .host = "127.0.0.1",
         .port = 4433,
         .client_id = "quic-client",
@@ -452,6 +470,10 @@ auto create_quic_client() -> std::shared_ptr<interfaces::i_protocol_client> {
         .max_idle_timeout_ms = 30000,
         .enable_0rtt = false
     });
+    if (result.is_err()) {
+        throw std::runtime_error(result.error().message);
+    }
+    auto client = result.value();
 
     // Start connection
     client->start("127.0.0.1", 4433);
@@ -486,14 +508,14 @@ auto udp_client = create_client<udp_policy>("client", "127.0.0.1", 5555);
 ```cpp
 auto create_tcp_client(const std::string& id, const std::string& host, uint16_t port) {
     tcp_facade facade;
-    auto client = facade.create_client({.host = host, .port = port, .client_id = id});
+    auto client = facade.create_client({.host = host, .port = port, .client_id = id}).value();
     client->start(host, port);
     return client;
 }
 
 auto create_udp_client(const std::string& id, const std::string& host, uint16_t port) {
     udp_facade facade;
-    auto client = facade.create_client({.host = host, .port = port, .client_id = id});
+    auto client = facade.create_client({.host = host, .port = port, .client_id = id}).value();
     client->start(host, port);
     return client;
 }
@@ -512,17 +534,17 @@ auto create_client(protocol proto, const std::string& id,
     switch (proto) {
     case protocol::tcp: {
         tcp_facade facade;
-        client = facade.create_client({.host = host, .port = port, .client_id = id});
+        client = facade.create_client({.host = host, .port = port, .client_id = id}).value();
         break;
     }
     case protocol::udp: {
         udp_facade facade;
-        client = facade.create_client({.host = host, .port = port, .client_id = id});
+        client = facade.create_client({.host = host, .port = port, .client_id = id}).value();
         break;
     }
     case protocol::websocket: {
         websocket_facade facade;
-        client = facade.create_client({.client_id = id});
+        client = facade.create_client({.client_id = id}).value();
         break;
     }
     }
@@ -571,12 +593,14 @@ auto client = ClientBuilder()
 ```cpp
 // Facade config struct is already a builder pattern
 tcp_facade facade;
-auto client = facade.create_client({
+auto result = facade.create_client({
     .host = "127.0.0.1",
     .port = 8080,
     .timeout = std::chrono::seconds(10),
     .use_ssl = true
 });
+if (result.is_err()) { /* handle error */ }
+auto client = result.value();
 
 // Or with a helper function
 auto build_client(auto&&... args) {
@@ -626,11 +650,11 @@ public:
 
 // Usage is protocol-agnostic
 tcp_facade tcp;
-auto tcp_client = tcp.create_client({...});
+auto tcp_client = tcp.create_client({...}).value();
 ConnectionManager tcp_mgr(tcp_client);
 
 udp_facade udp;
-auto udp_client = udp.create_client({...});
+auto udp_client = udp.create_client({...}).value();
 ConnectionManager udp_mgr(udp_client);  // Same class!
 ```
 
