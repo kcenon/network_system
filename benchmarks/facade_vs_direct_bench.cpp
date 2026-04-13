@@ -138,11 +138,16 @@ static void BM_FacadeClient_Create(benchmark::State& state)
 	{
 		try
 		{
-			auto client = facade.create_client({
+			auto client_result = facade.create_client({
 				.host = "127.0.0.1",
 				.port = 8080,
 				.client_id = "bench_client"
 			});
+			if (client_result.is_err())
+			{
+				break;
+			}
+			auto client = client_result.value();
 			benchmark::DoNotOptimize(client);
 			// Allow thread cleanup between iterations
 			(void)client->stop();
@@ -188,10 +193,15 @@ static void BM_FacadeServer_Create(benchmark::State& state)
 	{
 		try
 		{
-			auto server = facade.create_server({
+			auto server_result = facade.create_server({
 				.port = 8080,
 				.server_id = "bench_server"
 			});
+			if (server_result.is_err())
+			{
+				break;
+			}
+			auto server = server_result.value();
 			benchmark::DoNotOptimize(server);
 			// Ensure cleanup before next iteration
 			(void)server->stop();
@@ -342,10 +352,16 @@ static void BM_FacadeAPI_SendThroughput(benchmark::State& state)
 	try
 	{
 		// Setup server via facade
-		server = facade.create_server({
+		auto server_result = facade.create_server({
 			.port = port,
 			.server_id = "facade_bench_server"
 		});
+		if (server_result.is_err())
+		{
+			state.SkipWithError("Failed to create facade server");
+			return;
+		}
+		server = server_result.value();
 		auto start_result = server->start(port);
 		if (start_result.is_err())
 		{
@@ -357,11 +373,18 @@ static void BM_FacadeAPI_SendThroughput(benchmark::State& state)
 		std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
 		// Setup client via facade
-		client = facade.create_client({
+		auto client_result = facade.create_client({
 			.host = "127.0.0.1",
 			.port = port,
 			.client_id = "facade_bench_client"
 		});
+		if (client_result.is_err())
+		{
+			(void)server->stop();
+			state.SkipWithError("Failed to create facade client");
+			return;
+		}
+		client = client_result.value();
 		auto connect_result = client->start("127.0.0.1", port);
 		if (connect_result.is_err())
 		{
@@ -638,10 +661,16 @@ static void BM_FacadeAPI_FullLifecycle(benchmark::State& state)
 
 	try
 	{
-		server = facade.create_server({
+		auto server_result = facade.create_server({
 			.port = port,
 			.server_id = "facade_lifecycle_server"
 		});
+		if (server_result.is_err())
+		{
+			state.SkipWithError("Failed to create server");
+			return;
+		}
+		server = server_result.value();
 		auto start_result = server->start(port);
 		if (start_result.is_err())
 		{
@@ -664,11 +693,16 @@ static void BM_FacadeAPI_FullLifecycle(benchmark::State& state)
 		try
 		{
 			// Create via facade
-			auto client = facade.create_client({
+			auto client_result = facade.create_client({
 				.host = "127.0.0.1",
 				.port = port,
 				.client_id = "facade_lifecycle_client"
 			});
+			if (client_result.is_err())
+			{
+				continue;
+			}
+			auto client = client_result.value();
 
 			// Connect
 			auto connect_result = client->start("127.0.0.1", port);
