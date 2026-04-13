@@ -20,6 +20,7 @@
  */
 
 #include "kcenon/network/integration/thread_integration.h"
+#include <kcenon/network/detail/utils/result_types.h>
 #include <memory>
 #include <future>
 #include <string>
@@ -44,7 +45,8 @@ namespace kcenon::network::integration {
 
 class thread_system_pool_adapter : public thread_pool_interface {
 public:
-    explicit thread_system_pool_adapter(std::shared_ptr<kcenon::thread::thread_pool> pool);
+    [[nodiscard]] static Result<std::shared_ptr<thread_system_pool_adapter>> create(
+        std::shared_ptr<kcenon::thread::thread_pool> pool);
     ~thread_system_pool_adapter();
 
     // Non-copyable, non-movable
@@ -70,6 +72,7 @@ public:
         const std::string& pool_name = "network_pool");
 
 private:
+    explicit thread_system_pool_adapter(std::shared_ptr<kcenon::thread::thread_pool> pool);
     /**
      * @brief The underlying thread_pool from thread_system
      *

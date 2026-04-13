@@ -16,6 +16,7 @@
 
 #include "internal/utils/common_defs.h"
 #include "internal/utils/openssl_compat.h"
+#include <kcenon/network/detail/utils/result_types.h>
 
 namespace kcenon::network::internal
 {
@@ -65,7 +66,8 @@ namespace kcenon::network::internal
 		 * The socket should be connected (for client) or bound (for server)
 		 * before calling handshake methods.
 		 */
-		dtls_socket(asio::ip::udp::socket socket, SSL_CTX* ssl_ctx);
+		[[nodiscard]] static Result<std::shared_ptr<dtls_socket>> create(
+			asio::ip::udp::socket socket, SSL_CTX* ssl_ctx);
 
 		/*!
 		 * \brief Destructor. Cleans up OpenSSL resources.
@@ -180,6 +182,8 @@ namespace kcenon::network::internal
 		}
 
 	private:
+		dtls_socket(asio::ip::udp::socket socket, SSL* ssl, BIO* rbio, BIO* wbio);
+
 		/*!
 		 * \brief Internal function to handle the receive logic.
 		 */

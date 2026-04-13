@@ -134,21 +134,21 @@ public:
     }
 
     /**
-     * @brief Validate and throw if size exceeds limit
+     * @brief Validate message size against limit
      *
      * @param size Size to validate
      * @param max_size Maximum allowed size
-     * @throws std::length_error if size exceeds limit
+     * @return validation_result::ok if valid, validation_result::size_exceeded otherwise
      */
-    static void validate_size_or_throw(
+    [[nodiscard]] static validation_result validate_size(
             size_t size,
             size_t max_size = message_limits::MAX_MESSAGE_SIZE) {
         if (size > max_size) {
-            throw std::length_error(
-                "Message size " + std::to_string(size) +
-                " exceeds limit " + std::to_string(max_size));
+            return validation_result::size_exceeded;
         }
+        return validation_result::ok;
     }
+
 
     /**
      * @brief Safe buffer copy with size validation

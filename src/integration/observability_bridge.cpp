@@ -3,9 +3,27 @@
 // See the LICENSE file in the project root for full license information.
 
 #include "internal/integration/observability_bridge.h"
-#include <stdexcept>
 
 namespace kcenon::network::integration {
+
+Result<std::shared_ptr<ObservabilityBridge>> ObservabilityBridge::create(
+    std::shared_ptr<logger_interface> logger,
+    std::shared_ptr<monitoring_interface> monitor, BackendType backend_type) {
+    if (!logger) {
+        return error<std::shared_ptr<ObservabilityBridge>>(
+            error_codes::common_errors::invalid_argument,
+            "ObservabilityBridge requires non-null logger",
+            "ObservabilityBridge::create");
+    }
+    if (!monitor) {
+        return error<std::shared_ptr<ObservabilityBridge>>(
+            error_codes::common_errors::invalid_argument,
+            "ObservabilityBridge requires non-null monitor",
+            "ObservabilityBridge::create");
+    }
+    return ok(std::shared_ptr<ObservabilityBridge>(
+        new ObservabilityBridge(std::move(logger), std::move(monitor), backend_type)));
+}
 
 ObservabilityBridge::ObservabilityBridge(
     std::shared_ptr<logger_interface> logger,
@@ -14,12 +32,6 @@ ObservabilityBridge::ObservabilityBridge(
     : logger_(std::move(logger))
     , monitor_(std::move(monitor))
     , backend_type_(backend_type) {
-    if (!logger_) {
-        throw std::invalid_argument("ObservabilityBridge requires non-null logger");
-    }
-    if (!monitor_) {
-        throw std::invalid_argument("ObservabilityBridge requires non-null monitor");
-    }
 }
 
 ObservabilityBridge::~ObservabilityBridge() {
@@ -144,27 +156,24 @@ ObservabilityBridge::BackendType ObservabilityBridge::get_backend_type() const {
 }
 
 #if KCENON_WITH_COMMON_SYSTEM
-std::shared_ptr<ObservabilityBridge> ObservabilityBridge::from_common_system(
+Result<std::shared_ptr<ObservabilityBridge>> ObservabilityBridge::from_common_system(
     std::shared_ptr<::kcenon::common::interfaces::ILogger> logger,
     std::shared_ptr<::kcenon::common::interfaces::IMonitor> monitor) {
     if (!logger) {
-        throw std::invalid_argument("ObservabilityBridge::from_common_system requires non-null logger");
+        return error<std::shared_ptr<ObservabilityBridge>>(
+            error_codes::common_errors::invalid_argument,
+            "ObservabilityBridge::from_common_system requires non-null logger",
+            "ObservabilityBridge::from_common_system");
     }
     if (!monitor) {
-        throw std::invalid_argument("ObservabilityBridge::from_common_system requires non-null monitor");
+        return error<std::shared_ptr<ObservabilityBridge>>(
+            error_codes::common_errors::invalid_argument,
+            "ObservabilityBridge::from_common_system requires non-null monitor",
+            "ObservabilityBridge::from_common_system");
     }
-
-    // Adapt common_system logger and monitor to network_system interfaces
     auto adapted_logger = std::make_shared<common_system_logger_adapter>();
-
-    // For monitor, we use basic_monitoring since there's no direct adapter yet
-    // This is a known limitation - future work could create a proper adapter
     auto adapted_monitor = std::make_shared<basic_monitoring>();
-
-    return std::make_shared<ObservabilityBridge>(
-        adapted_logger,
-        adapted_monitor,
-        BackendType::CommonSystem);
+    return create(adapted_logger, adapted_monitor, BackendType::CommonSystem);
 }
 #endif
 

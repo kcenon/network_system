@@ -40,11 +40,10 @@ TEST_F(MessageValidatorTest, ValidateSizeCustomLimit) {
     EXPECT_FALSE(message_validator::validate_size(1001, 1000));
 }
 
-TEST_F(MessageValidatorTest, ValidateSizeOrThrow) {
-    EXPECT_NO_THROW(message_validator::validate_size_or_throw(1024));
-    EXPECT_THROW(
-        message_validator::validate_size_or_throw(message_limits::MAX_MESSAGE_SIZE + 1),
-        std::length_error);
+TEST_F(MessageValidatorTest, ValidateSizeResult) {
+    EXPECT_EQ(message_validator::validate_size(1024), validation_result::ok);
+    EXPECT_EQ(message_validator::validate_size(message_limits::MAX_MESSAGE_SIZE + 1),
+              validation_result::size_exceeded);
 }
 
 TEST_F(MessageValidatorTest, SafeCopyNormalCase) {

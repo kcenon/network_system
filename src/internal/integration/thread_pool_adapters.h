@@ -108,17 +108,21 @@ class network_to_common_thread_adapter
     : public ::kcenon::common::interfaces::IExecutor {
 public:
     /**
-     * @brief Construct adapter wrapping a thread_pool_interface
+     * @brief Create adapter wrapping a thread_pool_interface
      * @param pool The network_system thread pool to adapt
-     * @throws std::invalid_argument if pool is nullptr
+     * @return Result with adapter or error if pool is nullptr
      */
-    explicit network_to_common_thread_adapter(
-        std::shared_ptr<thread_pool_interface> pool)
-        : pool_(std::move(pool)) {
-        if (!pool_) {
-            throw std::invalid_argument(
-                "network_to_common_thread_adapter requires non-null pool");
+    [[nodiscard]] static ::kcenon::common::Result<std::shared_ptr<network_to_common_thread_adapter>>
+    create(std::shared_ptr<thread_pool_interface> pool) {
+        if (!pool) {
+            return ::kcenon::common::Result<std::shared_ptr<network_to_common_thread_adapter>>::err(
+                ::kcenon::common::error_codes::INVALID_ARGUMENT,
+                "network_to_common_thread_adapter requires non-null pool",
+                "network_to_common_thread_adapter::create");
         }
+        return ::kcenon::common::Result<std::shared_ptr<network_to_common_thread_adapter>>::ok(
+            std::shared_ptr<network_to_common_thread_adapter>(
+                new network_to_common_thread_adapter(std::move(pool))));
     }
 
     /**
@@ -136,18 +140,22 @@ public:
         }
 
         try {
-            // Wrap the job in a shared_ptr for safe capture in lambda
             auto shared_job = std::shared_ptr<::kcenon::common::interfaces::IJob>(
                 std::move(job));
+            auto prom = std::make_shared<std::promise<void>>();
+            auto fut = prom->get_future();
 
-            auto future = pool_->submit([shared_job]() mutable {
+            pool_->submit([shared_job, prom]() mutable {
                 auto result = shared_job->execute();
                 if (result.is_err()) {
-                    throw std::runtime_error(result.error().message);
+                    prom->set_exception(std::make_exception_ptr(
+                        std::runtime_error(result.error().message)));
+                } else {
+                    prom->set_value();
                 }
             });
 
-            return ::kcenon::common::Result<std::future<void>>::ok(std::move(future));
+            return ::kcenon::common::Result<std::future<void>>::ok(std::move(fut));
         } catch (const std::exception& e) {
             return ::kcenon::common::Result<std::future<void>>::err(
                 ::kcenon::common::error_codes::INTERNAL_ERROR,
@@ -175,17 +183,22 @@ public:
         try {
             auto shared_job = std::shared_ptr<::kcenon::common::interfaces::IJob>(
                 std::move(job));
+            auto prom = std::make_shared<std::promise<void>>();
+            auto fut = prom->get_future();
 
-            auto future = pool_->submit_delayed(
-                [shared_job]() mutable {
+            pool_->submit_delayed(
+                [shared_job, prom]() mutable {
                     auto result = shared_job->execute();
                     if (result.is_err()) {
-                        throw std::runtime_error(result.error().message);
+                        prom->set_exception(std::make_exception_ptr(
+                            std::runtime_error(result.error().message)));
+                    } else {
+                        prom->set_value();
                     }
                 },
                 delay);
 
-            return ::kcenon::common::Result<std::future<void>>::ok(std::move(future));
+            return ::kcenon::common::Result<std::future<void>>::ok(std::move(fut));
         } catch (const std::exception& e) {
             return ::kcenon::common::Result<std::future<void>>::err(
                 ::kcenon::common::error_codes::INTERNAL_ERROR,
@@ -231,6 +244,10 @@ public:
     }
 
 private:
+    explicit network_to_common_thread_adapter(
+        std::shared_ptr<thread_pool_interface> pool)
+        : pool_(std::move(pool)) {}
+
     std::shared_ptr<thread_pool_interface> pool_;
 };
 
@@ -256,17 +273,20 @@ private:
 class common_to_network_thread_adapter : public thread_pool_interface {
 public:
     /**
-     * @brief Construct adapter wrapping an IExecutor
+     * @brief Create adapter wrapping an IExecutor
      * @param executor The common_system executor to adapt
-     * @throws std::invalid_argument if executor is nullptr
+     * @return Result with adapter or error if executor is nullptr
      */
-    explicit common_to_network_thread_adapter(
-        std::shared_ptr<::kcenon::common::interfaces::IExecutor> executor)
-        : executor_(std::move(executor)) {
-        if (!executor_) {
-            throw std::invalid_argument(
-                "common_to_network_thread_adapter requires non-null executor");
+    [[nodiscard]] static Result<std::shared_ptr<common_to_network_thread_adapter>>
+    create(std::shared_ptr<::kcenon::common::interfaces::IExecutor> executor) {
+        if (!executor) {
+            return error<std::shared_ptr<common_to_network_thread_adapter>>(
+                error_codes::common_errors::invalid_argument,
+                "common_to_network_thread_adapter requires non-null executor",
+                "common_to_network_thread_adapter::create");
         }
+        return ok(std::shared_ptr<common_to_network_thread_adapter>(
+            new common_to_network_thread_adapter(std::move(executor))));
     }
 
     /**
@@ -347,6 +367,10 @@ public:
     }
 
 private:
+    explicit common_to_network_thread_adapter(
+        std::shared_ptr<::kcenon::common::interfaces::IExecutor> executor)
+        : executor_(std::move(executor)) {}
+
     static std::future<void> make_error_future(const std::string& message) {
         std::promise<void> promise;
         promise.set_exception(std::make_exception_ptr(std::runtime_error(message)));

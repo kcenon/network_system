@@ -39,40 +39,51 @@ namespace
 
 } // anonymous namespace
 
-dtls_socket::dtls_socket(asio::ip::udp::socket socket, SSL_CTX* ssl_ctx)
-	: socket_(std::move(socket))
-	, ssl_ctx_(ssl_ctx)
-	, ssl_(nullptr)
-	, rbio_(nullptr)
-	, wbio_(nullptr)
+Result<std::shared_ptr<dtls_socket>> dtls_socket::create(
+	asio::ip::udp::socket socket, SSL_CTX* ssl_ctx)
 {
 	// Create SSL object
-	ssl_ = SSL_new(ssl_ctx_);
-	if (!ssl_)
+	SSL* ssl = SSL_new(ssl_ctx);
+	if (!ssl)
 	{
-		throw std::runtime_error("Failed to create SSL object");
+		return error<std::shared_ptr<dtls_socket>>(
+			error_codes::common_errors::internal_error,
+			"Failed to create SSL object",
+			"dtls_socket::create");
 	}
 
 	// Create memory BIOs for non-blocking I/O
-	rbio_ = BIO_new(BIO_s_mem());
-	wbio_ = BIO_new(BIO_s_mem());
-	if (!rbio_ || !wbio_)
+	BIO* rbio = BIO_new(BIO_s_mem());
+	BIO* wbio = BIO_new(BIO_s_mem());
+	if (!rbio || !wbio)
 	{
-		if (rbio_) BIO_free(rbio_);
-		if (wbio_) BIO_free(wbio_);
-		SSL_free(ssl_);
-		throw std::runtime_error("Failed to create BIO objects");
+		if (rbio) BIO_free(rbio);
+		if (wbio) BIO_free(wbio);
+		SSL_free(ssl);
+		return error<std::shared_ptr<dtls_socket>>(
+			error_codes::common_errors::internal_error,
+			"Failed to create BIO objects",
+			"dtls_socket::create");
 	}
 
 	// Set BIOs to non-blocking mode
-	BIO_set_nbio(rbio_, 1);
-	BIO_set_nbio(wbio_, 1);
+	BIO_set_nbio(rbio, 1);
+	BIO_set_nbio(wbio, 1);
 
-	// Connect BIOs to SSL object (SSL takes ownership)
-	SSL_set_bio(ssl_, rbio_, wbio_);
+	// Connect BIOs to SSL object (SSL takes ownership of BIOs)
+	SSL_set_bio(ssl, rbio, wbio);
 
-	// Enable DTLS cookie exchange for servers (DoS protection)
-	// This is optional and can be configured later
+	return ok(std::shared_ptr<dtls_socket>(
+		new dtls_socket(std::move(socket), ssl, rbio, wbio)));
+}
+
+dtls_socket::dtls_socket(asio::ip::udp::socket socket, SSL* ssl, BIO* rbio, BIO* wbio)
+	: socket_(std::move(socket))
+	, ssl_ctx_(nullptr)
+	, ssl_(ssl)
+	, rbio_(rbio)
+	, wbio_(wbio)
+{
 }
 
 dtls_socket::~dtls_socket()

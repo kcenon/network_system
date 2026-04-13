@@ -105,7 +105,7 @@ public:
      * auto bridge = std::make_shared<ObservabilityBridge>(logger, monitor);
      * @endcode
      */
-    explicit ObservabilityBridge(
+    [[nodiscard]] static Result<std::shared_ptr<ObservabilityBridge>> create(
         std::shared_ptr<logger_interface> logger,
         std::shared_ptr<monitoring_interface> monitor,
         BackendType backend_type = BackendType::Standalone);
@@ -241,12 +241,14 @@ public:
      * bridge->initialize(config);
      * @endcode
      */
-    static std::shared_ptr<ObservabilityBridge> from_common_system(
+    [[nodiscard]] static Result<std::shared_ptr<ObservabilityBridge>> from_common_system(
         std::shared_ptr<::kcenon::common::interfaces::ILogger> logger,
         std::shared_ptr<::kcenon::common::interfaces::IMonitor> monitor);
 #endif
 
 private:
+    ObservabilityBridge(std::shared_ptr<logger_interface> logger,
+        std::shared_ptr<monitoring_interface> monitor, BackendType backend_type);
     std::shared_ptr<logger_interface> logger_;
     std::shared_ptr<monitoring_interface> monitor_;
     BackendType backend_type_;
