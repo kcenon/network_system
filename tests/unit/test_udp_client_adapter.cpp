@@ -42,39 +42,39 @@ TEST(UdpClientAdapterTest, IsNotConnectedBeforeStart) {
 TEST(UdpClientAdapterTest, SetReceiveCallback) {
     udp_client_adapter adapter("test-client");
     adapter.set_receive_callback(
-        [](std::shared_ptr<interfaces::i_session>, std::vector<uint8_t>&&) {});
+        [](const std::vector<uint8_t>&) {});
     SUCCEED();
 }
 
 TEST(UdpClientAdapterTest, SetConnectedCallback) {
     udp_client_adapter adapter("test-client");
-    adapter.set_connected_callback([](std::shared_ptr<interfaces::i_session>) {});
+    adapter.set_connected_callback([]() {});
     SUCCEED();
 }
 
 TEST(UdpClientAdapterTest, SetDisconnectedCallback) {
     udp_client_adapter adapter("test-client");
     adapter.set_disconnected_callback(
-        [](std::shared_ptr<interfaces::i_session>) {});
+        []() {});
     SUCCEED();
 }
 
 TEST(UdpClientAdapterTest, SetErrorCallback) {
     udp_client_adapter adapter("test-client");
     adapter.set_error_callback(
-        [](std::shared_ptr<interfaces::i_session>, std::error_code) {});
+        [](std::error_code) {});
     SUCCEED();
 }
 
 TEST(UdpClientAdapterTest, SetAllCallbacksSequentially) {
     udp_client_adapter adapter("test-client");
     adapter.set_receive_callback(
-        [](std::shared_ptr<interfaces::i_session>, std::vector<uint8_t>&&) {});
-    adapter.set_connected_callback([](std::shared_ptr<interfaces::i_session>) {});
+        [](const std::vector<uint8_t>&) {});
+    adapter.set_connected_callback([]() {});
     adapter.set_disconnected_callback(
-        [](std::shared_ptr<interfaces::i_session>) {});
+        []() {});
     adapter.set_error_callback(
-        [](std::shared_ptr<interfaces::i_session>, std::error_code) {});
+        [](std::error_code) {});
     EXPECT_FALSE(adapter.is_connected());
 }
 
