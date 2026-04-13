@@ -135,25 +135,24 @@ protected:
     std::shared_ptr<mock_monitoring> monitor_;
 };
 
-TEST_F(ObservabilityBridgeTest, ConstructorWithNullLoggerThrows) {
-    EXPECT_THROW(
-        ObservabilityBridge(nullptr, monitor_, ObservabilityBridge::BackendType::Standalone),
-        std::invalid_argument);
+TEST_F(ObservabilityBridgeTest, CreateWithNullLoggerReturnsError) {
+    auto result = ObservabilityBridge::create(nullptr, monitor_, ObservabilityBridge::BackendType::Standalone);
+    EXPECT_TRUE(result.is_err());
 }
 
-TEST_F(ObservabilityBridgeTest, ConstructorWithNullMonitorThrows) {
-    EXPECT_THROW(
-        ObservabilityBridge(logger_, nullptr, ObservabilityBridge::BackendType::Standalone),
-        std::invalid_argument);
+TEST_F(ObservabilityBridgeTest, CreateWithNullMonitorReturnsError) {
+    auto result = ObservabilityBridge::create(logger_, nullptr, ObservabilityBridge::BackendType::Standalone);
+    EXPECT_TRUE(result.is_err());
 }
 
-TEST_F(ObservabilityBridgeTest, ConstructorWithValidInterfaces) {
-    EXPECT_NO_THROW(ObservabilityBridge(logger_, monitor_, ObservabilityBridge::BackendType::Standalone));
+TEST_F(ObservabilityBridgeTest, CreateWithValidInterfaces) {
+    auto result = ObservabilityBridge::create(logger_, monitor_, ObservabilityBridge::BackendType::Standalone);
+    EXPECT_TRUE(result.is_ok());
 }
 
 TEST_F(ObservabilityBridgeTest, InitializeSuccess) {
-    auto bridge = std::make_shared<ObservabilityBridge>(
-        logger_, monitor_, ObservabilityBridge::BackendType::Standalone);
+    auto bridge = ObservabilityBridge::create(
+        logger_, monitor_, ObservabilityBridge::BackendType::Standalone).value();
 
     BridgeConfig config;
     config.integration_name = "test_observability";
@@ -166,8 +165,8 @@ TEST_F(ObservabilityBridgeTest, InitializeSuccess) {
 }
 
 TEST_F(ObservabilityBridgeTest, InitializeWithMonitoringDisabled) {
-    auto bridge = std::make_shared<ObservabilityBridge>(
-        logger_, monitor_, ObservabilityBridge::BackendType::Standalone);
+    auto bridge = ObservabilityBridge::create(
+        logger_, monitor_, ObservabilityBridge::BackendType::Standalone).value();
 
     BridgeConfig config;
     config.integration_name = "test_observability";
@@ -182,8 +181,8 @@ TEST_F(ObservabilityBridgeTest, InitializeWithMonitoringDisabled) {
 }
 
 TEST_F(ObservabilityBridgeTest, InitializeDisabledBridgeFails) {
-    auto bridge = std::make_shared<ObservabilityBridge>(
-        logger_, monitor_, ObservabilityBridge::BackendType::Standalone);
+    auto bridge = ObservabilityBridge::create(
+        logger_, monitor_, ObservabilityBridge::BackendType::Standalone).value();
 
     BridgeConfig config;
     config.integration_name = "test_observability";
@@ -195,8 +194,8 @@ TEST_F(ObservabilityBridgeTest, InitializeDisabledBridgeFails) {
 }
 
 TEST_F(ObservabilityBridgeTest, InitializeAlreadyInitializedFails) {
-    auto bridge = std::make_shared<ObservabilityBridge>(
-        logger_, monitor_, ObservabilityBridge::BackendType::Standalone);
+    auto bridge = ObservabilityBridge::create(
+        logger_, monitor_, ObservabilityBridge::BackendType::Standalone).value();
 
     BridgeConfig config;
     config.integration_name = "test_observability";
@@ -209,8 +208,8 @@ TEST_F(ObservabilityBridgeTest, InitializeAlreadyInitializedFails) {
 }
 
 TEST_F(ObservabilityBridgeTest, ShutdownSuccess) {
-    auto bridge = std::make_shared<ObservabilityBridge>(
-        logger_, monitor_, ObservabilityBridge::BackendType::Standalone);
+    auto bridge = ObservabilityBridge::create(
+        logger_, monitor_, ObservabilityBridge::BackendType::Standalone).value();
 
     BridgeConfig config;
     config.integration_name = "test_observability";
@@ -226,8 +225,8 @@ TEST_F(ObservabilityBridgeTest, ShutdownSuccess) {
 }
 
 TEST_F(ObservabilityBridgeTest, ShutdownIdempotent) {
-    auto bridge = std::make_shared<ObservabilityBridge>(
-        logger_, monitor_, ObservabilityBridge::BackendType::Standalone);
+    auto bridge = ObservabilityBridge::create(
+        logger_, monitor_, ObservabilityBridge::BackendType::Standalone).value();
 
     BridgeConfig config;
     config.integration_name = "test_observability";
@@ -241,8 +240,8 @@ TEST_F(ObservabilityBridgeTest, ShutdownIdempotent) {
 }
 
 TEST_F(ObservabilityBridgeTest, GetLoggerReturnsValidPointer) {
-    auto bridge = std::make_shared<ObservabilityBridge>(
-        logger_, monitor_, ObservabilityBridge::BackendType::Standalone);
+    auto bridge = ObservabilityBridge::create(
+        logger_, monitor_, ObservabilityBridge::BackendType::Standalone).value();
 
     BridgeConfig config;
     config.integration_name = "test_observability";
@@ -254,8 +253,8 @@ TEST_F(ObservabilityBridgeTest, GetLoggerReturnsValidPointer) {
 }
 
 TEST_F(ObservabilityBridgeTest, GetMonitorReturnsValidPointer) {
-    auto bridge = std::make_shared<ObservabilityBridge>(
-        logger_, monitor_, ObservabilityBridge::BackendType::Standalone);
+    auto bridge = ObservabilityBridge::create(
+        logger_, monitor_, ObservabilityBridge::BackendType::Standalone).value();
 
     BridgeConfig config;
     config.integration_name = "test_observability";
@@ -267,8 +266,8 @@ TEST_F(ObservabilityBridgeTest, GetMonitorReturnsValidPointer) {
 }
 
 TEST_F(ObservabilityBridgeTest, GetMetricsReturnsCorrectBackendType) {
-    auto bridge = std::make_shared<ObservabilityBridge>(
-        logger_, monitor_, ObservabilityBridge::BackendType::Standalone);
+    auto bridge = ObservabilityBridge::create(
+        logger_, monitor_, ObservabilityBridge::BackendType::Standalone).value();
 
     BridgeConfig config;
     config.integration_name = "test_observability";
@@ -283,8 +282,8 @@ TEST_F(ObservabilityBridgeTest, GetMetricsReturnsCorrectBackendType) {
 }
 
 TEST_F(ObservabilityBridgeTest, GetMetricsAfterShutdownReportsUnhealthy) {
-    auto bridge = std::make_shared<ObservabilityBridge>(
-        logger_, monitor_, ObservabilityBridge::BackendType::Standalone);
+    auto bridge = ObservabilityBridge::create(
+        logger_, monitor_, ObservabilityBridge::BackendType::Standalone).value();
 
     BridgeConfig config;
     config.integration_name = "test_observability";
@@ -296,15 +295,15 @@ TEST_F(ObservabilityBridgeTest, GetMetricsAfterShutdownReportsUnhealthy) {
 }
 
 TEST_F(ObservabilityBridgeTest, GetBackendTypeReturnsCorrectType) {
-    auto bridge = std::make_shared<ObservabilityBridge>(
-        logger_, monitor_, ObservabilityBridge::BackendType::Standalone);
+    auto bridge = ObservabilityBridge::create(
+        logger_, monitor_, ObservabilityBridge::BackendType::Standalone).value();
 
     EXPECT_EQ(ObservabilityBridge::BackendType::Standalone, bridge->get_backend_type());
 }
 
 TEST_F(ObservabilityBridgeTest, LoggerUsageAfterInitialization) {
-    auto bridge = std::make_shared<ObservabilityBridge>(
-        logger_, monitor_, ObservabilityBridge::BackendType::Standalone);
+    auto bridge = ObservabilityBridge::create(
+        logger_, monitor_, ObservabilityBridge::BackendType::Standalone).value();
 
     BridgeConfig config;
     config.integration_name = "test_observability";
@@ -319,8 +318,8 @@ TEST_F(ObservabilityBridgeTest, LoggerUsageAfterInitialization) {
 }
 
 TEST_F(ObservabilityBridgeTest, MonitoringUsageAfterInitialization) {
-    auto bridge = std::make_shared<ObservabilityBridge>(
-        logger_, monitor_, ObservabilityBridge::BackendType::Standalone);
+    auto bridge = ObservabilityBridge::create(
+        logger_, monitor_, ObservabilityBridge::BackendType::Standalone).value();
 
     BridgeConfig config;
     config.integration_name = "test_observability";
@@ -335,14 +334,12 @@ TEST_F(ObservabilityBridgeTest, MonitoringUsageAfterInitialization) {
 }
 
 #if KCENON_WITH_COMMON_SYSTEM
-TEST_F(ObservabilityBridgeTest, FromCommonSystemCreatesValidBridge) {
+TEST_F(ObservabilityBridgeTest, FromCommonSystemWithNullArgsReturnsError) {
     // Note: This test requires common_system to be available
-    // For now, we just verify that the factory method signature exists
-    // and that it would throw with null arguments
+    // For now, we just verify that the factory method returns error with null arguments
 
-    EXPECT_THROW(
-        ObservabilityBridge::from_common_system(nullptr, nullptr),
-        std::invalid_argument);
+    auto result = ObservabilityBridge::from_common_system(nullptr, nullptr);
+    EXPECT_TRUE(result.is_err());
 }
 #endif
 
