@@ -1,0 +1,58 @@
+<map id="include/kcenon/network/detail/unified/i_listener.h" name="include/kcenon/network/detail/unified/i_listener.h">
+<area shape="rect" id="Node000001" title="Core interface for passive network listeners (server&#45;side)." alt="" coords="991,5,1178,45"/>
+<area shape="rect" id="Node000002" href="$quic_8h.html" title="QUIC protocol connection factory and configuration." alt="" coords="1419,101,1596,141"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="1184,46,1422,98,1421,103,1183,51"/>
+<area shape="rect" id="Node000009" href="$quic__listener__adapter_8h.html" title=" " alt="" coords="1678,196,1849,251"/>
+<area shape="poly" id="edge23_Node000001_Node000009" title=" " alt="" coords="1192,31,1422,52,1531,69,1575,80,1608,91,1649,113,1685,140,1742,194,1739,198,1682,144,1646,117,1606,96,1573,85,1530,75,1421,58,1192,36"/>
+<area shape="rect" id="Node000011" href="$tcp_8h.html" title="TCP protocol connection and listener factory functions." alt="" coords="388,101,565,141"/>
+<area shape="poly" id="edge12_Node000001_Node000011" title=" " alt="" coords="978,39,790,62,577,96,545,103,544,98,576,91,789,56,977,34"/>
+<area shape="rect" id="Node000013" href="$udp_8h.html" title="UDP protocol connection factory functions." alt="" coords="780,101,957,141"/>
+<area shape="poly" id="edge15_Node000001_Node000013" title=" " alt="" coords="1030,53,913,103,911,98,1028,48"/>
+<area shape="rect" id="Node000015" href="$websocket_8h.html" title="WebSocket protocol connection factory functions." alt="" coords="982,101,1187,141"/>
+<area shape="poly" id="edge18_Node000001_Node000015" title=" " alt="" coords="1087,59,1087,101,1082,101,1082,59"/>
+<area shape="rect" id="Node000017" href="$unified_8h.html" title="Convenience header for the unified network interface API." alt="" coords="1813,101,1991,141"/>
+<area shape="poly" id="edge21_Node000001_Node000017" title=" " alt="" coords="1192,34,1433,59,1717,91,1813,104,1813,109,1716,96,1432,64,1192,39"/>
+<area shape="rect" id="Node000019" href="$tcp__listener__adapter_8h.html" title=" " alt="" coords="201,93,363,148"/>
+<area shape="poly" id="edge24_Node000001_Node000019" title=" " alt="" coords="978,33,703,53,539,71,376,96,364,98,363,93,375,91,539,65,703,47,977,28"/>
+<area shape="rect" id="Node000021" href="$udp__listener__adapter_8h.html" title=" " alt="" coords="589,93,756,148"/>
+<area shape="poly" id="edge27_Node000001_Node000021" title=" " alt="" coords="979,50,768,96,757,99,756,93,767,91,977,45"/>
+<area shape="rect" id="Node000023" href="$ws__listener__adapter_8h.html" title=" " alt="" coords="1212,93,1373,148"/>
+<area shape="poly" id="edge30_Node000001_Node000023" title=" " alt="" coords="1140,49,1235,91,1233,96,1138,53"/>
+<area shape="rect" id="Node000003" href="$protocol_8h.html" title="Convenience header for all protocol factory functions." alt="" coords="780,203,957,243"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="1412,146,1385,151,1268,166,1177,173,1085,181,969,199,936,206,935,201,968,193,1085,176,1176,168,1268,161,1384,145,1411,141"/>
+<area shape="rect" id="Node000006" href="$quic__connection__adapter_8h.html" title=" " alt="" coords="1411,196,1603,251"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="1510,154,1510,196,1505,196,1505,154"/>
+<area shape="rect" id="Node000007" href="$quic_8cpp.html" title=" " alt="" coords="1563,306,1719,331"/>
+<area shape="poly" id="edge11_Node000002_Node000007" title=" " alt="" coords="1563,146,1593,167,1618,195,1632,224,1640,255,1644,306,1638,306,1634,256,1627,226,1613,197,1589,171,1560,150"/>
+<area shape="poly" id="edge8_Node000002_Node000009" title=" " alt="" coords="1569,143,1698,193,1696,198,1567,148"/>
+<area shape="rect" id="Node000004" href="$network__system_8h.html" title="Main header for the Network System." alt="" coords="780,299,957,339"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="871,257,871,299,866,299,866,257"/>
+<area shape="rect" id="Node000005" href="$network__system_8cpp.html" title=" " alt="" coords="779,387,959,412"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="871,352,871,386,866,386,866,352"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="1558,256,1626,304,1623,308,1555,261"/>
+<area shape="rect" id="Node000008" href="$quic__connection__adapter_8cpp.html" title=" " alt="" coords="1324,299,1539,339"/>
+<area shape="poly" id="edge7_Node000006_Node000008" title=" " alt="" coords="1479,263,1449,300,1445,297,1475,260"/>
+<area shape="poly" id="edge9_Node000009_Node000007" title=" " alt="" coords="1719,261,1658,308,1655,303,1716,257"/>
+<area shape="rect" id="Node000010" href="$quic__listener__adapter_8cpp.html" title=" " alt="" coords="1743,299,1935,339"/>
+<area shape="poly" id="edge10_Node000009_Node000010" title=" " alt="" coords="1795,260,1826,297,1822,300,1791,263"/>
+<area shape="poly" id="edge13_Node000011_Node000003" title=" " alt="" coords="562,141,577,145,768,193,796,201,795,206,767,199,576,151,561,147"/>
+<area shape="rect" id="Node000012" href="$tcp_8cpp.html" title=" " alt="" coords="215,211,365,236"/>
+<area shape="poly" id="edge14_Node000011_Node000012" title=" " alt="" coords="431,149,313,213,310,208,429,145"/>
+<area shape="poly" id="edge16_Node000013_Node000003" title=" " alt="" coords="871,155,871,203,866,203,866,155"/>
+<area shape="rect" id="Node000014" href="$udp_8cpp.html" title=" " alt="" coords="603,211,756,236"/>
+<area shape="poly" id="edge17_Node000013_Node000014" title=" " alt="" coords="822,149,702,213,700,208,820,145"/>
+<area shape="poly" id="edge19_Node000015_Node000003" title=" " alt="" coords="1033,149,910,206,908,201,1031,144"/>
+<area shape="rect" id="Node000016" href="$websocket_8cpp.html" title=" " alt="" coords="981,211,1180,236"/>
+<area shape="poly" id="edge20_Node000015_Node000016" title=" " alt="" coords="1086,155,1084,210,1078,210,1081,154"/>
+<area shape="rect" id="Node000018" href="$unified__messaging__example_8cpp.html" title="Demonstrates the unified transport interface abstraction." alt="" coords="1873,203,2085,243"/>
+<area shape="poly" id="edge22_Node000017_Node000018" title=" " alt="" coords="1927,150,1967,202,1963,205,1923,153"/>
+<area shape="poly" id="edge25_Node000019_Node000012" title=" " alt="" coords="288,162,292,210,286,211,283,162"/>
+<area shape="rect" id="Node000020" href="$tcp__listener__adapter_8cpp.html" title=" " alt="" coords="5,203,191,243"/>
+<area shape="poly" id="edge26_Node000019_Node000020" title=" " alt="" coords="224,157,134,205,132,201,221,152"/>
+<area shape="poly" id="edge28_Node000021_Node000014" title=" " alt="" coords="678,162,681,210,676,211,673,162"/>
+<area shape="rect" id="Node000022" href="$udp__listener__adapter_8cpp.html" title=" " alt="" coords="389,203,578,243"/>
+<area shape="poly" id="edge29_Node000021_Node000022" title=" " alt="" coords="613,157,520,205,518,201,610,152"/>
+<area shape="poly" id="edge31_Node000023_Node000016" title=" " alt="" coords="1226,156,1106,213,1104,208,1224,151"/>
+<area shape="rect" id="Node000024" href="$ws__listener__adapter_8cpp.html" title=" " alt="" coords="1204,203,1387,243"/>
+<area shape="poly" id="edge32_Node000023_Node000024" title=" " alt="" coords="1296,162,1297,203,1292,203,1291,162"/>
+</map>

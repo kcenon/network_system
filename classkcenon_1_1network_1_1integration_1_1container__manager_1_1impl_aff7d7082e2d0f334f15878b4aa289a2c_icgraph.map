@@ -1,0 +1,13 @@
+<map id="kcenon::network::integration::container_manager::impl::get_default_container" name="kcenon::network::integration::container_manager::impl::get_default_container">
+<area shape="rect" id="Node000001" title=" " alt="" coords="545,84,755,139"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1integration_1_1container__manager_1_1impl.html#ae9cac8fd856860b5858bc63a1c804a3b" title=" " alt="" coords="288,5,497,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="546,82,482,63,484,58,548,77"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1integration_1_1container__manager.html#a7bfc5d1a7accea7cc695a73c1f702e9a" title="Get default container." alt="" coords="288,84,497,139"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="532,114,497,114,497,109,532,109"/>
+<area shape="rect" id="Node000005" href="$classkcenon_1_1network_1_1integration_1_1container__manager_1_1impl.html#a8659197a0a9a533996844a7f517b47c0" title=" " alt="" coords="288,163,497,217"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="548,145,484,165,482,160,546,140"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1integration_1_1container__manager.html#abbaaf0124d804f6ac3a6cb5a7bcf8725" title="Deserialize using default container." alt="" coords="5,13,240,53"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="274,35,240,35,240,30,274,30"/>
+<area shape="rect" id="Node000006" href="$classkcenon_1_1network_1_1integration_1_1container__manager.html#ad91d2de848957e6c91f32aae53d11202" title="Serialize using default container." alt="" coords="13,170,232,210"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="275,193,232,193,232,187,275,187"/>
+</map>

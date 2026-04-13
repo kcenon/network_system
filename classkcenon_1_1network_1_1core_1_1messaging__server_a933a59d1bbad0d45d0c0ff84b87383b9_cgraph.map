@@ -1,0 +1,32 @@
+<map id="kcenon::network::core::messaging_server::on_accept" name="kcenon::network::core::messaging_server::on_accept">
+<area shape="rect" id="Node000001" title="Handler called when an asynchronous accept finishes." alt="" coords="5,171,179,226"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1tracing_1_1trace__context.html#a0618b3e17f57071584025d5e47aa0541" title="Create a new root span with a new trace context." alt="" coords="227,43,433,83"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="121,169,168,130,225,92,240,85,242,90,228,97,171,134,124,173"/>
+<area shape="rect" id="Node000005" href="$namespacekcenon_1_1network_1_1tracing.html#a6ab950c88c5666f30b2db30609a6834a" title="Check if tracing is enabled." alt="" coords="239,107,421,147"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="178,170,249,148,251,153,180,175"/>
+<area shape="rect" id="Node000006" href="$classkcenon_1_1network_1_1metrics_1_1metric__reporter.html#ab0c0481d89ca11f1ed000b0f1af7ea93" title="Report active connections count." alt="" coords="237,329,423,383"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="120,224,168,270,228,315,237,320,234,325,225,320,165,274,117,228"/>
+<area shape="rect" id="Node000011" href="$classkcenon_1_1network_1_1metrics_1_1metric__reporter.html#a9a8993fa6f5318ed33b32c30d4602ba4" title="Report a new connection accepted." alt="" coords="237,171,423,226"/>
+<area shape="poly" id="edge11_Node000001_Node000011" title=" " alt="" coords="179,196,223,196,223,201,179,201"/>
+<area shape="rect" id="Node000013" href="$classkcenon_1_1network_1_1metrics_1_1metric__reporter.html#a6a84ae950cbc9480ac4522b22fa6a27e" title="Report a failed connection attempt." alt="" coords="237,250,423,305"/>
+<area shape="poly" id="edge15_Node000001_Node000013" title=" " alt="" coords="176,224,235,243,233,248,175,229"/>
+<area shape="rect" id="Node000003" href="$namespacekcenon_1_1network_1_1tracing.html#a933bb00747359508e4c9b490d42c495d" title="Generate a random span ID." alt="" coords="495,69,677,109"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="434,71,481,76,481,81,433,76"/>
+<area shape="rect" id="Node000004" href="$namespacekcenon_1_1network_1_1tracing.html#ab38da93c9d82d6795e6950368611ea35" title="Generate a random trace ID." alt="" coords="495,5,677,45"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="433,45,481,38,481,43,434,50"/>
+<area shape="rect" id="Node000007" href="$classkcenon_1_1network_1_1integration_1_1monitoring__integration__manager.html#a3a3880025d000147e508a14e7391e77c" title="Get the singleton instance." alt="" coords="481,262,691,317"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="423,329,467,317,469,323,424,334"/>
+<area shape="rect" id="Node000008" href="$classkcenon_1_1network_1_1integration_1_1monitoring__integration__manager.html#a8c079c0755ccbd9f2b7cb9928a919e3c" title="Report a gauge metric." alt="" coords="481,341,691,395"/>
+<area shape="poly" id="edge8_Node000006_Node000008" title=" " alt="" coords="424,358,468,360,467,365,423,363"/>
+<area shape="poly" id="edge7_Node000007_Node000007" title=" " alt="" coords="536,262,537,252,545,243,562,237,586,235,615,238,631,246,629,251,613,244,586,241,563,243,548,247,541,254,542,262"/>
+<area shape="rect" id="Node000009" href="$classkcenon_1_1network_1_1integration_1_1monitoring__integration__manager.html#a0f8cb1959ed418ef13ec4b94aa0455dc" title="Get the current monitoring implementation." alt="" coords="739,250,948,305"/>
+<area shape="poly" id="edge9_Node000008_Node000009" title=" " alt="" coords="664,338,752,307,753,312,665,343"/>
+<area shape="rect" id="Node000010" href="$classkcenon_1_1network_1_1integration_1_1monitoring__integration__manager_1_1impl.html#a73273ad303eb22a30d5d02dff2ae7839" title=" " alt="" coords="996,250,1227,305"/>
+<area shape="poly" id="edge10_Node000009_Node000010" title=" " alt="" coords="948,275,982,275,982,280,948,280"/>
+<area shape="poly" id="edge12_Node000011_Node000007" title=" " alt="" coords="409,224,496,255,494,260,407,229"/>
+<area shape="rect" id="Node000012" href="$classkcenon_1_1network_1_1integration_1_1monitoring__integration__manager.html#a6049b4de0cac7878938b8a4445415e7e" title="Report a counter metric." alt="" coords="481,159,691,214"/>
+<area shape="poly" id="edge13_Node000011_Node000012" title=" " alt="" coords="423,192,467,190,468,195,424,197"/>
+<area shape="poly" id="edge14_Node000012_Node000009" title=" " alt="" coords="665,212,753,243,752,248,664,217"/>
+<area shape="poly" id="edge16_Node000013_Node000007" title=" " alt="" coords="424,279,468,281,467,286,423,284"/>
+<area shape="poly" id="edge17_Node000013_Node000012" title=" " alt="" coords="407,247,494,216,496,221,409,252"/>
+</map>

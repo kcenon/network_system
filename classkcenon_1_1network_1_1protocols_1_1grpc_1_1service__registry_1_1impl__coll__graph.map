@@ -1,0 +1,26 @@
+<map id="kcenon::network::protocols::grpc::service_registry::impl" name="kcenon::network::protocols::grpc::service_registry::impl">
+<area shape="rect" id="Node000001" title=" " alt="" coords="453,532,652,812"/>
+<area shape="rect" id="Node000002" href="$structkcenon_1_1network_1_1protocols_1_1grpc_1_1registry__config.html" title="Configuration for service registry." alt="" coords="555,365,745,465"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="634,466,614,518,609,516,629,464"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="599,175,677,241"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="663,240,677,264,687,291,690,321,684,349,679,348,684,320,682,293,672,266,659,242"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="196,360,357,469"/>
+<area shape="poly" id="edge6_Node000006_Node000003" title=" " alt="" coords="606,243,560,293,550,317,545,328,534,338,513,350,493,356,456,357,418,355,397,357,373,363,373,363,371,358,372,357,396,351,418,350,456,352,492,351,510,345,531,334,540,325,545,315,556,291,602,239"/>
+<area shape="rect" id="Node000011" title=" " alt="" coords="385,375,531,455"/>
+<area shape="poly" id="edge12_Node000011_Node000003" title=" " alt="" coords="641,241,635,290,625,315,611,338,595,350,579,354,563,356,544,362,532,369,530,364,542,358,562,351,578,349,593,345,607,334,621,313,629,288,636,240"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="573,5,703,85"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="641,99,641,175,635,175,635,99"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="769,382,904,447"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="803,450,666,572,663,568,799,446"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="336,467,443,566,439,570,333,471"/>
+<area shape="rect" id="Node000007" href="$classkcenon_1_1network_1_1protocols_1_1grpc_1_1service__base.html" title="Base class for all gRPC service implementations." alt="" coords="5,148,196,268"/>
+<area shape="poly" id="edge7_Node000006_Node000007" title=" " alt="" coords="102,268,109,303,124,334,150,361,182,381,180,385,147,365,120,338,104,305,97,269"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="273,168,417,248"/>
+<area shape="poly" id="edge8_Node000006_Node000008" title=" " alt="" coords="262,245,234,266,212,293,207,309,208,325,224,358,219,361,203,327,202,309,208,291,230,262,259,241"/>
+<area shape="poly" id="edge13_Node000011_Node000008" title=" " alt="" coords="365,260,380,297,399,335,426,373,421,376,394,337,375,300,360,262"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="295,13,317,78"/>
+<area shape="poly" id="edge9_Node000008_Node000009" title=" " alt="" coords="310,78,317,123,325,152,320,153,311,125,305,79"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="371,13,393,78"/>
+<area shape="poly" id="edge10_Node000008_Node000010" title=" " alt="" coords="377,79,360,152,355,151,372,78"/>
+<area shape="poly" id="edge11_Node000001_Node000011" title=" " alt="" coords="472,454,490,507,493,515,488,517,485,509,467,456"/>
+</map>

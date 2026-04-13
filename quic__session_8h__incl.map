@@ -1,0 +1,39 @@
+<map id="include/kcenon/network/detail/session/quic_session.h" name="include/kcenon/network/detail/session/quic_session.h">
+<area shape="rect" id="Node000001" title="QUIC&#45;specific session with stream multiplexing." alt="" coords="637,5,851,45"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,101,72,126"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="637,31,522,36,383,47,233,66,85,96,76,98,74,93,83,91,232,61,382,42,521,30,637,25"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="97,101,183,126"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="637,36,431,56,313,73,197,96,184,99,183,94,195,91,312,68,431,51,636,31"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="208,101,285,126"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="637,39,476,60,386,76,298,96,288,99,287,94,297,91,385,71,475,55,636,34"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="309,101,373,126"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="637,43,515,64,385,96,378,98,377,93,383,91,514,58,636,37"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="1360,189,1419,214"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="852,28,1002,36,1167,48,1307,66,1355,78,1382,91,1394,110,1400,133,1398,175,1393,175,1394,133,1389,113,1378,95,1353,83,1306,72,1166,54,1001,41,851,33"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="643,101,741,126"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="735,47,709,90,704,87,730,44"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="765,101,827,126"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="758,44,784,87,779,90,753,47"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="852,101,929,126"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="778,43,861,91,858,96,775,48"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="953,93,1151,133"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="812,43,972,87,971,92,811,48"/>
+<area shape="rect" id="Node000011" title=" " alt="" coords="1176,93,1368,133"/>
+<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="852,41,1163,91,1162,96,851,46"/>
+<area shape="rect" id="Node000012" href="$connection__id_8h.html" title="QUIC connection identifier type." alt="" coords="397,93,619,133"/>
+<area shape="poly" id="edge11_Node000001_Node000012" title=" " alt="" coords="693,48,573,91,572,86,691,43"/>
+<area shape="rect" id="Node000016" href="$result__types_8h.html" title="Network&#45;specific error and result type definitions." alt="" coords="1443,93,1610,133"/>
+<area shape="poly" id="edge16_Node000001_Node000016" title=" " alt="" coords="852,32,1113,55,1424,91,1430,92,1430,97,1424,96,1112,60,851,37"/>
+<area shape="poly" id="edge15_Node000012_Node000006" title=" " alt="" coords="620,129,631,131,841,153,1048,172,1347,195,1346,200,1047,177,841,159,630,136,619,135"/>
+<area shape="rect" id="Node000013" title=" " alt="" coords="559,189,615,214"/>
+<area shape="poly" id="edge12_Node000012_Node000013" title=" " alt="" coords="527,132,568,176,565,180,523,135"/>
+<area shape="rect" id="Node000014" title=" " alt="" coords="391,189,457,214"/>
+<area shape="poly" id="edge13_Node000012_Node000014" title=" " alt="" coords="491,135,447,180,443,177,487,132"/>
+<area shape="rect" id="Node000015" title=" " alt="" coords="481,189,535,214"/>
+<area shape="poly" id="edge14_Node000012_Node000015" title=" " alt="" coords="511,134,511,175,505,175,505,134"/>
+<area shape="poly" id="edge19_Node000016_Node000006" title=" " alt="" coords="1498,136,1421,184,1418,179,1495,131"/>
+<area shape="rect" id="Node000017" href="$detail_2config_2feature__flags_8h.html" title="Feature flags for network_system." alt="" coords="1443,181,1610,221"/>
+<area shape="poly" id="edge17_Node000016_Node000017" title=" " alt="" coords="1529,134,1529,167,1524,167,1524,134"/>
+<area shape="rect" id="Node000018" title=" " alt="" coords="1634,189,1702,214"/>
+<area shape="poly" id="edge18_Node000016_Node000018" title=" " alt="" coords="1559,131,1639,179,1636,184,1556,136"/>
+</map>

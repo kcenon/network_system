@@ -1,0 +1,9 @@
+<map id="kcenon::network::protocols::quic::pmtud_controller::on_probe_lost" name="kcenon::network::protocols::quic::pmtud_controller::on_probe_lost">
+<area shape="rect" id="Node000001" title="Handle probe loss." alt="" coords="5,84,204,139"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1pmtud__controller.html#aef9fc3094a35a731b13c5a7b2c0d4bb6" title="Calculate next probe size using binary search." alt="" coords="252,5,455,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="191,81,252,62,254,67,193,86"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1pmtud__controller.html#a07348e58314afa997dbc8b49c5b0e94e" title="Transition to search_complete state." alt="" coords="254,84,453,139"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="204,109,240,109,240,114,204,114"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1pmtud__controller.html#af6afa4a0016a0bad2e0364cff2a320a6" title="Handle black hole detection." alt="" coords="254,163,453,217"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="193,136,254,156,252,161,191,141"/>
+</map>

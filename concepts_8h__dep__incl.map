@@ -1,0 +1,7 @@
+<map id="include/kcenon/network/concepts/concepts.h" name="include/kcenon/network/concepts/concepts.h">
+<area shape="rect" id="Node000001" title="Unified header for all C++20 concepts in network_system." alt="" coords="7,5,184,45"/>
+<area shape="rect" id="Node000002" href="$network__system_8h.html" title="Main header for the Network System." alt="" coords="7,93,184,133"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="98,59,98,93,93,93,93,59"/>
+<area shape="rect" id="Node000003" href="$network__system_8cpp.html" title=" " alt="" coords="5,181,185,207"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="98,147,98,181,93,181,93,147"/>
+</map>

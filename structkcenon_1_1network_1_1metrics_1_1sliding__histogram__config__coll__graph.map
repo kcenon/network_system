@@ -1,0 +1,11 @@
+<map id="kcenon::network::metrics::sliding_histogram_config" name="kcenon::network::metrics::sliding_histogram_config">
+<area shape="rect" id="Node000001" title="Configuration for sliding window histogram." alt="" coords="6,532,190,632"/>
+<area shape="rect" id="Node000002" href="$structkcenon_1_1network_1_1metrics_1_1histogram__config.html" title="Configuration for histogram bucket boundaries." alt="" coords="5,389,191,469"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="101,470,101,515,95,515,95,470"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="19,261,177,327"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="101,327,101,373,95,373,95,327"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="37,133,159,199"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="101,213,101,261,95,261,95,213"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="87,5,109,71"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="101,71,101,117,95,117,95,71"/>
+</map>

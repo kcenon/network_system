@@ -1,0 +1,5 @@
+<map id="kcenon::network::core::messaging_ws_client::stop_client" name="kcenon::network::core::messaging_ws_client::stop_client">
+<area shape="rect" id="Node000001" title="Stops the client and releases all resources." alt="" coords="233,5,403,60"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1core_1_1messaging__ws__client.html#a8f3eacef9e968b7f711049a2a55c0216" title="Destructor. Automatically stops the client if still running." alt="" coords="5,5,185,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="219,35,185,35,185,30,219,30"/>
+</map>

@@ -1,0 +1,50 @@
+<map id="kcenon::network::tracing::generate_span_id" name="kcenon::network::tracing::generate_span_id">
+<area shape="rect" id="Node000001" title="Generate a random span ID." alt="" coords="797,645,980,685"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1tracing_1_1trace__context.html#a9c6f8a086b624e13762e11dba37861b4" title="Create a child span inheriting this context." alt="" coords="555,601,737,656"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="783,652,737,645,738,640,784,647"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1tracing_1_1trace__context.html#a0618b3e17f57071584025d5e47aa0541" title="Create a new root span with a new trace context." alt="" coords="543,681,749,721"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="784,683,750,688,749,683,784,678"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1protocols_1_1grpc_1_1grpc__client_1_1impl.html#a19da0c3df010229bc59dd7941c9f88ed" title=" " alt="" coords="274,5,473,60"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="544,673,540,669,527,646,518,617,509,545,510,461,516,370,521,279,522,195,514,124,505,96,493,74,471,56,475,52,497,71,510,94,519,123,528,195,527,279,521,370,516,461,515,545,523,616,532,644,545,666,548,670"/>
+<area shape="rect" id="Node000006" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1connection.html#a9ee20a2cc7e7db48130ba9fffd40d8da" title="Close the connection." alt="" coords="274,85,473,125"/>
+<area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="545,674,541,669,528,648,520,622,512,558,513,483,517,401,521,320,521,245,513,182,505,158,493,138,471,121,474,117,497,135,509,155,518,181,527,245,527,320,522,401,518,483,517,558,525,621,533,646,545,666,549,670"/>
+<area shape="rect" id="Node000007" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1connection.html#ae0dbab93804277d59f86d0c8bcf35cc0" title="Close connection due to application error." alt="" coords="274,149,473,204"/>
+<area shape="poly" id="edge6_Node000003_Node000007" title=" " alt="" coords="545,674,541,669,520,639,507,610,499,581,497,552,503,496,516,441,530,385,535,330,533,302,526,274,512,246,493,217,471,199,474,195,497,214,517,243,531,272,538,301,541,330,535,386,521,442,508,497,502,553,505,580,512,608,525,637,545,666,549,670"/>
+<area shape="rect" id="Node000008" href="$classkcenon_1_1network_1_1protocols_1_1grpc_1_1grpc__client_1_1impl.html#a256243e61591588ffd3f790623430e6b" title=" " alt="" coords="274,228,473,283"/>
+<area shape="poly" id="edge7_Node000003_Node000008" title=" " alt="" coords="545,674,541,669,523,645,512,621,505,597,503,573,506,527,516,481,526,435,529,390,527,367,520,344,509,321,493,297,471,279,475,275,497,294,514,318,525,342,532,366,535,390,531,436,521,482,511,528,508,573,510,596,517,619,528,642,545,666,549,670"/>
+<area shape="rect" id="Node000009" href="$classkcenon_1_1network_1_1protocols_1_1http2_1_1http2__client.html#ad93631ef5e7ffab7193295e2183e4ec3" title="Connect to HTTP/2 server." alt="" coords="269,307,477,347"/>
+<area shape="poly" id="edge8_Node000003_Node000009" title=" " alt="" coords="545,674,541,669,526,649,516,629,508,589,510,550,517,512,524,474,526,436,517,399,507,380,493,361,476,348,480,343,497,357,512,377,522,397,531,436,530,475,522,513,515,551,513,589,521,627,531,646,545,666,549,670"/>
+<area shape="rect" id="Node000010" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1connection.html#a36474e75fa6b5ae8d2690c0254df760a" title="Initialize server handshake." alt="" coords="274,372,473,427"/>
+<area shape="poly" id="edge9_Node000003_Node000010" title=" " alt="" coords="546,674,541,669,521,639,513,610,513,581,516,552,519,524,519,496,511,468,493,440,471,423,475,419,497,436,516,466,524,495,525,524,521,553,518,581,518,609,526,637,545,666,550,670"/>
+<area shape="rect" id="Node000011" href="$classkcenon_1_1network_1_1core_1_1messaging__server.html#a933a59d1bbad0d45d0c0ff84b87383b9" title="Handler called when an asynchronous accept finishes." alt="" coords="287,451,460,505"/>
+<area shape="poly" id="edge10_Node000003_Node000011" title=" " alt="" coords="547,675,541,669,526,650,519,631,516,593,513,556,506,538,493,520,477,507,459,498,462,493,480,503,497,516,511,535,519,555,521,593,524,630,531,647,545,666,551,671"/>
+<area shape="rect" id="Node000012" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1connection.html#a3cdbd77b9c7f4478c725b6ced253719a" title="Receive and process a packet." alt="" coords="252,530,495,570"/>
+<area shape="poly" id="edge11_Node000003_Node000012" title=" " alt="" coords="550,676,541,669,523,647,516,625,510,604,493,584,474,572,477,568,496,580,514,601,521,624,528,645,545,665,553,672"/>
+<area shape="rect" id="Node000013" href="$classkcenon_1_1network_1_1core_1_1messaging__quic__client.html#a629cae5f70ba19728569aadc8533eb96" title="Sends data on a specific stream (interface version)." alt="" coords="284,595,463,649"/>
+<area shape="poly" id="edge12_Node000003_Node000013" title=" " alt="" coords="562,679,462,650,464,645,563,674"/>
+<area shape="rect" id="Node000014" href="$classkcenon_1_1network_1_1core_1_1messaging__client.html#a6d7784131401630ba49355981d5ce202" title="Sends data to the connected server." alt="" coords="282,673,465,728"/>
+<area shape="poly" id="edge13_Node000003_Node000014" title=" " alt="" coords="529,703,465,703,465,698,529,698"/>
+<area shape="rect" id="Node000015" href="$classkcenon_1_1network_1_1core_1_1messaging__quic__client.html#a740d75052db8a3f7b1675301b22025d0" title="Send data on the default stream (stream 0)." alt="" coords="284,752,463,807"/>
+<area shape="poly" id="edge14_Node000003_Node000015" title=" " alt="" coords="563,727,464,756,462,751,562,722"/>
+<area shape="rect" id="Node000016" href="$classkcenon_1_1network_1_1protocols_1_1http2_1_1http2__client.html#a3487051c89d933e25833a0619b1d712a" title=" " alt="" coords="274,831,473,885"/>
+<area shape="poly" id="edge15_Node000003_Node000016" title=" " alt="" coords="616,732,562,777,496,820,469,833,467,828,493,816,559,772,612,728"/>
+<area shape="rect" id="Node000017" href="$network__tracing__example_8cpp.html#a38f5c31b50ac553a1840f5d1595db530" title=" " alt="" coords="286,909,461,935"/>
+<area shape="poly" id="edge16_Node000003_Node000017" title=" " alt="" coords="631,735,610,773,580,818,541,862,496,899,462,914,460,909,493,894,538,858,575,815,605,770,627,732"/>
+<area shape="rect" id="Node000019" href="$network__tracing__example_8cpp.html#a070935250a3c2e9d8e25dbfa95ebb5ce" title=" " alt="" coords="278,959,469,984"/>
+<area shape="poly" id="edge18_Node000003_Node000019" title=" " alt="" coords="637,735,618,783,589,842,548,901,524,927,496,950,470,963,468,958,493,945,520,923,544,897,584,839,613,781,632,733"/>
+<area shape="rect" id="Node000020" href="$classkcenon_1_1network_1_1protocols_1_1grpc_1_1grpc__server_1_1impl.html#a27edb93ca69128c8a4c2b63f04e266f3" title=" " alt="" coords="265,1009,482,1049"/>
+<area shape="poly" id="edge20_Node000003_Node000020" title=" " alt="" coords="640,735,623,792,595,863,553,936,527,970,496,999,477,1011,475,1006,493,995,523,966,549,933,590,861,618,790,635,733"/>
+<area shape="rect" id="Node000021" href="$classkcenon_1_1network_1_1core_1_1messaging__client.html#a491a93358d45457cb22c0afd023b779f" title="Starts the client and connects to the specified host and port." alt="" coords="282,1073,465,1128"/>
+<area shape="poly" id="edge21_Node000003_Node000021" title=" " alt="" coords="643,735,629,803,602,891,583,937,559,983,531,1025,496,1063,466,1083,463,1078,493,1059,526,1022,555,980,578,935,597,889,624,802,637,734"/>
+<area shape="rect" id="Node000022" href="$classkcenon_1_1network_1_1core_1_1messaging__quic__client.html#a1f253afb1b1a877e960ebe22621b5805" title="Starts the client with TLS configuration." alt="" coords="284,1152,463,1207"/>
+<area shape="poly" id="edge22_Node000003_Node000022" title=" " alt="" coords="646,735,636,817,613,926,594,984,569,1042,536,1095,496,1143,464,1164,461,1159,493,1139,532,1092,564,1039,589,982,608,925,631,816,640,735"/>
+<area shape="rect" id="Node000023" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1connection.html#abca33f032d69377cad9c90b784e80bb6" title="Start the handshake (client only)" alt="" coords="274,1231,473,1285"/>
+<area shape="poly" id="edge23_Node000003_Node000023" title=" " alt="" coords="648,735,643,829,636,892,623,959,604,1029,578,1099,542,1164,497,1221,475,1238,472,1233,493,1217,538,1161,573,1096,599,1028,618,958,630,891,638,829,642,734"/>
+<area shape="rect" id="Node000024" href="$classkcenon_1_1network_1_1core_1_1messaging__server.html#a7b7ed68c52e880e82bf21739b7a0a587" title="Starts the server on the specified port." alt="" coords="280,1309,467,1364"/>
+<area shape="poly" id="edge24_Node000003_Node000024" title=" " alt="" coords="643,735,625,859,594,1028,574,1113,551,1191,525,1256,497,1300,469,1320,465,1316,493,1296,521,1253,546,1190,569,1112,589,1027,620,858,638,734"/>
+<area shape="rect" id="Node000005" href="$classkcenon_1_1network_1_1protocols_1_1grpc_1_1grpc__client_1_1impl.html#af482c55fd98e4fc15fa798c01ecfb2d9" title=" " alt="" coords="5,5,204,60"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="260,35,204,35,204,30,260,30"/>
+<area shape="rect" id="Node000018" href="$network__tracing__example_8cpp.html#ae66f6b31b5ad750f1fe042a706a4e3d4" title=" " alt="" coords="77,933,132,959"/>
+<area shape="poly" id="edge17_Node000017_Node000018" title=" " alt="" coords="273,934,132,946,132,941,272,928"/>
+<area shape="poly" id="edge19_Node000019_Node000018" title=" " alt="" coords="264,964,132,951,132,946,265,958"/>
+</map>

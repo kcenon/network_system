@@ -1,0 +1,5 @@
+<map id="kcenon::network::internal::dtls_socket" name="kcenon::network::internal::dtls_socket">
+<area shape="rect" id="Node000001" title="A wrapper around ASIO UDP socket with OpenSSL DTLS encryption." alt="" coords="5,133,193,713"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="6,5,193,85"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="102,99,102,133,97,133,97,99"/>
+</map>

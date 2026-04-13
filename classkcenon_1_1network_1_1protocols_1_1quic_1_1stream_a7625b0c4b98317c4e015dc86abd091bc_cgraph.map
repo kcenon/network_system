@@ -1,0 +1,5 @@
+<map id="kcenon::network::protocols::quic::stream::write" name="kcenon::network::protocols::quic::stream::write">
+<area shape="rect" id="Node000001" title="Write data to stream." alt="" coords="5,5,204,45"/>
+<area shape="rect" id="Node000002" href="$namespacekcenon_1_1network.html#aa32d0dbfdee046c2c0cde3667c5f05a8" title=" " alt="" coords="252,13,407,38"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="204,23,238,23,238,28,204,28"/>
+</map>

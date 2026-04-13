@@ -1,0 +1,5 @@
+<map id="kcenon::network::core::session_manager_base::remove_session" name="kcenon::network::core::session_manager_base::remove_session">
+<area shape="rect" id="Node000001" title="Remove session by ID." alt="" coords="236,5,419,60"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1core_1_1session__manager__base.html#a9654a5f24ec7366fa4a43a4077d784b6" title="Cleanup idle sessions that exceeded idle_timeout." alt="" coords="5,5,188,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="223,35,188,35,188,30,223,30"/>
+</map>

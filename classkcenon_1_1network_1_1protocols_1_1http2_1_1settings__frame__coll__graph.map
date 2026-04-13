@@ -1,0 +1,18 @@
+<map id="kcenon::network::protocols::http2::settings_frame" name="kcenon::network::protocols::http2::settings_frame">
+<area shape="rect" id="Node000001" title="SETTINGS frame (RFC 7540 Section 6.5)" alt="" coords="297,797,488,937"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1protocols_1_1http2_1_1frame.html" title="Base class for HTTP/2 frames." alt="" coords="188,548,379,748"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="342,759,360,796,355,798,337,761"/>
+<area shape="rect" id="Node000003" href="$structkcenon_1_1network_1_1protocols_1_1http2_1_1frame__header.html" title="HTTP/2 frame header (9 bytes)" alt="" coords="188,325,379,485"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="286,486,286,532,281,532,281,486"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="5,373,164,438"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="113,436,193,534,189,537,109,440"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="171,151,292,216"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="201,229,179,259,106,374,101,371,174,256,196,226"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="403,358,601,453"/>
+<area shape="poly" id="edge8_Node000007_Node000005" title=" " alt="" coords="266,225,301,263,342,299,366,312,391,323,441,355,438,360,389,328,364,317,339,304,297,267,262,229"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="220,5,243,71"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="234,71,234,134,229,134,229,71"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="494,453,415,782,410,781,488,452"/>
+<area shape="rect" id="Node000008" href="$structkcenon_1_1network_1_1protocols_1_1http2_1_1setting__parameter.html" title="SETTINGS frame parameter." alt="" coords="407,133,597,233"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="505,233,505,342,499,342,499,233"/>
+</map>

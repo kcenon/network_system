@@ -1,0 +1,9 @@
+<map id="kcenon::network::metrics::metric_reporter::report_connection_accepted" name="kcenon::network::metrics::metric_reporter::report_connection_accepted">
+<area shape="rect" id="Node000001" title="Report a new connection accepted." alt="" coords="236,69,423,124"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1core_1_1messaging__quic__server.html#acd4acef6c646a1b839796e53c80e9c53" title=" " alt="" coords="5,5,188,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="222,70,188,60,189,55,224,65"/>
+<area shape="rect" id="Node000003" href="$network__metrics__example_8cpp.html#ae66f6b31b5ad750f1fe042a706a4e3d4" title=" " alt="" coords="69,84,124,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="222,99,124,99,124,94,222,94"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1core_1_1messaging__server.html#a933a59d1bbad0d45d0c0ff84b87383b9" title="Handler called when an asynchronous accept finishes." alt="" coords="10,133,183,188"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="223,129,184,139,183,134,222,123"/>
+</map>

@@ -1,0 +1,19 @@
+<map id="src/internal/http" name="src/internal/http">
+<area shape="rect" id="node1" href="dir_394ceb31f52466f494e87ea147d7a8cc.html" title="utils" alt="" coords="27,125,77,151"/>
+<area shape="rect" id="node2" href="dir_7d7b17dd76649e103bce95020d701424.html" title="interfaces" alt="" coords="102,125,189,151"/>
+<area shape="rect" id="node3" href="dir_dd3b4f736b082084b6026da39a9be8a4.html" title="websocket" alt="" coords="213,125,304,151"/>
+<area shape="rect" id="node4" href="dir_fc391693c5b997f1c609080ef9ece185.html" title="core" alt="" coords="328,125,379,151"/>
+<area shape="rect" id="node5" href="dir_69875adbe5f33692402f655b3417b9a7.html" title="http" alt="" coords="235,52,283,77"/>
+<area shape="poly" id="edge1" href="dir_000026_000068.html" alt="" coords="235,77,92,126,90,121,234,72"/>
+<area shape="rect" id="edge1-headlabel" href="dir_000026_000068.html" title="1" alt="" coords="93,123,102,137"/>
+<area shape="poly" id="edge2" href="dir_000026_000034.html" alt="" coords="242,80,177,120,174,116,239,75"/>
+<area shape="rect" id="edge2-headlabel" href="dir_000026_000034.html" title="2" alt="" coords="179,115,188,130"/>
+<area shape="poly" id="edge4" href="dir_000026_000069.html" alt="" coords="261,78,261,112,256,112,256,78"/>
+<area shape="rect" id="edge4-headlabel" href="dir_000026_000069.html" title="2" alt="" coords="262,100,272,114"/>
+<area shape="poly" id="edge5" href="dir_000026_000010.html" alt="" coords="275,75,328,115,325,119,272,79"/>
+<area shape="rect" id="edge5-headlabel" href="dir_000026_000010.html" title="4" alt="" coords="324,100,333,115"/>
+<area shape="rect" id="node6" href="dir_d44c64559bbebec7f509842c48db8b23.html" title="include" alt="" coords="403,125,472,151"/>
+<area shape="poly" id="edge3" href="dir_000026_000029.html" alt="" coords="284,73,397,118,395,123,282,78"/>
+<area shape="rect" id="edge3-headlabel" href="dir_000026_000029.html" title="12" alt="" coords="386,103,403,118"/>
+<area shape="rect" id="clust1" href="dir_3756d50f4003bc63fa3fe49460f9c79d.html" title="internal" alt="" coords="16,16,389,161"/>
+</map>

@@ -1,0 +1,7 @@
+<map id="kcenon::network::protocols::quic::pmtud_controller::current_mtu" name="kcenon::network::protocols::quic::pmtud_controller::current_mtu">
+<area shape="rect" id="Node000001" title="Get current validated MTU." alt="" coords="291,30,489,85"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1connection.html#a08cfa78b7be7750927e05f2f54601113" title="Enable Path MTU Discovery." alt="" coords="5,5,243,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="277,46,243,42,243,37,277,41"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1connection.html#a75ac628584cc725e37c4b72ed691f8b6" title="Get current path MTU." alt="" coords="21,69,227,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="277,74,228,80,227,74,277,68"/>
+</map>

@@ -1,0 +1,7 @@
+<map id="kcenon::network::protocols::quic::frame_parser::peek_type" name="kcenon::network::protocols::quic::frame_parser::peek_type">
+<area shape="rect" id="Node000001" title="Get the frame type from raw data without full parsing." alt="" coords="5,5,233,45"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1varint.html#a900942fa244ad1d31b4a56c74347d3ca" title="Decode variable&#45;length integer from buffer." alt="" coords="281,5,480,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="233,23,268,23,268,28,233,28"/>
+<area shape="rect" id="Node000003" href="$namespacekcenon_1_1network.html#aa32d0dbfdee046c2c0cde3667c5f05a8" title=" " alt="" coords="528,13,683,38"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="480,23,514,23,514,28,480,28"/>
+</map>

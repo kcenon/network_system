@@ -1,0 +1,5 @@
+<map id="kcenon::network::protocol::websocket::create_connection" name="kcenon::network::protocol::websocket::create_connection">
+<area shape="rect" id="Node000001" title="Creates a WebSocket connection (not yet started)" alt="" coords="244,5,471,45"/>
+<area shape="rect" id="Node000002" href="$namespacekcenon_1_1network_1_1protocol_1_1websocket.html#af6cab9fab2c24087e305a64c698f7262" title="Creates and starts a WebSocket connection in one call." alt="" coords="5,5,196,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="230,28,196,28,196,23,230,23"/>
+</map>

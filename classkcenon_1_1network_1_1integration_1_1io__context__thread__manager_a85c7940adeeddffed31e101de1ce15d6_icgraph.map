@@ -1,0 +1,7 @@
+<map id="kcenon::network::integration::io_context_thread_manager::stop_io_context" name="kcenon::network::integration::io_context_thread_manager::stop_io_context">
+<area shape="rect" id="Node000001" title="Stop an io_context managed by this manager." alt="" coords="227,45,439,100"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1core_1_1messaging__client.html#aedc22c0423e82bca139a834b4931a14a" title="TCP&#45;specific implementation of client stop." alt="" coords="8,5,176,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="213,55,176,49,177,44,214,50"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1core_1_1messaging__server.html#a797be91fae02fb72d8f92af48c31e65b" title="TCP&#45;specific implementation of server stop." alt="" coords="5,84,179,139"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="213,95,179,100,178,95,213,89"/>
+</map>

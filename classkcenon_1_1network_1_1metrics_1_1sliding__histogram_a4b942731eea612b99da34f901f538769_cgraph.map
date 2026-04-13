@@ -1,0 +1,10 @@
+<map id="kcenon::network::metrics::sliding_histogram::mean" name="kcenon::network::metrics::sliding_histogram::mean">
+<area shape="rect" id="Node000001" title="Get mean of all observations in current window." alt="" coords="5,37,196,77"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1metrics_1_1sliding__histogram.html#ab361b5931e165429f0a9f18b9a3cb454" title="Get total number of observations in current window." alt="" coords="244,5,435,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="196,42,230,37,231,43,197,47"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1metrics_1_1sliding__histogram.html#ab0b49683bbaf9f34f793e4cc751aa569" title="Get sum of all observations in current window." alt="" coords="246,69,433,109"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="197,67,233,72,232,78,196,73"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1metrics_1_1sliding__histogram.html#a9c4c18e9ae5893893ea72528beb64638" title="Expire old buckets outside the window." alt="" coords="483,30,677,85"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="435,35,469,40,469,45,434,41"/>
+<area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="432,74,469,69,470,75,433,80"/>
+</map>

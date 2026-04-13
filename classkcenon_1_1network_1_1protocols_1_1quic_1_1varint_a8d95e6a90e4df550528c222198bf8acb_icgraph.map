@@ -1,0 +1,11 @@
+<map id="kcenon::network::protocols::quic::varint::encode" name="kcenon::network::protocols::quic::varint::encode">
+<area shape="rect" id="Node000001" title="Encode a value to variable&#45;length format." alt="" coords="585,41,784,81"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1frame__builder.html#ad10ac7957ec024f1c18260336f996749" title=" " alt="" coords="280,5,537,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="571,49,537,45,538,39,572,44"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1packet__builder.html#aae56df8b95c768ea642f7697a8719ce0" title="Build an Initial packet header." alt="" coords="309,70,508,125"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="572,79,509,87,508,82,571,73"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1connection.html#aab062ba7194c739645461e55b8f2740b" title="Build a packet at the given encryption level." alt="" coords="5,45,232,85"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="295,88,232,81,233,75,296,82"/>
+<area shape="rect" id="Node000005" href="$classkcenon_1_1network_1_1internal_1_1quic__socket.html#a8ec598b433e36446190f83740068b81b" title="Build and send a packet with frames." alt="" coords="21,109,216,149"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="296,112,216,121,216,116,295,107"/>
+</map>

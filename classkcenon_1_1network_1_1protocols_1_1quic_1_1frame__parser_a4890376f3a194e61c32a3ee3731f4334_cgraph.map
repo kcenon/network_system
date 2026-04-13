@@ -1,0 +1,8 @@
+<map id="kcenon::network::protocols::quic::frame_parser::parse_ack" name="kcenon::network::protocols::quic::frame_parser::parse_ack">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,35,232,75"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1varint.html#a900942fa244ad1d31b4a56c74347d3ca" title="Decode variable&#45;length integer from buffer." alt="" coords="280,5,479,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="232,39,266,35,267,41,232,45"/>
+<area shape="rect" id="Node000003" href="$namespacekcenon_1_1network.html#aa32d0dbfdee046c2c0cde3667c5f05a8" title=" " alt="" coords="527,42,681,67"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="232,54,280,55,479,55,513,54,513,59,479,60,280,60,232,59"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="479,36,513,40,513,45,478,41"/>
+</map>

@@ -1,0 +1,15 @@
+<map id="src/internal/integration/bridge_interface.h" name="src/internal/integration/bridge_interface.h">
+<area shape="rect" id="Node000001" title="Unified interface for external system integration bridges." alt="" coords="238,5,409,45"/>
+<area shape="rect" id="Node000002" href="$messaging__bridge_8h.html" title="Bridge for messaging_system compatibility implementing INetworkBridge." alt="" coords="30,93,201,133"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="266,53,162,96,160,91,264,48"/>
+<area shape="rect" id="Node000004" href="$observability__bridge_8h.html" title="Observability (logger and monitoring) integration bridge for network_system." alt="" coords="238,93,409,133"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="326,59,326,93,321,93,321,59"/>
+<area shape="rect" id="Node000006" href="$thread__pool__bridge_8h.html" title="Thread pool integration bridge for network_system." alt="" coords="439,93,610,133"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="381,48,482,91,480,96,379,53"/>
+<area shape="rect" id="Node000003" href="$messaging__bridge_8cpp.html" title="Implementation of messaging_bridge for messaging_system compatibility." alt="" coords="5,181,196,221"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="112,147,107,182,101,181,107,146"/>
+<area shape="rect" id="Node000005" href="$observability__bridge_8cpp.html" title=" " alt="" coords="221,181,426,221"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="326,147,326,181,321,181,321,147"/>
+<area shape="rect" id="Node000007" href="$thread__pool__bridge_8cpp.html" title=" " alt="" coords="450,181,613,221"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="530,147,533,181,527,181,525,147"/>
+</map>

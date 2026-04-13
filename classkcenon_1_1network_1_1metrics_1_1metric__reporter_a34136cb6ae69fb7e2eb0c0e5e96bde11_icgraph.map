@@ -1,0 +1,7 @@
+<map id="kcenon::network::metrics::metric_reporter::report_latency" name="kcenon::network::metrics::metric_reporter::report_latency">
+<area shape="rect" id="Node000001" title="Report network latency." alt="" coords="240,23,427,77"/>
+<area shape="rect" id="Node000002" href="$network__metrics__example_8cpp.html#ae66f6b31b5ad750f1fe042a706a4e3d4" title=" " alt="" coords="71,5,126,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="226,38,126,24,127,19,227,33"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1metrics_1_1metric__reporter.html#a5413725d7637114e7e1e0f097313ff43" title="Record latency to internal histogram." alt="" coords="5,55,192,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="227,67,193,72,192,67,226,62"/>
+</map>

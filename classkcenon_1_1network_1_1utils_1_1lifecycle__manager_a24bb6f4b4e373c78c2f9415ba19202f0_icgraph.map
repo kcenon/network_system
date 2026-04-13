@@ -1,0 +1,5 @@
+<map id="kcenon::network::utils::lifecycle_manager::try_start" name="kcenon::network::utils::lifecycle_manager::try_start">
+<area shape="rect" id="Node000001" title="Attempts to transition from stopped to running state." alt="" coords="240,5,453,45"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1utils_1_1startable__base.html#a1fb9401c25a1196298ad186713d8392c" title="Unified start operation with lifecycle management." alt="" coords="5,5,192,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="226,28,192,28,192,23,226,23"/>
+</map>

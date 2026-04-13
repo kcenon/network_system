@@ -1,0 +1,9 @@
+<map id="kcenon::network::core::messaging_ws_client" name="kcenon::network::core::messaging_ws_client">
+<area shape="rect" id="Node000001" title="High&#45;level WebSocket client with automatic connection management." alt="" coords="89,621,307,1336"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,376,175,471"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="104,484,131,621,126,622,99,485"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1interfaces_1_1i__websocket__client.html" title="Interface for WebSocket client components." alt="" coords="199,273,413,573"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="277,587,270,622,265,621,272,586"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1interfaces_1_1i__network__component.html" title="Base interface for all network components." alt="" coords="209,5,403,225"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="309,239,309,273,303,273,303,239"/>
+</map>

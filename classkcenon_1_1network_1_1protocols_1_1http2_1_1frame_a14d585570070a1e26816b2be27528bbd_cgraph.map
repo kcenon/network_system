@@ -1,0 +1,5 @@
+<map id="kcenon::network::protocols::http2::frame::serialize" name="kcenon::network::protocols::http2::frame::serialize">
+<area shape="rect" id="Node000001" title="Serialize frame to bytes." alt="" coords="5,5,204,45"/>
+<area shape="rect" id="Node000002" href="$structkcenon_1_1network_1_1protocols_1_1http2_1_1frame__header.html#a39e2c8d00ca32c9030080fa6cb1c4398" title="Serialize frame header to bytes." alt="" coords="252,5,479,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="204,23,238,23,238,28,204,28"/>
+</map>

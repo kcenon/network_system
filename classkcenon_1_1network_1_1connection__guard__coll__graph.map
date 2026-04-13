@@ -1,0 +1,11 @@
+<map id="kcenon::network::connection_guard" name="kcenon::network::connection_guard">
+<area shape="rect" id="Node000001" title="RAII guard for connection limiting." alt="" coords="5,712,207,952"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1connection__limiter.html" title="Connection count limiter." alt="" coords="5,389,207,649"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="109,649,109,695,103,695,103,649"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="29,261,183,327"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="109,327,109,373,103,373,103,327"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="43,133,169,199"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="109,213,109,261,103,261,103,213"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="95,5,117,71"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="109,71,109,117,103,117,103,71"/>
+</map>

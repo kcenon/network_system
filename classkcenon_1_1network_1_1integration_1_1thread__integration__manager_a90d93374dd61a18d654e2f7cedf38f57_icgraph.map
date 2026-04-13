@@ -1,0 +1,23 @@
+<map id="kcenon::network::integration::thread_integration_manager::instance" name="kcenon::network::integration::thread_integration_manager::instance">
+<area shape="rect" id="Node000001" title="Get the singleton instance." alt="" coords="553,195,768,249"/>
+<area shape="poly" id="edge6_Node000001_Node000001" title=" " alt="" coords="705,184,689,176,661,173,637,175,621,180,614,187,614,195,609,195,609,184,619,176,636,170,661,168,691,171,708,179"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1protocols_1_1grpc_1_1grpc__client_1_1impl.html#af482c55fd98e4fc15fa798c01ecfb2d9" title=" " alt="" coords="293,5,491,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="627,186,573,128,540,99,504,74,483,62,485,58,507,69,543,95,577,124,631,182"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1integration_1_1ThreadPoolBridge.html#a6130525696d08becdc50c06455c90dd1" title="Create bridge from thread_system." alt="" coords="287,84,497,139"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="591,191,504,152,475,141,477,136,506,148,593,186"/>
+<area shape="rect" id="Node000006" href="$classkcenon_1_1network_1_1integration_1_1messaging__bridge.html#ae440f6b9cd79a46fc86d14e7123e16e2" title="Get the thread pool interface." alt="" coords="279,163,505,217"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="539,210,505,206,506,201,540,205"/>
+<area shape="rect" id="Node000007" href="$thread__integration__example_8cpp.html#ae66f6b31b5ad750f1fe042a706a4e3d4" title=" " alt="" coords="365,241,419,267"/>
+<area shape="poly" id="edge7_Node000001_Node000007" title=" " alt="" coords="540,239,420,253,419,248,539,234"/>
+<area shape="rect" id="Node000008" href="$classkcenon_1_1network_1_1utils_1_1memory__profiler.html#a6df143a94d978f9aad21a349e6effd14" title=" " alt="" coords="290,315,494,369"/>
+<area shape="poly" id="edge8_Node000001_Node000008" title=" " alt="" coords="587,258,455,317,453,312,585,253"/>
+<area shape="rect" id="Node000010" href="$classkcenon_1_1network_1_1utils_1_1health__monitor.html#a5fde66f996230e3fefcbfb62798c9941" title="Starts monitoring the given client." alt="" coords="309,393,475,448"/>
+<area shape="poly" id="edge11_Node000001_Node000010" title=" " alt="" coords="633,262,579,324,544,356,507,384,477,400,474,395,504,380,541,352,575,320,629,258"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1integration_1_1NetworkSystemBridge.html#a112b437369b534b3e02132746d406c8c" title="Create bridge with default configuration." alt="" coords="5,45,231,100"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="273,97,231,91,231,86,274,92"/>
+<area shape="rect" id="Node000005" href="$classkcenon_1_1network_1_1integration_1_1NetworkSystemBridge.html#a716ed464845cd062da4f077f51732f96" title="Create bridge with thread_system integration." alt="" coords="12,124,224,179"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="275,131,225,139,224,133,274,126"/>
+<area shape="poly" id="edge9_Node000008_Node000008" title=" " alt="" coords="437,304,421,296,392,293,368,295,353,300,345,307,346,315,340,315,341,304,350,296,367,290,392,288,422,291,439,299"/>
+<area shape="rect" id="Node000009" href="$classkcenon_1_1network_1_1utils_1_1memory__profiler.html#a920005c3242471ac3655388272fda902" title=" " alt="" coords="30,322,206,362"/>
+<area shape="poly" id="edge10_Node000008_Node000009" title=" " alt="" coords="276,345,206,345,206,339,276,339"/>
+</map>

@@ -1,0 +1,30 @@
+<map id="kcenon::network::protocols::grpc::grpc_client::impl::call_raw_async" name="kcenon::network::protocols::grpc::grpc_client::impl::call_raw_async">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,369,204,423"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1protocols_1_1grpc_1_1grpc__client_1_1impl.html#a19da0c3df010229bc59dd7941c9f88ed" title=" " alt="" coords="260,266,459,321"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="167,366,251,331,271,323,273,328,253,336,169,371"/>
+<area shape="rect" id="Node000013" href="$classkcenon_1_1network_1_1integration_1_1thread__integration__manager.html#a90d93374dd61a18d654e2f7cedf38f57" title="Get the singleton instance." alt="" coords="252,369,467,423"/>
+<area shape="poly" id="edge12_Node000001_Node000013" title=" " alt="" coords="204,393,238,393,238,399,204,399"/>
+<area shape="rect" id="Node000014" href="$classkcenon_1_1network_1_1integration_1_1thread__integration__manager.html#ad6647633afaac5e0770f54123e09ec1a" title="Submit a task to the thread pool." alt="" coords="252,447,467,502"/>
+<area shape="poly" id="edge14_Node000001_Node000014" title=" " alt="" coords="195,421,258,441,256,446,193,426"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1tracing_1_1trace__context.html#a0618b3e17f57071584025d5e47aa0541" title="Create a new root span with a new trace context." alt="" coords="523,37,729,77"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="372,264,394,225,425,177,465,129,513,87,523,81,526,86,516,91,469,132,430,180,398,228,376,267"/>
+<area shape="rect" id="Node000006" href="$namespacekcenon_1_1network_1_1protocols_1_1grpc.html#a95294d297122adbe9fefe05e6b846872" title="Format timeout as gRPC timeout string." alt="" coords="527,101,725,141"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="382,264,438,207,474,177,513,151,527,144,529,149,516,156,477,181,442,211,386,267"/>
+<area shape="rect" id="Node000007" href="$namespacekcenon_1_1network.html#a359e947821343de5109e4043dbc9190e" title=" " alt="" coords="547,165,705,205"/>
+<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="411,263,514,216,538,207,540,212,516,221,413,268"/>
+<area shape="rect" id="Node000008" href="$classkcenon_1_1network_1_1protocols_1_1grpc_1_1grpc__client_1_1impl.html#a0fe02349fd852c99459a0b27f8e504a2" title=" " alt="" coords="527,230,725,285"/>
+<area shape="poly" id="edge7_Node000002_Node000008" title=" " alt="" coords="459,277,512,270,513,275,459,283"/>
+<area shape="rect" id="Node000009" href="$namespacekcenon_1_1network_1_1tracing.html#a6ab950c88c5666f30b2db30609a6834a" title="Check if tracing is enabled." alt="" coords="535,309,717,349"/>
+<area shape="poly" id="edge8_Node000002_Node000009" title=" " alt="" coords="459,304,522,313,521,318,459,309"/>
+<area shape="rect" id="Node000010" href="$structkcenon_1_1network_1_1protocols_1_1grpc_1_1grpc__message.html#a2e062180dd3966fa2eaf169957e08366" title="Parse gRPC message from raw bytes." alt="" coords="524,373,728,413"/>
+<area shape="poly" id="edge9_Node000002_Node000010" title=" " alt="" coords="439,318,468,331,492,345,516,359,535,366,533,371,514,364,489,350,465,336,437,323"/>
+<area shape="rect" id="Node000011" href="$structkcenon_1_1network_1_1protocols_1_1grpc_1_1grpc__message.html#a88edb1a928bcf6b946913aabf47de081" title="Serialize message to bytes with length prefix." alt="" coords="515,437,737,477"/>
+<area shape="poly" id="edge10_Node000002_Node000011" title=" " alt="" coords="451,319,469,331,486,355,493,379,499,402,517,423,523,428,520,432,513,427,495,404,488,381,481,358,465,335,448,323"/>
+<area shape="rect" id="Node000012" href="$namespacekcenon_1_1network_1_1protocols_1_1grpc.html#af734a947f780a96caaf1e3c0475c3528" title="Convert status code to string." alt="" coords="522,501,730,541"/>
+<area shape="poly" id="edge11_Node000002_Node000012" title=" " alt="" coords="453,319,469,332,483,352,490,372,493,412,495,450,502,469,517,488,521,491,517,495,513,491,497,471,490,451,487,412,485,373,479,354,465,335,450,323"/>
+<area shape="rect" id="Node000004" href="$namespacekcenon_1_1network_1_1tracing.html#a933bb00747359508e4c9b490d42c495d" title="Generate a random span ID." alt="" coords="785,5,968,45"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="729,41,772,36,772,41,730,47"/>
+<area shape="rect" id="Node000005" href="$namespacekcenon_1_1network_1_1tracing.html#ab38da93c9d82d6795e6950368611ea35" title="Generate a random trace ID." alt="" coords="785,69,968,109"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="730,68,772,73,772,79,729,73"/>
+<area shape="poly" id="edge13_Node000013_Node000013" title=" " alt="" coords="310,369,310,358,319,350,336,344,359,342,388,345,404,353,402,358,386,350,359,347,337,349,322,354,315,360,315,369"/>
+</map>

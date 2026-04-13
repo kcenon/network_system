@@ -1,0 +1,18 @@
+<map id="kcenon::network::internal::http_response::set_header" name="kcenon::network::internal::http_response::set_header">
+<area shape="rect" id="Node000001" title="Set a header value." alt="" coords="548,170,751,210"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1internal_1_1http__error__response.html#a8e87c39930786cbcc495d5f7b880714b" title="Build HTML format error response." alt="" coords="292,5,480,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="616,162,563,117,499,74,475,62,478,58,501,69,566,113,619,158"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1internal_1_1http__error__response.html#a3fa582522833af04174cd5bdd47da40f" title="Build JSON format error response (RFC 7807)" alt="" coords="292,84,480,139"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="568,169,477,141,479,136,569,164"/>
+<area shape="rect" id="Node000005" href="$classkcenon_1_1network_1_1core_1_1http__server.html#ab2eed37710e1cbf831e6221b8135e094" title="Handle incoming HTTP request." alt="" coords="303,163,469,217"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="534,193,469,193,469,187,534,187"/>
+<area shape="rect" id="Node000006" href="$classkcenon_1_1network_1_1core_1_1http__server.html#a7ee4c9eb33b17498a0509ccb24208083" title="Process HTTP request and generate response object." alt="" coords="303,241,469,296"/>
+<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="569,217,470,246,469,241,568,211"/>
+<area shape="rect" id="Node000007" href="$classkcenon_1_1network_1_1internal_1_1adapters_1_1http__server__adapter.html#a2a150628bc89f18b189be199ea1ab8c0" title="Sets up internal HTTP routes to bridge to i_protocol_server callbacks." alt="" coords="272,320,500,375"/>
+<area shape="poly" id="edge7_Node000001_Node000007" title=" " alt="" coords="619,222,566,266,501,310,475,322,473,317,499,305,563,262,615,218"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1core_1_1http__server.html#ada7b9ac3f340cfc7573ca117bb97ae16" title="Build error response using registered handlers." alt="" coords="31,45,198,100"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="279,51,198,63,198,58,278,46"/>
+<area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="278,99,198,87,198,82,279,93"/>
+<area shape="rect" id="Node000008" href="$classkcenon_1_1network_1_1internal_1_1adapters_1_1http__server__adapter.html#a0d523d1686ec582c1bad40a91258d628" title="Constructs an adapter with a unique server ID." alt="" coords="5,320,224,375"/>
+<area shape="poly" id="edge8_Node000007_Node000008" title=" " alt="" coords="258,350,224,350,224,345,258,345"/>
+</map>

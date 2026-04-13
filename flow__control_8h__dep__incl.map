@@ -1,0 +1,20 @@
+<map id="src/internal/protocols/quic/flow_control.h" name="src/internal/protocols/quic/flow_control.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="427,5,585,45"/>
+<area shape="rect" id="Node000002" href="$connection_8h.html" title=" " alt="" coords="341,93,500,133"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="479,57,441,95,438,91,476,53"/>
+<area shape="rect" id="Node000009" href="$flow__control_8cpp.html" title=" " alt="" coords="525,93,661,133"/>
+<area shape="poly" id="edge9_Node000001_Node000009" title=" " alt="" coords="537,53,575,91,572,95,533,57"/>
+<area shape="rect" id="Node000003" href="$quic__connection__adapter_8h.html" title=" " alt="" coords="119,181,311,236"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="368,141,274,184,272,179,366,137"/>
+<area shape="rect" id="Node000006" href="$quic__listener__adapter_8h.html" title=" " alt="" coords="335,181,506,236"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="423,147,423,181,418,181,418,147"/>
+<area shape="rect" id="Node000008" href="$connection_8cpp.html" title=" " alt="" coords="530,189,666,229"/>
+<area shape="poly" id="edge8_Node000002_Node000008" title=" " alt="" coords="470,137,563,186,561,191,467,142"/>
+<area shape="rect" id="Node000004" href="$quic_8cpp.html" title=" " alt="" coords="244,291,400,317"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="258,243,310,289,307,293,254,248"/>
+<area shape="rect" id="Node000005" href="$quic__connection__adapter_8cpp.html" title=" " alt="" coords="5,284,220,324"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="178,248,135,286,132,282,174,244"/>
+<area shape="poly" id="edge6_Node000006_Node000004" title=" " alt="" coords="385,247,336,293,333,289,381,244"/>
+<area shape="rect" id="Node000007" href="$quic__listener__adapter_8cpp.html" title=" " alt="" coords="425,284,617,324"/>
+<area shape="poly" id="edge7_Node000006_Node000007" title=" " alt="" coords="461,244,502,282,499,286,457,248"/>
+</map>

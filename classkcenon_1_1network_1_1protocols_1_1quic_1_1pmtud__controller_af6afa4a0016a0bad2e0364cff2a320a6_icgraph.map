@@ -1,0 +1,9 @@
+<map id="kcenon::network::protocols::quic::pmtud_controller::handle_black_hole" name="kcenon::network::protocols::quic::pmtud_controller::handle_black_hole">
+<area shape="rect" id="Node000001" title="Handle black hole detection." alt="" coords="499,45,697,100"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1pmtud__controller.html#a19b24b31b5e3f5b35952d81af28eba44" title="Handle ICMP Packet Too Big message." alt="" coords="252,5,451,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="485,57,451,51,451,46,486,52"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1pmtud__controller.html#aa5585fe6e5b401860264ff7f3ee261ce" title="Handle probe loss." alt="" coords="252,84,451,139"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="486,93,451,98,451,93,485,88"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1pmtud__controller.html#af64f6d0933da6fae8b694d134be8e5df" title="Handle timeout event." alt="" coords="5,84,204,139"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="238,114,204,114,204,109,238,109"/>
+</map>

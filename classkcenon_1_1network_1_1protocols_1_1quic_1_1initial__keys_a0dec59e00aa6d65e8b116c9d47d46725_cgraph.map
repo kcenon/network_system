@@ -1,0 +1,7 @@
+<map id="kcenon::network::protocols::quic::initial_keys::derive_keys" name="kcenon::network::protocols::quic::initial_keys::derive_keys">
+<area shape="rect" id="Node000001" title="Derive keys from an initial secret." alt="" coords="5,35,231,75"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1hkdf.html#a6752af7dc536064ed90aea8bc34141e0" title="HKDF&#45;Expand&#45;Label function (TLS 1.3 style)" alt="" coords="279,5,477,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="230,39,265,35,265,41,231,45"/>
+<area shape="rect" id="Node000003" href="$namespacekcenon_1_1network.html#aa32d0dbfdee046c2c0cde3667c5f05a8" title=" " alt="" coords="301,70,455,95"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="231,64,287,70,286,76,230,69"/>
+</map>

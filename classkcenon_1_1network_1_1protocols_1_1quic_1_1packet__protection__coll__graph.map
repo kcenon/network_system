@@ -1,0 +1,3 @@
+<map id="kcenon::network::protocols::quic::packet_protection" name="kcenon::network::protocols::quic::packet_protection">
+<area shape="rect" id="Node000001" title="QUIC packet protection (encryption/decryption) (RFC 9001 Section 5)" alt="" coords="5,5,196,185"/>
+</map>

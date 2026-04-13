@@ -1,0 +1,5 @@
+<map id="kcenon::network::protocols::quic::pmtud_controller::on_probe_lost" name="kcenon::network::protocols::quic::pmtud_controller::on_probe_lost">
+<area shape="rect" id="Node000001" title="Handle probe loss." alt="" coords="252,5,451,60"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1pmtud__controller.html#af64f6d0933da6fae8b694d134be8e5df" title="Handle timeout event." alt="" coords="5,5,204,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="238,35,204,35,204,30,238,30"/>
+</map>

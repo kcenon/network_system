@@ -1,0 +1,5 @@
+<map id="kcenon::network::protocols::quic::loss_detector::get_pto_time_and_space" name="kcenon::network::protocols::quic::loss_detector::get_pto_time_and_space">
+<area shape="rect" id="Node000001" title="Get PTO time and space (RFC 9002 Appendix A.8)" alt="" coords="5,5,204,60"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1rtt__estimator.html#a1e37b21780e4d840146b2bea14e0037b" title="Calculate probe timeout duration (RFC 9002 Section 6.2.1)" alt="" coords="252,13,451,53"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="204,30,238,30,238,35,204,35"/>
+</map>

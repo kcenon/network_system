@@ -1,0 +1,17 @@
+<map id="include/kcenon/network/detail/metrics/histogram.h" name="include/kcenon/network/detail/metrics/histogram.h">
+<area shape="rect" id="Node000001" title="Histogram metric implementation for latency distribution tracking." alt="" coords="252,5,451,45"/>
+<area shape="rect" id="Node000002" href="$sliding__histogram_8h.html" title="Sliding window histogram for time&#45;based latency tracking." alt="" coords="200,93,377,148"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="333,58,309,95,304,92,329,55"/>
+<area shape="rect" id="Node000003" href="$metrics_8h.html" title="Unified metrics header for network_system." alt="" coords="16,196,193,236"/>
+<area shape="poly" id="edge6_Node000001_Node000003" title=" " alt="" coords="270,53,228,71,190,95,166,119,145,147,116,197,111,194,140,144,162,116,187,91,226,66,267,48"/>
+<area shape="rect" id="Node000005" href="$network__metrics_8cpp.html" title=" " alt="" coords="384,196,535,236"/>
+<area shape="poly" id="edge8_Node000001_Node000005" title=" " alt="" coords="372,56,392,92,451,194,446,197,388,95,367,59"/>
+<area shape="rect" id="Node000007" href="$histogram_8cpp.html" title=" " alt="" coords="453,108,644,133"/>
+<area shape="poly" id="edge7_Node000001_Node000007" title=" " alt="" coords="405,49,525,105,523,110,402,54"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="226,156,143,198,141,193,224,152"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="350,152,426,194,423,198,347,157"/>
+<area shape="rect" id="Node000006" href="$sliding__histogram_8cpp.html" title=" " alt="" coords="218,196,359,236"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="291,162,291,196,286,196,286,162"/>
+<area shape="rect" id="Node000004" href="$network__metrics__example_8cpp.html" title="Demonstrates network metrics collection and reporting." alt="" coords="5,284,204,324"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="107,250,107,284,102,284,102,250"/>
+</map>

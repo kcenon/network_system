@@ -1,0 +1,8 @@
+<map id="src/modules/network.cppm" name="src/modules/network.cppm">
+<area shape="rect" id="Node000001" title="Primary C++20 module for network_system." alt="" coords="37,7,235,32"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="194,4,240,5,255,10,262,19,257,28,244,33,207,35,207,30,243,27,253,24,257,19,252,15,239,10,194,9"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,80,120,105"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="126,34,86,72,83,68,122,30"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="144,80,275,105"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="150,30,189,68,186,72,146,34"/>
+</map>

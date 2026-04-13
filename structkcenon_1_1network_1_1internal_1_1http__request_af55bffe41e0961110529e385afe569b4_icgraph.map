@@ -1,0 +1,5 @@
+<map id="kcenon::network::internal::http_request::get_header" name="kcenon::network::internal::http_request::get_header">
+<area shape="rect" id="Node000001" title="Get the value of a header (case&#45;insensitive)" alt="" coords="220,13,413,53"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1core_1_1http__client.html#abcd997555cdff961990e8a73e33d2c63" title="Build HTTP request from components." alt="" coords="5,5,172,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="206,35,172,35,172,30,206,30"/>
+</map>

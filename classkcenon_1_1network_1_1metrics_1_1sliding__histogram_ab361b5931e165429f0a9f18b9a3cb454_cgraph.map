@@ -1,0 +1,5 @@
+<map id="kcenon::network::metrics::sliding_histogram::count" name="kcenon::network::metrics::sliding_histogram::count">
+<area shape="rect" id="Node000001" title="Get total number of observations in current window." alt="" coords="5,13,196,53"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1metrics_1_1sliding__histogram.html#a9c4c18e9ae5893893ea72528beb64638" title="Expire old buckets outside the window." alt="" coords="244,5,439,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="196,30,230,30,230,35,196,35"/>
+</map>

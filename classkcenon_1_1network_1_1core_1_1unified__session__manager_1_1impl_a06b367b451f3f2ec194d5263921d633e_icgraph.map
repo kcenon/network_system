@@ -1,0 +1,9 @@
+<map id="kcenon::network::core::unified_session_manager::impl::is_backpressure_active" name="kcenon::network::core::unified_session_manager::impl::is_backpressure_active">
+<area shape="rect" id="Node000001" title=" " alt="" coords="491,45,709,100"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1core_1_1unified__session__manager_1_1impl.html#af102de5e86e0720a0be3509100ad1052" title=" " alt="" coords="248,5,443,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="477,56,443,51,443,45,477,51"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1core_1_1unified__session__manager.html#a0a36cb3030abc2449cf671a3abec39ab" title="Check if backpressure should be applied." alt="" coords="248,84,443,139"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="477,94,443,99,443,94,477,89"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1core_1_1unified__session__manager.html#a47113bd1c2aeb646aa4563ce16266ebb" title="Get comprehensive statistics." alt="" coords="5,5,200,60"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="234,35,200,35,200,30,234,30"/>
+</map>

@@ -1,0 +1,7 @@
+<map id="kcenon::network::integration::io_context_thread_manager::impl::get_thread_pool" name="kcenon::network::integration::io_context_thread_manager::impl::get_thread_pool">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,41,217,96"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1core_1_1network__context.html#ab7b229e4d188d5ada96babe578dacc61" title="Get current thread pool." alt="" coords="283,5,451,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="217,51,269,44,270,49,218,56"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1core_1_1network__context.html#ae0e066c4c55aef2c848e60b572a616f7" title="Get the singleton instance." alt="" coords="265,85,468,125"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="218,81,252,86,251,91,217,86"/>
+</map>

@@ -1,0 +1,5 @@
+<map id="kcenon::network::protocols::grpc::grpc_server::is_running" name="kcenon::network::protocols::grpc::grpc_server::is_running">
+<area shape="rect" id="Node000001" title="Check if server is running." alt="" coords="5,5,204,60"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1protocols_1_1grpc_1_1grpc__server_1_1impl.html#aa2915e6b94033f38ee98d2b0335d78f0" title=" " alt="" coords="252,5,451,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="204,30,238,30,238,35,204,35"/>
+</map>

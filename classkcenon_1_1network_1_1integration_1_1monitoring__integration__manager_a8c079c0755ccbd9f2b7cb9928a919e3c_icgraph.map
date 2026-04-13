@@ -1,0 +1,11 @@
+<map id="kcenon::network::integration::monitoring_integration_manager::report_gauge" name="kcenon::network::integration::monitoring_integration_manager::report_gauge">
+<area shape="rect" id="Node000001" title="Report a gauge metric." alt="" coords="471,84,680,139"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1metrics_1_1metric__reporter.html#ab0c0481d89ca11f1ed000b0f1af7ea93" title="Report active connections count." alt="" coords="236,84,423,139"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="457,114,423,114,423,109,457,109"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1core_1_1messaging__quic__server.html#acd4acef6c646a1b839796e53c80e9c53" title=" " alt="" coords="5,5,188,60"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="234,82,177,63,179,58,236,77"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1core_1_1messaging__server.html#a933a59d1bbad0d45d0c0ff84b87383b9" title="Handler called when an asynchronous accept finishes." alt="" coords="10,84,183,139"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="222,114,184,114,184,109,222,109"/>
+<area shape="rect" id="Node000005" href="$classkcenon_1_1network_1_1core_1_1messaging__quic__server.html#a1489b8e64b0549d6cb33e22bccabb7f5" title=" " alt="" coords="5,163,188,217"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="236,146,179,165,177,160,234,141"/>
+</map>

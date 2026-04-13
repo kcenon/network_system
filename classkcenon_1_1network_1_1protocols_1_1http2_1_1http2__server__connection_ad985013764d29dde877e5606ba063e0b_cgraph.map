@@ -1,0 +1,7 @@
+<map id="kcenon::network::protocols::http2::http2_server_connection::dispatch_request" name="kcenon::network::protocols::http2::http2_server_connection::dispatch_request">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,23,237,77"/>
+<area shape="rect" id="Node000002" href="$namespacekcenon_1_1network.html#a9d2a06a302dea2b45b323b864eacad4a" title=" " alt="" coords="285,5,489,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="237,33,272,29,272,35,238,39"/>
+<area shape="rect" id="Node000003" href="$structkcenon_1_1network_1_1protocols_1_1http2_1_1http2__request.html#a2ca1ea47929cf508825c552e275ea974" title="Create http2_request from parsed headers." alt="" coords="288,55,487,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="238,61,274,66,274,71,237,67"/>
+</map>

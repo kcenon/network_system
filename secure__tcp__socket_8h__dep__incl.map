@@ -1,0 +1,9 @@
+<map id="src/internal/tcp/secure_tcp_socket.h" name="src/internal/tcp/secure_tcp_socket.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="112,5,279,45"/>
+<area shape="rect" id="Node000002" href="$secure__messaging__client_8h.html" title="Secure TCP client class with TLS/SSL support." alt="" coords="17,93,192,133"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="167,57,127,95,123,91,164,53"/>
+<area shape="rect" id="Node000004" href="$secure__tcp__socket_8cpp.html" title=" " alt="" coords="216,93,359,133"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="227,53,269,91,265,95,224,57"/>
+<area shape="rect" id="Node000003" href="$secure__messaging__client_8cpp.html" title=" " alt="" coords="5,181,204,221"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="107,147,107,181,102,181,102,147"/>
+</map>

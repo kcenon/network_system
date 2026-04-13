@@ -1,0 +1,16 @@
+<map id="src/internal/integration/bridge_interface.h" name="src/internal/integration/bridge_interface.h">
+<area shape="rect" id="Node000001" title="Unified interface for external system integration bridges." alt="" coords="291,5,462,45"/>
+<area shape="rect" id="Node000002" href="$result__types_8h.html" title="Network&#45;specific error and result type definitions." alt="" coords="137,93,304,133"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="344,48,268,89,266,84,341,43"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="305,189,363,214"/>
+<area shape="poly" id="edge7_Node000001_Node000005" title=" " alt="" coords="375,46,343,176,338,175,369,45"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="379,101,446,126"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="387,45,405,87,400,89,382,47"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="470,101,521,126"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="405,43,470,90,467,95,401,48"/>
+<area shape="rect" id="Node000003" href="$detail_2config_2feature__flags_8h.html" title="Feature flags for network_system." alt="" coords="5,181,172,221"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="193,136,131,176,128,172,190,131"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="196,189,264,214"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="225,133,230,175,225,175,220,134"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="247,131,309,178,306,182,244,136"/>
+</map>

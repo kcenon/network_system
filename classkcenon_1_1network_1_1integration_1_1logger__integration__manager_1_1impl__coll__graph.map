@@ -1,0 +1,13 @@
+<map id="kcenon::network::integration::logger_integration_manager::impl" name="kcenon::network::integration::logger_integration_manager::impl">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,643,248,803"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="41,500,125,565"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="93,565,107,626,102,627,87,566"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="149,485,323,580"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="211,582,183,630,179,627,207,579"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1integration_1_1logger__interface.html" title="Interface for logger integration." alt="" coords="70,133,271,393"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="205,393,223,469,218,470,200,394"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="296,231,445,296"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="351,310,262,486,257,484,346,307"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="359,5,382,71"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="373,71,373,214,368,214,368,71"/>
+</map>

@@ -1,0 +1,31 @@
+<map id="include/kcenon/network/detail/protocols/grpc/status.h" name="include/kcenon/network/detail/protocols/grpc/status.h">
+<area shape="rect" id="Node000001" title="gRPC status codes and error representation." alt="" coords="359,5,536,60"/>
+<area shape="rect" id="Node000002" href="$client_8h.html" title="gRPC client channel configuration and connection." alt="" coords="5,108,183,163"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="347,65,183,111,182,106,345,60"/>
+<area shape="rect" id="Node000003" href="$grpc_8h.html" title="Unified gRPC protocol header." alt="" coords="384,313,561,353"/>
+<area shape="poly" id="edge17_Node000001_Node000003" title=" " alt="" coords="453,74,474,313,468,313,448,74"/>
+<area shape="rect" id="Node000006" href="$grpc__official__wrapper_8h.html" title="Official gRPC library wrapper interfaces." alt="" coords="207,108,384,163"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="398,70,337,110,334,106,395,65"/>
+<area shape="rect" id="Node000007" href="$grpc__official__wrapper_8cpp.html" title="Official gRPC library wrapper implementation." alt="" coords="244,218,435,258"/>
+<area shape="poly" id="edge18_Node000001_Node000007" title=" " alt="" coords="438,74,421,118,399,164,359,219,354,216,394,161,416,116,433,72"/>
+<area shape="rect" id="Node000008" href="$server_8h.html" title="gRPC server configuration and service hosting." alt="" coords="637,108,815,163"/>
+<area shape="poly" id="edge9_Node000001_Node000008" title=" " alt="" coords="534,62,654,105,652,110,532,67"/>
+<area shape="rect" id="Node000009" href="$service__registry_8h.html" title="gRPC service registration mechanism" alt="" coords="511,211,688,265"/>
+<area shape="poly" id="edge16_Node000001_Node000009" title=" " alt="" coords="477,69,581,208,577,212,473,72"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="52,174,31,196,16,219,11,243,14,253,20,264,43,281,79,296,123,307,174,315,283,326,384,329,384,335,283,331,173,321,122,312,77,301,41,286,16,267,9,255,6,243,11,217,27,193,48,170"/>
+<area shape="rect" id="Node000005" href="$client_8cpp.html" title=" " alt="" coords="31,218,168,258"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="99,176,101,217,96,218,93,177"/>
+<area shape="rect" id="Node000004" href="$grpc__service__example_8cpp.html" title="Demonstrates gRPC server and client using the facade API." alt="" coords="387,401,559,441"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="475,367,475,401,470,401,470,367"/>
+<area shape="poly" id="edge6_Node000006_Node000003" title=" " alt="" coords="259,174,242,196,229,219,225,242,233,264,256,280,292,295,384,316,383,321,291,300,253,285,229,267,220,243,224,218,237,193,255,171"/>
+<area shape="poly" id="edge7_Node000006_Node000005" title=" " alt="" coords="233,171,138,220,135,215,231,167"/>
+<area shape="poly" id="edge8_Node000006_Node000007" title=" " alt="" coords="315,174,333,216,328,219,310,176"/>
+<area shape="poly" id="edge13_Node000008_Node000003" title=" " alt="" coords="731,177,725,223,717,247,703,267,672,293,637,311,599,323,562,330,561,325,598,318,635,306,669,288,699,264,712,244,720,222,726,176"/>
+<area shape="poly" id="edge10_Node000008_Node000009" title=" " alt="" coords="683,174,634,213,631,208,680,169"/>
+<area shape="rect" id="Node000010" href="$service__registry_8cpp.html" title="gRPC service registration mechanism implementation" alt="" coords="642,313,797,353"/>
+<area shape="poly" id="edge15_Node000008_Node000010" title=" " alt="" coords="741,175,749,219,747,266,731,314,726,312,742,265,743,219,736,176"/>
+<area shape="rect" id="Node000011" href="$server_8cpp.html" title=" " alt="" coords="815,218,952,258"/>
+<area shape="poly" id="edge14_Node000008_Node000011" title=" " alt="" coords="780,168,855,215,852,220,777,172"/>
+<area shape="poly" id="edge11_Node000009_Node000003" title=" " alt="" coords="554,276,500,315,497,311,551,271"/>
+<area shape="poly" id="edge12_Node000009_Node000010" title=" " alt="" coords="646,272,697,311,693,315,643,276"/>
+</map>

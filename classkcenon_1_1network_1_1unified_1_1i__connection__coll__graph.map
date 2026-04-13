@@ -1,0 +1,5 @@
+<map id="kcenon::network::unified::i_connection" name="kcenon::network::unified::i_connection">
+<area shape="rect" id="Node000001" title="Core interface for active network connections." alt="" coords="5,353,180,693"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1unified_1_1i__transport.html" title="Core interface for data transport abstraction." alt="" coords="5,5,180,305"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="95,319,95,353,90,353,90,319"/>
+</map>

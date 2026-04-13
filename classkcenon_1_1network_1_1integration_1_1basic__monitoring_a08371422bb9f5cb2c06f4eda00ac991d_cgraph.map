@@ -1,0 +1,5 @@
+<map id="kcenon::network::integration::basic_monitoring::report_health" name="kcenon::network::integration::basic_monitoring::report_health">
+<area shape="rect" id="Node000001" title="Report connection health metrics." alt="" coords="5,13,243,53"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1integration_1_1basic__monitoring_1_1impl.html#aab86af727d870285c57660a87c74fb2a" title=" " alt="" coords="291,5,500,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="243,30,277,30,277,35,243,35"/>
+</map>

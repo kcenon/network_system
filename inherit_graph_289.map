@@ -1,0 +1,19 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="Node000000" title=" " alt="" coords="5,428,117,453"/>
+<area shape="rect" id="Node000001" href="$structkcenon_1_1network_1_1core_1_1session__model_1_1has__close__method_3_01T_00_01std_1_1void__2b455b66903d7823be546522c438fe4a.html" title=" " alt="" coords="208,5,431,89"/>
+<area shape="poly" id="edge120_Node000000_Node000001" title=" " alt="" coords="60,414,65,351,80,267,93,222,111,178,134,136,163,99,184,82,207,69,209,74,187,86,167,103,138,139,116,180,98,224,85,268,70,352,66,415"/>
+<area shape="rect" id="Node000002" href="$structkcenon_1_1network_1_1core_1_1session__model_1_1has__id__method_3_01T_00_01std_1_1void__t_39ae44dbf111c63a5c30888fdf8dde621.html" title=" " alt="" coords="208,113,431,197"/>
+<area shape="poly" id="edge121_Node000000_Node000002" title=" " alt="" coords="65,413,75,369,94,314,123,257,142,230,164,207,184,191,207,179,209,184,187,196,167,211,146,234,128,259,99,316,81,370,70,415"/>
+<area shape="rect" id="Node000003" href="$structkcenon_1_1network_1_1core_1_1session__model_1_1has__is__connected__method_3_01T_00_01std_10eb3a13f85367f0c50cd87e3608c7bb4.html" title=" " alt="" coords="165,221,473,305"/>
+<area shape="poly" id="edge122_Node000000_Node000003" title=" " alt="" coords="75,415,112,365,136,339,164,316,184,303,187,308,167,320,140,343,116,369,79,418"/>
+<area shape="rect" id="Node000004" href="$structkcenon_1_1network_1_1core_1_1session__model_1_1has__is__stopped__method_3_01T_00_01std_1_1437201d40c57c904df2adf48504293ee.html" title=" " alt="" coords="208,330,431,429"/>
+<area shape="poly" id="edge123_Node000000_Node000004" title=" " alt="" coords="128,422,207,403,208,408,129,427"/>
+<area shape="rect" id="Node000005" href="$structkcenon_1_1network_1_1core_1_1session__model_1_1has__send__method_3_01T_00_01std_1_1void__t14620cbbe17ed3e4038ff148cc7c854e.html" title=" " alt="" coords="202,453,437,551"/>
+<area shape="poly" id="edge124_Node000000_Node000005" title=" " alt="" coords="130,454,203,472,201,477,128,459"/>
+<area shape="rect" id="Node000006" href="$structkcenon_1_1network_1_1core_1_1session__model_1_1has__send__packet__method_3_01T_00_01std_1_7945d5941fdd51783c4d2decbd326deb.html" title=" " alt="" coords="201,576,437,689"/>
+<area shape="poly" id="edge125_Node000000_Node000006" title=" " alt="" coords="80,463,117,512,141,538,167,561,202,584,200,589,164,565,137,542,113,515,76,466"/>
+<area shape="rect" id="Node000007" href="$structkcenon_1_1network_1_1core_1_1session__model_1_1has__server__id__method_3_01T_00_01std_1_1v1c04c91703ac0e2826152a3894bf7a8c.html" title=" " alt="" coords="178,713,461,797"/>
+<area shape="poly" id="edge126_Node000000_Node000007" title=" " alt="" coords="68,466,78,515,95,578,125,642,144,672,167,699,182,711,179,715,163,703,140,675,120,645,90,579,72,517,63,467"/>
+<area shape="rect" id="Node000008" href="$structkcenon_1_1network_1_1core_1_1session__model_1_1has__stop__session__method_3_01T_00_01std_19a3fc61519b158c6f0dbe0fe61bd5016.html" title=" " alt="" coords="185,821,453,905"/>
+<area shape="poly" id="edge127_Node000000_Node000008" title=" " alt="" coords="65,467,68,534,82,625,95,673,113,721,137,767,167,807,187,824,184,828,163,811,132,770,108,724,90,675,77,626,63,534,60,467"/>
+</map>

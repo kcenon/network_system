@@ -1,0 +1,27 @@
+var NAVTREEINDEX61 =
+{
+"websocket__socket_8h.html#aaab5e8a7ac9e59e19eac7039dea3050da349e686330723975502e9ef4f939a5ac":[23,0,3,6,11,3,1,3],
+"websocket__socket_8h.html#aaab5e8a7ac9e59e19eac7039dea3050da3b38bec18c8edcf71c5f25e5f4fee0fc":[23,0,3,6,11,3,1,2],
+"websocket__socket_8h.html#aaab5e8a7ac9e59e19eac7039dea3050da7cef8a734855777c2a9d0caf42666e69":[23,0,3,6,11,3,1,1],
+"websocket__socket_8h.html#aaab5e8a7ac9e59e19eac7039dea3050da9a27316fbc5ef38b2a19c202dbdc29b7":[23,0,3,6,11,3,1,0],
+"websocket__socket_8h_source.html":[23,0,3,6,11,3],
+"websocket_chat_8cpp-example.html":[24,16],
+"ws__client__adapter_8cpp.html":[23,0,3,0,7],
+"ws__client__adapter_8cpp_source.html":[23,0,3,0,7],
+"ws__client__adapter_8h.html":[23,0,3,6,0,7],
+"ws__client__adapter_8h_source.html":[23,0,3,6,0,7],
+"ws__connection__adapter_8cpp.html":[23,0,3,13,0,6],
+"ws__connection__adapter_8cpp_source.html":[23,0,3,13,0,6],
+"ws__connection__adapter_8h.html":[23,0,3,6,9,0,6],
+"ws__connection__adapter_8h_source.html":[23,0,3,6,9,0,6],
+"ws__listener__adapter_8cpp.html":[23,0,3,13,0,7],
+"ws__listener__adapter_8cpp_source.html":[23,0,3,13,0,7],
+"ws__listener__adapter_8h.html":[23,0,3,6,9,0,7],
+"ws__listener__adapter_8h_source.html":[23,0,3,6,9,0,7],
+"ws__server__adapter_8cpp.html":[23,0,3,0,8],
+"ws__server__adapter_8cpp_source.html":[23,0,3,0,8],
+"ws__server__adapter_8h.html":[23,0,3,6,0,8],
+"ws__server__adapter_8h_source.html":[23,0,3,6,0,8],
+"ws__session__manager_8h.html":[23,0,3,6,1,23],
+"ws__session__manager_8h_source.html":[23,0,3,6,1,23]
+};
