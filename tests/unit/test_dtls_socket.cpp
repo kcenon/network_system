@@ -101,29 +101,25 @@ protected:
 // Construction Tests
 // ============================================================================
 
-TEST_F(DtlsSocketTest, ConstructWithValidContext)
+TEST_F(DtlsSocketTest, CreateWithValidContext)
 {
 	auto socket = create_server_socket();
-	EXPECT_NO_THROW({
-		auto dtls = std::make_shared<dtls_socket>(std::move(socket), server_ctx_.get());
-		EXPECT_NE(dtls, nullptr);
-	});
+	auto result = dtls_socket::create(std::move(socket), server_ctx_.get());
+	EXPECT_TRUE(result.is_ok());
+	EXPECT_NE(result.value(), nullptr);
 }
 
-TEST_F(DtlsSocketTest, ConstructWithNullContextThrows)
+TEST_F(DtlsSocketTest, CreateWithNullContextReturnsError)
 {
 	auto socket = create_server_socket();
-	EXPECT_THROW(
-		{
-			auto dtls = std::make_shared<dtls_socket>(std::move(socket), nullptr);
-		},
-		std::runtime_error);
+	auto result = dtls_socket::create(std::move(socket), nullptr);
+	EXPECT_TRUE(result.is_err());
 }
 
 TEST_F(DtlsSocketTest, InitialStateNotHandshakeComplete)
 {
 	auto socket = create_server_socket();
-	auto dtls = std::make_shared<dtls_socket>(std::move(socket), server_ctx_.get());
+	auto dtls = dtls_socket::create(std::move(socket), server_ctx_.get()).value();
 
 	EXPECT_FALSE(dtls->is_handshake_complete());
 }
@@ -135,7 +131,7 @@ TEST_F(DtlsSocketTest, InitialStateNotHandshakeComplete)
 TEST_F(DtlsSocketTest, SetReceiveCallback)
 {
 	auto socket = create_server_socket();
-	auto dtls = std::make_shared<dtls_socket>(std::move(socket), server_ctx_.get());
+	auto dtls = dtls_socket::create(std::move(socket), server_ctx_.get()).value();
 
 	std::atomic<bool> callback_set{false};
 
@@ -151,7 +147,7 @@ TEST_F(DtlsSocketTest, SetReceiveCallback)
 TEST_F(DtlsSocketTest, SetErrorCallback)
 {
 	auto socket = create_server_socket();
-	auto dtls = std::make_shared<dtls_socket>(std::move(socket), server_ctx_.get());
+	auto dtls = dtls_socket::create(std::move(socket), server_ctx_.get()).value();
 
 	EXPECT_NO_THROW({
 		dtls->set_error_callback([](std::error_code) {});
@@ -161,7 +157,7 @@ TEST_F(DtlsSocketTest, SetErrorCallback)
 TEST_F(DtlsSocketTest, SetPeerEndpoint)
 {
 	auto socket = create_server_socket();
-	auto dtls = std::make_shared<dtls_socket>(std::move(socket), server_ctx_.get());
+	auto dtls = dtls_socket::create(std::move(socket), server_ctx_.get()).value();
 
 	asio::ip::udp::endpoint peer(asio::ip::make_address("127.0.0.1"), 12345);
 	dtls->set_peer_endpoint(peer);
@@ -177,7 +173,7 @@ TEST_F(DtlsSocketTest, SetPeerEndpoint)
 TEST_F(DtlsSocketTest, StartReceiveDoesNotThrow)
 {
 	auto socket = create_server_socket();
-	auto dtls = std::make_shared<dtls_socket>(std::move(socket), server_ctx_.get());
+	auto dtls = dtls_socket::create(std::move(socket), server_ctx_.get()).value();
 
 	EXPECT_NO_THROW({
 		dtls->start_receive();
@@ -189,7 +185,7 @@ TEST_F(DtlsSocketTest, StartReceiveDoesNotThrow)
 TEST_F(DtlsSocketTest, StopReceiveDoesNotThrow)
 {
 	auto socket = create_server_socket();
-	auto dtls = std::make_shared<dtls_socket>(std::move(socket), server_ctx_.get());
+	auto dtls = dtls_socket::create(std::move(socket), server_ctx_.get()).value();
 
 	EXPECT_NO_THROW({
 		dtls->stop_receive();
@@ -199,7 +195,7 @@ TEST_F(DtlsSocketTest, StopReceiveDoesNotThrow)
 TEST_F(DtlsSocketTest, MultipleStartReceiveCalls)
 {
 	auto socket = create_server_socket();
-	auto dtls = std::make_shared<dtls_socket>(std::move(socket), server_ctx_.get());
+	auto dtls = dtls_socket::create(std::move(socket), server_ctx_.get()).value();
 
 	// Multiple start calls should be safe
 	EXPECT_NO_THROW({
@@ -218,7 +214,7 @@ TEST_F(DtlsSocketTest, MultipleStartReceiveCalls)
 TEST_F(DtlsSocketTest, SendBeforeHandshakeFails)
 {
 	auto socket = create_server_socket();
-	auto dtls = std::make_shared<dtls_socket>(std::move(socket), server_ctx_.get());
+	auto dtls = dtls_socket::create(std::move(socket), server_ctx_.get()).value();
 
 	std::promise<std::error_code> send_promise;
 	auto send_future = send_promise.get_future();
@@ -252,11 +248,11 @@ TEST_F(DtlsSocketTest, ClientServerHandshake)
 {
 	// Create server DTLS socket
 	auto server_udp = create_server_socket();
-	auto server_dtls = std::make_shared<dtls_socket>(std::move(server_udp), server_ctx_.get());
+	auto server_dtls = dtls_socket::create(std::move(server_udp), server_ctx_.get()).value();
 
 	// Create client DTLS socket
 	auto client_udp = create_client_socket();
-	auto client_dtls = std::make_shared<dtls_socket>(std::move(client_udp), client_ctx_.get());
+	auto client_dtls = dtls_socket::create(std::move(client_udp), client_ctx_.get()).value();
 
 	// Set peer endpoints
 	asio::ip::udp::endpoint server_endpoint(asio::ip::make_address("127.0.0.1"), test_port_);
@@ -336,7 +332,7 @@ TEST_F(DtlsSocketTest, ClientServerHandshake)
 TEST_F(DtlsSocketTest, ConcurrentCallbackRegistration)
 {
 	auto socket = create_server_socket();
-	auto dtls = std::make_shared<dtls_socket>(std::move(socket), server_ctx_.get());
+	auto dtls = dtls_socket::create(std::move(socket), server_ctx_.get()).value();
 
 	std::atomic<int> registration_count{0};
 	const int num_registrations = 100;
@@ -373,7 +369,7 @@ TEST_F(DtlsSocketTest, ConcurrentCallbackRegistration)
 TEST_F(DtlsSocketTest, ConcurrentEndpointAccess)
 {
 	auto socket = create_server_socket();
-	auto dtls = std::make_shared<dtls_socket>(std::move(socket), server_ctx_.get());
+	auto dtls = dtls_socket::create(std::move(socket), server_ctx_.get()).value();
 
 	std::atomic<int> operation_count{0};
 	const int num_operations = 100;
@@ -419,7 +415,7 @@ TEST_F(DtlsSocketTest, SocketAccessReturnsValidSocket)
 	auto socket = create_server_socket();
 	auto expected_port = socket.local_endpoint().port();
 
-	auto dtls = std::make_shared<dtls_socket>(std::move(socket), server_ctx_.get());
+	auto dtls = dtls_socket::create(std::move(socket), server_ctx_.get()).value();
 
 	EXPECT_TRUE(dtls->socket().is_open());
 	EXPECT_EQ(dtls->socket().local_endpoint().port(), expected_port);
@@ -434,7 +430,7 @@ TEST_F(DtlsSocketTest, DestructorAfterStartReceive)
 	// Test that destructor properly cleans up after start_receive
 	EXPECT_NO_THROW({
 		auto socket = create_server_socket();
-		auto dtls = std::make_shared<dtls_socket>(std::move(socket), server_ctx_.get());
+		auto dtls = dtls_socket::create(std::move(socket), server_ctx_.get()).value();
 		dtls->start_receive();
 		// Destructor called when dtls goes out of scope
 	});
@@ -446,7 +442,7 @@ TEST_F(DtlsSocketTest, DestructorAfterStartReceive)
 TEST_F(DtlsSocketTest, MultipleStopReceiveCalls)
 {
 	auto socket = create_server_socket();
-	auto dtls = std::make_shared<dtls_socket>(std::move(socket), server_ctx_.get());
+	auto dtls = dtls_socket::create(std::move(socket), server_ctx_.get()).value();
 
 	dtls->start_receive();
 
@@ -518,11 +514,11 @@ TEST_F(DtlsSocketIntegrationTest, SendReceiveAfterHandshake)
 {
 	// Create server DTLS socket
 	auto server_udp = create_server_socket();
-	auto server_dtls = std::make_shared<dtls_socket>(std::move(server_udp), server_ctx_.get());
+	auto server_dtls = dtls_socket::create(std::move(server_udp), server_ctx_.get()).value();
 
 	// Create client DTLS socket
 	auto client_udp = create_client_socket();
-	auto client_dtls = std::make_shared<dtls_socket>(std::move(client_udp), client_ctx_.get());
+	auto client_dtls = dtls_socket::create(std::move(client_udp), client_ctx_.get()).value();
 
 	// Set peer endpoints
 	asio::ip::udp::endpoint server_endpoint(asio::ip::make_address("127.0.0.1"), test_port_);
@@ -595,11 +591,11 @@ TEST_F(DtlsSocketIntegrationTest, BidirectionalCommunication)
 {
 	// Create server DTLS socket
 	auto server_udp = create_server_socket();
-	auto server_dtls = std::make_shared<dtls_socket>(std::move(server_udp), server_ctx_.get());
+	auto server_dtls = dtls_socket::create(std::move(server_udp), server_ctx_.get()).value();
 
 	// Create client DTLS socket
 	auto client_udp = create_client_socket();
-	auto client_dtls = std::make_shared<dtls_socket>(std::move(client_udp), client_ctx_.get());
+	auto client_dtls = dtls_socket::create(std::move(client_udp), client_ctx_.get()).value();
 
 	// Set peer endpoints
 	asio::ip::udp::endpoint server_endpoint(asio::ip::make_address("127.0.0.1"), test_port_);
@@ -685,7 +681,7 @@ TEST_F(DtlsSocketIntegrationTest, BidirectionalCommunication)
 TEST_F(DtlsSocketTest, ErrorCallbackInvokedOnSocketClose)
 {
 	auto socket = create_server_socket();
-	auto dtls = std::make_shared<dtls_socket>(std::move(socket), server_ctx_.get());
+	auto dtls = dtls_socket::create(std::move(socket), server_ctx_.get()).value();
 
 	std::promise<std::error_code> error_promise;
 	auto error_future = error_promise.get_future();
@@ -725,11 +721,11 @@ TEST_F(DtlsSocketIntegrationTest, LargePayload)
 {
 	// Create server DTLS socket
 	auto server_udp = create_server_socket();
-	auto server_dtls = std::make_shared<dtls_socket>(std::move(server_udp), server_ctx_.get());
+	auto server_dtls = dtls_socket::create(std::move(server_udp), server_ctx_.get()).value();
 
 	// Create client DTLS socket
 	auto client_udp = create_client_socket();
-	auto client_dtls = std::make_shared<dtls_socket>(std::move(client_udp), client_ctx_.get());
+	auto client_dtls = dtls_socket::create(std::move(client_udp), client_ctx_.get()).value();
 
 	// Set peer endpoints
 	asio::ip::udp::endpoint server_endpoint(asio::ip::make_address("127.0.0.1"), test_port_);
