@@ -1106,6 +1106,22 @@ if(GTest_FOUND OR GTEST_FOUND)
     )
     message(STATUS "HTTP/2 HPACK tests enabled")
 
+    # HTTP/2 HPACK RFC 7541 test vectors (Issue #956)
+    add_executable(network_http2_hpack_rfc7541_test
+        test_http2_hpack_rfc7541.cpp
+    )
+    target_link_libraries(network_http2_hpack_rfc7541_test PRIVATE
+        network_system GTest::gtest GTest::gtest_main Threads::Threads)
+    setup_asio_integration(network_http2_hpack_rfc7541_test)
+    if(COMMON_SYSTEM_INCLUDE_DIR)
+        target_include_directories(network_http2_hpack_rfc7541_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(network_http2_hpack_rfc7541_test PRIVATE WITH_COMMON_SYSTEM)
+    endif()
+    set_target_properties(network_http2_hpack_rfc7541_test PROPERTIES
+        CXX_STANDARD 20 CXX_STANDARD_REQUIRED ON RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+    network_gtest_discover_tests(network_http2_hpack_rfc7541_test DISCOVERY_TIMEOUT 60)
+    message(STATUS "HTTP/2 HPACK RFC 7541 tests enabled")
+
     # HTTP/2 client tests (requires TLS support)
     if(BUILD_TLS_SUPPORT)
         add_executable(network_http2_client_test
@@ -3761,6 +3777,25 @@ network_gtest_discover_tests(network_quic_cid_manager_test
     DISCOVERY_TIMEOUT 60
 )
 message(STATUS "QUIC connection ID manager unit tests enabled")
+
+##################################################
+# Session Lifecycle Tests (Issue #956)
+##################################################
+
+add_executable(network_session_lifecycle_test
+    unit/test_session_lifecycle.cpp
+)
+target_link_libraries(network_session_lifecycle_test PRIVATE
+    network_system GTest::gtest GTest::gtest_main Threads::Threads)
+setup_asio_integration(network_session_lifecycle_test)
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_session_lifecycle_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_session_lifecycle_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+set_target_properties(network_session_lifecycle_test PROPERTIES
+    CXX_STANDARD 20 CXX_STANDARD_REQUIRED ON RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+network_gtest_discover_tests(network_session_lifecycle_test DISCOVERY_TIMEOUT 60)
+message(STATUS "Session lifecycle tests enabled")
 
 ##################################################
 # TCP Server Adapter Tests (Issue #955)
