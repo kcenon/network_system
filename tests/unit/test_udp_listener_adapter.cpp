@@ -38,7 +38,7 @@ TEST(UdpListenerAdapterTest, SetCallbacks) {
     udp_listener_adapter adapter("test-listener");
     listener_callbacks cbs;
     cbs.on_data = [](std::string_view, std::span<const std::byte>) {};
-    cbs.on_disconnected = [](std::string_view) {};
+    cbs.on_disconnect = [](std::string_view) {};
     cbs.on_error = [](std::string_view, std::error_code) {};
     adapter.set_callbacks(std::move(cbs));
     SUCCEED();
@@ -46,7 +46,7 @@ TEST(UdpListenerAdapterTest, SetCallbacks) {
 
 TEST(UdpListenerAdapterTest, SetAcceptCallback) {
     udp_listener_adapter adapter("test-listener");
-    adapter.set_accept_callback([](std::string_view) {});
+    adapter.set_accept_callback([](std::unique_ptr<i_connection>) {});
     SUCCEED();
 }
 
