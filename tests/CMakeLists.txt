@@ -3763,6 +3763,253 @@ network_gtest_discover_tests(network_quic_cid_manager_test
 message(STATUS "QUIC connection ID manager unit tests enabled")
 
 ##################################################
+# TCP Server Adapter Tests (Issue #955)
+##################################################
+
+add_executable(network_tcp_server_adapter_test
+    unit/test_tcp_server_adapter.cpp
+)
+target_link_libraries(network_tcp_server_adapter_test PRIVATE
+    network_system GTest::gtest GTest::gtest_main Threads::Threads)
+setup_asio_integration(network_tcp_server_adapter_test)
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_tcp_server_adapter_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_tcp_server_adapter_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+set_target_properties(network_tcp_server_adapter_test PROPERTIES
+    CXX_STANDARD 20 CXX_STANDARD_REQUIRED ON RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+network_gtest_discover_tests(network_tcp_server_adapter_test DISCOVERY_TIMEOUT 60)
+message(STATUS "TCP server adapter tests enabled")
+
+##################################################
+# UDP Server Adapter Tests (Issue #955)
+##################################################
+
+add_executable(network_udp_server_adapter_test
+    unit/test_udp_server_adapter.cpp
+)
+target_link_libraries(network_udp_server_adapter_test PRIVATE
+    network_system GTest::gtest GTest::gtest_main Threads::Threads)
+setup_asio_integration(network_udp_server_adapter_test)
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_udp_server_adapter_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_udp_server_adapter_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+set_target_properties(network_udp_server_adapter_test PROPERTIES
+    CXX_STANDARD 20 CXX_STANDARD_REQUIRED ON RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+network_gtest_discover_tests(network_udp_server_adapter_test DISCOVERY_TIMEOUT 60)
+message(STATUS "UDP server adapter tests enabled")
+
+##################################################
+# HTTP Server Adapter Tests (Issue #955)
+##################################################
+
+add_executable(network_http_server_adapter_test
+    unit/test_http_server_adapter.cpp
+)
+target_link_libraries(network_http_server_adapter_test PRIVATE
+    network_system GTest::gtest GTest::gtest_main Threads::Threads)
+setup_asio_integration(network_http_server_adapter_test)
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_http_server_adapter_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_http_server_adapter_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+set_target_properties(network_http_server_adapter_test PROPERTIES
+    CXX_STANDARD 20 CXX_STANDARD_REQUIRED ON RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+network_gtest_discover_tests(network_http_server_adapter_test DISCOVERY_TIMEOUT 60)
+message(STATUS "HTTP server adapter tests enabled")
+
+##################################################
+# QUIC Server Adapter Tests (Issue #955)
+##################################################
+
+add_executable(network_quic_server_adapter_test
+    unit/test_quic_server_adapter.cpp
+)
+target_link_libraries(network_quic_server_adapter_test PRIVATE
+    network_system GTest::gtest GTest::gtest_main Threads::Threads)
+setup_asio_integration(network_quic_server_adapter_test)
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_quic_server_adapter_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_quic_server_adapter_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+set_target_properties(network_quic_server_adapter_test PROPERTIES
+    CXX_STANDARD 20 CXX_STANDARD_REQUIRED ON RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+network_gtest_discover_tests(network_quic_server_adapter_test DISCOVERY_TIMEOUT 60)
+message(STATUS "QUIC server adapter tests enabled")
+
+##################################################
+# WebSocket Server Adapter Tests (Issue #955)
+##################################################
+
+add_executable(network_ws_server_adapter_test
+    unit/test_ws_server_adapter.cpp
+)
+target_link_libraries(network_ws_server_adapter_test PRIVATE
+    network_system GTest::gtest GTest::gtest_main Threads::Threads)
+setup_asio_integration(network_ws_server_adapter_test)
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_ws_server_adapter_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_ws_server_adapter_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+set_target_properties(network_ws_server_adapter_test PROPERTIES
+    CXX_STANDARD 20 CXX_STANDARD_REQUIRED ON RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+network_gtest_discover_tests(network_ws_server_adapter_test DISCOVERY_TIMEOUT 60)
+message(STATUS "WebSocket server adapter tests enabled")
+
+##################################################
+# UDP Client Adapter Tests (Issue #955)
+##################################################
+
+add_executable(network_udp_client_adapter_test
+    unit/test_udp_client_adapter.cpp
+)
+target_link_libraries(network_udp_client_adapter_test PRIVATE
+    network_system GTest::gtest GTest::gtest_main Threads::Threads)
+setup_asio_integration(network_udp_client_adapter_test)
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_udp_client_adapter_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_udp_client_adapter_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+set_target_properties(network_udp_client_adapter_test PROPERTIES
+    CXX_STANDARD 20 CXX_STANDARD_REQUIRED ON RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+network_gtest_discover_tests(network_udp_client_adapter_test DISCOVERY_TIMEOUT 60)
+message(STATUS "UDP client adapter tests enabled")
+
+##################################################
+# HTTP Client Adapter Tests (Issue #955)
+##################################################
+
+add_executable(network_http_client_adapter_test
+    unit/test_http_client_adapter.cpp
+)
+target_link_libraries(network_http_client_adapter_test PRIVATE
+    network_system GTest::gtest GTest::gtest_main Threads::Threads)
+setup_asio_integration(network_http_client_adapter_test)
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_http_client_adapter_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_http_client_adapter_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+set_target_properties(network_http_client_adapter_test PROPERTIES
+    CXX_STANDARD 20 CXX_STANDARD_REQUIRED ON RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+network_gtest_discover_tests(network_http_client_adapter_test DISCOVERY_TIMEOUT 60)
+message(STATUS "HTTP client adapter tests enabled")
+
+##################################################
+# QUIC Client Adapter Tests (Issue #955)
+##################################################
+
+add_executable(network_quic_client_adapter_test
+    unit/test_quic_client_adapter.cpp
+)
+target_link_libraries(network_quic_client_adapter_test PRIVATE
+    network_system GTest::gtest GTest::gtest_main Threads::Threads)
+setup_asio_integration(network_quic_client_adapter_test)
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_quic_client_adapter_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_quic_client_adapter_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+set_target_properties(network_quic_client_adapter_test PROPERTIES
+    CXX_STANDARD 20 CXX_STANDARD_REQUIRED ON RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+network_gtest_discover_tests(network_quic_client_adapter_test DISCOVERY_TIMEOUT 60)
+message(STATUS "QUIC client adapter tests enabled")
+
+##################################################
+# WebSocket Client Adapter Tests (Issue #955)
+##################################################
+
+add_executable(network_ws_client_adapter_test
+    unit/test_ws_client_adapter.cpp
+)
+target_link_libraries(network_ws_client_adapter_test PRIVATE
+    network_system GTest::gtest GTest::gtest_main Threads::Threads)
+setup_asio_integration(network_ws_client_adapter_test)
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_ws_client_adapter_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_ws_client_adapter_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+set_target_properties(network_ws_client_adapter_test PROPERTIES
+    CXX_STANDARD 20 CXX_STANDARD_REQUIRED ON RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+network_gtest_discover_tests(network_ws_client_adapter_test DISCOVERY_TIMEOUT 60)
+message(STATUS "WebSocket client adapter tests enabled")
+
+##################################################
+# TCP Connection Adapter Tests (Issue #955)
+##################################################
+
+add_executable(network_tcp_connection_adapter_test
+    unit/test_tcp_connection_adapter.cpp
+)
+target_link_libraries(network_tcp_connection_adapter_test PRIVATE
+    network_system GTest::gtest GTest::gtest_main Threads::Threads)
+setup_asio_integration(network_tcp_connection_adapter_test)
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_tcp_connection_adapter_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_tcp_connection_adapter_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+set_target_properties(network_tcp_connection_adapter_test PROPERTIES
+    CXX_STANDARD 20 CXX_STANDARD_REQUIRED ON RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+network_gtest_discover_tests(network_tcp_connection_adapter_test DISCOVERY_TIMEOUT 60)
+message(STATUS "TCP connection adapter tests enabled")
+
+##################################################
+# TCP Listener Adapter Tests (Issue #955)
+##################################################
+
+add_executable(network_tcp_listener_adapter_test
+    unit/test_tcp_listener_adapter.cpp
+)
+target_link_libraries(network_tcp_listener_adapter_test PRIVATE
+    network_system GTest::gtest GTest::gtest_main Threads::Threads)
+setup_asio_integration(network_tcp_listener_adapter_test)
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_tcp_listener_adapter_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_tcp_listener_adapter_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+set_target_properties(network_tcp_listener_adapter_test PROPERTIES
+    CXX_STANDARD 20 CXX_STANDARD_REQUIRED ON RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+network_gtest_discover_tests(network_tcp_listener_adapter_test DISCOVERY_TIMEOUT 60)
+message(STATUS "TCP listener adapter tests enabled")
+
+##################################################
+# UDP Connection Adapter Tests (Issue #955)
+##################################################
+
+add_executable(network_udp_connection_adapter_test
+    unit/test_udp_connection_adapter.cpp
+)
+target_link_libraries(network_udp_connection_adapter_test PRIVATE
+    network_system GTest::gtest GTest::gtest_main Threads::Threads)
+setup_asio_integration(network_udp_connection_adapter_test)
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_udp_connection_adapter_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_udp_connection_adapter_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+set_target_properties(network_udp_connection_adapter_test PROPERTIES
+    CXX_STANDARD 20 CXX_STANDARD_REQUIRED ON RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+network_gtest_discover_tests(network_udp_connection_adapter_test DISCOVERY_TIMEOUT 60)
+message(STATUS "UDP connection adapter tests enabled")
+
+##################################################
+# UDP Listener Adapter Tests (Issue #955)
+##################################################
+
+add_executable(network_udp_listener_adapter_test
+    unit/test_udp_listener_adapter.cpp
+)
+target_link_libraries(network_udp_listener_adapter_test PRIVATE
+    network_system GTest::gtest GTest::gtest_main Threads::Threads)
+setup_asio_integration(network_udp_listener_adapter_test)
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_udp_listener_adapter_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_udp_listener_adapter_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+set_target_properties(network_udp_listener_adapter_test PROPERTIES
+    CXX_STANDARD 20 CXX_STANDARD_REQUIRED ON RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+network_gtest_discover_tests(network_udp_listener_adapter_test DISCOVERY_TIMEOUT 60)
+message(STATUS "UDP listener adapter tests enabled")
+
+##################################################
 # Sliding Histogram Tests (Issue #873)
 ##################################################
 
