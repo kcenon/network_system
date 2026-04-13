@@ -77,8 +77,8 @@ public:
     struct client_config { /* protocol-specific options */ };
     struct server_config { /* protocol-specific options */ };
 
-    auto create_client(const client_config&) -> std::shared_ptr<i_protocol_client>;
-    auto create_server(const server_config&) -> std::shared_ptr<i_protocol_server>;
+    auto create_client(const client_config&) -> Result<std::shared_ptr<i_protocol_client>>;
+    auto create_server(const server_config&) -> Result<std::shared_ptr<i_protocol_server>>;
 };
 ```
 
@@ -147,7 +147,13 @@ int main()
     tcp_facade facade;
 
     // Create server
-    auto server = facade.create_server({.port = 8080});
+    auto result = facade.create_server({.port = 8080});
+    if (result.is_err())
+    {
+        std::cerr << "Failed to create server" << std::endl;
+        return 1;
+    }
+    auto server = result.value();
 
     // Echo received data back to the client
     server->set_receive_callback(
@@ -188,13 +194,19 @@ int main()
 {
     facade::tcp_facade facade;
 
-    auto client = facade.create_client({
+    auto result = facade.create_client({
         .host = "example.com",
         .port = 8443,
         .client_id = "secure-client",
         .use_ssl = true,
         .verify_certificate = true
     });
+    if (result.is_err())
+    {
+        std::cerr << "Failed to create client" << std::endl;
+        return 1;
+    }
+    auto client = result.value();
 
     // Use observer pattern for event handling
     auto observer = std::make_shared<interfaces::callback_adapter>();
@@ -235,11 +247,17 @@ int main()
 {
     tcp_facade facade;
 
-    auto pool = facade.create_connection_pool({
+    auto pool_result = facade.create_connection_pool({
         .host = "127.0.0.1",
         .port = 5555,
         .pool_size = 10
     });
+    if (pool_result.is_err())
+    {
+        std::cerr << "Failed to create connection pool" << std::endl;
+        return 1;
+    }
+    auto pool = pool_result.value();
 
     if (auto result = pool->initialize(); !result)
     {
@@ -302,10 +320,16 @@ int main()
     facade::udp_facade facade;
 
     // Create UDP server for discovery
-    auto server = facade.create_server({
+    auto result = facade.create_server({
         .port = 9999,
         .server_id = "discovery-server"
     });
+    if (result.is_err())
+    {
+        std::cerr << "Failed to create server" << std::endl;
+        return 1;
+    }
+    auto server = result.value();
 
     server->set_receive_callback(
         [](std::string_view session_id, const std::vector<uint8_t>& data) {
@@ -337,11 +361,17 @@ int main()
 {
     facade::udp_facade facade;
 
-    auto client = facade.create_client({
+    auto result = facade.create_client({
         .host = "127.0.0.1",
         .port = 9999,
         .client_id = "discovery-client"
     });
+    if (result.is_err())
+    {
+        std::cerr << "Failed to create client" << std::endl;
+        return 1;
+    }
+    auto client = result.value();
 
     auto observer = std::make_shared<interfaces::callback_adapter>();
     observer->on_receive([](std::span<const uint8_t> data) {
@@ -404,10 +434,16 @@ int main()
 {
     facade::http_facade facade;
 
-    auto server = facade.create_server({
+    auto result = facade.create_server({
         .port = 8080,
         .server_id = "api-server"
     });
+    if (result.is_err())
+    {
+        std::cerr << "Failed to create server" << std::endl;
+        return 1;
+    }
+    auto server = result.value();
 
     // Handle incoming HTTP requests
     server->set_receive_callback(
@@ -448,11 +484,17 @@ int main()
 {
     facade::http_facade facade;
 
-    auto client = facade.create_client({
+    auto result = facade.create_client({
         .client_id = "api-client",
         .timeout = std::chrono::seconds(10),
         .path = "/api/data"
     });
+    if (result.is_err())
+    {
+        std::cerr << "Failed to create client" << std::endl;
+        return 1;
+    }
+    auto client = result.value();
 
     auto observer = std::make_shared<interfaces::callback_adapter>();
     observer->on_receive([](std::span<const uint8_t> data) {
@@ -523,11 +565,17 @@ int main()
 {
     facade::websocket_facade facade;
 
-    auto server = facade.create_server({
+    auto result = facade.create_server({
         .port = 8080,
         .path = "/chat",
         .server_id = "chat-server"
     });
+    if (result.is_err())
+    {
+        std::cerr << "Failed to create server" << std::endl;
+        return 1;
+    }
+    auto server = result.value();
 
     // Track connected sessions
     std::mutex sessions_mutex;
@@ -585,10 +633,16 @@ int main()
 {
     facade::websocket_facade facade;
 
-    auto client = facade.create_client({
+    auto result = facade.create_client({
         .client_id = "chat-user-1",
         .ping_interval = std::chrono::seconds(15)
     });
+    if (result.is_err())
+    {
+        std::cerr << "Failed to create client" << std::endl;
+        return 1;
+    }
+    auto client = result.value();
 
     auto observer = std::make_shared<interfaces::callback_adapter>();
     observer->on_connected([]() {
@@ -675,7 +729,7 @@ int main()
 {
     facade::quic_facade facade;
 
-    auto server = facade.create_server({
+    auto result = facade.create_server({
         .port = 4433,
         .server_id = "quic-server",
         .cert_path = "/path/to/cert.pem",
@@ -684,6 +738,12 @@ int main()
         .max_idle_timeout_ms = 60000,
         .max_connections = 5000
     });
+    if (result.is_err())
+    {
+        std::cerr << "Failed to create QUIC server" << std::endl;
+        return 1;
+    }
+    auto server = result.value();
 
     server->set_connection_callback(
         [](std::shared_ptr<interfaces::i_session> session) {
@@ -720,7 +780,7 @@ int main()
 {
     facade::quic_facade facade;
 
-    auto client = facade.create_client({
+    auto result = facade.create_client({
         .host = "127.0.0.1",
         .port = 4433,
         .client_id = "quic-client",
@@ -729,6 +789,12 @@ int main()
         .max_idle_timeout_ms = 60000,
         .enable_0rtt = true
     });
+    if (result.is_err())
+    {
+        std::cerr << "Failed to create QUIC client" << std::endl;
+        return 1;
+    }
+    auto client = result.value();
 
     auto observer = std::make_shared<interfaces::callback_adapter>();
     observer->on_connected([]() {
@@ -767,21 +833,26 @@ int main()
 
 ### Error Handling with Result\<T\>
 
-All facade methods that can fail return `VoidResult` (alias for `Result<void>`). The `Result<T>` type provides a type-safe alternative to exceptions:
+Facade `create_client()` / `create_server()` methods return `Result<std::shared_ptr<T>>`, and interface methods like `start()` / `send()` return `VoidResult` (alias for `Result<void>`). The `Result<T>` type provides a type-safe alternative to exceptions:
 
 ```cpp
-auto client = facade.create_client({.host = "127.0.0.1", .port = 8080});
-
-// Check result with bool conversion
-if (auto result = client->start("127.0.0.1", 8080); !result)
+// create_client returns Result<shared_ptr> — check before using
+auto result = facade.create_client({.host = "127.0.0.1", .port = 8080});
+if (result.is_err())
 {
-    // Handle error - result contains error_info
+    std::cerr << "Failed to create client" << std::endl;
+    return 1;
+}
+auto client = result.value();
+
+// start() and send() return VoidResult — check with bool conversion
+if (auto start_result = client->start("127.0.0.1", 8080); !start_result)
+{
     std::cerr << "Failed to start client" << std::endl;
     return 1;
 }
 
-// Send also returns VoidResult
-if (auto result = client->send(std::move(data)); !result)
+if (auto send_result = client->send(std::move(data)); !send_result)
 {
     std::cerr << "Send failed" << std::endl;
 }
@@ -894,10 +965,10 @@ All protocol clients follow the same lifecycle:
   ─────────────► [Created] ────► [Connected] ────► [Stopped]
                      │                │                  ▲
                      │                └── on_error ──────┘
-                     └─── (invalid config) ──► throws
+                     └─── (invalid config) ──► Result error
 ```
 
-1. **Create**: `facade.create_client(config)` - validates config, returns `shared_ptr`
+1. **Create**: `facade.create_client(config)` - validates config, returns `Result<shared_ptr>`
 2. **Start**: `client->start(host, port)` - connects to server
 3. **Communicate**: `client->send()` / observer `on_receive()`
 4. **Stop**: `client->stop()` - graceful disconnection
@@ -909,10 +980,10 @@ All protocol clients follow the same lifecycle:
   ─────────────► [Created] ────► [Listening] ────► [Stopped]
                      │                │                  ▲
                      │                └── on_error ──────┘
-                     └─── (invalid config) ──► throws
+                     └─── (invalid config) ──► Result error
 ```
 
-1. **Create**: `facade.create_server(config)` - validates config, returns `shared_ptr`
+1. **Create**: `facade.create_server(config)` - validates config, returns `Result<shared_ptr>`
 2. **Start**: `server->start(port)` - begins listening
 3. **Serve**: Accept connections, handle data via callbacks
 4. **Stop**: `server->stop()` - closes all connections gracefully
@@ -984,11 +1055,13 @@ auto client = std::make_shared<messaging_client>(
 
 ```cpp
 tcp_facade facade;
-auto client = facade.create_client({
+auto result = facade.create_client({
     .host = "127.0.0.1",
     .port = 8080,
     .use_ssl = true
 });
+if (result.is_err()) { /* handle error */ }
+auto client = result.value();
 // Ready to use immediately
 ```
 

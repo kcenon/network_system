@@ -23,6 +23,8 @@
 #include <memory>
 #include <string>
 
+#include "kcenon/network/types/result.h"
+
 namespace kcenon::network::interfaces
 {
 	class i_protocol_client;
@@ -106,8 +108,7 @@ public:
 	/**
 	 * @brief Creates a WebSocket client with the specified configuration.
 	 * @param config Client configuration.
-	 * @return Shared pointer to i_protocol_client interface.
-	 * @throws std::invalid_argument if configuration is invalid.
+	 * @return Result containing shared pointer to i_protocol_client, or error.
 	 *
 	 * ### Behavior
 	 * - Creates a WebSocket client adapter wrapping messaging_ws_client
@@ -120,16 +121,15 @@ public:
 	 * - For text messages or WebSocket-specific features, cast to i_websocket_client
 	 *
 	 * ### Error Conditions
-	 * - Throws if ping_interval is zero or negative
+	 * - Returns error if ping_interval is zero or negative
 	 */
 	[[nodiscard]] auto create_client(const client_config& config) const
-		-> std::shared_ptr<interfaces::i_protocol_client>;
+		-> Result<std::shared_ptr<interfaces::i_protocol_client>>;
 
 	/**
 	 * @brief Creates a WebSocket server with the specified configuration.
 	 * @param config Server configuration.
-	 * @return Shared pointer to i_protocol_server interface.
-	 * @throws std::invalid_argument if configuration is invalid.
+	 * @return Result containing shared pointer to i_protocol_server, or error.
 	 *
 	 * ### Behavior
 	 * - Creates a WebSocket server adapter wrapping messaging_ws_server
@@ -142,11 +142,11 @@ public:
 	 * - For text messages or WebSocket-specific features, cast to i_websocket_server
 	 *
 	 * ### Error Conditions
-	 * - Throws if port is 0 or > 65535
-	 * - Throws if path is empty or does not start with '/'
+	 * - Returns error if port is 0 or > 65535
+	 * - Returns error if path is empty or does not start with '/'
 	 */
 	[[nodiscard]] auto create_server(const server_config& config) const
-		-> std::shared_ptr<interfaces::i_protocol_server>;
+		-> Result<std::shared_ptr<interfaces::i_protocol_server>>;
 
 private:
 	/// @brief Generates a unique client ID
@@ -156,10 +156,10 @@ private:
 	[[nodiscard]] static auto generate_server_id() -> std::string;
 
 	/// @brief Validates client configuration
-	static auto validate_client_config(const client_config& config) -> void;
+	static auto validate_client_config(const client_config& config) -> VoidResult;
 
 	/// @brief Validates server configuration
-	static auto validate_server_config(const server_config& config) -> void;
+	static auto validate_server_config(const server_config& config) -> VoidResult;
 };
 
 } // namespace kcenon::network::facade

@@ -10,7 +10,6 @@
 
 #include <chrono>
 #include <memory>
-#include <stdexcept>
 #include <string>
 #include <thread>
 #include <vector>
@@ -55,7 +54,8 @@ TEST_F(UdpFacadeTest, CreateClientThrowsOnEmptyHost)
 		.port = 5555,
 	};
 
-	EXPECT_THROW(facade_->create_client(config), std::invalid_argument);
+	auto result = facade_->create_client(config);
+	EXPECT_TRUE(result.is_err());
 }
 
 TEST_F(UdpFacadeTest, CreateClientThrowsOnInvalidPortZero)
@@ -65,7 +65,8 @@ TEST_F(UdpFacadeTest, CreateClientThrowsOnInvalidPortZero)
 		.port = 0,
 	};
 
-	EXPECT_THROW(facade_->create_client(config), std::invalid_argument);
+	auto result = facade_->create_client(config);
+	EXPECT_TRUE(result.is_err());
 }
 
 // ============================================================================
@@ -78,7 +79,8 @@ TEST_F(UdpFacadeTest, CreateServerThrowsOnInvalidPortZero)
 		.port = 0,
 	};
 
-	EXPECT_THROW(facade_->create_server(config), std::invalid_argument);
+	auto result = facade_->create_server(config);
+	EXPECT_TRUE(result.is_err());
 }
 
 // ============================================================================
@@ -91,9 +93,9 @@ TEST_F(UdpFacadeTest, CreateServerReturnsNonNull)
 		.port = 5556,
 	};
 
-	ASSERT_NO_THROW({
-		server_ = facade_->create_server(config);
-	});
+	auto result = facade_->create_server(config);
+	ASSERT_TRUE(result.is_ok());
+	server_ = result.value();
 
 	ASSERT_NE(server_, nullptr);
 	// Server is running after successful creation
@@ -106,9 +108,9 @@ TEST_F(UdpFacadeTest, CreateServerWithCustomIdUsesProvidedId)
 		.server_id = "custom_server",
 	};
 
-	ASSERT_NO_THROW({
-		server_ = facade_->create_server(config);
-	});
+	auto result = facade_->create_server(config);
+	ASSERT_TRUE(result.is_ok());
+	server_ = result.value();
 
 	ASSERT_NE(server_, nullptr);
 }
@@ -118,13 +120,13 @@ TEST_F(UdpFacadeTest, CreateServerWithoutIdGeneratesUniqueId)
 	udp_facade::server_config config1{.port = 5558};
 	udp_facade::server_config config2{.port = 5559};
 
-	std::shared_ptr<i_protocol_server> server1;
-	std::shared_ptr<i_protocol_server> server2;
+	auto result1 = facade_->create_server(config1);
+	auto result2 = facade_->create_server(config2);
 
-	ASSERT_NO_THROW({
-		server1 = facade_->create_server(config1);
-		server2 = facade_->create_server(config2);
-	});
+	ASSERT_TRUE(result1.is_ok());
+	ASSERT_TRUE(result2.is_ok());
+	auto server1 = result1.value();
+	auto server2 = result2.value();
 
 	ASSERT_NE(server1, nullptr);
 	ASSERT_NE(server2, nullptr);
@@ -145,9 +147,9 @@ TEST_F(UdpFacadeTest, CreateClientReturnsNonNull)
 		.port = 5560,
 	};
 
-	ASSERT_NO_THROW({
-		server_ = facade_->create_server(server_config);
-	});
+	auto server_result = facade_->create_server(server_config);
+	ASSERT_TRUE(server_result.is_ok());
+	server_ = server_result.value();
 
 	// Create client targeting the server
 	udp_facade::client_config client_config{
@@ -155,9 +157,9 @@ TEST_F(UdpFacadeTest, CreateClientReturnsNonNull)
 		.port = 5560,
 	};
 
-	ASSERT_NO_THROW({
-		client_ = facade_->create_client(client_config);
-	});
+	auto client_result = facade_->create_client(client_config);
+	ASSERT_TRUE(client_result.is_ok());
+	client_ = client_result.value();
 
 	ASSERT_NE(client_, nullptr);
 	// Client is running after successful creation
@@ -170,9 +172,9 @@ TEST_F(UdpFacadeTest, CreateClientWithCustomIdUsesProvidedId)
 		.port = 5561,
 	};
 
-	ASSERT_NO_THROW({
-		server_ = facade_->create_server(server_config);
-	});
+	auto server_result = facade_->create_server(server_config);
+	ASSERT_TRUE(server_result.is_ok());
+	server_ = server_result.value();
 
 	// Create client with custom ID
 	udp_facade::client_config client_config{
@@ -181,9 +183,9 @@ TEST_F(UdpFacadeTest, CreateClientWithCustomIdUsesProvidedId)
 		.client_id = "custom_client",
 	};
 
-	ASSERT_NO_THROW({
-		client_ = facade_->create_client(client_config);
-	});
+	auto client_result = facade_->create_client(client_config);
+	ASSERT_TRUE(client_result.is_ok());
+	client_ = client_result.value();
 
 	ASSERT_NE(client_, nullptr);
 }
@@ -195,9 +197,9 @@ TEST_F(UdpFacadeTest, CreateClientWithoutIdGeneratesUniqueId)
 		.port = 5562,
 	};
 
-	ASSERT_NO_THROW({
-		server_ = facade_->create_server(server_config);
-	});
+	auto server_result = facade_->create_server(server_config);
+	ASSERT_TRUE(server_result.is_ok());
+	server_ = server_result.value();
 
 	// Create two clients without IDs
 	udp_facade::client_config config1{
@@ -210,13 +212,13 @@ TEST_F(UdpFacadeTest, CreateClientWithoutIdGeneratesUniqueId)
 		.port = 5562,
 	};
 
-	std::shared_ptr<i_protocol_client> client1;
-	std::shared_ptr<i_protocol_client> client2;
+	auto result1 = facade_->create_client(config1);
+	auto result2 = facade_->create_client(config2);
 
-	ASSERT_NO_THROW({
-		client1 = facade_->create_client(config1);
-		client2 = facade_->create_client(config2);
-	});
+	ASSERT_TRUE(result1.is_ok());
+	ASSERT_TRUE(result2.is_ok());
+	auto client1 = result1.value();
+	auto client2 = result2.value();
 
 	ASSERT_NE(client1, nullptr);
 	ASSERT_NE(client2, nullptr);

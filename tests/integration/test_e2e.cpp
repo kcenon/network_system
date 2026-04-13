@@ -104,27 +104,27 @@ bool test_basic_connectivity(TestResults &results) {
   try {
     // Create server
     auto server = std::make_shared<core::messaging_server>("e2e_server");
-    server->start_server(TEST_PORT);
+    (void)server->start_server(TEST_PORT);
 
     wait_for_ready();
 
     // Create client
     auto client = std::make_shared<core::messaging_client>("e2e_client");
-    client->start_client("127.0.0.1", TEST_PORT);
+    (void)client->start_client("127.0.0.1", TEST_PORT);
 
     wait_for_ready();
 
     // Send test message
     std::string test_data = "Hello, E2E Test!";
     std::vector<uint8_t> data(test_data.begin(), test_data.end());
-    client->send_packet(std::move(data));
+    (void)client->send_packet(std::move(data));
     results.messages_sent++;
 
     wait_for_ready();
 
     // Clean up
-    client->stop_client();
-    server->stop_server();
+    (void)client->stop_client();
+    (void)server->stop_server();
 
     results.passed++;
     std::cout << "✅ Basic connectivity test passed" << std::endl;
@@ -157,7 +157,7 @@ bool test_multi_client(TestResults &results) {
   try {
     // Create server
     auto server = std::make_shared<core::messaging_server>("multi_server");
-    server->start_server(TEST_PORT + 1);
+    (void)server->start_server(TEST_PORT + 1);
 
     wait_for_ready();
 
@@ -170,7 +170,7 @@ bool test_multi_client(TestResults &results) {
         try {
           auto client = std::make_shared<core::messaging_client>(
               "client_" + std::to_string(i));
-          client->start_client("127.0.0.1", TEST_PORT + 1);
+          (void)client->start_client("127.0.0.1", TEST_PORT + 1);
 
           wait_for_ready();
 
@@ -179,12 +179,12 @@ bool test_multi_client(TestResults &results) {
             std::string msg =
                 "Client " + std::to_string(i) + " Message " + std::to_string(j);
             std::vector<uint8_t> data(msg.begin(), msg.end());
-            client->send_packet(std::move(data));
+            (void)client->send_packet(std::move(data));
             local_messages++;
             std::this_thread::yield();
           }
 
-          client->stop_client();
+          (void)client->stop_client();
 
         } catch (const std::exception &e) {
           std::cerr << "Client " << i << " error: " << e.what() << std::endl;
@@ -201,7 +201,7 @@ bool test_multi_client(TestResults &results) {
     results.messages_sent += local_messages;
 
     // Clean up
-    server->stop_server();
+    (void)server->stop_server();
 
     if (results.errors == 0) {
       results.passed++;
@@ -230,12 +230,12 @@ bool test_large_messages(TestResults &results) {
 
   try {
     auto server = std::make_shared<core::messaging_server>("large_server");
-    server->start_server(TEST_PORT + 2);
+    (void)server->start_server(TEST_PORT + 2);
 
     wait_for_ready();
 
     auto client = std::make_shared<core::messaging_client>("large_client");
-    client->start_client("127.0.0.1", TEST_PORT + 2);
+    (void)client->start_client("127.0.0.1", TEST_PORT + 2);
 
     wait_for_ready();
 
@@ -246,14 +246,14 @@ bool test_large_messages(TestResults &results) {
       std::vector<uint8_t> data(size);
       std::generate(data.begin(), data.end(), []() { return rand() % 256; });
 
-      client->send_packet(std::move(data));
+      (void)client->send_packet(std::move(data));
       results.messages_sent++;
       std::this_thread::yield();
     }
 
     // Clean up
-    client->stop_client();
-    server->stop_server();
+    (void)client->stop_client();
+    (void)server->stop_server();
 
     results.passed++;
     std::cout << "✅ Large message test passed" << std::endl;
@@ -276,7 +276,7 @@ bool test_connection_resilience(TestResults &results) {
   try {
     // Start server
     auto server = std::make_shared<core::messaging_server>("resilience_server");
-    server->start_server(TEST_PORT + 3);
+    (void)server->start_server(TEST_PORT + 3);
 
     wait_for_ready();
 
@@ -285,39 +285,39 @@ bool test_connection_resilience(TestResults &results) {
       auto client = std::make_shared<core::messaging_client>(
           "resilience_client_" + std::to_string(i));
 
-      client->start_client("127.0.0.1", TEST_PORT + 3);
+      (void)client->start_client("127.0.0.1", TEST_PORT + 3);
       wait_for_ready();
 
       // Send a message
       std::string msg = "Resilience test " + std::to_string(i);
       std::vector<uint8_t> data(msg.begin(), msg.end());
-      client->send_packet(std::move(data));
+      (void)client->send_packet(std::move(data));
       results.messages_sent++;
 
       wait_for_ready();
-      client->stop_client();
+      (void)client->stop_client();
     }
 
     // Stop and restart server
-    server->stop_server();
+    (void)server->stop_server();
     wait_for_ready();
 
     server = std::make_shared<core::messaging_server>("resilience_server2");
-    server->start_server(TEST_PORT + 3);
+    (void)server->start_server(TEST_PORT + 3);
     wait_for_ready();
 
     // Try connecting again
     auto client = std::make_shared<core::messaging_client>("final_client");
-    client->start_client("127.0.0.1", TEST_PORT + 3);
+    (void)client->start_client("127.0.0.1", TEST_PORT + 3);
     wait_for_ready();
 
     std::string msg = "Final message after restart";
     std::vector<uint8_t> data(msg.begin(), msg.end());
-    client->send_packet(std::move(data));
+    (void)client->send_packet(std::move(data));
     results.messages_sent++;
 
-    client->stop_client();
-    server->stop_server();
+    (void)client->stop_client();
+    (void)server->stop_server();
 
     results.passed++;
     std::cout << "✅ Connection resilience test passed" << std::endl;
@@ -350,7 +350,7 @@ bool test_rapid_connections(TestResults &results) {
 
   try {
     auto server = std::make_shared<core::messaging_server>("rapid_server");
-    server->start_server(TEST_PORT + 4);
+    (void)server->start_server(TEST_PORT + 4);
 
     wait_for_ready();
 
@@ -359,21 +359,21 @@ bool test_rapid_connections(TestResults &results) {
       auto client = std::make_shared<core::messaging_client>("rapid_client_" +
                                                              std::to_string(i));
 
-      client->start_client("127.0.0.1", TEST_PORT + 4);
+      (void)client->start_client("127.0.0.1", TEST_PORT + 4);
 
       // Send message immediately
       std::vector<uint8_t> data = {static_cast<uint8_t>(i)};
-      client->send_packet(std::move(data));
+      (void)client->send_packet(std::move(data));
       results.messages_sent++;
 
       // Disconnect quickly
-      client->stop_client();
+      (void)client->stop_client();
 
       // Small delay between cycles
       std::this_thread::yield();
     }
 
-    server->stop_server();
+    (void)server->stop_server();
 
     results.passed++;
     std::cout << "✅ Rapid connection cycles test passed" << std::endl;

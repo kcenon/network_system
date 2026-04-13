@@ -18,16 +18,16 @@ Facade API documentation for the Network System library, covering TCP, UDP, WebS
 
 ## Table of Contents
 
-- [Overview](#overview)
-- [C++20 Concepts](#c20-concepts)
-- [Core Classes](#core-classes)
-- [Networking Components](#networking-components)
-- [Utility Classes](#utility-classes)
-- [Error Handling](#error-handling)
-- [Configuration](#configuration)
-- [Examples](#examples)
-- [Thread Safety](#thread-safety)
-- [Platform-Specific Notes](#platform-specific-notes)
+- Overview
+- C++20 Concepts
+- Core Classes
+- Networking Components
+- Utility Classes
+- Error Handling
+- Configuration
+- Examples
+- Thread Safety
+- Platform-Specific Notes
 
 ## Overview
 

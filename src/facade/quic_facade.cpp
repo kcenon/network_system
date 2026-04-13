@@ -40,56 +40,65 @@ auto quic_facade::generate_server_id() -> std::string
 	return oss.str();
 }
 
-auto quic_facade::validate_client_config(const client_config& config) -> void
+auto quic_facade::validate_client_config(const client_config& config) -> VoidResult
 {
 	if (config.host.empty())
 	{
-		throw std::invalid_argument("quic_facade: host cannot be empty");
+		return error_void(-1, "quic_facade: host cannot be empty", "quic_facade");
 	}
 
 	if (config.port == 0 || config.port > 65535)
 	{
-		throw std::invalid_argument("quic_facade: port must be between 1 and 65535");
+		return error_void(-1, "quic_facade: port must be between 1 and 65535", "quic_facade");
 	}
 
 	if (config.max_idle_timeout_ms == 0)
 	{
-		throw std::invalid_argument("quic_facade: max_idle_timeout_ms must be positive");
+		return error_void(-1, "quic_facade: max_idle_timeout_ms must be positive", "quic_facade");
 	}
+
+	return ok();
 }
 
-auto quic_facade::validate_server_config(const server_config& config) -> void
+auto quic_facade::validate_server_config(const server_config& config) -> VoidResult
 {
 	if (config.port == 0 || config.port > 65535)
 	{
-		throw std::invalid_argument("quic_facade: port must be between 1 and 65535");
+		return error_void(-1, "quic_facade: port must be between 1 and 65535", "quic_facade");
 	}
 
 	if (config.cert_path.empty())
 	{
-		throw std::invalid_argument("quic_facade: cert_path cannot be empty");
+		return error_void(-1, "quic_facade: cert_path cannot be empty", "quic_facade");
 	}
 
 	if (config.key_path.empty())
 	{
-		throw std::invalid_argument("quic_facade: key_path cannot be empty");
+		return error_void(-1, "quic_facade: key_path cannot be empty", "quic_facade");
 	}
 
 	if (config.max_idle_timeout_ms == 0)
 	{
-		throw std::invalid_argument("quic_facade: max_idle_timeout_ms must be positive");
+		return error_void(-1, "quic_facade: max_idle_timeout_ms must be positive", "quic_facade");
 	}
 
 	if (config.max_connections == 0)
 	{
-		throw std::invalid_argument("quic_facade: max_connections must be positive");
+		return error_void(-1, "quic_facade: max_connections must be positive", "quic_facade");
 	}
+
+	return ok();
 }
 
 auto quic_facade::create_client(const client_config& config) const
-	-> std::shared_ptr<interfaces::i_protocol_client>
+	-> Result<std::shared_ptr<interfaces::i_protocol_client>>
 {
-	validate_client_config(config);
+	auto validation = validate_client_config(config);
+	if (validation.is_err())
+	{
+		return error<std::shared_ptr<interfaces::i_protocol_client>>(
+			validation.error().code, validation.error().message, "quic_facade");
+	}
 
 	const auto client_id = config.client_id.empty() ? generate_client_id() : config.client_id;
 
@@ -114,13 +123,18 @@ auto quic_facade::create_client(const client_config& config) const
 	adapter->set_verify_server(config.verify_server);
 	adapter->set_max_idle_timeout(config.max_idle_timeout_ms);
 
-	return adapter;
+	return ok(std::shared_ptr<interfaces::i_protocol_client>(adapter));
 }
 
 auto quic_facade::create_server(const server_config& config) const
-	-> std::shared_ptr<interfaces::i_protocol_server>
+	-> Result<std::shared_ptr<interfaces::i_protocol_server>>
 {
-	validate_server_config(config);
+	auto validation = validate_server_config(config);
+	if (validation.is_err())
+	{
+		return error<std::shared_ptr<interfaces::i_protocol_server>>(
+			validation.error().code, validation.error().message, "quic_facade");
+	}
 
 	const auto server_id = config.server_id.empty() ? generate_server_id() : config.server_id;
 
@@ -145,7 +159,7 @@ auto quic_facade::create_server(const server_config& config) const
 	adapter->set_max_idle_timeout(config.max_idle_timeout_ms);
 	adapter->set_max_connections(config.max_connections);
 
-	return adapter;
+	return ok(std::shared_ptr<interfaces::i_protocol_server>(adapter));
 }
 
 } // namespace kcenon::network::facade

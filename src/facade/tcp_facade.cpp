@@ -44,127 +44,136 @@ auto tcp_facade::generate_server_id() -> std::string
 	return oss.str();
 }
 
-auto tcp_facade::validate_client_config(const client_config& config) -> void
+auto tcp_facade::validate_client_config(const client_config& config) -> VoidResult
 {
 	if (config.host.empty())
 	{
-		throw std::invalid_argument("tcp_facade: host cannot be empty");
+		return error_void(-1, "tcp_facade: host cannot be empty", "tcp_facade");
 	}
 
 	if (config.port == 0 || config.port > 65535)
 	{
-		throw std::invalid_argument("tcp_facade: port must be between 1 and 65535");
+		return error_void(-1, "tcp_facade: port must be between 1 and 65535", "tcp_facade");
 	}
 
 	if (config.timeout.count() <= 0)
 	{
-		throw std::invalid_argument("tcp_facade: timeout must be positive");
+		return error_void(-1, "tcp_facade: timeout must be positive", "tcp_facade");
 	}
+
+	return ok();
 }
 
-auto tcp_facade::validate_server_config(const server_config& config) -> void
+auto tcp_facade::validate_server_config(const server_config& config) -> VoidResult
 {
 	if (config.port == 0 || config.port > 65535)
 	{
-		throw std::invalid_argument("tcp_facade: port must be between 1 and 65535");
+		return error_void(-1, "tcp_facade: port must be between 1 and 65535", "tcp_facade");
 	}
 
 	if (config.use_ssl)
 	{
 		if (!config.cert_path.has_value() || config.cert_path->empty())
 		{
-			throw std::invalid_argument("tcp_facade: cert_path required when use_ssl=true");
+			return error_void(-1, "tcp_facade: cert_path required when use_ssl=true", "tcp_facade");
 		}
 
 		if (!config.key_path.has_value() || config.key_path->empty())
 		{
-			throw std::invalid_argument("tcp_facade: key_path required when use_ssl=true");
+			return error_void(-1, "tcp_facade: key_path required when use_ssl=true", "tcp_facade");
 		}
 	}
+
+	return ok();
 }
 
 auto tcp_facade::create_client(const client_config& config) const
-	-> std::shared_ptr<interfaces::i_protocol_client>
+	-> Result<std::shared_ptr<interfaces::i_protocol_client>>
 {
 	// Validate configuration
-	validate_client_config(config);
+	auto validation = validate_client_config(config);
+	if (validation.is_err())
+	{
+		return error<std::shared_ptr<interfaces::i_protocol_client>>(
+			validation.error().code, validation.error().message, "tcp_facade");
+	}
 
 	// Generate client ID if not provided
 	const std::string client_id = config.client_id.empty() ? generate_client_id() : config.client_id;
 
-	// Create appropriate client type based on SSL flag
-	std::shared_ptr<interfaces::i_protocol_client> client;
-
-	// Create plain messaging client
-	// Note: SSL support will be added after secure_messaging_client implements IProtocolClient
+	// SSL support not yet implemented
 	if (config.use_ssl)
 	{
-		throw std::runtime_error(
-			"tcp_facade: SSL/TLS support not yet implemented - "
-			"requires secure_messaging_client to implement IProtocolClient interface");
+		return error<std::shared_ptr<interfaces::i_protocol_client>>(
+			-6, "tcp_facade: SSL/TLS support not yet implemented", "tcp_facade");
 	}
 
-	client = std::make_shared<core::messaging_client>(client_id);
+	auto client = std::make_shared<core::messaging_client>(client_id);
 
 	// Start the client and connect
 	auto result = client->start(config.host, config.port);
 	if (result.is_err())
 	{
-		throw std::runtime_error("tcp_facade: failed to start client: " + result.error().message);
+		return error<std::shared_ptr<interfaces::i_protocol_client>>(
+			-600, "tcp_facade: failed to start client: " + result.error().message, "tcp_facade");
 	}
 
-	return client;
+	return ok(std::shared_ptr<interfaces::i_protocol_client>(client));
 }
 
 auto tcp_facade::create_server(const server_config& config) const
-	-> std::shared_ptr<interfaces::i_protocol_server>
+	-> Result<std::shared_ptr<interfaces::i_protocol_server>>
 {
 	// Validate configuration
-	validate_server_config(config);
+	auto validation = validate_server_config(config);
+	if (validation.is_err())
+	{
+		return error<std::shared_ptr<interfaces::i_protocol_server>>(
+			validation.error().code, validation.error().message, "tcp_facade");
+	}
 
 	// Generate server ID if not provided
 	const std::string server_id = config.server_id.empty() ? generate_server_id() : config.server_id;
 
-	// Create appropriate server type based on SSL flag
-	std::shared_ptr<interfaces::i_protocol_server> server;
-
+	// SSL support not yet implemented
 	if (config.use_ssl)
 	{
-		// Note: SSL support will be added after secure_messaging_server implements IProtocolServer
-		throw std::runtime_error(
-			"tcp_facade: SSL/TLS support not yet implemented - "
-			"requires secure_messaging_server to implement IProtocolServer interface");
+		return error<std::shared_ptr<interfaces::i_protocol_server>>(
+			-6, "tcp_facade: SSL/TLS support not yet implemented", "tcp_facade");
 	}
 
 	// Create adapter wrapping messaging_server
-	server = std::make_shared<internal::adapters::tcp_server_adapter>(server_id);
+	auto server = std::make_shared<internal::adapters::tcp_server_adapter>(server_id);
 
-	return server;
+	return ok(std::shared_ptr<interfaces::i_protocol_server>(server));
 }
 
 auto tcp_facade::create_connection_pool(const pool_config& config) const
-	-> std::shared_ptr<core::connection_pool>
+	-> Result<std::shared_ptr<core::connection_pool>>
 {
 	if (config.host.empty())
 	{
-		throw std::invalid_argument("tcp_facade: host cannot be empty");
+		return error<std::shared_ptr<core::connection_pool>>(
+			-1, "tcp_facade: host cannot be empty", "tcp_facade");
 	}
 
 	if (config.port == 0 || config.port > 65535)
 	{
-		throw std::invalid_argument("tcp_facade: port must be between 1 and 65535");
+		return error<std::shared_ptr<core::connection_pool>>(
+			-1, "tcp_facade: port must be between 1 and 65535", "tcp_facade");
 	}
 
 	if (config.pool_size == 0)
 	{
-		throw std::invalid_argument("tcp_facade: pool_size must be greater than 0");
+		return error<std::shared_ptr<core::connection_pool>>(
+			-1, "tcp_facade: pool_size must be greater than 0", "tcp_facade");
 	}
 
-	return std::make_shared<core::connection_pool>(
+	return ok(std::make_shared<core::connection_pool>(
 		config.host,
 		config.port,
 		config.pool_size,
-		config.acquire_timeout);
+		config.acquire_timeout));
 }
 
 } // namespace kcenon::network::facade

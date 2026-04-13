@@ -40,44 +40,59 @@ auto websocket_facade::generate_server_id() -> std::string
 	return oss.str();
 }
 
-auto websocket_facade::validate_client_config(const client_config& config) -> void
+auto websocket_facade::validate_client_config(const client_config& config) -> VoidResult
 {
 	if (config.ping_interval.count() <= 0)
 	{
-		throw std::invalid_argument("websocket_facade: ping_interval must be positive");
+		return error_void(-1, "websocket_facade: ping_interval must be positive", "websocket_facade");
 	}
+
+	return ok();
 }
 
-auto websocket_facade::validate_server_config(const server_config& config) -> void
+auto websocket_facade::validate_server_config(const server_config& config) -> VoidResult
 {
 	if (config.port == 0 || config.port > 65535)
 	{
-		throw std::invalid_argument("websocket_facade: port must be between 1 and 65535");
+		return error_void(-1, "websocket_facade: port must be between 1 and 65535", "websocket_facade");
 	}
 
 	if (config.path.empty() || config.path[0] != '/')
 	{
-		throw std::invalid_argument("websocket_facade: path must start with '/'");
+		return error_void(-1, "websocket_facade: path must start with '/'", "websocket_facade");
 	}
+
+	return ok();
 }
 
 auto websocket_facade::create_client(const client_config& config) const
-	-> std::shared_ptr<interfaces::i_protocol_client>
+	-> Result<std::shared_ptr<interfaces::i_protocol_client>>
 {
-	validate_client_config(config);
+	auto validation = validate_client_config(config);
+	if (validation.is_err())
+	{
+		return error<std::shared_ptr<interfaces::i_protocol_client>>(
+			validation.error().code, validation.error().message, "websocket_facade");
+	}
 
 	const auto client_id = config.client_id.empty() ? generate_client_id() : config.client_id;
 
 	// Create adapter with ping interval from config
 	// Note: Path must be set by caller via dynamic_cast if non-default path needed
-	return std::make_shared<internal::adapters::ws_client_adapter>(
-		client_id, config.ping_interval);
+	return ok(std::shared_ptr<interfaces::i_protocol_client>(
+		std::make_shared<internal::adapters::ws_client_adapter>(
+			client_id, config.ping_interval)));
 }
 
 auto websocket_facade::create_server(const server_config& config) const
-	-> std::shared_ptr<interfaces::i_protocol_server>
+	-> Result<std::shared_ptr<interfaces::i_protocol_server>>
 {
-	validate_server_config(config);
+	auto validation = validate_server_config(config);
+	if (validation.is_err())
+	{
+		return error<std::shared_ptr<interfaces::i_protocol_server>>(
+			validation.error().code, validation.error().message, "websocket_facade");
+	}
 
 	const auto server_id = config.server_id.empty() ? generate_server_id() : config.server_id;
 
@@ -85,7 +100,7 @@ auto websocket_facade::create_server(const server_config& config) const
 	auto adapter = std::make_shared<internal::adapters::ws_server_adapter>(server_id);
 	adapter->set_path(config.path);
 
-	return adapter;
+	return ok(std::shared_ptr<interfaces::i_protocol_server>(adapter));
 }
 
 } // namespace kcenon::network::facade

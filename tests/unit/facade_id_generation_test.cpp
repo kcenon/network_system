@@ -115,7 +115,8 @@ TEST_F(TcpFacadeExtendedTest, ServerConfigPort0Invalid)
 {
 	tcp_facade::server_config config;
 	config.port = 0;
-	EXPECT_THROW((void)facade_.create_server(config), std::invalid_argument);
+	auto result = facade_.create_server(config);
+	EXPECT_TRUE(result.is_err());
 }
 
 TEST_F(TcpFacadeExtendedTest, PoolConfigCustomTimeout)
@@ -126,7 +127,8 @@ TEST_F(TcpFacadeExtendedTest, PoolConfigCustomTimeout)
 	config.pool_size = 3;
 	config.acquire_timeout = std::chrono::seconds(5);
 	auto pool = facade_.create_connection_pool(config);
-	EXPECT_NE(pool, nullptr);
+	ASSERT_TRUE(pool.is_ok());
+	EXPECT_NE(pool.value(), nullptr);
 }
 
 TEST_F(TcpFacadeExtendedTest, PoolConfigLargePoolSize)
@@ -136,7 +138,8 @@ TEST_F(TcpFacadeExtendedTest, PoolConfigLargePoolSize)
 	config.port = 8080;
 	config.pool_size = 100;
 	auto pool = facade_.create_connection_pool(config);
-	EXPECT_NE(pool, nullptr);
+	ASSERT_TRUE(pool.is_ok());
+	EXPECT_NE(pool.value(), nullptr);
 }
 
 TEST_F(TcpFacadeExtendedTest, PoolConfigPortBoundary65535)
@@ -146,7 +149,8 @@ TEST_F(TcpFacadeExtendedTest, PoolConfigPortBoundary65535)
 	config.port = 65535;
 	config.pool_size = 1;
 	auto pool = facade_.create_connection_pool(config);
-	EXPECT_NE(pool, nullptr);
+	ASSERT_TRUE(pool.is_ok());
+	EXPECT_NE(pool.value(), nullptr);
 }
 
 TEST_F(TcpFacadeExtendedTest, PoolConfigPort0Invalid)
@@ -155,7 +159,8 @@ TEST_F(TcpFacadeExtendedTest, PoolConfigPort0Invalid)
 	config.host = "example.com";
 	config.port = 0;
 	config.pool_size = 1;
-	EXPECT_THROW((void)facade_.create_connection_pool(config), std::invalid_argument);
+	auto result = facade_.create_connection_pool(config);
+	EXPECT_TRUE(result.is_err());
 }
 
 TEST_F(TcpFacadeExtendedTest, ClientConfigCustomId)
@@ -289,7 +294,8 @@ TEST_F(UdpFacadeExtendedTest, ClientConfigPort0Invalid)
 	udp_facade::client_config config;
 	config.host = "localhost";
 	config.port = 0;
-	EXPECT_THROW((void)facade_.create_client(config), std::invalid_argument);
+	auto result = facade_.create_client(config);
+	EXPECT_TRUE(result.is_err());
 }
 
 TEST_F(UdpFacadeExtendedTest, ServerConfigPortBoundary65535)
@@ -315,7 +321,8 @@ TEST_F(UdpFacadeExtendedTest, ServerConfigPort0Invalid)
 {
 	udp_facade::server_config config;
 	config.port = 0;
-	EXPECT_THROW((void)facade_.create_server(config), std::invalid_argument);
+	auto result = facade_.create_server(config);
+	EXPECT_TRUE(result.is_err());
 }
 
 TEST_F(UdpFacadeExtendedTest, ClientConfigCustomId)
@@ -376,7 +383,8 @@ TEST_F(HttpFacadeExtendedTest, ClientConfigValidCreatesClient)
 	config.use_ssl = false;
 	config.path = "/api/v1";
 	auto client = facade_.create_client(config);
-	EXPECT_NE(client, nullptr);
+	ASSERT_TRUE(client.is_ok());
+	EXPECT_NE(client.value(), nullptr);
 }
 
 TEST_F(HttpFacadeExtendedTest, ClientConfigCustomId)
@@ -385,7 +393,8 @@ TEST_F(HttpFacadeExtendedTest, ClientConfigCustomId)
 	config.timeout = std::chrono::seconds(5);
 	config.client_id = "http-test-client";
 	auto client = facade_.create_client(config);
-	EXPECT_NE(client, nullptr);
+	ASSERT_TRUE(client.is_ok());
+	EXPECT_NE(client.value(), nullptr);
 }
 
 TEST_F(HttpFacadeExtendedTest, ClientConfigSslFlag)
@@ -395,7 +404,8 @@ TEST_F(HttpFacadeExtendedTest, ClientConfigSslFlag)
 	config.use_ssl = true;
 	config.path = "/secure";
 	auto client = facade_.create_client(config);
-	EXPECT_NE(client, nullptr);
+	ASSERT_TRUE(client.is_ok());
+	EXPECT_NE(client.value(), nullptr);
 }
 
 TEST_F(HttpFacadeExtendedTest, ServerConfigPortBoundary65535)
@@ -421,7 +431,8 @@ TEST_F(HttpFacadeExtendedTest, ServerConfigPort0Invalid)
 {
 	http_facade::server_config config;
 	config.port = 0;
-	EXPECT_THROW((void)facade_.create_server(config), std::invalid_argument);
+	auto result = facade_.create_server(config);
+	EXPECT_TRUE(result.is_err());
 }
 
 TEST_F(HttpFacadeExtendedTest, ServerConfigCustomId)
@@ -477,7 +488,8 @@ TEST_F(WebSocketFacadeExtendedTest, ClientConfigValidCreatesClient)
 	websocket_facade::client_config config;
 	config.ping_interval = std::chrono::seconds(10);
 	auto client = facade_.create_client(config);
-	EXPECT_NE(client, nullptr);
+	ASSERT_TRUE(client.is_ok());
+	EXPECT_NE(client.value(), nullptr);
 }
 
 TEST_F(WebSocketFacadeExtendedTest, ClientConfigCustomId)
@@ -486,7 +498,8 @@ TEST_F(WebSocketFacadeExtendedTest, ClientConfigCustomId)
 	config.ping_interval = std::chrono::seconds(5);
 	config.client_id = "ws-test-client";
 	auto client = facade_.create_client(config);
-	EXPECT_NE(client, nullptr);
+	ASSERT_TRUE(client.is_ok());
+	EXPECT_NE(client.value(), nullptr);
 }
 
 TEST_F(WebSocketFacadeExtendedTest, ServerConfigValidPath)
@@ -535,7 +548,8 @@ TEST_F(WebSocketFacadeExtendedTest, ServerConfigPort0Invalid)
 	websocket_facade::server_config config;
 	config.port = 0;
 	config.path = "/ws";
-	EXPECT_THROW((void)facade_.create_server(config), std::invalid_argument);
+	auto result = facade_.create_server(config);
+	EXPECT_TRUE(result.is_err());
 }
 
 // ============================================================================
@@ -575,7 +589,8 @@ TEST_F(QuicFacadeExtendedTest, ClientConfigPort0Invalid)
 	quic_facade::client_config config;
 	config.host = "localhost";
 	config.port = 0;
-	EXPECT_THROW((void)facade_.create_client(config), std::invalid_argument);
+	auto result = facade_.create_client(config);
+	EXPECT_TRUE(result.is_err());
 }
 
 TEST_F(QuicFacadeExtendedTest, ServerConfigAllValid)
@@ -610,7 +625,8 @@ TEST_F(QuicFacadeExtendedTest, ServerConfigPort0Invalid)
 	config.port = 0;
 	config.cert_path = "/path/to/cert.pem";
 	config.key_path = "/path/to/key.pem";
-	EXPECT_THROW((void)facade_.create_server(config), std::invalid_argument);
+	auto result = facade_.create_server(config);
+	EXPECT_TRUE(result.is_err());
 }
 
 TEST_F(QuicFacadeExtendedTest, ClientConfigWithAlpn)

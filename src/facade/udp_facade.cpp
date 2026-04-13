@@ -40,32 +40,41 @@ auto udp_facade::generate_server_id() -> std::string
 	return oss.str();
 }
 
-auto udp_facade::validate_client_config(const client_config& config) -> void
+auto udp_facade::validate_client_config(const client_config& config) -> VoidResult
 {
 	if (config.host.empty())
 	{
-		throw std::invalid_argument("udp_facade: host cannot be empty");
+		return error_void(-1, "udp_facade: host cannot be empty", "udp_facade");
 	}
 
 	if (config.port == 0 || config.port > 65535)
 	{
-		throw std::invalid_argument("udp_facade: port must be between 1 and 65535");
+		return error_void(-1, "udp_facade: port must be between 1 and 65535", "udp_facade");
 	}
+
+	return ok();
 }
 
-auto udp_facade::validate_server_config(const server_config& config) -> void
+auto udp_facade::validate_server_config(const server_config& config) -> VoidResult
 {
 	if (config.port == 0 || config.port > 65535)
 	{
-		throw std::invalid_argument("udp_facade: port must be between 1 and 65535");
+		return error_void(-1, "udp_facade: port must be between 1 and 65535", "udp_facade");
 	}
+
+	return ok();
 }
 
 auto udp_facade::create_client(const client_config& config) const
-	-> std::shared_ptr<interfaces::i_protocol_client>
+	-> Result<std::shared_ptr<interfaces::i_protocol_client>>
 {
 	// Validate configuration
-	validate_client_config(config);
+	auto validation = validate_client_config(config);
+	if (validation.is_err())
+	{
+		return error<std::shared_ptr<interfaces::i_protocol_client>>(
+			validation.error().code, validation.error().message, "udp_facade");
+	}
 
 	// Generate client ID if not provided
 	const std::string client_id = config.client_id.empty() ? generate_client_id() : config.client_id;
@@ -77,17 +86,23 @@ auto udp_facade::create_client(const client_config& config) const
 	auto result = client->start(config.host, config.port);
 	if (result.is_err())
 	{
-		throw std::runtime_error("udp_facade: failed to start client: " + result.error().message);
+		return error<std::shared_ptr<interfaces::i_protocol_client>>(
+			-600, "udp_facade: failed to start client: " + result.error().message, "udp_facade");
 	}
 
-	return client;
+	return ok(std::shared_ptr<interfaces::i_protocol_client>(client));
 }
 
 auto udp_facade::create_server(const server_config& config) const
-	-> std::shared_ptr<interfaces::i_protocol_server>
+	-> Result<std::shared_ptr<interfaces::i_protocol_server>>
 {
 	// Validate configuration
-	validate_server_config(config);
+	auto validation = validate_server_config(config);
+	if (validation.is_err())
+	{
+		return error<std::shared_ptr<interfaces::i_protocol_server>>(
+			validation.error().code, validation.error().message, "udp_facade");
+	}
 
 	// Generate server ID if not provided
 	const std::string server_id = config.server_id.empty() ? generate_server_id() : config.server_id;
@@ -99,10 +114,11 @@ auto udp_facade::create_server(const server_config& config) const
 	auto result = server->start(config.port);
 	if (result.is_err())
 	{
-		throw std::runtime_error("udp_facade: failed to start server: " + result.error().message);
+		return error<std::shared_ptr<interfaces::i_protocol_server>>(
+			-660, "udp_facade: failed to start server: " + result.error().message, "udp_facade");
 	}
 
-	return server;
+	return ok(std::shared_ptr<interfaces::i_protocol_server>(server));
 }
 
 } // namespace kcenon::network::facade
