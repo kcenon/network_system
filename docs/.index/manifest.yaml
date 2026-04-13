@@ -1,0 +1,54 @@
+# Network System Document Manifest — read this FIRST, then load only needed sections.
+_meta: {schema: "1.0.0", generated: "2026-04-12", docs: 33, project: "network_system", tier: 3}
+
+core:
+  - {id: NET-DOC-IDX,  file: README.md,                  title: "Project README",         keywords: [index, overview], lines: 238}
+  - {id: NET-DOC-KR,   file: README.kr.md,               title: "README (한국어)",          keywords: [index, korean], lines: 277, mirrors: NET-DOC-IDX}
+  - {id: NET-ARCH-IDX, file: ARCHITECTURE.md,            title: "Architecture (index)",   keywords: [architecture, index], lines: 48}
+  - {id: NET-ARCH-KR,  file: ARCHITECTURE.kr.md,         title: "아키텍처 (한국어)",         keywords: [architecture, korean], lines: 181, mirrors: NET-ARCH-OV}
+  - {id: NET-ARCH-OV,  file: ARCHITECTURE_OVERVIEW.md,   title: "Architecture Overview",  keywords: [architecture, overview, layers, facades], lines: 695}
+  - {id: NET-ARCH-PRO, file: ARCHITECTURE_PROTOCOLS.md,  title: "Architecture — Protocols", keywords: [architecture, protocols, tcp, udp, quic], lines: 351}
+  - {id: NET-API-IDX,  file: API_REFERENCE.md,           title: "API Reference (index)",  keywords: [api, index], lines: 43}
+  - {id: NET-API-KR,   file: API_REFERENCE.kr.md,        title: "API 참조 (한국어)",         keywords: [api, korean], lines: 1482, mirrors: NET-API-FAC}
+  - {id: NET-API-FAC,  file: API_REFERENCE_FACADES.md,   title: "API Reference — Facades", keywords: [api, facades, client, server, session], lines: 1262}
+  - {id: NET-API-PRO,  file: API_REFERENCE_PROTOCOLS.md, title: "API Reference — Protocols", keywords: [api, protocols, tcp, udp, dtls, quic], lines: 589}
+  - {id: NET-API-QR,   file: API_QUICK_REFERENCE.md,     title: "API Quick Reference",    keywords: [api, cheatsheet], lines: 299}
+  - {id: NET-FEAT-001, file: FEATURES.md,                title: "Features",               keywords: [features, protocols, facades], lines: 990}
+  - {id: NET-FEAT-KR,  file: FEATURES.kr.md,             title: "기능 (한국어)",             keywords: [features, korean], lines: 745, mirrors: NET-FEAT-001}
+  - {id: NET-PROJ-001, file: PROJECT_STRUCTURE.md,       title: "Project Structure",      keywords: [structure, directory], lines: 626}
+  - {id: NET-PROJ-KR,  file: PROJECT_STRUCTURE.kr.md,    title: "프로젝트 구조 (한국어)",      keywords: [structure, korean], lines: 572, mirrors: NET-PROJ-001}
+  - {id: NET-CHG-001,  file: CHANGELOG.md,               title: "Changelog",              keywords: [changelog], lines: 1076}
+  - {id: NET-CHG-KR,   file: CHANGELOG.kr.md,            title: "변경 이력 (한국어)",         keywords: [changelog, korean], lines: 881, mirrors: NET-CHG-001}
+  - {id: NET-GS-001,   file: GETTING_STARTED.md,         title: "Getting Started",        keywords: [getting-started], lines: 305}
+
+guides:
+  - {id: NET-G-FAC,    file: FACADE_GUIDE.md,            title: "Facade Guide",           keywords: [facade, high-level-api, client, server, session], lines: 1009}
+  - {id: NET-G-UNI,    file: UNIFIED_API_GUIDE.md,       title: "Unified API Guide",      keywords: [unified, api, high-level], lines: 936}
+  - {id: NET-G-DTLS,   file: DTLS_RESILIENT_GUIDE.md,    title: "DTLS Resilient Guide",   keywords: [dtls, udp, encryption, tls], lines: 752}
+  - {id: NET-G-HTTP2,  file: HTTP2_GUIDE.md,             title: "HTTP/2 Guide",           keywords: [http2, stream, multiplexing], lines: 1169}
+  - {id: NET-G-DD,     file: DESIGN_DECISIONS.md,        title: "Design Decisions",       keywords: [design, decisions, rationale], lines: 308}
+  - {id: NET-G-MIG,    file: MIGRATION.md,               title: "Migration Guide",        keywords: [migration, upgrade, legacy], lines: 328}
+  - {id: NET-INT-001,  file: INTEGRATION.md,             title: "Integration",            keywords: [integration, cross-system], lines: 344}
+  - {id: NET-INT-KR,   file: INTEGRATION.kr.md,          title: "통합 (한국어)",              keywords: [integration, korean], lines: 289, mirrors: NET-INT-001}
+
+quality:
+  - {id: NET-QUAL-001, file: PRODUCTION_QUALITY.md,      title: "Production Quality",     keywords: [quality, sanitizers], lines: 789}
+  - {id: NET-QUAL-KR,  file: PRODUCTION_QUALITY.kr.md,   title: "프로덕션 품질 (한국어)",      keywords: [quality, korean], lines: 428, mirrors: NET-QUAL-001}
+  - {id: NET-BENCH,    file: BENCHMARKS.md,              title: "Benchmarks",             keywords: [benchmarks, latency, throughput], lines: 556}
+  - {id: NET-BENCH-KR, file: BENCHMARKS.kr.md,           title: "벤치마크 (한국어)",          keywords: [benchmarks, korean], lines: 254, mirrors: NET-BENCH}
+
+reference:
+  - {id: NET-ECO,      file: ECOSYSTEM.md,               title: "Ecosystem",              keywords: [ecosystem], lines: 29}
+  - {id: NET-SOUP,     file: SOUP.md,                    title: "SOUP",                   keywords: [soup], lines: 112}
+  - {id: NET-TRACE,    file: TRACEABILITY.md,            title: "Traceability",           keywords: [traceability], lines: 201}
+
+load_patterns:
+  quick_start:         [NET-DOC-IDX, NET-GS-001, NET-API-QR]
+  architecture_review: [NET-ARCH-OV, NET-ARCH-PRO, NET-PROJ-001]
+  api_deep:            [NET-API-FAC, NET-API-PRO]
+  facade_work:         [NET-G-FAC, NET-G-UNI, NET-API-FAC]
+  dtls_work:           [NET-G-DTLS, NET-API-PRO, NET-ARCH-PRO]
+  http2_work:          [NET-G-HTTP2, NET-API-PRO]
+  integration_work:    [NET-INT-001, NET-G-FAC]
+  quality_audit:       [NET-QUAL-001, NET-BENCH]
+  migration_work:      [NET-G-MIG, NET-CHG-001]

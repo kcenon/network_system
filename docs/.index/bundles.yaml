@@ -1,0 +1,69 @@
+# Network System Document Bundles — load a bundle to get all context for a feature.
+_meta: {schema: "1.0.0", generated: "2026-04-12"}
+
+quickstart:
+  name: "Quickstart"
+  files: [README.md, GETTING_STARTED.md, API_QUICK_REFERENCE.md]
+
+api-core:
+  name: "Core API Reference"
+  files: [API_REFERENCE_FACADES.md, API_REFERENCE_PROTOCOLS.md, API_QUICK_REFERENCE.md]
+
+architecture:
+  name: "Architecture"
+  files: [ARCHITECTURE_OVERVIEW.md, ARCHITECTURE_PROTOCOLS.md, PROJECT_STRUCTURE.md]
+
+facades:
+  name: "Facades (high-level API)"
+  desc: "Client, server, session facades and unified API"
+  files: [FACADE_GUIDE.md, API_REFERENCE_FACADES.md, FEATURES.md]
+
+unified-api:
+  name: "Unified API"
+  files: [UNIFIED_API_GUIDE.md, FACADE_GUIDE.md, API_REFERENCE_FACADES.md]
+
+protocols:
+  name: "Protocol Layer"
+  files: [ARCHITECTURE_PROTOCOLS.md, API_REFERENCE_PROTOCOLS.md, FEATURES.md]
+
+tls:
+  name: "TLS / Encryption"
+  files: [API_REFERENCE_PROTOCOLS.md, FEATURES.md]
+
+dtls:
+  name: "DTLS (datagram TLS)"
+  desc: "Resilient DTLS over UDP"
+  files: [DTLS_RESILIENT_GUIDE.md, API_REFERENCE_PROTOCOLS.md, ARCHITECTURE_PROTOCOLS.md]
+
+http2:
+  name: "HTTP/2"
+  desc: "Streams, multiplexing, server push"
+  files: [HTTP2_GUIDE.md, API_REFERENCE_PROTOCOLS.md]
+
+quic:
+  name: "QUIC / HTTP/3"
+  files: [API_REFERENCE_PROTOCOLS.md, ARCHITECTURE_PROTOCOLS.md, FEATURES.md]
+
+integration:
+  name: "Integration with other systems"
+  files: [INTEGRATION.md, FACADE_GUIDE.md]
+
+design-decisions:
+  name: "Design Decisions"
+  files: [DESIGN_DECISIONS.md, ARCHITECTURE_OVERVIEW.md]
+
+migration:
+  name: "Migration Guide"
+  files: [MIGRATION.md, CHANGELOG.md]
+
+performance:
+  name: "Performance & Benchmarks"
+  files: [BENCHMARKS.md]
+
+quality-assurance:
+  name: "Quality Assurance"
+  files: [PRODUCTION_QUALITY.md, BENCHMARKS.md]
+
+compliance:
+  name: "Compliance (SOUP / Traceability)"
+  files: [SOUP.md, TRACEABILITY.md]

@@ -1,0 +1,68 @@
+# Network System Change Impact Graph — when X changes, review Y.
+_meta: {schema: "1.0.0", generated: "2026-04-12"}
+
+cascade:
+  NET-ARCH-OV:
+    targets:
+      - {doc: NET-ARCH-PRO, why: "Protocol architecture is subset of overview"}
+      - {doc: NET-API-FAC,  why: "Facade API depends on architecture"}
+      - {doc: NET-PROJ-001, why: "Directory mirrors architecture"}
+      - {doc: NET-FEAT-001, why: "Features reference architecture"}
+
+  NET-ARCH-PRO:
+    targets:
+      - {doc: NET-API-PRO,  why: "Protocol API"}
+      - {doc: NET-G-DTLS,   why: "DTLS is a protocol"}
+      - {doc: NET-G-HTTP2,  why: "HTTP/2 is a protocol"}
+
+  NET-API-FAC:
+    targets:
+      - {doc: NET-G-FAC,    why: "Facade guide references facade API"}
+      - {doc: NET-G-UNI,    why: "Unified API builds on facades"}
+      - {doc: NET-API-QR,   why: "Quick reference"}
+      - {doc: NET-API-KR,   why: "Korean mirror"}
+
+  NET-API-PRO:
+    targets:
+      - {doc: NET-G-DTLS,   why: "DTLS API"}
+      - {doc: NET-G-HTTP2,  why: "HTTP/2 API"}
+      - {doc: NET-ARCH-PRO, why: "Protocol architecture"}
+
+  NET-G-DTLS:
+    targets:
+      - {doc: NET-API-PRO,  why: "DTLS uses protocol API"}
+      - {doc: NET-QUAL-001, why: "DTLS resilience tested in quality"}
+
+  NET-G-HTTP2:
+    targets:
+      - {doc: NET-API-PRO,  why: "HTTP/2 uses protocol API"}
+      - {doc: NET-BENCH,    why: "HTTP/2 benchmarks"}
+
+  NET-G-FAC:
+    targets:
+      - {doc: NET-G-UNI,    why: "Unified API is a facade"}
+      - {doc: NET-API-FAC,  why: "Facade API spec"}
+
+  NET-G-MIG:
+    targets:
+      - {doc: NET-CHG-001,  why: "Migration notes in changelog"}
+
+  NET-QUAL-001:
+    targets:
+      - {doc: NET-QUAL-KR,  why: "Korean mirror"}
+      - {doc: NET-BENCH,    why: "Quality references benchmarks"}
+
+korean_pairs:
+  - {en: NET-DOC-IDX,  kr: NET-DOC-KR}
+  - {en: NET-ARCH-OV,  kr: NET-ARCH-KR}
+  - {en: NET-API-FAC,  kr: NET-API-KR}
+  - {en: NET-FEAT-001, kr: NET-FEAT-KR}
+  - {en: NET-PROJ-001, kr: NET-PROJ-KR}
+  - {en: NET-CHG-001,  kr: NET-CHG-KR}
+  - {en: NET-QUAL-001, kr: NET-QUAL-KR}
+  - {en: NET-BENCH,    kr: NET-BENCH-KR}
+  - {en: NET-INT-001,  kr: NET-INT-KR}
+
+external_deps:
+  - {source: common_system, target: NET-ARCH-OV, why: "network_system depends on common_system"}
+  - {source: thread_system, target: NET-ARCH-OV, why: "async network uses thread pool"}

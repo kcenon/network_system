@@ -1,0 +1,30 @@
+# Network System Query Router — match query to minimum document set.
+_meta: {schema: "1.0.0", generated: "2026-04-12"}
+
+intent_routes:
+  - {keywords: [getting started, tutorial, install, 시작], bundle: quickstart}
+  - {keywords: [api, reference, 레퍼런스], bundle: api-core}
+  - {keywords: [architecture, design, layered, 아키텍처], bundle: architecture}
+  - {keywords: [facade, high level api, client, server, session, 파사드], bundle: facades}
+  - {keywords: [unified api, unified], bundle: unified-api}
+  - {keywords: [protocol, tcp, udp, socket], bundle: protocols}
+  - {keywords: [tls, ssl, encryption, 암호화, 보안], bundle: tls}
+  - {keywords: [dtls, datagram tls, udp secure], bundle: dtls}
+  - {keywords: [http2, http/2, stream, multiplexing, server push], bundle: http2}
+  - {keywords: [quic, http3, quic protocol], bundle: quic}
+  - {keywords: [integration, cross system, 통합], bundle: integration}
+  - {keywords: [migration, upgrade, legacy, 마이그레이션], bundle: migration}
+  - {keywords: [benchmark, performance, latency, throughput, 성능], bundle: performance}
+  - {keywords: [quality, sanitizer, 품질], bundle: quality-assurance}
+  - {keywords: [design decision, rationale, why, 설계 결정], bundle: design-decisions}
+
+fallback:
+  primary: NET-DOC-IDX
+  secondary: [NET-API-QR, NET-FEAT-001]
+
+skip:
+  - ECOSYSTEM.md
+  - SOUP.md
+  - TRACEABILITY.md
+  - ARCHITECTURE.md   # 48 lines, index-only
+  - API_REFERENCE.md  # 43 lines, index-only
