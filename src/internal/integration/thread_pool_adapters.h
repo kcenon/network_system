@@ -277,16 +277,17 @@ public:
      * @param executor The common_system executor to adapt
      * @return Result with adapter or error if executor is nullptr
      */
-    [[nodiscard]] static Result<std::shared_ptr<common_to_network_thread_adapter>>
+    [[nodiscard]] static ::kcenon::common::Result<std::shared_ptr<common_to_network_thread_adapter>>
     create(std::shared_ptr<::kcenon::common::interfaces::IExecutor> executor) {
         if (!executor) {
-            return error<std::shared_ptr<common_to_network_thread_adapter>>(
-                error_codes::common_errors::invalid_argument,
+            return ::kcenon::common::Result<std::shared_ptr<common_to_network_thread_adapter>>::err(
+                ::kcenon::common::error_codes::INVALID_ARGUMENT,
                 "common_to_network_thread_adapter requires non-null executor",
                 "common_to_network_thread_adapter::create");
         }
-        return ok(std::shared_ptr<common_to_network_thread_adapter>(
-            new common_to_network_thread_adapter(std::move(executor))));
+        return ::kcenon::common::Result<std::shared_ptr<common_to_network_thread_adapter>>::ok(
+            std::shared_ptr<common_to_network_thread_adapter>(
+                new common_to_network_thread_adapter(std::move(executor))));
     }
 
     /**

@@ -192,17 +192,18 @@ class NetworkToCommonAdapterTest : public ::testing::Test {
 protected:
     void SetUp() override {
         pool_ = std::make_shared<mock_thread_pool>();
-        adapter_ = std::make_shared<network_to_common_thread_adapter>(pool_);
+        auto result = network_to_common_thread_adapter::create(pool_);
+        ASSERT_TRUE(result.is_ok());
+        adapter_ = result.value();
     }
 
     std::shared_ptr<mock_thread_pool> pool_;
     std::shared_ptr<network_to_common_thread_adapter> adapter_;
 };
 
-TEST_F(NetworkToCommonAdapterTest, ConstructWithNullThrows) {
-    EXPECT_THROW(
-        network_to_common_thread_adapter(nullptr),
-        std::invalid_argument);
+TEST_F(NetworkToCommonAdapterTest, CreateWithNullReturnsError) {
+    auto result = network_to_common_thread_adapter::create(nullptr);
+    EXPECT_FALSE(result.is_ok());
 }
 
 TEST_F(NetworkToCommonAdapterTest, IsRunning) {
@@ -301,17 +302,18 @@ class CommonToNetworkAdapterTest : public ::testing::Test {
 protected:
     void SetUp() override {
         executor_ = std::make_shared<mock_executor>();
-        adapter_ = std::make_shared<common_to_network_thread_adapter>(executor_);
+        auto result = common_to_network_thread_adapter::create(executor_);
+        ASSERT_TRUE(result.is_ok());
+        adapter_ = result.value();
     }
 
     std::shared_ptr<mock_executor> executor_;
     std::shared_ptr<common_to_network_thread_adapter> adapter_;
 };
 
-TEST_F(CommonToNetworkAdapterTest, ConstructWithNullThrows) {
-    EXPECT_THROW(
-        common_to_network_thread_adapter(nullptr),
-        std::invalid_argument);
+TEST_F(CommonToNetworkAdapterTest, CreateWithNullReturnsError) {
+    auto result = common_to_network_thread_adapter::create(nullptr);
+    EXPECT_FALSE(result.is_ok());
 }
 
 TEST_F(CommonToNetworkAdapterTest, IsRunning) {
@@ -407,10 +409,14 @@ TEST_F(AdapterIntegrationTest, RoundTripAdaptation) {
     auto pool = std::make_shared<mock_thread_pool>();
 
     // Adapt to IExecutor
-    auto executor = std::make_shared<network_to_common_thread_adapter>(pool);
+    auto executor_result = network_to_common_thread_adapter::create(pool);
+    ASSERT_TRUE(executor_result.is_ok());
+    auto executor = executor_result.value();
 
     // Adapt back to thread_pool_interface
-    auto adapted_pool = std::make_shared<common_to_network_thread_adapter>(executor);
+    auto adapted_pool_result = common_to_network_thread_adapter::create(executor);
+    ASSERT_TRUE(adapted_pool_result.is_ok());
+    auto adapted_pool = adapted_pool_result.value();
 
     // Use the adapted pool
     std::atomic<bool> executed{false};
@@ -426,8 +432,13 @@ TEST_F(AdapterIntegrationTest, RoundTripWorkerCount) {
     auto pool = std::make_shared<mock_thread_pool>();
     pool->set_worker_count(16);
 
-    auto executor = std::make_shared<network_to_common_thread_adapter>(pool);
-    auto adapted_pool = std::make_shared<common_to_network_thread_adapter>(executor);
+    auto executor_result = network_to_common_thread_adapter::create(pool);
+    ASSERT_TRUE(executor_result.is_ok());
+    auto executor = executor_result.value();
+
+    auto adapted_pool_result = common_to_network_thread_adapter::create(executor);
+    ASSERT_TRUE(adapted_pool_result.is_ok());
+    auto adapted_pool = adapted_pool_result.value();
 
     EXPECT_EQ(adapted_pool->worker_count(), 16u);
 }

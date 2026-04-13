@@ -19,7 +19,7 @@
  * @example
  * @code
  * // Validate incoming message size
- * if (!message_validator::validate_size(data.size())) {
+ * if (message_validator::validate_size(data.size()) != validation_result::ok) {
  *     return error::message_too_large;
  * }
  *
@@ -125,24 +125,11 @@ public:
      *
      * @param size Size to validate
      * @param max_size Maximum allowed size (default: MAX_MESSAGE_SIZE)
-     * @return true if size is within limit, false otherwise
-     */
-    [[nodiscard]] static bool validate_size(
-            size_t size,
-            size_t max_size = message_limits::MAX_MESSAGE_SIZE) noexcept {
-        return size <= max_size;
-    }
-
-    /**
-     * @brief Validate message size against limit
-     *
-     * @param size Size to validate
-     * @param max_size Maximum allowed size
      * @return validation_result::ok if valid, validation_result::size_exceeded otherwise
      */
     [[nodiscard]] static validation_result validate_size(
             size_t size,
-            size_t max_size = message_limits::MAX_MESSAGE_SIZE) {
+            size_t max_size = message_limits::MAX_MESSAGE_SIZE) noexcept {
         if (size > max_size) {
             return validation_result::size_exceeded;
         }

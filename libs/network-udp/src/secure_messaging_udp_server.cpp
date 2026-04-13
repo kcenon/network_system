@@ -349,8 +349,13 @@ auto secure_messaging_udp_server::create_session(
 		asio::ip::udp::socket client_socket(*io_context_, asio::ip::udp::v4());
 
 		auto session = std::make_shared<dtls_session>();
-		session->socket = std::make_shared<internal::dtls_socket>(
+		auto socket_result = internal::dtls_socket::create(
 			std::move(client_socket), ssl_ctx_);
+		if (!socket_result.is_ok())
+		{
+			return nullptr;
+		}
+		session->socket = socket_result.value();
 		session->socket->set_peer_endpoint(client_endpoint);
 
 		// Set receive callback

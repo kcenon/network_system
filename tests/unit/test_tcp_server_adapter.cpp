@@ -15,6 +15,7 @@ All rights reserved.
 #include <gtest/gtest.h>
 
 #include <string>
+#include <string_view>
 
 namespace kcenon::network::internal::adapters {
 namespace {
@@ -64,21 +65,21 @@ TEST(TcpServerAdapterTest, SetConnectionCallback) {
 TEST(TcpServerAdapterTest, SetDisconnectionCallback) {
     tcp_server_adapter adapter("test-server");
     adapter.set_disconnection_callback(
-        [](std::shared_ptr<interfaces::i_session>) {});
+        [](std::string_view) {});
     SUCCEED();
 }
 
 TEST(TcpServerAdapterTest, SetReceiveCallback) {
     tcp_server_adapter adapter("test-server");
     adapter.set_receive_callback(
-        [](std::shared_ptr<interfaces::i_session>, std::vector<uint8_t>&&) {});
+        [](std::string_view, const std::vector<uint8_t>&) {});
     SUCCEED();
 }
 
 TEST(TcpServerAdapterTest, SetErrorCallback) {
     tcp_server_adapter adapter("test-server");
     adapter.set_error_callback(
-        [](std::shared_ptr<interfaces::i_session>, std::error_code) {});
+        [](std::string_view, std::error_code) {});
     SUCCEED();
 }
 
@@ -87,11 +88,11 @@ TEST(TcpServerAdapterTest, SetAllCallbacksSequentially) {
     adapter.set_connection_callback(
         [](std::shared_ptr<interfaces::i_session>) {});
     adapter.set_disconnection_callback(
-        [](std::shared_ptr<interfaces::i_session>) {});
+        [](std::string_view) {});
     adapter.set_receive_callback(
-        [](std::shared_ptr<interfaces::i_session>, std::vector<uint8_t>&&) {});
+        [](std::string_view, const std::vector<uint8_t>&) {});
     adapter.set_error_callback(
-        [](std::shared_ptr<interfaces::i_session>, std::error_code) {});
+        [](std::string_view, std::error_code) {});
     EXPECT_FALSE(adapter.is_running());
 }
 

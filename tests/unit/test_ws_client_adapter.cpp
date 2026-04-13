@@ -56,12 +56,12 @@ TEST(WsClientAdapterTest, SetPathMultipleTimes) {
 TEST(WsClientAdapterTest, SetAllCallbacks) {
     ws_client_adapter adapter("test-client");
     adapter.set_receive_callback(
-        [](std::shared_ptr<interfaces::i_session>, std::vector<uint8_t>&&) {});
-    adapter.set_connected_callback([](std::shared_ptr<interfaces::i_session>) {});
+        [](const std::vector<uint8_t>&) {});
+    adapter.set_connected_callback([]() {});
     adapter.set_disconnected_callback(
-        [](std::shared_ptr<interfaces::i_session>) {});
+        []() {});
     adapter.set_error_callback(
-        [](std::shared_ptr<interfaces::i_session>, std::error_code) {});
+        [](std::error_code) {});
     EXPECT_FALSE(adapter.is_connected());
 }
 
@@ -69,9 +69,9 @@ TEST(WsClientAdapterTest, ConfigurePathAndCallbacksBeforeStart) {
     ws_client_adapter adapter("test-client", std::chrono::seconds(15));
     adapter.set_path("/ws");
     adapter.set_receive_callback(
-        [](std::shared_ptr<interfaces::i_session>, std::vector<uint8_t>&&) {});
+        [](const std::vector<uint8_t>&) {});
     adapter.set_error_callback(
-        [](std::shared_ptr<interfaces::i_session>, std::error_code) {});
+        [](std::error_code) {});
     EXPECT_FALSE(adapter.is_running());
 }
 

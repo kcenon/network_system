@@ -94,10 +94,10 @@ TEST(HttpClientAdapterTest, ConfigureAllSettingsBeforeStart) {
     adapter.set_path("/api/v1/endpoint");
     adapter.set_use_ssl(true);
     adapter.set_receive_callback(
-        [](std::shared_ptr<interfaces::i_session>, std::vector<uint8_t>&&) {});
-    adapter.set_connected_callback([](std::shared_ptr<interfaces::i_session>) {});
+        [](const std::vector<uint8_t>&) {});
+    adapter.set_connected_callback([]() {});
     adapter.set_error_callback(
-        [](std::shared_ptr<interfaces::i_session>, std::error_code) {});
+        [](std::error_code) {});
     EXPECT_FALSE(adapter.is_running());
 }
 
@@ -108,12 +108,12 @@ TEST(HttpClientAdapterTest, ConfigureAllSettingsBeforeStart) {
 TEST(HttpClientAdapterTest, SetAllCallbacks) {
     http_client_adapter adapter("test-client");
     adapter.set_receive_callback(
-        [](std::shared_ptr<interfaces::i_session>, std::vector<uint8_t>&&) {});
-    adapter.set_connected_callback([](std::shared_ptr<interfaces::i_session>) {});
+        [](const std::vector<uint8_t>&) {});
+    adapter.set_connected_callback([]() {});
     adapter.set_disconnected_callback(
-        [](std::shared_ptr<interfaces::i_session>) {});
+        []() {});
     adapter.set_error_callback(
-        [](std::shared_ptr<interfaces::i_session>, std::error_code) {});
+        [](std::error_code) {});
     EXPECT_FALSE(adapter.is_connected());
 }
 
