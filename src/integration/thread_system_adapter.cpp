@@ -147,7 +147,8 @@ std::shared_ptr<thread_system_pool_adapter> thread_system_pool_adapter::create_d
     }
 
     (void)pool->start(); // best-effort start; ignore error to keep adapter usable
-    return std::make_shared<thread_system_pool_adapter>(std::move(pool));
+    auto result = thread_system_pool_adapter::create(std::move(pool));
+    return result.is_ok() ? result.value() : nullptr;
 }
 
 std::shared_ptr<thread_system_pool_adapter> thread_system_pool_adapter::from_service_or_default(
@@ -156,7 +157,8 @@ std::shared_ptr<thread_system_pool_adapter> thread_system_pool_adapter::from_ser
     try {
         auto& sc = kcenon::thread::service_container::global();
         if (auto existing = sc.resolve<kcenon::thread::thread_pool>()) {
-            return std::make_shared<thread_system_pool_adapter>(std::move(existing));
+            auto result = thread_system_pool_adapter::create(std::move(existing));
+            if (result.is_ok()) return result.value();
         }
     } catch (...) {
         // ignore and fallback
