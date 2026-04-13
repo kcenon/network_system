@@ -24,6 +24,7 @@
 
 #include "kcenon/network/interfaces/i_protocol_client.h"
 #include "kcenon/network/interfaces/i_protocol_server.h"
+#include "kcenon/network/types/result.h"
 
 namespace kcenon::network::facade
 {
@@ -102,8 +103,7 @@ public:
 	/**
 	 * @brief Creates a UDP client with the specified configuration.
 	 * @param config Client configuration.
-	 * @return Shared pointer to IProtocolClient interface.
-	 * @throws std::invalid_argument if configuration is invalid.
+	 * @return Result containing shared pointer to IProtocolClient, or error.
 	 *
 	 * ### Behavior
 	 * - Creates a UDP client adapter wrapping messaging_udp_client
@@ -111,17 +111,16 @@ public:
 	 * - Automatically connects to the specified target endpoint
 	 *
 	 * ### Error Conditions
-	 * - Throws if host is empty
-	 * - Throws if port is 0 or > 65535
+	 * - Returns error if host is empty
+	 * - Returns error if port is 0 or > 65535
 	 */
 	[[nodiscard]] auto create_client(const client_config& config) const
-		-> std::shared_ptr<interfaces::i_protocol_client>;
+		-> Result<std::shared_ptr<interfaces::i_protocol_client>>;
 
 	/**
 	 * @brief Creates a UDP server with the specified configuration.
 	 * @param config Server configuration.
-	 * @return Shared pointer to IProtocolServer interface.
-	 * @throws std::invalid_argument if configuration is invalid.
+	 * @return Result containing shared pointer to IProtocolServer, or error.
 	 *
 	 * ### Behavior
 	 * - Creates a UDP server adapter wrapping messaging_udp_server
@@ -129,10 +128,10 @@ public:
 	 * - Automatically starts listening on the specified port
 	 *
 	 * ### Error Conditions
-	 * - Throws if port is 0 or > 65535
+	 * - Returns error if port is 0 or > 65535
 	 */
 	[[nodiscard]] auto create_server(const server_config& config) const
-		-> std::shared_ptr<interfaces::i_protocol_server>;
+		-> Result<std::shared_ptr<interfaces::i_protocol_server>>;
 
 private:
 	/// @brief Generates a unique client ID
@@ -142,10 +141,10 @@ private:
 	[[nodiscard]] static auto generate_server_id() -> std::string;
 
 	/// @brief Validates client configuration
-	static auto validate_client_config(const client_config& config) -> void;
+	static auto validate_client_config(const client_config& config) -> VoidResult;
 
 	/// @brief Validates server configuration
-	static auto validate_server_config(const server_config& config) -> void;
+	static auto validate_server_config(const server_config& config) -> VoidResult;
 };
 
 } // namespace kcenon::network::facade

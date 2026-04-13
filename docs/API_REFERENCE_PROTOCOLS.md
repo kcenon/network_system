@@ -18,10 +18,10 @@ Protocol-level API documentation for the Network System library, covering low-le
 
 ## Table of Contents
 
-- [Protocol Handlers](#protocol-handlers)
-- [Thread Integration API](#thread-integration-api)
-- [Version History](#version-history)
-- [License](#license)
+- Protocol Handlers
+- Thread Integration API
+- Version History
+- License
 
 ## Protocol Handlers
 

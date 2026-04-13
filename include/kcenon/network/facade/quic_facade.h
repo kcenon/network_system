@@ -24,6 +24,8 @@
 #include <string>
 #include <vector>
 
+#include "kcenon/network/types/result.h"
+
 namespace kcenon::network::interfaces
 {
 	class i_protocol_client;
@@ -152,8 +154,7 @@ public:
 	/**
 	 * @brief Creates a QUIC client with the specified configuration.
 	 * @param config Client configuration.
-	 * @return Shared pointer to i_protocol_client.
-	 * @throws std::invalid_argument if configuration is invalid.
+	 * @return Result containing shared pointer to i_protocol_client, or error.
 	 *
 	 * ### Behavior
 	 * - Creates a QUIC client adapter implementing i_protocol_client
@@ -162,21 +163,20 @@ public:
 	 * - Client must be started manually using start() method
 	 *
 	 * ### Error Conditions
-	 * - Throws if host is empty
-	 * - Throws if port is 0 or > 65535
+	 * - Returns error if host is empty
+	 * - Returns error if port is 0 or > 65535
 	 *
 	 * ### Note
 	 * For QUIC-specific features (multi-stream, 0-RTT, ALPN), use
 	 * messaging_quic_client directly instead of the facade.
 	 */
 	[[nodiscard]] auto create_client(const client_config& config) const
-		-> std::shared_ptr<interfaces::i_protocol_client>;
+		-> Result<std::shared_ptr<interfaces::i_protocol_client>>;
 
 	/**
 	 * @brief Creates a QUIC server with the specified configuration.
 	 * @param config Server configuration.
-	 * @return Shared pointer to i_protocol_server.
-	 * @throws std::invalid_argument if configuration is invalid.
+	 * @return Result containing shared pointer to i_protocol_server, or error.
 	 *
 	 * ### Behavior
 	 * - Creates a QUIC server adapter implementing i_protocol_server
@@ -185,16 +185,16 @@ public:
 	 * - Server must be started manually using start() method
 	 *
 	 * ### Error Conditions
-	 * - Throws if port is 0 or > 65535
-	 * - Throws if cert_path is empty
-	 * - Throws if key_path is empty
+	 * - Returns error if port is 0 or > 65535
+	 * - Returns error if cert_path is empty
+	 * - Returns error if key_path is empty
 	 *
 	 * ### Note
 	 * For QUIC-specific features (multi-stream, broadcast), use
 	 * messaging_quic_server directly instead of the facade.
 	 */
 	[[nodiscard]] auto create_server(const server_config& config) const
-		-> std::shared_ptr<interfaces::i_protocol_server>;
+		-> Result<std::shared_ptr<interfaces::i_protocol_server>>;
 
 private:
 	/// @brief Generates a unique client ID
@@ -204,10 +204,10 @@ private:
 	[[nodiscard]] static auto generate_server_id() -> std::string;
 
 	/// @brief Validates client configuration
-	static auto validate_client_config(const client_config& config) -> void;
+	static auto validate_client_config(const client_config& config) -> VoidResult;
 
 	/// @brief Validates server configuration
-	static auto validate_server_config(const server_config& config) -> void;
+	static auto validate_server_config(const server_config& config) -> VoidResult;
 };
 
 } // namespace kcenon::network::facade

@@ -24,6 +24,8 @@
 #include <memory>
 #include <string>
 
+#include "kcenon/network/types/result.h"
+
 namespace kcenon::network::interfaces
 {
 	class i_protocol_client;
@@ -109,8 +111,7 @@ public:
 	/**
 	 * @brief Creates an HTTP client with the specified configuration.
 	 * @param config Client configuration.
-	 * @return Shared pointer to i_protocol_client interface.
-	 * @throws std::invalid_argument if configuration is invalid.
+	 * @return Result containing shared pointer to i_protocol_client, or error.
 	 *
 	 * ### Behavior
 	 * - Creates an HTTP client adapter wrapping http_client
@@ -124,16 +125,15 @@ public:
 	 * - Received response body is delivered via receive callback
 	 *
 	 * ### Error Conditions
-	 * - Throws if timeout is zero or negative
+	 * - Returns error if timeout is zero or negative
 	 */
 	[[nodiscard]] auto create_client(const client_config& config) const
-		-> std::shared_ptr<interfaces::i_protocol_client>;
+		-> Result<std::shared_ptr<interfaces::i_protocol_client>>;
 
 	/**
 	 * @brief Creates an HTTP server with the specified configuration.
 	 * @param config Server configuration.
-	 * @return Shared pointer to i_protocol_server interface.
-	 * @throws std::invalid_argument if configuration is invalid.
+	 * @return Result containing shared pointer to i_protocol_server, or error.
 	 *
 	 * ### Behavior
 	 * - Creates an HTTP server adapter wrapping http_server
@@ -146,10 +146,10 @@ public:
 	 * - Session send() queues response data for the current request
 	 *
 	 * ### Error Conditions
-	 * - Throws if port is 0 or > 65535
+	 * - Returns error if port is 0 or > 65535
 	 */
 	[[nodiscard]] auto create_server(const server_config& config) const
-		-> std::shared_ptr<interfaces::i_protocol_server>;
+		-> Result<std::shared_ptr<interfaces::i_protocol_server>>;
 
 private:
 	/// @brief Generates a unique client ID
@@ -159,10 +159,10 @@ private:
 	[[nodiscard]] static auto generate_server_id() -> std::string;
 
 	/// @brief Validates client configuration
-	static auto validate_client_config(const client_config& config) -> void;
+	static auto validate_client_config(const client_config& config) -> VoidResult;
 
 	/// @brief Validates server configuration
-	static auto validate_server_config(const server_config& config) -> void;
+	static auto validate_server_config(const server_config& config) -> VoidResult;
 };
 
 } // namespace kcenon::network::facade

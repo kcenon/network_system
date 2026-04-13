@@ -40,26 +40,35 @@ auto http_facade::generate_server_id() -> std::string
 	return oss.str();
 }
 
-auto http_facade::validate_client_config(const client_config& config) -> void
+auto http_facade::validate_client_config(const client_config& config) -> VoidResult
 {
 	if (config.timeout.count() <= 0)
 	{
-		throw std::invalid_argument("http_facade: timeout must be positive");
+		return error_void(-1, "http_facade: timeout must be positive", "http_facade");
 	}
+
+	return ok();
 }
 
-auto http_facade::validate_server_config(const server_config& config) -> void
+auto http_facade::validate_server_config(const server_config& config) -> VoidResult
 {
 	if (config.port == 0 || config.port > 65535)
 	{
-		throw std::invalid_argument("http_facade: port must be between 1 and 65535");
+		return error_void(-1, "http_facade: port must be between 1 and 65535", "http_facade");
 	}
+
+	return ok();
 }
 
 auto http_facade::create_client(const client_config& config) const
-	-> std::shared_ptr<interfaces::i_protocol_client>
+	-> Result<std::shared_ptr<interfaces::i_protocol_client>>
 {
-	validate_client_config(config);
+	auto validation = validate_client_config(config);
+	if (validation.is_err())
+	{
+		return error<std::shared_ptr<interfaces::i_protocol_client>>(
+			validation.error().code, validation.error().message, "http_facade");
+	}
 
 	const auto client_id = config.client_id.empty() ? generate_client_id() : config.client_id;
 
@@ -71,18 +80,24 @@ auto http_facade::create_client(const client_config& config) const
 	adapter->set_path(config.path);
 	adapter->set_use_ssl(config.use_ssl);
 
-	return adapter;
+	return ok(std::shared_ptr<interfaces::i_protocol_client>(adapter));
 }
 
 auto http_facade::create_server(const server_config& config) const
-	-> std::shared_ptr<interfaces::i_protocol_server>
+	-> Result<std::shared_ptr<interfaces::i_protocol_server>>
 {
-	validate_server_config(config);
+	auto validation = validate_server_config(config);
+	if (validation.is_err())
+	{
+		return error<std::shared_ptr<interfaces::i_protocol_server>>(
+			validation.error().code, validation.error().message, "http_facade");
+	}
 
 	const auto server_id = config.server_id.empty() ? generate_server_id() : config.server_id;
 
 	// Create adapter
-	return std::make_shared<internal::adapters::http_server_adapter>(server_id);
+	return ok(std::shared_ptr<interfaces::i_protocol_server>(
+		std::make_shared<internal::adapters::http_server_adapter>(server_id)));
 }
 
 } // namespace kcenon::network::facade

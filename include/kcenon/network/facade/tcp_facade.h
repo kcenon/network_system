@@ -26,6 +26,7 @@
 
 #include "kcenon/network/interfaces/i_protocol_client.h"
 #include "kcenon/network/interfaces/i_protocol_server.h"
+#include "kcenon/network/types/result.h"
 
 // Forward declarations
 namespace kcenon::network::core
@@ -150,7 +151,7 @@ public:
 	 * @brief Creates a TCP client with the specified configuration.
 	 * @param config Client configuration.
 	 * @return Shared pointer to IProtocolClient interface.
-	 * @throws std::invalid_argument if configuration is invalid.
+	 * @return Result containing shared pointer to IProtocolClient, or error.
 	 *
 	 * ### Behavior
 	 * - Creates appropriate client type based on use_ssl flag
@@ -159,18 +160,18 @@ public:
 	 * - Client ID is auto-generated if not provided
 	 *
 	 * ### Error Conditions
-	 * - Throws if host is empty
-	 * - Throws if port is 0 or > 65535
-	 * - Throws if use_ssl=true but SSL support not compiled in
+	 * - Returns error if host is empty
+	 * - Returns error if port is 0 or > 65535
+	 * - Returns error if use_ssl=true but SSL support not compiled in
 	 */
 	[[nodiscard]] auto create_client(const client_config& config) const
-		-> std::shared_ptr<interfaces::i_protocol_client>;
+		-> Result<std::shared_ptr<interfaces::i_protocol_client>>;
 
 	/**
 	 * @brief Creates a TCP server with the specified configuration.
 	 * @param config Server configuration.
 	 * @return Shared pointer to IProtocolServer interface.
-	 * @throws std::invalid_argument if configuration is invalid.
+	 * @return Result containing shared pointer to IProtocolServer, or error.
 	 *
 	 * ### Behavior
 	 * - Creates appropriate server type based on use_ssl flag
@@ -179,12 +180,12 @@ public:
 	 * - Server ID is auto-generated if not provided
 	 *
 	 * ### Error Conditions
-	 * - Throws if port is 0 or > 65535
-	 * - Throws if use_ssl=true but cert_path or key_path not provided
-	 * - Throws if use_ssl=true but SSL support not compiled in
+	 * - Returns error if port is 0 or > 65535
+	 * - Returns error if use_ssl=true but cert_path or key_path not provided
+	 * - Returns error if use_ssl=true but SSL support not compiled in
 	 */
 	[[nodiscard]] auto create_server(const server_config& config) const
-		-> std::shared_ptr<interfaces::i_protocol_server>;
+		-> Result<std::shared_ptr<interfaces::i_protocol_server>>;
 
 	/**
 	 * @struct pool_config
@@ -233,7 +234,7 @@ public:
 	 * @endcode
 	 */
 	[[nodiscard]] auto create_connection_pool(const pool_config& config) const
-		-> std::shared_ptr<core::connection_pool>;
+		-> Result<std::shared_ptr<core::connection_pool>>;
 
 private:
 	/// @brief Generates a unique client ID
@@ -243,10 +244,10 @@ private:
 	[[nodiscard]] static auto generate_server_id() -> std::string;
 
 	/// @brief Validates client configuration
-	static auto validate_client_config(const client_config& config) -> void;
+	static auto validate_client_config(const client_config& config) -> VoidResult;
 
 	/// @brief Validates server configuration
-	static auto validate_server_config(const server_config& config) -> void;
+	static auto validate_server_config(const server_config& config) -> VoidResult;
 };
 
 } // namespace kcenon::network::facade
