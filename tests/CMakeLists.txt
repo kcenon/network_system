@@ -3466,6 +3466,303 @@ network_gtest_discover_tests(network_quic_transport_params_test
 message(STATUS "QUIC transport params unit tests enabled")
 
 ##################################################
+# QUIC Packet Unit Tests (Issue #954)
+##################################################
+
+add_executable(network_quic_packet_unit_test
+    unit/quic_packet_test.cpp
+)
+
+target_link_libraries(network_quic_packet_unit_test PRIVATE
+    network_system
+    GTest::gtest
+    GTest::gtest_main
+    Threads::Threads
+)
+
+setup_asio_integration(network_quic_packet_unit_test)
+
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_quic_packet_unit_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_quic_packet_unit_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+
+set_target_properties(network_quic_packet_unit_test PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+)
+
+network_gtest_discover_tests(network_quic_packet_unit_test
+    DISCOVERY_TIMEOUT 60
+)
+message(STATUS "QUIC packet unit tests enabled")
+
+##################################################
+# QUIC RTT Estimator Unit Tests (Issue #954)
+##################################################
+
+add_executable(network_quic_rtt_estimator_test
+    unit/quic_rtt_estimator_test.cpp
+)
+
+target_link_libraries(network_quic_rtt_estimator_test PRIVATE
+    network_system
+    GTest::gtest
+    GTest::gtest_main
+    Threads::Threads
+)
+
+setup_asio_integration(network_quic_rtt_estimator_test)
+
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_quic_rtt_estimator_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_quic_rtt_estimator_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+
+set_target_properties(network_quic_rtt_estimator_test PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+)
+
+network_gtest_discover_tests(network_quic_rtt_estimator_test
+    DISCOVERY_TIMEOUT 60
+)
+message(STATUS "QUIC RTT estimator unit tests enabled")
+
+##################################################
+# QUIC Flow Control Unit Tests (Issue #954)
+##################################################
+
+add_executable(network_quic_flow_control_test
+    unit/quic_flow_control_test.cpp
+)
+
+target_link_libraries(network_quic_flow_control_test PRIVATE
+    network_system
+    GTest::gtest
+    GTest::gtest_main
+    Threads::Threads
+)
+
+setup_asio_integration(network_quic_flow_control_test)
+
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_quic_flow_control_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_quic_flow_control_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+
+set_target_properties(network_quic_flow_control_test PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+)
+
+network_gtest_discover_tests(network_quic_flow_control_test
+    DISCOVERY_TIMEOUT 60
+)
+message(STATUS "QUIC flow control unit tests enabled")
+
+##################################################
+# QUIC Stream Unit Tests (Issue #954)
+##################################################
+
+add_executable(network_quic_stream_unit_test
+    unit/quic_stream_test.cpp
+)
+
+target_link_libraries(network_quic_stream_unit_test PRIVATE
+    network_system
+    GTest::gtest
+    GTest::gtest_main
+    Threads::Threads
+)
+
+setup_asio_integration(network_quic_stream_unit_test)
+
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_quic_stream_unit_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_quic_stream_unit_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+
+set_target_properties(network_quic_stream_unit_test PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+)
+
+network_gtest_discover_tests(network_quic_stream_unit_test
+    DISCOVERY_TIMEOUT 60
+)
+message(STATUS "QUIC stream unit tests enabled")
+
+##################################################
+# QUIC Stream Manager Unit Tests (Issue #954)
+##################################################
+
+add_executable(network_quic_stream_manager_test
+    unit/quic_stream_manager_test.cpp
+)
+
+target_link_libraries(network_quic_stream_manager_test PRIVATE
+    network_system
+    GTest::gtest
+    GTest::gtest_main
+    Threads::Threads
+)
+
+setup_asio_integration(network_quic_stream_manager_test)
+
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_quic_stream_manager_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_quic_stream_manager_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+
+set_target_properties(network_quic_stream_manager_test PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+)
+
+network_gtest_discover_tests(network_quic_stream_manager_test
+    DISCOVERY_TIMEOUT 60
+)
+message(STATUS "QUIC stream manager unit tests enabled")
+
+##################################################
+# QUIC Loss Detector Unit Tests (Issue #954)
+##################################################
+
+add_executable(network_quic_loss_detector_unit_test
+    unit/quic_loss_detector_test.cpp
+)
+
+target_link_libraries(network_quic_loss_detector_unit_test PRIVATE
+    network_system
+    GTest::gtest
+    GTest::gtest_main
+    Threads::Threads
+)
+
+setup_asio_integration(network_quic_loss_detector_unit_test)
+
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_quic_loss_detector_unit_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_quic_loss_detector_unit_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+
+set_target_properties(network_quic_loss_detector_unit_test PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+)
+
+network_gtest_discover_tests(network_quic_loss_detector_unit_test
+    DISCOVERY_TIMEOUT 60
+)
+message(STATUS "QUIC loss detector unit tests enabled")
+
+##################################################
+# QUIC Congestion Controller Unit Tests (Issue #954)
+##################################################
+
+add_executable(network_quic_congestion_controller_test
+    unit/quic_congestion_controller_test.cpp
+)
+
+target_link_libraries(network_quic_congestion_controller_test PRIVATE
+    network_system
+    GTest::gtest
+    GTest::gtest_main
+    Threads::Threads
+)
+
+setup_asio_integration(network_quic_congestion_controller_test)
+
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_quic_congestion_controller_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_quic_congestion_controller_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+
+set_target_properties(network_quic_congestion_controller_test PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+)
+
+network_gtest_discover_tests(network_quic_congestion_controller_test
+    DISCOVERY_TIMEOUT 60
+)
+message(STATUS "QUIC congestion controller unit tests enabled")
+
+##################################################
+# QUIC ECN Tracker Unit Tests (Issue #954)
+##################################################
+
+add_executable(network_quic_ecn_tracker_test
+    unit/quic_ecn_tracker_test.cpp
+)
+
+target_link_libraries(network_quic_ecn_tracker_test PRIVATE
+    network_system
+    GTest::gtest
+    GTest::gtest_main
+    Threads::Threads
+)
+
+setup_asio_integration(network_quic_ecn_tracker_test)
+
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_quic_ecn_tracker_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_quic_ecn_tracker_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+
+set_target_properties(network_quic_ecn_tracker_test PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+)
+
+network_gtest_discover_tests(network_quic_ecn_tracker_test
+    DISCOVERY_TIMEOUT 60
+)
+message(STATUS "QUIC ECN tracker unit tests enabled")
+
+##################################################
+# QUIC Connection ID Manager Unit Tests (Issue #954)
+##################################################
+
+add_executable(network_quic_cid_manager_test
+    unit/quic_connection_id_manager_test.cpp
+)
+
+target_link_libraries(network_quic_cid_manager_test PRIVATE
+    network_system
+    GTest::gtest
+    GTest::gtest_main
+    Threads::Threads
+)
+
+setup_asio_integration(network_quic_cid_manager_test)
+
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_quic_cid_manager_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_quic_cid_manager_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+
+set_target_properties(network_quic_cid_manager_test PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+)
+
+network_gtest_discover_tests(network_quic_cid_manager_test
+    DISCOVERY_TIMEOUT 60
+)
+message(STATUS "QUIC connection ID manager unit tests enabled")
+
+##################################################
 # Sliding Histogram Tests (Issue #873)
 ##################################################
 
