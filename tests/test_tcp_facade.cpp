@@ -10,7 +10,6 @@
 
 #include <chrono>
 #include <memory>
-#include <stdexcept>
 #include <string>
 #include <thread>
 #include <vector>
@@ -53,7 +52,8 @@ TEST_F(TcpFacadeTest, CreateClientThrowsOnEmptyHost)
 		.port = 8080,
 	};
 
-	EXPECT_THROW(facade_->create_client(config), std::invalid_argument);
+	auto result = facade_->create_client(config);
+	EXPECT_TRUE(result.is_err());
 }
 
 TEST_F(TcpFacadeTest, CreateClientThrowsOnInvalidPortZero)
@@ -63,7 +63,8 @@ TEST_F(TcpFacadeTest, CreateClientThrowsOnInvalidPortZero)
 		.port = 0,
 	};
 
-	EXPECT_THROW(facade_->create_client(config), std::invalid_argument);
+	auto result = facade_->create_client(config);
+	EXPECT_TRUE(result.is_err());
 }
 
 // Temporarily disabled: uint16_t conversion makes port validation difficult to test
@@ -78,7 +79,8 @@ TEST_F(TcpFacadeTest, CreateClientThrowsOnNegativeTimeout)
 		.timeout = std::chrono::milliseconds(-1000),
 	};
 
-	EXPECT_THROW(facade_->create_client(config), std::invalid_argument);
+	auto result = facade_->create_client(config);
+	EXPECT_TRUE(result.is_err());
 }
 
 // ============================================================================
@@ -91,7 +93,8 @@ TEST_F(TcpFacadeTest, CreateServerThrowsOnInvalidPortZero)
 		.port = 0,
 	};
 
-	EXPECT_THROW(facade_->create_server(config), std::invalid_argument);
+	auto result = facade_->create_server(config);
+	EXPECT_TRUE(result.is_err());
 }
 
 // Temporarily disabled: Server implementation not ready

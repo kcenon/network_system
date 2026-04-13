@@ -11,7 +11,6 @@
 #include "kcenon/network/facade/quic_facade.h"
 
 #include <chrono>
-#include <stdexcept>
 #include <string>
 
 using namespace kcenon::network::facade;
@@ -31,7 +30,8 @@ TEST_F(TcpFacadeValidationTest, ClientConfigEmptyHost)
 	tcp_facade::client_config config;
 	config.host = "";
 	config.port = 8080;
-	EXPECT_THROW((void)facade_.create_client(config), std::invalid_argument);
+	auto result = facade_.create_client(config);
+	EXPECT_TRUE(result.is_err());
 }
 
 TEST_F(TcpFacadeValidationTest, ClientConfigPortZero)
@@ -39,7 +39,8 @@ TEST_F(TcpFacadeValidationTest, ClientConfigPortZero)
 	tcp_facade::client_config config;
 	config.host = "localhost";
 	config.port = 0;
-	EXPECT_THROW((void)facade_.create_client(config), std::invalid_argument);
+	auto result = facade_.create_client(config);
+	EXPECT_TRUE(result.is_err());
 }
 
 TEST_F(TcpFacadeValidationTest, ClientConfigTimeoutZero)
@@ -48,7 +49,8 @@ TEST_F(TcpFacadeValidationTest, ClientConfigTimeoutZero)
 	config.host = "localhost";
 	config.port = 8080;
 	config.timeout = std::chrono::milliseconds(0);
-	EXPECT_THROW((void)facade_.create_client(config), std::invalid_argument);
+	auto result = facade_.create_client(config);
+	EXPECT_TRUE(result.is_err());
 }
 
 TEST_F(TcpFacadeValidationTest, ClientConfigTimeoutNegative)
@@ -57,7 +59,8 @@ TEST_F(TcpFacadeValidationTest, ClientConfigTimeoutNegative)
 	config.host = "localhost";
 	config.port = 8080;
 	config.timeout = std::chrono::milliseconds(-1);
-	EXPECT_THROW((void)facade_.create_client(config), std::invalid_argument);
+	auto result = facade_.create_client(config);
+	EXPECT_TRUE(result.is_err());
 }
 
 TEST_F(TcpFacadeValidationTest, ClientConfigSslNotImplemented)
@@ -66,15 +69,17 @@ TEST_F(TcpFacadeValidationTest, ClientConfigSslNotImplemented)
 	config.host = "localhost";
 	config.port = 8080;
 	config.use_ssl = true;
-	// SSL throws runtime_error, not invalid_argument
-	EXPECT_THROW((void)facade_.create_client(config), std::runtime_error);
+	// SSL is not implemented; facade returns an error result
+	auto result = facade_.create_client(config);
+	EXPECT_TRUE(result.is_err());
 }
 
 TEST_F(TcpFacadeValidationTest, ServerConfigPortZero)
 {
 	tcp_facade::server_config config;
 	config.port = 0;
-	EXPECT_THROW((void)facade_.create_server(config), std::invalid_argument);
+	auto result = facade_.create_server(config);
+	EXPECT_TRUE(result.is_err());
 }
 
 TEST_F(TcpFacadeValidationTest, ServerConfigSslWithoutCertPath)
@@ -83,7 +88,8 @@ TEST_F(TcpFacadeValidationTest, ServerConfigSslWithoutCertPath)
 	config.port = 8080;
 	config.use_ssl = true;
 	// cert_path is std::nullopt by default
-	EXPECT_THROW((void)facade_.create_server(config), std::invalid_argument);
+	auto result = facade_.create_server(config);
+	EXPECT_TRUE(result.is_err());
 }
 
 TEST_F(TcpFacadeValidationTest, ServerConfigSslWithEmptyCertPath)
@@ -92,7 +98,8 @@ TEST_F(TcpFacadeValidationTest, ServerConfigSslWithEmptyCertPath)
 	config.port = 8080;
 	config.use_ssl = true;
 	config.cert_path = "";
-	EXPECT_THROW((void)facade_.create_server(config), std::invalid_argument);
+	auto result = facade_.create_server(config);
+	EXPECT_TRUE(result.is_err());
 }
 
 TEST_F(TcpFacadeValidationTest, ServerConfigSslWithoutKeyPath)
@@ -102,7 +109,8 @@ TEST_F(TcpFacadeValidationTest, ServerConfigSslWithoutKeyPath)
 	config.use_ssl = true;
 	config.cert_path = "/path/to/cert.pem";
 	// key_path is std::nullopt by default
-	EXPECT_THROW((void)facade_.create_server(config), std::invalid_argument);
+	auto result = facade_.create_server(config);
+	EXPECT_TRUE(result.is_err());
 }
 
 TEST_F(TcpFacadeValidationTest, ServerConfigSslWithEmptyKeyPath)
@@ -112,7 +120,8 @@ TEST_F(TcpFacadeValidationTest, ServerConfigSslWithEmptyKeyPath)
 	config.use_ssl = true;
 	config.cert_path = "/path/to/cert.pem";
 	config.key_path = "";
-	EXPECT_THROW((void)facade_.create_server(config), std::invalid_argument);
+	auto result = facade_.create_server(config);
+	EXPECT_TRUE(result.is_err());
 }
 
 TEST_F(TcpFacadeValidationTest, ServerConfigSslNotImplemented)
@@ -122,8 +131,9 @@ TEST_F(TcpFacadeValidationTest, ServerConfigSslNotImplemented)
 	config.use_ssl = true;
 	config.cert_path = "/path/to/cert.pem";
 	config.key_path = "/path/to/key.pem";
-	// Passes validation but SSL creation throws runtime_error
-	EXPECT_THROW((void)facade_.create_server(config), std::runtime_error);
+	// Passes validation but SSL creation is not implemented; facade returns an error result
+	auto result = facade_.create_server(config);
+	EXPECT_TRUE(result.is_err());
 }
 
 TEST_F(TcpFacadeValidationTest, PoolConfigEmptyHost)
@@ -132,7 +142,8 @@ TEST_F(TcpFacadeValidationTest, PoolConfigEmptyHost)
 	config.host = "";
 	config.port = 8080;
 	config.pool_size = 5;
-	EXPECT_THROW((void)facade_.create_connection_pool(config), std::invalid_argument);
+	auto result = facade_.create_connection_pool(config);
+	EXPECT_TRUE(result.is_err());
 }
 
 TEST_F(TcpFacadeValidationTest, PoolConfigPortZero)
@@ -141,7 +152,8 @@ TEST_F(TcpFacadeValidationTest, PoolConfigPortZero)
 	config.host = "localhost";
 	config.port = 0;
 	config.pool_size = 5;
-	EXPECT_THROW((void)facade_.create_connection_pool(config), std::invalid_argument);
+	auto result = facade_.create_connection_pool(config);
+	EXPECT_TRUE(result.is_err());
 }
 
 TEST_F(TcpFacadeValidationTest, PoolConfigSizeZero)
@@ -150,7 +162,8 @@ TEST_F(TcpFacadeValidationTest, PoolConfigSizeZero)
 	config.host = "localhost";
 	config.port = 8080;
 	config.pool_size = 0;
-	EXPECT_THROW((void)facade_.create_connection_pool(config), std::invalid_argument);
+	auto result = facade_.create_connection_pool(config);
+	EXPECT_TRUE(result.is_err());
 }
 
 TEST_F(TcpFacadeValidationTest, PoolConfigValidReturnsNonNull)
@@ -160,7 +173,9 @@ TEST_F(TcpFacadeValidationTest, PoolConfigValidReturnsNonNull)
 	config.port = 8080;
 	config.pool_size = 5;
 	// create_connection_pool only creates the pool object without connecting
-	auto pool = facade_.create_connection_pool(config);
+	auto result = facade_.create_connection_pool(config);
+	ASSERT_TRUE(result.is_ok());
+	auto pool = result.value();
 	EXPECT_NE(pool, nullptr);
 }
 
@@ -179,7 +194,8 @@ TEST_F(UdpFacadeValidationTest, ClientConfigEmptyHost)
 	udp_facade::client_config config;
 	config.host = "";
 	config.port = 5555;
-	EXPECT_THROW((void)facade_.create_client(config), std::invalid_argument);
+	auto result = facade_.create_client(config);
+	EXPECT_TRUE(result.is_err());
 }
 
 TEST_F(UdpFacadeValidationTest, ClientConfigPortZero)
@@ -187,14 +203,16 @@ TEST_F(UdpFacadeValidationTest, ClientConfigPortZero)
 	udp_facade::client_config config;
 	config.host = "localhost";
 	config.port = 0;
-	EXPECT_THROW((void)facade_.create_client(config), std::invalid_argument);
+	auto result = facade_.create_client(config);
+	EXPECT_TRUE(result.is_err());
 }
 
 TEST_F(UdpFacadeValidationTest, ServerConfigPortZero)
 {
 	udp_facade::server_config config;
 	config.port = 0;
-	EXPECT_THROW((void)facade_.create_server(config), std::invalid_argument);
+	auto result = facade_.create_server(config);
+	EXPECT_TRUE(result.is_err());
 }
 
 // ============================================================================
@@ -211,21 +229,24 @@ TEST_F(HttpFacadeValidationTest, ClientConfigTimeoutZero)
 {
 	http_facade::client_config config;
 	config.timeout = std::chrono::milliseconds(0);
-	EXPECT_THROW((void)facade_.create_client(config), std::invalid_argument);
+	auto result = facade_.create_client(config);
+	EXPECT_TRUE(result.is_err());
 }
 
 TEST_F(HttpFacadeValidationTest, ClientConfigTimeoutNegative)
 {
 	http_facade::client_config config;
 	config.timeout = std::chrono::milliseconds(-100);
-	EXPECT_THROW((void)facade_.create_client(config), std::invalid_argument);
+	auto result = facade_.create_client(config);
+	EXPECT_TRUE(result.is_err());
 }
 
 TEST_F(HttpFacadeValidationTest, ServerConfigPortZero)
 {
 	http_facade::server_config config;
 	config.port = 0;
-	EXPECT_THROW((void)facade_.create_server(config), std::invalid_argument);
+	auto result = facade_.create_server(config);
+	EXPECT_TRUE(result.is_err());
 }
 
 // ============================================================================
@@ -242,14 +263,16 @@ TEST_F(WebSocketFacadeValidationTest, ClientConfigPingIntervalZero)
 {
 	websocket_facade::client_config config;
 	config.ping_interval = std::chrono::milliseconds(0);
-	EXPECT_THROW((void)facade_.create_client(config), std::invalid_argument);
+	auto result = facade_.create_client(config);
+	EXPECT_TRUE(result.is_err());
 }
 
 TEST_F(WebSocketFacadeValidationTest, ClientConfigPingIntervalNegative)
 {
 	websocket_facade::client_config config;
 	config.ping_interval = std::chrono::milliseconds(-1);
-	EXPECT_THROW((void)facade_.create_client(config), std::invalid_argument);
+	auto result = facade_.create_client(config);
+	EXPECT_TRUE(result.is_err());
 }
 
 TEST_F(WebSocketFacadeValidationTest, ServerConfigPortZero)
@@ -257,7 +280,8 @@ TEST_F(WebSocketFacadeValidationTest, ServerConfigPortZero)
 	websocket_facade::server_config config;
 	config.port = 0;
 	config.path = "/ws";
-	EXPECT_THROW((void)facade_.create_server(config), std::invalid_argument);
+	auto result = facade_.create_server(config);
+	EXPECT_TRUE(result.is_err());
 }
 
 TEST_F(WebSocketFacadeValidationTest, ServerConfigPathEmpty)
@@ -265,7 +289,8 @@ TEST_F(WebSocketFacadeValidationTest, ServerConfigPathEmpty)
 	websocket_facade::server_config config;
 	config.port = 8080;
 	config.path = "";
-	EXPECT_THROW((void)facade_.create_server(config), std::invalid_argument);
+	auto result = facade_.create_server(config);
+	EXPECT_TRUE(result.is_err());
 }
 
 TEST_F(WebSocketFacadeValidationTest, ServerConfigPathWithoutLeadingSlash)
@@ -273,7 +298,8 @@ TEST_F(WebSocketFacadeValidationTest, ServerConfigPathWithoutLeadingSlash)
 	websocket_facade::server_config config;
 	config.port = 8080;
 	config.path = "ws";
-	EXPECT_THROW((void)facade_.create_server(config), std::invalid_argument);
+	auto result = facade_.create_server(config);
+	EXPECT_TRUE(result.is_err());
 }
 
 // ============================================================================
@@ -291,7 +317,8 @@ TEST_F(QuicFacadeValidationTest, ClientConfigEmptyHost)
 	quic_facade::client_config config;
 	config.host = "";
 	config.port = 4433;
-	EXPECT_THROW((void)facade_.create_client(config), std::invalid_argument);
+	auto result = facade_.create_client(config);
+	EXPECT_TRUE(result.is_err());
 }
 
 TEST_F(QuicFacadeValidationTest, ClientConfigPortZero)
@@ -299,7 +326,8 @@ TEST_F(QuicFacadeValidationTest, ClientConfigPortZero)
 	quic_facade::client_config config;
 	config.host = "localhost";
 	config.port = 0;
-	EXPECT_THROW((void)facade_.create_client(config), std::invalid_argument);
+	auto result = facade_.create_client(config);
+	EXPECT_TRUE(result.is_err());
 }
 
 TEST_F(QuicFacadeValidationTest, ClientConfigMaxIdleTimeoutZero)
@@ -308,7 +336,8 @@ TEST_F(QuicFacadeValidationTest, ClientConfigMaxIdleTimeoutZero)
 	config.host = "localhost";
 	config.port = 4433;
 	config.max_idle_timeout_ms = 0;
-	EXPECT_THROW((void)facade_.create_client(config), std::invalid_argument);
+	auto result = facade_.create_client(config);
+	EXPECT_TRUE(result.is_err());
 }
 
 TEST_F(QuicFacadeValidationTest, ServerConfigPortZero)
@@ -317,7 +346,8 @@ TEST_F(QuicFacadeValidationTest, ServerConfigPortZero)
 	config.port = 0;
 	config.cert_path = "/path/to/cert.pem";
 	config.key_path = "/path/to/key.pem";
-	EXPECT_THROW((void)facade_.create_server(config), std::invalid_argument);
+	auto result = facade_.create_server(config);
+	EXPECT_TRUE(result.is_err());
 }
 
 TEST_F(QuicFacadeValidationTest, ServerConfigEmptyCertPath)
@@ -326,7 +356,8 @@ TEST_F(QuicFacadeValidationTest, ServerConfigEmptyCertPath)
 	config.port = 4433;
 	config.cert_path = "";
 	config.key_path = "/path/to/key.pem";
-	EXPECT_THROW((void)facade_.create_server(config), std::invalid_argument);
+	auto result = facade_.create_server(config);
+	EXPECT_TRUE(result.is_err());
 }
 
 TEST_F(QuicFacadeValidationTest, ServerConfigEmptyKeyPath)
@@ -335,7 +366,8 @@ TEST_F(QuicFacadeValidationTest, ServerConfigEmptyKeyPath)
 	config.port = 4433;
 	config.cert_path = "/path/to/cert.pem";
 	config.key_path = "";
-	EXPECT_THROW((void)facade_.create_server(config), std::invalid_argument);
+	auto result = facade_.create_server(config);
+	EXPECT_TRUE(result.is_err());
 }
 
 TEST_F(QuicFacadeValidationTest, ServerConfigMaxIdleTimeoutZero)
@@ -345,7 +377,8 @@ TEST_F(QuicFacadeValidationTest, ServerConfigMaxIdleTimeoutZero)
 	config.cert_path = "/path/to/cert.pem";
 	config.key_path = "/path/to/key.pem";
 	config.max_idle_timeout_ms = 0;
-	EXPECT_THROW((void)facade_.create_server(config), std::invalid_argument);
+	auto result = facade_.create_server(config);
+	EXPECT_TRUE(result.is_err());
 }
 
 TEST_F(QuicFacadeValidationTest, ServerConfigMaxConnectionsZero)
@@ -355,7 +388,8 @@ TEST_F(QuicFacadeValidationTest, ServerConfigMaxConnectionsZero)
 	config.cert_path = "/path/to/cert.pem";
 	config.key_path = "/path/to/key.pem";
 	config.max_connections = 0;
-	EXPECT_THROW((void)facade_.create_server(config), std::invalid_argument);
+	auto result = facade_.create_server(config);
+	EXPECT_TRUE(result.is_err());
 }
 
 // ============================================================================
