@@ -305,11 +305,14 @@ endif()
 # Create namespaced symlink for internal headers (vcpkg-registry#79)
 # Public headers use #include "kcenon/network/internal/..." which must resolve
 # from the PRIVATE src/ include directory at build time.
+# COPY_ON_ERROR: falls back to a directory copy on platforms where symlinks
+# require elevated privileges (e.g. Windows without Developer Mode).
 set(_INTERNAL_LINK_DIR "${CMAKE_CURRENT_BINARY_DIR}/internal_include/kcenon/network")
 file(MAKE_DIRECTORY "${_INTERNAL_LINK_DIR}")
 file(CREATE_LINK
     "${CMAKE_CURRENT_SOURCE_DIR}/src/internal"
     "${_INTERNAL_LINK_DIR}/internal"
+    COPY_ON_ERROR
     SYMBOLIC
 )
 

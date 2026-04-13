@@ -31,7 +31,7 @@
 #include <asio.hpp>
 #include <asio/ssl.hpp>
 
-#include "internal/tcp/secure_tcp_socket.h"
+#include "kcenon/network/internal/tcp/secure_tcp_socket.h"
 
 namespace kcenon::network::session
 {
