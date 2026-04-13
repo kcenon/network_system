@@ -262,8 +262,8 @@ TEST_F(HttpFacadeTest, SendOnUnconnectedClientReturnsError)
 
 	// Sending data when not connected should fail
 	std::vector<uint8_t> data = {0x01, 0x02, 0x03};
-	auto result = client_->send(std::move(data));
-	EXPECT_TRUE(result.is_err());
+	auto send_result = client_->send(std::move(data));
+	EXPECT_TRUE(send_result.is_err());
 }
 
 TEST_F(HttpFacadeTest, IsConnectedReturnsFalseBeforeStart)
@@ -286,9 +286,9 @@ TEST_F(HttpFacadeTest, StopClientBeforeStartIsIdempotent)
 	ASSERT_NE(client_, nullptr);
 
 	// Stop without start should not crash or throw
-	auto result = client_->stop();
+	auto stop_result = client_->stop();
 	// Either ok or graceful error - just shouldn't crash
-	(void)result;
+	(void)stop_result;
 	SUCCEED();
 }
 
@@ -320,8 +320,8 @@ TEST_F(HttpFacadeTest, StopServerBeforeStartIsIdempotent)
 	ASSERT_NE(server_, nullptr);
 
 	// Stop without start should succeed gracefully
-	auto result = server_->stop();
-	(void)result;
+	auto stop_result = server_->stop();
+	(void)stop_result;
 	SUCCEED();
 }
 

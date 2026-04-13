@@ -373,8 +373,8 @@ TEST_F(WebSocketFacadeTest, SendOnUnconnectedClientReturnsError)
 
 	// Sending data when not connected should fail
 	std::vector<uint8_t> data = {0x01, 0x02, 0x03};
-	auto result = client_->send(std::move(data));
-	EXPECT_TRUE(result.is_err());
+	auto send_result = client_->send(std::move(data));
+	EXPECT_TRUE(send_result.is_err());
 }
 
 TEST_F(WebSocketFacadeTest, IsConnectedReturnsFalseBeforeStart)
