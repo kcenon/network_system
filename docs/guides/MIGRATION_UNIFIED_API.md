@@ -384,5 +384,6 @@ std::map<std::string, std::unique_ptr<i_connection>> connections_;
 ## Getting Help
 
 - Check the [API Reference](../API_REFERENCE.md) for unified interface details
-- See [examples/unified/](../../examples/unified/) for complete examples
+- See [examples/unified_messaging_example.cpp](../../examples/unified_messaging_example.cpp) for a complete example
+- See the [Unified API Guide](../UNIFIED_API_GUIDE.md) for conceptual overview
 - Report issues at the project repository

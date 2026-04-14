@@ -53,9 +53,9 @@ network system은 포괄적인 품질 보증으로 프로덕션 사용을 위해
 
 | 플랫폼 | 컴파일러 | 아키텍처 | 상태 |
 |-------|---------|---------|------|
-| Ubuntu 22.04+ | GCC 11+, Clang 14+ | x86_64 | ✅ 완전 지원 |
+| Ubuntu 22.04+ | GCC 13+, Clang 17+ | x86_64 | ✅ 완전 지원 |
 | Windows 2022+ | MSVC 2022, MinGW64 | x86_64 | ✅ 완전 지원 |
-| macOS 12+ | Apple Clang 14+ | x86_64, ARM64 | 🚧 실험적 |
+| macOS 12+ | Apple Clang 14+ | x86_64, ARM64 | ✅ 완전 지원 |
 
 #### 새니타이저 워크플로우
 
@@ -166,7 +166,7 @@ server->set_verify_mode(
 server->start_server(8443);
 ```
 
-상세 구성은 [TLS_SETUP_GUIDE.md](TLS_SETUP_GUIDE.md) / [TLS_SETUP_GUIDE.kr.md](TLS_SETUP_GUIDE.kr.md) 참조.
+상세 구성은 [TLS_SETUP_GUIDE.md](guides/TLS_SETUP_GUIDE.md) / [TLS_SETUP_GUIDE.kr.md](guides/TLS_SETUP_GUIDE.kr.md) 참조.
 
 ### WebSocket 보안
 
@@ -413,10 +413,10 @@ ColumnLimit: 100
 ---
 
 **참고 문서**:
-- [TLS_SETUP_GUIDE.md](TLS_SETUP_GUIDE.md) / [TLS_SETUP_GUIDE.kr.md](TLS_SETUP_GUIDE.kr.md) - TLS/SSL 보안 설정
+- [TLS_SETUP_GUIDE.md](guides/TLS_SETUP_GUIDE.md) / [TLS_SETUP_GUIDE.kr.md](guides/TLS_SETUP_GUIDE.kr.md) - TLS/SSL 보안 설정
 - [BENCHMARKS.md](BENCHMARKS.md) / [BENCHMARKS.kr.md](BENCHMARKS.kr.md) - 성능 메트릭
 - [ARCHITECTURE.md](ARCHITECTURE.md) / [ARCHITECTURE.kr.md](ARCHITECTURE.kr.md) - 시스템 아키텍처
-- [TROUBLESHOOTING.md](TROUBLESHOOTING.md) / [TROUBLESHOOTING.kr.md](TROUBLESHOOTING.kr.md) - 디버깅 및 문제 해결
+- [TROUBLESHOOTING.md](guides/TROUBLESHOOTING.md) / [TROUBLESHOOTING.kr.md](guides/TROUBLESHOOTING.kr.md) - 디버깅 및 문제 해결
 
 ---
 

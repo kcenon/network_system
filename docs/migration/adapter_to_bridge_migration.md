@@ -457,8 +457,10 @@ bridge->initialize(config);
 
 ## Additional Resources
 
-- [NetworkSystemBridge API Documentation](../api/network_system_bridge.md)
-- [Bridge Pattern Overview](../architecture/bridge_pattern.md)
+<!-- TODO: Dedicated docs/api/ and docs/architecture/ subdirectories not yet created.
+     Closest available references below: -->
+- [NetworkSystemBridge Migration Notes](network_system_bridge.md)
+- [Architecture Overview](../ARCHITECTURE_OVERVIEW.md)
 - [Issue #579: Consolidate integration adapters](https://github.com/kcenon/network_system/issues/579)
 - [Issue #577: EPIC for Facade pattern refactoring](https://github.com/kcenon/network_system/issues/577)
 

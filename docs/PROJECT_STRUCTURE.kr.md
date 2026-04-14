@@ -405,9 +405,9 @@ Internal Components
 **필수 의존성**:
 ```
 network_system
-  ├── C++20 컴파일러 (GCC 11+, Clang 14+, MSVC 2022+)
-  ├── CMake 3.16+
-  ├── ASIO 1.28+ (또는 Boost.ASIO)
+  ├── C++20 컴파일러 (GCC 13+, Clang 17+, MSVC 2022+, Apple Clang 14+)
+  ├── CMake 3.20+
+  ├── Standalone ASIO 1.30.2+ (Boost.ASIO 미지원)
   └── OpenSSL 3.0+ (TLS/SSL 및 WebSocket용)
 ```
 
@@ -558,7 +558,7 @@ class messaging_server {
 
 - [ARCHITECTURE.md](ARCHITECTURE.md) / [ARCHITECTURE.kr.md](ARCHITECTURE.kr.md) - 시스템 아키텍처 세부사항
 - [API_REFERENCE.md](API_REFERENCE.md) - 완전한 API 문서
-- [BUILD.md](BUILD.md) - 빌드 지침 및 설정
+- [BUILD.md](guides/BUILD.md) - 빌드 지침 및 설정
 - [FEATURES.md](FEATURES.md) / [FEATURES.kr.md](FEATURES.kr.md) - 기능 설명
 - [BENCHMARKS.md](BENCHMARKS.md) / [BENCHMARKS.kr.md](BENCHMARKS.kr.md) - 성능 벤치마크
 

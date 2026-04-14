@@ -21,7 +21,7 @@ Get up and running with Network System in 5 minutes.
 ## Prerequisites
 
 - CMake 3.20 or later
-- C++20 capable compiler (GCC 11+, Clang 14+, MSVC 2022+, Apple Clang 14+)
+- C++20 capable compiler (GCC 13+, Clang 17+, MSVC 2022+, Apple Clang 14+)
 - Git
 - OpenSSL (for TLS support)
 - ASIO (standalone, non-Boost)

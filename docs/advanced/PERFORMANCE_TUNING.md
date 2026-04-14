@@ -812,7 +812,7 @@ numactl --interleave=all ./your_server
 
 ## See Also
 
-- [Benchmarks](BENCHMARKS.md) - Performance measurements and results
+- [Benchmarks](../BENCHMARKS.md) - Performance measurements and results
 - [Connection Pooling](CONNECTION_POOLING.md) - Connection pool usage guide
 - [Memory Profiling](MEMORY_PROFILING.md) - Memory optimization techniques
-- [Troubleshooting](TROUBLESHOOTING.md) - Common issues and solutions
+- [Troubleshooting](../guides/TROUBLESHOOTING.md) - Common issues and solutions

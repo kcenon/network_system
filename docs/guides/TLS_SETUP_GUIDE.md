@@ -14,6 +14,9 @@ category: "SECU"
 
 > **Language:** **English** | [한국어](TLS_SETUP_GUIDE.kr.md)
 
+> See also: [DTLS Resilient Guide](../DTLS_RESILIENT_GUIDE.md) for UDP/DTLS configuration.
+
+
 ## Table of Contents
 
 - [Overview](#overview)
