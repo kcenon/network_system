@@ -4479,6 +4479,59 @@ network_gtest_discover_tests(network_experimental_quic_server_test
 message(STATUS "Experimental unit tests enabled (quic_client, quic_server)")
 
 ##################################################
+# Core Messaging Unit Tests (Issue #966)
+##################################################
+
+# Helper macro to create a standard test target
+macro(add_network_test TEST_NAME TEST_SOURCE)
+    add_executable(${TEST_NAME} ${TEST_SOURCE})
+
+    target_link_libraries(${TEST_NAME} PRIVATE
+        network_system
+        GTest::gtest
+        GTest::gtest_main
+        Threads::Threads
+    )
+
+    setup_asio_integration(${TEST_NAME})
+
+    if(COMMON_SYSTEM_INCLUDE_DIR)
+        target_include_directories(${TEST_NAME} PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(${TEST_NAME} PRIVATE WITH_COMMON_SYSTEM)
+    endif()
+
+    if(THREAD_SYSTEM_INCLUDE_DIR)
+        target_include_directories(${TEST_NAME} PRIVATE ${THREAD_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(${TEST_NAME} PRIVATE WITH_THREAD_SYSTEM)
+    endif()
+
+    if(LOGGER_SYSTEM_INCLUDE_DIR)
+        target_include_directories(${TEST_NAME} PRIVATE ${LOGGER_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(${TEST_NAME} PRIVATE WITH_LOGGER_SYSTEM)
+    endif()
+
+    set_target_properties(${TEST_NAME} PROPERTIES
+        CXX_STANDARD 20
+        CXX_STANDARD_REQUIRED ON
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+    )
+
+    network_gtest_discover_tests(${TEST_NAME}
+        DISCOVERY_TIMEOUT 60
+    )
+endmacro()
+
+add_network_test(network_messaging_client_test unit/messaging_client_test.cpp)
+add_network_test(network_messaging_server_test unit/messaging_server_test.cpp)
+add_network_test(network_messaging_udp_client_test unit/messaging_udp_client_test.cpp)
+add_network_test(network_messaging_udp_server_test unit/messaging_udp_server_test.cpp)
+# secure_messaging_udp tests excluded: dtls_socket symbols in libs/network-udp, not main library
+
+message(STATUS "Core messaging unit tests enabled (tcp, udp)")
+
+# WebSocket tests already exist: test_messaging_ws_client.cpp, test_messaging_ws_server.cpp
+
+##################################################
 # Integration Tests
 ##################################################
 
