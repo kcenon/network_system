@@ -4404,40 +4404,7 @@ message(STATUS "Session unit tests enabled (messaging, secure, quic)")
 # Experimental Unit Tests (Issue #965)
 ##################################################
 
-add_executable(network_reliable_udp_client_test
-    unit/reliable_udp_client_test.cpp
-)
-
-target_link_libraries(network_reliable_udp_client_test PRIVATE
-    network_system
-    GTest::gtest
-    GTest::gtest_main
-    Threads::Threads
-)
-
-target_compile_definitions(network_reliable_udp_client_test PRIVATE NETWORK_USE_EXPERIMENTAL)
-
-setup_asio_integration(network_reliable_udp_client_test)
-
-if(COMMON_SYSTEM_INCLUDE_DIR)
-    target_include_directories(network_reliable_udp_client_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
-    target_compile_definitions(network_reliable_udp_client_test PRIVATE WITH_COMMON_SYSTEM)
-endif()
-
-if(THREAD_SYSTEM_INCLUDE_DIR)
-    target_include_directories(network_reliable_udp_client_test PRIVATE ${THREAD_SYSTEM_INCLUDE_DIR})
-    target_compile_definitions(network_reliable_udp_client_test PRIVATE WITH_THREAD_SYSTEM)
-endif()
-
-set_target_properties(network_reliable_udp_client_test PROPERTIES
-    CXX_STANDARD 20
-    CXX_STANDARD_REQUIRED ON
-    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
-)
-
-network_gtest_discover_tests(network_reliable_udp_client_test
-    DISCOVERY_TIMEOUT 60
-)
+# reliable_udp_client_test excluded: source moved out of main library (Issue #561)
 
 add_executable(network_experimental_quic_client_test
     unit/experimental_quic_client_test.cpp
@@ -4509,7 +4476,7 @@ network_gtest_discover_tests(network_experimental_quic_server_test
     DISCOVERY_TIMEOUT 60
 )
 
-message(STATUS "Experimental unit tests enabled (reliable_udp, quic_client, quic_server)")
+message(STATUS "Experimental unit tests enabled (quic_client, quic_server)")
 
 ##################################################
 # Integration Tests
