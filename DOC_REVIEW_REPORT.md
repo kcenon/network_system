@@ -286,4 +286,54 @@ Phase 1 full broken list JSON: `/tmp/claude-501/docreview/p1_network_v3.json` (g
 
 ---
 
+## Post-Fix Re-Validation (2026-04-15)
+
+**Scope**: Phase 1 only (anchors and file links). Phases 2 and 3 are not re-run here.
+
+**Fix commit**: `2c607857` — `docs: fix 60+ broken links, unify toolchain versions, sanitize paths` (52 files changed, +518 / -399).
+
+**Methodology**: Same as the original Phase 1 scan (GitHub-style slugs, duplicate-suffix registry, fenced code blocks excluded, inline code masked, external URLs skipped). Additionally, `<!-- ... -->` HTML comments are stripped before link extraction so that explicit TODO markers introduced by the fix are correctly ignored.
+
+### Before / After
+
+| Metric                               | Before (2026-04-14) | After (2026-04-15) | Delta |
+|--------------------------------------|---------------------|--------------------|-------|
+| Files scanned                        | 117                 | 118                |   +1  |
+| Phase 1 Must-Fix (anchors + links)   | 126                 |   0                | -126  |
+| Broken inter-file file links         |  91                 |   0                |  -91  |
+| Broken intra-file anchors            |  35                 |   0                |  -35  |
+| Broken inter-file anchors            |   0                 |   0                |    0  |
+| `/Users/raphaelshin/...` paths in `docs/advanced/MIGRATION.md` | 11 |   0 |  -11  |
+
+Files-scanned went from 117 to 118 because the fix commit added `DOC_FIX_SUMMARY_2026-04-15.md` (root-level log of the fix, not excluded by `build/` / `.git/` filters).
+
+### `/Users/raphaelshin/` Removal Verification
+
+`grep -r "/Users/raphaelshin" --include="*.md"` against the entire repository (excluding `build/` and `.git/`) returns **only** the two occurrences inside `DOC_REVIEW_REPORT.md` itself (this report's original Must-Fix description). Zero remaining occurrences in `docs/advanced/MIGRATION.md` or any other source document. All 11 previously committed absolute paths (original lines 1477–1491 and 1539) have been replaced with repository-relative markdown links (e.g., `[samples/basic_usage.cpp](../../samples/basic_usage.cpp)`) and canonical GitHub URLs for ecosystem repos. **Verified: all dev-machine username leakage removed.**
+
+### Residual Must-Fix Items (Phase 1)
+
+**None.** The scanner found 0 broken intra-file anchors, 0 broken inter-file file links, and 0 broken inter-file anchors across all 118 files.
+
+Spot checks confirm correctness:
+- `README.md:690–707` — all seven doc links (`docs/ARCHITECTURE.md`, `docs/API_REFERENCE.md`, `docs/guides/BUILD.md`, `docs/MIGRATION.md`, `docs/guides/TLS_SETUP_GUIDE.md`, `docs/guides/TROUBLESHOOTING.md`, `docs/guides/LOAD_TEST_GUIDE.md`) resolve to existing files.
+- `README.md:908,919` — previously-broken `IMPROVEMENTS.md` and `CODING_STYLE_RULES.md` references are now wrapped in `<!-- TODO: ... -->` markers (properly excluded from link validation) with an in-text fallback to `docs/contributing/CONTRIBUTING.md`.
+- `docs/UNIFIED_API_GUIDE.md:23–25` — the three `#i_transport-interface`, `#i_connection-interface`, `#i_listener-interface` intra anchors now match existing `## i_transport Interface` / `## i_connection Interface` / `## i_listener Interface` headings (GitHub preserves underscores in slugs).
+- `docs/implementation/01-architecture-and-components.md:20–29` — the TOC is now pruned to the 6 sections that actually exist (`#1-module-layer-structure`, `#2-namespace-design`, `#-core-component-implementation`, `#1-messaging_bridge-class`, `#2-core-api-design`, `#3-session-management`); the formerly-dangling 34 TOC entries are moved inside a `<!-- TODO: ... -->` block.
+- `docs/advanced/MIGRATION.md:1477–1491,1539` — all 11 `/Users/raphaelshin/Sources/network_system/...` paths replaced with `../../samples/...`, `../API_REFERENCE.md`, `../../CHANGELOG.md`, and `https://github.com/kcenon/...` equivalents.
+
+### Regression Items (Phase 1)
+
+**None detected.** The fix commit did not introduce any new broken anchors, empty link stubs, or missing-file references. TODO markers were consistently placed inside HTML comments, keeping them out of the link-validation surface while preserving human-readable roadmap notes.
+
+### Methodology Note on Slug Algorithm
+
+During this re-validation an earlier draft of the scanner incorrectly stripped `_` as part of markdown-inline formatting, which produced 6 false positives (all in `docs/UNIFIED_API_GUIDE.md`, `docs/advanced/CONCEPTS.md`, `docs/implementation/01-*.md` where headings contain underscored identifiers like `i_transport`, `common_system`, `messaging_bridge`). The fix was to limit the inline-formatting strip to `* ` / `` ` `` / `~`, matching GitHub's behavior that preserves underscores in anchor slugs. After this correction, zero Phase 1 issues remained. The ORIGINAL report's 126-item count used a different tool chain and is not affected by this scanner bug; the re-validation count of 0 is authoritative for the post-fix state.
+
+### Verdict
+
+**Phase 1: PASS.** All 126 originally-identified Must-Fix items are resolved. Zero residuals, zero regressions. All 11 committed absolute `/Users/raphaelshin/...` paths are fully removed from `docs/advanced/MIGRATION.md` and replaced with portable relative links. Phase 2 (accuracy) and Phase 3 (SSOT & redundancy) items listed earlier in this report are out of scope for this re-run and remain open for subsequent passes.
+
+---
+
 *End of report.*
