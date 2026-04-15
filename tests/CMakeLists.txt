@@ -4219,6 +4219,299 @@ network_gtest_discover_tests(network_facade_extended_test
 message(STATUS "Facade extended tests enabled")
 
 ##################################################
+# Tracing Unit Tests (Issue #965)
+##################################################
+
+add_executable(network_trace_context_test
+    unit/trace_context_test.cpp
+)
+
+target_link_libraries(network_trace_context_test PRIVATE
+    network_system
+    GTest::gtest
+    GTest::gtest_main
+    Threads::Threads
+)
+
+setup_asio_integration(network_trace_context_test)
+
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_trace_context_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_trace_context_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+
+set_target_properties(network_trace_context_test PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+)
+
+network_gtest_discover_tests(network_trace_context_test
+    DISCOVERY_TIMEOUT 60
+)
+
+add_executable(network_span_test
+    unit/span_test.cpp
+)
+
+target_link_libraries(network_span_test PRIVATE
+    network_system
+    GTest::gtest
+    GTest::gtest_main
+    Threads::Threads
+)
+
+setup_asio_integration(network_span_test)
+
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_span_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_span_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+
+set_target_properties(network_span_test PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+)
+
+network_gtest_discover_tests(network_span_test
+    DISCOVERY_TIMEOUT 60
+)
+
+add_executable(network_tracing_exporters_test
+    unit/tracing_exporters_test.cpp
+)
+
+target_link_libraries(network_tracing_exporters_test PRIVATE
+    network_system
+    GTest::gtest
+    GTest::gtest_main
+    Threads::Threads
+)
+
+setup_asio_integration(network_tracing_exporters_test)
+
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_tracing_exporters_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_tracing_exporters_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+
+set_target_properties(network_tracing_exporters_test PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+)
+
+network_gtest_discover_tests(network_tracing_exporters_test
+    DISCOVERY_TIMEOUT 60
+)
+
+message(STATUS "Tracing unit tests enabled (trace_context, span, exporters)")
+
+##################################################
+# Session Unit Tests (Issue #965)
+##################################################
+
+add_executable(network_messaging_session_test
+    unit/messaging_session_test.cpp
+)
+
+target_link_libraries(network_messaging_session_test PRIVATE
+    network_system
+    GTest::gtest
+    GTest::gtest_main
+    Threads::Threads
+)
+
+setup_asio_integration(network_messaging_session_test)
+
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_messaging_session_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_messaging_session_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+
+set_target_properties(network_messaging_session_test PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+)
+
+network_gtest_discover_tests(network_messaging_session_test
+    DISCOVERY_TIMEOUT 60
+)
+
+add_executable(network_secure_session_test
+    unit/secure_session_test.cpp
+)
+
+target_link_libraries(network_secure_session_test PRIVATE
+    network_system
+    GTest::gtest
+    GTest::gtest_main
+    Threads::Threads
+    OpenSSL::SSL
+    OpenSSL::Crypto
+)
+
+setup_asio_integration(network_secure_session_test)
+
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_secure_session_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_secure_session_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+
+set_target_properties(network_secure_session_test PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+)
+
+network_gtest_discover_tests(network_secure_session_test
+    DISCOVERY_TIMEOUT 60
+)
+
+add_executable(network_quic_session_test
+    unit/quic_session_test.cpp
+)
+
+target_link_libraries(network_quic_session_test PRIVATE
+    network_system
+    GTest::gtest
+    GTest::gtest_main
+    Threads::Threads
+)
+
+setup_asio_integration(network_quic_session_test)
+
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_quic_session_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_quic_session_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+
+set_target_properties(network_quic_session_test PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+)
+
+network_gtest_discover_tests(network_quic_session_test
+    DISCOVERY_TIMEOUT 60
+)
+
+message(STATUS "Session unit tests enabled (messaging, secure, quic)")
+
+##################################################
+# Experimental Unit Tests (Issue #965)
+##################################################
+
+add_executable(network_reliable_udp_client_test
+    unit/reliable_udp_client_test.cpp
+)
+
+target_link_libraries(network_reliable_udp_client_test PRIVATE
+    network_system
+    GTest::gtest
+    GTest::gtest_main
+    Threads::Threads
+)
+
+target_compile_definitions(network_reliable_udp_client_test PRIVATE NETWORK_USE_EXPERIMENTAL)
+
+setup_asio_integration(network_reliable_udp_client_test)
+
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_reliable_udp_client_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_reliable_udp_client_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+
+if(THREAD_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_reliable_udp_client_test PRIVATE ${THREAD_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_reliable_udp_client_test PRIVATE WITH_THREAD_SYSTEM)
+endif()
+
+set_target_properties(network_reliable_udp_client_test PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+)
+
+network_gtest_discover_tests(network_reliable_udp_client_test
+    DISCOVERY_TIMEOUT 60
+)
+
+add_executable(network_experimental_quic_client_test
+    unit/experimental_quic_client_test.cpp
+)
+
+target_link_libraries(network_experimental_quic_client_test PRIVATE
+    network_system
+    GTest::gtest
+    GTest::gtest_main
+    Threads::Threads
+)
+
+target_compile_definitions(network_experimental_quic_client_test PRIVATE NETWORK_USE_EXPERIMENTAL)
+
+setup_asio_integration(network_experimental_quic_client_test)
+
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_experimental_quic_client_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_experimental_quic_client_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+
+if(THREAD_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_experimental_quic_client_test PRIVATE ${THREAD_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_experimental_quic_client_test PRIVATE WITH_THREAD_SYSTEM)
+endif()
+
+set_target_properties(network_experimental_quic_client_test PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+)
+
+network_gtest_discover_tests(network_experimental_quic_client_test
+    DISCOVERY_TIMEOUT 60
+)
+
+add_executable(network_experimental_quic_server_test
+    unit/experimental_quic_server_test.cpp
+)
+
+target_link_libraries(network_experimental_quic_server_test PRIVATE
+    network_system
+    GTest::gtest
+    GTest::gtest_main
+    Threads::Threads
+)
+
+target_compile_definitions(network_experimental_quic_server_test PRIVATE NETWORK_USE_EXPERIMENTAL)
+
+setup_asio_integration(network_experimental_quic_server_test)
+
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_experimental_quic_server_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_experimental_quic_server_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+
+if(THREAD_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_experimental_quic_server_test PRIVATE ${THREAD_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_experimental_quic_server_test PRIVATE WITH_THREAD_SYSTEM)
+endif()
+
+set_target_properties(network_experimental_quic_server_test PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+)
+
+network_gtest_discover_tests(network_experimental_quic_server_test
+    DISCOVERY_TIMEOUT 60
+)
+
+message(STATUS "Experimental unit tests enabled (reliable_udp, quic_client, quic_server)")
+
+##################################################
 # Integration Tests
 ##################################################
 
