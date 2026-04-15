@@ -4530,14 +4530,7 @@ add_network_test(network_secure_messaging_udp_server_test unit/secure_messaging_
 
 message(STATUS "Core messaging unit tests enabled (tcp, udp, secure_udp)")
 
-##################################################
-# WebSocket Unit Tests (Issue #966)
-##################################################
-
-add_network_test(network_messaging_ws_client_test unit/messaging_ws_client_test.cpp)
-add_network_test(network_messaging_ws_server_test unit/messaging_ws_server_test.cpp)
-
-message(STATUS "WebSocket unit tests enabled (ws_client, ws_server)")
+# WebSocket tests already exist: test_messaging_ws_client.cpp, test_messaging_ws_server.cpp
 
 ##################################################
 # Integration Tests
