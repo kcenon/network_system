@@ -450,9 +450,9 @@ Internal Components
 **Required Dependencies**:
 ```
 network_system
-  ├── C++20 Compiler (GCC 11+, Clang 14+, MSVC 2022+)
-  ├── CMake 3.16+
-  ├── ASIO 1.28+ (or Boost.ASIO)
+  ├── C++20 Compiler (GCC 13+, Clang 17+, MSVC 2022+, Apple Clang 14+)
+  ├── CMake 3.20+
+  ├── Standalone ASIO 1.30.2+ (Boost.ASIO not supported)
   └── OpenSSL 3.0+ (for TLS/SSL and WebSocket)
 ```
 
@@ -616,7 +616,7 @@ class messaging_server {
 
 - [ARCHITECTURE.md](ARCHITECTURE.md) - System architecture details
 - [API_REFERENCE.md](API_REFERENCE.md) - Complete API documentation
-- [BUILD.md](BUILD.md) - Build instructions and configuration
+- [BUILD.md](guides/BUILD.md) - Build instructions and configuration
 - [FEATURES.md](FEATURES.md) - Feature descriptions
 - [BENCHMARKS.md](BENCHMARKS.md) - Performance benchmarks
 

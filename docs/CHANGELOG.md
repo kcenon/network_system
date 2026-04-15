@@ -1016,7 +1016,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Project Information
 
 **Repository:** https://github.com/kcenon/network_system
-**Documentation:** [docs/](docs/)
+**Documentation:** [docs/README.md](README.md)
 **License:** See LICENSE file
 **Maintainer:** kcenon@naver.com
 
@@ -1026,7 +1026,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 | Version | Release Date | C++ Standard | CMake Minimum | Status |
 |---------|--------------|--------------|---------------|---------|
-| 1.4.0   | 2025-10-26   | C++20        | 3.16          | Current |
+| 1.5.0   | 2025-11-14   | C++20        | 3.20          | Current |
+| 1.4.0   | 2025-10-26   | C++20        | 3.16          | Stable |
 | 1.3.0   | 2025-10-26   | C++20        | 3.16          | Stable |
 | 1.2.0   | 2025-10-26   | C++20        | 3.16          | Stable |
 | 1.1.0   | 2025-10-26   | C++20        | 3.16          | Stable |

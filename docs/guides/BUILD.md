@@ -25,11 +25,12 @@ category: "GUID"
 
 ### Minimum Requirements
 - C++20 compatible compiler
-  - GCC 11 or later
-  - Clang 14 or later
+  - GCC 13 or later
+  - Clang 17 or later
   - MSVC 2022 or later
-- CMake 3.16 or later
-- ASIO library or Boost.ASIO 1.28+
+  - Apple Clang 14 or later
+- CMake 3.20 or later
+- Standalone ASIO 1.30.2+ (Boost.ASIO is NOT supported)
 
 ### Optional Dependencies
 - fmt library 10.0+ (falls back to std::format if not available)
@@ -72,8 +73,7 @@ sudo apt install -y build-essential cmake ninja-build
 # Install required libraries
 sudo apt install -y libasio-dev libfmt-dev
 
-# Optional: Install Boost (for Boost.ASIO fallback)
-sudo apt install -y libboost-all-dev
+# (Boost is NOT required; network_system uses standalone ASIO only.)
 
 # Optional: Install test frameworks
 sudo apt install -y libgtest-dev libbenchmark-dev

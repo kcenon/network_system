@@ -12,7 +12,7 @@ category: "MIGR"
 
 > **SSOT**: This document is the single source of truth for **Migration Guide: messaging_system to network_system**.
 
-> **Language:** **English** | [한국어](MIGRATION_KO.md)
+> **Language:** **English** <!-- TODO: Korean translation (MIGRATION.kr.md) not yet written -->
 
 **Document Version**: 1.0.0
 **Last Updated**: 2025-10-22
@@ -196,11 +196,11 @@ Ensure your environment meets the requirements:
 
 ```bash
 # Check C++ compiler supports C++20
-g++ --version  # Should be GCC 10+ or Clang 10+
+g++ --version  # Should be GCC 13+ or Clang 17+
 clang++ --version
 
 # Check CMake version
-cmake --version  # Should be 3.16+
+cmake --version  # Should be 3.20+
 
 # Check ASIO availability (if not using Boost)
 pkg-config --modversion asio  # Optional but recommended
@@ -232,7 +232,7 @@ Replace messaging_system dependency with network_system:
 **Before:**
 ```cmake
 # Old CMakeLists.txt
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.20)
 project(YourApplication)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -254,7 +254,7 @@ target_link_libraries(your_app
 **After:**
 ```cmake
 # New CMakeLists.txt
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.20)
 project(YourApplication)
 
 # IMPORTANT: Upgrade to C++20
@@ -611,7 +611,7 @@ This section provides comprehensive before/after comparisons.
 
 **Before (messaging_system):**
 ```cmake
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.20)
 project(MyNetworkApp CXX)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -623,7 +623,7 @@ target_link_libraries(app MessagingSystem::MessagingSystem)
 
 **After (network_system):**
 ```cmake
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.20)
 project(MyNetworkApp CXX)
 
 set(CMAKE_CXX_STANDARD 20)  # Upgraded to C++20
@@ -891,9 +891,9 @@ target_compile_options(your_app PRIVATE -fcoroutines)
 
 Update your compiler if necessary:
 ```bash
-# Ubuntu - Install GCC 11+
-sudo apt install g++-11
-export CXX=g++-11
+# Ubuntu - Install GCC 13+
+sudo apt install g++-13
+export CXX=g++-13
 
 # macOS - Use latest Xcode Command Line Tools
 xcode-select --install
@@ -916,8 +916,7 @@ sudo apt install libasio-dev
 # macOS
 brew install asio
 
-# Or use Boost.Asio instead (already included in most systems)
-# network_system will automatically detect and use Boost.Asio
+# Note: Boost.ASIO is NOT supported; only standalone ASIO is.
 ```
 
 ### Runtime Issues
@@ -1474,21 +1473,21 @@ After successful migration, you should observe these performance characteristics
 
 | Resource | Location | Description |
 |----------|----------|-------------|
-| **API Reference** | [docs/API_REFERENCE.md](/Users/raphaelshin/Sources/network_system/docs/API_REFERENCE.md) | Complete API documentation |
+| **API Reference** | [docs/API_REFERENCE.md](../API_REFERENCE.md) | Complete API documentation |
 | **Migration Guide** | This document | Step-by-step migration instructions |
-| **Architecture Guide** | [docs/ARCHITECTURE.md](/Users/raphaelshin/Sources/network_system/docs/ARCHITECTURE.md) | System design and patterns |
-| **Integration Guide** | [docs/INTEGRATION.md](/Users/raphaelshin/Sources/network_system/docs/INTEGRATION.md) | Ecosystem integration |
-| **Troubleshooting** | [docs/TROUBLESHOOTING.md](/Users/raphaelshin/Sources/network_system/docs/TROUBLESHOOTING.md) | Common issues and solutions |
-| **Changelog** | [CHANGELOG.md](/Users/raphaelshin/Sources/network_system/CHANGELOG.md) | Version history |
+| **Architecture Guide** | [docs/ARCHITECTURE.md](../ARCHITECTURE.md) | System design and patterns |
+| **Integration Guide** | [docs/INTEGRATION.md](../INTEGRATION.md) | Ecosystem integration |
+| **Troubleshooting** | [docs/guides/TROUBLESHOOTING.md](../guides/TROUBLESHOOTING.md) | Common issues and solutions |
+| **Changelog** | [CHANGELOG.md](../../CHANGELOG.md) | Version history |
 
 ### Sample Code
 
 | Sample | Location | Purpose |
 |--------|----------|---------|
-| **Basic Usage** | [samples/basic_usage.cpp](/Users/raphaelshin/Sources/network_system/samples/basic_usage.cpp) | Simple client/server example |
-| **TCP Demo** | [samples/tcp_server_client.cpp](/Users/raphaelshin/Sources/network_system/samples/tcp_server_client.cpp) | Full TCP implementation |
-| **Integration** | [samples/messaging_system_integration/](/Users/raphaelshin/Sources/network_system/samples/messaging_system_integration/) | messaging_system integration |
-| **Benchmarks** | [benchmarks/](/Users/raphaelshin/Sources/network_system/benchmarks/) | Performance testing |
+| **Basic Usage** | [samples/basic_usage.cpp](../../samples/basic_usage.cpp) | Simple client/server example |
+| **TCP Demo** | [samples/tcp_server_client.cpp](../../samples/tcp_server_client.cpp) | Full TCP implementation |
+| **Integration** | [samples/messaging_system_integration/](../../samples/messaging_system_integration/) | messaging_system integration |
+| **Benchmarks** | [benchmarks/](../../benchmarks/) | Performance testing |
 
 ### Community Support
 
@@ -1536,7 +1535,7 @@ This migration guide has walked you through the complete process of migrating fr
 If you encounter any problems during migration:
 
 1. Check the [Common Migration Issues](#common-migration-issues) section
-2. Review the [Troubleshooting Guide](/Users/raphaelshin/Sources/network_system/docs/TROUBLESHOOTING.md)
+2. Review the [Troubleshooting Guide](../guides/TROUBLESHOOTING.md)
 3. Search [GitHub Issues](https://github.com/kcenon/network_system/issues)
 4. Contact support: kcenon@naver.com
 

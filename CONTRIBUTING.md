@@ -39,13 +39,13 @@ This project adheres to a code of conduct. By participating, you are expected to
 Before contributing, ensure you have:
 
 - C++20 compatible compiler
-  - **macOS**: Xcode 12+ or Clang 12+
-  - **Linux**: GCC 10+ or Clang 12+
-  - **Windows**: Visual Studio 2019+ or MinGW-w64
-- CMake 3.16 or higher
+  - **macOS**: Xcode/Apple Clang 14+
+  - **Linux**: GCC 13+ or Clang 17+
+  - **Windows**: Visual Studio 2022+ (MSVC 17.4+)
+- CMake 3.20 or higher
 - Git
 - **Required dependencies**:
-  - ASIO or Boost.ASIO 1.28+
+  - Standalone ASIO 1.30.2+ (Boost.ASIO not supported)
   - OpenSSL 3.0+ (for TLS/SSL and WebSocket)
 - **Optional dependencies**:
   - fmt 10.0+ (formatting)
@@ -61,9 +61,9 @@ New to open source? Start here:
    - [Good First Issues](https://github.com/kcenon/network_system/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)
 
 2. **Read the documentation**:
-   - [Architecture Guide](../ARCHITECTURE.md)
-   - [API Reference](../API_REFERENCE.md)
-   - [Build Guide](../guides/BUILD.md)
+   - [Architecture Guide](docs/ARCHITECTURE.md)
+   - [API Reference](docs/API_REFERENCE.md)
+   - [Build Guide](docs/guides/BUILD.md)
 
 3. **Join discussions**:
    - [GitHub Discussions](https://github.com/kcenon/network_system/discussions)

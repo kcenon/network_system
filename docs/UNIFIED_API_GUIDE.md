@@ -20,9 +20,9 @@ A comprehensive guide to the Unified API interface layer, which provides protoco
 
 - [Architecture Overview](#architecture-overview)
 - [Foundation Types](#foundation-types)
-- [i\_transport Interface](#i_transport-interface)
-- [i\_connection Interface](#i_connection-interface)
-- [i\_listener Interface](#i_listener-interface)
+- [i_transport Interface](#i_transport-interface)
+- [i_connection Interface](#i_connection-interface)
+- [i_listener Interface](#i_listener-interface)
 - [Protocol-Agnostic Code Examples](#protocol-agnostic-code-examples)
 - [Protocol Support Matrix](#protocol-support-matrix)
 - [Extending with Custom Protocols](#extending-with-custom-protocols)

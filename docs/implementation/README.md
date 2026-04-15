@@ -12,7 +12,7 @@ category: "GUID"
 
 > **SSOT**: This document is the single source of truth for **Network System Implementation Details**.
 
-> **Language:** **English** | [한국어](README.kr.md)
+> **Language:** **English** <!-- TODO: README.kr.md not yet written -->
 
 This directory contains detailed technical implementation documentation for the network_system separation project.
 
@@ -85,7 +85,7 @@ This directory contains detailed technical implementation documentation for the 
 - [Main README](../../README.md) - Project overview
 - [Architecture Guide](../ARCHITECTURE.md) - High-level architecture
 - [API Reference](../API_REFERENCE.md) - Complete API documentation
-- [Migration Guide](../MIGRATION_GUIDE.md) - Migration from old API
+- [Migration Guide](../MIGRATION.md) - Migration from old API
 
 ---
 

@@ -25,11 +25,12 @@ category: "GUID"
 
 ### 최소 요구 사항
 - C++20 호환 컴파일러
-  - GCC 11 이상
-  - Clang 14 이상
+  - GCC 13 이상
+  - Clang 17 이상
   - MSVC 2022 이상
-- CMake 3.16 이상
-- ASIO 라이브러리 또는 Boost.ASIO 1.28+
+  - Apple Clang 14 이상
+- CMake 3.20 이상
+- Standalone ASIO 1.30.2+ (Boost.ASIO 미지원)
 
 ### 선택적 의존성
 - fmt 라이브러리 10.0+ (사용 불가능한 경우 std::format으로 폴백)
@@ -72,8 +73,7 @@ sudo apt install -y build-essential cmake ninja-build
 # 필수 라이브러리 설치
 sudo apt install -y libasio-dev libfmt-dev
 
-# 선택 사항: Boost 설치 (Boost.ASIO 폴백용)
-sudo apt install -y libboost-all-dev
+# (Boost는 필요하지 않습니다; network_system은 standalone ASIO만 사용합니다.)
 
 # 선택 사항: 테스트 프레임워크 설치
 sudo apt install -y libgtest-dev libbenchmark-dev

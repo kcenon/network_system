@@ -1088,8 +1088,8 @@ Remember to always:
 - Test thoroughly before deployment
 - Document any workarounds or custom solutions
 
-For operational procedures, see the [Operations Guide](OPERATIONS.md).
-For API documentation, see the [API Reference](API_REFERENCE.md).
+For operational procedures, see the [Operations Guide](../advanced/OPERATIONS.md).
+For API documentation, see the [API Reference](../API_REFERENCE.md).
 ---
 
 *Last Updated: 2025-12-24*

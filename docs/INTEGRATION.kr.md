@@ -8,9 +8,9 @@ project: "network_system"
 category: "INTR"
 ---
 
-# Integration Guide
+# 통합 가이드
 
-> **SSOT**: This document is the single source of truth for **Integration Guide**.
+> **SSOT**: 이 문서는 **통합 가이드** (한국어 번역)의 단일 진실 공급원입니다. 영문 SSOT는 [INTEGRATION.md](INTEGRATION.md)를 참조하십시오.
 
 > **Language:** [English](INTEGRATION.md) | **한국어**
 

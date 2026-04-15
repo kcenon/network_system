@@ -86,9 +86,9 @@ strategy:
 **Platforms Tested**:
 | Platform | Compilers | Architectures | Status |
 |----------|-----------|---------------|--------|
-| Ubuntu 22.04+ | GCC 11+, Clang 14+ | x86_64 | ✅ Full Support |
+| Ubuntu 22.04+ | GCC 13+, Clang 17+ | x86_64 | ✅ Full Support |
 | Windows 2022+ | MSVC 2022, MinGW64 | x86_64 | ✅ Full Support |
-| macOS 12+ | Apple Clang 14+ | x86_64, ARM64 | 🚧 Experimental |
+| macOS 12+ | Apple Clang 14+ | x86_64, ARM64 | ✅ Full Support |
 
 #### Sanitizer Workflow
 
@@ -299,7 +299,7 @@ client->enable_hostname_verification();
 client->start_client("secure.example.com", 8443);
 ```
 
-See [TLS_SETUP_GUIDE.md](TLS_SETUP_GUIDE.md) for detailed configuration.
+See [TLS_SETUP_GUIDE.md](guides/TLS_SETUP_GUIDE.md) for detailed configuration.
 
 ### WebSocket Security
 
@@ -778,10 +778,10 @@ TEST_F(NetworkFixture, ConnectionLifecycle) {
 ## See Also
 
 - [CI/CD Workflows](../.github/workflows/) - GitHub Actions configuration
-- [TLS_SETUP_GUIDE.md](TLS_SETUP_GUIDE.md) - TLS/SSL security setup
+- [TLS_SETUP_GUIDE.md](guides/TLS_SETUP_GUIDE.md) - TLS/SSL security setup
 - [BENCHMARKS.md](BENCHMARKS.md) - Performance metrics
 - [ARCHITECTURE.md](ARCHITECTURE.md) - System architecture
-- [TROUBLESHOOTING.md](TROUBLESHOOTING.md) - Debugging and troubleshooting
+- [TROUBLESHOOTING.md](guides/TROUBLESHOOTING.md) - Debugging and troubleshooting
 
 ---
 

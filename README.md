@@ -689,22 +689,22 @@ thread_integration_manager::instance().set_thread_pool(adapted);
 - 📖 [Features Guide](docs/FEATURES.md) - Comprehensive feature descriptions
 - 🏗️ [Architecture](docs/ARCHITECTURE.md) - System design and patterns
 - 📘 [API Reference](docs/API_REFERENCE.md) - Complete API documentation
-- 🔧 [Build Guide](docs/BUILD.md) - Detailed build instructions
-- 🚀 [Migration Guide](docs/MIGRATION_GUIDE.md) - Migrating from messaging_system
+- 🔧 [Build Guide](docs/guides/BUILD.md) - Detailed build instructions
+- 🚀 [Migration Guide](docs/MIGRATION.md) - Migrating from messaging_system
 
 ### Advanced Topics
 - ⚡ [Performance & Benchmarks](docs/BENCHMARKS.md) - Performance metrics and testing
 - 🏭 [Production Quality](docs/PRODUCTION_QUALITY.md) - CI/CD, security, quality assurance
 - 📁 [Project Structure](docs/PROJECT_STRUCTURE.md) - Directory organization and modules
 - 🧩 [C++20 Concepts](docs/advanced/CONCEPTS.md) - Compile-time type validation
-- 🔒 [TLS Setup Guide](docs/TLS_SETUP_GUIDE.md) - TLS/SSL configuration
-- 🔍 [Troubleshooting](docs/TROUBLESHOOTING.md) - Common issues and solutions
-- 🧪 [Load Test Guide](docs/LOAD_TEST_GUIDE.md) - Load testing procedures
+- 🔒 [TLS Setup Guide](docs/guides/TLS_SETUP_GUIDE.md) - TLS/SSL configuration
+- 🔍 [Troubleshooting](docs/guides/TROUBLESHOOTING.md) - Common issues and solutions
+- 🧪 [Load Test Guide](docs/guides/LOAD_TEST_GUIDE.md) - Load testing procedures
 - 📝 [Design Decisions](docs/DESIGN_DECISIONS.md) - Architectural patterns and rationale
 
 ### Development
 - 🔄 [Integration Guide](docs/INTEGRATION.md) - Ecosystem integration patterns
-- 📊 [Operations Guide](docs/OPERATIONS.md) - Deployment and operations
+- 📊 [Operations Guide](docs/advanced/OPERATIONS.md) - Deployment and operations
 - 📋 [Changelog](docs/CHANGELOG.md) - Version history and updates
 
 ---
@@ -905,7 +905,8 @@ cmake --build build --target samples
 - 🚧 **Zero-Copy Pipelines**: Eliminate unnecessary buffer copies
 - 🚧 **HTTP/2 Client**: Modern HTTP/2 protocol support
 
-See [IMPROVEMENTS.md](IMPROVEMENTS.md) for detailed roadmap and tracking.
+<!-- TODO: IMPROVEMENTS.md not yet written; link to roadmap pending -->
+See the [Changelog](docs/CHANGELOG.md) for completed work and in-progress items.
 
 ---
 
@@ -915,7 +916,8 @@ Contributions are welcome! Please see our [Contributing Guide](docs/contributing
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Follow the [Coding Style Rules](CODING_STYLE_RULES.md)
+3. Follow the [Contributing Guide](docs/contributing/CONTRIBUTING.md) coding standards <!-- TODO: dedicated CODING_STYLE_RULES.md not yet written -->
+
 4. Commit changes with conventional commits
 5. Push to the branch (`git push origin feature/amazing-feature`)
 6. Open a Pull Request

@@ -108,3 +108,12 @@ and constrained by a C++20 `Protocol` concept with compile-time metadata:
   protocol modules.
 - **Discovery overhead**: Users must know which protocol module to link.
   Mitigated by the `network-all` convenience target and documentation.
+
+---
+
+## See Also
+
+- [Design Decisions](../DESIGN_DECISIONS.md) — Parent index of design decisions
+- [Monolithic-to-Modular Migration](../MIGRATION.md) — Practical migration guide
+- [ADR-001: gRPC Official Library Wrapper](ADR-001-grpc-official-library-wrapper.md)
+- [ADR-002: Facade API Introduction](ADR-002-facade-api-introduction.md)

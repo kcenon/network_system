@@ -21,7 +21,7 @@ Network System을 5분 만에 시작하세요.
 ## 사전 요구사항
 
 - CMake 3.20 이상
-- C++20 지원 컴파일러 (GCC 11+, Clang 14+, MSVC 2022+, Apple Clang 14+)
+- C++20 지원 컴파일러 (GCC 13+, Clang 17+, MSVC 2022+, Apple Clang 14+)
 - Git
 - OpenSSL (TLS 지원용)
 - ASIO (standalone, non-Boost)
