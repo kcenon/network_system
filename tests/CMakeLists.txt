@@ -4045,6 +4045,82 @@ network_gtest_discover_tests(network_udp_listener_adapter_test DISCOVERY_TIMEOUT
 message(STATUS "UDP listener adapter tests enabled")
 
 ##################################################
+# WebSocket Connection Adapter Tests (Issue #967)
+##################################################
+
+add_executable(network_ws_connection_adapter_test
+    unit/test_ws_connection_adapter.cpp
+)
+target_link_libraries(network_ws_connection_adapter_test PRIVATE
+    network_system GTest::gtest GTest::gtest_main Threads::Threads)
+setup_asio_integration(network_ws_connection_adapter_test)
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_ws_connection_adapter_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_ws_connection_adapter_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+set_target_properties(network_ws_connection_adapter_test PROPERTIES
+    CXX_STANDARD 20 CXX_STANDARD_REQUIRED ON RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+network_gtest_discover_tests(network_ws_connection_adapter_test DISCOVERY_TIMEOUT 60)
+message(STATUS "WebSocket connection adapter tests enabled")
+
+##################################################
+# WebSocket Listener Adapter Tests (Issue #967)
+##################################################
+
+add_executable(network_ws_listener_adapter_test
+    unit/test_ws_listener_adapter.cpp
+)
+target_link_libraries(network_ws_listener_adapter_test PRIVATE
+    network_system GTest::gtest GTest::gtest_main Threads::Threads)
+setup_asio_integration(network_ws_listener_adapter_test)
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_ws_listener_adapter_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_ws_listener_adapter_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+set_target_properties(network_ws_listener_adapter_test PROPERTIES
+    CXX_STANDARD 20 CXX_STANDARD_REQUIRED ON RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+network_gtest_discover_tests(network_ws_listener_adapter_test DISCOVERY_TIMEOUT 60)
+message(STATUS "WebSocket listener adapter tests enabled")
+
+##################################################
+# QUIC Connection Adapter Tests (Issue #967)
+##################################################
+
+add_executable(network_quic_connection_adapter_test
+    unit/test_quic_connection_adapter.cpp
+)
+target_link_libraries(network_quic_connection_adapter_test PRIVATE
+    network_system GTest::gtest GTest::gtest_main Threads::Threads)
+setup_asio_integration(network_quic_connection_adapter_test)
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_quic_connection_adapter_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_quic_connection_adapter_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+set_target_properties(network_quic_connection_adapter_test PROPERTIES
+    CXX_STANDARD 20 CXX_STANDARD_REQUIRED ON RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+network_gtest_discover_tests(network_quic_connection_adapter_test DISCOVERY_TIMEOUT 60)
+message(STATUS "QUIC connection adapter tests enabled")
+
+##################################################
+# QUIC Listener Adapter Tests (Issue #967)
+##################################################
+
+add_executable(network_quic_listener_adapter_test
+    unit/test_quic_listener_adapter.cpp
+)
+target_link_libraries(network_quic_listener_adapter_test PRIVATE
+    network_system GTest::gtest GTest::gtest_main Threads::Threads)
+setup_asio_integration(network_quic_listener_adapter_test)
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_quic_listener_adapter_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_quic_listener_adapter_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+set_target_properties(network_quic_listener_adapter_test PROPERTIES
+    CXX_STANDARD 20 CXX_STANDARD_REQUIRED ON RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+network_gtest_discover_tests(network_quic_listener_adapter_test DISCOVERY_TIMEOUT 60)
+message(STATUS "QUIC listener adapter tests enabled")
+
+##################################################
 # Sliding Histogram Tests (Issue #873)
 ##################################################
 
