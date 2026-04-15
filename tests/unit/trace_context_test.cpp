@@ -23,6 +23,7 @@ All rights reserved.
 
 #include "kcenon/network/detail/tracing/trace_context.h"
 #include "kcenon/network/detail/tracing/span.h"
+#include "kcenon/network/detail/tracing/tracing_config.h"
 
 #include <gtest/gtest.h>
 
