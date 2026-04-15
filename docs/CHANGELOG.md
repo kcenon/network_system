@@ -24,6 +24,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Unit tests for unified adapter modules (#967)**
+  - Added dedicated unit tests for 4 unified adapters: `ws_connection_adapter`, `ws_listener_adapter`, `quic_connection_adapter`, `quic_listener_adapter` (68 tests total)
+  - Registered new test targets in `tests/CMakeLists.txt`
+  - Part of the #953 coverage expansion effort; complements #955 which covered the remaining 13 adapter modules
 - **Modernized Doxygen Documentation with doxygen-awesome-css (#927)**
   - Vendored doxygen-awesome-css theme with dark mode toggle, code copy buttons, and responsive sidebar
   - Added custom header (`docs/header.html`) and branding CSS (`docs/custom.css`)
