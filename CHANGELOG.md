@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Unit tests for 4 unified adapter modules: `ws_connection`, `ws_listener`, `quic_connection`, `quic_listener` — part of the #953 coverage expansion effort ([#967](https://github.com/kcenon/network_system/issues/967))
+
 ### Changed
 
 - Unify vcpkg manifest mode across all CI platforms (Linux, macOS, Windows) replacing per-platform manual ecosystem dependency builds ([#885](https://github.com/kcenon/network_system/issues/885))
