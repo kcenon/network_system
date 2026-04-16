@@ -4685,6 +4685,59 @@ add_network_test(network_websocket_server_module_test unit/websocket_server_test
 message(STATUS "HTTP/2, secure transport, and WebSocket module unit tests enabled (Issue #976)")
 
 ##################################################
+# Infrastructure & Service Module Unit Tests (Issue #977)
+##################################################
+
+# gRPC client config, call_options, construction
+add_network_test(network_grpc_client_unit_test unit/core_client_test.cpp)
+
+# gRPC server config, status, construction
+add_network_test(network_grpc_server_unit_test unit/core_server_test.cpp)
+
+# health_monitor construction, state, callbacks
+add_network_test(network_health_monitor_unit_test unit/health_monitor_test.cpp)
+
+# service_registry, generic_service, health_service, utility functions
+add_network_test(network_service_registry_unit_test unit/service_registry_test.cpp)
+
+# memory_profiler: NOT in main library, needs explicit source inclusion
+add_executable(network_memory_profiler_unit_test
+    unit/memory_profiler_test.cpp
+    ${CMAKE_SOURCE_DIR}/src/internal/utils/memory_profiler.cpp
+)
+
+target_link_libraries(network_memory_profiler_unit_test PRIVATE
+    network_system
+    GTest::gtest
+    GTest::gtest_main
+    Threads::Threads
+)
+
+setup_asio_integration(network_memory_profiler_unit_test)
+
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_memory_profiler_unit_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_memory_profiler_unit_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+
+set_target_properties(network_memory_profiler_unit_test PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+)
+
+network_gtest_discover_tests(network_memory_profiler_unit_test
+    DISCOVERY_TIMEOUT 60
+)
+
+# reliable_udp_client header-only types (enums, stats structs)
+# Implementation is in libs/network-udp (Issue #561), so only header-only
+# types can be tested via add_network_test without linker errors.
+add_network_test(network_reliable_udp_client_unit_test unit/reliable_udp_client_test.cpp)
+
+message(STATUS "Infrastructure and service module unit tests enabled (Issue #977)")
+
+##################################################
 # Integration Tests
 ##################################################
 
