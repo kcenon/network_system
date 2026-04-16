@@ -4608,6 +4608,41 @@ message(STATUS "Core messaging unit tests enabled (tcp, udp)")
 # WebSocket tests already exist: test_messaging_ws_client.cpp, test_messaging_ws_server.cpp
 
 ##################################################
+# Integration Module Unit Tests (Issue #968)
+##################################################
+
+add_network_test(network_thread_integration_test unit/thread_integration_test.cpp)
+add_network_test(network_logger_integration_test unit/logger_integration_test.cpp)
+add_network_test(network_monitoring_integration_test unit/monitoring_integration_test.cpp)
+add_network_test(network_container_integration_test unit/container_integration_test.cpp)
+add_network_test(network_io_context_thread_manager_test unit/io_context_thread_manager_test.cpp)
+message(STATUS "Integration module unit tests enabled (Issue #968)")
+
+##################################################
+# Protocol Factory Unit Tests (Issue #968)
+##################################################
+
+add_network_test(network_protocol_tcp_factory_test unit/protocol_tcp_factory_test.cpp)
+add_network_test(network_protocol_udp_factory_test unit/protocol_udp_factory_test.cpp)
+add_network_test(network_protocol_websocket_factory_test unit/protocol_websocket_factory_test.cpp)
+add_network_test(network_protocol_quic_factory_test unit/protocol_quic_factory_test.cpp)
+message(STATUS "Protocol factory unit tests enabled (Issue #968)")
+
+##################################################
+# HTTP/2 Server Stream Unit Tests (Issue #968)
+##################################################
+
+add_network_test(network_http2_server_stream_test unit/http2_server_stream_test.cpp)
+message(STATUS "HTTP/2 server stream unit tests enabled (Issue #968)")
+
+##################################################
+# WebSocket Socket Unit Tests (Issue #968)
+##################################################
+
+add_network_test(network_websocket_socket_test unit/websocket_socket_test.cpp)
+message(STATUS "WebSocket socket unit tests enabled (Issue #968)")
+
+##################################################
 # Integration Tests
 ##################################################
 

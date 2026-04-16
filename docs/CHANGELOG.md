@@ -28,6 +28,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added dedicated unit tests for 4 unified adapters: `ws_connection_adapter`, `ws_listener_adapter`, `quic_connection_adapter`, `quic_listener_adapter` (68 tests total)
   - Registered new test targets in `tests/CMakeLists.txt`
   - Part of the #953 coverage expansion effort; complements #955 which covered the remaining 13 adapter modules
+- **Unit tests for 11 untested modules (#968)**
+  - Integration bridges (5): `container_integration`, `io_context_thread_manager`, `logger_integration`, `monitoring_integration`, `thread_integration`
+  - Protocol factories (4): `tcp`, `udp`, `websocket`, `quic`
+  - HTTP/2 (1): `http2_server_stream`
+  - Internal (1): `websocket_socket`
+  - Registered all 11 test targets in `tests/CMakeLists.txt`
+  - Part of the #953 coverage expansion effort targeting 48% to 80% unit test coverage
 - **Modernized Doxygen Documentation with doxygen-awesome-css (#927)**
   - Vendored doxygen-awesome-css theme with dark mode toggle, code copy buttons, and responsive sidebar
   - Added custom header (`docs/header.html`) and branding CSS (`docs/custom.css`)
