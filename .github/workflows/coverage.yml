@@ -5,6 +5,7 @@ on:
     branches: [ main, phase-* ]
   pull_request:
     branches: [ main ]
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -71,10 +72,11 @@ jobs:
         cd build
         mkdir -p coverage
 
-        # Capture coverage data
+        # Capture coverage data (line + branch)
         lcov --directory . --capture --output-file coverage.info \
           --ignore-errors mismatch,gcov,source,unused \
-          --rc geninfo_gcov_all_blocks=0 || true
+          --rc geninfo_gcov_all_blocks=0 \
+          --rc lcov_branch_coverage=1 || true
 
         # Filter out non-project sources
         lcov --remove coverage.info \
@@ -96,27 +98,36 @@ jobs:
           '*/lz4/*' \
           '*/zlib/*' \
           --output-file coverage_filtered.info \
-          --ignore-errors unused,mismatch || true
+          --ignore-errors unused,mismatch \
+          --rc lcov_branch_coverage=1 || true
 
-        # Generate HTML report
+        # Generate HTML report (with branch coverage pages)
         genhtml coverage_filtered.info --output-directory coverage_html \
-          --ignore-errors source,unmapped || true
+          --ignore-errors source,unmapped \
+          --branch-coverage || true
 
-        # Print summary
-        lcov --list coverage_filtered.info --ignore-errors unused || true
+        # Print summary (line + branch)
+        lcov --list coverage_filtered.info \
+          --ignore-errors unused \
+          --rc lcov_branch_coverage=1 || true
 
     - name: Extract coverage percentage
       id: coverage
       run: |
         if [ -f build/coverage_filtered.info ]; then
-          # Extract line coverage percentage
-          COVERAGE=$(lcov --summary build/coverage_filtered.info 2>&1 \
+          # Extract line and branch coverage percentages
+          SUMMARY=$(lcov --summary build/coverage_filtered.info 2>&1 \
             --ignore-errors empty \
-            | grep -oP 'lines\.*:\s*\K[0-9.]+' || echo "0")
+            --rc lcov_branch_coverage=1 || true)
+          COVERAGE=$(echo "$SUMMARY" | grep -oP 'lines\.*:\s*\K[0-9.]+' || echo "0")
+          BRANCH_COVERAGE=$(echo "$SUMMARY" | grep -oP 'branches\.*:\s*\K[0-9.]+' || echo "0")
           echo "percentage=${COVERAGE}" >> $GITHUB_OUTPUT
-          echo "Coverage: ${COVERAGE}%"
+          echo "branch_percentage=${BRANCH_COVERAGE}" >> $GITHUB_OUTPUT
+          echo "Line coverage: ${COVERAGE}%"
+          echo "Branch coverage: ${BRANCH_COVERAGE}%"
         else
           echo "percentage=0" >> $GITHUB_OUTPUT
+          echo "branch_percentage=0" >> $GITHUB_OUTPUT
           echo "No coverage data available"
         fi
 
@@ -138,12 +149,14 @@ jobs:
       with:
         script: |
           const coverage = '${{ steps.coverage.outputs.percentage }}';
+          const branchCoverage = '${{ steps.coverage.outputs.branch_percentage }}';
           const body = `## Coverage Report
 
           | Metric | Value |
           |--------|-------|
           | **Line Coverage** | ${coverage}% |
-          | **Target** | 75% (stretch: 80%) |
+          | **Branch Coverage** | ${branchCoverage}% |
+          | **Target** | 80% lines / 70% branches |
 
           <details>
           <summary>Coverage Details</summary>
@@ -194,13 +207,15 @@ jobs:
       if: always()
       run: |
         COVERAGE="${{ steps.coverage.outputs.percentage }}"
+        BRANCH_COVERAGE="${{ steps.coverage.outputs.branch_percentage }}"
         echo "## Coverage Summary" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         if [ -f build/coverage_filtered.info ] && [ "$COVERAGE" != "0" ]; then
           echo "| Metric | Value |" >> $GITHUB_STEP_SUMMARY
           echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
           echo "| **Line Coverage** | ${COVERAGE}% |" >> $GITHUB_STEP_SUMMARY
-          echo "| **Target** | 75% (stretch: 80%) |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Branch Coverage** | ${BRANCH_COVERAGE}% |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Target** | 80% lines / 70% branches |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "Coverage report uploaded as artifact (retained for 30 days)." >> $GITHUB_STEP_SUMMARY
         else
