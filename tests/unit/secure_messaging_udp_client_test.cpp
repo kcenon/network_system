@@ -139,13 +139,13 @@ TEST_F(SecureMessagingUdpClientTest, SendWhileNotRunning)
 {
 	std::vector<uint8_t> data = {0x01, 0x02, 0x03};
 	auto result = client_->send_packet(std::move(data));
-	EXPECT_FALSE(result);
+	EXPECT_TRUE(result.is_err());
 }
 
 TEST_F(SecureMessagingUdpClientTest, StartWithEmptyHost)
 {
 	auto result = client_->start_client("", 5555);
-	EXPECT_FALSE(result);
+	EXPECT_TRUE(result.is_err());
 }
 
 // ============================================================================

@@ -362,7 +362,7 @@ TEST_F(HpackDecoderTest, DecodeEmptyData)
 	std::vector<uint8_t> empty_data;
 	std::span<const uint8_t> span(empty_data);
 	auto result = decoder_.decode(span);
-	ASSERT_TRUE(result);
+	ASSERT_TRUE(result.is_ok());
 	EXPECT_TRUE(result.value().empty());
 }
 
@@ -394,7 +394,7 @@ TEST_F(HpackRoundTripTest, StaticTableHeader)
 
 	std::span<const uint8_t> span(encoded);
 	auto result = decoder_.decode(span);
-	ASSERT_TRUE(result);
+	ASSERT_TRUE(result.is_ok());
 	ASSERT_EQ(result.value().size(), 1u);
 	EXPECT_EQ(result.value()[0].name, ":method");
 	EXPECT_EQ(result.value()[0].value, "GET");
@@ -410,7 +410,7 @@ TEST_F(HpackRoundTripTest, CustomHeader)
 
 	std::span<const uint8_t> span(encoded);
 	auto result = decoder_.decode(span);
-	ASSERT_TRUE(result);
+	ASSERT_TRUE(result.is_ok());
 	ASSERT_EQ(result.value().size(), 1u);
 	EXPECT_EQ(result.value()[0].name, "x-custom-header");
 	EXPECT_EQ(result.value()[0].value, "custom-value");
@@ -430,7 +430,7 @@ TEST_F(HpackRoundTripTest, MultipleHeaders)
 
 	std::span<const uint8_t> span(encoded);
 	auto result = decoder_.decode(span);
-	ASSERT_TRUE(result);
+	ASSERT_TRUE(result.is_ok());
 	ASSERT_EQ(result.value().size(), original.size());
 
 	for (size_t i = 0; i < original.size(); ++i)
@@ -478,7 +478,7 @@ TEST_F(HuffmanTest, DecodeEmptyData)
 	std::vector<uint8_t> empty_data;
 	std::span<const uint8_t> span(empty_data);
 	auto result = http2::huffman::decode(span);
-	ASSERT_TRUE(result);
+	ASSERT_TRUE(result.is_ok());
 	EXPECT_TRUE(result.value().empty());
 }
 
@@ -490,7 +490,7 @@ TEST_F(HuffmanTest, RoundTrip)
 
 	std::span<const uint8_t> span(encoded);
 	auto result = http2::huffman::decode(span);
-	ASSERT_TRUE(result);
+	ASSERT_TRUE(result.is_ok());
 	EXPECT_EQ(result.value(), original);
 }
 
@@ -509,7 +509,7 @@ TEST_F(HuffmanTest, RoundTripVariousStrings)
 		auto encoded = http2::huffman::encode(str);
 		std::span<const uint8_t> span(encoded);
 		auto result = http2::huffman::decode(span);
-		ASSERT_TRUE(result) << "Failed for: " << str;
+		ASSERT_TRUE(result.is_ok()) << "Failed for: " << str;
 		EXPECT_EQ(result.value(), str) << "Mismatch for: " << str;
 	}
 }

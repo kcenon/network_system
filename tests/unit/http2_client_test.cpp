@@ -260,25 +260,25 @@ protected:
 TEST_F(Http2ClientDisconnectedTest, GetWhileDisconnected)
 {
 	auto result = client_->get("/test");
-	EXPECT_FALSE(result);
+	EXPECT_TRUE(result.is_err());
 }
 
 TEST_F(Http2ClientDisconnectedTest, PostWhileDisconnected)
 {
 	auto result = client_->post("/test", "body");
-	EXPECT_FALSE(result);
+	EXPECT_TRUE(result.is_err());
 }
 
 TEST_F(Http2ClientDisconnectedTest, PutWhileDisconnected)
 {
 	auto result = client_->put("/test", "body");
-	EXPECT_FALSE(result);
+	EXPECT_TRUE(result.is_err());
 }
 
 TEST_F(Http2ClientDisconnectedTest, DeleteWhileDisconnected)
 {
 	auto result = client_->del("/test");
-	EXPECT_FALSE(result);
+	EXPECT_TRUE(result.is_err());
 }
 
 TEST_F(Http2ClientDisconnectedTest, DisconnectWhileDisconnected)
@@ -293,24 +293,24 @@ TEST_F(Http2ClientDisconnectedTest, PostBinaryWhileDisconnected)
 {
 	std::vector<uint8_t> body = {0x01, 0x02, 0x03};
 	auto result = client_->post("/test", body);
-	EXPECT_FALSE(result);
+	EXPECT_TRUE(result.is_err());
 }
 
 TEST_F(Http2ClientDisconnectedTest, WriteStreamWhileDisconnected)
 {
 	std::vector<uint8_t> data = {0x01};
 	auto result = client_->write_stream(1, data);
-	EXPECT_FALSE(result);
+	EXPECT_TRUE(result.is_err());
 }
 
 TEST_F(Http2ClientDisconnectedTest, CancelStreamWhileDisconnected)
 {
 	auto result = client_->cancel_stream(1);
-	EXPECT_FALSE(result);
+	EXPECT_TRUE(result.is_err());
 }
 
 TEST_F(Http2ClientDisconnectedTest, CloseStreamWriterWhileDisconnected)
 {
 	auto result = client_->close_stream_writer(1);
-	EXPECT_FALSE(result);
+	EXPECT_TRUE(result.is_err());
 }

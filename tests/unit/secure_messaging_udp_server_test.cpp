@@ -108,13 +108,13 @@ TEST_F(SecureMessagingUdpServerTest, SetClientDisconnectedCallback)
 TEST_F(SecureMessagingUdpServerTest, SetCertificateChainFileInvalidPath)
 {
 	auto result = server_->set_certificate_chain_file("/nonexistent/cert.pem");
-	EXPECT_FALSE(result);
+	EXPECT_TRUE(result.is_err());
 }
 
 TEST_F(SecureMessagingUdpServerTest, SetPrivateKeyFileInvalidPath)
 {
 	auto result = server_->set_private_key_file("/nonexistent/key.pem");
-	EXPECT_FALSE(result);
+	EXPECT_TRUE(result.is_err());
 }
 
 // ============================================================================
@@ -132,7 +132,7 @@ TEST_F(SecureMessagingUdpServerTest, StartWithoutCertificates)
 {
 	// Starting without setting certificates should fail
 	auto result = server_->start_server(5556);
-	EXPECT_FALSE(result);
+	EXPECT_TRUE(result.is_err());
 }
 
 // ============================================================================
