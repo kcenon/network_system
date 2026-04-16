@@ -167,7 +167,7 @@ protected:
 
 		asio::ip::tcp::socket client_sock(*io_context_);
 		client_sock.connect(
-			asio::ip::tcp::endpoint(asio::ip::address::from_string("127.0.0.1"), test_port_));
+			asio::ip::tcp::endpoint(asio::ip::make_address("127.0.0.1"), test_port_));
 
 		auto server_sock = accept_future.get();
 
@@ -237,7 +237,7 @@ protected:
 
 		asio::ip::tcp::socket client_sock(*io_context_);
 		client_sock.connect(
-			asio::ip::tcp::endpoint(asio::ip::address::from_string("127.0.0.1"), test_port_));
+			asio::ip::tcp::endpoint(asio::ip::make_address("127.0.0.1"), test_port_));
 
 		auto server_sock = accept_future.get();
 
