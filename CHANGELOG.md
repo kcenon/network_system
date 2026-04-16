@@ -14,6 +14,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Unit tests for 4 unified adapter modules: `ws_connection`, `ws_listener`, `quic_connection`, `quic_listener` — part of the #953 coverage expansion effort ([#967](https://github.com/kcenon/network_system/issues/967))
+- Unit tests for 11 untested modules across 5 categories — part of the #953 coverage expansion effort ([#968](https://github.com/kcenon/network_system/issues/968))
+  - Integration bridges (5): `container_integration`, `io_context_thread_manager`, `logger_integration`, `monitoring_integration`, `thread_integration`
+  - Protocol factories (4): `tcp`, `udp`, `websocket`, `quic`
+  - HTTP/2 (1): `http2_server_stream`
+  - Internal (1): `websocket_socket`
 
 ### Changed
 
