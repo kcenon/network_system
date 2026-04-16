@@ -4665,6 +4665,26 @@ add_network_test(network_quic_facade_module_test unit/quic_facade_test.cpp)
 message(STATUS "Facade layer module unit tests enabled (Issue #975)")
 
 ##################################################
+# HTTP/2, Secure Transport, WebSocket Unit Tests (Issue #976)
+##################################################
+
+# HTTP/2 module tests
+add_network_test(network_hpack_module_test unit/hpack_test.cpp)
+add_network_test(network_http2_client_module_test unit/http2_client_test.cpp)
+add_network_test(network_http2_server_module_test unit/http2_server_test.cpp)
+
+# Secure transport module tests
+add_network_test(network_secure_tcp_socket_module_test unit/secure_tcp_socket_test.cpp)
+add_network_test(network_secure_messaging_udp_client_module_test unit/secure_messaging_udp_client_test.cpp)
+add_network_test(network_secure_messaging_udp_server_module_test unit/secure_messaging_udp_server_test.cpp)
+
+# WebSocket module tests
+add_network_test(network_websocket_client_module_test unit/websocket_client_test.cpp)
+add_network_test(network_websocket_server_module_test unit/websocket_server_test.cpp)
+
+message(STATUS "HTTP/2, secure transport, and WebSocket module unit tests enabled (Issue #976)")
+
+##################################################
 # Integration Tests
 ##################################################
 
