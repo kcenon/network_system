@@ -4654,6 +4654,17 @@ add_network_test(network_quic_socket_construction_test unit/quic_socket_construc
 message(STATUS "QUIC protocol module unit tests enabled (Issue #974)")
 
 ##################################################
+# Facade Layer Module Unit Tests (Issue #975)
+##################################################
+
+add_network_test(network_http_facade_module_test unit/http_facade_test.cpp)
+add_network_test(network_tcp_facade_module_test unit/tcp_facade_test.cpp)
+add_network_test(network_udp_facade_module_test unit/udp_facade_test.cpp)
+add_network_test(network_websocket_facade_module_test unit/websocket_facade_test.cpp)
+add_network_test(network_quic_facade_module_test unit/quic_facade_test.cpp)
+message(STATUS "Facade layer module unit tests enabled (Issue #975)")
+
+##################################################
 # Integration Tests
 ##################################################
 
