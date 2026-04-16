@@ -2,9 +2,9 @@ name: Code Coverage
 
 on:
   push:
-    branches: [ main, phase-* ]
+    branches: [ main, develop, phase-* ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, develop ]
   workflow_dispatch:
 
 permissions:
@@ -29,21 +29,107 @@ jobs:
         path: common_system
         token: ${{ secrets.GITHUB_TOKEN }}
 
+    - name: Checkout thread_system
+      uses: actions/checkout@v6
+      with:
+        repository: kcenon/thread_system
+        path: thread_system
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Checkout logger_system
+      uses: actions/checkout@v6
+      with:
+        repository: kcenon/logger_system
+        path: logger_system
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Checkout container_system
+      uses: actions/checkout@v6
+      with:
+        repository: kcenon/container_system
+        path: container_system
+        token: ${{ secrets.GITHUB_TOKEN }}
+
     - name: Install dependencies
       run: |
         sudo apt-get update
         sudo apt-get install -y cmake ninja-build g++ libgtest-dev libgmock-dev libasio-dev libfmt-dev libssl-dev liblz4-dev zlib1g-dev lcov
 
-    - name: Build common_system dependency
+    - name: Build ecosystem dependencies
+      shell: bash
       run: |
-        cd common_system
-        cmake -B build -G Ninja \
-          -DCMAKE_BUILD_TYPE=Debug \
-          -DBUILD_TESTS=OFF \
-          -DBUILD_EXAMPLES=OFF \
-          -DBUILD_SAMPLES=OFF
-        cmake --build build
-        cmake --install build --prefix ${{ github.workspace }}/deps/install
+        # Build dependencies in tier order so each layer can find the previous one.
+        # Matches the pattern used by ci.yml (sanitizer job) minus sanitizer-specific
+        # compiler flags — coverage uses default gcc with --coverage.
+
+        # common_system (Tier 0)
+        if [ -d "common_system" ]; then
+          echo "::group::Build common_system"
+          cd common_system
+          cmake -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DBUILD_TESTS=OFF \
+            -DBUILD_EXAMPLES=OFF \
+            -DBUILD_SAMPLES=OFF
+          cmake --build build
+          cmake --install build --prefix ${{ github.workspace }}/deps/install
+          cd ..
+          echo "::endgroup::"
+        fi
+
+        # thread_system (Tier 1)
+        if [ -d "thread_system" ]; then
+          echo "::group::Build thread_system"
+          cd thread_system
+          cmake -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DCMAKE_PREFIX_PATH=${{ github.workspace }}/deps/install \
+            -DCOMMON_SYSTEM_INCLUDE_DIR=${{ github.workspace }}/deps/install/include \
+            -DBUILD_TESTS=OFF \
+            -DBUILD_EXAMPLES=OFF \
+            -DBUILD_SAMPLES=OFF \
+            -DBUILD_INTEGRATION_TESTS=OFF
+          cmake --build build --target thread_system
+          cmake --install build --prefix ${{ github.workspace }}/deps/install
+          cd ..
+          echo "::endgroup::"
+        fi
+
+        # logger_system (Tier 2)
+        if [ -d "logger_system" ]; then
+          echo "::group::Build logger_system"
+          cd logger_system
+          cmake -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DCMAKE_PREFIX_PATH=${{ github.workspace }}/deps/install \
+            -DCOMMON_SYSTEM_INCLUDE_DIR=${{ github.workspace }}/deps/install/include \
+            -DBUILD_TESTS=OFF \
+            -DBUILD_EXAMPLES=OFF \
+            -DBUILD_SAMPLES=OFF \
+            -DLOGGER_BUILD_INTEGRATION_TESTS=OFF
+          cmake --build build
+          cmake --install build --prefix ${{ github.workspace }}/deps/install
+          cd ..
+          echo "::endgroup::"
+        fi
+
+        # container_system (Tier 1)
+        if [ -d "container_system" ]; then
+          echo "::group::Build container_system"
+          cd container_system
+          cmake -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DCMAKE_PREFIX_PATH=${{ github.workspace }}/deps/install \
+            -DCOMMON_SYSTEM_INCLUDE_DIR=${{ github.workspace }}/deps/install/include \
+            -DBUILD_TESTS=OFF \
+            -DBUILD_EXAMPLES=OFF \
+            -DBUILD_SAMPLES=OFF
+          cmake --build build
+          # Install may fail due to missing files in container_system CMake config
+          cmake --install build --prefix ${{ github.workspace }}/deps/install || true
+          cd ..
+          echo "::endgroup::"
+        fi
 
     - name: Configure CMake with coverage
       run: |
@@ -52,9 +138,9 @@ jobs:
           -DCMAKE_PREFIX_PATH=${{ github.workspace }}/deps/install \
           -DENABLE_COVERAGE=ON \
           -DBUILD_WITH_COMMON_SYSTEM=ON \
-          -DBUILD_WITH_LOGGER_SYSTEM=OFF \
-          -DBUILD_WITH_THREAD_SYSTEM=OFF \
-          -DBUILD_WITH_CONTAINER_SYSTEM=OFF \
+          -DBUILD_WITH_LOGGER_SYSTEM=ON \
+          -DBUILD_WITH_THREAD_SYSTEM=ON \
+          -DBUILD_WITH_CONTAINER_SYSTEM=ON \
           -DBUILD_MESSAGING_BRIDGE=OFF \
           -DBUILD_TESTS=ON \
           -DBUILD_SAMPLES=OFF
