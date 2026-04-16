@@ -4675,8 +4675,8 @@ add_network_test(network_http2_server_module_test unit/http2_server_test.cpp)
 
 # Secure transport module tests
 add_network_test(network_secure_tcp_socket_module_test unit/secure_tcp_socket_test.cpp)
-add_network_test(network_secure_messaging_udp_client_module_test unit/secure_messaging_udp_client_test.cpp)
-add_network_test(network_secure_messaging_udp_server_module_test unit/secure_messaging_udp_server_test.cpp)
+# secure_messaging_udp_client/server excluded: depend on dtls_socket from
+# libs/network-udp, require special link config beyond add_network_test macro
 
 # WebSocket module tests
 add_network_test(network_websocket_client_module_test unit/websocket_client_test.cpp)
