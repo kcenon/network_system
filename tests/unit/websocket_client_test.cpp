@@ -181,14 +181,14 @@ TEST_F(MessagingWsClientTest, StopWhileNotRunning)
 TEST_F(MessagingWsClientTest, SendTextWhileNotConnected)
 {
 	auto result = client_->send_text(std::string("hello"));
-	EXPECT_FALSE(result);
+	EXPECT_TRUE(result.is_err());
 }
 
 TEST_F(MessagingWsClientTest, SendBinaryWhileNotConnected)
 {
 	std::vector<uint8_t> data = {0x01, 0x02, 0x03};
 	auto result = client_->send_binary(std::move(data));
-	EXPECT_FALSE(result);
+	EXPECT_TRUE(result.is_err());
 }
 
 TEST_F(MessagingWsClientTest, CloseWhileNotConnected)
@@ -201,13 +201,13 @@ TEST_F(MessagingWsClientTest, CloseWhileNotConnected)
 TEST_F(MessagingWsClientTest, PingWhileNotConnected)
 {
 	auto result = client_->ping();
-	EXPECT_FALSE(result);
+	EXPECT_TRUE(result.is_err());
 }
 
 TEST_F(MessagingWsClientTest, SendPingWhileNotConnected)
 {
 	auto result = client_->send_ping();
-	EXPECT_FALSE(result);
+	EXPECT_TRUE(result.is_err());
 }
 
 // ============================================================================
