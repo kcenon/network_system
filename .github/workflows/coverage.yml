@@ -15,6 +15,7 @@ jobs:
   coverage:
     name: Coverage Analysis
     runs-on: ubuntu-24.04
+    timeout-minutes: 60
 
     steps:
     - name: Checkout code
@@ -151,7 +152,7 @@ jobs:
     - name: Run tests
       run: |
         cd build
-        ctest -C Debug --output-on-failure --verbose || true
+        ctest -C Debug --output-on-failure --verbose --timeout 300 || true
 
     - name: Generate coverage report
       run: |
