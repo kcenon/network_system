@@ -394,7 +394,7 @@ TEST(GrpcClientCallRawAsync, CallbackReceivesErrorWhenNotConnected)
     client.call_raw_async(
         "/svc/Method",
         std::vector<uint8_t>{1, 2, 3},
-        [&](grpc_ns::Result<grpc_message> r) {
+        [&](kcenon::network::Result<grpc_message> r) {
             std::lock_guard<std::mutex> lock(m);
             done = true;
             is_err = r.is_err();
