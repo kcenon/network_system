@@ -4691,6 +4691,10 @@ message(STATUS "HTTP/2, secure transport, and WebSocket module unit tests enable
 # gRPC client config, call_options, construction
 add_network_test(network_grpc_client_unit_test unit/core_client_test.cpp)
 
+# gRPC client extended coverage: lifecycle, guard clauses, async callback
+# delivery, and streaming error paths (Issue #994)
+add_network_test(network_grpc_client_coverage_test unit/grpc_client_test.cpp)
+
 # gRPC server config, status, construction
 add_network_test(network_grpc_server_unit_test unit/core_server_test.cpp)
 
