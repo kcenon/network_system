@@ -4677,6 +4677,10 @@ add_network_test(network_http2_server_module_test unit/http2_server_test.cpp)
 # connection preface handling via raw TCP clients (Issue #992)
 add_network_test(network_http2_server_coverage_test unit/http2_server_coverage_test.cpp)
 
+# HTTP/2 client extended coverage: connect guard clauses, network error paths,
+# settings/timeout edge cases, disconnected request/stream operations (Issue #991)
+add_network_test(network_http2_client_coverage_test unit/http2_client_coverage_test.cpp)
+
 # Secure transport module tests
 add_network_test(network_secure_tcp_socket_module_test unit/secure_tcp_socket_test.cpp)
 # secure_messaging_udp_client/server excluded: depend on dtls_socket from
