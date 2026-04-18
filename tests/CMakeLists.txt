@@ -4681,6 +4681,12 @@ add_network_test(network_http2_server_coverage_test unit/http2_server_coverage_t
 # settings/timeout edge cases, disconnected request/stream operations (Issue #991)
 add_network_test(network_http2_client_coverage_test unit/http2_client_coverage_test.cpp)
 
+# HTTP/2 client additional coverage: TLS handshake failure branches, ALPN
+# mismatch, concurrent disconnect, settings round-trip, stream callback move
+# semantics (Issue #991 follow-up)
+add_network_test(network_http2_client_extended_coverage_test
+                 unit/http2_client_extended_coverage_test.cpp)
+
 # Secure transport module tests
 add_network_test(network_secure_tcp_socket_module_test unit/secure_tcp_socket_test.cpp)
 # secure_messaging_udp_client/server excluded: depend on dtls_socket from
