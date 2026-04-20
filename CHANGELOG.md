@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Unify vcpkg manifest mode across all CI platforms (Linux, macOS, Windows) replacing per-platform manual ecosystem dependency builds ([#885](https://github.com/kcenon/network_system/issues/885))
+- **Complete `Result<T>` migration for public API** — public headers now contain zero `throw` statements; every public function either returns `common::Result<T>` / `common::VoidResult` or is `noexcept`. Enforced by a new `public-api-check` CI job that rejects any PR reintroducing `throw` into `include/kcenon/network/`. ([#988](https://github.com/kcenon/network_system/issues/988))
 
 ### Performance
 

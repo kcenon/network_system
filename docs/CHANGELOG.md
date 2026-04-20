@@ -43,6 +43,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Moved `mainpage.dox` from project root to `docs/` directory
 
 ### Changed
+- **Complete `Result<T>` migration for public API (#988)**
+  - Public headers under `include/kcenon/network/` now contain zero `throw` statements; every public function either returns `common::Result<T>` / `common::VoidResult` or is declared `noexcept`.
+  - New lightweight CI workflow `.github/workflows/public-api-check.yml` greps `include/` and fails the build if `throw` is reintroduced, locking in the invariant.
+  - Triggers on pushes to `main`, `develop`, `phase-*` and on pull requests targeting `main` or `develop` so regressions surface at review time.
+  - No runtime behavior change — existing `Result<T>`-returning APIs are unchanged; this is the contract cleanup that accompanies the v1.0 API freeze.
 - **Consolidated Result Type Aliases (#494)**
   - Clarified that `network::Result<T>`, `network::VoidResult`, and `network::error_info` are deprecated for external use
   - Internal code continues to use these aliases which now directly map to `kcenon::common` types
