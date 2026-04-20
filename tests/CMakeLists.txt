@@ -4650,6 +4650,7 @@ add_network_test(network_session_ticket_store_test unit/session_ticket_store_tes
 add_network_test(network_quic_pmtud_controller_test unit/quic_pmtud_controller_test.cpp)
 add_network_test(network_quic_crypto_module_test unit/quic_crypto_test.cpp)
 add_network_test(network_quic_connection_module_test unit/quic_connection_test.cpp)
+add_network_test(network_quic_connection_extended_test unit/quic_connection_extended_test.cpp)
 add_network_test(network_quic_socket_construction_test unit/quic_socket_construction_test.cpp)
 message(STATUS "QUIC protocol module unit tests enabled (Issue #974)")
 
