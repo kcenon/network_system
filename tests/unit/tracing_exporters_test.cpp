@@ -25,6 +25,8 @@ All rights reserved.
 #include <gtest/gtest.h>
 
 #include <atomic>
+#include <functional>
+#include <map>
 #include <string>
 #include <vector>
 
@@ -337,4 +339,360 @@ TEST_F(TracingExportersTest, SamplerTraceIdWithFullRate)
 	}
 
 	EXPECT_GE(call_count.load(), 1);
+}
+
+// ============================================================================
+// Parent-Based Sampler
+// ============================================================================
+
+namespace
+{
+	auto make_context(trace_flags flags) -> trace_context
+	{
+		trace_id_t tid{};
+		span_id_t sid{};
+		// Non-zero IDs so the context is treated as valid
+		tid[15] = 0x01;
+		sid[7] = 0x01;
+		return trace_context{tid, sid, flags};
+	}
+} // namespace
+
+TEST_F(TracingExportersTest, ParentBasedSamplerRespectsSampledFlag)
+{
+	tracing_config config;
+	config.exporter = exporter_type::console;
+	config.sampler = sampler_type::parent_based;
+	configure_tracing(config);
+
+	std::atomic<int> call_count{0};
+	register_span_processor([&](const span&) { call_count.fetch_add(1); });
+
+	{
+		span s("sampled", make_context(trace_flags::sampled), span_kind::internal);
+	}
+
+	EXPECT_GE(call_count.load(), 1);
+}
+
+TEST_F(TracingExportersTest, ParentBasedSamplerSkipsUnsampledFlag)
+{
+	tracing_config config;
+	config.exporter = exporter_type::console;
+	config.sampler = sampler_type::parent_based;
+	configure_tracing(config);
+
+	std::atomic<int> call_count{0};
+	register_span_processor([&](const span&) { call_count.fetch_add(1); });
+
+	{
+		span s("not_sampled", make_context(trace_flags::none), span_kind::internal);
+	}
+
+	EXPECT_EQ(call_count.load(), 0);
+}
+
+// ============================================================================
+// Console Exporter Output Format
+// ============================================================================
+
+class ConsoleExporterOutputTest : public ::testing::Test
+{
+protected:
+	void SetUp() override
+	{
+		shutdown_tracing();
+		tracing_config config;
+		config.exporter = exporter_type::console;
+		config.sampler = sampler_type::always_on;
+		configure_tracing(config);
+	}
+
+	void TearDown() override
+	{
+		shutdown_tracing();
+	}
+
+	static auto capture(const std::function<void()>& fn) -> std::string
+	{
+		::testing::internal::CaptureStdout();
+		fn();
+		return ::testing::internal::GetCapturedStdout();
+	}
+
+	static auto has_substr(const std::string& haystack, const std::string& needle) -> bool
+	{
+		return haystack.find(needle) != std::string::npos;
+	}
+};
+
+TEST_F(ConsoleExporterOutputTest, OutputContainsHeaderAndFooter)
+{
+	auto out = capture([] {
+		auto s = trace_context::create_span("op");
+	});
+	EXPECT_TRUE(has_substr(out, "=== SPAN ==="));
+	EXPECT_TRUE(has_substr(out, "============"));
+}
+
+TEST_F(ConsoleExporterOutputTest, OutputContainsSpanName)
+{
+	auto out = capture([] {
+		auto s = trace_context::create_span("my_operation");
+	});
+	EXPECT_TRUE(has_substr(out, "Name:      my_operation"));
+}
+
+TEST_F(ConsoleExporterOutputTest, OutputContainsTraceAndSpanIds)
+{
+	auto out = capture([] {
+		auto s = trace_context::create_span("op");
+	});
+	EXPECT_TRUE(has_substr(out, "Trace ID:"));
+	EXPECT_TRUE(has_substr(out, "Span ID:"));
+}
+
+TEST_F(ConsoleExporterOutputTest, OutputContainsDuration)
+{
+	auto out = capture([] {
+		auto s = trace_context::create_span("op");
+	});
+	EXPECT_TRUE(has_substr(out, "Duration:"));
+	EXPECT_TRUE(has_substr(out, " ms"));
+}
+
+TEST_F(ConsoleExporterOutputTest, KindInternalRenderedAsInternal)
+{
+	auto out = capture([] {
+		span s("op", make_context(trace_flags::sampled), span_kind::internal);
+	});
+	EXPECT_TRUE(has_substr(out, "Kind:      INTERNAL"));
+}
+
+TEST_F(ConsoleExporterOutputTest, KindClientRenderedAsClient)
+{
+	auto out = capture([] {
+		span s("op", make_context(trace_flags::sampled), span_kind::client);
+	});
+	EXPECT_TRUE(has_substr(out, "Kind:      CLIENT"));
+}
+
+TEST_F(ConsoleExporterOutputTest, KindServerRenderedAsServer)
+{
+	auto out = capture([] {
+		span s("op", make_context(trace_flags::sampled), span_kind::server);
+	});
+	EXPECT_TRUE(has_substr(out, "Kind:      SERVER"));
+}
+
+TEST_F(ConsoleExporterOutputTest, KindProducerRenderedAsProducer)
+{
+	auto out = capture([] {
+		span s("op", make_context(trace_flags::sampled), span_kind::producer);
+	});
+	EXPECT_TRUE(has_substr(out, "Kind:      PRODUCER"));
+}
+
+TEST_F(ConsoleExporterOutputTest, KindConsumerRenderedAsConsumer)
+{
+	auto out = capture([] {
+		span s("op", make_context(trace_flags::sampled), span_kind::consumer);
+	});
+	EXPECT_TRUE(has_substr(out, "Kind:      CONSUMER"));
+}
+
+TEST_F(ConsoleExporterOutputTest, StatusUnsetRenderedAsUnset)
+{
+	auto out = capture([] {
+		auto s = trace_context::create_span("op");
+		// no set_status call — status stays at unset
+	});
+	EXPECT_TRUE(has_substr(out, "Status:    UNSET"));
+}
+
+TEST_F(ConsoleExporterOutputTest, StatusOkRenderedAsOk)
+{
+	auto out = capture([] {
+		auto s = trace_context::create_span("op");
+		s.set_status(span_status::ok);
+	});
+	EXPECT_TRUE(has_substr(out, "Status:    OK"));
+}
+
+TEST_F(ConsoleExporterOutputTest, StatusErrorRenderedAsError)
+{
+	auto out = capture([] {
+		auto s = trace_context::create_span("op");
+		s.set_status(span_status::error);
+	});
+	EXPECT_TRUE(has_substr(out, "Status:    ERROR"));
+}
+
+TEST_F(ConsoleExporterOutputTest, StatusDescriptionRendered)
+{
+	auto out = capture([] {
+		auto s = trace_context::create_span("op");
+		s.set_status(span_status::error, "db_timeout");
+	});
+	EXPECT_TRUE(has_substr(out, "Status:    ERROR (db_timeout)"));
+}
+
+TEST_F(ConsoleExporterOutputTest, StringAttributeRenderedQuoted)
+{
+	auto out = capture([] {
+		auto s = trace_context::create_span("op");
+		s.set_attribute("user", "alice");
+	});
+	EXPECT_TRUE(has_substr(out, "user: \"alice\""));
+}
+
+TEST_F(ConsoleExporterOutputTest, BoolAttributeTrueRendered)
+{
+	auto out = capture([] {
+		auto s = trace_context::create_span("op");
+		s.set_attribute("flag", true);
+	});
+	EXPECT_TRUE(has_substr(out, "flag: true"));
+}
+
+TEST_F(ConsoleExporterOutputTest, BoolAttributeFalseRendered)
+{
+	auto out = capture([] {
+		auto s = trace_context::create_span("op");
+		s.set_attribute("flag", false);
+	});
+	EXPECT_TRUE(has_substr(out, "flag: false"));
+}
+
+TEST_F(ConsoleExporterOutputTest, Int64AttributeRendered)
+{
+	auto out = capture([] {
+		auto s = trace_context::create_span("op");
+		s.set_attribute("count", static_cast<int64_t>(42));
+	});
+	EXPECT_TRUE(has_substr(out, "count: 42"));
+}
+
+TEST_F(ConsoleExporterOutputTest, DoubleAttributeRenderedWithThreeDecimals)
+{
+	auto out = capture([] {
+		auto s = trace_context::create_span("op");
+		s.set_attribute("ratio", 0.125);
+	});
+	EXPECT_TRUE(has_substr(out, "ratio: 0.125"));
+}
+
+TEST_F(ConsoleExporterOutputTest, AttributesSectionOmittedWhenEmpty)
+{
+	auto out = capture([] {
+		auto s = trace_context::create_span("op");
+	});
+	EXPECT_FALSE(has_substr(out, "Attributes:"));
+}
+
+TEST_F(ConsoleExporterOutputTest, AttributesSectionPresentWhenNonEmpty)
+{
+	auto out = capture([] {
+		auto s = trace_context::create_span("op");
+		s.set_attribute("k", "v");
+	});
+	EXPECT_TRUE(has_substr(out, "Attributes:"));
+}
+
+TEST_F(ConsoleExporterOutputTest, EventsSectionOmittedWhenEmpty)
+{
+	auto out = capture([] {
+		auto s = trace_context::create_span("op");
+	});
+	EXPECT_FALSE(has_substr(out, "Events:"));
+}
+
+TEST_F(ConsoleExporterOutputTest, EventRenderedByName)
+{
+	auto out = capture([] {
+		auto s = trace_context::create_span("op");
+		s.add_event("processing_started");
+	});
+	EXPECT_TRUE(has_substr(out, "Events:"));
+	EXPECT_TRUE(has_substr(out, "- processing_started"));
+}
+
+TEST_F(ConsoleExporterOutputTest, EventAttributesRenderedInline)
+{
+	auto out = capture([] {
+		auto s = trace_context::create_span("op");
+		std::map<std::string, attribute_value> attrs{
+			{"retries", static_cast<int64_t>(3)},
+			{"cause", std::string{"timeout"}}};
+		s.add_event("retry_scheduled", attrs);
+	});
+	EXPECT_TRUE(has_substr(out, "- retry_scheduled {"));
+	EXPECT_TRUE(has_substr(out, "retries: 3"));
+	EXPECT_TRUE(has_substr(out, "cause: \"timeout\""));
+}
+
+// ============================================================================
+// Debug Fallback for Unimplemented Exporters
+// ============================================================================
+
+class TracingDebugFallbackTest : public ::testing::Test
+{
+protected:
+	void SetUp() override { shutdown_tracing(); }
+	void TearDown() override { shutdown_tracing(); }
+
+	static auto capture_export(exporter_type exporter) -> std::string
+	{
+		tracing_config config;
+		config.exporter = exporter;
+		config.sampler = sampler_type::always_on;
+		config.debug = true;
+		configure_tracing(config);
+
+		::testing::internal::CaptureStdout();
+		{
+			auto s = trace_context::create_span("fallback_op");
+		}
+		return ::testing::internal::GetCapturedStdout();
+	}
+};
+
+TEST_F(TracingDebugFallbackTest, OtlpGrpcLogsFallbackAndExportsToConsole)
+{
+	auto out = capture_export(exporter_type::otlp_grpc);
+	EXPECT_NE(out.find("OTLP gRPC export not implemented"), std::string::npos);
+	EXPECT_NE(out.find("=== SPAN ==="), std::string::npos);
+	EXPECT_NE(out.find("fallback_op"), std::string::npos);
+}
+
+TEST_F(TracingDebugFallbackTest, JaegerLogsFallbackAndExportsToConsole)
+{
+	auto out = capture_export(exporter_type::jaeger);
+	EXPECT_NE(out.find("Jaeger export not implemented"), std::string::npos);
+	EXPECT_NE(out.find("=== SPAN ==="), std::string::npos);
+}
+
+TEST_F(TracingDebugFallbackTest, ZipkinLogsFallbackAndExportsToConsole)
+{
+	auto out = capture_export(exporter_type::zipkin);
+	EXPECT_NE(out.find("Zipkin export not implemented"), std::string::npos);
+	EXPECT_NE(out.find("=== SPAN ==="), std::string::npos);
+}
+
+TEST_F(TracingDebugFallbackTest, OtlpGrpcWithoutDebugIsSilent)
+{
+	tracing_config config;
+	config.exporter = exporter_type::otlp_grpc;
+	config.sampler = sampler_type::always_on;
+	config.debug = false;
+	configure_tracing(config);
+
+	::testing::internal::CaptureStdout();
+	{
+		auto s = trace_context::create_span("silent_op");
+	}
+	auto out = ::testing::internal::GetCapturedStdout();
+
+	EXPECT_EQ(out.find("OTLP gRPC export not implemented"), std::string::npos);
+	EXPECT_EQ(out.find("=== SPAN ==="), std::string::npos);
 }
