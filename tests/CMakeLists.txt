@@ -4672,6 +4672,12 @@ message(STATUS "Facade layer module unit tests enabled (Issue #975)")
 
 # HTTP/2 module tests
 add_network_test(network_hpack_module_test unit/hpack_test.cpp)
+
+# HPACK extended coverage: encoder static-table representation, dynamic-table
+# eviction under tight max_size, decoder error paths (codes 100-107),
+# integer-length boundary round-trips (Issue #1009)
+add_network_test(network_hpack_coverage_test unit/hpack_coverage_test.cpp)
+
 add_network_test(network_http2_client_module_test unit/http2_client_test.cpp)
 add_network_test(network_http2_server_module_test unit/http2_server_test.cpp)
 
