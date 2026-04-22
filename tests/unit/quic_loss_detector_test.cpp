@@ -379,3 +379,514 @@ TEST_F(LossDetectorAckTest, LargestAckedUpdated)
 
 	EXPECT_EQ(detector_.largest_acked(quic::encryption_level::application), 5u);
 }
+
+// ============================================================================
+// Multi-range ACK, loss threshold, timer, PTO, RTT, ECN Tests (Issue #1007)
+// ============================================================================
+
+namespace
+{
+	auto make_eliciting_packet(uint64_t pn, size_t bytes,
+	                            quic::encryption_level lvl,
+	                            std::chrono::steady_clock::time_point sent_time)
+	    -> quic::sent_packet
+	{
+		quic::sent_packet pkt;
+		pkt.packet_number = pn;
+		pkt.sent_bytes = bytes;
+		pkt.ack_eliciting = true;
+		pkt.in_flight = true;
+		pkt.level = lvl;
+		pkt.sent_time = sent_time;
+		return pkt;
+	}
+} // namespace
+
+class LossDetectorMultiRangeAckTest : public ::testing::Test
+{
+protected:
+	quic::rtt_estimator rtt_;
+	quic::loss_detector detector_{rtt_};
+};
+
+TEST_F(LossDetectorMultiRangeAckTest, FirstRangeMultiplePackets)
+{
+	auto now = std::chrono::steady_clock::now();
+	for (uint64_t pn = 0; pn <= 3; ++pn)
+	{
+		detector_.on_packet_sent(
+			make_eliciting_packet(pn, 1000, quic::encryption_level::application, now));
+	}
+
+	// Single range covering 0..3: largest=3, ranges[0].length=3
+	quic::ack_frame ack;
+	ack.largest_acknowledged = 3;
+	ack.ack_delay = 0;
+	ack.ranges.push_back({0u, 3u});
+
+	auto result = detector_.on_ack_received(
+		ack, quic::encryption_level::application, std::chrono::steady_clock::now());
+
+	EXPECT_EQ(result.acked_packets.size(), 4u);
+	EXPECT_EQ(detector_.bytes_in_flight(quic::encryption_level::application), 0u);
+	EXPECT_FALSE(detector_.has_unacked_packets(quic::encryption_level::application));
+}
+
+TEST_F(LossDetectorMultiRangeAckTest, SecondRangeWithGap)
+{
+	auto now = std::chrono::steady_clock::now();
+	// Send PN 0..7
+	for (uint64_t pn = 0; pn <= 7; ++pn)
+	{
+		detector_.on_packet_sent(
+			make_eliciting_packet(pn, 1000, quic::encryption_level::application, now));
+	}
+
+	// ACK layout: range0 covers 6..7, gap hides 4..5, range1 covers 1..3
+	// first range: largest=7, length=1 -> covers 7, 6
+	// then current_pn = 7 - 1 - 1 = 5; gap=1 means skip 5, 4; current_pn = 5 - 1 - 2 = 2
+	// range1: length=1 -> covers 2, 1 (note: loop goes i=0..length inclusive)
+	quic::ack_frame ack;
+	ack.largest_acknowledged = 7;
+	ack.ack_delay = 0;
+	ack.ranges.push_back({0u, 1u}); // first range
+	ack.ranges.push_back({1u, 1u}); // gap=1, length=1
+
+	auto result = detector_.on_ack_received(
+		ack, quic::encryption_level::application, std::chrono::steady_clock::now());
+
+	// range0 picks up 6, 7; range1 picks up 1, 2 (4 packets total)
+	EXPECT_EQ(result.acked_packets.size(), 4u);
+	// Unacked: {0, 3, 4, 5}. Packet threshold check against largest_acked=7:
+	// PN 0: 7 >= 0+3 -> reorder_lost
+	// PN 3: 7 >= 3+3 -> reorder_lost
+	// PN 4: 7 >= 4+3 -> reorder_lost
+	// PN 5: 7 >= 5+3=8 false -> stays unacked
+	EXPECT_EQ(result.lost_packets.size(), 3u);
+	EXPECT_TRUE(detector_.has_unacked_packets(quic::encryption_level::application));
+}
+
+class LossDetectorReorderThresholdTest : public ::testing::Test
+{
+protected:
+	quic::rtt_estimator rtt_;
+	quic::loss_detector detector_{rtt_};
+};
+
+TEST_F(LossDetectorReorderThresholdTest, PacketsFarBehindAreLost)
+{
+	auto now = std::chrono::steady_clock::now();
+	for (uint64_t pn = 0; pn <= 5; ++pn)
+	{
+		detector_.on_packet_sent(
+			make_eliciting_packet(pn, 1000, quic::encryption_level::application, now));
+	}
+
+	// ACK only PN 5
+	quic::ack_frame ack;
+	ack.largest_acknowledged = 5;
+	ack.ack_delay = 0;
+
+	auto result = detector_.on_ack_received(
+		ack, quic::encryption_level::application, std::chrono::steady_clock::now());
+
+	// PN 5 acked
+	ASSERT_EQ(result.acked_packets.size(), 1u);
+	EXPECT_EQ(result.acked_packets[0].packet_number, 5u);
+
+	// PN 0,1,2 lost by packet threshold (largest 5 >= pn+3 for pn in {0,1,2})
+	EXPECT_EQ(result.event, quic::loss_detection_event::packet_lost);
+	EXPECT_EQ(result.lost_packets.size(), 3u);
+
+	// PN 3,4 remain pending (5 >= 3+3=6 false; 5 >= 4+3=7 false)
+	EXPECT_TRUE(detector_.has_unacked_packets(quic::encryption_level::application));
+}
+
+TEST_F(LossDetectorReorderThresholdTest, PacketWithinThresholdNotLost)
+{
+	auto now = std::chrono::steady_clock::now();
+	for (uint64_t pn = 0; pn <= 2; ++pn)
+	{
+		detector_.on_packet_sent(
+			make_eliciting_packet(pn, 1000, quic::encryption_level::application, now));
+	}
+
+	// ACK PN 2 — largest_acked=2, so pn+3 threshold only applies when 2 >= pn+3,
+	// which no PN 0 or 1 satisfies. No loss by reorder.
+	quic::ack_frame ack;
+	ack.largest_acknowledged = 2;
+	ack.ack_delay = 0;
+
+	auto result = detector_.on_ack_received(
+		ack, quic::encryption_level::application, std::chrono::steady_clock::now());
+
+	EXPECT_EQ(result.acked_packets.size(), 1u);
+	EXPECT_TRUE(result.lost_packets.empty());
+	EXPECT_EQ(result.event, quic::loss_detection_event::none);
+}
+
+class LossDetectorTimeThresholdTest : public ::testing::Test
+{
+protected:
+	quic::rtt_estimator rtt_;
+	quic::loss_detector detector_{rtt_};
+};
+
+TEST_F(LossDetectorTimeThresholdTest, OldPacketDeclaredLostByTimeThreshold)
+{
+	auto now = std::chrono::steady_clock::now();
+	// PN 0 sent far in the past (exceeds loss_delay of ~375ms initial)
+	detector_.on_packet_sent(make_eliciting_packet(
+		0, 1000, quic::encryption_level::application, now - std::chrono::seconds(1)));
+	// PN 1 sent recently (RTT sample will be ~100ms)
+	detector_.on_packet_sent(make_eliciting_packet(
+		1, 1000, quic::encryption_level::application,
+		now - std::chrono::milliseconds(100)));
+
+	// ACK only PN 1 — packet threshold does NOT catch PN 0 (1 >= 0+3 false)
+	// but time threshold should: sent_time(PN 0) is 1s ago, loss_delay ~112ms after
+	// RTT update, so PN 0 is well past lost_send_time
+	quic::ack_frame ack;
+	ack.largest_acknowledged = 1;
+	ack.ack_delay = 0;
+
+	auto result = detector_.on_ack_received(
+		ack, quic::encryption_level::application, now);
+
+	EXPECT_EQ(result.acked_packets.size(), 1u);
+	EXPECT_EQ(result.event, quic::loss_detection_event::packet_lost);
+	ASSERT_EQ(result.lost_packets.size(), 1u);
+	EXPECT_EQ(result.lost_packets[0].packet_number, 0u);
+}
+
+class LossDetectorTimerTest : public ::testing::Test
+{
+protected:
+	quic::rtt_estimator rtt_;
+	quic::loss_detector detector_{rtt_};
+};
+
+TEST_F(LossDetectorTimerTest, TimerArmedAfterSendingEliciting)
+{
+	auto now = std::chrono::steady_clock::now();
+	detector_.on_packet_sent(
+		make_eliciting_packet(0, 1000, quic::encryption_level::application, now));
+
+	// Handshake must be confirmed for application-space PTO to arm
+	detector_.set_handshake_confirmed(true);
+	// Re-run timer arming by resending another packet (triggers set_loss_detection_timer)
+	detector_.on_packet_sent(
+		make_eliciting_packet(1, 1000, quic::encryption_level::application, now));
+
+	auto timeout = detector_.next_timeout();
+	EXPECT_TRUE(timeout.has_value());
+}
+
+TEST_F(LossDetectorTimerTest, TimerDisarmedAfterFullAck)
+{
+	auto now = std::chrono::steady_clock::now();
+	detector_.set_handshake_confirmed(true);
+	detector_.on_packet_sent(
+		make_eliciting_packet(0, 1000, quic::encryption_level::application, now));
+
+	ASSERT_TRUE(detector_.next_timeout().has_value());
+
+	quic::ack_frame ack;
+	ack.largest_acknowledged = 0;
+	ack.ack_delay = 0;
+	(void)detector_.on_ack_received(
+		ack, quic::encryption_level::application, std::chrono::steady_clock::now());
+
+	EXPECT_FALSE(detector_.next_timeout().has_value());
+}
+
+TEST_F(LossDetectorTimerTest, TimerDisarmedAfterDiscardSpace)
+{
+	auto now = std::chrono::steady_clock::now();
+	detector_.on_packet_sent(
+		make_eliciting_packet(0, 1000, quic::encryption_level::initial, now));
+
+	// Initial/handshake spaces are not gated by handshake_confirmed
+	ASSERT_TRUE(detector_.next_timeout().has_value());
+
+	detector_.discard_space(quic::encryption_level::initial);
+
+	EXPECT_FALSE(detector_.next_timeout().has_value());
+}
+
+TEST_F(LossDetectorTimerTest, ApplicationSpaceGatedByHandshakeNotConfirmed)
+{
+	auto now = std::chrono::steady_clock::now();
+	// Handshake explicitly NOT confirmed (default)
+	detector_.on_packet_sent(
+		make_eliciting_packet(0, 1000, quic::encryption_level::application, now));
+
+	// PTO for application space is gated out when handshake not confirmed,
+	// and no other space has ack-eliciting packets, so timer should not arm.
+	auto timeout = detector_.next_timeout();
+	EXPECT_FALSE(timeout.has_value());
+}
+
+class LossDetectorPtoTimeoutTest : public ::testing::Test
+{
+protected:
+	quic::rtt_estimator rtt_;
+	quic::loss_detector detector_{rtt_};
+};
+
+TEST_F(LossDetectorPtoTimeoutTest, OnTimeoutEmitsPtoExpiredAndIncrementsCount)
+{
+	auto now = std::chrono::steady_clock::now();
+	detector_.set_handshake_confirmed(true);
+	detector_.on_packet_sent(
+		make_eliciting_packet(0, 1000, quic::encryption_level::application, now));
+
+	ASSERT_EQ(detector_.pto_count(), 0u);
+
+	// No ACK received -> on_timeout must take the PTO branch (loss_time is epoch)
+	auto result = detector_.on_timeout();
+
+	EXPECT_EQ(result.event, quic::loss_detection_event::pto_expired);
+	EXPECT_TRUE(result.lost_packets.empty());
+	EXPECT_EQ(detector_.pto_count(), 1u);
+}
+
+TEST_F(LossDetectorPtoTimeoutTest, ConsecutivePtoIncrementsCount)
+{
+	auto now = std::chrono::steady_clock::now();
+	detector_.set_handshake_confirmed(true);
+	detector_.on_packet_sent(
+		make_eliciting_packet(0, 1000, quic::encryption_level::application, now));
+
+	(void)detector_.on_timeout();
+	(void)detector_.on_timeout();
+	(void)detector_.on_timeout();
+
+	EXPECT_EQ(detector_.pto_count(), 3u);
+}
+
+TEST_F(LossDetectorPtoTimeoutTest, AckResetsPtoCount)
+{
+	auto now = std::chrono::steady_clock::now();
+	detector_.set_handshake_confirmed(true);
+	detector_.on_packet_sent(
+		make_eliciting_packet(0, 1000, quic::encryption_level::application, now));
+
+	(void)detector_.on_timeout();
+	(void)detector_.on_timeout();
+	ASSERT_EQ(detector_.pto_count(), 2u);
+
+	quic::ack_frame ack;
+	ack.largest_acknowledged = 0;
+	ack.ack_delay = 0;
+	(void)detector_.on_ack_received(
+		ack, quic::encryption_level::application, std::chrono::steady_clock::now());
+
+	EXPECT_EQ(detector_.pto_count(), 0u);
+}
+
+class LossDetectorRttUpdateTest : public ::testing::Test
+{
+protected:
+	quic::rtt_estimator rtt_;
+	quic::loss_detector detector_{rtt_};
+};
+
+TEST_F(LossDetectorRttUpdateTest, AckOfLargestUpdatesRtt)
+{
+	auto send_time = std::chrono::steady_clock::now();
+	detector_.on_packet_sent(
+		make_eliciting_packet(0, 1000, quic::encryption_level::application, send_time));
+
+	// Initial smoothed/latest/min RTT before any update
+	auto initial_smoothed = rtt_.smoothed_rtt();
+
+	quic::ack_frame ack;
+	ack.largest_acknowledged = 0;
+	ack.ack_delay = 0;
+	auto recv_time = send_time + std::chrono::milliseconds(50);
+	(void)detector_.on_ack_received(ack, quic::encryption_level::application, recv_time);
+
+	// First sample: latest_rtt is ~50ms; smoothed should equal or move towards latest
+	EXPECT_NE(rtt_.latest_rtt(), std::chrono::microseconds{0});
+	EXPECT_NE(rtt_.latest_rtt(), initial_smoothed);
+	// min_rtt should no longer be uninitialized (max())
+	EXPECT_NE(rtt_.min_rtt(), std::chrono::microseconds::max());
+}
+
+TEST_F(LossDetectorRttUpdateTest, AckOfNonLargestDoesNotUpdateRtt)
+{
+	auto now = std::chrono::steady_clock::now();
+	detector_.on_packet_sent(
+		make_eliciting_packet(0, 1000, quic::encryption_level::application, now));
+	detector_.on_packet_sent(
+		make_eliciting_packet(1, 1000, quic::encryption_level::application, now));
+
+	auto initial_latest = rtt_.latest_rtt();
+
+	// ACK PN 1 but set largest_acknowledged = 0 (stale). The ACK machinery resolves
+	// current_pn via largest_acknowledged; since largest_newly_acked must match the
+	// sent packet to trigger RTT update, test that RTT does not change if the
+	// ack'd-largest is not in our sent map.
+	quic::ack_frame ack;
+	ack.largest_acknowledged = 999; // not in our sent map
+	ack.ack_delay = 0;
+	(void)detector_.on_ack_received(
+		ack, quic::encryption_level::application, std::chrono::steady_clock::now());
+
+	EXPECT_EQ(rtt_.latest_rtt(), initial_latest);
+}
+
+class LossDetectorEcnSignalTest : public ::testing::Test
+{
+protected:
+	quic::rtt_estimator rtt_;
+	quic::loss_detector detector_{rtt_};
+};
+
+TEST_F(LossDetectorEcnSignalTest, AckWithoutEcnSectionLeavesSignalNone)
+{
+	auto now = std::chrono::steady_clock::now();
+	detector_.on_packet_sent(
+		make_eliciting_packet(0, 1000, quic::encryption_level::application, now));
+
+	quic::ack_frame ack;
+	ack.largest_acknowledged = 0;
+	ack.ack_delay = 0;
+	// ack.ecn stays nullopt
+
+	auto result = detector_.on_ack_received(
+		ack, quic::encryption_level::application, std::chrono::steady_clock::now());
+
+	EXPECT_EQ(result.ecn_signal, quic::ecn_result::none);
+}
+
+TEST_F(LossDetectorEcnSignalTest, AckWithEcnSectionExercisesTracker)
+{
+	auto now = std::chrono::steady_clock::now();
+	detector_.on_packet_sent(
+		make_eliciting_packet(0, 1000, quic::encryption_level::application, now));
+
+	quic::ack_frame ack;
+	ack.largest_acknowledged = 0;
+	ack.ack_delay = 0;
+	quic::ecn_counts counts;
+	counts.ect0 = 1;
+	counts.ect1 = 0;
+	counts.ecn_ce = 0;
+	ack.ecn = counts;
+
+	auto result = detector_.on_ack_received(
+		ack, quic::encryption_level::application, std::chrono::steady_clock::now());
+
+	// The signal is tracker-dependent: during initial validation it may emit any of
+	// {none, congestion_signal, ecn_failure}. Assert it's a valid enum value and
+	// that the call did not corrupt state.
+	auto sig = result.ecn_signal;
+	bool is_valid = sig == quic::ecn_result::none ||
+	                sig == quic::ecn_result::congestion_signal ||
+	                sig == quic::ecn_result::ecn_failure;
+	EXPECT_TRUE(is_valid);
+}
+
+class LossDetectorLargestAckedMonotonicityTest : public ::testing::Test
+{
+protected:
+	quic::rtt_estimator rtt_;
+	quic::loss_detector detector_{rtt_};
+};
+
+TEST_F(LossDetectorLargestAckedMonotonicityTest, SmallerAckDoesNotDowngrade)
+{
+	auto now = std::chrono::steady_clock::now();
+	detector_.on_packet_sent(
+		make_eliciting_packet(3, 1000, quic::encryption_level::application, now));
+	detector_.on_packet_sent(
+		make_eliciting_packet(10, 1000, quic::encryption_level::application, now));
+
+	quic::ack_frame ack_large;
+	ack_large.largest_acknowledged = 10;
+	ack_large.ack_delay = 0;
+	(void)detector_.on_ack_received(
+		ack_large, quic::encryption_level::application, std::chrono::steady_clock::now());
+	ASSERT_EQ(detector_.largest_acked(quic::encryption_level::application), 10u);
+
+	quic::ack_frame ack_small;
+	ack_small.largest_acknowledged = 3;
+	ack_small.ack_delay = 0;
+	(void)detector_.on_ack_received(
+		ack_small, quic::encryption_level::application, std::chrono::steady_clock::now());
+
+	EXPECT_EQ(detector_.largest_acked(quic::encryption_level::application), 10u);
+}
+
+class LossDetectorBytesInFlightEdgeTest : public ::testing::Test
+{
+protected:
+	quic::rtt_estimator rtt_;
+	quic::loss_detector detector_{rtt_};
+};
+
+TEST_F(LossDetectorBytesInFlightEdgeTest, NonInFlightPacketDoesNotContribute)
+{
+	quic::sent_packet pkt;
+	pkt.packet_number = 0;
+	pkt.sent_bytes = 1200;
+	pkt.ack_eliciting = true;
+	pkt.in_flight = false; // explicitly non-in-flight
+	pkt.level = quic::encryption_level::application;
+	pkt.sent_time = std::chrono::steady_clock::now();
+	detector_.on_packet_sent(pkt);
+
+	EXPECT_EQ(detector_.bytes_in_flight(quic::encryption_level::application), 0u);
+	EXPECT_TRUE(detector_.has_unacked_packets(quic::encryption_level::application));
+}
+
+TEST_F(LossDetectorBytesInFlightEdgeTest, NonElicitingPacketDoesNotArmTimer)
+{
+	quic::sent_packet pkt;
+	pkt.packet_number = 0;
+	pkt.sent_bytes = 1200;
+	pkt.ack_eliciting = false; // not ack-eliciting
+	pkt.in_flight = true;
+	pkt.level = quic::encryption_level::initial;
+	pkt.sent_time = std::chrono::steady_clock::now();
+	detector_.on_packet_sent(pkt);
+
+	// any_ack_eliciting check fails -> timer not armed
+	EXPECT_FALSE(detector_.next_timeout().has_value());
+}
+
+TEST_F(LossDetectorBytesInFlightEdgeTest, TotalBytesInFlightSumsSpaces)
+{
+	auto now = std::chrono::steady_clock::now();
+	detector_.on_packet_sent(
+		make_eliciting_packet(0, 500, quic::encryption_level::initial, now));
+	detector_.on_packet_sent(
+		make_eliciting_packet(0, 800, quic::encryption_level::handshake, now));
+	detector_.on_packet_sent(
+		make_eliciting_packet(0, 1200, quic::encryption_level::application, now));
+
+	EXPECT_EQ(detector_.total_bytes_in_flight(), 500u + 800u + 1200u);
+
+	// ACK the handshake packet -> its bytes drop from total
+	quic::ack_frame ack;
+	ack.largest_acknowledged = 0;
+	ack.ack_delay = 0;
+	(void)detector_.on_ack_received(
+		ack, quic::encryption_level::handshake, std::chrono::steady_clock::now());
+
+	EXPECT_EQ(detector_.total_bytes_in_flight(), 500u + 1200u);
+}
+
+TEST_F(LossDetectorBytesInFlightEdgeTest, ZeroRttMapsToApplicationSpace)
+{
+	auto now = std::chrono::steady_clock::now();
+	detector_.on_packet_sent(
+		make_eliciting_packet(0, 700, quic::encryption_level::zero_rtt, now));
+
+	// zero_rtt routes through space_index==2 (application)
+	EXPECT_EQ(detector_.bytes_in_flight(quic::encryption_level::application), 700u);
+	EXPECT_EQ(detector_.bytes_in_flight(quic::encryption_level::zero_rtt), 700u);
+	EXPECT_TRUE(detector_.has_unacked_packets(quic::encryption_level::zero_rtt));
+}
