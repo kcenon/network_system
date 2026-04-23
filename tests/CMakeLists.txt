@@ -3481,6 +3481,35 @@ network_gtest_discover_tests(network_quic_transport_params_test
 )
 message(STATUS "QUIC transport params unit tests enabled")
 
+add_executable(network_quic_transport_params_coverage_test
+    unit/quic_transport_params_coverage_test.cpp
+)
+
+target_link_libraries(network_quic_transport_params_coverage_test PRIVATE
+    network_system
+    GTest::gtest
+    GTest::gtest_main
+    Threads::Threads
+)
+
+setup_asio_integration(network_quic_transport_params_coverage_test)
+
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_quic_transport_params_coverage_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_quic_transport_params_coverage_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+
+set_target_properties(network_quic_transport_params_coverage_test PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+)
+
+network_gtest_discover_tests(network_quic_transport_params_coverage_test
+    DISCOVERY_TIMEOUT 60
+)
+message(STATUS "QUIC transport params coverage unit tests enabled")
+
 ##################################################
 # QUIC Packet Unit Tests (Issue #954)
 ##################################################
