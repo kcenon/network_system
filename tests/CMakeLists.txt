@@ -4703,6 +4703,14 @@ add_network_test(network_http2_client_coverage_test unit/http2_client_coverage_t
 add_network_test(network_http2_client_extended_coverage_test
                  unit/http2_client_extended_coverage_test.cpp)
 
+# HTTP parser extended coverage: url_encode/decode edge cases (percent
+# truncation, high-bit bytes, hex case), query string delimiter handling
+# (leading/trailing '&', duplicate keys, URL-encoded delimiters), cookie
+# malformed-pair handling, parse_request_line / parse_status_line error
+# branches, multipart form-data edge cases, chunked encoding boundary
+# conditions (Issue #1013)
+add_network_test(network_http_parser_coverage_test unit/http_parser_coverage_test.cpp)
+
 # Secure transport module tests
 add_network_test(network_secure_tcp_socket_module_test unit/secure_tcp_socket_test.cpp)
 # secure_messaging_udp_client/server excluded: depend on dtls_socket from
