@@ -4711,6 +4711,16 @@ add_network_test(network_http2_client_extended_coverage_test
 # conditions (Issue #1013)
 add_network_test(network_http_parser_coverage_test unit/http_parser_coverage_test.cpp)
 
+# QUIC transport parameters extended coverage: encode per-field emission and
+# skip-default invariants, decode boundary values (ack_delay=20/21,
+# max_ack_delay=16383/16384, max_udp=1199/1200, active_cid_limit=1/2, cid
+# length 0/20/21, stateless reset token length 15/16/17), malformed inner
+# varint per param, preferred_address edge cases (min/max cid, cid_len>20,
+# truncated cid/token), unknown parameter placement, validate boundaries,
+# apply_defaults partial-zero override, factory symmetry (Issue #1015)
+add_network_test(network_quic_transport_params_coverage_test
+                 unit/quic_transport_params_coverage_test.cpp)
+
 # Secure transport module tests
 add_network_test(network_secure_tcp_socket_module_test unit/secure_tcp_socket_test.cpp)
 # secure_messaging_udp_client/server excluded: depend on dtls_socket from
