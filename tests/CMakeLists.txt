@@ -4653,6 +4653,14 @@ add_network_test(network_quic_crypto_extended_test unit/quic_crypto_extended_tes
 add_network_test(network_quic_connection_module_test unit/quic_connection_test.cpp)
 add_network_test(network_quic_connection_extended_test unit/quic_connection_extended_test.cpp)
 add_network_test(network_quic_socket_construction_test unit/quic_socket_construction_test.cpp)
+
+# QUIC frame extended coverage: parser error paths (truncated inputs at every
+# varint boundary), unknown frame-type dispatch, varint edge values (0, 63, 64,
+# 16383, 2^62-1), stream flag matrix (FIN/LEN/OFF 8 combinations), new_connection_id
+# CID length boundaries, connection_close transport vs application variants,
+# round-trip coverage for frame_builder::build(variant) dispatch (Issue #1011)
+add_network_test(network_quic_frame_coverage_test unit/quic_frame_coverage_test.cpp)
+
 message(STATUS "QUIC protocol module unit tests enabled (Issue #974)")
 
 ##################################################
