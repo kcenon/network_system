@@ -4773,6 +4773,13 @@ add_network_test(network_http2_client_extended_coverage_test
 # conditions (Issue #1013)
 add_network_test(network_http_parser_coverage_test unit/http_parser_coverage_test.cpp)
 
+# HTTP parser branch-coverage extension targeting parse_multipart_form_data
+# error paths (missing Content-Type / boundary, headers without CRLF
+# terminator, name/filename without closing quote, Content-Type whitespace
+# trim fall-through), parse_request/parse_response edge branches, and
+# additional serialize_chunked_response / trim cases (Issue #1025)
+add_network_test(network_http_parser_branch_test unit/http_parser_branch_test.cpp)
+
 # HTTP error extended coverage: get_error_status_text default branch,
 # escape_json_string switch branches (all special chars, low control bytes,
 # plain ASCII, high-bit bytes), escape_html_string switch branches, and the
