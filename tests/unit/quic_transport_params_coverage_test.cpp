@@ -934,3 +934,197 @@ TEST_F(TransportParamsDecodeStructuralTest, DisableActiveMigrationNonZeroLengthR
 		std::span<const uint8_t>(payload.data(), payload.size()));
 	EXPECT_TRUE(quic::transport_parameters::decode(as_span(buf)).is_err());
 }
+
+// ============================================================================
+// Encode ordering — source-order relationships preserved across groups
+// ============================================================================
+
+class TransportParamsEncodeOrderingTest : public ::testing::Test
+{
+};
+
+TEST_F(TransportParamsEncodeOrderingTest, TimingBeforeFlowControl)
+{
+	// max_idle_timeout belongs to the timing group and is emitted ahead of
+	// initial_max_data from the flow-control group.
+	quic::transport_parameters p;
+	p.max_idle_timeout = 30000;
+	p.initial_max_data = 1048576;
+	auto encoded = p.encode();
+
+	size_t idle_pos = find_param_id(encoded,
+		quic::transport_param_id::max_idle_timeout);
+	size_t data_pos = find_param_id(encoded,
+		quic::transport_param_id::initial_max_data);
+	ASSERT_NE(idle_pos, static_cast<size_t>(-1));
+	ASSERT_NE(data_pos, static_cast<size_t>(-1));
+	EXPECT_LT(idle_pos, data_pos);
+}
+
+TEST_F(TransportParamsEncodeOrderingTest, StreamLimitsAppearBeforeConnectionOptions)
+{
+	// initial_max_streams_{bidi,uni} precede disable_active_migration and
+	// active_connection_id_limit in encoder output.
+	quic::transport_parameters p;
+	p.initial_max_streams_bidi = 100;
+	p.initial_max_streams_uni = 50;
+	p.disable_active_migration = true;
+	p.active_connection_id_limit = 8;
+	auto encoded = p.encode();
+
+	size_t bidi_pos = find_param_id(encoded,
+		quic::transport_param_id::initial_max_streams_bidi);
+	size_t uni_pos = find_param_id(encoded,
+		quic::transport_param_id::initial_max_streams_uni);
+	size_t migr_pos = find_param_id(encoded,
+		quic::transport_param_id::disable_active_migration);
+	size_t limit_pos = find_param_id(encoded,
+		quic::transport_param_id::active_connection_id_limit);
+	ASSERT_NE(bidi_pos, static_cast<size_t>(-1));
+	ASSERT_NE(uni_pos, static_cast<size_t>(-1));
+	ASSERT_NE(migr_pos, static_cast<size_t>(-1));
+	ASSERT_NE(limit_pos, static_cast<size_t>(-1));
+	EXPECT_LT(bidi_pos, migr_pos);
+	EXPECT_LT(bidi_pos, limit_pos);
+	EXPECT_LT(uni_pos, migr_pos);
+	EXPECT_LT(uni_pos, limit_pos);
+}
+
+// ============================================================================
+// Encode preferred_address — wire-layout byte positions and sizes
+// ============================================================================
+//
+// Payload layout (RFC 9000 §18.2, 41 + cid_len bytes total):
+//   [0..3]   IPv4 address
+//   [4..5]   IPv4 port (big-endian)
+//   [6..21]  IPv6 address
+//   [22..23] IPv6 port (big-endian)
+//   [24]     cid_len
+//   [25..]   connection_id (cid_len bytes)
+//   [..]     stateless reset token (16 bytes)
+//
+// In these tests only preferred_address is set, so encoded[] starts with the
+// parameter id byte (0x0d) followed by a single-byte length varint.
+
+class TransportParamsEncodePreferredAddressTest : public ::testing::Test
+{
+};
+
+TEST_F(TransportParamsEncodePreferredAddressTest, WithEmptyCidProduces41ByteValue)
+{
+	quic::transport_parameters p;
+	p.preferred_address = quic::preferred_address_info{};  // default 0-byte CID
+	auto encoded = p.encode();
+
+	size_t pos = find_param_id(encoded,
+		quic::transport_param_id::preferred_address);
+	ASSERT_NE(pos, static_cast<size_t>(-1));
+	ASSERT_LT(pos + 1, encoded.size());
+	EXPECT_EQ(encoded[pos + 1], 41u);
+	EXPECT_EQ(encoded.size(), pos + 2 + 41);
+}
+
+TEST_F(TransportParamsEncodePreferredAddressTest, WithMaxCidProduces61ByteValue)
+{
+	quic::transport_parameters p;
+	p.preferred_address = quic::preferred_address_info{};
+	std::vector<uint8_t> cid_bytes(20, 0xAB);
+	p.preferred_address->connection_id =
+		quic::connection_id(std::span<const uint8_t>(cid_bytes.data(), cid_bytes.size()));
+	auto encoded = p.encode();
+
+	size_t pos = find_param_id(encoded,
+		quic::transport_param_id::preferred_address);
+	ASSERT_NE(pos, static_cast<size_t>(-1));
+	ASSERT_LT(pos + 1, encoded.size());
+	EXPECT_EQ(encoded[pos + 1], 61u);
+	EXPECT_EQ(encoded.size(), pos + 2 + 61);
+}
+
+TEST_F(TransportParamsEncodePreferredAddressTest, IPv4AddressAtFixedOffset)
+{
+	quic::transport_parameters p;
+	p.preferred_address = quic::preferred_address_info{};
+	p.preferred_address->ipv4_address = {10, 20, 30, 40};
+	auto encoded = p.encode();
+
+	size_t pos = find_param_id(encoded,
+		quic::transport_param_id::preferred_address);
+	ASSERT_NE(pos, static_cast<size_t>(-1));
+	size_t payload = pos + 2;
+	ASSERT_LE(payload + 4, encoded.size());
+	EXPECT_EQ(encoded[payload + 0], 10u);
+	EXPECT_EQ(encoded[payload + 1], 20u);
+	EXPECT_EQ(encoded[payload + 2], 30u);
+	EXPECT_EQ(encoded[payload + 3], 40u);
+}
+
+TEST_F(TransportParamsEncodePreferredAddressTest, IPv4PortBigEndianAtOffset4)
+{
+	// IPv4 port occupies payload offsets 4 and 5, high byte first.
+	quic::transport_parameters p;
+	p.preferred_address = quic::preferred_address_info{};
+	p.preferred_address->ipv4_port = 0xBEEF;
+	auto encoded = p.encode();
+
+	size_t pos = find_param_id(encoded,
+		quic::transport_param_id::preferred_address);
+	ASSERT_NE(pos, static_cast<size_t>(-1));
+	size_t payload = pos + 2;
+	ASSERT_LE(payload + 6, encoded.size());
+	EXPECT_EQ(encoded[payload + 4], 0xBEu);
+	EXPECT_EQ(encoded[payload + 5], 0xEFu);
+}
+
+TEST_F(TransportParamsEncodePreferredAddressTest, CidLengthByteAtOffset24)
+{
+	quic::transport_parameters p;
+	p.preferred_address = quic::preferred_address_info{};
+	std::vector<uint8_t> cid_bytes(7, 0xCD);
+	p.preferred_address->connection_id =
+		quic::connection_id(std::span<const uint8_t>(cid_bytes.data(), cid_bytes.size()));
+	auto encoded = p.encode();
+
+	size_t pos = find_param_id(encoded,
+		quic::transport_param_id::preferred_address);
+	ASSERT_NE(pos, static_cast<size_t>(-1));
+	size_t payload = pos + 2;
+	ASSERT_LE(payload + 25 + 7, encoded.size());
+	EXPECT_EQ(encoded[payload + 24], 7u);
+	for (size_t i = 0; i < 7; ++i)
+	{
+		EXPECT_EQ(encoded[payload + 25 + i], 0xCDu);
+	}
+}
+
+// ============================================================================
+// Decode varint-id truncation — multi-byte prefixes with insufficient data
+// ============================================================================
+
+class TransportParamsDecodeVarintIdTest : public ::testing::Test
+{
+};
+
+TEST_F(TransportParamsDecodeVarintIdTest, TruncatedParamIdFails)
+{
+	// 0x40 begins a 2-byte varint (prefix 0b01); no second byte is provided.
+	std::vector<uint8_t> buf{0x40};
+	EXPECT_TRUE(quic::transport_parameters::decode(as_span(buf)).is_err());
+}
+
+TEST_F(TransportParamsDecodeVarintIdTest, TruncatedParamIdFourByteForm)
+{
+	// 0x80 begins a 4-byte varint (prefix 0b10); only three bytes are provided.
+	std::vector<uint8_t> buf{0x80, 0x00, 0x00};
+	EXPECT_TRUE(quic::transport_parameters::decode(as_span(buf)).is_err());
+}
+
+TEST_F(TransportParamsDecodeVarintIdTest, TruncatedParamLengthAfterValidId)
+{
+	// Valid single-byte id followed by a 2-byte length-varint prefix
+	// that is missing its trailing byte.
+	std::vector<uint8_t> buf{
+		static_cast<uint8_t>(quic::transport_param_id::max_idle_timeout),
+		0x40};
+	EXPECT_TRUE(quic::transport_parameters::decode(as_span(buf)).is_err());
+}
