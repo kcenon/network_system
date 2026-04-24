@@ -4740,6 +4740,13 @@ add_network_test(network_http2_client_extended_coverage_test
 # conditions (Issue #1013)
 add_network_test(network_http_parser_coverage_test unit/http_parser_coverage_test.cpp)
 
+# HTTP error extended coverage: get_error_status_text default branch,
+# escape_json_string switch branches (all special chars, low control bytes,
+# plain ASCII, high-bit bytes), escape_html_string switch branches, and the
+# detail / request_id / message empty-vs-non-empty branches of
+# http_error_response::build_json_error and build_html_error (Issue #1023)
+add_network_test(network_http_error_coverage_test unit/http_error_coverage_test.cpp)
+
 # Secure transport module tests
 add_network_test(network_secure_tcp_socket_module_test unit/secure_tcp_socket_test.cpp)
 # secure_messaging_udp_client/server excluded: depend on dtls_socket from
