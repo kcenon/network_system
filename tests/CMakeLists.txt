@@ -1074,6 +1074,35 @@ if(GTest_FOUND OR GTEST_FOUND)
     )
     message(STATUS "HTTP/2 frame tests enabled")
 
+    # HTTP/2 frame extended coverage tests (Issue #1030)
+    add_executable(network_http2_frame_extended_test
+        test_http2_frame_extended.cpp
+    )
+
+    target_link_libraries(network_http2_frame_extended_test PRIVATE
+        network_system
+        GTest::gtest
+        GTest::gtest_main
+        Threads::Threads
+    )
+
+    setup_asio_integration(network_http2_frame_extended_test)
+
+    if(COMMON_SYSTEM_INCLUDE_DIR)
+        target_include_directories(network_http2_frame_extended_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(network_http2_frame_extended_test PRIVATE WITH_COMMON_SYSTEM)
+    endif()
+
+    set_target_properties(network_http2_frame_extended_test PROPERTIES
+        CXX_STANDARD 20
+        CXX_STANDARD_REQUIRED ON
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+    )
+
+    network_gtest_discover_tests(network_http2_frame_extended_test
+        DISCOVERY_TIMEOUT 60
+    )
+
     # HTTP/2 HPACK tests
     add_executable(network_http2_hpack_test
         test_http2_hpack.cpp
