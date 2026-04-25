@@ -9,6 +9,7 @@ All rights reserved.
 #include <gtest/gtest.h>
 
 #include <chrono>
+#include <thread>
 
 namespace quic = kcenon::network::protocols::quic;
 
@@ -889,4 +890,230 @@ TEST_F(LossDetectorBytesInFlightEdgeTest, ZeroRttMapsToApplicationSpace)
 	EXPECT_EQ(detector_.bytes_in_flight(quic::encryption_level::application), 700u);
 	EXPECT_EQ(detector_.bytes_in_flight(quic::encryption_level::zero_rtt), 700u);
 	EXPECT_TRUE(detector_.has_unacked_packets(quic::encryption_level::zero_rtt));
+}
+
+// ============================================================================
+// Additional branch-coverage tests (Issue #1027)
+// ============================================================================
+
+class LossDetectorTimeoutBranchTest : public ::testing::Test
+{
+protected:
+	quic::rtt_estimator rtt_;
+	quic::loss_detector detector_{rtt_};
+};
+
+// Exercises the on_timeout() branch where loss_time is set in a space and is
+// <= now, so the loss-detection path runs (not the PTO branch).
+TEST_F(LossDetectorTimeoutBranchTest, OnTimeoutTakesLossTimeBranch)
+{
+	auto now = std::chrono::steady_clock::now();
+	detector_.set_handshake_confirmed(true);
+
+	// PN 0 sent very recently — must NOT be time-threshold lost during the
+	// upcoming ACK (sent_time newer than recv_time - loss_delay) AND must
+	// NOT be packet-threshold lost (1 < 0+3). After RTT updates from the ACK,
+	// loss_delay collapses to kGranularity=1ms, so PN 0 sent ~100us ago stays
+	// pending. space.loss_time gets populated so on_timeout() takes the
+	// loss-detection branch.
+	detector_.on_packet_sent(make_eliciting_packet(
+		0, 1000, quic::encryption_level::application,
+		now - std::chrono::microseconds(100)));
+	// PN 1 sent fractionally later — drives an RTT sample (~50us) and largest_acked.
+	detector_.on_packet_sent(make_eliciting_packet(
+		1, 1000, quic::encryption_level::application,
+		now - std::chrono::microseconds(50)));
+
+	// ACK only PN 1 — packet threshold won't catch PN 0 (1 < 0+3),
+	// so PN 0 stays pending and space.loss_time gets populated.
+	quic::ack_frame ack;
+	ack.largest_acknowledged = 1;
+	ack.ack_delay = 0;
+	auto ack_result = detector_.on_ack_received(
+		ack, quic::encryption_level::application, now);
+	ASSERT_FALSE(ack_result.acked_packets.empty());
+	ASSERT_TRUE(ack_result.lost_packets.empty())
+		<< "PN 0 must remain pending until on_timeout() fires";
+
+	// Sleep well past the time-threshold loss_delay so on_timeout() takes the
+	// loss-time branch. loss_delay is ~1.125 * max(smoothed_rtt, min_rtt) with
+	// a kGranularity=1ms floor; 50ms is comfortably past either.
+	std::this_thread::sleep_for(std::chrono::milliseconds(50));
+
+	auto result = detector_.on_timeout();
+
+	// Loss-time branch should fire (not the PTO path), so PN 0 gets reported lost
+	// and pto_count must NOT increment.
+	EXPECT_EQ(result.event, quic::loss_detection_event::packet_lost);
+	ASSERT_EQ(result.lost_packets.size(), 1u);
+	EXPECT_EQ(result.lost_packets[0].packet_number, 0u);
+	EXPECT_EQ(detector_.pto_count(), 0u);
+}
+
+class LossDetectorAckRangeEdgeTest : public ::testing::Test
+{
+protected:
+	quic::rtt_estimator rtt_;
+	quic::loss_detector detector_{rtt_};
+};
+
+// Exercises the `current_pn >= gap + 2` else-break branch in the multi-range
+// ACK loop: when the encoded gap would underflow current_pn, processing stops.
+TEST_F(LossDetectorAckRangeEdgeTest, ImpossibleGapBreaksRangeLoop)
+{
+	auto now = std::chrono::steady_clock::now();
+	for (uint64_t pn = 0; pn <= 3; ++pn)
+	{
+		detector_.on_packet_sent(make_eliciting_packet(
+			pn, 1000, quic::encryption_level::application, now));
+	}
+
+	// First range: largest=3, length=0 -> covers PN 3 only. After processing:
+	// current_pn = 3 - 0 - 1 = 2. Second range gap=10 means we'd need
+	// current_pn >= 12 to continue, which is false, so we break.
+	quic::ack_frame ack;
+	ack.largest_acknowledged = 3;
+	ack.ack_delay = 0;
+	ack.ranges.push_back({0u, 0u});
+	ack.ranges.push_back({10u, 0u});
+
+	auto result = detector_.on_ack_received(
+		ack, quic::encryption_level::application, std::chrono::steady_clock::now());
+
+	// Only PN 3 should be acked; the impossible second range is skipped.
+	ASSERT_EQ(result.acked_packets.size(), 1u);
+	EXPECT_EQ(result.acked_packets[0].packet_number, 3u);
+}
+
+// Exercises the `current_pn >= range_len + 1` else-break branch: after the
+// second range is processed, the next decrement would underflow.
+TEST_F(LossDetectorAckRangeEdgeTest, RangeLenUnderflowBreaksRangeLoop)
+{
+	auto now = std::chrono::steady_clock::now();
+	for (uint64_t pn = 1; pn <= 5; ++pn)
+	{
+		detector_.on_packet_sent(make_eliciting_packet(
+			pn, 1000, quic::encryption_level::application, now));
+	}
+
+	// First range: largest=5, length=0 -> covers PN 5; current_pn -> 4.
+	// Second range: gap=0, length=2 -> current_pn becomes 4 - 0 - 2 = 2,
+	// covers PN 2,1,0 (loop iterates while current_pn>0). Then the trailing
+	// `current_pn >= range_len + 1` (2 >= 3) is false -> break.
+	quic::ack_frame ack;
+	ack.largest_acknowledged = 5;
+	ack.ack_delay = 0;
+	ack.ranges.push_back({0u, 0u});
+	ack.ranges.push_back({0u, 2u});
+
+	auto result = detector_.on_ack_received(
+		ack, quic::encryption_level::application, std::chrono::steady_clock::now());
+
+	EXPECT_FALSE(result.acked_packets.empty());
+}
+
+class LossDetectorDetectLossEdgeTest : public ::testing::Test
+{
+protected:
+	quic::rtt_estimator rtt_;
+	quic::loss_detector detector_{rtt_};
+};
+
+// detect_lost_packets() returns early when largest_acked has never been set.
+// This is exercised when on_timeout() runs with no prior ACK on a space that
+// only contains a non-eliciting packet (so PTO doesn't pick it either).
+TEST_F(LossDetectorDetectLossEdgeTest, DetectLostNoLargestAckedYields_NoLoss)
+{
+	auto now = std::chrono::steady_clock::now();
+	// Send eliciting packet so timer arms in initial space (not handshake-gated).
+	detector_.on_packet_sent(
+		make_eliciting_packet(0, 1000, quic::encryption_level::initial, now));
+
+	// No ACK received — on_timeout must take the PTO branch, but
+	// detect_lost_packets is called for whatever space the loss_time pointer
+	// resolves to. With no largest_acked set anywhere, no losses are reported.
+	auto result = detector_.on_timeout();
+	EXPECT_TRUE(result.lost_packets.empty());
+}
+
+// Exercises the branch where we update space.loss_time to an earlier value
+// because a second pending packet would trigger loss-detection sooner.
+TEST_F(LossDetectorDetectLossEdgeTest, MultiplePendingPacketsTrackEarliestLossTime)
+{
+	auto now = std::chrono::steady_clock::now();
+	detector_.set_handshake_confirmed(true);
+
+	// PN 0: older — would be lost first by time threshold.
+	detector_.on_packet_sent(make_eliciting_packet(
+		0, 1000, quic::encryption_level::application,
+		now - std::chrono::milliseconds(80)));
+	// PN 1: even older — should drive loss_time even sooner.
+	detector_.on_packet_sent(make_eliciting_packet(
+		1, 1000, quic::encryption_level::application,
+		now - std::chrono::milliseconds(120)));
+	// PN 5: recent — drives largest_acked when ACKed.
+	detector_.on_packet_sent(make_eliciting_packet(
+		5, 1000, quic::encryption_level::application,
+		now - std::chrono::milliseconds(5)));
+
+	quic::ack_frame ack;
+	ack.largest_acknowledged = 5;
+	ack.ack_delay = 0;
+	auto result = detector_.on_ack_received(
+		ack, quic::encryption_level::application, now);
+
+	// PN 0,1 are >=3 behind largest_acked=5 -> both packet-threshold lost.
+	ASSERT_EQ(result.acked_packets.size(), 1u);
+	EXPECT_EQ(result.acked_packets[0].packet_number, 5u);
+	EXPECT_EQ(result.event, quic::loss_detection_event::packet_lost);
+	EXPECT_EQ(result.lost_packets.size(), 2u);
+}
+
+class LossDetectorDiscardSpaceTimerTest : public ::testing::Test
+{
+protected:
+	quic::rtt_estimator rtt_;
+	quic::loss_detector detector_{rtt_};
+};
+
+// discard_space() must wipe per-space totals AND re-arm the timer based on
+// remaining spaces. After discarding initial, the application-space timer
+// should drive next_timeout().
+TEST_F(LossDetectorDiscardSpaceTimerTest, DiscardReArmsTimerFromOtherSpaces)
+{
+	auto now = std::chrono::steady_clock::now();
+	detector_.set_handshake_confirmed(true);
+
+	detector_.on_packet_sent(
+		make_eliciting_packet(0, 1000, quic::encryption_level::initial, now));
+	detector_.on_packet_sent(
+		make_eliciting_packet(0, 1000, quic::encryption_level::application, now));
+	ASSERT_TRUE(detector_.next_timeout().has_value());
+
+	detector_.discard_space(quic::encryption_level::initial);
+
+	// Application space still has an eliciting packet -> timer must remain armed.
+	EXPECT_TRUE(detector_.next_timeout().has_value());
+	EXPECT_TRUE(detector_.has_unacked_packets(quic::encryption_level::application));
+}
+
+// PTO exponential backoff: pto_count squared into pto_duration. After several
+// timeouts, get_pto_time_and_space() shifts the next deadline further out.
+TEST_F(LossDetectorDiscardSpaceTimerTest, PtoBackoffExtendsTimeout)
+{
+	auto now = std::chrono::steady_clock::now();
+	detector_.set_handshake_confirmed(true);
+	detector_.on_packet_sent(
+		make_eliciting_packet(0, 1000, quic::encryption_level::application, now));
+
+	auto first = detector_.next_timeout();
+	ASSERT_TRUE(first.has_value());
+
+	(void)detector_.on_timeout();
+
+	auto second = detector_.next_timeout();
+	ASSERT_TRUE(second.has_value());
+	// After one PTO, backoff doubles the duration -> second deadline must be
+	// strictly later than the first.
+	EXPECT_GT(*second, *first);
 }
