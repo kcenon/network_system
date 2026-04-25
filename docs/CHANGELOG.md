@@ -40,6 +40,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Closes static-table boundary lookups (index 61, name-only ordering, mismatched-value fall-through), dynamic-table get-past-end and grow-without-eviction paths, encoder static-name-mismatched-value forcing literal-with-indexing path, decoder happy paths for literal-without-indexing (`0x00`) new-name and indexed-name forms plus never-indexed (`0x10`) prefix, multi-byte integer decoding under the 64-bit overflow threshold, huffman stub `encoded_size` and byte-for-byte round-trip contract, and encoder/decoder pair convergence for static-only emissions
   - Registered `network_hpack_extra_coverage_test` in `tests/CMakeLists.txt`
   - Part of the #953 coverage expansion effort, targeting `src/protocols/http2/hpack.cpp` line >= 70% / branch >= 60%
+- **Additional tcp_socket coverage tests (#1032)**
+  - Added `tests/unit/tcp_socket_extra_coverage_test.cpp` complementing `tcp_socket_test.cpp`
+  - Closes `try_send` rejection branch when `max_pending_bytes` would be exceeded, `async_send` and `try_send` against an already-closed socket (handler error path), `start_read` idempotence (compare_exchange_strong false branch) and start-after-close no-op, `reset_metrics` clearing every counter including `peak_pending_bytes` and `rejected_sends`, backpressure activation at high watermark and release at low watermark, `config()` accessor for custom and default configurations, multi-observer delivery, detach of a never-attached observer, null-callback setters, `stop_read` before `start_read`, and freshly-constructed default-state invariants
+  - Registered `network_tcp_socket_extra_coverage_test` in `tests/CMakeLists.txt`
+  - Part of the #953 coverage expansion effort, targeting `src/tcp_socket.cpp` line >= 70% / branch >= 60%
 - **Modernized Doxygen Documentation with doxygen-awesome-css (#927)**
   - Vendored doxygen-awesome-css theme with dark mode toggle, code copy buttons, and responsive sidebar
   - Added custom header (`docs/header.html`) and branding CSS (`docs/custom.css`)
