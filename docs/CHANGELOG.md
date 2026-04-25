@@ -35,6 +35,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Internal (1): `websocket_socket`
   - Registered all 11 test targets in `tests/CMakeLists.txt`
   - Part of the #953 coverage expansion effort targeting 48% to 80% unit test coverage
+- **Additional HPACK coverage tests (#1031)**
+  - Added `tests/unit/hpack_extra_coverage_test.cpp` complementing `hpack_test.cpp` (Issue #976) and `hpack_coverage_test.cpp` (Issue #1009)
+  - Closes static-table boundary lookups (index 61, name-only ordering, mismatched-value fall-through), dynamic-table get-past-end and grow-without-eviction paths, encoder static-name-mismatched-value forcing literal-with-indexing path, decoder happy paths for literal-without-indexing (`0x00`) new-name and indexed-name forms plus never-indexed (`0x10`) prefix, multi-byte integer decoding under the 64-bit overflow threshold, huffman stub `encoded_size` and byte-for-byte round-trip contract, and encoder/decoder pair convergence for static-only emissions
+  - Registered `network_hpack_extra_coverage_test` in `tests/CMakeLists.txt`
+  - Part of the #953 coverage expansion effort, targeting `src/protocols/http2/hpack.cpp` line >= 70% / branch >= 60%
 - **Modernized Doxygen Documentation with doxygen-awesome-css (#927)**
   - Vendored doxygen-awesome-css theme with dark mode toggle, code copy buttons, and responsive sidebar
   - Added custom header (`docs/header.html`) and branding CSS (`docs/custom.css`)
