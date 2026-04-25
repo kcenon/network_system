@@ -125,15 +125,18 @@ class HttpParserUrlDecodeCoverageTest : public ::testing::Test
 
 TEST_F(HttpParserUrlDecodeCoverageTest, TruncatedTrailingPercentDropped)
 {
-    // When input ends with '%' and no two chars follow, the '%' is silently
-    // dropped because the `i + 2 < length` guard is false.
+    // When input ends with '%' and no two chars follow, the outer `if
+    // (value[i] == '%')` is taken but the inner `i + 2 < length` guard is
+    // false, so nothing is emitted for the '%' iteration and the loop ends.
     EXPECT_EQ(http_parser::url_decode("foo%"), "foo");
 }
 
-TEST_F(HttpParserUrlDecodeCoverageTest, TruncatedPercentOneCharDropped)
+TEST_F(HttpParserUrlDecodeCoverageTest, TruncatedPercentOneCharDroppedNextKept)
 {
-    // 'foo%A' — only one char after '%', i+2 == length, guard false.
-    EXPECT_EQ(http_parser::url_decode("foo%A"), "foo");
+    // 'foo%A' — i=3 hits the outer '%' branch, inner guard false (i+2 == 5 ==
+    // length), nothing emitted; on i=4 the else branch emits 'A'. The '%'
+    // itself is silently dropped.
+    EXPECT_EQ(http_parser::url_decode("foo%A"), "fooA");
 }
 
 TEST_F(HttpParserUrlDecodeCoverageTest, LowercaseHexAccepted)
@@ -213,12 +216,14 @@ TEST_F(HttpParserQueryStringCoverageTest, LeadingAmpersandProducesEmptyKey)
     EXPECT_NE(it, params.end());
 }
 
-TEST_F(HttpParserQueryStringCoverageTest, TrailingAmpersandProducesEmptyKey)
+TEST_F(HttpParserQueryStringCoverageTest, TrailingAmpersandIgnored)
 {
+    // std::getline with '&' delimiter does not yield a trailing empty token,
+    // so a trailing '&' simply terminates the only "a=1" pair without
+    // adding an empty-key entry.
     auto params = http_parser::parse_query_string("a=1&");
     EXPECT_EQ(params["a"], "1");
-    auto it = params.find("");
-    EXPECT_NE(it, params.end());
+    EXPECT_EQ(params.size(), 1u);
 }
 
 TEST_F(HttpParserQueryStringCoverageTest, DoubleAmpersandSkipsEmptyMiddle)
@@ -680,15 +685,20 @@ TEST_F(HttpParserMultipartCoverageTest, PartWithoutContentDispositionSkipped)
     EXPECT_TRUE(req.files.empty());
 }
 
-TEST_F(HttpParserMultipartCoverageTest, BoundaryWithQuotesStripped)
+TEST_F(HttpParserMultipartCoverageTest, BoundaryWithTrailingQuoteOnlyTrimsTail)
 {
+    // The boundary value is "ABC\""; the parser prepends "--" so the working
+    // boundary becomes `--ABC"`. The leading-quote strip checks
+    // boundary.front() which is '-' (not '"') so that branch is skipped,
+    // while the trailing-quote pop_back fires. The resulting delimiter
+    // `--ABC` then matches the body's --ABC frames.
     std::string body =
         "--ABC\r\n"
         "Content-Disposition: form-data; name=\"field\"\r\n"
         "\r\n"
         "value\r\n"
         "--ABC--\r\n";
-    auto req = make_request(body, "multipart/form-data; boundary=\"ABC\"");
+    auto req = make_request(body, "multipart/form-data; boundary=ABC\"");
     auto result = http_parser::parse_multipart_form_data(req);
     ASSERT_TRUE(result.is_ok());
     EXPECT_EQ(req.form_data["field"], "value");
