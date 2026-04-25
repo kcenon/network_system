@@ -4838,6 +4838,12 @@ add_network_test(network_hpack_module_test unit/hpack_test.cpp)
 # integer-length boundary round-trips (Issue #1009)
 add_network_test(network_hpack_coverage_test unit/hpack_coverage_test.cpp)
 
+# HPACK additional coverage: static-table boundary entries, decoder happy paths
+# for literal-without-indexing / never-indexed prefixes, multi-byte integer
+# non-overflow path, huffman stub contract, mixed static/dynamic round-trips
+# (Issue #1031)
+add_network_test(network_hpack_extra_coverage_test unit/hpack_extra_coverage_test.cpp)
+
 add_network_test(network_http2_client_module_test unit/http2_client_test.cpp)
 add_network_test(network_http2_server_module_test unit/http2_server_test.cpp)
 

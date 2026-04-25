@@ -40,6 +40,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Add `message_validator_extended_test` for extended message validation edge cases
   - Add `sliding_histogram_test` for `sliding_histogram` statistics and percentile calculations
   - Update Codecov configuration to track unit and integration coverage separately
+- Expand HPACK (`src/protocols/http2/hpack.cpp`) unit coverage with `hpack_extra_coverage_test` — closes static-table boundary lookups, decoder happy paths for literal-without-indexing / never-indexed prefixes, multi-byte integer non-overflow path, huffman stub contract, and mixed static/dynamic round-trips ([#1031](https://github.com/kcenon/network_system/issues/1031))
 
 ### Added
 
