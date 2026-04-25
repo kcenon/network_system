@@ -375,3 +375,102 @@ TEST(HpackDecoderIndexedHeader, FirstStaticIndexResolves)
     EXPECT_EQ(result.value()[0].name, ":authority");
     EXPECT_EQ(result.value()[0].value, "");
 }
+
+// ============================================================================
+// Decoder: literal-never-indexed prefix bit, Huffman-flag string handling
+// ============================================================================
+
+TEST(HpackDecoderNeverIndexed, FirstByteWithBit10SetTakesElseBranch)
+{
+    // 0x10 = literal-never-indexed (top nibble 0001). The decoder enters the
+    // same "literal without indexing" else-branch and uses the 4-bit prefix.
+    // Index 0 (low nibble 0) → new-name path.
+    std::vector<uint8_t> bytes = {
+        0x10,
+        0x03, 'a', 'b', 'c',
+        0x02, 'x', 'y',
+    };
+    http2::hpack_decoder decoder;
+    auto result = decoder.decode(as_span(bytes));
+    ASSERT_TRUE(result.is_ok());
+    ASSERT_EQ(result.value().size(), 1u);
+    EXPECT_EQ(result.value()[0].name, "abc");
+    EXPECT_EQ(result.value()[0].value, "xy");
+}
+
+TEST(HpackDecoderNeverIndexed, FirstByteWithBit10AndIndexedName)
+{
+    // 0x12 = literal-never-indexed, low-nibble index 2 → static[2] (":method").
+    std::vector<uint8_t> bytes = {0x12, 0x03, 'P', 'U', 'T'};
+    http2::hpack_decoder decoder;
+    auto result = decoder.decode(as_span(bytes));
+    ASSERT_TRUE(result.is_ok());
+    ASSERT_EQ(result.value().size(), 1u);
+    EXPECT_EQ(result.value()[0].name, ":method");
+    EXPECT_EQ(result.value()[0].value, "PUT");
+}
+
+TEST(HpackDecoderHuffmanFlag, StringWithHbitSetTakesHuffmanBranch)
+{
+    // Literal-with-indexing-new-name where both name and value strings carry
+    // the H bit (0x80). The implementation treats the Huffman branch as a
+    // passthrough, so the bytes after the length are returned verbatim — but
+    // the H bit still flips decode_string's `huffman` boolean, exercising
+    // the if(huffman) branch.
+    std::vector<uint8_t> bytes = {
+        0x40,
+        0x83, 'a', 'b', 'c',
+        0x82, 'X', 'Y',
+    };
+    http2::hpack_decoder decoder;
+    auto result = decoder.decode(as_span(bytes));
+    ASSERT_TRUE(result.is_ok());
+    ASSERT_EQ(result.value().size(), 1u);
+    EXPECT_EQ(result.value()[0].name, "abc");
+    EXPECT_EQ(result.value()[0].value, "XY");
+}
+
+TEST(HpackDecoderHuffmanFlag, IndexedHeaderFollowedByLiteralWithHbitValue)
+{
+    // Indexed :method GET (0x82) followed by a literal-with-indexing-new-name
+    // whose value uses the Huffman bit. Confirms the H-bit branch survives
+    // back-to-back decode operations.
+    std::vector<uint8_t> bytes = {
+        0x82,
+        0x40,
+        0x02, 'k', '1',
+        0x81, 'Z',
+    };
+    http2::hpack_decoder decoder;
+    auto result = decoder.decode(as_span(bytes));
+    ASSERT_TRUE(result.is_ok());
+    ASSERT_EQ(result.value().size(), 2u);
+    EXPECT_EQ(result.value()[0].name, ":method");
+    EXPECT_EQ(result.value()[0].value, "GET");
+    EXPECT_EQ(result.value()[1].name, "k1");
+    EXPECT_EQ(result.value()[1].value, "Z");
+}
+
+// ============================================================================
+// Encoder: header with empty value matches static table when empty entry exists
+// ============================================================================
+
+TEST(HpackEncoderEmptyValue, HeaderWithEmptyValueHitsStaticEmptyEntry)
+{
+    // Static index 15 = {"accept-charset", ""}. Encoding {"accept-charset",""}
+    // exercises static_table::find's "value.empty() short-circuit" success
+    // branch and returns indexed-byte 0x8F.
+    http2::hpack_encoder encoder;
+    auto encoded = encoder.encode({{"accept-charset", ""}});
+    ASSERT_EQ(encoded.size(), 1u);
+    EXPECT_EQ(encoded[0], 0x8F);
+}
+
+TEST(HpackEncoderEmptyValue, HeaderWithEmptyValueAuthority)
+{
+    // Static index 1 = {":authority", ""}. Empty value matches → 0x81.
+    http2::hpack_encoder encoder;
+    auto encoded = encoder.encode({{":authority", ""}});
+    ASSERT_EQ(encoded.size(), 1u);
+    EXPECT_EQ(encoded[0], 0x81);
+}
