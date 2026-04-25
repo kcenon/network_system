@@ -4838,6 +4838,11 @@ add_network_test(network_hpack_module_test unit/hpack_test.cpp)
 # integer-length boundary round-trips (Issue #1009)
 add_network_test(network_hpack_coverage_test unit/hpack_coverage_test.cpp)
 
+# HPACK branch coverage: literal-without-indexing indexed-name paths,
+# encoder same-call dynamic-table reuse, dynamic_table find/get edge cases
+# (Issue #1031)
+add_network_test(network_hpack_branch_test unit/hpack_branch_test.cpp)
+
 add_network_test(network_http2_client_module_test unit/http2_client_test.cpp)
 add_network_test(network_http2_server_module_test unit/http2_server_test.cpp)
 
