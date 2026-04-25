@@ -4444,6 +4444,34 @@ network_gtest_discover_tests(network_tracing_exporters_test
     DISCOVERY_TIMEOUT 60
 )
 
+add_executable(network_tracing_exporters_branch_test
+    unit/tracing_exporters_branch_test.cpp
+)
+
+target_link_libraries(network_tracing_exporters_branch_test PRIVATE
+    network_system
+    GTest::gtest
+    GTest::gtest_main
+    Threads::Threads
+)
+
+setup_asio_integration(network_tracing_exporters_branch_test)
+
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_tracing_exporters_branch_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_tracing_exporters_branch_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+
+set_target_properties(network_tracing_exporters_branch_test PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+)
+
+network_gtest_discover_tests(network_tracing_exporters_branch_test
+    DISCOVERY_TIMEOUT 60
+)
+
 message(STATUS "Tracing unit tests enabled (trace_context, span, exporters)")
 
 ##################################################
