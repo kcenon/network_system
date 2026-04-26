@@ -589,15 +589,17 @@ TEST_F(Http2ServerHandlerCoverageTest, ReplaceErrorHandlerMultipleTimes)
     EXPECT_EQ(counter, 0);
 }
 
-TEST_F(Http2ServerHandlerCoverageTest, MoveOnlyCaptureHandlerIsAccepted)
+TEST_F(Http2ServerHandlerCoverageTest, SharedStateCaptureHandlerIsAccepted)
 {
-    auto state = std::make_unique<int>(42);
+    // std::function requires copyable callables, so capture state via
+    // shared_ptr (a copyable handle to heap state) rather than unique_ptr.
+    auto state = std::make_shared<int>(42);
     server_->set_request_handler(
-        [state = std::move(state)](http2::http2_server_stream&,
-                                   const http2::http2_request&) {
+        [state](http2::http2_server_stream&,
+                const http2::http2_request&) {
             (void)state;
         });
-    SUCCEED();
+    EXPECT_EQ(*state, 42);
 }
 
 // ============================================================================

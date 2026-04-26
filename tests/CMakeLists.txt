@@ -4910,8 +4910,8 @@ add_network_test(network_grpc_client_branch_test
 # active_connections, active_streams, server_id), repeated start/stop
 # cycles, already-running rejection for both clear and TLS starts,
 # additional start_tls rejection paths (empty cert/key, missing files,
-# verify_client without ca_file), handler registration with empty / move-
-# only-capture / replaced functions, concurrent state polling under
+# verify_client without ca_file), handler registration with empty / shared-
+# state-capture / replaced functions, concurrent state polling under
 # shared_ptr lifetime, many concurrent server instances (Issue #1050)
 add_network_test(network_http2_server_branch_test
                  unit/http2_server_branch_test.cpp)
