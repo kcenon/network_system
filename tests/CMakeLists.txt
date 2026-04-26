@@ -4887,6 +4887,13 @@ add_network_test(network_http2_client_coverage_test unit/http2_client_coverage_t
 add_network_test(network_http2_client_extended_coverage_test
                  unit/http2_client_extended_coverage_test.cpp)
 
+# HTTP/2 client branch coverage: response header lookup case-insensitivity,
+# settings round-trip boundaries, http2_stream move semantics with populated
+# state, connect() error paths, disconnected helper early-return paths,
+# concurrent state queries (Issue #1048)
+add_network_test(network_http2_client_branch_test
+                 unit/http2_client_branch_test.cpp)
+
 # HTTP parser extended coverage: url_encode/decode edge cases (percent
 # truncation, high-bit bytes, hex case), query string delimiter handling
 # (leading/trailing '&', duplicate keys, URL-encoded delimiters), cookie
