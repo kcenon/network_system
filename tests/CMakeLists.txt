@@ -4945,6 +4945,26 @@ add_network_test(network_http2_server_branch_test
 add_network_test(network_quic_socket_branch_test
                  unit/quic_socket_branch_test.cpp)
 
+# QUIC server branch coverage: quic_server_config full-field round-trip
+# (cert/key/ca paths, ALPN vector, all numeric settings at zero/max
+# boundaries, retry_key vector, full-config copy round-trip), construction
+# with empty / 512-char / binary-byte server IDs, default-state queries
+# (is_running / session_count / connection_count / sessions / get_session)
+# on never-started server, stop_server() rejection branch when never
+# started, disconnect_session() not_found branch for empty / long /
+# binary-byte ids, disconnect_all() empty-map no-op, broadcast() and
+# multicast() empty-map ok-return for empty / small / 64 KiB payloads
+# and many unknown ids, legacy callback registration with empty
+# std::function / replaced lambdas / shared_ptr-captured state for all
+# five callback types, interface (i_quic_server) callback adapters for
+# connection / disconnection / receive / stream / error, concurrent
+# polling of is_running / session_count / server_id / sessions list and
+# concurrent callback replacement, multi-instance independent state,
+# destructor on never-started / after failed-stop / with callbacks
+# registered (Issue #1052)
+add_network_test(network_quic_server_branch_test
+                 unit/quic_server_branch_test.cpp)
+
 # HTTP parser extended coverage: url_encode/decode edge cases (percent
 # truncation, high-bit bytes, hex case), query string delimiter handling
 # (leading/trailing '&', duplicate keys, URL-encoded delimiters), cookie
