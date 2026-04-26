@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Unit tests for 4 unified adapter modules: `ws_connection`, `ws_listener`, `quic_connection`, `quic_listener` — part of the #953 coverage expansion effort ([#967](https://github.com/kcenon/network_system/issues/967))
 - Unit tests for 11 untested modules across 5 categories — part of the #953 coverage expansion effort ([#968](https://github.com/kcenon/network_system/issues/968))
 - Extra coverage tests for `src/tcp_socket.cpp` exercising `try_send` rejection, async_send-on-closed, `start_read` idempotence, `reset_metrics`, backpressure activation/release, multi-observer delivery, and default-state invariants ([#1032](https://github.com/kcenon/network_system/issues/1032))
+- Extra coverage tests for `src/core/unified_session_manager.cpp` exercising default-config construction, backpressure short-circuit when disabled, zero-`max_sessions` divide-by-zero guard, pre-wrapped `session_handle` add path, `add_session_with_id` rejection / explicit / collision, `set_max_sessions` narrowing, `generate_id` concurrency, idle-cleanup accumulation, const `get_session`, and full `stats` population ([#1034](https://github.com/kcenon/network_system/issues/1034))
   - Integration bridges (5): `container_integration`, `io_context_thread_manager`, `logger_integration`, `monitoring_integration`, `thread_integration`
   - Protocol factories (4): `tcp`, `udp`, `websocket`, `quic`
   - HTTP/2 (1): `http2_server_stream`

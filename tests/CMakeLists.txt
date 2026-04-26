@@ -4849,6 +4849,13 @@ add_network_test(network_hpack_extra_coverage_test unit/hpack_extra_coverage_tes
 # delivery, default-state invariants (Issue #1032)
 add_network_test(network_tcp_socket_extra_coverage_test unit/tcp_socket_extra_coverage_test.cpp)
 
+# unified_session_manager extra coverage: default config, backpressure short-circuit,
+# zero max_sessions guard, pre-wrapped session_handle add path, with_id rejection /
+# explicit / collision, set_max_sessions narrowing, generate_id concurrency,
+# cleanup accumulation, const get_session, full stats population (Issue #1034)
+add_network_test(network_unified_session_manager_extra_coverage_test
+                 unit/unified_session_manager_extra_coverage_test.cpp)
+
 add_network_test(network_http2_client_module_test unit/http2_client_test.cpp)
 add_network_test(network_http2_server_module_test unit/http2_server_test.cpp)
 
