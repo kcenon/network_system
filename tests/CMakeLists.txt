@@ -4965,6 +4965,30 @@ add_network_test(network_quic_socket_branch_test
 add_network_test(network_quic_server_branch_test
                  unit/quic_server_branch_test.cpp)
 
+# WebSocket server branch coverage: ws_server_config full-field round-trip
+# (port / max_connections / ping_interval / max_message_size at zero / 1 /
+# max boundaries, path with empty / 1024-char / binary-byte values,
+# auto_pong toggle), messaging_ws_server construction with empty / 512-char
+# / binary-byte server IDs, server_id() reference stability, default-state
+# queries (is_running / connection_count / get_connection / get_all_connections)
+# on never-started server, stop_server() / i_websocket_server::stop()
+# returning ok() on prepare_stop() early-return when never started,
+# get_connection() not_found branch for unknown / empty / 2048-char /
+# binary-byte ids, broadcast_text() / broadcast_binary() session_mgr_ ==
+# nullptr early-return for empty / small / 64 KiB payloads, interface
+# (i_websocket_server) callback adapters for connection / disconnection /
+# text / binary / error with null callbacks (empty-function branch),
+# populated lambdas (wrap-and-store branch), triple replacement,
+# null-then-populated-then-null toggle, shared_ptr-captured state,
+# concurrent polling of is_running / connection_count / server_id /
+# get_all_connections under shared_ptr lifetime, concurrent callback
+# replacement under reader thread, multi-instance independent state,
+# type alias coverage (ws_server / secure_ws_server / interop),
+# destructor on never-started / after stop / with callbacks /
+# after broadcast (Issue #1053)
+add_network_test(network_websocket_server_branch_test
+                 unit/websocket_server_branch_test.cpp)
+
 # HTTP parser extended coverage: url_encode/decode edge cases (percent
 # truncation, high-bit bytes, hex case), query string delimiter handling
 # (leading/trailing '&', duplicate keys, URL-encoded delimiters), cookie
