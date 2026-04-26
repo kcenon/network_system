@@ -4894,6 +4894,15 @@ add_network_test(network_http2_client_extended_coverage_test
 add_network_test(network_http2_client_branch_test
                  unit/http2_client_branch_test.cpp)
 
+# gRPC client branch coverage: grpc_channel_config full-field round-trip with
+# boundary values, call_options::set_timeout duration variants, metadata
+# growth, varied target construction, wait_for_connected timeout budget,
+# concurrent disconnect / is_connected, move semantics, malformed-target
+# connect coverage, call_raw / streaming guard-clause variants, async
+# callback stress, grpc_metadata copy/move/clear semantics (Issue #1049)
+add_network_test(network_grpc_client_branch_test
+                 unit/grpc_client_branch_test.cpp)
+
 # HTTP parser extended coverage: url_encode/decode edge cases (percent
 # truncation, high-bit bytes, hex case), query string delimiter handling
 # (leading/trailing '&', duplicate keys, URL-encoded delimiters), cookie
