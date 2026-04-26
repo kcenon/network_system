@@ -4903,6 +4903,19 @@ add_network_test(network_http2_client_branch_test
 add_network_test(network_grpc_client_branch_test
                  unit/grpc_client_branch_test.cpp)
 
+# HTTP/2 server branch coverage: tls_config field round-trips with boundary
+# values, http2_server construction with empty/long/binary server IDs,
+# http2_settings round-trip with zero/UINT32_MAX boundaries plus repeated
+# header_table_size updates, pre-listen state queries (is_running,
+# active_connections, active_streams, server_id), repeated start/stop
+# cycles, already-running rejection for both clear and TLS starts,
+# additional start_tls rejection paths (empty cert/key, missing files,
+# verify_client without ca_file), handler registration with empty / move-
+# only-capture / replaced functions, concurrent state polling under
+# shared_ptr lifetime, many concurrent server instances (Issue #1050)
+add_network_test(network_http2_server_branch_test
+                 unit/http2_server_branch_test.cpp)
+
 # HTTP parser extended coverage: url_encode/decode edge cases (percent
 # truncation, high-bit bytes, hex case), query string delimiter handling
 # (leading/trailing '&', duplicate keys, URL-encoded delimiters), cookie
