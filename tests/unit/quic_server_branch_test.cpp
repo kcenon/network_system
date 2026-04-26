@@ -98,7 +98,7 @@
 #include <vector>
 
 namespace core = kcenon::network::core;
-namespace iface = kcenon::network::interfaces;
+namespace qiface = kcenon::network::interfaces;
 namespace session_ns = kcenon::network::session;
 
 namespace
@@ -422,8 +422,8 @@ TEST(QuicServerStop, InterfaceStopWhenNeverStartedReturnsErr)
 {
     auto server = std::make_shared<core::messaging_quic_server>("s");
     // i_quic_server::stop() delegates to stop_server().
-    iface::i_quic_server& as_iface =
-        static_cast<iface::i_quic_server&>(*server);
+    qiface::i_quic_server& as_iface =
+        static_cast<qiface::i_quic_server&>(*server);
     auto r = as_iface.stop();
     EXPECT_TRUE(r.is_err());
 }
@@ -665,22 +665,22 @@ TEST(QuicServerLegacyCallbacks, SharedStateCaptureCallbackAccepted)
 TEST(QuicServerInterfaceCallbacks, ConnectionCallbackAdapterAccepted)
 {
     auto server = std::make_shared<core::messaging_quic_server>("s");
-    iface::i_quic_server::connection_callback_t cb =
-        [](std::shared_ptr<iface::i_quic_session>) {};
+    qiface::i_quic_server::connection_callback_t cb =
+        [](std::shared_ptr<qiface::i_quic_session>) {};
     EXPECT_NO_FATAL_FAILURE(server->set_connection_callback(cb));
 }
 
 TEST(QuicServerInterfaceCallbacks, ConnectionCallbackEmptyAdapterAccepted)
 {
     auto server = std::make_shared<core::messaging_quic_server>("s");
-    iface::i_quic_server::connection_callback_t empty;
+    qiface::i_quic_server::connection_callback_t empty;
     EXPECT_NO_FATAL_FAILURE(server->set_connection_callback(empty));
 }
 
 TEST(QuicServerInterfaceCallbacks, DisconnectionCallbackAdapterAccepted)
 {
     auto server = std::make_shared<core::messaging_quic_server>("s");
-    iface::i_quic_server::disconnection_callback_t cb =
+    qiface::i_quic_server::disconnection_callback_t cb =
         [](std::string_view) {};
     EXPECT_NO_FATAL_FAILURE(server->set_disconnection_callback(cb));
 }
@@ -688,14 +688,14 @@ TEST(QuicServerInterfaceCallbacks, DisconnectionCallbackAdapterAccepted)
 TEST(QuicServerInterfaceCallbacks, DisconnectionCallbackEmptyAdapterAccepted)
 {
     auto server = std::make_shared<core::messaging_quic_server>("s");
-    iface::i_quic_server::disconnection_callback_t empty;
+    qiface::i_quic_server::disconnection_callback_t empty;
     EXPECT_NO_FATAL_FAILURE(server->set_disconnection_callback(empty));
 }
 
 TEST(QuicServerInterfaceCallbacks, ReceiveCallbackAdapterAccepted)
 {
     auto server = std::make_shared<core::messaging_quic_server>("s");
-    iface::i_quic_server::receive_callback_t cb =
+    qiface::i_quic_server::receive_callback_t cb =
         [](std::string_view, const std::vector<uint8_t>&) {};
     EXPECT_NO_FATAL_FAILURE(server->set_receive_callback(cb));
 }
@@ -703,14 +703,14 @@ TEST(QuicServerInterfaceCallbacks, ReceiveCallbackAdapterAccepted)
 TEST(QuicServerInterfaceCallbacks, ReceiveCallbackEmptyAdapterAccepted)
 {
     auto server = std::make_shared<core::messaging_quic_server>("s");
-    iface::i_quic_server::receive_callback_t empty;
+    qiface::i_quic_server::receive_callback_t empty;
     EXPECT_NO_FATAL_FAILURE(server->set_receive_callback(empty));
 }
 
 TEST(QuicServerInterfaceCallbacks, StreamCallbackAdapterAccepted)
 {
     auto server = std::make_shared<core::messaging_quic_server>("s");
-    iface::i_quic_server::stream_callback_t cb =
+    qiface::i_quic_server::stream_callback_t cb =
         [](std::string_view, uint64_t, const std::vector<uint8_t>&, bool) {};
     EXPECT_NO_FATAL_FAILURE(server->set_stream_callback(cb));
 }
@@ -718,14 +718,14 @@ TEST(QuicServerInterfaceCallbacks, StreamCallbackAdapterAccepted)
 TEST(QuicServerInterfaceCallbacks, StreamCallbackEmptyAdapterAccepted)
 {
     auto server = std::make_shared<core::messaging_quic_server>("s");
-    iface::i_quic_server::stream_callback_t empty;
+    qiface::i_quic_server::stream_callback_t empty;
     EXPECT_NO_FATAL_FAILURE(server->set_stream_callback(empty));
 }
 
 TEST(QuicServerInterfaceCallbacks, ErrorCallbackAdapterAccepted)
 {
     auto server = std::make_shared<core::messaging_quic_server>("s");
-    iface::i_quic_server::error_callback_t cb =
+    qiface::i_quic_server::error_callback_t cb =
         [](std::string_view, std::error_code) {};
     EXPECT_NO_FATAL_FAILURE(server->set_error_callback(cb));
 }
@@ -733,7 +733,7 @@ TEST(QuicServerInterfaceCallbacks, ErrorCallbackAdapterAccepted)
 TEST(QuicServerInterfaceCallbacks, ErrorCallbackEmptyAdapterAccepted)
 {
     auto server = std::make_shared<core::messaging_quic_server>("s");
-    iface::i_quic_server::error_callback_t empty;
+    qiface::i_quic_server::error_callback_t empty;
     EXPECT_NO_FATAL_FAILURE(server->set_error_callback(empty));
 }
 
@@ -741,12 +741,12 @@ TEST(QuicServerInterfaceCallbacks, ConnectionCallbackReplacedThreeTimes)
 {
     auto server = std::make_shared<core::messaging_quic_server>("s");
     int counter = 0;
-    iface::i_quic_server::connection_callback_t cb1 =
-        [&counter](std::shared_ptr<iface::i_quic_session>) { counter += 1; };
-    iface::i_quic_server::connection_callback_t cb2 =
-        [&counter](std::shared_ptr<iface::i_quic_session>) { counter += 10; };
-    iface::i_quic_server::connection_callback_t cb3 =
-        [&counter](std::shared_ptr<iface::i_quic_session>) { counter += 100; };
+    qiface::i_quic_server::connection_callback_t cb1 =
+        [&counter](std::shared_ptr<qiface::i_quic_session>) { counter += 1; };
+    qiface::i_quic_server::connection_callback_t cb2 =
+        [&counter](std::shared_ptr<qiface::i_quic_session>) { counter += 10; };
+    qiface::i_quic_server::connection_callback_t cb3 =
+        [&counter](std::shared_ptr<qiface::i_quic_session>) { counter += 100; };
 
     server->set_connection_callback(std::move(cb1));
     server->set_connection_callback(std::move(cb2));
@@ -760,15 +760,15 @@ TEST(QuicServerInterfaceCallbacks, AllInterfaceCallbacksAcceptedTogether)
 {
     auto server = std::make_shared<core::messaging_quic_server>("s");
 
-    iface::i_quic_server::connection_callback_t conn_cb =
-        [](std::shared_ptr<iface::i_quic_session>) {};
-    iface::i_quic_server::disconnection_callback_t disc_cb =
+    qiface::i_quic_server::connection_callback_t conn_cb =
+        [](std::shared_ptr<qiface::i_quic_session>) {};
+    qiface::i_quic_server::disconnection_callback_t disc_cb =
         [](std::string_view) {};
-    iface::i_quic_server::receive_callback_t recv_cb =
+    qiface::i_quic_server::receive_callback_t recv_cb =
         [](std::string_view, const std::vector<uint8_t>&) {};
-    iface::i_quic_server::stream_callback_t stream_cb =
+    qiface::i_quic_server::stream_callback_t stream_cb =
         [](std::string_view, uint64_t, const std::vector<uint8_t>&, bool) {};
-    iface::i_quic_server::error_callback_t err_cb =
+    qiface::i_quic_server::error_callback_t err_cb =
         [](std::string_view, std::error_code) {};
 
     EXPECT_NO_FATAL_FAILURE(
