@@ -4856,6 +4856,15 @@ add_network_test(network_tcp_socket_extra_coverage_test unit/tcp_socket_extra_co
 add_network_test(network_unified_session_manager_extra_coverage_test
                  unit/unified_session_manager_extra_coverage_test.cpp)
 
+# quic frame extra coverage: longer varint type prefixes, heterogeneous parse_all,
+# every concrete STREAM type byte (0x08-0x0f), ACK_ECN dispatch via parse() with
+# truncation matrix, crypto offset+large-data round-trips, new_connection_id
+# minimal/large sequence variants, connection_close transport-with-frame-type and
+# multi-byte error_code, build_padding(0) edge, frame_type_to_string for branches
+# not previously asserted, stream-helper per-bit consistency (Issue #1033)
+add_network_test(network_quic_frame_extra_coverage_test
+                 unit/quic_frame_extra_coverage_test.cpp)
+
 add_network_test(network_http2_client_module_test unit/http2_client_test.cpp)
 add_network_test(network_http2_server_module_test unit/http2_server_test.cpp)
 
