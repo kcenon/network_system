@@ -4916,6 +4916,35 @@ add_network_test(network_grpc_client_branch_test
 add_network_test(network_http2_server_branch_test
                  unit/http2_server_branch_test.cpp)
 
+# QUIC socket branch coverage: many short-lived client / server instances,
+# default invariants for state / role / is_connected / is_handshake_complete /
+# remote_endpoint / remote_connection_id, local_connection_id RFC 9000 length
+# bounds and pairwise uniqueness, callback registration with default-
+# constructed std::function / replaced lambdas / shared_ptr-captured state for
+# all four callback types, mutable + const socket() accessor reachability,
+# role-guard rejection branches in connect()/accept() (server-cannot-connect
+# with and without SNI, client-cannot-accept with empty + missing paths,
+# repeated server-connect rejection idempotency), close() idempotency on
+# idle/draining/closed including triple-close, application error code branch
+# (is_application_error=true), max-uint64 error code, long reason string,
+# empty reason, send_stream_data() not-connected guard for empty / populated
+# / large payloads with and without FIN, create_stream() not-connected guard
+# for client-bidi / client-uni / server-bidi / server-uni, close_stream()
+# not_found early-return for unknown / max-uint64 / nine separate ids,
+# stop_receive() before start, repeated stop_receive() idempotency,
+# start_receive()/stop_receive() flag transition, move construction with
+# populated callbacks preserving role + connection ID + idle state, server-
+# role move construction, move assignment overwriting client target with
+# server source preserving connection ID, three-step move-assignment chain,
+# self-move-assignment via reference (this!=&other guard), concurrent state
+# query polling (state / is_connected / is_handshake_complete / role /
+# local_connection_id / remote_connection_id) under shared_ptr lifetime,
+# concurrent callback replacement with reader thread, multi-instance
+# independent state across 4+4 client/server pairs, destructor cleanup after
+# close / without close / after start_receive (Issue #1051)
+add_network_test(network_quic_socket_branch_test
+                 unit/quic_socket_branch_test.cpp)
+
 # HTTP parser extended coverage: url_encode/decode edge cases (percent
 # truncation, high-bit bytes, hex case), query string delimiter handling
 # (leading/trailing '&', duplicate keys, URL-encoded delimiters), cookie
