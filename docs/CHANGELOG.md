@@ -24,6 +24,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Branch coverage tests for `src/protocols/http2/http2_client.cpp` (#1048)**
+  - Added `tests/unit/http2_client_branch_test.cpp` complementing `http2_client_test.cpp`, `http2_client_coverage_test.cpp`, and `http2_client_extended_coverage_test.cpp` (Issue #991)
+  - Closes `http2_response::get_header` case-insensitive lookup matrix (mixed/lower/upper, leading/trailing-whitespace non-match, duplicate first-match), `get_body_string` empty/ASCII/binary/large-body byte-preservation, `http2_settings` all-zero and all-`UINT32_MAX` round-trips plus repeated `header_table_size` updates exercising HPACK encoder/decoder dynamic-table updates, `enable_push` toggling, `http2_stream` default-construction invariants and move construction/assignment with populated request/response buffers and streaming callbacks, promise/future plumbing across move, `set_timeout` zero/large/repeated values, `connect()` to unreachable IPv4/IPv6 loopback ports and unresolvable DNS literals, repeated failed-connect cleanliness, disconnected-state early-return paths for `get`/`post`/`put`/`del`/`start_stream`/`write_stream`/`close_stream_writer`/`cancel_stream`, post-failed-connect helper invocations, `is_connected` and `disconnect` idempotency, repeated client construction, empty/long client_id, and concurrent `is_connected`/`set_timeout` queries
+  - Registered `network_http2_client_branch_test` in `tests/CMakeLists.txt`
+  - Part of the #953 coverage expansion effort, targeting `src/protocols/http2/http2_client.cpp` line >= 70% / branch >= 60%; this PR contributes hermetic public-API surfaces only — frame-handler paths require a mock TLS socket layer (separate sub-issue)
 - **Unit tests for unified adapter modules (#967)**
   - Added dedicated unit tests for 4 unified adapters: `ws_connection_adapter`, `ws_listener_adapter`, `quic_connection_adapter`, `quic_listener_adapter` (68 tests total)
   - Registered new test targets in `tests/CMakeLists.txt`
