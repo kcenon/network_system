@@ -4843,6 +4843,33 @@ add_network_test(network_hpack_coverage_test unit/hpack_coverage_test.cpp)
 # (Issue #1031)
 add_network_test(network_hpack_branch_test unit/hpack_branch_test.cpp)
 
+# HPACK additional coverage: static-table boundary entries, decoder happy paths
+# for literal-without-indexing / never-indexed prefixes, multi-byte integer
+# non-overflow path, huffman stub contract, mixed static/dynamic round-trips
+# (Issue #1031)
+add_network_test(network_hpack_extra_coverage_test unit/hpack_extra_coverage_test.cpp)
+
+# tcp_socket extra coverage: try_send rejection, async_send-on-closed, start_read
+# idempotence, reset_metrics, backpressure activation/release, multi-observer
+# delivery, default-state invariants (Issue #1032)
+add_network_test(network_tcp_socket_extra_coverage_test unit/tcp_socket_extra_coverage_test.cpp)
+
+# unified_session_manager extra coverage: default config, backpressure short-circuit,
+# zero max_sessions guard, pre-wrapped session_handle add path, with_id rejection /
+# explicit / collision, set_max_sessions narrowing, generate_id concurrency,
+# cleanup accumulation, const get_session, full stats population (Issue #1034)
+add_network_test(network_unified_session_manager_extra_coverage_test
+                 unit/unified_session_manager_extra_coverage_test.cpp)
+
+# quic frame extra coverage: longer varint type prefixes, heterogeneous parse_all,
+# every concrete STREAM type byte (0x08-0x0f), ACK_ECN dispatch via parse() with
+# truncation matrix, crypto offset+large-data round-trips, new_connection_id
+# minimal/large sequence variants, connection_close transport-with-frame-type and
+# multi-byte error_code, build_padding(0) edge, frame_type_to_string for branches
+# not previously asserted, stream-helper per-bit consistency (Issue #1033)
+add_network_test(network_quic_frame_extra_coverage_test
+                 unit/quic_frame_extra_coverage_test.cpp)
+
 add_network_test(network_http2_client_module_test unit/http2_client_test.cpp)
 add_network_test(network_http2_server_module_test unit/http2_server_test.cpp)
 
