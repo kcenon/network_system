@@ -7,8 +7,11 @@
 #include "internal/protocols/http2/http2_server_stream.h"
 #include "internal/protocols/http2/http2_request.h"
 #include "kcenon/network/detail/utils/result_types.h"
+#include <chrono>
+#include <cstdint>
 #include <memory>
 #include <string>
+#include <thread>
 #include <vector>
 
 using namespace kcenon::network::protocols::http2;
@@ -962,4 +965,531 @@ TEST(Http2ServerStreamPostTest, StreamWithPostBody)
     auto cl = stream.request().content_length();
     ASSERT_TRUE(cl.has_value());
     EXPECT_EQ(*cl, 15u);
+}
+
+// ============================================================================
+// Additional http2_server coverage (Issue #1064, Part of #953)
+// ============================================================================
+//
+// These tests exercise the surface of http2_server / http2_server_connection
+// that is reachable WITHOUT a connected HTTP/2 client. Behind-the-handshake
+// branches (frame parsing loop, settings exchange, stream-state transitions
+// triggered by peer frames) require an in-process HTTP/2 loopback fixture
+// that does not yet exist; building it is a separate, larger work item.
+//
+// The intent of this batch is to lock down the public-API guards, constructor
+// behavior, idempotency, multi-instance isolation, and boundary inputs that
+// can be verified deterministically with no network I/O.
+
+// ---------------------------------------------------------------------------
+// Constructor variations
+// ---------------------------------------------------------------------------
+
+TEST(Http2ServerConstruction, EmptyServerId)
+{
+    auto server = std::make_shared<http2_server>("");
+    EXPECT_EQ(server->server_id(), "");
+    EXPECT_FALSE(server->is_running());
+}
+
+TEST(Http2ServerConstruction, LongServerId)
+{
+    std::string long_id(512, 'x');
+    auto server = std::make_shared<http2_server>(long_id);
+    EXPECT_EQ(server->server_id(), long_id);
+    EXPECT_FALSE(server->is_running());
+}
+
+TEST(Http2ServerConstruction, ServerIdWithSpecialCharacters)
+{
+    auto server = std::make_shared<http2_server>("server/id-1.0_test:42");
+    EXPECT_EQ(server->server_id(), "server/id-1.0_test:42");
+}
+
+TEST(Http2ServerConstruction, DefaultEncoderTableSizeMatchesSettings)
+{
+    // Construction wires encoder/decoder to settings_.header_table_size.
+    // We can verify default settings remained 4096 after construction.
+    auto server = std::make_shared<http2_server>("encoder-test");
+    auto s = server->get_settings();
+    EXPECT_EQ(s.header_table_size, 4096u);
+}
+
+TEST(Http2ServerConstruction, ManyServersIndependent)
+{
+    std::vector<std::shared_ptr<http2_server>> servers;
+    for (int i = 0; i < 16; ++i)
+    {
+        servers.push_back(
+            std::make_shared<http2_server>("srv-" + std::to_string(i)));
+    }
+
+    for (size_t i = 0; i < servers.size(); ++i)
+    {
+        EXPECT_EQ(servers[i]->server_id(), "srv-" + std::to_string(i));
+        EXPECT_FALSE(servers[i]->is_running());
+        EXPECT_EQ(servers[i]->active_connections(), 0u);
+        EXPECT_EQ(servers[i]->active_streams(), 0u);
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Lifecycle / idempotency
+// ---------------------------------------------------------------------------
+
+TEST_F(Http2ServerTest, StopBeforeStartReturnsOk)
+{
+    EXPECT_FALSE(server_->is_running());
+    auto r = server_->stop();
+    EXPECT_TRUE(r.is_ok());
+    EXPECT_FALSE(server_->is_running());
+}
+
+TEST_F(Http2ServerTest, StartStopRestartCycle)
+{
+    auto r1 = server_->start(18100);
+    ASSERT_TRUE(r1.is_ok());
+    EXPECT_TRUE(server_->is_running());
+
+    auto r2 = server_->stop();
+    EXPECT_TRUE(r2.is_ok());
+    EXPECT_FALSE(server_->is_running());
+
+    auto r3 = server_->start(18101);
+    EXPECT_TRUE(r3.is_ok());
+    EXPECT_TRUE(server_->is_running());
+
+    server_->stop();
+}
+
+TEST_F(Http2ServerTest, StartThenStartTlsAfterStopUsesNewConfig)
+{
+    auto r1 = server_->start(18102);
+    ASSERT_TRUE(r1.is_ok());
+    server_->stop();
+
+    // Now start_tls with a bad cert should fail with bind_failed (or similar
+    // construction error) - but should NOT return already_exists.
+    tls_config config;
+    config.cert_file = "/nonexistent-cert.pem";
+    config.key_file = "/nonexistent-key.pem";
+    auto r2 = server_->start_tls(18103, config);
+    EXPECT_TRUE(r2.is_err());
+    EXPECT_NE(r2.error().code, err::common_errors::already_exists);
+}
+
+TEST_F(Http2ServerTest, StartTlsWithMissingCertReportsBindFailed)
+{
+    tls_config config;
+    config.cert_file = "/nonexistent-cert.pem";
+    config.key_file = "/nonexistent-key.pem";
+
+    auto r = server_->start_tls(18104, config);
+    EXPECT_TRUE(r.is_err());
+    EXPECT_FALSE(server_->is_running());
+}
+
+TEST_F(Http2ServerTest, StartTlsWithEmptyCertReportsError)
+{
+    tls_config config;
+    // Both empty
+    auto r = server_->start_tls(18105, config);
+    EXPECT_TRUE(r.is_err());
+    EXPECT_FALSE(server_->is_running());
+}
+
+TEST_F(Http2ServerTest, StartTwiceOnSamePortFails)
+{
+    auto r1 = server_->start(18106);
+    ASSERT_TRUE(r1.is_ok());
+
+    auto server2 = std::make_shared<http2_server>("second");
+    auto r2 = server2->start(18106);
+    EXPECT_TRUE(r2.is_err());
+    EXPECT_FALSE(server2->is_running());
+
+    server_->stop();
+}
+
+// ---------------------------------------------------------------------------
+// Handler registration
+// ---------------------------------------------------------------------------
+
+TEST_F(Http2ServerTest, SetRequestHandlerNullThenSetReal)
+{
+    server_->set_request_handler(nullptr);
+    bool called = false;
+    server_->set_request_handler(
+        [&called](http2_server_stream&, const http2_request&) { called = true; });
+
+    // Handler stored without invocation (no client connected).
+    EXPECT_FALSE(called);
+}
+
+TEST_F(Http2ServerTest, SetErrorHandlerNullThenSetReal)
+{
+    server_->set_error_handler(nullptr);
+    std::string captured;
+    server_->set_error_handler(
+        [&captured](const std::string& m) { captured = m; });
+
+    EXPECT_TRUE(captured.empty());
+}
+
+TEST_F(Http2ServerTest, ReplaceRequestHandlerKeepsServerUsable)
+{
+    int v = 0;
+    server_->set_request_handler(
+        [&v](http2_server_stream&, const http2_request&) { v = 1; });
+    server_->set_request_handler(
+        [&v](http2_server_stream&, const http2_request&) { v = 2; });
+
+    EXPECT_EQ(v, 0);
+    EXPECT_FALSE(server_->is_running());
+}
+
+// ---------------------------------------------------------------------------
+// Settings boundary values
+// ---------------------------------------------------------------------------
+
+TEST_F(Http2ServerTest, SetSettingsZeroValuesAccepted)
+{
+    http2_settings s;
+    s.header_table_size = 0;
+    s.max_concurrent_streams = 0;
+    s.initial_window_size = 0;
+    s.max_frame_size = 0;
+    s.max_header_list_size = 0;
+
+    server_->set_settings(s);
+
+    auto out = server_->get_settings();
+    EXPECT_EQ(out.header_table_size, 0u);
+    EXPECT_EQ(out.max_concurrent_streams, 0u);
+    EXPECT_EQ(out.initial_window_size, 0u);
+    EXPECT_EQ(out.max_frame_size, 0u);
+    EXPECT_EQ(out.max_header_list_size, 0u);
+}
+
+TEST_F(Http2ServerTest, SetSettingsMaxValuesAccepted)
+{
+    http2_settings s;
+    s.header_table_size = 0xFFFFFFFFu;
+    s.max_concurrent_streams = 0xFFFFFFFFu;
+    s.initial_window_size = 0x7FFFFFFFu;
+    s.max_frame_size = 0x00FFFFFFu;
+    s.max_header_list_size = 0xFFFFFFFFu;
+
+    server_->set_settings(s);
+
+    auto out = server_->get_settings();
+    EXPECT_EQ(out.header_table_size, 0xFFFFFFFFu);
+    EXPECT_EQ(out.max_concurrent_streams, 0xFFFFFFFFu);
+    EXPECT_EQ(out.initial_window_size, 0x7FFFFFFFu);
+    EXPECT_EQ(out.max_frame_size, 0x00FFFFFFu);
+    EXPECT_EQ(out.max_header_list_size, 0xFFFFFFFFu);
+}
+
+TEST_F(Http2ServerTest, SetSettingsEnablePushTogglePersists)
+{
+    http2_settings s;
+    s.enable_push = true;
+    server_->set_settings(s);
+    EXPECT_TRUE(server_->get_settings().enable_push);
+
+    s.enable_push = false;
+    server_->set_settings(s);
+    EXPECT_FALSE(server_->get_settings().enable_push);
+}
+
+TEST_F(Http2ServerTest, GetSettingsReturnsValueCopy)
+{
+    auto a = server_->get_settings();
+    a.max_frame_size = 99u;
+
+    auto b = server_->get_settings();
+    EXPECT_NE(b.max_frame_size, 99u);
+}
+
+// ---------------------------------------------------------------------------
+// active_connections / active_streams accessors
+// ---------------------------------------------------------------------------
+
+TEST_F(Http2ServerTest, ActiveStreamsZeroBeforeStart)
+{
+    EXPECT_EQ(server_->active_streams(), 0u);
+}
+
+TEST_F(Http2ServerTest, ActiveCountsAfterRepeatedStartStop)
+{
+    for (unsigned short port = 18110; port < 18113; ++port)
+    {
+        auto r = server_->start(port);
+        ASSERT_TRUE(r.is_ok());
+        EXPECT_EQ(server_->active_connections(), 0u);
+        EXPECT_EQ(server_->active_streams(), 0u);
+        server_->stop();
+    }
+}
+
+// ---------------------------------------------------------------------------
+// wait()/stop() interplay
+// ---------------------------------------------------------------------------
+
+TEST_F(Http2ServerTest, StopUnblocksWait)
+{
+    auto r = server_->start(18120);
+    ASSERT_TRUE(r.is_ok());
+
+    std::thread waiter([this] { server_->wait(); });
+    // Give the waiter time to enter wait().
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+
+    server_->stop();
+    waiter.join();  // must return
+    EXPECT_FALSE(server_->is_running());
+}
+
+// ---------------------------------------------------------------------------
+// tls_config additional cases
+// ---------------------------------------------------------------------------
+
+TEST(TlsConfigTest, EmptyCaFileWithVerifyClientFalse)
+{
+    tls_config config;
+    config.cert_file = "/cert.pem";
+    config.key_file = "/key.pem";
+    config.ca_file = "";
+    config.verify_client = false;
+
+    EXPECT_TRUE(config.ca_file.empty());
+    EXPECT_FALSE(config.verify_client);
+}
+
+TEST(TlsConfigTest, AssignmentOperator)
+{
+    tls_config a;
+    a.cert_file = "/a-cert.pem";
+    a.key_file = "/a-key.pem";
+
+    tls_config b;
+    b = a;
+    EXPECT_EQ(b.cert_file, "/a-cert.pem");
+    EXPECT_EQ(b.key_file, "/a-key.pem");
+}
+
+// ---------------------------------------------------------------------------
+// http2_settings additional cases
+// ---------------------------------------------------------------------------
+
+TEST(Http2SettingsTest, CopyAndModify)
+{
+    http2_settings a;
+    a.max_concurrent_streams = 42;
+
+    http2_settings b = a;
+    b.max_concurrent_streams = 84;
+
+    EXPECT_EQ(a.max_concurrent_streams, 42u);
+    EXPECT_EQ(b.max_concurrent_streams, 84u);
+}
+
+TEST(Http2SettingsTest, EnablePushDefaultIsFalse)
+{
+    http2_settings s;
+    EXPECT_FALSE(s.enable_push);
+}
+
+// ---------------------------------------------------------------------------
+// http2_server_stream additional boundary cases
+// ---------------------------------------------------------------------------
+
+TEST_F(Http2ServerStreamTest, UpdateWindowZeroIsNoop)
+{
+    int32_t before = stream_->window_size();
+    stream_->update_window(0);
+    EXPECT_EQ(stream_->window_size(), before);
+}
+
+TEST_F(Http2ServerStreamTest, UpdateWindowMultipleAccumulates)
+{
+    int32_t before = stream_->window_size();
+    stream_->update_window(100);
+    stream_->update_window(200);
+    stream_->update_window(-50);
+    EXPECT_EQ(stream_->window_size(), before + 100 + 200 - 50);
+}
+
+TEST_F(Http2ServerStreamTest, SendHeadersStatusCodes)
+{
+    // Verify a range of common status codes serialize without error.
+    for (int code : {100, 200, 201, 204, 301, 302, 400, 401, 403, 404, 500, 503})
+    {
+        std::vector<std::vector<uint8_t>> frames;
+        http2_request req;
+        req.method = "GET";
+        req.path = "/";
+        req.scheme = "https";
+        auto s = std::make_unique<http2_server_stream>(
+            1u, std::move(req), encoder_,
+            [&frames](const frame& f) -> VoidResult {
+                frames.push_back(f.serialize());
+                return ok();
+            },
+            16384);
+
+        auto r = s->send_headers(code, {});
+        EXPECT_TRUE(r.is_ok()) << "status=" << code;
+        EXPECT_TRUE(s->headers_sent());
+    }
+}
+
+TEST_F(Http2ServerStreamTest, SendHeadersWithManyHeaders)
+{
+    std::vector<http_header> hs;
+    for (int i = 0; i < 32; ++i)
+    {
+        hs.push_back({"x-header-" + std::to_string(i),
+                      "v-" + std::to_string(i)});
+    }
+
+    auto r = stream_->send_headers(200, hs);
+    EXPECT_TRUE(r.is_ok());
+    EXPECT_TRUE(stream_->headers_sent());
+    EXPECT_EQ(sent_frames_.size(), 1u);
+}
+
+TEST_F(Http2ServerStreamTest, SendDataLargeSingleFrame)
+{
+    stream_->send_headers(200, {});
+    sent_frames_.clear();
+
+    std::vector<uint8_t> data(8192, 0x55);
+    auto r = stream_->send_data(data, true);
+    EXPECT_TRUE(r.is_ok());
+    EXPECT_GE(sent_frames_.size(), 1u);
+    EXPECT_EQ(stream_->state(), stream_state::half_closed_local);
+}
+
+TEST_F(Http2ServerStreamTest, ResetThenSendHeadersFails)
+{
+    stream_->reset();
+    auto r = stream_->send_headers(200, {});
+    EXPECT_TRUE(r.is_err());
+}
+
+TEST_F(Http2ServerStreamTest, ResetThenSendDataFails)
+{
+    stream_->reset();
+    auto r = stream_->send_data("data");
+    EXPECT_TRUE(r.is_err());
+}
+
+TEST(Http2ServerStreamConstruction, StreamIdZero)
+{
+    auto encoder = std::make_shared<hpack_encoder>(4096);
+    http2_request req;
+    req.method = "GET";
+    req.path = "/";
+    req.scheme = "https";
+
+    http2_server_stream s(
+        0u, std::move(req), encoder,
+        [](const frame&) -> VoidResult { return ok(); });
+
+    EXPECT_EQ(s.stream_id(), 0u);
+    EXPECT_EQ(s.state(), stream_state::open);
+}
+
+TEST(Http2ServerStreamConstruction, StreamIdMaxUint32)
+{
+    auto encoder = std::make_shared<hpack_encoder>(4096);
+    http2_request req;
+    req.method = "GET";
+    req.path = "/";
+    req.scheme = "https";
+
+    http2_server_stream s(
+        0xFFFFFFFFu, std::move(req), encoder,
+        [](const frame&) -> VoidResult { return ok(); });
+
+    EXPECT_EQ(s.stream_id(), 0xFFFFFFFFu);
+}
+
+TEST(Http2ServerStreamConstruction, CustomMaxFrameSize)
+{
+    auto encoder = std::make_shared<hpack_encoder>(4096);
+    http2_request req;
+    req.method = "GET";
+    req.path = "/";
+    req.scheme = "https";
+
+    // Min HTTP/2 max frame size is 16384.
+    http2_server_stream s(
+        1u, std::move(req), encoder,
+        [](const frame&) -> VoidResult { return ok(); },
+        32768);
+
+    EXPECT_EQ(s.stream_id(), 1u);
+    EXPECT_EQ(s.window_size(), 65535);
+}
+
+// ---------------------------------------------------------------------------
+// Multi-instance state isolation
+// ---------------------------------------------------------------------------
+
+TEST(Http2ServerIsolation, TwoServersIndependentSettings)
+{
+    auto a = std::make_shared<http2_server>("a");
+    auto b = std::make_shared<http2_server>("b");
+
+    http2_settings sa;
+    sa.max_frame_size = 32768;
+    a->set_settings(sa);
+
+    http2_settings sb;
+    sb.max_frame_size = 65536;
+    b->set_settings(sb);
+
+    EXPECT_EQ(a->get_settings().max_frame_size, 32768u);
+    EXPECT_EQ(b->get_settings().max_frame_size, 65536u);
+}
+
+TEST(Http2ServerIsolation, TwoServersIndependentHandlers)
+{
+    auto a = std::make_shared<http2_server>("a");
+    auto b = std::make_shared<http2_server>("b");
+
+    int seen_a = 0, seen_b = 0;
+    a->set_request_handler(
+        [&](http2_server_stream&, const http2_request&) { seen_a = 1; });
+    b->set_request_handler(
+        [&](http2_server_stream&, const http2_request&) { seen_b = 2; });
+
+    EXPECT_EQ(seen_a, 0);
+    EXPECT_EQ(seen_b, 0);
+}
+
+TEST(Http2ServerIsolation, IndependentRunningState)
+{
+    auto a = std::make_shared<http2_server>("a");
+    auto b = std::make_shared<http2_server>("b");
+
+    auto ra = a->start(18130);
+    ASSERT_TRUE(ra.is_ok());
+
+    EXPECT_TRUE(a->is_running());
+    EXPECT_FALSE(b->is_running());
+
+    auto rb = b->start(18131);
+    ASSERT_TRUE(rb.is_ok());
+    EXPECT_TRUE(a->is_running());
+    EXPECT_TRUE(b->is_running());
+
+    a->stop();
+    EXPECT_FALSE(a->is_running());
+    EXPECT_TRUE(b->is_running());
+
+    b->stop();
+    EXPECT_FALSE(b->is_running());
 }
