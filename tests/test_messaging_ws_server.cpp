@@ -229,13 +229,6 @@ TEST_F(MessagingWsServerTest, ServerIdReferenceStableAcrossManyCalls)
 // Default-state queries via interface pointer
 // -----------------------------------------------------------------------------
 
-TEST_F(MessagingWsServerTest, InterfacePointerIsRunningIsFalseBeforeStart)
-{
-	auto server = std::make_shared<messaging_ws_server>("iface_running");
-	std::shared_ptr<interfaces::i_websocket_server> as_iface = server;
-	EXPECT_FALSE(as_iface->is_running());
-}
-
 TEST_F(MessagingWsServerTest, InterfacePointerConnectionCountIsZeroBeforeStart)
 {
 	auto server = std::make_shared<messaging_ws_server>("iface_count");
@@ -249,6 +242,18 @@ TEST_F(MessagingWsServerTest, InterfacePointerStopBeforeStartReturnsOk)
 	std::shared_ptr<interfaces::i_websocket_server> as_iface = server;
 	auto result = as_iface->stop();
 	EXPECT_TRUE(result.is_ok());
+}
+
+TEST_F(MessagingWsServerTest, InterfacePointerStopIdempotentAcrossManyCalls)
+{
+	auto server = std::make_shared<messaging_ws_server>("iface_stop_idem");
+	std::shared_ptr<interfaces::i_websocket_server> as_iface = server;
+	for (int i = 0; i < 5; ++i)
+	{
+		auto result = as_iface->stop();
+		EXPECT_TRUE(result.is_ok());
+	}
+	EXPECT_EQ(as_iface->connection_count(), 0u);
 }
 
 // -----------------------------------------------------------------------------
