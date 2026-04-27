@@ -5,6 +5,8 @@
 #include <gtest/gtest.h>
 #include "internal/protocols/http2/http2_client.h"
 #include "kcenon/network/detail/utils/result_types.h"
+#include <cstdint>
+#include <limits>
 #include <memory>
 #include <string>
 #include <vector>
@@ -526,6 +528,323 @@ TEST(Http2SettingsTest, DefaultSettings)
     EXPECT_EQ(settings.initial_window_size, 65535u);
     EXPECT_EQ(settings.max_frame_size, 16384u);
     EXPECT_EQ(settings.max_header_list_size, 8192u);
+}
+
+// =====================================================================
+// Additional error-path and boundary coverage (Part of #953, #1062)
+//
+// These tests target the public surface that is reachable WITHOUT an
+// established HTTP/2 connection: response/stream/settings struct methods,
+// validation guards, lifecycle idempotency, and constructor variations.
+// Coverage of post-handshake code paths (frame I/O, stream state machine,
+// HPACK encode/decode against a peer) requires an in-process HTTP/2
+// loopback fixture and is tracked separately under #953.
+// =====================================================================
+
+// http2_response::get_header — case folding and missing-name edges
+TEST_F(Http2ClientTest, ResponseGetHeaderHandlesEmptyName)
+{
+    http2_response response;
+    response.headers = {{":status", "200"}};
+    auto result = response.get_header("");
+    EXPECT_FALSE(result.has_value());
+}
+
+TEST_F(Http2ClientTest, ResponseGetHeaderHandlesHeaderWithEmptyName)
+{
+    http2_response response;
+    response.headers = {{"", "value"}, {"x-name", "x-value"}};
+    auto empty_lookup = response.get_header("");
+    ASSERT_TRUE(empty_lookup.has_value());
+    EXPECT_EQ(*empty_lookup, "value");
+}
+
+TEST_F(Http2ClientTest, ResponseGetHeaderUppercaseInStoredName)
+{
+    http2_response response;
+    response.headers = {{"X-CUSTOM-HEADER", "abc"}};
+    auto lower = response.get_header("x-custom-header");
+    ASSERT_TRUE(lower.has_value());
+    EXPECT_EQ(*lower, "abc");
+}
+
+TEST_F(Http2ClientTest, ResponseGetHeaderMixedCaseQueryAndStorage)
+{
+    http2_response response;
+    response.headers = {{"Content-Type", "text/plain"}};
+    auto upper = response.get_header("CONTENT-TYPE");
+    auto lower = response.get_header("content-type");
+    auto exact = response.get_header("Content-Type");
+    ASSERT_TRUE(upper.has_value());
+    EXPECT_EQ(*upper, "text/plain");
+    ASSERT_TRUE(lower.has_value());
+    EXPECT_EQ(*lower, "text/plain");
+    ASSERT_TRUE(exact.has_value());
+    EXPECT_EQ(*exact, "text/plain");
+}
+
+// http2_response::get_body_string — binary payload edges
+TEST_F(Http2ClientTest, ResponseGetBodyStringWithEmbeddedNulls)
+{
+    http2_response response;
+    response.body = {0x41, 0x00, 0x42, 0x00, 0x43};
+    auto str = response.get_body_string();
+    EXPECT_EQ(str.size(), 5u);
+    EXPECT_EQ(str[0], 'A');
+    EXPECT_EQ(str[1], '\0');
+    EXPECT_EQ(str[2], 'B');
+    EXPECT_EQ(str[3], '\0');
+    EXPECT_EQ(str[4], 'C');
+}
+
+TEST_F(Http2ClientTest, ResponseGetBodyStringWithLargePayload)
+{
+    http2_response response;
+    response.body.assign(1024 * 16, static_cast<uint8_t>(0x7F));
+    auto str = response.get_body_string();
+    EXPECT_EQ(str.size(), 16384u);
+    EXPECT_EQ(static_cast<unsigned char>(str.front()), 0x7Fu);
+    EXPECT_EQ(static_cast<unsigned char>(str.back()), 0x7Fu);
+}
+
+TEST_F(Http2ClientTest, ResponseGetBodyStringWithAllByteValues)
+{
+    http2_response response;
+    response.body.resize(256);
+    for (size_t i = 0; i < 256; ++i)
+    {
+        response.body[i] = static_cast<uint8_t>(i);
+    }
+    auto str = response.get_body_string();
+    ASSERT_EQ(str.size(), 256u);
+    for (size_t i = 0; i < 256; ++i)
+    {
+        EXPECT_EQ(static_cast<unsigned char>(str[i]),
+                  static_cast<unsigned char>(i));
+    }
+}
+
+// http2_client construction — id parameter edges
+TEST(Http2ClientConstructionTest, ConstructWithEmptyClientId)
+{
+    auto client = std::make_shared<http2_client>("");
+    EXPECT_FALSE(client->is_connected());
+    EXPECT_EQ(client->get_timeout(), std::chrono::milliseconds(30000));
+}
+
+TEST(Http2ClientConstructionTest, ConstructWithLongClientId)
+{
+    std::string long_id(1024, 'a');
+    auto client = std::make_shared<http2_client>(long_id);
+    EXPECT_FALSE(client->is_connected());
+}
+
+TEST(Http2ClientConstructionTest, ConstructWithSpecialCharsInId)
+{
+    auto client = std::make_shared<http2_client>("client/with:special@chars.{}");
+    EXPECT_FALSE(client->is_connected());
+}
+
+// connect() — extended boundary coverage
+TEST_F(Http2ClientTest, ConnectFailsWithWhitespaceOnlyHost)
+{
+    // Whitespace string is non-empty so it bypasses the empty-host guard
+    // and must fail at resolver/connection level rather than as invalid_argument.
+    auto result = client_->connect("   ", 443);
+    EXPECT_TRUE(result.is_err());
+    EXPECT_EQ(result.error().code, err::network_system::connection_failed);
+}
+
+TEST_F(Http2ClientTest, ConnectFailsWithPortZero)
+{
+    auto result = client_->connect("invalid.host.example.invalid", 0);
+    EXPECT_TRUE(result.is_err());
+    EXPECT_EQ(result.error().code, err::network_system::connection_failed);
+}
+
+// disconnect() — lifecycle idempotency edges
+TEST_F(Http2ClientTest, TripleDisconnectIsIdempotent)
+{
+    EXPECT_TRUE(client_->disconnect().is_ok());
+    EXPECT_TRUE(client_->disconnect().is_ok());
+    EXPECT_TRUE(client_->disconnect().is_ok());
+}
+
+TEST_F(Http2ClientTest, DisconnectAfterFailedConnect)
+{
+    auto connect_result = client_->connect("invalid.host.example.invalid", 443);
+    EXPECT_TRUE(connect_result.is_err());
+    auto disconnect_result = client_->disconnect();
+    EXPECT_TRUE(disconnect_result.is_ok());
+}
+
+// set_settings() — boundary values
+TEST_F(Http2ClientTest, SetSettingsWithZeroHeaderTableSize)
+{
+    http2_settings s;
+    s.header_table_size = 0;
+    client_->set_settings(s);
+    EXPECT_EQ(client_->get_settings().header_table_size, 0u);
+}
+
+TEST_F(Http2ClientTest, SetSettingsWithMaxValues)
+{
+    http2_settings s;
+    constexpr auto kMax = std::numeric_limits<uint32_t>::max();
+    s.header_table_size = kMax;
+    s.max_concurrent_streams = kMax;
+    s.initial_window_size = kMax;
+    s.max_frame_size = kMax;
+    s.max_header_list_size = kMax;
+    client_->set_settings(s);
+    auto out = client_->get_settings();
+    EXPECT_EQ(out.header_table_size, kMax);
+    EXPECT_EQ(out.max_concurrent_streams, kMax);
+    EXPECT_EQ(out.initial_window_size, kMax);
+    EXPECT_EQ(out.max_frame_size, kMax);
+    EXPECT_EQ(out.max_header_list_size, kMax);
+}
+
+TEST_F(Http2ClientTest, SetSettingsTogglesEnablePush)
+{
+    auto base = client_->get_settings();
+    EXPECT_FALSE(base.enable_push);
+
+    http2_settings s = base;
+    s.enable_push = true;
+    client_->set_settings(s);
+    EXPECT_TRUE(client_->get_settings().enable_push);
+
+    s.enable_push = false;
+    client_->set_settings(s);
+    EXPECT_FALSE(client_->get_settings().enable_push);
+}
+
+// Public request methods — additional disconnected-state coverage
+TEST_F(Http2ClientTest, GetWithEmptyPathFailsWhenNotConnected)
+{
+    auto result = client_->get("");
+    EXPECT_TRUE(result.is_err());
+    EXPECT_EQ(result.error().code, err::network_system::connection_closed);
+}
+
+TEST_F(Http2ClientTest, PostWithEmptyStringBodyFailsWhenNotConnected)
+{
+    auto result = client_->post("/api", std::string{});
+    EXPECT_TRUE(result.is_err());
+    EXPECT_EQ(result.error().code, err::network_system::connection_closed);
+}
+
+TEST_F(Http2ClientTest, PostWithEmptyBinaryBodyFailsWhenNotConnected)
+{
+    std::vector<uint8_t> empty;
+    auto result = client_->post("/api", empty);
+    EXPECT_TRUE(result.is_err());
+    EXPECT_EQ(result.error().code, err::network_system::connection_closed);
+}
+
+TEST_F(Http2ClientTest, PutWithEmptyPathFailsWhenNotConnected)
+{
+    auto result = client_->put("", "body");
+    EXPECT_TRUE(result.is_err());
+    EXPECT_EQ(result.error().code, err::network_system::connection_closed);
+}
+
+TEST_F(Http2ClientTest, DelWithEmptyPathFailsWhenNotConnected)
+{
+    auto result = client_->del("");
+    EXPECT_TRUE(result.is_err());
+    EXPECT_EQ(result.error().code, err::network_system::connection_closed);
+}
+
+// Stream operations — additional disconnected-state coverage
+TEST_F(Http2ClientTest, StartStreamWithEmptyPathFailsWhenNotConnected)
+{
+    auto result = client_->start_stream(
+        "", {},
+        [](std::vector<uint8_t>) {},
+        [](std::vector<http_header>) {},
+        [](int) {});
+    EXPECT_TRUE(result.is_err());
+    EXPECT_EQ(result.error().code, err::network_system::connection_closed);
+}
+
+TEST_F(Http2ClientTest, StartStreamWithNullCallbacksFailsWhenNotConnected)
+{
+    // The disconnected guard must short-circuit before callbacks are
+    // dereferenced; null std::function objects must not be invoked.
+    auto result = client_->start_stream("/stream", {}, nullptr, nullptr, nullptr);
+    EXPECT_TRUE(result.is_err());
+    EXPECT_EQ(result.error().code, err::network_system::connection_closed);
+}
+
+TEST_F(Http2ClientTest, WriteStreamWithStreamIdZeroFailsWhenNotConnected)
+{
+    auto result = client_->write_stream(0, {0x01}, true);
+    EXPECT_TRUE(result.is_err());
+    EXPECT_EQ(result.error().code, err::network_system::connection_closed);
+}
+
+TEST_F(Http2ClientTest, WriteStreamWithEmptyDataFailsWhenNotConnected)
+{
+    auto result = client_->write_stream(1, {}, true);
+    EXPECT_TRUE(result.is_err());
+    EXPECT_EQ(result.error().code, err::network_system::connection_closed);
+}
+
+TEST_F(Http2ClientTest, CancelStreamWithStreamIdZeroFailsWhenNotConnected)
+{
+    auto result = client_->cancel_stream(0);
+    EXPECT_TRUE(result.is_err());
+    EXPECT_EQ(result.error().code, err::network_system::connection_closed);
+}
+
+// Multi-instance state isolation
+TEST(Http2ClientMultiInstance, SettingsChangeOnOneClientDoesNotAffectAnother)
+{
+    auto a = std::make_shared<http2_client>("a");
+    auto b = std::make_shared<http2_client>("b");
+
+    http2_settings sa;
+    sa.header_table_size = 32768;
+    sa.enable_push = true;
+    a->set_settings(sa);
+
+    auto a_out = a->get_settings();
+    auto b_out = b->get_settings();
+
+    EXPECT_EQ(a_out.header_table_size, 32768u);
+    EXPECT_TRUE(a_out.enable_push);
+    EXPECT_EQ(b_out.header_table_size, 4096u);
+    EXPECT_FALSE(b_out.enable_push);
+}
+
+TEST(Http2ClientMultiInstance, ManyConcurrentlyConstructedClients)
+{
+    constexpr size_t kCount = 8;
+    std::vector<std::shared_ptr<http2_client>> clients;
+    clients.reserve(kCount);
+    for (size_t i = 0; i < kCount; ++i)
+    {
+        clients.push_back(
+            std::make_shared<http2_client>("client-" + std::to_string(i)));
+    }
+    for (const auto& c : clients)
+    {
+        EXPECT_FALSE(c->is_connected());
+    }
+}
+
+// http2_stream — boundary value coverage
+TEST(Http2StreamTest, WindowSizeBoundaryValues)
+{
+    http2_stream stream;
+    stream.window_size = -1;
+    EXPECT_EQ(stream.window_size, -1);
+    stream.window_size = std::numeric_limits<int32_t>::min();
+    EXPECT_EQ(stream.window_size, std::numeric_limits<int32_t>::min());
+    stream.window_size = std::numeric_limits<int32_t>::max();
+    EXPECT_EQ(stream.window_size, std::numeric_limits<int32_t>::max());
 }
 
 // Integration tests (requires network access, may be skipped in CI)
