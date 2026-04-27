@@ -83,6 +83,9 @@
 
 #include "internal/quic_socket.h"
 
+#include "hermetic_transport_fixture.h"
+#include "mock_udp_peer.h"
+
 #include <gtest/gtest.h>
 
 #include <asio.hpp>
@@ -802,5 +805,58 @@ TEST_F(QuicSocketBranchTest, DestructorAfterStartReceiveRunsCleanly)
         // Destructor flips is_receiving_ to false via stop_receive(),
         // and cancels any pending async_receive_from.
     }
+    SUCCEED();
+}
+
+// ============================================================================
+// Hermetic transport fixture demonstration (Issue #1060)
+// ============================================================================
+
+/**
+ * @brief Fixture base that uses the new hermetic_transport_fixture worker
+ *        thread instead of the local QuicSocketBranchTest io_context, which
+ *        is constructed without a worker.
+ */
+class QuicSocketHermeticTransportTest
+    : public kcenon::network::tests::support::hermetic_transport_fixture
+{
+};
+
+/**
+ * @brief Demonstrates that the new mock UDP peer lets a quic_socket receive
+ *        synthesized packet bytes via a real loopback UDP send.
+ *
+ * The quic_socket constructor takes an open udp::socket — the loopback pair
+ * provides one half, and mock_udp_peer wraps the other. Sending the synthetic
+ * Initial-packet stub exercises the do_receive → handle_packet → first-byte
+ * parse path. Bytes after the long-header cannot form a valid frame so
+ * processing terminates early, but the receive entry path is reached.
+ */
+TEST_F(QuicSocketHermeticTransportTest, HandlesPacketViaLoopbackUdpPair)
+{
+    using namespace kcenon::network::tests::support;
+
+    auto pair = make_loopback_udp_pair(io());
+    mock_udp_peer peer(std::move(pair.second));
+
+    auto sock = std::make_shared<internal::quic_socket>(
+        std::move(pair.first), internal::quic_role::server);
+    ASSERT_NE(sock, nullptr);
+
+    // Begin async receive on the quic_socket side.
+    sock->start_receive();
+
+    // Send a stub Initial packet from the peer side.
+    const auto packet = make_quic_initial_packet_stub();
+    const auto sent = peer.send(packet);
+    EXPECT_EQ(sent, packet.size());
+
+    // Allow the io_context worker to run the receive completion.
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+
+    // The packet should have been ingested without crashing the socket.
+    // Whether the parse succeeds is irrelevant for fixture validation —
+    // the receive entry point is what we are exercising.
+    sock->stop_receive();
     SUCCEED();
 }

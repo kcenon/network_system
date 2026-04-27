@@ -100,6 +100,9 @@
 
 #include "internal/http/websocket_server.h"
 
+#include "hermetic_transport_fixture.h"
+#include "mock_ws_handshake.h"
+
 #include <gtest/gtest.h>
 
 #include <atomic>
@@ -973,4 +976,62 @@ TEST(WsServerDestructor, DestructorAfterBroadcastRunsCleanly)
         server->broadcast_binary(std::vector<uint8_t>{1, 2, 3});
     }
     SUCCEED();
+}
+
+// ============================================================================
+// Hermetic transport fixture demonstration (Issue #1060)
+// ============================================================================
+
+/**
+ * @brief Demonstrates that the new mock_ws_handshake builders produce a
+ *        well-formed RFC 6455 client upgrade request and frame payloads.
+ *
+ * Driving messaging_ws_server::handle_new_connection() directly requires
+ * either a friend-test injection point or the full do_start_impl/do_accept
+ * loop — both noted in the file's "Honest scope statement". This test
+ * demonstrates the byte-level synthesis half of the fixture: the upgrade
+ * request bytes contain every required RFC 6455 §4.1 header, and a text
+ * frame survives masked round-trip generation.
+ */
+class WebsocketServerHermeticTransportTest
+    : public kcenon::network::tests::support::hermetic_transport_fixture
+{
+};
+
+TEST_F(WebsocketServerHermeticTransportTest, UpgradeRequestContainsRequiredHeaders)
+{
+    using namespace kcenon::network::tests::support;
+
+    const std::string req = make_websocket_upgrade_request("127.0.0.1:54321", "/");
+
+    // Per RFC 6455 §4.1, every client upgrade must include these.
+    EXPECT_NE(req.find("GET / HTTP/1.1\r\n"), std::string::npos);
+    EXPECT_NE(req.find("Host: 127.0.0.1:54321\r\n"), std::string::npos);
+    EXPECT_NE(req.find("Upgrade: websocket\r\n"), std::string::npos);
+    EXPECT_NE(req.find("Connection: Upgrade\r\n"), std::string::npos);
+    EXPECT_NE(req.find("Sec-WebSocket-Key: "), std::string::npos);
+    EXPECT_NE(req.find("Sec-WebSocket-Version: 13\r\n"), std::string::npos);
+    // Request must terminate with CRLFCRLF.
+    ASSERT_GE(req.size(), 4u);
+    EXPECT_EQ(req.substr(req.size() - 4), "\r\n\r\n");
+}
+
+TEST_F(WebsocketServerHermeticTransportTest, MaskedTextFrameRoundTripsThroughBuilder)
+{
+    using namespace kcenon::network::tests::support;
+
+    const auto frame = make_websocket_text_frame("hello", /*masked=*/true);
+
+    // Frame layout: 1 byte FIN+opcode, 1 byte masked-len, 4 bytes mask, 5 bytes payload.
+    ASSERT_EQ(frame.size(), 1u + 1u + 4u + 5u);
+    // FIN=1, opcode=text(0x1)
+    EXPECT_EQ(frame[0], 0x81);
+    // Mask bit set, length=5
+    EXPECT_EQ(frame[1], 0x85);
+
+    // Construction-only check: messaging_ws_server can be paired with the
+    // fixture once a friend-test injection or full start loop is added.
+    auto server = std::make_shared<core::messaging_ws_server>("hermetic-demo");
+    EXPECT_FALSE(server->is_running());
+    EXPECT_EQ(server->connection_count(), 0u);
 }

@@ -55,6 +55,9 @@
 #include "kcenon/network/detail/protocols/grpc/frame.h"
 #include "kcenon/network/detail/protocols/grpc/status.h"
 
+#include "hermetic_transport_fixture.h"
+#include "mock_tls_socket.h"
+
 #include <gtest/gtest.h>
 
 #include <atomic>
@@ -824,4 +827,52 @@ TEST(GrpcMetadataSemantics, EraseShrinksContainer)
     md.erase(md.begin());
     ASSERT_EQ(md.size(), 2u);
     EXPECT_EQ(md[0].first, "b");
+}
+
+// ============================================================================
+// Hermetic transport fixture demonstration (Issue #1060)
+// ============================================================================
+
+/**
+ * @brief Demonstrates that the new hermetic TLS fixture lets grpc_client
+ *        attempt a real connection against an in-process loopback peer.
+ *
+ * grpc_client's connect() uses an internal HTTP/2 channel; pointing it at the
+ * loopback TLS listener exercises the channel construction, target parsing,
+ * and async connect attempt — paths that the public-API tests above could
+ * not drive without an external server.
+ */
+class GrpcClientHermeticTransportTest
+    : public kcenon::network::tests::support::hermetic_transport_fixture
+{
+};
+
+TEST_F(GrpcClientHermeticTransportTest, ConnectAttemptsHandshakeAgainstLoopbackTlsPeer)
+{
+    using namespace kcenon::network::tests::support;
+
+    tls_loopback_listener listener(io());
+    const std::string target =
+        "127.0.0.1:" + std::to_string(static_cast<unsigned>(listener.port()));
+
+    grpc_channel_config cfg;
+    cfg.use_tls = true;
+    auto client = std::make_shared<grpc_client>(target, cfg);
+
+    std::atomic<bool> connect_returned{false};
+    std::thread connector([&]() {
+        (void)client->connect();
+        connect_returned.store(true);
+    });
+
+    // The TLS listener accepts the TCP connection; whether the gRPC handshake
+    // completes depends on the channel implementation. Either way, the
+    // connect path is exercised and disconnect cleans up.
+    EXPECT_TRUE(wait_for(
+        [&]() { return listener.accepted(); },
+        std::chrono::seconds(3)));
+
+    client->disconnect();
+    connector.join();
+    EXPECT_TRUE(connect_returned.load());
 }
