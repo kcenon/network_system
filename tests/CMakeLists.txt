@@ -36,6 +36,18 @@ if(NOT GTest_FOUND AND NOT GTEST_FOUND)
 endif()
 
 ##################################################
+# Hermetic Transport Fixture Support Library (Issue #1060)
+##################################################
+
+# Static helper library exposing tests/support/* — provides loopback TCP/UDP
+# pair builders, in-memory TLS cert/key generation, and WebSocket frame
+# builders for branch-coverage tests that need to drive private async/socket
+# methods without a real network listener.
+if(GTest_FOUND OR GTEST_FOUND)
+    add_subdirectory(support)
+endif()
+
+##################################################
 # Unit Tests
 ##################################################
 
@@ -4893,6 +4905,7 @@ add_network_test(network_http2_client_extended_coverage_test
 # concurrent state queries (Issue #1048)
 add_network_test(network_http2_client_branch_test
                  unit/http2_client_branch_test.cpp)
+target_link_libraries(network_http2_client_branch_test PRIVATE network::test_support)
 
 # gRPC client branch coverage: grpc_channel_config full-field round-trip with
 # boundary values, call_options::set_timeout duration variants, metadata
@@ -4902,6 +4915,7 @@ add_network_test(network_http2_client_branch_test
 # callback stress, grpc_metadata copy/move/clear semantics (Issue #1049)
 add_network_test(network_grpc_client_branch_test
                  unit/grpc_client_branch_test.cpp)
+target_link_libraries(network_grpc_client_branch_test PRIVATE network::test_support)
 
 # HTTP/2 server branch coverage: tls_config field round-trips with boundary
 # values, http2_server construction with empty/long/binary server IDs,
@@ -4915,6 +4929,7 @@ add_network_test(network_grpc_client_branch_test
 # shared_ptr lifetime, many concurrent server instances (Issue #1050)
 add_network_test(network_http2_server_branch_test
                  unit/http2_server_branch_test.cpp)
+target_link_libraries(network_http2_server_branch_test PRIVATE network::test_support)
 
 # QUIC socket branch coverage: many short-lived client / server instances,
 # default invariants for state / role / is_connected / is_handshake_complete /
@@ -4944,6 +4959,7 @@ add_network_test(network_http2_server_branch_test
 # close / without close / after start_receive (Issue #1051)
 add_network_test(network_quic_socket_branch_test
                  unit/quic_socket_branch_test.cpp)
+target_link_libraries(network_quic_socket_branch_test PRIVATE network::test_support)
 
 # QUIC server branch coverage: quic_server_config full-field round-trip
 # (cert/key/ca paths, ALPN vector, all numeric settings at zero/max
@@ -4964,6 +4980,7 @@ add_network_test(network_quic_socket_branch_test
 # registered (Issue #1052)
 add_network_test(network_quic_server_branch_test
                  unit/quic_server_branch_test.cpp)
+target_link_libraries(network_quic_server_branch_test PRIVATE network::test_support)
 
 # WebSocket server branch coverage: ws_server_config full-field round-trip
 # (port / max_connections / ping_interval / max_message_size at zero / 1 /
@@ -4988,6 +5005,7 @@ add_network_test(network_quic_server_branch_test
 # after broadcast (Issue #1053)
 add_network_test(network_websocket_server_branch_test
                  unit/websocket_server_branch_test.cpp)
+target_link_libraries(network_websocket_server_branch_test PRIVATE network::test_support)
 
 # HTTP parser extended coverage: url_encode/decode edge cases (percent
 # truncation, high-bit bytes, hex case), query string delimiter handling

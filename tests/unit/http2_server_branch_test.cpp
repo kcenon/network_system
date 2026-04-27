@@ -63,6 +63,8 @@
 
 #include "internal/protocols/http2/http2_server.h"
 
+#include "hermetic_transport_fixture.h"
+
 #include <gtest/gtest.h>
 
 #include <atomic>
@@ -779,4 +781,57 @@ TEST(Http2ServerMultiInstance, StoppingOneDoesNotAffectOthers)
 
     a->stop();
     c->stop();
+}
+
+// ============================================================================
+// Hermetic transport fixture demonstration (Issue #1060)
+// ============================================================================
+
+/**
+ * @brief Demonstrates that the new hermetic loopback TCP fixture lets a test
+ *        construct an http2_server_connection with a real (already-connected)
+ *        TCP socket.
+ *
+ * This exercises the plain-TCP server-connection constructor and start()
+ * path — surfaces previously reachable only by standing up a full
+ * acceptor/listener loop.
+ */
+class Http2ServerHermeticTransportTest
+    : public kcenon::network::tests::support::hermetic_transport_fixture
+{
+};
+
+TEST_F(Http2ServerHermeticTransportTest, ServerConnectionStartsOnLoopbackTcpPair)
+{
+    using kcenon::network::tests::support::make_loopback_tcp_pair;
+
+    auto pair = make_loopback_tcp_pair(io());
+    auto& server_side = pair.second;
+
+    http2::http2_settings settings;
+    http2::http2_server::request_handler_t request_handler =
+        [](http2::http2_server_stream&, const http2::http2_request&) {};
+    http2::http2_server::error_handler_t error_handler =
+        [](const std::string&) {};
+
+    auto conn = std::make_shared<http2::http2_server_connection>(
+        /*connection_id=*/uint64_t{1},
+        std::move(server_side),
+        settings,
+        std::move(request_handler),
+        std::move(error_handler));
+    ASSERT_NE(conn, nullptr);
+
+    // start() kicks off the read-preface chain; the client side is silent so
+    // no request will arrive, but the constructor + start() + initial async
+    // wait paths are exercised.
+    auto start_result = conn->start();
+    EXPECT_TRUE(start_result.is_ok())
+        << "http2_server_connection::start should accept a live TCP socket "
+           "from the loopback pair";
+
+    // Allow async ops a brief moment, then stop cleanly.
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    (void)conn->stop();
+    SUCCEED();
 }

@@ -83,6 +83,9 @@
 #define NETWORK_USE_EXPERIMENTAL
 #include "internal/experimental/quic_server.h"
 
+#include "hermetic_transport_fixture.h"
+#include "mock_udp_peer.h"
+
 #include <gtest/gtest.h>
 
 #include <atomic>
@@ -989,4 +992,54 @@ TEST(QuicServerDestructor, DestructorWithCallbacksRegisteredRunsCleanly)
         server->set_error_callback([](std::error_code) {});
     }
     SUCCEED();
+}
+
+// ============================================================================
+// Hermetic transport fixture demonstration (Issue #1060)
+// ============================================================================
+
+/**
+ * @brief Demonstrates that the new mock UDP peer + packet stub builder lets a
+ *        test deliver a synthesized QUIC packet to a real UDP loopback peer.
+ *
+ * Driving messaging_quic_server::handle_packet() directly requires either a
+ * friend-test injection point or the full start_server() loop — both noted
+ * in the file's "Honest scope statement". This test demonstrates the
+ * byte-level synthesis half of the fixture: a stub Initial-packet builder
+ * plus a loopback UDP pair carry the bytes intact between two sockets, which
+ * is what the eventual handle_packet drive will rely on.
+ */
+class QuicServerHermeticTransportTest
+    : public kcenon::network::tests::support::hermetic_transport_fixture
+{
+};
+
+TEST_F(QuicServerHermeticTransportTest, MockUdpPeerCarriesSynthesizedInitialPacket)
+{
+    using namespace kcenon::network::tests::support;
+
+    auto pair = make_loopback_udp_pair(io());
+    mock_udp_peer sender(std::move(pair.first));
+    mock_udp_peer receiver(std::move(pair.second));
+
+    constexpr uint8_t dcid_bytes[] = {0x01, 0x02, 0x03, 0x04};
+    const auto packet = make_quic_initial_packet_stub(
+        std::span<const uint8_t>(dcid_bytes, std::size(dcid_bytes)));
+
+    // The first byte must be a long-header Initial (0xC0) per RFC 9000 §17.2.
+    ASSERT_GE(packet.size(), 1u);
+    EXPECT_EQ(packet[0], 0xC0);
+
+    const auto sent = sender.send(packet);
+    EXPECT_EQ(sent, packet.size());
+
+    const auto received = receiver.receive(/*max_size=*/2048);
+    ASSERT_EQ(received.size(), packet.size());
+    EXPECT_EQ(received, packet);
+
+    // Construction-only check: messaging_quic_server can be paired with the
+    // fixture once a friend-test injection or full start loop is added.
+    auto server = std::make_shared<core::messaging_quic_server>("hermetic-demo");
+    ASSERT_NE(server, nullptr);
+    EXPECT_FALSE(server->is_running());
 }

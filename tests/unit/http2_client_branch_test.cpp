@@ -32,6 +32,9 @@
 
 #include "internal/protocols/http2/http2_client.h"
 
+#include "hermetic_transport_fixture.h"
+#include "mock_tls_socket.h"
+
 #include <gtest/gtest.h>
 
 #include <chrono>
@@ -577,4 +580,57 @@ TEST(Http2ClientConcurrencyTest, ConcurrentSetTimeoutIsThreadSafe)
     }
     // Final value is racy but must be a positive duration.
     EXPECT_GT(client->get_timeout().count(), 0);
+}
+
+// ============================================================================
+// Hermetic transport fixture demonstration (Issue #1060)
+// ============================================================================
+
+/**
+ * @brief Demonstrates that the new hermetic TLS fixture lets http2_client
+ *        attempt a real TLS handshake against an in-process loopback peer.
+ *
+ * This drives http2_client::connect() through DNS resolution (numeric host),
+ * TCP connect, ALPN setup, and TLS ClientHello transmission — paths that
+ * the pure public-API tests above could not exercise without an external
+ * server. The handshake will not produce a valid HTTP/2 preface response
+ * from the bare TLS listener, so connect() may eventually return an error,
+ * but the lower-level state machine is exercised either way.
+ */
+class Http2ClientHermeticTransportTest
+    : public kcenon::network::tests::support::hermetic_transport_fixture
+{
+};
+
+TEST_F(Http2ClientHermeticTransportTest, ConnectAttemptsHandshakeAgainstLoopbackTlsPeer)
+{
+    using namespace kcenon::network::tests::support;
+
+    tls_loopback_listener listener(io());
+    auto client = std::make_shared<http2::http2_client>("hermetic-test-client");
+    ASSERT_NE(client, nullptr);
+
+    // Issue connect on a worker thread; connect() is synchronous so we cannot
+    // call it from this thread without blocking the listener accept handler
+    // that runs on io_context::run().
+    std::atomic<bool> connect_returned{false};
+    std::thread connector([&]() {
+        // The bare TLS listener does not speak HTTP/2 — we expect the connect
+        // call to either succeed at TLS but stall on the missing preface, or
+        // return an error after the timeout. Either outcome exercises the
+        // connect path; we only assert the call returns within the budget.
+        client->set_timeout(std::chrono::seconds(2));
+        (void)client->connect("127.0.0.1", listener.port());
+        connect_returned.store(true);
+    });
+
+    // Wait for the listener to accept the TCP connection. The TLS handshake
+    // may or may not complete depending on how http2_client drives ALPN.
+    EXPECT_TRUE(wait_for(
+        [&]() { return listener.accepted(); },
+        std::chrono::seconds(3)));
+
+    client->disconnect();
+    connector.join();
+    EXPECT_TRUE(connect_returned.load());
 }
