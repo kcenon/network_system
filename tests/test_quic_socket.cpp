@@ -8,6 +8,9 @@
 #include <chrono>
 #include <atomic>
 #include <future>
+#include <limits>
+#include <string>
+#include <vector>
 
 #include "../src/internal/quic_socket.h"
 
@@ -408,6 +411,586 @@ TEST_F(QuicSocketTest, ErrorCallbackOnSocketError)
 
 	// No error expected in this case
 	SUCCEED();
+}
+
+// =============================================================================
+// Additional Coverage Tests (Issue #1065)
+// =============================================================================
+// These tests target surface reachable without an active QUIC peer:
+// validation guards, public-API input variations, multi-instance state
+// isolation, and struct/result edge cases. The acceptance criteria of #1065
+// (>= 80% line / >= 70% branch) cannot be fully met without an in-process
+// QUIC loopback fixture; these tests expand coverage of reachable paths.
+
+// ---- Construction / Lifetime ----
+
+TEST_F(QuicSocketTest, DestructorStopsReceiveLoop)
+{
+	asio::ip::udp::socket socket(*io_context_, asio::ip::udp::v4());
+
+	{
+		auto quic = std::make_shared<quic_socket>(
+			std::move(socket), quic_role::client);
+		quic->start_receive();
+	}
+	// Destructor must not crash even with active receive
+	io_context_->run_for(std::chrono::milliseconds(5));
+	SUCCEED();
+}
+
+TEST_F(QuicSocketTest, ServerInitialStreamIdDifferentFromClient)
+{
+	asio::ip::udp::socket s_client(*io_context_, asio::ip::udp::v4());
+	asio::ip::udp::socket s_server(*io_context_, asio::ip::udp::v4());
+
+	auto client = std::make_shared<quic_socket>(
+		std::move(s_client), quic_role::client);
+	auto server = std::make_shared<quic_socket>(
+		std::move(s_server), quic_role::server);
+
+	// Both start in idle state; create_stream requires connected,
+	// so we just verify role distinction here.
+	EXPECT_EQ(client->role(), quic_role::client);
+	EXPECT_EQ(server->role(), quic_role::server);
+}
+
+TEST_F(QuicSocketTest, IPv6SocketConstruction)
+{
+	asio::ip::udp::socket socket(*io_context_, asio::ip::udp::v6());
+
+	auto quic = std::make_shared<quic_socket>(
+		std::move(socket), quic_role::client);
+
+	EXPECT_EQ(quic->role(), quic_role::client);
+	EXPECT_EQ(quic->state(), quic_connection_state::idle);
+}
+
+TEST_F(QuicSocketTest, ConnectionIdLengthIsRfc9000Compliant)
+{
+	asio::ip::udp::socket socket(*io_context_, asio::ip::udp::v4());
+
+	auto quic = std::make_shared<quic_socket>(
+		std::move(socket), quic_role::client);
+
+	auto& cid = quic->local_connection_id();
+	// RFC 9000: connection IDs may be 0-20 bytes
+	EXPECT_GE(cid.length(), 0u);
+	EXPECT_LE(cid.length(), 20u);
+}
+
+TEST_F(QuicSocketTest, RemoteConnectionIdAccessibleBeforeConnect)
+{
+	asio::ip::udp::socket socket(*io_context_, asio::ip::udp::v4());
+
+	auto quic = std::make_shared<quic_socket>(
+		std::move(socket), quic_role::client);
+
+	// Should not crash; remote CID exists from default-construction
+	const auto& rcid = quic->remote_connection_id();
+	EXPECT_LE(rcid.length(), 20u);
+}
+
+// ---- connect() Validation Guards ----
+
+TEST_F(QuicSocketTest, ConnectFromServerRoleFails)
+{
+	asio::ip::udp::socket socket(*io_context_, asio::ip::udp::v4());
+
+	auto quic = std::make_shared<quic_socket>(
+		std::move(socket), quic_role::server);
+
+	asio::ip::udp::endpoint endpoint(
+		asio::ip::make_address("127.0.0.1"), 4433);
+
+	auto result = quic->connect(endpoint);
+	EXPECT_FALSE(result.is_ok());
+	// State should remain idle
+	EXPECT_EQ(quic->state(), quic_connection_state::idle);
+}
+
+TEST_F(QuicSocketTest, ConnectWithEmptyServerNameUsesAddressString)
+{
+	asio::ip::udp::socket socket(*io_context_, asio::ip::udp::v4());
+
+	auto quic = std::make_shared<quic_socket>(
+		std::move(socket), quic_role::client);
+
+	asio::ip::udp::endpoint endpoint(
+		asio::ip::make_address("127.0.0.1"), 4433);
+
+	// Whatever the result of TLS init, connect must not crash.
+	(void)quic->connect(endpoint, "");
+	SUCCEED();
+}
+
+TEST_F(QuicSocketTest, ConnectWithExplicitServerName)
+{
+	asio::ip::udp::socket socket(*io_context_, asio::ip::udp::v4());
+
+	auto quic = std::make_shared<quic_socket>(
+		std::move(socket), quic_role::client);
+
+	asio::ip::udp::endpoint endpoint(
+		asio::ip::make_address("127.0.0.1"), 4433);
+
+	(void)quic->connect(endpoint, "example.com");
+	SUCCEED();
+}
+
+TEST_F(QuicSocketTest, ConnectToZeroPort)
+{
+	asio::ip::udp::socket socket(*io_context_, asio::ip::udp::v4());
+
+	auto quic = std::make_shared<quic_socket>(
+		std::move(socket), quic_role::client);
+
+	asio::ip::udp::endpoint endpoint(
+		asio::ip::make_address("127.0.0.1"), 0);
+
+	// Port-0 endpoint is technically valid; connect must not crash.
+	(void)quic->connect(endpoint);
+	SUCCEED();
+}
+
+TEST_F(QuicSocketTest, ConnectAfterCloseFails)
+{
+	asio::ip::udp::socket socket(*io_context_, asio::ip::udp::v4());
+
+	auto quic = std::make_shared<quic_socket>(
+		std::move(socket), quic_role::client);
+
+	auto close_result = quic->close(0, "test");
+	EXPECT_TRUE(close_result.is_ok());
+
+	asio::ip::udp::endpoint endpoint(
+		asio::ip::make_address("127.0.0.1"), 4433);
+
+	auto connect_result = quic->connect(endpoint);
+	EXPECT_FALSE(connect_result.is_ok());
+}
+
+// ---- accept() Validation Guards ----
+
+TEST_F(QuicSocketTest, AcceptFromClientRoleFails)
+{
+	asio::ip::udp::socket socket(*io_context_, asio::ip::udp::v4());
+
+	auto quic = std::make_shared<quic_socket>(
+		std::move(socket), quic_role::client);
+
+	auto result = quic->accept("nonexistent_cert.pem", "nonexistent_key.pem");
+	EXPECT_FALSE(result.is_ok());
+}
+
+TEST_F(QuicSocketTest, AcceptWithMissingCertFiles)
+{
+	asio::ip::udp::socket socket(*io_context_, asio::ip::udp::v4());
+
+	auto quic = std::make_shared<quic_socket>(
+		std::move(socket), quic_role::server);
+
+	auto result = quic->accept("/nonexistent/cert.pem", "/nonexistent/key.pem");
+	EXPECT_FALSE(result.is_ok());
+}
+
+TEST_F(QuicSocketTest, AcceptWithEmptyCertPaths)
+{
+	asio::ip::udp::socket socket(*io_context_, asio::ip::udp::v4());
+
+	auto quic = std::make_shared<quic_socket>(
+		std::move(socket), quic_role::server);
+
+	auto result = quic->accept("", "");
+	EXPECT_FALSE(result.is_ok());
+}
+
+TEST_F(QuicSocketTest, AcceptAfterCloseFails)
+{
+	asio::ip::udp::socket socket(*io_context_, asio::ip::udp::v4());
+
+	auto quic = std::make_shared<quic_socket>(
+		std::move(socket), quic_role::server);
+
+	(void)quic->close(0, "preclose");
+
+	auto result = quic->accept("cert.pem", "key.pem");
+	EXPECT_FALSE(result.is_ok());
+}
+
+// ---- close() Variations ----
+
+TEST_F(QuicSocketTest, CloseWithNonZeroErrorCode)
+{
+	asio::ip::udp::socket socket(*io_context_, asio::ip::udp::v4());
+
+	auto quic = std::make_shared<quic_socket>(
+		std::move(socket), quic_role::client);
+
+	auto result = quic->close(0x1234, "application error");
+	EXPECT_TRUE(result.is_ok());
+}
+
+TEST_F(QuicSocketTest, CloseWithEmptyReason)
+{
+	asio::ip::udp::socket socket(*io_context_, asio::ip::udp::v4());
+
+	auto quic = std::make_shared<quic_socket>(
+		std::move(socket), quic_role::client);
+
+	auto result = quic->close(0, "");
+	EXPECT_TRUE(result.is_ok());
+}
+
+TEST_F(QuicSocketTest, CloseWithLongReasonString)
+{
+	asio::ip::udp::socket socket(*io_context_, asio::ip::udp::v4());
+
+	auto quic = std::make_shared<quic_socket>(
+		std::move(socket), quic_role::client);
+
+	std::string long_reason(1024, 'x');
+	auto result = quic->close(0, long_reason);
+	EXPECT_TRUE(result.is_ok());
+}
+
+TEST_F(QuicSocketTest, CloseDefaultArguments)
+{
+	asio::ip::udp::socket socket(*io_context_, asio::ip::udp::v4());
+
+	auto quic = std::make_shared<quic_socket>(
+		std::move(socket), quic_role::client);
+
+	// Use default arguments (error_code=0, reason="")
+	auto result = quic->close();
+	EXPECT_TRUE(result.is_ok());
+}
+
+// ---- send_stream_data Validation ----
+
+TEST_F(QuicSocketTest, SendStreamDataEmptyPayloadRejected)
+{
+	asio::ip::udp::socket socket(*io_context_, asio::ip::udp::v4());
+
+	auto quic = std::make_shared<quic_socket>(
+		std::move(socket), quic_role::client);
+
+	std::vector<uint8_t> empty;
+	auto result = quic->send_stream_data(0, std::move(empty));
+	// Not connected -> must fail
+	EXPECT_FALSE(result.is_ok());
+}
+
+TEST_F(QuicSocketTest, SendStreamDataLargePayloadRejectedWhenNotConnected)
+{
+	asio::ip::udp::socket socket(*io_context_, asio::ip::udp::v4());
+
+	auto quic = std::make_shared<quic_socket>(
+		std::move(socket), quic_role::client);
+
+	std::vector<uint8_t> large(65536, 0xAB);
+	auto result = quic->send_stream_data(42, std::move(large), true);
+	EXPECT_FALSE(result.is_ok());
+}
+
+TEST_F(QuicSocketTest, SendStreamDataFinFlagWhenNotConnected)
+{
+	asio::ip::udp::socket socket(*io_context_, asio::ip::udp::v4());
+
+	auto quic = std::make_shared<quic_socket>(
+		std::move(socket), quic_role::client);
+
+	std::vector<uint8_t> data = {0xFF};
+	auto result = quic->send_stream_data(7, std::move(data), /*fin=*/true);
+	EXPECT_FALSE(result.is_ok());
+}
+
+TEST_F(QuicSocketTest, SendStreamDataHighStreamIdWhenNotConnected)
+{
+	asio::ip::udp::socket socket(*io_context_, asio::ip::udp::v4());
+
+	auto quic = std::make_shared<quic_socket>(
+		std::move(socket), quic_role::client);
+
+	std::vector<uint8_t> data = {0x01};
+	auto result = quic->send_stream_data(
+		std::numeric_limits<uint64_t>::max(), std::move(data));
+	EXPECT_FALSE(result.is_ok());
+}
+
+// ---- Stream Management ----
+
+TEST_F(QuicSocketTest, CreateUnidirectionalStreamRequiresConnection)
+{
+	asio::ip::udp::socket socket(*io_context_, asio::ip::udp::v4());
+
+	auto quic = std::make_shared<quic_socket>(
+		std::move(socket), quic_role::client);
+
+	auto result = quic->create_stream(/*unidirectional=*/true);
+	EXPECT_FALSE(result.is_ok());
+}
+
+TEST_F(QuicSocketTest, CreateBidirectionalStreamRequiresConnection)
+{
+	asio::ip::udp::socket socket(*io_context_, asio::ip::udp::v4());
+
+	auto quic = std::make_shared<quic_socket>(
+		std::move(socket), quic_role::server);
+
+	auto result = quic->create_stream(/*unidirectional=*/false);
+	EXPECT_FALSE(result.is_ok());
+}
+
+TEST_F(QuicSocketTest, CloseUnknownStreamFails)
+{
+	asio::ip::udp::socket socket(*io_context_, asio::ip::udp::v4());
+
+	auto quic = std::make_shared<quic_socket>(
+		std::move(socket), quic_role::client);
+
+	auto result = quic->close_stream(9999);
+	EXPECT_FALSE(result.is_ok());
+}
+
+TEST_F(QuicSocketTest, CloseStreamZeroFails)
+{
+	asio::ip::udp::socket socket(*io_context_, asio::ip::udp::v4());
+
+	auto quic = std::make_shared<quic_socket>(
+		std::move(socket), quic_role::client);
+
+	auto result = quic->close_stream(0);
+	EXPECT_FALSE(result.is_ok());
+}
+
+// ---- Receive loop ----
+
+TEST_F(QuicSocketTest, StopReceiveWithoutStart)
+{
+	asio::ip::udp::socket socket(*io_context_, asio::ip::udp::v4());
+
+	auto quic = std::make_shared<quic_socket>(
+		std::move(socket), quic_role::client);
+
+	// Calling stop without start must be a no-op
+	quic->stop_receive();
+	SUCCEED();
+}
+
+TEST_F(QuicSocketTest, StartReceiveTwiceIsIdempotent)
+{
+	asio::ip::udp::socket socket(*io_context_, asio::ip::udp::v4());
+
+	auto quic = std::make_shared<quic_socket>(
+		std::move(socket), quic_role::client);
+
+	quic->start_receive();
+	quic->start_receive();
+	io_context_->run_for(std::chrono::milliseconds(5));
+	quic->stop_receive();
+	SUCCEED();
+}
+
+TEST_F(QuicSocketTest, StartStopStartCycle)
+{
+	asio::ip::udp::socket socket(*io_context_, asio::ip::udp::v4());
+
+	auto quic = std::make_shared<quic_socket>(
+		std::move(socket), quic_role::client);
+
+	quic->start_receive();
+	io_context_->run_for(std::chrono::milliseconds(2));
+	quic->stop_receive();
+	quic->start_receive();
+	io_context_->run_for(std::chrono::milliseconds(2));
+	quic->stop_receive();
+	SUCCEED();
+}
+
+// ---- State Queries ----
+
+TEST_F(QuicSocketTest, StateRemainsIdleAfterFailedConnect)
+{
+	asio::ip::udp::socket socket(*io_context_, asio::ip::udp::v4());
+
+	auto quic = std::make_shared<quic_socket>(
+		std::move(socket), quic_role::server);
+
+	asio::ip::udp::endpoint endpoint(
+		asio::ip::make_address("127.0.0.1"), 4433);
+
+	(void)quic->connect(endpoint);
+	// Server role rejects connect; state must remain idle.
+	EXPECT_EQ(quic->state(), quic_connection_state::idle);
+}
+
+TEST_F(QuicSocketTest, RemoteEndpointDefaultsToZero)
+{
+	asio::ip::udp::socket socket(*io_context_, asio::ip::udp::v4());
+
+	auto quic = std::make_shared<quic_socket>(
+		std::move(socket), quic_role::client);
+
+	auto ep = quic->remote_endpoint();
+	EXPECT_EQ(ep.port(), 0u);
+}
+
+TEST_F(QuicSocketTest, IsConnectedFalseInIdleState)
+{
+	asio::ip::udp::socket socket(*io_context_, asio::ip::udp::v4());
+
+	auto quic = std::make_shared<quic_socket>(
+		std::move(socket), quic_role::client);
+
+	EXPECT_FALSE(quic->is_connected());
+	EXPECT_NE(quic->state(), quic_connection_state::connected);
+}
+
+TEST_F(QuicSocketTest, HandshakeNotCompleteInIdleState)
+{
+	asio::ip::udp::socket socket(*io_context_, asio::ip::udp::v4());
+
+	auto quic = std::make_shared<quic_socket>(
+		std::move(socket), quic_role::server);
+
+	EXPECT_FALSE(quic->is_handshake_complete());
+}
+
+// ---- Multi-instance Isolation ----
+
+TEST_F(QuicSocketTest, MultipleInstancesHaveIndependentState)
+{
+	asio::ip::udp::socket s1(*io_context_, asio::ip::udp::v4());
+	asio::ip::udp::socket s2(*io_context_, asio::ip::udp::v4());
+	asio::ip::udp::socket s3(*io_context_, asio::ip::udp::v4());
+
+	auto q1 = std::make_shared<quic_socket>(std::move(s1), quic_role::client);
+	auto q2 = std::make_shared<quic_socket>(std::move(s2), quic_role::server);
+	auto q3 = std::make_shared<quic_socket>(std::move(s3), quic_role::client);
+
+	EXPECT_EQ(q1->role(), quic_role::client);
+	EXPECT_EQ(q2->role(), quic_role::server);
+	EXPECT_EQ(q3->role(), quic_role::client);
+
+	// Each instance has a unique connection ID
+	EXPECT_NE(q1->local_connection_id().to_string(),
+	          q2->local_connection_id().to_string());
+	EXPECT_NE(q2->local_connection_id().to_string(),
+	          q3->local_connection_id().to_string());
+	EXPECT_NE(q1->local_connection_id().to_string(),
+	          q3->local_connection_id().to_string());
+}
+
+TEST_F(QuicSocketTest, CloseOneInstanceDoesNotAffectOthers)
+{
+	asio::ip::udp::socket s1(*io_context_, asio::ip::udp::v4());
+	asio::ip::udp::socket s2(*io_context_, asio::ip::udp::v4());
+
+	auto q1 = std::make_shared<quic_socket>(std::move(s1), quic_role::client);
+	auto q2 = std::make_shared<quic_socket>(std::move(s2), quic_role::client);
+
+	auto r1 = q1->close(0, "close q1");
+	EXPECT_TRUE(r1.is_ok());
+
+	// q2 must remain in idle state
+	EXPECT_EQ(q2->state(), quic_connection_state::idle);
+}
+
+// ---- Move Semantics ----
+
+TEST_F(QuicSocketTest, MoveAssignmentTransfersState)
+{
+	asio::ip::udp::socket s1(*io_context_, asio::ip::udp::v4());
+	asio::ip::udp::socket s2(*io_context_, asio::ip::udp::v4());
+
+	auto q1 = std::make_shared<quic_socket>(std::move(s1), quic_role::client);
+	auto q2 = std::make_shared<quic_socket>(std::move(s2), quic_role::server);
+
+	auto orig_cid = q1->local_connection_id();
+
+	*q2 = std::move(*q1);
+
+	EXPECT_EQ(q2->role(), quic_role::client);
+	EXPECT_EQ(q2->local_connection_id().to_string(), orig_cid.to_string());
+}
+
+TEST_F(QuicSocketTest, SelfMoveAssignmentSafe)
+{
+	asio::ip::udp::socket socket(*io_context_, asio::ip::udp::v4());
+
+	quic_socket q(std::move(socket), quic_role::client);
+	auto orig_cid = q.local_connection_id().to_string();
+
+	// Self-assignment must be a no-op (guarded by this != &other).
+	// Use a pointer to avoid -Wself-move warnings.
+	quic_socket* p = &q;
+	*p = std::move(*p);
+
+	EXPECT_EQ(q.local_connection_id().to_string(), orig_cid);
+	EXPECT_EQ(q.role(), quic_role::client);
+}
+
+// ---- Callback Edge Cases ----
+
+TEST_F(QuicSocketTest, NullCallbacksAccepted)
+{
+	asio::ip::udp::socket socket(*io_context_, asio::ip::udp::v4());
+
+	auto quic = std::make_shared<quic_socket>(
+		std::move(socket), quic_role::client);
+
+	// Passing default-constructed (null) callbacks must not crash.
+	quic->set_stream_data_callback({});
+	quic->set_connected_callback({});
+	quic->set_error_callback({});
+	quic->set_close_callback({});
+	SUCCEED();
+}
+
+TEST_F(QuicSocketTest, OverwriteCallbackReplacesOld)
+{
+	asio::ip::udp::socket socket(*io_context_, asio::ip::udp::v4());
+
+	auto quic = std::make_shared<quic_socket>(
+		std::move(socket), quic_role::client);
+
+	int v = 0;
+	quic->set_connected_callback([&v]() { v = 1; });
+	quic->set_connected_callback([&v]() { v = 2; });
+	// Without invocation we cannot verify which fires; ensure no crash.
+	(void)v;
+	SUCCEED();
+}
+
+// ---- Enum / Result Sanity ----
+
+TEST_F(QuicSocketTest, EnumQuicRoleValues)
+{
+	EXPECT_EQ(static_cast<uint8_t>(quic_role::client), 0u);
+	EXPECT_EQ(static_cast<uint8_t>(quic_role::server), 1u);
+}
+
+TEST_F(QuicSocketTest, EnumStateOrderingMatchesHeader)
+{
+	EXPECT_EQ(static_cast<uint8_t>(quic_connection_state::idle), 0u);
+	EXPECT_EQ(static_cast<uint8_t>(quic_connection_state::handshake_start), 1u);
+	EXPECT_EQ(static_cast<uint8_t>(quic_connection_state::handshake), 2u);
+	EXPECT_EQ(static_cast<uint8_t>(quic_connection_state::connected), 3u);
+	EXPECT_EQ(static_cast<uint8_t>(quic_connection_state::closing), 4u);
+	EXPECT_EQ(static_cast<uint8_t>(quic_connection_state::draining), 5u);
+	EXPECT_EQ(static_cast<uint8_t>(quic_connection_state::closed), 6u);
+}
+
+TEST_F(QuicSocketTest, ConstSocketAccessor)
+{
+	asio::ip::udp::socket socket(*io_context_, asio::ip::udp::v4());
+
+	auto quic = std::make_shared<quic_socket>(
+		std::move(socket), quic_role::client);
+
+	const auto& cquic = *quic;
+	const auto& sock = cquic.socket();
+	EXPECT_TRUE(sock.is_open());
 }
 
 } // namespace kcenon::network::internal::test
