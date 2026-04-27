@@ -1100,3 +1100,376 @@ TEST_F(GrpcMessageTest, CompressionConstants)
     EXPECT_STREQ(grpc::compression::deflate, "deflate");
     EXPECT_STREQ(grpc::compression::gzip, "gzip");
 }
+
+// ============================================================================
+// Coverage expansion tests for src/protocols/grpc/client.cpp
+// Part of #1063, Part of #953
+//
+// These tests target the surface of grpc_client reachable WITHOUT a connected
+// gRPC peer: validation guards, disconnected-state early returns, public-API
+// input variations, and struct-method edges. They do not exercise the
+// post-connect frame I/O loop, which requires an in-process loopback fixture
+// not present in this tree.
+// ============================================================================
+
+// ---- Disconnected-state guards: call_raw input variations -----------------
+
+TEST_F(GrpcClientTest, CallRawWithoutLeadingSlashLongName)
+{
+    grpc::grpc_client client("localhost:50051");
+    std::vector<uint8_t> request = {1, 2, 3};
+    auto result = client.call_raw(
+        "package.with.many.dots.Service/Method", request);
+    EXPECT_TRUE(result.is_err());
+}
+
+TEST_F(GrpcClientTest, CallRawWithSlashOnlyMethod)
+{
+    grpc::grpc_client client("localhost:50051");
+    std::vector<uint8_t> request = {1, 2, 3};
+    auto result = client.call_raw("/", request);
+    // Disconnected: must return an error without crashing
+    EXPECT_TRUE(result.is_err());
+}
+
+TEST_F(GrpcClientTest, CallRawWithLargeRequestDisconnected)
+{
+    grpc::grpc_client client("localhost:50051");
+    std::vector<uint8_t> request(64 * 1024, 0xAB);
+    auto result = client.call_raw("/test.Service/Big", request);
+    EXPECT_TRUE(result.is_err());
+}
+
+TEST_F(GrpcClientTest, CallRawWithMetadataDisconnected)
+{
+    grpc::grpc_client client("localhost:50051");
+    grpc::call_options options;
+    options.metadata.emplace_back("authorization", "Bearer token");
+    options.metadata.emplace_back("x-trace-id", "abc-123");
+
+    std::vector<uint8_t> request = {1};
+    auto result = client.call_raw("/test.Service/M", request, options);
+    EXPECT_TRUE(result.is_err());
+}
+
+TEST_F(GrpcClientTest, CallRawWithExpiredDeadline)
+{
+    grpc::grpc_client client("localhost:50051");
+    grpc::call_options options;
+    // Deadline 1 second in the past
+    options.deadline =
+        std::chrono::system_clock::now() - std::chrono::seconds(1);
+
+    std::vector<uint8_t> request = {1, 2};
+    auto result = client.call_raw("/test.Service/M", request, options);
+    EXPECT_TRUE(result.is_err());
+}
+
+TEST_F(GrpcClientTest, CallRawWithFutureDeadlineDisconnected)
+{
+    grpc::grpc_client client("localhost:50051");
+    grpc::call_options options;
+    options.set_timeout(std::chrono::milliseconds(1));
+
+    std::vector<uint8_t> request = {1};
+    auto result = client.call_raw("/test.Service/M", request, options);
+    // Disconnected guard fires first
+    EXPECT_TRUE(result.is_err());
+}
+
+TEST_F(GrpcClientTest, CallRawWaitForReadyDisconnected)
+{
+    grpc::grpc_client client("localhost:50051");
+    grpc::call_options options;
+    options.wait_for_ready = true;
+
+    std::vector<uint8_t> request = {1};
+    auto result = client.call_raw("/test.Service/M", request, options);
+    EXPECT_TRUE(result.is_err());
+}
+
+// ---- Disconnected-state guards: streaming variants ------------------------
+
+TEST_F(GrpcClientTest, ServerStreamWithEmptyMethod)
+{
+    grpc::grpc_client client("localhost:50051");
+    std::vector<uint8_t> request = {1, 2, 3};
+    auto result = client.server_stream_raw("", request);
+    EXPECT_TRUE(result.is_err());
+}
+
+TEST_F(GrpcClientTest, ServerStreamWithoutLeadingSlash)
+{
+    grpc::grpc_client client("localhost:50051");
+    std::vector<uint8_t> request = {1};
+    auto result = client.server_stream_raw("test.Service/Stream", request);
+    EXPECT_TRUE(result.is_err());
+}
+
+TEST_F(GrpcClientTest, ClientStreamWithEmptyMethod)
+{
+    grpc::grpc_client client("localhost:50051");
+    auto result = client.client_stream_raw("");
+    EXPECT_TRUE(result.is_err());
+}
+
+TEST_F(GrpcClientTest, ClientStreamWithoutLeadingSlash)
+{
+    grpc::grpc_client client("localhost:50051");
+    auto result = client.client_stream_raw("no_slash_method");
+    EXPECT_TRUE(result.is_err());
+}
+
+TEST_F(GrpcClientTest, BidiStreamWithEmptyMethod)
+{
+    grpc::grpc_client client("localhost:50051");
+    auto result = client.bidi_stream_raw("");
+    EXPECT_TRUE(result.is_err());
+}
+
+TEST_F(GrpcClientTest, BidiStreamWithoutLeadingSlash)
+{
+    grpc::grpc_client client("localhost:50051");
+    auto result = client.bidi_stream_raw("no_slash_method");
+    EXPECT_TRUE(result.is_err());
+}
+
+TEST_F(GrpcClientTest, ServerStreamWithMetadataDisconnected)
+{
+    grpc::grpc_client client("localhost:50051");
+    grpc::call_options options;
+    options.metadata.emplace_back("k", "v");
+
+    std::vector<uint8_t> request = {0xFF};
+    auto result = client.server_stream_raw(
+        "/test.Service/Stream", request, options);
+    EXPECT_TRUE(result.is_err());
+}
+
+TEST_F(GrpcClientTest, ClientStreamWithMetadataDisconnected)
+{
+    grpc::grpc_client client("localhost:50051");
+    grpc::call_options options;
+    options.metadata.emplace_back("k", "v");
+
+    auto result = client.client_stream_raw("/test.Service/Stream", options);
+    EXPECT_TRUE(result.is_err());
+}
+
+TEST_F(GrpcClientTest, BidiStreamWithMetadataDisconnected)
+{
+    grpc::grpc_client client("localhost:50051");
+    grpc::call_options options;
+    options.metadata.emplace_back("k", "v");
+
+    auto result = client.bidi_stream_raw("/test.Service/Stream", options);
+    EXPECT_TRUE(result.is_err());
+}
+
+// ---- Constructor / target variations --------------------------------------
+
+TEST_F(GrpcClientTest, ConstructWithEmptyTarget)
+{
+    grpc::grpc_client client("");
+    EXPECT_EQ(client.target(), "");
+    EXPECT_FALSE(client.is_connected());
+}
+
+TEST_F(GrpcClientTest, ConstructWithIpv4Target)
+{
+    grpc::grpc_client client("127.0.0.1:50051");
+    EXPECT_EQ(client.target(), "127.0.0.1:50051");
+    EXPECT_FALSE(client.is_connected());
+}
+
+TEST_F(GrpcClientTest, ConstructWithLongTargetString)
+{
+    std::string long_host(500, 'a');
+    std::string target = long_host + ":50051";
+    grpc::grpc_client client(target);
+    EXPECT_EQ(client.target(), target);
+}
+
+TEST_F(GrpcClientTest, ConstructWithSpecialCharsTarget)
+{
+    grpc::grpc_client client("host-name_1.example.com:65535");
+    EXPECT_EQ(client.target(), "host-name_1.example.com:65535");
+}
+
+TEST_F(GrpcClientTest, ConnectInvalidPortNonNumeric)
+{
+    grpc::grpc_client client("localhost:abc");
+    auto result = client.connect();
+    EXPECT_TRUE(result.is_err());
+}
+
+TEST_F(GrpcClientTest, ConnectMultipleColons)
+{
+    // Parser uses find(':') so first colon is the separator;
+    // the remainder ":50051" fails the numeric port parse.
+    grpc::grpc_client client("host::50051");
+    auto result = client.connect();
+    EXPECT_TRUE(result.is_err());
+}
+
+// ---- Channel config variations + connect path -----------------------------
+
+TEST_F(GrpcClientTest, ConnectWithInsecureConfig)
+{
+    grpc::grpc_channel_config config;
+    config.use_tls = false;
+    config.default_timeout = std::chrono::milliseconds(50);
+
+    grpc::grpc_client client("localhost:50051", config);
+    auto result = client.connect();
+    // Without a real server: must error out, not block forever
+    EXPECT_TRUE(result.is_err() || client.is_connected());
+}
+
+TEST_F(GrpcClientTest, ConnectWithCustomKeepalive)
+{
+    grpc::grpc_channel_config config;
+    config.use_tls = false;
+    config.keepalive_time = std::chrono::milliseconds(1000);
+    config.keepalive_timeout = std::chrono::milliseconds(500);
+    config.default_timeout = std::chrono::milliseconds(50);
+
+    grpc::grpc_client client("localhost:50051", config);
+    auto result = client.connect();
+    EXPECT_TRUE(result.is_err() || client.is_connected());
+}
+
+TEST_F(GrpcClientTest, ConnectWithMaxRetryAttemptsZero)
+{
+    grpc::grpc_channel_config config;
+    config.use_tls = false;
+    config.max_retry_attempts = 0;
+    config.default_timeout = std::chrono::milliseconds(50);
+
+    grpc::grpc_client client("localhost:50051", config);
+    auto result = client.connect();
+    EXPECT_TRUE(result.is_err() || client.is_connected());
+}
+
+// ---- Multi-instance state isolation ---------------------------------------
+
+TEST_F(GrpcClientTest, MultipleInstancesDisconnectIndependently)
+{
+    grpc::grpc_client client1("localhost:50051");
+    grpc::grpc_client client2("localhost:50052");
+
+    client1.disconnect();
+    client2.disconnect();
+    EXPECT_FALSE(client1.is_connected());
+    EXPECT_FALSE(client2.is_connected());
+    EXPECT_NE(client1.target(), client2.target());
+}
+
+TEST_F(GrpcClientTest, MoveAssignmentDoesNotAliasState)
+{
+    grpc::grpc_client client1("localhost:50051");
+    grpc::grpc_client client2("localhost:50052");
+
+    client2 = std::move(client1);
+    EXPECT_EQ(client2.target(), "localhost:50051");
+    // After move, calling disconnect on the destination must remain safe
+    client2.disconnect();
+    EXPECT_FALSE(client2.is_connected());
+}
+
+// ---- call_options edges ---------------------------------------------------
+
+TEST_F(GrpcCallOptionsTest, SetTimeoutZero)
+{
+    grpc::call_options options;
+    options.set_timeout(std::chrono::milliseconds(0));
+    ASSERT_TRUE(options.deadline.has_value());
+    // Deadline computed from "now"; should be at most a few ticks ahead
+    auto now = std::chrono::system_clock::now();
+    EXPECT_LE(options.deadline.value(), now + std::chrono::seconds(1));
+}
+
+TEST_F(GrpcCallOptionsTest, SetTimeoutVeryLarge)
+{
+    grpc::call_options options;
+    options.set_timeout(std::chrono::hours(24));
+    ASSERT_TRUE(options.deadline.has_value());
+    auto now = std::chrono::system_clock::now();
+    EXPECT_GT(options.deadline.value(), now + std::chrono::hours(23));
+}
+
+TEST_F(GrpcCallOptionsTest, MetadataPreservesInsertionOrder)
+{
+    grpc::call_options options;
+    for (int i = 0; i < 10; ++i)
+    {
+        options.metadata.emplace_back("k" + std::to_string(i),
+                                      "v" + std::to_string(i));
+    }
+    ASSERT_EQ(options.metadata.size(), 10u);
+    for (int i = 0; i < 10; ++i)
+    {
+        EXPECT_EQ(options.metadata[static_cast<size_t>(i)].first,
+                  "k" + std::to_string(i));
+    }
+}
+
+// ---- grpc_message edges ---------------------------------------------------
+
+TEST_F(GrpcMessageTest, ParseTooShortBuffer)
+{
+    std::vector<uint8_t> too_short = {0x00, 0x00, 0x00};
+    auto parsed = grpc::grpc_message::parse(too_short);
+    EXPECT_TRUE(parsed.is_err());
+}
+
+TEST_F(GrpcMessageTest, ParseEmptyBuffer)
+{
+    std::vector<uint8_t> empty;
+    auto parsed = grpc::grpc_message::parse(empty);
+    EXPECT_TRUE(parsed.is_err());
+}
+
+TEST_F(GrpcMessageTest, SerializeRoundTripWithEmbeddedNull)
+{
+    std::vector<uint8_t> data = {0x00, 0xAA, 0x00, 0xFF, 0x00};
+    grpc::grpc_message msg(data);
+    auto serialized = msg.serialize();
+    auto parsed = grpc::grpc_message::parse(serialized);
+    ASSERT_TRUE(parsed.is_ok());
+    EXPECT_EQ(parsed.value().data, data);
+}
+
+TEST_F(GrpcMessageTest, SerializeRoundTripLargePayload)
+{
+    std::vector<uint8_t> data(8192, 0x5A);
+    grpc::grpc_message msg(data);
+    auto serialized = msg.serialize();
+    EXPECT_EQ(serialized.size(), grpc::grpc_header_size + data.size());
+
+    auto parsed = grpc::grpc_message::parse(serialized);
+    ASSERT_TRUE(parsed.is_ok());
+    EXPECT_EQ(parsed.value().data.size(), data.size());
+}
+
+TEST_F(GrpcMessageTest, SerializeRoundTripAllByteValues)
+{
+    std::vector<uint8_t> data;
+    data.reserve(256);
+    for (int i = 0; i < 256; ++i)
+    {
+        data.push_back(static_cast<uint8_t>(i));
+    }
+    grpc::grpc_message msg(data);
+    auto serialized = msg.serialize();
+    auto parsed = grpc::grpc_message::parse(serialized);
+    ASSERT_TRUE(parsed.is_ok());
+    EXPECT_EQ(parsed.value().data, data);
+}
+
+TEST_F(GrpcMessageTest, EmptyMessageSerializeIsHeaderOnly)
+{
+    grpc::grpc_message msg;
+    auto serialized = msg.serialize();
+    EXPECT_EQ(serialized.size(), grpc::grpc_header_size);
+}
