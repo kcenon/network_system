@@ -12,6 +12,7 @@
 
 #include <asio.hpp>
 
+#include <algorithm>
 #include <array>
 #include <atomic>
 #include <chrono>
@@ -2518,3 +2519,237 @@ TEST_F(Http2ServerLoopbackTest,
     std::error_code ec;
     sock.close(ec);
 }
+
+// ============================================================================
+// Additional gap-closure tests requested in the reviewer checklist
+// ============================================================================
+
+// A separate fixture that does NOT install an error_handler. Used to confirm
+// the http2_server_connection's `if (error_handler_)` guard does not segfault
+// when the handler is unset and a failure occurs.
+class Http2ServerLoopbackNoHandlerTest : public Http2ServerLoopbackTest
+{
+protected:
+    void SetUp() override
+    {
+        // Construct the server but skip installing the error_handler that
+        // the parent fixture provides. This exercises the null-handler
+        // guard branches inside read_connection_preface.
+        server_ = std::make_shared<http2_server>("loopback-no-handler");
+    }
+};
+
+TEST_F(Http2ServerLoopbackNoHandlerTest, HTTP2ServerPreface_NullErrorHandler)
+{
+    auto port = start_server();
+    ASSERT_NE(port, 0);
+
+    asio::io_context io;
+    auto sock = connect_client(io, port);
+
+    // 24 garbage bytes trigger the "Invalid connection preface" branch.
+    // With no error_handler installed, the server must not crash.
+    std::vector<uint8_t> bad_preface(24, 'Z');
+    write_bytes(sock, bad_preface);
+
+    // Drain until the server closes the socket (deadline-bounded; no sleep).
+    (void)read_available(sock, 1024, std::chrono::milliseconds(500));
+
+    EXPECT_TRUE(server_->is_running())
+        << "server must remain alive when error_handler is null";
+
+    std::error_code ec;
+    sock.close(ec);
+}
+
+TEST_F(Http2ServerLoopbackTest, HTTP2ServerErrorPath_MalformedFramePayload)
+{
+    auto port = start_server();
+    ASSERT_NE(port, 0);
+
+    asio::io_context io;
+    auto sock = connect_client(io, port);
+    write_preface(sock);
+    (void)read_available(sock, 1024, std::chrono::milliseconds(300));
+
+    // Build a SETTINGS frame whose declared length (5) is not a multiple of
+    // the 6-byte setting parameter size, so frame::parse rejects the
+    // payload and read_frame_payload's "Failed to parse frame" branch
+    // executes.
+    std::vector<uint8_t> raw = {
+        0x00, 0x00, 0x05,        // length = 5 (invalid for SETTINGS)
+        0x04,                    // type SETTINGS
+        0x00,                    // no flags (not ACK)
+        0x00, 0x00, 0x00, 0x00,  // stream_id 0
+        0x00, 0x01,              // partial setting id
+        0x00, 0x00, 0x10         // partial value (only 3 of 4 bytes)
+    };
+    write_bytes(sock, raw);
+
+    EXPECT_TRUE(wait_until_no_errors_or(
+        std::chrono::milliseconds(1000),
+        [this]() {
+            std::lock_guard<std::mutex> lock(errors_mutex_);
+            for (const auto& e : errors_) {
+                if (e.find("Failed to parse frame") != std::string::npos) {
+                    return true;
+                }
+            }
+            return false;
+        }))
+        << "expected the 'Failed to parse frame' error path to fire";
+
+    std::error_code ec;
+    sock.close(ec);
+}
+
+TEST_F(Http2ServerLoopbackTest,
+       HTTP2ServerErrorPath_UnknownSettingIdentifierIgnored)
+{
+    auto port = start_server();
+    ASSERT_NE(port, 0);
+
+    asio::io_context io;
+    auto sock = connect_client(io, port);
+    write_preface(sock);
+    (void)read_available(sock, 1024, std::chrono::milliseconds(300));
+
+    // SETTINGS frame containing identifiers outside the enum's named
+    // values. handle_settings_frame's switch has no default branch, so
+    // these must fall through silently and the server must still ACK.
+    std::vector<setting_parameter> params = {
+        {/*identifier*/ 0x42, /*value*/ 1},
+        {/*identifier*/ 0x99, /*value*/ 2},
+    };
+    settings_frame f(params, /*ack*/ false);
+    write_frame(sock, f);
+
+    auto bytes = read_available(sock, 4096, std::chrono::milliseconds(1000));
+
+    bool found_ack = false;
+    std::size_t off = 0;
+    while (off + 9 <= bytes.size()) {
+        uint32_t length = (static_cast<uint32_t>(bytes[off]) << 16) |
+                          (static_cast<uint32_t>(bytes[off + 1]) << 8) |
+                          static_cast<uint32_t>(bytes[off + 2]);
+        auto t = static_cast<frame_type>(bytes[off + 3]);
+        uint8_t flags = bytes[off + 4];
+        if (t == frame_type::settings && length == 0
+            && (flags & frame_flags::ack) != 0) {
+            found_ack = true;
+            break;
+        }
+        off += 9 + length;
+    }
+    EXPECT_TRUE(found_ack)
+        << "server must still ACK SETTINGS containing unknown identifiers";
+
+    {
+        std::lock_guard<std::mutex> lock(errors_mutex_);
+        EXPECT_TRUE(errors_.empty())
+            << "unknown identifiers must not produce errors";
+    }
+
+    std::error_code ec;
+    sock.close(ec);
+}
+
+TEST_F(Http2ServerLoopbackTest,
+       HTTP2ServerStreamState_HeadersWithBothFlagsFalse)
+{
+    std::atomic<bool> handler_called{false};
+    server_->set_request_handler(
+        [&](http2_server_stream&, const http2_request&) {
+            handler_called = true;
+        });
+
+    auto port = start_server();
+    ASSERT_NE(port, 0);
+
+    asio::io_context io;
+    auto sock = connect_client(io, port);
+    write_preface(sock);
+    (void)read_available(sock, 1024, std::chrono::milliseconds(300));
+
+    // HEADERS with neither END_STREAM nor END_HEADERS. The handle_headers_frame
+    // logic enters neither branch (no dispatch, no headers_complete=true),
+    // and the connection must remain alive. We verify with a PING-ACK.
+    //
+    // The headers_frame constructor only exposes end_stream and end_headers;
+    // to clear END_HEADERS we have to build the raw frame bytes by hand.
+    hpack_encoder enc(4096);
+    auto block = encode_get_headers(enc, "/no-flags");
+    std::vector<uint8_t> raw;
+    raw.resize(9 + block.size());
+    // length (24 bits)
+    raw[0] = static_cast<uint8_t>((block.size() >> 16) & 0xFF);
+    raw[1] = static_cast<uint8_t>((block.size() >> 8) & 0xFF);
+    raw[2] = static_cast<uint8_t>(block.size() & 0xFF);
+    raw[3] = static_cast<uint8_t>(frame_type::headers);  // type
+    raw[4] = 0x00;                                       // no flags
+    raw[5] = 0x00;
+    raw[6] = 0x00;
+    raw[7] = 0x00;
+    raw[8] = 0x01;                                       // stream id 1
+    std::copy(block.begin(), block.end(), raw.begin() + 9);
+    write_bytes(sock, raw);
+
+    ping_frame ping(std::array<uint8_t, 8>{0xA5, 0x5A, 0xA5, 0x5A,
+                                           0xA5, 0x5A, 0xA5, 0x5A},
+                    /*ack*/ false);
+    write_frame(sock, ping);
+
+    auto bytes = read_available(sock, 4096, std::chrono::milliseconds(1000));
+    EXPECT_TRUE(find_frame(bytes, frame_type::ping).has_value())
+        << "server must keep reading after HEADERS with no flags set";
+
+    EXPECT_FALSE(handler_called.load())
+        << "handler must not run when neither END_STREAM nor END_HEADERS "
+           "is set";
+
+    std::error_code ec;
+    sock.close(ec);
+}
+
+TEST_F(Http2ServerLoopbackTest,
+       HTTP2ServerFlowControl_DataFrameEmptyPayloadNoWindowUpdate)
+{
+    auto port = start_server();
+    ASSERT_NE(port, 0);
+
+    asio::io_context io;
+    auto sock = connect_client(io, port);
+    write_preface(sock);
+    (void)read_available(sock, 1024, std::chrono::milliseconds(300));
+
+    // Open a stream first.
+    hpack_encoder enc(4096);
+    auto block = encode_get_headers(enc, "/empty-data");
+    headers_frame hdrs(/*stream_id*/ 1, block,
+                       /*end_stream*/ false, /*end_headers*/ true);
+    write_frame(sock, hdrs);
+
+    // Empty DATA frame (no END_STREAM): the data_size > 0 guard suppresses
+    // WINDOW_UPDATE emission, and dispatch is not triggered.
+    data_frame df(/*stream_id*/ 1, std::vector<uint8_t>{},
+                  /*end_stream*/ false, /*padded*/ false);
+    write_frame(sock, df);
+
+    // Synchronize via a PING-ACK so we know the empty DATA has been
+    // processed.
+    ping_frame ping(std::array<uint8_t, 8>{0x10, 0x20, 0x30, 0x40,
+                                           0x50, 0x60, 0x70, 0x80},
+                    /*ack*/ false);
+    write_frame(sock, ping);
+
+    auto bytes = read_available(sock, 4096, std::chrono::milliseconds(1000));
+    EXPECT_TRUE(find_frame(bytes, frame_type::ping).has_value());
+
+    // No WINDOW_UPDATE frames should have been emitted for the empty DATA.
+    EXPECT_FALSE(find_frame(bytes, frame_type::window_update).has_value())
+        << "server must not emit WINDOW_UPDATE for an empty DATA frame";
+
+    std::error_code ec;
+    sock.close(ec);
+}
+
