@@ -56,6 +56,7 @@
 #include "kcenon/network/detail/protocols/grpc/status.h"
 
 #include "hermetic_transport_fixture.h"
+#include "mock_h2_server_peer.h"
 #include "mock_tls_socket.h"
 
 #include <gtest/gtest.h>
@@ -875,4 +876,320 @@ TEST_F(GrpcClientHermeticTransportTest, ConnectAttemptsHandshakeAgainstLoopbackT
     client->disconnect();
     connector.join();
     EXPECT_TRUE(connect_returned.load());
+}
+
+// ============================================================================
+// Phase 2A follow-up: drive grpc_client post-connect paths via mock_h2_server_peer
+// (Part of #1063, follow-up to PR #1075/#1076)
+//
+// grpc_client::impl::connect() instantiates an internal http2::http2_client and
+// delegates to its connect(host, port). Once the SETTINGS exchange against
+// mock_h2_server_peer completes, http2_client::is_connected() flips true and
+// grpc_client::is_connected() (which AND-s its own connected_ flag with the
+// http2 client's state) follows. With that gate satisfied, public methods that
+// previously short-circuited on the not-connected path can be driven into
+// their post-connect branches: header build, metadata loop, deadline header,
+// http2_client::post / start_stream forwarding, and the timeout-error branch.
+// HEADERS+DATA reply paths are still gated on Phase 2A.2 of #1074; this PR
+// is incremental progress and uses `Part of`, not `Closes`.
+// ============================================================================
+
+namespace
+{
+
+struct connected_grpc_client_setup
+{
+    std::shared_ptr<grpc_client> client;
+    std::thread connector;
+};
+
+inline connected_grpc_client_setup make_connected_grpc_client(
+    kcenon::network::tests::support::mock_h2_server_peer& peer,
+    std::chrono::milliseconds default_timeout = std::chrono::milliseconds(2000))
+{
+    grpc_channel_config cfg;
+    cfg.use_tls = true;
+    cfg.default_timeout = default_timeout;
+
+    const std::string target =
+        "127.0.0.1:" + std::to_string(static_cast<unsigned>(peer.port()));
+
+    auto client = std::make_shared<grpc_client>(target, cfg);
+    std::thread connector([client]() {
+        (void)client->connect();
+    });
+    return {std::move(client), std::move(connector)};
+}
+
+} // namespace
+
+TEST_F(GrpcClientHermeticTransportTest, IsConnectedTrueAfterSettingsExchange)
+{
+    using namespace kcenon::network::tests::support;
+
+    mock_h2_server_peer peer(io());
+    auto setup = make_connected_grpc_client(peer);
+
+    EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged(); },
+                         std::chrono::seconds(3)));
+    EXPECT_TRUE(setup.client->is_connected());
+
+    setup.client->disconnect();
+    setup.connector.join();
+}
+
+TEST_F(GrpcClientHermeticTransportTest, WaitForConnectedReturnsTrueAfterHandshake)
+{
+    using namespace kcenon::network::tests::support;
+
+    mock_h2_server_peer peer(io());
+    auto setup = make_connected_grpc_client(peer);
+
+    EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged(); },
+                         std::chrono::seconds(3)));
+    EXPECT_TRUE(setup.client->wait_for_connected(std::chrono::milliseconds(2000)));
+
+    setup.client->disconnect();
+    setup.connector.join();
+}
+
+TEST_F(GrpcClientHermeticTransportTest, SecondConnectReturnsOkOnAlreadyConnected)
+{
+    using namespace kcenon::network::tests::support;
+
+    mock_h2_server_peer peer(io());
+    auto setup = make_connected_grpc_client(peer);
+
+    EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged(); },
+                         std::chrono::seconds(3)));
+    ASSERT_TRUE(setup.client->is_connected());
+
+    // Second connect() short-circuits via the already_connected branch.
+    auto second = setup.client->connect();
+    EXPECT_TRUE(second.is_ok());
+
+    setup.client->disconnect();
+    setup.connector.join();
+}
+
+TEST_F(GrpcClientHermeticTransportTest, TargetReturnsConfiguredAddressAfterHandshake)
+{
+    using namespace kcenon::network::tests::support;
+
+    mock_h2_server_peer peer(io());
+    auto setup = make_connected_grpc_client(peer);
+
+    EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged(); },
+                         std::chrono::seconds(3)));
+
+    const auto& target = setup.client->target();
+    EXPECT_NE(target.find("127.0.0.1:"), std::string::npos);
+
+    setup.client->disconnect();
+    setup.connector.join();
+}
+
+TEST_F(GrpcClientHermeticTransportTest, CallRawConnectedTimesOutWhenPeerSendsNoResponse)
+{
+    using namespace kcenon::network::tests::support;
+
+    mock_h2_server_peer peer(io());
+    auto setup = make_connected_grpc_client(peer, std::chrono::milliseconds(150));
+
+    EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged(); },
+                         std::chrono::seconds(3)));
+    ASSERT_TRUE(setup.client->is_connected());
+
+    // call_raw drives is_connected() check, method validation, header build,
+    // grpc_message::serialize, and finally http2_client::post which times out
+    // because the mock peer does not yet reply with HEADERS+DATA (Phase 2A.2
+    // of #1074 will unblock that). We assert only on the error outcome.
+    auto result = setup.client->call_raw("/svc/Method", std::vector<uint8_t>{});
+    EXPECT_TRUE(result.is_err());
+
+    setup.client->disconnect();
+    setup.connector.join();
+}
+
+TEST_F(GrpcClientHermeticTransportTest,
+       CallRawWithCustomMetadataAndDeadlineDrivesTimeoutHeader)
+{
+    using namespace kcenon::network::tests::support;
+
+    mock_h2_server_peer peer(io());
+    auto setup = make_connected_grpc_client(peer, std::chrono::milliseconds(150));
+
+    EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged(); },
+                         std::chrono::seconds(3)));
+    ASSERT_TRUE(setup.client->is_connected());
+
+    call_options options;
+    options.metadata.emplace_back("x-custom-trace", "abc-123");
+    options.metadata.emplace_back("x-tenant-id", "tenant-7");
+    options.set_timeout(std::chrono::milliseconds(120));
+
+    // Drives the metadata-loop and grpc-timeout header build paths in addition
+    // to the post-timeout branch covered above.
+    auto result = setup.client->call_raw(
+        "/v1/Echo", std::vector<uint8_t>{0x01, 0x02, 0x03}, options);
+    EXPECT_TRUE(result.is_err());
+
+    setup.client->disconnect();
+    setup.connector.join();
+}
+
+TEST_F(GrpcClientHermeticTransportTest,
+       CallRawWithExpiredDeadlineAfterHandshakeReturnsDeadlineExceeded)
+{
+    using namespace kcenon::network::tests::support;
+
+    mock_h2_server_peer peer(io());
+    auto setup = make_connected_grpc_client(peer);
+
+    EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged(); },
+                         std::chrono::seconds(3)));
+    ASSERT_TRUE(setup.client->is_connected());
+
+    call_options options;
+    options.deadline = std::chrono::system_clock::now() - std::chrono::seconds(1);
+
+    // Drives the post-connect deadline-exceeded branch (after is_connected()
+    // and method validation, before the http2 POST is attempted).
+    auto result = setup.client->call_raw(
+        "/svc/Method", std::vector<uint8_t>{}, options);
+    EXPECT_TRUE(result.is_err());
+
+    setup.client->disconnect();
+    setup.connector.join();
+}
+
+TEST_F(GrpcClientHermeticTransportTest, ServerStreamRawConnectedReturnsValidReader)
+{
+    using namespace kcenon::network::tests::support;
+
+    mock_h2_server_peer peer(io());
+    auto setup = make_connected_grpc_client(peer);
+
+    EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged(); },
+                         std::chrono::seconds(3)));
+    ASSERT_TRUE(setup.client->is_connected());
+
+    // Drives is_connected() check, method validation, header build, then
+    // start_stream + write_stream + shared_holder allocation. The reader is
+    // returned successfully even though the peer never replies; the client
+    // owns the read-side state machine until disconnect.
+    auto result = setup.client->server_stream_raw(
+        "/svc/ListEvents", std::vector<uint8_t>{0xff});
+    EXPECT_TRUE(result.is_ok());
+    if (result.is_ok())
+    {
+        EXPECT_NE(result.value().get(), nullptr);
+    }
+
+    setup.client->disconnect();
+    setup.connector.join();
+}
+
+TEST_F(GrpcClientHermeticTransportTest, ClientStreamRawConnectedReturnsValidWriter)
+{
+    using namespace kcenon::network::tests::support;
+
+    mock_h2_server_peer peer(io());
+    auto setup = make_connected_grpc_client(peer);
+
+    EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged(); },
+                         std::chrono::seconds(3)));
+    ASSERT_TRUE(setup.client->is_connected());
+
+    // Drives the connected client_stream_raw path: header build,
+    // start_stream forwarding, shared_writer_holder allocation.
+    auto result = setup.client->client_stream_raw("/svc/Upload");
+    EXPECT_TRUE(result.is_ok());
+    if (result.is_ok())
+    {
+        EXPECT_NE(result.value().get(), nullptr);
+    }
+
+    setup.client->disconnect();
+    setup.connector.join();
+}
+
+TEST_F(GrpcClientHermeticTransportTest, BidiStreamRawConnectedReturnsValidStream)
+{
+    using namespace kcenon::network::tests::support;
+
+    mock_h2_server_peer peer(io());
+    auto setup = make_connected_grpc_client(peer);
+
+    EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged(); },
+                         std::chrono::seconds(3)));
+    ASSERT_TRUE(setup.client->is_connected());
+
+    call_options options;
+    options.set_timeout(std::chrono::milliseconds(500));
+    options.metadata.emplace_back("x-trace", "bidi-1");
+
+    // Drives bidi_stream_raw post-connect path including grpc-timeout header
+    // formatting and metadata-loop iteration before start_stream is called.
+    auto result = setup.client->bidi_stream_raw("/svc/Chat", options);
+    EXPECT_TRUE(result.is_ok());
+    if (result.is_ok())
+    {
+        EXPECT_NE(result.value().get(), nullptr);
+    }
+
+    setup.client->disconnect();
+    setup.connector.join();
+}
+
+TEST_F(GrpcClientHermeticTransportTest, CallRawAsyncDeliversTimeoutErrorToCallback)
+{
+    using namespace kcenon::network::tests::support;
+
+    mock_h2_server_peer peer(io());
+    auto setup = make_connected_grpc_client(peer, std::chrono::milliseconds(150));
+
+    EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged(); },
+                         std::chrono::seconds(3)));
+    ASSERT_TRUE(setup.client->is_connected());
+
+    std::promise<bool> received;
+    auto received_future = received.get_future();
+    setup.client->call_raw_async(
+        "/svc/Method",
+        std::vector<uint8_t>{},
+        [&received](kcenon::network::Result<grpc_message> r) {
+            received.set_value(r.is_err());
+        });
+
+    EXPECT_EQ(received_future.wait_for(std::chrono::seconds(2)),
+              std::future_status::ready);
+    EXPECT_TRUE(received_future.get());
+
+    setup.client->disconnect();
+    setup.connector.join();
+}
+
+TEST_F(GrpcClientHermeticTransportTest, DisconnectIsIdempotentAfterFullHandshake)
+{
+    using namespace kcenon::network::tests::support;
+
+    mock_h2_server_peer peer(io());
+    auto setup = make_connected_grpc_client(peer);
+
+    EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged(); },
+                         std::chrono::seconds(3)));
+    ASSERT_TRUE(setup.client->is_connected());
+
+    // First disconnect — drives http2_client_->disconnect() in the connected
+    // path, then resets the http2_client_ shared_ptr.
+    setup.client->disconnect();
+    EXPECT_FALSE(setup.client->is_connected());
+
+    // Second disconnect — connected_ is already false and http2_client_ is
+    // null, so the inner branch is skipped and the call is a no-op.
+    setup.client->disconnect();
+    EXPECT_FALSE(setup.client->is_connected());
+
+    setup.connector.join();
 }
