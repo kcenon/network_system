@@ -1520,10 +1520,6 @@ namespace
 
 constexpr std::string_view kHttp2Preface = "PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n";
 
-// Each test gets a unique port to avoid collisions when run in parallel.
-// We start at 19500 and bump by line number modulus to spread the values.
-constexpr unsigned short kLoopbackPortBase = 19500;
-
 class Http2ServerLoopbackTest : public ::testing::Test
 {
 protected:
@@ -1544,18 +1540,36 @@ protected:
         }
     }
 
-    // Pick a port that is unique per running test.
-    unsigned short pick_port()
+    // Probe a free ephemeral port via a temporary acceptor bound to port
+    // 0. The probe is closed before returning, so a TOCTOU race is
+    // possible; the start_server() loop retries to mitigate it. This is
+    // dramatically more robust than hardcoded port offsets on shared CI
+    // runners (Ubuntu / macOS GitHub runners).
+    static unsigned short probe_free_port()
     {
-        return static_cast<unsigned short>(
-            kLoopbackPortBase + (port_counter_++ % 200));
+        try {
+            asio::io_context probe_io;
+            asio::ip::tcp::acceptor probe(
+                probe_io,
+                asio::ip::tcp::endpoint(
+                    asio::ip::make_address_v4("127.0.0.1"), 0));
+            unsigned short port = probe.local_endpoint().port();
+            std::error_code ec;
+            probe.close(ec);
+            return port;
+        } catch (...) {
+            return 0;
+        }
     }
 
-    // Start the server on a free port; retries on EADDRINUSE.
+    // Start the server on a fresh ephemeral port. Retries the probe loop
+    // for the rare case where the kernel reassigns the probed port to
+    // another process between probe close and start().
     unsigned short start_server()
     {
-        for (int attempt = 0; attempt < 20; ++attempt) {
-            unsigned short port = pick_port();
+        for (int attempt = 0; attempt < 10; ++attempt) {
+            unsigned short port = probe_free_port();
+            if (port == 0) continue;
             auto result = server_->start(port);
             if (result.is_ok()) {
                 return port;
@@ -1671,10 +1685,7 @@ protected:
     std::shared_ptr<http2_server> server_;
     std::mutex errors_mutex_;
     std::vector<std::string> errors_;
-    static std::atomic<unsigned short> port_counter_;
 };
-
-std::atomic<unsigned short> Http2ServerLoopbackTest::port_counter_{0};
 
 } // namespace
 
@@ -2136,6 +2147,75 @@ TEST_F(Http2ServerLoopbackTest, HTTP2ServerErrorPath_RequestHandlerException)
         << "expected the error handler to receive a 'Request handler "
            "exception' notification";
 
+    // close_stream(stream_id) must run after the catch block (line 968 in
+    // http2_server.cpp), so the failed request must NOT leak the stream
+    // record. Wait briefly for the post-catch close_stream to take effect.
+    EXPECT_TRUE(wait_until_no_errors_or(
+        std::chrono::milliseconds(500),
+        [this]() { return server_->active_streams() == 0; }))
+        << "stream must be closed even when the handler throws";
+
+    std::error_code ec;
+    sock.close(ec);
+}
+
+// A second fixture without an installed error_handler. Verifies the
+// dangerous branch where the handler is null and the request handler
+// throws: the connection's catch block must swallow silently, the stream
+// must still be closed, and the server must remain alive.
+class Http2ServerLoopbackNoErrorHandlerTest : public Http2ServerLoopbackTest
+{
+protected:
+    void SetUp() override
+    {
+        // Construct without installing the error_handler that the parent
+        // fixture provides.
+        server_ = std::make_shared<http2_server>("loopback-no-eh");
+    }
+};
+
+TEST_F(Http2ServerLoopbackNoErrorHandlerTest,
+       HTTP2ServerErrorPath_RequestHandlerExceptionWithoutErrorHandler)
+{
+    server_->set_request_handler(
+        [](http2_server_stream& /*stream*/,
+           const http2_request& /*req*/) {
+            throw std::runtime_error("silent failure");
+        });
+
+    auto port = start_server();
+    ASSERT_NE(port, 0);
+
+    asio::io_context io;
+    auto sock = connect_client(io, port);
+    write_preface(sock);
+    (void)read_available(sock, 1024, std::chrono::milliseconds(300));
+
+    hpack_encoder enc(4096);
+    auto block = encode_get_headers(enc, "/silent-throw");
+    headers_frame hdrs(/*stream_id*/ 1, block,
+                       /*end_stream*/ true, /*end_headers*/ true);
+    write_frame(sock, hdrs);
+
+    // We have no error_handler to synchronize on, so probe the post-catch
+    // close_stream side-effect via active_streams. The deadline lets the
+    // throw + catch + close_stream sequence finish on the I/O thread.
+    bool stream_closed = false;
+    const auto deadline = std::chrono::steady_clock::now()
+                          + std::chrono::milliseconds(1000);
+    while (std::chrono::steady_clock::now() < deadline) {
+        if (server_->active_streams() == 0) {
+            stream_closed = true;
+            break;
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+
+    EXPECT_TRUE(stream_closed)
+        << "stream must close even with a null error_handler";
+    EXPECT_TRUE(server_->is_running())
+        << "server must survive a swallowed handler exception";
+
     std::error_code ec;
     sock.close(ec);
 }
@@ -2234,7 +2314,13 @@ TEST_F(Http2ServerLoopbackTest,
 TEST_F(Http2ServerLoopbackTest,
        HTTP2ServerStreamState_DataEndStreamDispatchesRequest)
 {
+    // Distinct signal from HTTP2ServerFlowControl_DataFrameTriggersWindowUpdate:
+    // here we verify the dispatch path (handler_called + method/path/body
+    // captured), not the WINDOW_UPDATE side effect. A regression in either
+    // path produces a different failure than the flow-control test.
     std::atomic<bool> handler_called{false};
+    std::string captured_method;
+    std::string captured_path;
     std::vector<uint8_t> captured_body;
     std::mutex capture_mutex;
 
@@ -2242,6 +2328,8 @@ TEST_F(Http2ServerLoopbackTest,
         [&](http2_server_stream& /*stream*/, const http2_request& req) {
             std::lock_guard<std::mutex> lock(capture_mutex);
             handler_called = true;
+            captured_method = req.method;
+            captured_path = req.path;
             captured_body = req.body;
         });
 
@@ -2280,6 +2368,8 @@ TEST_F(Http2ServerLoopbackTest,
 
     {
         std::lock_guard<std::mutex> lock(capture_mutex);
+        EXPECT_EQ(captured_method, "POST");
+        EXPECT_EQ(captured_path, "/upload");
         EXPECT_EQ(captured_body, body);
     }
 
@@ -2451,6 +2541,12 @@ TEST_F(Http2ServerLoopbackTest,
 TEST_F(Http2ServerLoopbackTest,
        HTTP2ServerFlowControl_DataFrameTriggersWindowUpdate)
 {
+    // Distinct signal from HTTP2ServerStreamState_DataEndStreamDispatchesRequest:
+    // here END_STREAM is intentionally NOT set, so dispatch must NOT fire.
+    // The assertion targets the WINDOW_UPDATE emission counts, not the
+    // request-handler invocation. A regression that breaks dispatch will
+    // surface in the other test; a regression that breaks WINDOW_UPDATE
+    // emission surfaces here.
     std::atomic<bool> dispatched{false};
     server_->set_request_handler(
         [&](http2_server_stream&, const http2_request&) {
