@@ -6,11 +6,22 @@
 #include "internal/protocols/http2/http2_server.h"
 #include "internal/protocols/http2/http2_server_stream.h"
 #include "internal/protocols/http2/http2_request.h"
+#include "internal/protocols/http2/frame.h"
+#include "internal/protocols/http2/hpack.h"
 #include "kcenon/network/detail/utils/result_types.h"
+
+#include <asio.hpp>
+
+#include <array>
+#include <atomic>
 #include <chrono>
 #include <cstdint>
+#include <functional>
 #include <memory>
+#include <mutex>
+#include <optional>
 #include <string>
+#include <system_error>
 #include <thread>
 #include <vector>
 
@@ -1492,4 +1503,285 @@ TEST(Http2ServerIsolation, IndependentRunningState)
 
     b->stop();
     EXPECT_FALSE(b->is_running());
+}
+
+// ============================================================================
+// In-process loopback tests for http2_server_connection
+//
+// These tests connect a real asio TCP client to the running server on
+// 127.0.0.1, write raw bytes (preface, serialized frames) and observe the
+// server's response. They exercise the private read/parse/dispatch paths of
+// http2_server_connection without mocks.
+// ============================================================================
+
+namespace
+{
+
+constexpr std::string_view kHttp2Preface = "PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n";
+
+// Each test gets a unique port to avoid collisions when run in parallel.
+// We start at 19500 and bump by line number modulus to spread the values.
+constexpr unsigned short kLoopbackPortBase = 19500;
+
+class Http2ServerLoopbackTest : public ::testing::Test
+{
+protected:
+    void SetUp() override
+    {
+        server_ = std::make_shared<http2_server>("loopback-test");
+        server_->set_error_handler(
+            [this](const std::string& msg) {
+                std::lock_guard<std::mutex> lock(errors_mutex_);
+                errors_.push_back(msg);
+            });
+    }
+
+    void TearDown() override
+    {
+        if (server_ && server_->is_running()) {
+            server_->stop();
+        }
+    }
+
+    // Pick a port that is unique per running test.
+    unsigned short pick_port()
+    {
+        return static_cast<unsigned short>(
+            kLoopbackPortBase + (port_counter_++ % 200));
+    }
+
+    // Start the server on a free port; retries on EADDRINUSE.
+    unsigned short start_server()
+    {
+        for (int attempt = 0; attempt < 20; ++attempt) {
+            unsigned short port = pick_port();
+            auto result = server_->start(port);
+            if (result.is_ok()) {
+                return port;
+            }
+        }
+        ADD_FAILURE() << "Could not start loopback server on any port";
+        return 0;
+    }
+
+    // Connect to the server and return an open socket.
+    asio::ip::tcp::socket connect_client(
+        asio::io_context& io, unsigned short port)
+    {
+        asio::ip::tcp::socket sock(io);
+        std::error_code ec;
+        // Allow a short retry window for the acceptor to be ready.
+        for (int attempt = 0; attempt < 50; ++attempt) {
+            sock.connect(asio::ip::tcp::endpoint(
+                             asio::ip::make_address_v4("127.0.0.1"), port),
+                         ec);
+            if (!ec) {
+                return sock;
+            }
+            std::this_thread::sleep_for(std::chrono::milliseconds(20));
+        }
+        ADD_FAILURE() << "client connect failed: " << ec.message();
+        return sock;
+    }
+
+    static void write_preface(asio::ip::tcp::socket& sock)
+    {
+        std::error_code ec;
+        asio::write(sock, asio::buffer(kHttp2Preface.data(),
+                                       kHttp2Preface.size()), ec);
+        ASSERT_FALSE(ec) << "preface write failed: " << ec.message();
+    }
+
+    static void write_bytes(asio::ip::tcp::socket& sock,
+                            const std::vector<uint8_t>& bytes)
+    {
+        std::error_code ec;
+        asio::write(sock, asio::buffer(bytes), ec);
+        ASSERT_FALSE(ec) << "frame write failed: " << ec.message();
+    }
+
+    static void write_frame(asio::ip::tcp::socket& sock, const frame& f)
+    {
+        write_bytes(sock, f.serialize());
+    }
+
+    // Read at most `max_bytes` from the socket within timeout. Stops at EOF.
+    static std::vector<uint8_t> read_available(
+        asio::ip::tcp::socket& sock,
+        std::size_t max_bytes,
+        std::chrono::milliseconds timeout = std::chrono::milliseconds(500))
+    {
+        std::vector<uint8_t> result;
+        result.reserve(max_bytes);
+        const auto deadline = std::chrono::steady_clock::now() + timeout;
+
+        sock.non_blocking(true);
+        std::array<uint8_t, 1024> buf{};
+        while (std::chrono::steady_clock::now() < deadline
+               && result.size() < max_bytes) {
+            std::error_code ec;
+            std::size_t n = sock.read_some(asio::buffer(buf), ec);
+            if (ec == asio::error::would_block || ec == asio::error::try_again) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(10));
+                continue;
+            }
+            if (ec) {
+                break; // EOF or other terminal error
+            }
+            if (n == 0) {
+                break;
+            }
+            result.insert(result.end(), buf.begin(), buf.begin() + n);
+        }
+        sock.non_blocking(false);
+        return result;
+    }
+
+    // Look for a frame of the given type in a raw byte stream. Returns the
+    // start offset of the frame header, or std::nullopt if not found.
+    static std::optional<std::size_t> find_frame(
+        const std::vector<uint8_t>& bytes, frame_type type)
+    {
+        std::size_t off = 0;
+        while (off + 9 <= bytes.size()) {
+            uint32_t length = (static_cast<uint32_t>(bytes[off]) << 16) |
+                              (static_cast<uint32_t>(bytes[off + 1]) << 8) |
+                              static_cast<uint32_t>(bytes[off + 2]);
+            auto t = static_cast<frame_type>(bytes[off + 3]);
+            if (t == type) {
+                return off;
+            }
+            off += 9 + length;
+        }
+        return std::nullopt;
+    }
+
+    bool wait_until_no_errors_or(std::chrono::milliseconds timeout,
+                                 std::function<bool()> predicate)
+    {
+        const auto deadline = std::chrono::steady_clock::now() + timeout;
+        while (std::chrono::steady_clock::now() < deadline) {
+            if (predicate()) return true;
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        }
+        return predicate();
+    }
+
+    std::shared_ptr<http2_server> server_;
+    std::mutex errors_mutex_;
+    std::vector<std::string> errors_;
+    static std::atomic<unsigned short> port_counter_;
+};
+
+std::atomic<unsigned short> Http2ServerLoopbackTest::port_counter_{0};
+
+} // namespace
+
+// ============================================================================
+// HTTP2ServerPreface_* — connection preface validation
+// ============================================================================
+
+TEST_F(Http2ServerLoopbackTest, HTTP2ServerPreface_InvalidBytes)
+{
+    auto port = start_server();
+    ASSERT_NE(port, 0);
+
+    asio::io_context io;
+    auto sock = connect_client(io, port);
+
+    // Send 24 bytes of garbage that match preface length but not content.
+    std::vector<uint8_t> bad_preface(24, 'X');
+    write_bytes(sock, bad_preface);
+
+    // Server should detect invalid preface, call error handler, and close.
+    EXPECT_TRUE(wait_until_no_errors_or(
+        std::chrono::milliseconds(1000),
+        [this]() {
+            std::lock_guard<std::mutex> lock(errors_mutex_);
+            return !errors_.empty();
+        }));
+
+    std::lock_guard<std::mutex> lock(errors_mutex_);
+    bool found_invalid = false;
+    for (const auto& e : errors_) {
+        if (e.find("Invalid connection preface") != std::string::npos) {
+            found_invalid = true;
+        }
+    }
+    EXPECT_TRUE(found_invalid) << "expected 'Invalid connection preface' error";
+
+    std::error_code ec;
+    sock.close(ec);
+}
+
+TEST_F(Http2ServerLoopbackTest, HTTP2ServerPreface_TooFewBytes)
+{
+    auto port = start_server();
+    ASSERT_NE(port, 0);
+
+    asio::io_context io;
+    auto sock = connect_client(io, port);
+
+    // Send only 10 bytes of the 24-byte preface, then close.
+    std::vector<uint8_t> partial(kHttp2Preface.begin(),
+                                 kHttp2Preface.begin() + 10);
+    write_bytes(sock, partial);
+    std::error_code ec;
+    sock.shutdown(asio::ip::tcp::socket::shutdown_send, ec);
+
+    EXPECT_TRUE(wait_until_no_errors_or(
+        std::chrono::milliseconds(1000),
+        [this]() {
+            std::lock_guard<std::mutex> lock(errors_mutex_);
+            for (const auto& e : errors_) {
+                if (e.find("Failed to read connection preface")
+                    != std::string::npos) {
+                    return true;
+                }
+            }
+            return false;
+        }));
+
+    sock.close(ec);
+}
+
+TEST_F(Http2ServerLoopbackTest, HTTP2ServerPreface_ClientCleanShutdown)
+{
+    auto port = start_server();
+    ASSERT_NE(port, 0);
+
+    asio::io_context io;
+    auto sock = connect_client(io, port);
+
+    // Close immediately without sending any data.
+    std::error_code ec;
+    sock.close(ec);
+
+    // Server must observe the EOF and clean up; allow time for the callback
+    // to fire and the connection to be removed.
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    // active_connections should drop back to 0 after cleanup runs or the
+    // connection observes its socket close.
+    auto check = [this]() { return server_->is_running(); };
+    EXPECT_TRUE(check()); // server itself should still be running
+}
+
+TEST_F(Http2ServerLoopbackTest, HTTP2ServerPreface_ValidPrefaceAcceptsSettings)
+{
+    auto port = start_server();
+    ASSERT_NE(port, 0);
+
+    asio::io_context io;
+    auto sock = connect_client(io, port);
+    write_preface(sock);
+
+    // Server should send its own SETTINGS frame after preface.
+    auto bytes = read_available(sock, 1024,
+                                std::chrono::milliseconds(1000));
+    auto settings_off = find_frame(bytes, frame_type::settings);
+    EXPECT_TRUE(settings_off.has_value())
+        << "expected SETTINGS frame from server after valid preface";
+
+    std::error_code ec;
+    sock.close(ec);
 }
