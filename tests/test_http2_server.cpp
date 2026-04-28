@@ -2136,3 +2136,382 @@ TEST_F(Http2ServerLoopbackTest, HTTP2ServerErrorPath_RequestHandlerException)
     std::error_code ec;
     sock.close(ec);
 }
+
+// ============================================================================
+// HTTP2ServerStreamState_* — stream state transitions and dispatch
+// ============================================================================
+
+TEST_F(Http2ServerLoopbackTest, HTTP2ServerStreamState_HeadersEndStreamDispatches)
+{
+    std::atomic<bool> handler_called{false};
+    std::string captured_path;
+    std::string captured_method;
+    std::mutex capture_mutex;
+
+    server_->set_request_handler(
+        [&](http2_server_stream& /*stream*/,
+            const http2_request& req) {
+            std::lock_guard<std::mutex> lock(capture_mutex);
+            handler_called = true;
+            captured_path = req.path;
+            captured_method = req.method;
+        });
+
+    auto port = start_server();
+    ASSERT_NE(port, 0);
+
+    asio::io_context io;
+    auto sock = connect_client(io, port);
+    write_preface(sock);
+    (void)read_available(sock, 1024, std::chrono::milliseconds(300));
+
+    hpack_encoder enc(4096);
+    auto block = encode_get_headers(enc, "/dispatch");
+    headers_frame hdrs(/*stream_id*/ 1, block,
+                       /*end_stream*/ true, /*end_headers*/ true);
+    write_frame(sock, hdrs);
+
+    EXPECT_TRUE(wait_until_no_errors_or(
+        std::chrono::milliseconds(1000),
+        [&]() { return handler_called.load(); }))
+        << "request_handler should be invoked once HEADERS with END_STREAM "
+           "arrives";
+
+    {
+        std::lock_guard<std::mutex> lock(capture_mutex);
+        EXPECT_EQ(captured_method, "GET");
+        EXPECT_EQ(captured_path, "/dispatch");
+    }
+
+    std::error_code ec;
+    sock.close(ec);
+}
+
+TEST_F(Http2ServerLoopbackTest,
+       HTTP2ServerStreamState_HeadersEndHeadersWithoutEndStream)
+{
+    std::atomic<bool> handler_called{false};
+    server_->set_request_handler(
+        [&](http2_server_stream&, const http2_request&) {
+            handler_called = true;
+        });
+
+    auto port = start_server();
+    ASSERT_NE(port, 0);
+
+    asio::io_context io;
+    auto sock = connect_client(io, port);
+    write_preface(sock);
+    (void)read_available(sock, 1024, std::chrono::milliseconds(300));
+
+    hpack_encoder enc(4096);
+    auto block = encode_get_headers(enc, "/no-end-stream");
+    headers_frame hdrs(/*stream_id*/ 1, block,
+                       /*end_stream*/ false, /*end_headers*/ true);
+    write_frame(sock, hdrs);
+
+    // Without END_STREAM the server marks headers_complete but must not
+    // dispatch yet. Wait briefly to confirm no dispatch happens.
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    EXPECT_FALSE(handler_called.load())
+        << "handler must not run until END_STREAM is observed";
+
+    // Send a follow-up PING and expect the connection to be alive.
+    ping_frame ping(std::array<uint8_t, 8>{1, 2, 3, 4, 5, 6, 7, 8},
+                    /*ack*/ false);
+    write_frame(sock, ping);
+    auto bytes = read_available(sock, 4096, std::chrono::milliseconds(500));
+    EXPECT_TRUE(find_frame(bytes, frame_type::ping).has_value());
+
+    std::error_code ec;
+    sock.close(ec);
+}
+
+TEST_F(Http2ServerLoopbackTest,
+       HTTP2ServerStreamState_DataEndStreamDispatchesRequest)
+{
+    std::atomic<bool> handler_called{false};
+    std::vector<uint8_t> captured_body;
+    std::mutex capture_mutex;
+
+    server_->set_request_handler(
+        [&](http2_server_stream& /*stream*/, const http2_request& req) {
+            std::lock_guard<std::mutex> lock(capture_mutex);
+            handler_called = true;
+            captured_body = req.body;
+        });
+
+    auto port = start_server();
+    ASSERT_NE(port, 0);
+
+    asio::io_context io;
+    auto sock = connect_client(io, port);
+    write_preface(sock);
+    (void)read_available(sock, 1024, std::chrono::milliseconds(300));
+
+    // Open the stream with HEADERS only (no END_STREAM).
+    hpack_encoder enc(4096);
+    std::vector<http_header> req_headers = {
+        {":method", "POST"},
+        {":scheme", "http"},
+        {":path", "/upload"},
+        {":authority", "localhost"},
+        {"content-type", "text/plain"}
+    };
+    auto block = enc.encode(req_headers);
+    headers_frame hdrs(/*stream_id*/ 1, block,
+                       /*end_stream*/ false, /*end_headers*/ true);
+    write_frame(sock, hdrs);
+
+    // Body in a single DATA frame with END_STREAM.
+    std::vector<uint8_t> body = {'h', 'i', '!', '\n'};
+    data_frame body_frame(/*stream_id*/ 1, body,
+                          /*end_stream*/ true, /*padded*/ false);
+    write_frame(sock, body_frame);
+
+    EXPECT_TRUE(wait_until_no_errors_or(
+        std::chrono::milliseconds(1000),
+        [&]() { return handler_called.load(); }))
+        << "DATA with END_STREAM must trigger dispatch_request";
+
+    {
+        std::lock_guard<std::mutex> lock(capture_mutex);
+        EXPECT_EQ(captured_body, body);
+    }
+
+    std::error_code ec;
+    sock.close(ec);
+}
+
+TEST_F(Http2ServerLoopbackTest,
+       HTTP2ServerStreamState_DataFrameOnUnknownStreamSendsRst)
+{
+    auto port = start_server();
+    ASSERT_NE(port, 0);
+
+    asio::io_context io;
+    auto sock = connect_client(io, port);
+    write_preface(sock);
+    (void)read_available(sock, 1024, std::chrono::milliseconds(300));
+
+    // Send a DATA frame on a stream id that has never been opened.
+    data_frame df(/*stream_id*/ 7, std::vector<uint8_t>{1, 2, 3, 4},
+                  /*end_stream*/ false, /*padded*/ false);
+    write_frame(sock, df);
+
+    auto bytes = read_available(sock, 4096, std::chrono::milliseconds(1000));
+    auto rst_off = find_frame(bytes, frame_type::rst_stream);
+    EXPECT_TRUE(rst_off.has_value())
+        << "expected RST_STREAM after DATA on unknown stream";
+
+    if (rst_off) {
+        std::size_t off = *rst_off;
+        // stream id at offset+5..+8
+        uint32_t sid = (static_cast<uint32_t>(bytes[off + 5]) << 24)
+                       | (static_cast<uint32_t>(bytes[off + 6]) << 16)
+                       | (static_cast<uint32_t>(bytes[off + 7]) << 8)
+                       | static_cast<uint32_t>(bytes[off + 8]);
+        sid &= 0x7FFFFFFFu;
+        EXPECT_EQ(sid, 7u);
+    }
+
+    std::error_code ec;
+    sock.close(ec);
+}
+
+TEST_F(Http2ServerLoopbackTest,
+       HTTP2ServerStreamState_DispatchWithoutHandler)
+{
+    // No request handler set. dispatch_request must early-return when the
+    // server receives a complete HEADERS frame.
+    auto port = start_server();
+    ASSERT_NE(port, 0);
+
+    asio::io_context io;
+    auto sock = connect_client(io, port);
+    write_preface(sock);
+    (void)read_available(sock, 1024, std::chrono::milliseconds(300));
+
+    hpack_encoder enc(4096);
+    auto block = encode_get_headers(enc, "/no-handler");
+    headers_frame hdrs(/*stream_id*/ 1, block,
+                       /*end_stream*/ true, /*end_headers*/ true);
+    write_frame(sock, hdrs);
+
+    // Verify the connection survives by following up with a PING.
+    ping_frame ping(std::array<uint8_t, 8>{9, 8, 7, 6, 5, 4, 3, 2},
+                    /*ack*/ false);
+    write_frame(sock, ping);
+
+    auto bytes = read_available(sock, 4096, std::chrono::milliseconds(1000));
+    EXPECT_TRUE(find_frame(bytes, frame_type::ping).has_value())
+        << "server must remain healthy when dispatch has no handler";
+
+    std::error_code ec;
+    sock.close(ec);
+}
+
+// ============================================================================
+// HTTP2ServerFlowControl_* — WINDOW_UPDATE handling
+// ============================================================================
+
+TEST_F(Http2ServerLoopbackTest,
+       HTTP2ServerFlowControl_WindowUpdateConnection)
+{
+    auto port = start_server();
+    ASSERT_NE(port, 0);
+
+    asio::io_context io;
+    auto sock = connect_client(io, port);
+    write_preface(sock);
+    (void)read_available(sock, 1024, std::chrono::milliseconds(300));
+
+    // Connection-level WINDOW_UPDATE (stream_id 0). Must be accepted
+    // silently; we verify with a follow-up PING ACK.
+    window_update_frame wu(/*stream_id*/ 0, /*increment*/ 4096);
+    write_frame(sock, wu);
+
+    ping_frame ping(std::array<uint8_t, 8>{0, 1, 2, 3, 4, 5, 6, 7},
+                    /*ack*/ false);
+    write_frame(sock, ping);
+
+    auto bytes = read_available(sock, 4096, std::chrono::milliseconds(500));
+    EXPECT_TRUE(find_frame(bytes, frame_type::ping).has_value());
+    {
+        std::lock_guard<std::mutex> lock(errors_mutex_);
+        EXPECT_TRUE(errors_.empty());
+    }
+
+    std::error_code ec;
+    sock.close(ec);
+}
+
+TEST_F(Http2ServerLoopbackTest, HTTP2ServerFlowControl_WindowUpdateStream)
+{
+    auto port = start_server();
+    ASSERT_NE(port, 0);
+
+    asio::io_context io;
+    auto sock = connect_client(io, port);
+    write_preface(sock);
+    (void)read_available(sock, 1024, std::chrono::milliseconds(300));
+
+    hpack_encoder enc(4096);
+    auto block = encode_get_headers(enc, "/wu");
+    headers_frame hdrs(/*stream_id*/ 1, block,
+                       /*end_stream*/ false, /*end_headers*/ true);
+    write_frame(sock, hdrs);
+
+    // Stream-level WINDOW_UPDATE on the open stream.
+    window_update_frame wu(/*stream_id*/ 1, /*increment*/ 8192);
+    write_frame(sock, wu);
+
+    ping_frame ping(std::array<uint8_t, 8>{1, 1, 1, 1, 1, 1, 1, 1},
+                    /*ack*/ false);
+    write_frame(sock, ping);
+
+    auto bytes = read_available(sock, 4096, std::chrono::milliseconds(500));
+    EXPECT_TRUE(find_frame(bytes, frame_type::ping).has_value());
+
+    std::error_code ec;
+    sock.close(ec);
+}
+
+TEST_F(Http2ServerLoopbackTest,
+       HTTP2ServerFlowControl_WindowUpdateUnknownStream)
+{
+    auto port = start_server();
+    ASSERT_NE(port, 0);
+
+    asio::io_context io;
+    auto sock = connect_client(io, port);
+    write_preface(sock);
+    (void)read_available(sock, 1024, std::chrono::milliseconds(300));
+
+    // WINDOW_UPDATE for a stream that has never been opened should be
+    // ignored (no map lookup hit), and the connection must remain alive.
+    window_update_frame wu(/*stream_id*/ 99, /*increment*/ 4096);
+    write_frame(sock, wu);
+
+    ping_frame ping(std::array<uint8_t, 8>{2, 2, 2, 2, 2, 2, 2, 2},
+                    /*ack*/ false);
+    write_frame(sock, ping);
+
+    auto bytes = read_available(sock, 4096, std::chrono::milliseconds(500));
+    EXPECT_TRUE(find_frame(bytes, frame_type::ping).has_value());
+
+    std::error_code ec;
+    sock.close(ec);
+}
+
+TEST_F(Http2ServerLoopbackTest,
+       HTTP2ServerFlowControl_DataFrameTriggersWindowUpdate)
+{
+    std::atomic<bool> dispatched{false};
+    server_->set_request_handler(
+        [&](http2_server_stream&, const http2_request&) {
+            dispatched = true;
+        });
+
+    auto port = start_server();
+    ASSERT_NE(port, 0);
+
+    asio::io_context io;
+    auto sock = connect_client(io, port);
+    write_preface(sock);
+    (void)read_available(sock, 1024, std::chrono::milliseconds(300));
+
+    // Open the stream, then send DATA without END_STREAM so the body is
+    // accumulated and the server emits WINDOW_UPDATE frames.
+    hpack_encoder enc(4096);
+    std::vector<http_header> req_headers = {
+        {":method", "POST"},
+        {":scheme", "http"},
+        {":path", "/wu-data"},
+        {":authority", "localhost"}
+    };
+    auto block = enc.encode(req_headers);
+    headers_frame hdrs(/*stream_id*/ 1, block,
+                       /*end_stream*/ false, /*end_headers*/ true);
+    write_frame(sock, hdrs);
+
+    std::vector<uint8_t> chunk(64, 'x');
+    data_frame df(/*stream_id*/ 1, chunk,
+                  /*end_stream*/ false, /*padded*/ false);
+    write_frame(sock, df);
+
+    auto bytes = read_available(sock, 4096, std::chrono::milliseconds(800));
+
+    // Expect at least two WINDOW_UPDATE frames on the wire: one for stream
+    // 0 (connection) and one for stream 1.
+    int connection_wu_count = 0;
+    int stream_wu_count = 0;
+    std::size_t off = 0;
+    while (off + 9 <= bytes.size()) {
+        uint32_t length = (static_cast<uint32_t>(bytes[off]) << 16) |
+                          (static_cast<uint32_t>(bytes[off + 1]) << 8) |
+                          static_cast<uint32_t>(bytes[off + 2]);
+        auto t = static_cast<frame_type>(bytes[off + 3]);
+        uint32_t sid = (static_cast<uint32_t>(bytes[off + 5]) << 24) |
+                       (static_cast<uint32_t>(bytes[off + 6]) << 16) |
+                       (static_cast<uint32_t>(bytes[off + 7]) << 8) |
+                       static_cast<uint32_t>(bytes[off + 8]);
+        sid &= 0x7FFFFFFFu;
+        if (t == frame_type::window_update) {
+            if (sid == 0) ++connection_wu_count;
+            else if (sid == 1) ++stream_wu_count;
+        }
+        off += 9 + length;
+    }
+
+    EXPECT_GE(connection_wu_count, 1)
+        << "expected at least one connection-level WINDOW_UPDATE";
+    EXPECT_GE(stream_wu_count, 1)
+        << "expected at least one stream-level WINDOW_UPDATE";
+
+    EXPECT_FALSE(dispatched.load())
+        << "without END_STREAM the request handler must not run yet";
+
+    std::error_code ec;
+    sock.close(ec);
+}
