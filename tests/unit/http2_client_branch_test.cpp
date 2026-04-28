@@ -688,3 +688,370 @@ TEST_F(Http2ClientHermeticTransportTest,
 
     connector.join();
 }
+
+// ============================================================================
+// Phase 2A connected-state coverage expansion (Issue #1062)
+//
+// All TEST_F below assume mock_h2_server_peer has completed the SETTINGS
+// exchange so http2_client is in a fully-connected state. They drive the
+// post-connect public methods (set_settings, send_request timeout path,
+// start_stream, write_stream, cancel_stream, close_stream_writer) plus
+// previously-unreachable error branches (write_stream / cancel_stream /
+// close_stream_writer on an unknown stream id, second connect() returning
+// already_exists, idempotent disconnect after a full handshake).
+//
+// HEADERS+DATA reply paths remain unreachable until Phase 2A.2 of #1074
+// lands. Tests below are therefore scoped to verify timeout / not-found /
+// state-transition branches that the disconnected-state tests in
+// tests/test_http2_client.cpp cannot cover.
+// ============================================================================
+
+namespace
+{
+
+struct connected_client_setup
+{
+    std::shared_ptr<http2::http2_client> client;
+    std::thread connector;
+};
+
+inline connected_client_setup make_connected_client(
+    kcenon::network::tests::support::mock_h2_server_peer& peer,
+    const char* client_id,
+    std::chrono::milliseconds request_timeout = std::chrono::milliseconds(2000))
+{
+    auto client = std::make_shared<http2::http2_client>(client_id);
+    client->set_timeout(request_timeout);
+    auto port = peer.port();
+    std::thread connector([client, port]() {
+        (void)client->connect("127.0.0.1", port);
+    });
+    return {std::move(client), std::move(connector)};
+}
+
+} // namespace
+
+TEST_F(Http2ClientHermeticTransportTest,
+       SecondConnectReturnsAlreadyExistsAfterFirstSucceeds)
+{
+    using namespace kcenon::network::tests::support;
+    mock_h2_server_peer peer(io());
+    auto setup = make_connected_client(peer, "second-connect-test");
+
+    EXPECT_TRUE(wait_for(
+        [&]() { return peer.settings_exchanged(); },
+        std::chrono::seconds(3)));
+    EXPECT_TRUE(setup.client->is_connected());
+
+    // The first connect() succeeded; a second invocation must short-circuit
+    // through the already_exists branch documented at
+    // http2_client.cpp:81-88. Pre-Phase 2A this branch was only reachable
+    // via DISABLED_ConnectToHttpbin against an external server.
+    auto second = setup.client->connect("127.0.0.1", peer.port());
+    EXPECT_TRUE(second.is_err());
+
+    (void)setup.client->disconnect();
+    setup.connector.join();
+}
+
+TEST_F(Http2ClientHermeticTransportTest,
+       SendRequestTimesOutWhenPeerSendsNoHeaders)
+{
+    using namespace kcenon::network::tests::support;
+    mock_h2_server_peer peer(io());
+    auto setup = make_connected_client(
+        peer, "request-timeout-test", std::chrono::milliseconds(150));
+
+    EXPECT_TRUE(wait_for(
+        [&]() { return peer.settings_exchanged(); },
+        std::chrono::seconds(3)));
+    EXPECT_TRUE(setup.client->is_connected());
+
+    // mock_h2_server_peer (Phase 2A) does not reply with HEADERS+DATA, so
+    // the future inside send_request() never resolves. The 150 ms request
+    // timeout drives the timeout error branch at http2_client.cpp:817-826,
+    // which also exercises create_stream / build_headers / encoder_.encode
+    // / send_frame on the connected path.
+    auto response = setup.client->get("/timeout-path", {});
+    EXPECT_TRUE(response.is_err());
+
+    (void)setup.client->disconnect();
+    setup.connector.join();
+}
+
+TEST_F(Http2ClientHermeticTransportTest,
+       PostWithBodyTimesOutAfterDataFrameIsSent)
+{
+    using namespace kcenon::network::tests::support;
+    mock_h2_server_peer peer(io());
+    auto setup = make_connected_client(
+        peer, "post-timeout-test", std::chrono::milliseconds(150));
+
+    EXPECT_TRUE(wait_for(
+        [&]() { return peer.settings_exchanged(); },
+        std::chrono::seconds(3)));
+    EXPECT_TRUE(setup.client->is_connected());
+
+    // POST drives both the HEADERS frame transmit and the body-bearing DATA
+    // frame transmit (http2_client.cpp:790-807) before reaching the
+    // timeout branch — coverage that GET cannot exercise.
+    std::string body = "hello phase2a";
+    auto response = setup.client->post("/upload", body, {});
+    EXPECT_TRUE(response.is_err());
+
+    (void)setup.client->disconnect();
+    setup.connector.join();
+}
+
+TEST_F(Http2ClientHermeticTransportTest,
+       StartStreamReturnsValidIdAfterHandshake)
+{
+    using namespace kcenon::network::tests::support;
+    mock_h2_server_peer peer(io());
+    auto setup = make_connected_client(peer, "start-stream-test");
+
+    EXPECT_TRUE(wait_for(
+        [&]() { return peer.settings_exchanged(); },
+        std::chrono::seconds(3)));
+    EXPECT_TRUE(setup.client->is_connected());
+
+    // start_stream returns the allocated stream_id when is_connected() is
+    // true. Without a HEADERS+DATA reply the on_data / on_complete
+    // callbacks are not invoked, but the HEADERS frame is sent and the
+    // stream is registered (http2_client.cpp:306-350).
+    auto stream_result = setup.client->start_stream(
+        "/stream",
+        {},
+        [](std::vector<uint8_t>) {},
+        [](std::vector<http2::http_header>) {},
+        [](int) {});
+    EXPECT_TRUE(stream_result.is_ok());
+    if (stream_result.is_ok())
+    {
+        EXPECT_GT(stream_result.value(), 0u);
+    }
+
+    (void)setup.client->disconnect();
+    setup.connector.join();
+}
+
+TEST_F(Http2ClientHermeticTransportTest,
+       WriteStreamSucceedsAfterStartStream)
+{
+    using namespace kcenon::network::tests::support;
+    mock_h2_server_peer peer(io());
+    auto setup = make_connected_client(peer, "write-stream-test");
+
+    EXPECT_TRUE(wait_for(
+        [&]() { return peer.settings_exchanged(); },
+        std::chrono::seconds(3)));
+    EXPECT_TRUE(setup.client->is_connected());
+
+    auto stream_result = setup.client->start_stream(
+        "/streaming-write",
+        {},
+        [](std::vector<uint8_t>) {},
+        [](std::vector<http2::http_header>) {},
+        [](int) {});
+    ASSERT_TRUE(stream_result.is_ok());
+    auto stream_id = stream_result.value();
+
+    // Drive write_stream() with a non-empty chunk; then close it with an
+    // empty DATA frame carrying END_STREAM. This exercises both the
+    // open-state write branch and the open -> half_closed_local transition
+    // at http2_client.cpp:386-392.
+    std::vector<uint8_t> chunk{'a', 'b', 'c'};
+    auto wr = setup.client->write_stream(stream_id, chunk, false);
+    EXPECT_TRUE(wr.is_ok());
+    auto fin = setup.client->write_stream(stream_id, {}, true);
+    EXPECT_TRUE(fin.is_ok());
+
+    (void)setup.client->disconnect();
+    setup.connector.join();
+}
+
+TEST_F(Http2ClientHermeticTransportTest,
+       WriteStreamWithUnknownStreamIdReturnsNotFound)
+{
+    using namespace kcenon::network::tests::support;
+    mock_h2_server_peer peer(io());
+    auto setup = make_connected_client(peer, "write-not-found-test");
+
+    EXPECT_TRUE(wait_for(
+        [&]() { return peer.settings_exchanged(); },
+        std::chrono::seconds(3)));
+    EXPECT_TRUE(setup.client->is_connected());
+
+    // 99'999 is far above any stream id allocated by start_stream and is
+    // therefore guaranteed not to exist in the streams_ map. Drives the
+    // not_found branch at http2_client.cpp:367-369 — distinct from the
+    // connection_closed branch covered by disconnected-state tests.
+    std::vector<uint8_t> payload{1, 2, 3};
+    auto wr = setup.client->write_stream(99999u, payload, false);
+    EXPECT_TRUE(wr.is_err());
+
+    (void)setup.client->disconnect();
+    setup.connector.join();
+}
+
+TEST_F(Http2ClientHermeticTransportTest,
+       CancelStreamWithUnknownStreamIdReturnsNotFound)
+{
+    using namespace kcenon::network::tests::support;
+    mock_h2_server_peer peer(io());
+    auto setup = make_connected_client(peer, "cancel-not-found-test");
+
+    EXPECT_TRUE(wait_for(
+        [&]() { return peer.settings_exchanged(); },
+        std::chrono::seconds(3)));
+    EXPECT_TRUE(setup.client->is_connected());
+
+    // Connected + unknown stream id drives the not_found branch at
+    // http2_client.cpp:441-444.
+    auto cancel = setup.client->cancel_stream(99999u);
+    EXPECT_TRUE(cancel.is_err());
+
+    (void)setup.client->disconnect();
+    setup.connector.join();
+}
+
+TEST_F(Http2ClientHermeticTransportTest,
+       CloseStreamWriterWithUnknownStreamIdReturnsNotFound)
+{
+    using namespace kcenon::network::tests::support;
+    mock_h2_server_peer peer(io());
+    auto setup = make_connected_client(peer, "close-not-found-test");
+
+    EXPECT_TRUE(wait_for(
+        [&]() { return peer.settings_exchanged(); },
+        std::chrono::seconds(3)));
+    EXPECT_TRUE(setup.client->is_connected());
+
+    // not_found branch at http2_client.cpp:407-409.
+    auto close = setup.client->close_stream_writer(99999u);
+    EXPECT_TRUE(close.is_err());
+
+    (void)setup.client->disconnect();
+    setup.connector.join();
+}
+
+TEST_F(Http2ClientHermeticTransportTest,
+       CancelStreamSendsRstStreamFrame)
+{
+    using namespace kcenon::network::tests::support;
+    mock_h2_server_peer peer(io());
+    auto setup = make_connected_client(peer, "cancel-stream-test");
+
+    EXPECT_TRUE(wait_for(
+        [&]() { return peer.settings_exchanged(); },
+        std::chrono::seconds(3)));
+    EXPECT_TRUE(setup.client->is_connected());
+
+    auto stream_result = setup.client->start_stream(
+        "/cancel-target",
+        {},
+        [](std::vector<uint8_t>) {},
+        [](std::vector<http2::http_header>) {},
+        [](int) {});
+    ASSERT_TRUE(stream_result.is_ok());
+
+    // cancel_stream sends an RST_STREAM frame and marks the stream closed
+    // (http2_client.cpp:430-462). The peer drains the frame in its
+    // post-handshake loop.
+    auto cancel = setup.client->cancel_stream(stream_result.value());
+    EXPECT_TRUE(cancel.is_ok());
+
+    (void)setup.client->disconnect();
+    setup.connector.join();
+}
+
+TEST_F(Http2ClientHermeticTransportTest,
+       CloseStreamWriterIsIdempotentOnAlreadyClosedStream)
+{
+    using namespace kcenon::network::tests::support;
+    mock_h2_server_peer peer(io());
+    auto setup = make_connected_client(peer, "close-idempotent-test");
+
+    EXPECT_TRUE(wait_for(
+        [&]() { return peer.settings_exchanged(); },
+        std::chrono::seconds(3)));
+    EXPECT_TRUE(setup.client->is_connected());
+
+    auto stream_result = setup.client->start_stream(
+        "/idempotent-close",
+        {},
+        [](std::vector<uint8_t>) {},
+        [](std::vector<http2::http_header>) {},
+        [](int) {});
+    ASSERT_TRUE(stream_result.is_ok());
+    auto stream_id = stream_result.value();
+
+    // First close transitions to half_closed_local and sends an empty DATA
+    // frame with END_STREAM (http2_client.cpp:418-427).
+    auto first = setup.client->close_stream_writer(stream_id);
+    EXPECT_TRUE(first.is_ok());
+
+    // Second close on a half_closed_local stream is a no-op — drives the
+    // already-closed early-return branch at http2_client.cpp:412-415.
+    auto second = setup.client->close_stream_writer(stream_id);
+    EXPECT_TRUE(second.is_ok());
+
+    (void)setup.client->disconnect();
+    setup.connector.join();
+}
+
+TEST_F(Http2ClientHermeticTransportTest,
+       SetSettingsAfterHandshakeUpdatesEncoderTableSize)
+{
+    using namespace kcenon::network::tests::support;
+    mock_h2_server_peer peer(io());
+    auto setup = make_connected_client(peer, "set-settings-test");
+
+    EXPECT_TRUE(wait_for(
+        [&]() { return peer.settings_exchanged(); },
+        std::chrono::seconds(3)));
+    EXPECT_TRUE(setup.client->is_connected());
+
+    // set_settings updates local_settings_ and rewires the HPACK encoder /
+    // decoder table sizes (http2_client.cpp:299-304). Coverage gain over
+    // existing disconnected-state tests is the post-handshake call site.
+    auto settings = setup.client->get_settings();
+    settings.header_table_size = 8192u;
+    settings.max_concurrent_streams = 64u;
+    setup.client->set_settings(settings);
+
+    auto refreshed = setup.client->get_settings();
+    EXPECT_EQ(refreshed.header_table_size, 8192u);
+    EXPECT_EQ(refreshed.max_concurrent_streams, 64u);
+
+    (void)setup.client->disconnect();
+    setup.connector.join();
+}
+
+TEST_F(Http2ClientHermeticTransportTest,
+       DisconnectIsIdempotentAfterFullHandshake)
+{
+    using namespace kcenon::network::tests::support;
+    mock_h2_server_peer peer(io());
+    auto setup = make_connected_client(peer, "disconnect-idempotent-test");
+
+    EXPECT_TRUE(wait_for(
+        [&]() { return peer.settings_exchanged(); },
+        std::chrono::seconds(3)));
+    EXPECT_TRUE(setup.client->is_connected());
+
+    // Two disconnect()s in a row: the first drives the GOAWAY emit +
+    // stop_io path; the second hits the early-return branch at
+    // http2_client.cpp:212-215 on a fully-handshaken-then-torn-down
+    // client. The disconnected-state tests can only cover this branch
+    // when connect() never succeeded, so the connected->disconnected
+    // transition path here is incremental.
+    auto first = setup.client->disconnect();
+    EXPECT_TRUE(first.is_ok());
+    EXPECT_FALSE(setup.client->is_connected());
+
+    auto second = setup.client->disconnect();
+    EXPECT_TRUE(second.is_ok());
+
+    setup.connector.join();
+}
