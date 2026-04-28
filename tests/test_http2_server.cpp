@@ -6,11 +6,23 @@
 #include "internal/protocols/http2/http2_server.h"
 #include "internal/protocols/http2/http2_server_stream.h"
 #include "internal/protocols/http2/http2_request.h"
+#include "internal/protocols/http2/frame.h"
+#include "internal/protocols/http2/hpack.h"
 #include "kcenon/network/detail/utils/result_types.h"
+
+#include <asio.hpp>
+
+#include <algorithm>
+#include <array>
+#include <atomic>
 #include <chrono>
 #include <cstdint>
+#include <functional>
 #include <memory>
+#include <mutex>
+#include <optional>
 #include <string>
+#include <system_error>
 #include <thread>
 #include <vector>
 
@@ -1493,3 +1505,1408 @@ TEST(Http2ServerIsolation, IndependentRunningState)
     b->stop();
     EXPECT_FALSE(b->is_running());
 }
+
+// ============================================================================
+// In-process loopback tests for http2_server_connection
+//
+// These tests connect a real asio TCP client to the running server on
+// 127.0.0.1, write raw bytes (preface, serialized frames) and observe the
+// server's response. They exercise the private read/parse/dispatch paths of
+// http2_server_connection without mocks.
+// ============================================================================
+
+namespace
+{
+
+constexpr std::string_view kHttp2Preface = "PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n";
+
+class Http2ServerLoopbackTest : public ::testing::Test
+{
+protected:
+    void SetUp() override
+    {
+        server_ = std::make_shared<http2_server>("loopback-test");
+        server_->set_error_handler(
+            [this](const std::string& msg) {
+                std::lock_guard<std::mutex> lock(errors_mutex_);
+                errors_.push_back(msg);
+            });
+    }
+
+    void TearDown() override
+    {
+        if (server_ && server_->is_running()) {
+            server_->stop();
+        }
+    }
+
+    // Probe a free ephemeral port via a temporary acceptor bound to port
+    // 0. The probe is closed before returning, so a TOCTOU race is
+    // possible; the start_server() loop retries to mitigate it. This is
+    // dramatically more robust than hardcoded port offsets on shared CI
+    // runners (Ubuntu / macOS GitHub runners).
+    static unsigned short probe_free_port()
+    {
+        try {
+            asio::io_context probe_io;
+            asio::ip::tcp::acceptor probe(
+                probe_io,
+                asio::ip::tcp::endpoint(
+                    asio::ip::make_address_v4("127.0.0.1"), 0));
+            unsigned short port = probe.local_endpoint().port();
+            std::error_code ec;
+            probe.close(ec);
+            return port;
+        } catch (...) {
+            return 0;
+        }
+    }
+
+    // Start the server on a fresh ephemeral port. Retries the probe loop
+    // for the rare case where the kernel reassigns the probed port to
+    // another process between probe close and start().
+    unsigned short start_server()
+    {
+        for (int attempt = 0; attempt < 10; ++attempt) {
+            unsigned short port = probe_free_port();
+            if (port == 0) continue;
+            auto result = server_->start(port);
+            if (result.is_ok()) {
+                return port;
+            }
+        }
+        ADD_FAILURE() << "Could not start loopback server on any port";
+        return 0;
+    }
+
+    // Connect to the server and return an open socket.
+    asio::ip::tcp::socket connect_client(
+        asio::io_context& io, unsigned short port)
+    {
+        asio::ip::tcp::socket sock(io);
+        std::error_code ec;
+        // Allow a short retry window for the acceptor to be ready.
+        for (int attempt = 0; attempt < 50; ++attempt) {
+            sock.connect(asio::ip::tcp::endpoint(
+                             asio::ip::make_address_v4("127.0.0.1"), port),
+                         ec);
+            if (!ec) {
+                return sock;
+            }
+            std::this_thread::sleep_for(std::chrono::milliseconds(20));
+        }
+        ADD_FAILURE() << "client connect failed: " << ec.message();
+        return sock;
+    }
+
+    static void write_preface(asio::ip::tcp::socket& sock)
+    {
+        std::error_code ec;
+        asio::write(sock, asio::buffer(kHttp2Preface.data(),
+                                       kHttp2Preface.size()), ec);
+        ASSERT_FALSE(ec) << "preface write failed: " << ec.message();
+    }
+
+    static void write_bytes(asio::ip::tcp::socket& sock,
+                            const std::vector<uint8_t>& bytes)
+    {
+        std::error_code ec;
+        asio::write(sock, asio::buffer(bytes), ec);
+        ASSERT_FALSE(ec) << "frame write failed: " << ec.message();
+    }
+
+    static void write_frame(asio::ip::tcp::socket& sock, const frame& f)
+    {
+        write_bytes(sock, f.serialize());
+    }
+
+    // Read at most `max_bytes` from the socket within timeout. Stops at EOF.
+    static std::vector<uint8_t> read_available(
+        asio::ip::tcp::socket& sock,
+        std::size_t max_bytes,
+        std::chrono::milliseconds timeout = std::chrono::milliseconds(500))
+    {
+        std::vector<uint8_t> result;
+        result.reserve(max_bytes);
+        const auto deadline = std::chrono::steady_clock::now() + timeout;
+
+        sock.non_blocking(true);
+        std::array<uint8_t, 1024> buf{};
+        while (std::chrono::steady_clock::now() < deadline
+               && result.size() < max_bytes) {
+            std::error_code ec;
+            std::size_t n = sock.read_some(asio::buffer(buf), ec);
+            if (ec == asio::error::would_block || ec == asio::error::try_again) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(10));
+                continue;
+            }
+            if (ec) {
+                break; // EOF or other terminal error
+            }
+            if (n == 0) {
+                break;
+            }
+            result.insert(result.end(), buf.begin(), buf.begin() + n);
+        }
+        sock.non_blocking(false);
+        return result;
+    }
+
+    // Look for a frame of the given type in a raw byte stream. Returns the
+    // start offset of the frame header, or std::nullopt if not found.
+    //
+    // Bounds safety: `length` is read from the buffer being walked, so a
+    // corrupted or oversized length value could push `off` past the end
+    // of `bytes`. The loop guard `off + 9 <= bytes.size()` then fails on
+    // the next iteration and the function returns nullopt — no out-of-
+    // bounds read occurs because the addressed bytes are only those at
+    // [off, off+9), which is checked before each indexing operation.
+    static std::optional<std::size_t> find_frame(
+        const std::vector<uint8_t>& bytes, frame_type type)
+    {
+        std::size_t off = 0;
+        while (off + 9 <= bytes.size()) {
+            uint32_t length = (static_cast<uint32_t>(bytes[off]) << 16) |
+                              (static_cast<uint32_t>(bytes[off + 1]) << 8) |
+                              static_cast<uint32_t>(bytes[off + 2]);
+            auto t = static_cast<frame_type>(bytes[off + 3]);
+            if (t == type) {
+                return off;
+            }
+            off += 9 + length;
+        }
+        return std::nullopt;
+    }
+
+    bool wait_until_no_errors_or(std::chrono::milliseconds timeout,
+                                 std::function<bool()> predicate)
+    {
+        const auto deadline = std::chrono::steady_clock::now() + timeout;
+        while (std::chrono::steady_clock::now() < deadline) {
+            if (predicate()) return true;
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        }
+        return predicate();
+    }
+
+    std::shared_ptr<http2_server> server_;
+    std::mutex errors_mutex_;
+    std::vector<std::string> errors_;
+};
+
+} // namespace
+
+// ============================================================================
+// HTTP2ServerPreface_* — connection preface validation
+// ============================================================================
+
+TEST_F(Http2ServerLoopbackTest, HTTP2ServerPreface_InvalidBytes)
+{
+    auto port = start_server();
+    ASSERT_NE(port, 0);
+
+    asio::io_context io;
+    auto sock = connect_client(io, port);
+
+    // Send 24 bytes of garbage that match preface length but not content.
+    std::vector<uint8_t> bad_preface(24, 'X');
+    write_bytes(sock, bad_preface);
+
+    // Server should detect invalid preface, call error handler, and close.
+    EXPECT_TRUE(wait_until_no_errors_or(
+        std::chrono::milliseconds(1000),
+        [this]() {
+            std::lock_guard<std::mutex> lock(errors_mutex_);
+            return !errors_.empty();
+        }));
+
+    std::lock_guard<std::mutex> lock(errors_mutex_);
+    bool found_invalid = false;
+    for (const auto& e : errors_) {
+        if (e.find("Invalid connection preface") != std::string::npos) {
+            found_invalid = true;
+        }
+    }
+    EXPECT_TRUE(found_invalid) << "expected 'Invalid connection preface' error";
+
+    std::error_code ec;
+    sock.close(ec);
+}
+
+TEST_F(Http2ServerLoopbackTest, HTTP2ServerPreface_TooFewBytes)
+{
+    // Covers the read_connection_preface short-read branch
+    // (http2_server.cpp:489 `bytes_read != 24` with non-zero bytes_read).
+    // The companion test below, ClientCleanShutdownBeforePreface, covers
+    // the bytes_read==0 EOF case of the same branch.
+    auto port = start_server();
+    ASSERT_NE(port, 0);
+
+    asio::io_context io;
+    auto sock = connect_client(io, port);
+
+    // Send only 10 bytes of the 24-byte preface, then close.
+    std::vector<uint8_t> partial(kHttp2Preface.begin(),
+                                 kHttp2Preface.begin() + 10);
+    write_bytes(sock, partial);
+    std::error_code ec;
+    sock.shutdown(asio::ip::tcp::socket::shutdown_send, ec);
+
+    EXPECT_TRUE(wait_until_no_errors_or(
+        std::chrono::milliseconds(1000),
+        [this]() {
+            std::lock_guard<std::mutex> lock(errors_mutex_);
+            for (const auto& e : errors_) {
+                if (e.find("Failed to read connection preface")
+                    != std::string::npos) {
+                    return true;
+                }
+            }
+            return false;
+        }));
+
+    sock.close(ec);
+}
+
+TEST_F(Http2ServerLoopbackTest, HTTP2ServerPreface_ClientCleanShutdownBeforePreface)
+{
+    // Covers the read_connection_preface bytes_read==0 EOF branch
+    // (http2_server.cpp:489): the client closes the TCP connection
+    // before sending any preface bytes, and the server's async_read
+    // completes with bytes_read==0 plus an EOF/eof-equivalent error_code.
+    // The branch falls into the same error-handler invocation as a
+    // partial-preface short read but with a different cause.
+    auto port = start_server();
+    ASSERT_NE(port, 0);
+
+    asio::io_context io;
+    auto sock = connect_client(io, port);
+
+    // Close cleanly without sending any data.
+    std::error_code ec;
+    sock.shutdown(asio::ip::tcp::socket::shutdown_both, ec);
+    sock.close(ec);
+
+    // Synchronize on the error_handler firing; this proves the EOF
+    // branch executed rather than just observing acceptor liveness.
+    EXPECT_TRUE(wait_until_no_errors_or(
+        std::chrono::milliseconds(1000),
+        [this]() {
+            std::lock_guard<std::mutex> lock(errors_mutex_);
+            for (const auto& e : errors_) {
+                if (e.find("Failed to read connection preface")
+                    != std::string::npos) {
+                    return true;
+                }
+            }
+            return false;
+        }))
+        << "expected the error handler to fire on the zero-byte EOF "
+           "preface path";
+
+    EXPECT_TRUE(server_->is_running());
+}
+
+TEST_F(Http2ServerLoopbackTest, HTTP2ServerPreface_ValidPrefaceAcceptsSettings)
+{
+    auto port = start_server();
+    ASSERT_NE(port, 0);
+
+    asio::io_context io;
+    auto sock = connect_client(io, port);
+    write_preface(sock);
+
+    // Server should send its own SETTINGS frame after preface.
+    auto bytes = read_available(sock, 1024,
+                                std::chrono::milliseconds(1000));
+    auto settings_off = find_frame(bytes, frame_type::settings);
+    EXPECT_TRUE(settings_off.has_value())
+        << "expected SETTINGS frame from server after valid preface";
+
+    std::error_code ec;
+    sock.close(ec);
+}
+
+// ============================================================================
+// HTTP2ServerErrorPath_* — frame parse errors and protocol error responses
+// ============================================================================
+
+namespace
+{
+
+// Build an HPACK-encoded header block for a GET request.
+std::vector<uint8_t> encode_get_headers(hpack_encoder& encoder,
+                                        const std::string& path)
+{
+    std::vector<http_header> headers = {
+        {":method", "GET"},
+        {":scheme", "http"},
+        {":path", path},
+        {":authority", "localhost"}
+    };
+    return encoder.encode(headers);
+}
+
+} // namespace
+
+TEST_F(Http2ServerLoopbackTest, HTTP2ServerErrorPath_HpackCompressionError)
+{
+    auto port = start_server();
+    ASSERT_NE(port, 0);
+
+    asio::io_context io;
+    auto sock = connect_client(io, port);
+    write_preface(sock);
+
+    // Drain the server's initial SETTINGS frame.
+    (void)read_available(sock, 1024, std::chrono::milliseconds(300));
+
+    // HEADERS frame with a deliberately corrupt HPACK header block. The
+    // 0x80 prefix indicates an indexed header field with an invalid index
+    // (0 is reserved in HPACK), which triggers a decode error and the
+    // server's COMPRESSION_ERROR GOAWAY path.
+    std::vector<uint8_t> bad_hpack = {0x80, 0x80, 0x80, 0x80};
+    headers_frame f(/*stream_id*/ 1, bad_hpack,
+                    /*end_stream*/ true, /*end_headers*/ true);
+    write_frame(sock, f);
+
+    // Expect a GOAWAY frame from the server.
+    auto bytes = read_available(sock, 4096, std::chrono::milliseconds(1000));
+    auto goaway_off = find_frame(bytes, frame_type::goaway);
+    EXPECT_TRUE(goaway_off.has_value())
+        << "expected GOAWAY after corrupt HPACK block";
+
+    std::error_code ec;
+    sock.close(ec);
+}
+
+TEST_F(Http2ServerLoopbackTest, HTTP2ServerErrorPath_SettingsAckSent)
+{
+    auto port = start_server();
+    ASSERT_NE(port, 0);
+
+    asio::io_context io;
+    auto sock = connect_client(io, port);
+    write_preface(sock);
+    (void)read_available(sock, 1024, std::chrono::milliseconds(300));
+
+    // Send a non-ACK SETTINGS frame exercising every setting_identifier
+    // branch.
+    std::vector<setting_parameter> params = {
+        {static_cast<uint16_t>(setting_identifier::header_table_size), 8192},
+        {static_cast<uint16_t>(setting_identifier::enable_push), 0},
+        {static_cast<uint16_t>(setting_identifier::max_concurrent_streams),
+         50},
+        {static_cast<uint16_t>(setting_identifier::initial_window_size),
+         131072},
+        {static_cast<uint16_t>(setting_identifier::max_frame_size), 32768},
+        {static_cast<uint16_t>(setting_identifier::max_header_list_size),
+         16384},
+    };
+    settings_frame f(params, /*ack*/ false);
+    write_frame(sock, f);
+
+    // Server must respond with a SETTINGS ACK frame (length 0, ACK flag).
+    auto bytes = read_available(sock, 4096, std::chrono::milliseconds(1000));
+    bool found_ack = false;
+    std::size_t off = 0;
+    while (off + 9 <= bytes.size()) {
+        uint32_t length = (static_cast<uint32_t>(bytes[off]) << 16) |
+                          (static_cast<uint32_t>(bytes[off + 1]) << 8) |
+                          static_cast<uint32_t>(bytes[off + 2]);
+        auto t = static_cast<frame_type>(bytes[off + 3]);
+        uint8_t flags = bytes[off + 4];
+        if (t == frame_type::settings && length == 0
+            && (flags & frame_flags::ack) != 0) {
+            found_ack = true;
+            break;
+        }
+        off += 9 + length;
+    }
+    EXPECT_TRUE(found_ack) << "expected SETTINGS ACK from server";
+
+    std::error_code ec;
+    sock.close(ec);
+}
+
+TEST_F(Http2ServerLoopbackTest, HTTP2ServerErrorPath_SettingsAckFromClientIgnored)
+{
+    auto port = start_server();
+    ASSERT_NE(port, 0);
+
+    asio::io_context io;
+    auto sock = connect_client(io, port);
+    write_preface(sock);
+    (void)read_available(sock, 1024, std::chrono::milliseconds(300));
+
+    // Send only a SETTINGS ACK; the server's handle_settings_frame must
+    // early-return without sending anything in response.
+    settings_frame ack({}, /*ack*/ true);
+    write_frame(sock, ack);
+
+    // No new bytes from the server beyond the initial SETTINGS already drained.
+    auto bytes = read_available(sock, 64, std::chrono::milliseconds(200));
+    EXPECT_TRUE(bytes.empty())
+        << "server must not respond to a SETTINGS ACK";
+
+    EXPECT_TRUE(server_->is_running());
+    {
+        std::lock_guard<std::mutex> lock(errors_mutex_);
+        EXPECT_TRUE(errors_.empty()) << "no errors expected for SETTINGS ACK";
+    }
+
+    std::error_code ec;
+    sock.close(ec);
+}
+
+TEST_F(Http2ServerLoopbackTest, HTTP2ServerErrorPath_PingFrameAcked)
+{
+    auto port = start_server();
+    ASSERT_NE(port, 0);
+
+    asio::io_context io;
+    auto sock = connect_client(io, port);
+    write_preface(sock);
+    (void)read_available(sock, 1024, std::chrono::milliseconds(300));
+
+    std::array<uint8_t, 8> opaque = {1, 2, 3, 4, 5, 6, 7, 8};
+    ping_frame ping(opaque, /*ack*/ false);
+    write_frame(sock, ping);
+
+    auto bytes = read_available(sock, 4096, std::chrono::milliseconds(1000));
+    bool found_ping_ack = false;
+    std::size_t off = 0;
+    while (off + 9 <= bytes.size()) {
+        uint32_t length = (static_cast<uint32_t>(bytes[off]) << 16) |
+                          (static_cast<uint32_t>(bytes[off + 1]) << 8) |
+                          static_cast<uint32_t>(bytes[off + 2]);
+        auto t = static_cast<frame_type>(bytes[off + 3]);
+        uint8_t flags = bytes[off + 4];
+        if (t == frame_type::ping && (flags & frame_flags::ack) != 0
+            && length == 8) {
+            found_ping_ack = true;
+            for (std::size_t i = 0; i < 8; ++i) {
+                EXPECT_EQ(bytes[off + 9 + i], opaque[i]);
+            }
+            break;
+        }
+        off += 9 + length;
+    }
+    EXPECT_TRUE(found_ping_ack) << "expected PING ACK from server";
+
+    std::error_code ec;
+    sock.close(ec);
+}
+
+TEST_F(Http2ServerLoopbackTest, HTTP2ServerErrorPath_PingAckIgnored)
+{
+    auto port = start_server();
+    ASSERT_NE(port, 0);
+
+    asio::io_context io;
+    auto sock = connect_client(io, port);
+    write_preface(sock);
+    (void)read_available(sock, 1024, std::chrono::milliseconds(300));
+
+    ping_frame ping_ack(std::array<uint8_t, 8>{}, /*ack*/ true);
+    write_frame(sock, ping_ack);
+
+    auto bytes = read_available(sock, 64, std::chrono::milliseconds(200));
+    EXPECT_FALSE(find_frame(bytes, frame_type::ping).has_value());
+
+    std::error_code ec;
+    sock.close(ec);
+}
+
+TEST_F(Http2ServerLoopbackTest, HTTP2ServerErrorPath_GoawayFromClientStops)
+{
+    // Validates that handle_goaway_frame actually tears down the
+    // connection (http2_server.cpp:891-895 calls stop() on the
+    // server_connection, which closes the socket). The previous version
+    // of this test only asserted server_->is_running(), which only
+    // observes the acceptor; the acceptor remains alive whether or not
+    // the goaway branch fires. This version proves the branch fired by
+    // sending a PING after the GOAWAY and asserting that no PING ACK
+    // ever arrives — the only way that holds is if the server closed
+    // the connection's socket before processing the PING.
+    auto port = start_server();
+    ASSERT_NE(port, 0);
+
+    asio::io_context io;
+    auto sock = connect_client(io, port);
+    write_preface(sock);
+    (void)read_available(sock, 1024, std::chrono::milliseconds(300));
+
+    goaway_frame g(/*last_stream_id*/ 0,
+                   static_cast<uint32_t>(error_code::no_error));
+    write_frame(sock, g);
+
+    // Try to send a PING. If the server has already closed its end the
+    // write may succeed (kernel buffer) or fail with broken-pipe; both
+    // are acceptable. We swallow the write error rather than ASSERT to
+    // keep the deterministic part of the test downstream.
+    {
+        std::error_code write_ec;
+        ping_frame ping(std::array<uint8_t, 8>{0xde, 0xad, 0xbe, 0xef,
+                                               0xfe, 0xed, 0xfa, 0xce},
+                        /*ack*/ false);
+        auto data = ping.serialize();
+        asio::write(sock, asio::buffer(data), write_ec);
+    }
+
+    // Drain the socket. read_available returns when a deadline expires
+    // or the socket reports EOF. Since the server-side connection has
+    // been stopped by handle_goaway_frame, the server's socket is
+    // closed and the read terminates at EOF promptly.
+    auto bytes = read_available(sock, 4096, std::chrono::milliseconds(1500));
+
+    // The decisive assertion: no PING ACK can have been emitted by a
+    // connection that was already torn down.
+    EXPECT_FALSE(find_frame(bytes, frame_type::ping).has_value())
+        << "GOAWAY did not stop the connection: server still echoed PING";
+
+    // Sanity: the acceptor itself is still alive — only the client
+    // connection was torn down.
+    EXPECT_TRUE(server_->is_running());
+
+    std::error_code ec;
+    sock.close(ec);
+}
+
+TEST_F(Http2ServerLoopbackTest, HTTP2ServerErrorPath_UnknownFrameTypeIgnored)
+{
+    auto port = start_server();
+    ASSERT_NE(port, 0);
+
+    asio::io_context io;
+    auto sock = connect_client(io, port);
+    write_preface(sock);
+    (void)read_available(sock, 1024, std::chrono::milliseconds(300));
+
+    // CONTINUATION (0x9) is unsupported by process_frame's switch and falls
+    // into the default branch; the server must keep reading.
+    std::vector<uint8_t> raw_frame = {
+        0x00, 0x00, 0x00,        // length 0
+        0x09,                    // type CONTINUATION
+        0x04,                    // END_HEADERS
+        0x00, 0x00, 0x00, 0x01   // stream_id 1
+    };
+    write_bytes(sock, raw_frame);
+
+    ping_frame ping(std::array<uint8_t, 8>{0xa, 0xb, 0xc, 0xd,
+                                           0xe, 0xf, 0x1, 0x2},
+                    /*ack*/ false);
+    write_frame(sock, ping);
+
+    auto bytes = read_available(sock, 4096, std::chrono::milliseconds(1000));
+    EXPECT_TRUE(find_frame(bytes, frame_type::ping).has_value())
+        << "server should still process frames after an unknown type";
+
+    std::error_code ec;
+    sock.close(ec);
+}
+
+TEST_F(Http2ServerLoopbackTest, HTTP2ServerErrorPath_ZeroLengthFrame)
+{
+    auto port = start_server();
+    ASSERT_NE(port, 0);
+
+    asio::io_context io;
+    auto sock = connect_client(io, port);
+    write_preface(sock);
+    (void)read_available(sock, 1024, std::chrono::milliseconds(300));
+
+    // Zero-length SETTINGS ACK exercises the length==0 branch where
+    // read_frame_header parses the frame directly without a payload read.
+    std::vector<uint8_t> raw_frame = {
+        0x00, 0x00, 0x00,        // length 0
+        0x04,                    // type SETTINGS
+        0x01,                    // ACK flag
+        0x00, 0x00, 0x00, 0x00   // stream_id 0
+    };
+    write_bytes(sock, raw_frame);
+
+    ping_frame ping(std::array<uint8_t, 8>{0x11, 0x22, 0x33, 0x44,
+                                           0x55, 0x66, 0x77, 0x88},
+                    /*ack*/ false);
+    write_frame(sock, ping);
+
+    auto bytes = read_available(sock, 4096, std::chrono::milliseconds(1000));
+    EXPECT_TRUE(find_frame(bytes, frame_type::ping).has_value())
+        << "server must keep reading after a zero-length frame";
+
+    std::error_code ec;
+    sock.close(ec);
+}
+
+TEST_F(Http2ServerLoopbackTest, HTTP2ServerErrorPath_RstStreamFrame)
+{
+    auto port = start_server();
+    ASSERT_NE(port, 0);
+
+    asio::io_context io;
+    auto sock = connect_client(io, port);
+    write_preface(sock);
+    (void)read_available(sock, 1024, std::chrono::milliseconds(300));
+
+    hpack_encoder enc(4096);
+    auto block = encode_get_headers(enc, "/abc");
+    headers_frame hdrs(/*stream_id*/ 3, block,
+                       /*end_stream*/ false, /*end_headers*/ true);
+    write_frame(sock, hdrs);
+
+    rst_stream_frame rst(/*stream_id*/ 3,
+                         static_cast<uint32_t>(error_code::cancel));
+    write_frame(sock, rst);
+
+    ping_frame ping(std::array<uint8_t, 8>{0xaa, 0xbb, 0xcc, 0xdd,
+                                           0xee, 0xff, 0x00, 0x11},
+                    /*ack*/ false);
+    write_frame(sock, ping);
+
+    auto bytes = read_available(sock, 4096, std::chrono::milliseconds(1000));
+    EXPECT_TRUE(find_frame(bytes, frame_type::ping).has_value());
+
+    std::error_code ec;
+    sock.close(ec);
+}
+
+TEST_F(Http2ServerLoopbackTest, HTTP2ServerErrorPath_RequestHandlerException)
+{
+    server_->set_request_handler(
+        [](http2_server_stream& /*stream*/,
+           const http2_request& /*req*/) {
+            throw std::runtime_error("test handler failure");
+        });
+
+    auto port = start_server();
+    ASSERT_NE(port, 0);
+
+    asio::io_context io;
+    auto sock = connect_client(io, port);
+    write_preface(sock);
+    (void)read_available(sock, 1024, std::chrono::milliseconds(300));
+
+    hpack_encoder enc(4096);
+    auto block = encode_get_headers(enc, "/throws");
+    headers_frame hdrs(/*stream_id*/ 1, block,
+                       /*end_stream*/ true, /*end_headers*/ true);
+    write_frame(sock, hdrs);
+
+    EXPECT_TRUE(wait_until_no_errors_or(
+        std::chrono::milliseconds(1000),
+        [this]() {
+            std::lock_guard<std::mutex> lock(errors_mutex_);
+            for (const auto& e : errors_) {
+                if (e.find("Request handler exception")
+                    != std::string::npos) {
+                    return true;
+                }
+            }
+            return false;
+        }))
+        << "expected the error handler to receive a 'Request handler "
+           "exception' notification";
+
+    // close_stream(stream_id) must run after the catch block (line 968 in
+    // http2_server.cpp), so the failed request must NOT leak the stream
+    // record. Wait briefly for the post-catch close_stream to take effect.
+    EXPECT_TRUE(wait_until_no_errors_or(
+        std::chrono::milliseconds(500),
+        [this]() { return server_->active_streams() == 0; }))
+        << "stream must be closed even when the handler throws";
+
+    std::error_code ec;
+    sock.close(ec);
+}
+
+// A second fixture without an installed error_handler. Verifies the
+// dangerous branch where the handler is null and the request handler
+// throws: the connection's catch block must swallow silently, the stream
+// must still be closed, and the server must remain alive.
+class Http2ServerLoopbackNoErrorHandlerTest : public Http2ServerLoopbackTest
+{
+protected:
+    void SetUp() override
+    {
+        // Construct without installing the error_handler that the parent
+        // fixture provides.
+        server_ = std::make_shared<http2_server>("loopback-no-eh");
+    }
+};
+
+TEST_F(Http2ServerLoopbackNoErrorHandlerTest,
+       HTTP2ServerErrorPath_RequestHandlerExceptionWithoutErrorHandler)
+{
+    server_->set_request_handler(
+        [](http2_server_stream& /*stream*/,
+           const http2_request& /*req*/) {
+            throw std::runtime_error("silent failure");
+        });
+
+    auto port = start_server();
+    ASSERT_NE(port, 0);
+
+    asio::io_context io;
+    auto sock = connect_client(io, port);
+    write_preface(sock);
+    (void)read_available(sock, 1024, std::chrono::milliseconds(300));
+
+    hpack_encoder enc(4096);
+    auto block = encode_get_headers(enc, "/silent-throw");
+    headers_frame hdrs(/*stream_id*/ 1, block,
+                       /*end_stream*/ true, /*end_headers*/ true);
+    write_frame(sock, hdrs);
+
+    // We have no error_handler to synchronize on, so probe the post-catch
+    // close_stream side-effect via active_streams. The deadline lets the
+    // throw + catch + close_stream sequence finish on the I/O thread.
+    bool stream_closed = false;
+    const auto deadline = std::chrono::steady_clock::now()
+                          + std::chrono::milliseconds(1000);
+    while (std::chrono::steady_clock::now() < deadline) {
+        if (server_->active_streams() == 0) {
+            stream_closed = true;
+            break;
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+
+    EXPECT_TRUE(stream_closed)
+        << "stream must close even with a null error_handler";
+    EXPECT_TRUE(server_->is_running())
+        << "server must survive a swallowed handler exception";
+
+    std::error_code ec;
+    sock.close(ec);
+}
+
+// ============================================================================
+// HTTP2ServerStreamState_* — stream state transitions and dispatch
+// ============================================================================
+
+TEST_F(Http2ServerLoopbackTest, HTTP2ServerStreamState_HeadersEndStreamDispatches)
+{
+    std::atomic<bool> handler_called{false};
+    std::string captured_path;
+    std::string captured_method;
+    std::mutex capture_mutex;
+
+    server_->set_request_handler(
+        [&](http2_server_stream& /*stream*/,
+            const http2_request& req) {
+            std::lock_guard<std::mutex> lock(capture_mutex);
+            handler_called = true;
+            captured_path = req.path;
+            captured_method = req.method;
+        });
+
+    auto port = start_server();
+    ASSERT_NE(port, 0);
+
+    asio::io_context io;
+    auto sock = connect_client(io, port);
+    write_preface(sock);
+    (void)read_available(sock, 1024, std::chrono::milliseconds(300));
+
+    hpack_encoder enc(4096);
+    auto block = encode_get_headers(enc, "/dispatch");
+    headers_frame hdrs(/*stream_id*/ 1, block,
+                       /*end_stream*/ true, /*end_headers*/ true);
+    write_frame(sock, hdrs);
+
+    EXPECT_TRUE(wait_until_no_errors_or(
+        std::chrono::milliseconds(1000),
+        [&]() { return handler_called.load(); }))
+        << "request_handler should be invoked once HEADERS with END_STREAM "
+           "arrives";
+
+    {
+        std::lock_guard<std::mutex> lock(capture_mutex);
+        EXPECT_EQ(captured_method, "GET");
+        EXPECT_EQ(captured_path, "/dispatch");
+    }
+
+    std::error_code ec;
+    sock.close(ec);
+}
+
+TEST_F(Http2ServerLoopbackTest,
+       HTTP2ServerStreamState_HeadersEndHeadersWithoutEndStream)
+{
+    std::atomic<bool> handler_called{false};
+    server_->set_request_handler(
+        [&](http2_server_stream&, const http2_request&) {
+            handler_called = true;
+        });
+
+    auto port = start_server();
+    ASSERT_NE(port, 0);
+
+    asio::io_context io;
+    auto sock = connect_client(io, port);
+    write_preface(sock);
+    (void)read_available(sock, 1024, std::chrono::milliseconds(300));
+
+    hpack_encoder enc(4096);
+    auto block = encode_get_headers(enc, "/no-end-stream");
+    headers_frame hdrs(/*stream_id*/ 1, block,
+                       /*end_stream*/ false, /*end_headers*/ true);
+    write_frame(sock, hdrs);
+
+    // Synchronize on a PING-ACK round-trip after the HEADERS write: when
+    // we observe the PING ACK on the wire, the HEADERS frame has already
+    // passed through the server's process_frame() switch and the headers
+    // path. The handler must not have been invoked because END_STREAM was
+    // not set on the HEADERS frame.
+    ping_frame ping(std::array<uint8_t, 8>{1, 2, 3, 4, 5, 6, 7, 8},
+                    /*ack*/ false);
+    write_frame(sock, ping);
+    auto bytes = read_available(sock, 4096, std::chrono::milliseconds(1000));
+    EXPECT_TRUE(find_frame(bytes, frame_type::ping).has_value());
+
+    EXPECT_FALSE(handler_called.load())
+        << "handler must not run until END_STREAM is observed";
+
+    std::error_code ec;
+    sock.close(ec);
+}
+
+TEST_F(Http2ServerLoopbackTest,
+       HTTP2ServerStreamState_DataEndStreamDispatchesRequest)
+{
+    // Distinct signal from HTTP2ServerFlowControl_DataFrameTriggersWindowUpdate:
+    // here we verify the dispatch path (handler_called + method/path/body
+    // captured), not the WINDOW_UPDATE side effect. A regression in either
+    // path produces a different failure than the flow-control test.
+    std::atomic<bool> handler_called{false};
+    std::string captured_method;
+    std::string captured_path;
+    std::vector<uint8_t> captured_body;
+    std::mutex capture_mutex;
+
+    server_->set_request_handler(
+        [&](http2_server_stream& /*stream*/, const http2_request& req) {
+            std::lock_guard<std::mutex> lock(capture_mutex);
+            handler_called = true;
+            captured_method = req.method;
+            captured_path = req.path;
+            captured_body = req.body;
+        });
+
+    auto port = start_server();
+    ASSERT_NE(port, 0);
+
+    asio::io_context io;
+    auto sock = connect_client(io, port);
+    write_preface(sock);
+    (void)read_available(sock, 1024, std::chrono::milliseconds(300));
+
+    // Open the stream with HEADERS only (no END_STREAM).
+    hpack_encoder enc(4096);
+    std::vector<http_header> req_headers = {
+        {":method", "POST"},
+        {":scheme", "http"},
+        {":path", "/upload"},
+        {":authority", "localhost"},
+        {"content-type", "text/plain"}
+    };
+    auto block = enc.encode(req_headers);
+    headers_frame hdrs(/*stream_id*/ 1, block,
+                       /*end_stream*/ false, /*end_headers*/ true);
+    write_frame(sock, hdrs);
+
+    // Body in a single DATA frame with END_STREAM.
+    std::vector<uint8_t> body = {'h', 'i', '!', '\n'};
+    data_frame body_frame(/*stream_id*/ 1, body,
+                          /*end_stream*/ true, /*padded*/ false);
+    write_frame(sock, body_frame);
+
+    EXPECT_TRUE(wait_until_no_errors_or(
+        std::chrono::milliseconds(1000),
+        [&]() { return handler_called.load(); }))
+        << "DATA with END_STREAM must trigger dispatch_request";
+
+    {
+        std::lock_guard<std::mutex> lock(capture_mutex);
+        EXPECT_EQ(captured_method, "POST");
+        EXPECT_EQ(captured_path, "/upload");
+        EXPECT_EQ(captured_body, body);
+    }
+
+    std::error_code ec;
+    sock.close(ec);
+}
+
+TEST_F(Http2ServerLoopbackTest,
+       HTTP2ServerStreamState_DataFrameOnUnknownStreamSendsRst)
+{
+    auto port = start_server();
+    ASSERT_NE(port, 0);
+
+    asio::io_context io;
+    auto sock = connect_client(io, port);
+    write_preface(sock);
+    (void)read_available(sock, 1024, std::chrono::milliseconds(300));
+
+    // Send a DATA frame on a stream id that has never been opened.
+    data_frame df(/*stream_id*/ 7, std::vector<uint8_t>{1, 2, 3, 4},
+                  /*end_stream*/ false, /*padded*/ false);
+    write_frame(sock, df);
+
+    auto bytes = read_available(sock, 4096, std::chrono::milliseconds(1000));
+    auto rst_off = find_frame(bytes, frame_type::rst_stream);
+    EXPECT_TRUE(rst_off.has_value())
+        << "expected RST_STREAM after DATA on unknown stream";
+
+    if (rst_off) {
+        std::size_t off = *rst_off;
+        // stream id at offset+5..+8
+        uint32_t sid = (static_cast<uint32_t>(bytes[off + 5]) << 24)
+                       | (static_cast<uint32_t>(bytes[off + 6]) << 16)
+                       | (static_cast<uint32_t>(bytes[off + 7]) << 8)
+                       | static_cast<uint32_t>(bytes[off + 8]);
+        sid &= 0x7FFFFFFFu;
+        EXPECT_EQ(sid, 7u);
+    }
+
+    std::error_code ec;
+    sock.close(ec);
+}
+
+TEST_F(Http2ServerLoopbackTest,
+       HTTP2ServerStreamState_DispatchWithoutHandler)
+{
+    // No request handler set. dispatch_request must early-return when the
+    // server receives a complete HEADERS frame.
+    auto port = start_server();
+    ASSERT_NE(port, 0);
+
+    asio::io_context io;
+    auto sock = connect_client(io, port);
+    write_preface(sock);
+    (void)read_available(sock, 1024, std::chrono::milliseconds(300));
+
+    hpack_encoder enc(4096);
+    auto block = encode_get_headers(enc, "/no-handler");
+    headers_frame hdrs(/*stream_id*/ 1, block,
+                       /*end_stream*/ true, /*end_headers*/ true);
+    write_frame(sock, hdrs);
+
+    // Verify the connection survives by following up with a PING.
+    ping_frame ping(std::array<uint8_t, 8>{9, 8, 7, 6, 5, 4, 3, 2},
+                    /*ack*/ false);
+    write_frame(sock, ping);
+
+    auto bytes = read_available(sock, 4096, std::chrono::milliseconds(1000));
+    EXPECT_TRUE(find_frame(bytes, frame_type::ping).has_value())
+        << "server must remain healthy when dispatch has no handler";
+
+    std::error_code ec;
+    sock.close(ec);
+}
+
+// ============================================================================
+// HTTP2ServerFlowControl_* — WINDOW_UPDATE handling
+// ============================================================================
+
+TEST_F(Http2ServerLoopbackTest,
+       HTTP2ServerFlowControl_WindowUpdateConnection)
+{
+    auto port = start_server();
+    ASSERT_NE(port, 0);
+
+    asio::io_context io;
+    auto sock = connect_client(io, port);
+    write_preface(sock);
+    (void)read_available(sock, 1024, std::chrono::milliseconds(300));
+
+    // Connection-level WINDOW_UPDATE (stream_id 0). Must be accepted
+    // silently; we verify with a follow-up PING ACK.
+    window_update_frame wu(/*stream_id*/ 0, /*increment*/ 4096);
+    write_frame(sock, wu);
+
+    ping_frame ping(std::array<uint8_t, 8>{0, 1, 2, 3, 4, 5, 6, 7},
+                    /*ack*/ false);
+    write_frame(sock, ping);
+
+    auto bytes = read_available(sock, 4096, std::chrono::milliseconds(500));
+    EXPECT_TRUE(find_frame(bytes, frame_type::ping).has_value());
+    {
+        std::lock_guard<std::mutex> lock(errors_mutex_);
+        EXPECT_TRUE(errors_.empty());
+    }
+
+    std::error_code ec;
+    sock.close(ec);
+}
+
+TEST_F(Http2ServerLoopbackTest, HTTP2ServerFlowControl_WindowUpdateStream)
+{
+    auto port = start_server();
+    ASSERT_NE(port, 0);
+
+    asio::io_context io;
+    auto sock = connect_client(io, port);
+    write_preface(sock);
+    (void)read_available(sock, 1024, std::chrono::milliseconds(300));
+
+    hpack_encoder enc(4096);
+    auto block = encode_get_headers(enc, "/wu");
+    headers_frame hdrs(/*stream_id*/ 1, block,
+                       /*end_stream*/ false, /*end_headers*/ true);
+    write_frame(sock, hdrs);
+
+    // Stream-level WINDOW_UPDATE on the open stream.
+    window_update_frame wu(/*stream_id*/ 1, /*increment*/ 8192);
+    write_frame(sock, wu);
+
+    ping_frame ping(std::array<uint8_t, 8>{1, 1, 1, 1, 1, 1, 1, 1},
+                    /*ack*/ false);
+    write_frame(sock, ping);
+
+    auto bytes = read_available(sock, 4096, std::chrono::milliseconds(500));
+    EXPECT_TRUE(find_frame(bytes, frame_type::ping).has_value());
+
+    std::error_code ec;
+    sock.close(ec);
+}
+
+TEST_F(Http2ServerLoopbackTest,
+       HTTP2ServerFlowControl_WindowUpdateUnknownStream)
+{
+    auto port = start_server();
+    ASSERT_NE(port, 0);
+
+    asio::io_context io;
+    auto sock = connect_client(io, port);
+    write_preface(sock);
+    (void)read_available(sock, 1024, std::chrono::milliseconds(300));
+
+    // WINDOW_UPDATE for a stream that has never been opened should be
+    // ignored (no map lookup hit), and the connection must remain alive.
+    window_update_frame wu(/*stream_id*/ 99, /*increment*/ 4096);
+    write_frame(sock, wu);
+
+    ping_frame ping(std::array<uint8_t, 8>{2, 2, 2, 2, 2, 2, 2, 2},
+                    /*ack*/ false);
+    write_frame(sock, ping);
+
+    auto bytes = read_available(sock, 4096, std::chrono::milliseconds(500));
+    EXPECT_TRUE(find_frame(bytes, frame_type::ping).has_value());
+
+    std::error_code ec;
+    sock.close(ec);
+}
+
+TEST_F(Http2ServerLoopbackTest,
+       HTTP2ServerFlowControl_DataFrameTriggersWindowUpdate)
+{
+    // Distinct signal from HTTP2ServerStreamState_DataEndStreamDispatchesRequest:
+    // here END_STREAM is intentionally NOT set, so dispatch must NOT fire.
+    // The assertion targets the WINDOW_UPDATE emission counts, not the
+    // request-handler invocation. A regression that breaks dispatch will
+    // surface in the other test; a regression that breaks WINDOW_UPDATE
+    // emission surfaces here.
+    std::atomic<bool> dispatched{false};
+    server_->set_request_handler(
+        [&](http2_server_stream&, const http2_request&) {
+            dispatched = true;
+        });
+
+    auto port = start_server();
+    ASSERT_NE(port, 0);
+
+    asio::io_context io;
+    auto sock = connect_client(io, port);
+    write_preface(sock);
+    (void)read_available(sock, 1024, std::chrono::milliseconds(300));
+
+    // Open the stream, then send DATA without END_STREAM so the body is
+    // accumulated and the server emits WINDOW_UPDATE frames.
+    hpack_encoder enc(4096);
+    std::vector<http_header> req_headers = {
+        {":method", "POST"},
+        {":scheme", "http"},
+        {":path", "/wu-data"},
+        {":authority", "localhost"}
+    };
+    auto block = enc.encode(req_headers);
+    headers_frame hdrs(/*stream_id*/ 1, block,
+                       /*end_stream*/ false, /*end_headers*/ true);
+    write_frame(sock, hdrs);
+
+    std::vector<uint8_t> chunk(64, 'x');
+    data_frame df(/*stream_id*/ 1, chunk,
+                  /*end_stream*/ false, /*padded*/ false);
+    write_frame(sock, df);
+
+    auto bytes = read_available(sock, 4096, std::chrono::milliseconds(800));
+
+    // Expect at least two WINDOW_UPDATE frames on the wire: one for stream
+    // 0 (connection) and one for stream 1.
+    int connection_wu_count = 0;
+    int stream_wu_count = 0;
+    std::size_t off = 0;
+    while (off + 9 <= bytes.size()) {
+        uint32_t length = (static_cast<uint32_t>(bytes[off]) << 16) |
+                          (static_cast<uint32_t>(bytes[off + 1]) << 8) |
+                          static_cast<uint32_t>(bytes[off + 2]);
+        auto t = static_cast<frame_type>(bytes[off + 3]);
+        uint32_t sid = (static_cast<uint32_t>(bytes[off + 5]) << 24) |
+                       (static_cast<uint32_t>(bytes[off + 6]) << 16) |
+                       (static_cast<uint32_t>(bytes[off + 7]) << 8) |
+                       static_cast<uint32_t>(bytes[off + 8]);
+        sid &= 0x7FFFFFFFu;
+        if (t == frame_type::window_update) {
+            if (sid == 0) ++connection_wu_count;
+            else if (sid == 1) ++stream_wu_count;
+        }
+        off += 9 + length;
+    }
+
+    EXPECT_GE(connection_wu_count, 1)
+        << "expected at least one connection-level WINDOW_UPDATE";
+    EXPECT_GE(stream_wu_count, 1)
+        << "expected at least one stream-level WINDOW_UPDATE";
+
+    EXPECT_FALSE(dispatched.load())
+        << "without END_STREAM the request handler must not run yet";
+
+    std::error_code ec;
+    sock.close(ec);
+}
+
+// ============================================================================
+// Additional gap-closure tests requested in the reviewer checklist
+// ============================================================================
+
+// A separate fixture that does NOT install an error_handler. Used to confirm
+// the http2_server_connection's `if (error_handler_)` guard does not segfault
+// when the handler is unset and a failure occurs.
+class Http2ServerLoopbackNoHandlerTest : public Http2ServerLoopbackTest
+{
+protected:
+    void SetUp() override
+    {
+        // Construct the server but skip installing the error_handler that
+        // the parent fixture provides. This exercises the null-handler
+        // guard branches inside read_connection_preface.
+        server_ = std::make_shared<http2_server>("loopback-no-handler");
+    }
+};
+
+TEST_F(Http2ServerLoopbackNoHandlerTest, HTTP2ServerPreface_NullErrorHandler)
+{
+    auto port = start_server();
+    ASSERT_NE(port, 0);
+
+    asio::io_context io;
+    auto sock = connect_client(io, port);
+
+    // 24 garbage bytes trigger the "Invalid connection preface" branch.
+    // With no error_handler installed, the server must not crash.
+    std::vector<uint8_t> bad_preface(24, 'Z');
+    write_bytes(sock, bad_preface);
+
+    // Drain until the server closes the socket (deadline-bounded; no sleep).
+    (void)read_available(sock, 1024, std::chrono::milliseconds(500));
+
+    EXPECT_TRUE(server_->is_running())
+        << "server must remain alive when error_handler is null";
+
+    std::error_code ec;
+    sock.close(ec);
+}
+
+TEST_F(Http2ServerLoopbackTest, HTTP2ServerErrorPath_MalformedFramePayload)
+{
+    auto port = start_server();
+    ASSERT_NE(port, 0);
+
+    asio::io_context io;
+    auto sock = connect_client(io, port);
+    write_preface(sock);
+    (void)read_available(sock, 1024, std::chrono::milliseconds(300));
+
+    // Build a SETTINGS frame whose declared length (5) is not a multiple of
+    // the 6-byte setting parameter size, so frame::parse rejects the
+    // payload and read_frame_payload's "Failed to parse frame" branch
+    // executes.
+    std::vector<uint8_t> raw = {
+        0x00, 0x00, 0x05,        // length = 5 (invalid for SETTINGS)
+        0x04,                    // type SETTINGS
+        0x00,                    // no flags (not ACK)
+        0x00, 0x00, 0x00, 0x00,  // stream_id 0
+        0x00, 0x01,              // partial setting id
+        0x00, 0x00, 0x10         // partial value (only 3 of 4 bytes)
+    };
+    write_bytes(sock, raw);
+
+    EXPECT_TRUE(wait_until_no_errors_or(
+        std::chrono::milliseconds(1000),
+        [this]() {
+            std::lock_guard<std::mutex> lock(errors_mutex_);
+            for (const auto& e : errors_) {
+                if (e.find("Failed to parse frame") != std::string::npos) {
+                    return true;
+                }
+            }
+            return false;
+        }))
+        << "expected the 'Failed to parse frame' error path to fire";
+
+    std::error_code ec;
+    sock.close(ec);
+}
+
+TEST_F(Http2ServerLoopbackTest,
+       HTTP2ServerErrorPath_UnknownSettingIdentifierIgnored)
+{
+    auto port = start_server();
+    ASSERT_NE(port, 0);
+
+    asio::io_context io;
+    auto sock = connect_client(io, port);
+    write_preface(sock);
+    (void)read_available(sock, 1024, std::chrono::milliseconds(300));
+
+    // SETTINGS frame containing identifiers outside the enum's named
+    // values. handle_settings_frame's switch has no default branch, so
+    // these must fall through silently and the server must still ACK.
+    std::vector<setting_parameter> params = {
+        {/*identifier*/ 0x42, /*value*/ 1},
+        {/*identifier*/ 0x99, /*value*/ 2},
+    };
+    settings_frame f(params, /*ack*/ false);
+    write_frame(sock, f);
+
+    auto bytes = read_available(sock, 4096, std::chrono::milliseconds(1000));
+
+    bool found_ack = false;
+    std::size_t off = 0;
+    while (off + 9 <= bytes.size()) {
+        uint32_t length = (static_cast<uint32_t>(bytes[off]) << 16) |
+                          (static_cast<uint32_t>(bytes[off + 1]) << 8) |
+                          static_cast<uint32_t>(bytes[off + 2]);
+        auto t = static_cast<frame_type>(bytes[off + 3]);
+        uint8_t flags = bytes[off + 4];
+        if (t == frame_type::settings && length == 0
+            && (flags & frame_flags::ack) != 0) {
+            found_ack = true;
+            break;
+        }
+        off += 9 + length;
+    }
+    EXPECT_TRUE(found_ack)
+        << "server must still ACK SETTINGS containing unknown identifiers";
+
+    {
+        std::lock_guard<std::mutex> lock(errors_mutex_);
+        EXPECT_TRUE(errors_.empty())
+            << "unknown identifiers must not produce errors";
+    }
+
+    std::error_code ec;
+    sock.close(ec);
+}
+
+TEST_F(Http2ServerLoopbackTest,
+       HTTP2ServerStreamState_HeadersWithBothFlagsFalse)
+{
+    std::atomic<bool> handler_called{false};
+    server_->set_request_handler(
+        [&](http2_server_stream&, const http2_request&) {
+            handler_called = true;
+        });
+
+    auto port = start_server();
+    ASSERT_NE(port, 0);
+
+    asio::io_context io;
+    auto sock = connect_client(io, port);
+    write_preface(sock);
+    (void)read_available(sock, 1024, std::chrono::milliseconds(300));
+
+    // HEADERS with neither END_STREAM nor END_HEADERS. The handle_headers_frame
+    // logic enters neither branch (no dispatch, no headers_complete=true),
+    // and the connection must remain alive. We verify with a PING-ACK.
+    //
+    // The headers_frame constructor only exposes end_stream and end_headers;
+    // to clear END_HEADERS we have to build the raw frame bytes by hand.
+    hpack_encoder enc(4096);
+    auto block = encode_get_headers(enc, "/no-flags");
+    std::vector<uint8_t> raw;
+    raw.resize(9 + block.size());
+    // length (24 bits)
+    raw[0] = static_cast<uint8_t>((block.size() >> 16) & 0xFF);
+    raw[1] = static_cast<uint8_t>((block.size() >> 8) & 0xFF);
+    raw[2] = static_cast<uint8_t>(block.size() & 0xFF);
+    raw[3] = static_cast<uint8_t>(frame_type::headers);  // type
+    raw[4] = 0x00;                                       // no flags
+    raw[5] = 0x00;
+    raw[6] = 0x00;
+    raw[7] = 0x00;
+    raw[8] = 0x01;                                       // stream id 1
+    std::copy(block.begin(), block.end(), raw.begin() + 9);
+    write_bytes(sock, raw);
+
+    ping_frame ping(std::array<uint8_t, 8>{0xA5, 0x5A, 0xA5, 0x5A,
+                                           0xA5, 0x5A, 0xA5, 0x5A},
+                    /*ack*/ false);
+    write_frame(sock, ping);
+
+    auto bytes = read_available(sock, 4096, std::chrono::milliseconds(1000));
+    EXPECT_TRUE(find_frame(bytes, frame_type::ping).has_value())
+        << "server must keep reading after HEADERS with no flags set";
+
+    EXPECT_FALSE(handler_called.load())
+        << "handler must not run when neither END_STREAM nor END_HEADERS "
+           "is set";
+
+    std::error_code ec;
+    sock.close(ec);
+}
+
+TEST_F(Http2ServerLoopbackTest,
+       HTTP2ServerFlowControl_DataFrameEmptyPayloadNoWindowUpdate)
+{
+    auto port = start_server();
+    ASSERT_NE(port, 0);
+
+    asio::io_context io;
+    auto sock = connect_client(io, port);
+    write_preface(sock);
+    (void)read_available(sock, 1024, std::chrono::milliseconds(300));
+
+    // Open a stream first.
+    hpack_encoder enc(4096);
+    auto block = encode_get_headers(enc, "/empty-data");
+    headers_frame hdrs(/*stream_id*/ 1, block,
+                       /*end_stream*/ false, /*end_headers*/ true);
+    write_frame(sock, hdrs);
+
+    // Empty DATA frame (no END_STREAM): the data_size > 0 guard suppresses
+    // WINDOW_UPDATE emission, and dispatch is not triggered.
+    data_frame df(/*stream_id*/ 1, std::vector<uint8_t>{},
+                  /*end_stream*/ false, /*padded*/ false);
+    write_frame(sock, df);
+
+    // Synchronize via a PING-ACK so we know the empty DATA has been
+    // processed.
+    ping_frame ping(std::array<uint8_t, 8>{0x10, 0x20, 0x30, 0x40,
+                                           0x50, 0x60, 0x70, 0x80},
+                    /*ack*/ false);
+    write_frame(sock, ping);
+
+    auto bytes = read_available(sock, 4096, std::chrono::milliseconds(1000));
+    EXPECT_TRUE(find_frame(bytes, frame_type::ping).has_value());
+
+    // No WINDOW_UPDATE frames should have been emitted for the empty DATA.
+    EXPECT_FALSE(find_frame(bytes, frame_type::window_update).has_value())
+        << "server must not emit WINDOW_UPDATE for an empty DATA frame";
+
+    std::error_code ec;
+    sock.close(ec);
+}
+
