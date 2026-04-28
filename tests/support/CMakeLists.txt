@@ -10,6 +10,7 @@ add_library(network_test_support STATIC
     mock_tls_socket.cpp
     mock_udp_peer.cpp
     mock_ws_handshake.cpp
+    mock_h2_server_peer.cpp
 )
 
 target_include_directories(network_test_support

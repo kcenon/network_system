@@ -29,6 +29,7 @@ follow-up tests drive those methods.
 | `mock_tls_socket.h/.cpp` | RSA-2048 self-signed cert generation, server/client `ssl::context` factories, and a `tls_loopback_listener` RAII helper. |
 | `mock_udp_peer.h/.cpp` | UDP peer wrapper for QUIC tests plus a stub QUIC long-header Initial-packet builder. |
 | `mock_ws_handshake.h/.cpp` | RFC 6455 client upgrade request and frame builders for WebSocket server tests. |
+| `mock_h2_server_peer.h/.cpp` | Server-side HTTP/2 framing peer (Phase 2A of #1074): connection preface read, server SETTINGS send, client SETTINGS read, SETTINGS-ACK send. Composes `tls_loopback_listener` and runs the exchange on a dedicated worker thread. |
 
 ## Composition pattern
 
@@ -67,6 +68,41 @@ The same composition applies to the other three protocol families:
 - WebSocket server → `make_loopback_tcp_pair(io())` + `mock_ws_handshake`
   builders
 
+For HTTP/2 *client* tests that need to exercise post-connect code paths
+(SETTINGS exchange, GOAWAY emit on disconnect, etc.), use
+`mock_h2_server_peer` which layers HTTP/2 framing on top of
+`tls_loopback_listener`:
+
+```cpp
+#include "hermetic_transport_fixture.h"
+#include "mock_h2_server_peer.h"
+
+class MyHttp2ClientTest
+    : public kcenon::network::tests::support::hermetic_transport_fixture
+{
+};
+
+TEST_F(MyHttp2ClientTest, ConnectCompletesSettingsExchange)
+{
+    using namespace kcenon::network::tests::support;
+
+    mock_h2_server_peer peer(io());
+    auto client = std::make_shared<http2::http2_client>("test");
+    client->set_timeout(std::chrono::milliseconds(2000));
+
+    std::thread connector([&]() {
+        (void)client->connect("127.0.0.1", peer.port());
+    });
+
+    EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged(); },
+                         std::chrono::seconds(3)));
+    EXPECT_TRUE(client->is_connected());
+
+    (void)client->disconnect();   // emits GOAWAY, drained by the peer
+    connector.join();
+}
+```
+
 ## Linking from a test target
 
 The fixture is built as `network_test_support` (alias `network::test_support`)
@@ -94,3 +130,18 @@ For the QUIC server and WebSocket server cases, `handle_packet()` and
 byte-level synthesis (packet stub builder, RFC 6455 request builder) rather
 than direct private-method invocation. A future change adding a friend-test
 injection point or a full start_server() loop will let those drives complete.
+
+## Phase 2 progress (Issue #1074)
+
+Phase 2 of the fixture extends each loopback peer with the application-layer
+framing that lets `connect()`/`accept()` reach post-handshake code paths.
+Phases land as independent PRs.
+
+| Phase | Component | Status |
+|-------|-----------|--------|
+| 2A | `mock_h2_server_peer` (preface + SETTINGS exchange + ACK) | shipped |
+| 2A.2 | `mock_h2_server_peer` HEADERS+DATA reply for one stream | follow-up |
+| 2B | `mock_grpc_server_peer` (h2 + gRPC framing + trailers) | not started |
+| 2C | `mock_quic_peer_loop` (Initial → Handshake → 1-RTT) | not started |
+| 2D | `network_test_friends.h` (private-method injection points) | not started |
+| 2E | `frame_injector` (drop / truncate / malformed / slow-write hooks) | not started |
