@@ -1654,6 +1654,13 @@ protected:
 
     // Look for a frame of the given type in a raw byte stream. Returns the
     // start offset of the frame header, or std::nullopt if not found.
+    //
+    // Bounds safety: `length` is read from the buffer being walked, so a
+    // corrupted or oversized length value could push `off` past the end
+    // of `bytes`. The loop guard `off + 9 <= bytes.size()` then fails on
+    // the next iteration and the function returns nullopt — no out-of-
+    // bounds read occurs because the addressed bytes are only those at
+    // [off, off+9), which is checked before each indexing operation.
     static std::optional<std::size_t> find_frame(
         const std::vector<uint8_t>& bytes, frame_type type)
     {
