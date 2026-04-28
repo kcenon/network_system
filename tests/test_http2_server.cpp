@@ -2013,6 +2013,15 @@ TEST_F(Http2ServerLoopbackTest, HTTP2ServerErrorPath_PingAckIgnored)
 
 TEST_F(Http2ServerLoopbackTest, HTTP2ServerErrorPath_GoawayFromClientStops)
 {
+    // Validates that handle_goaway_frame actually tears down the
+    // connection (http2_server.cpp:891-895 calls stop() on the
+    // server_connection, which closes the socket). The previous version
+    // of this test only asserted server_->is_running(), which only
+    // observes the acceptor; the acceptor remains alive whether or not
+    // the goaway branch fires. This version proves the branch fired by
+    // sending a PING after the GOAWAY and asserting that no PING ACK
+    // ever arrives — the only way that holds is if the server closed
+    // the connection's socket before processing the PING.
     auto port = start_server();
     ASSERT_NE(port, 0);
 
@@ -2025,12 +2034,32 @@ TEST_F(Http2ServerLoopbackTest, HTTP2ServerErrorPath_GoawayFromClientStops)
                    static_cast<uint32_t>(error_code::no_error));
     write_frame(sock, g);
 
-    // After processing GOAWAY the server closes its connection socket. We
-    // synchronize on that close: read until the socket reports EOF or no
-    // more data within the deadline. This avoids a fixed sleep and is
-    // resilient to scheduling jitter on macOS / Windows CI.
-    (void)read_available(sock, 4096, std::chrono::milliseconds(1000));
+    // Try to send a PING. If the server has already closed its end the
+    // write may succeed (kernel buffer) or fail with broken-pipe; both
+    // are acceptable. We swallow the write error rather than ASSERT to
+    // keep the deterministic part of the test downstream.
+    {
+        std::error_code write_ec;
+        ping_frame ping(std::array<uint8_t, 8>{0xde, 0xad, 0xbe, 0xef,
+                                               0xfe, 0xed, 0xfa, 0xce},
+                        /*ack*/ false);
+        auto data = ping.serialize();
+        asio::write(sock, asio::buffer(data), write_ec);
+    }
 
+    // Drain the socket. read_available returns when a deadline expires
+    // or the socket reports EOF. Since the server-side connection has
+    // been stopped by handle_goaway_frame, the server's socket is
+    // closed and the read terminates at EOF promptly.
+    auto bytes = read_available(sock, 4096, std::chrono::milliseconds(1500));
+
+    // The decisive assertion: no PING ACK can have been emitted by a
+    // connection that was already torn down.
+    EXPECT_FALSE(find_frame(bytes, frame_type::ping).has_value())
+        << "GOAWAY did not stop the connection: server still echoed PING";
+
+    // Sanity: the acceptor itself is still alive — only the client
+    // connection was torn down.
     EXPECT_TRUE(server_->is_running());
 
     std::error_code ec;
