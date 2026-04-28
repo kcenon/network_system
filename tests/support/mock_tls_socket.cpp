@@ -14,6 +14,7 @@
 #include <openssl/evp.h>
 #include <openssl/pem.h>
 #include <openssl/rsa.h>
+#include <openssl/ssl.h>
 #include <openssl/x509.h>
 
 #include <asio/buffer.hpp>
@@ -175,6 +176,36 @@ self_signed_pem generate_self_signed_pem()
     };
 }
 
+namespace
+{
+
+// Server-side ALPN selector. Prefers HTTP/2 ("h2"); falls back to HTTP/1.1
+// for non-h2 clients. http2_client strictly verifies that the negotiated
+// ALPN protocol is "h2" after handshake (see http2_client.cpp), so the
+// listener context must complete the negotiation server-side. The header
+// documented this; the implementation was missing.
+int alpn_select_h2_then_http11(SSL* /*ssl*/,
+                               const unsigned char** out,
+                               unsigned char* outlen,
+                               const unsigned char* in,
+                               unsigned int inlen,
+                               void* /*arg*/) noexcept
+{
+    static const unsigned char kPrefs[] = {
+        2, 'h', '2',
+        8, 'h', 't', 't', 'p', '/', '1', '.', '1'
+    };
+    if (SSL_select_next_proto(const_cast<unsigned char**>(out), outlen,
+                              kPrefs, sizeof(kPrefs),
+                              in, inlen) == OPENSSL_NPN_NEGOTIATED)
+    {
+        return SSL_TLSEXT_ERR_OK;
+    }
+    return SSL_TLSEXT_ERR_ALERT_FATAL;
+}
+
+} // namespace
+
 asio::ssl::context make_self_signed_ssl_context(asio::ssl::context::method method)
 {
     asio::ssl::context ctx(method);
@@ -186,6 +217,14 @@ asio::ssl::context make_self_signed_ssl_context(asio::ssl::context::method metho
     const auto pem = generate_self_signed_pem();
     ctx.use_certificate_chain(asio::buffer(pem.cert_pem));
     ctx.use_private_key(asio::buffer(pem.key_pem), asio::ssl::context::pem);
+
+    // Wire the server-side ALPN selection callback. Without this, the server
+    // ignores the client's ALPN extension and the client (e.g. http2_client)
+    // observes a missing or unexpected protocol after handshake.
+    SSL_CTX_set_alpn_select_cb(ctx.native_handle(),
+                               &alpn_select_h2_then_http11,
+                               nullptr);
+
     return ctx;
 }
 
