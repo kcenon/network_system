@@ -1728,6 +1728,10 @@ TEST_F(Http2ServerLoopbackTest, HTTP2ServerPreface_InvalidBytes)
 
 TEST_F(Http2ServerLoopbackTest, HTTP2ServerPreface_TooFewBytes)
 {
+    // Covers the read_connection_preface short-read branch
+    // (http2_server.cpp:489 `bytes_read != 24` with non-zero bytes_read).
+    // The companion test below, ClientCleanShutdownBeforePreface, covers
+    // the bytes_read==0 EOF case of the same branch.
     auto port = start_server();
     ASSERT_NE(port, 0);
 
@@ -1757,21 +1761,42 @@ TEST_F(Http2ServerLoopbackTest, HTTP2ServerPreface_TooFewBytes)
     sock.close(ec);
 }
 
-TEST_F(Http2ServerLoopbackTest, HTTP2ServerPreface_ClientCleanShutdown)
+TEST_F(Http2ServerLoopbackTest, HTTP2ServerPreface_ClientCleanShutdownBeforePreface)
 {
+    // Covers the read_connection_preface bytes_read==0 EOF branch
+    // (http2_server.cpp:489): the client closes the TCP connection
+    // before sending any preface bytes, and the server's async_read
+    // completes with bytes_read==0 plus an EOF/eof-equivalent error_code.
+    // The branch falls into the same error-handler invocation as a
+    // partial-preface short read but with a different cause.
     auto port = start_server();
     ASSERT_NE(port, 0);
 
     asio::io_context io;
     auto sock = connect_client(io, port);
 
-    // Close immediately without sending any data.
+    // Close cleanly without sending any data.
     std::error_code ec;
+    sock.shutdown(asio::ip::tcp::socket::shutdown_both, ec);
     sock.close(ec);
 
-    // The server itself must remain running regardless of how the client
-    // disconnects; this is a state-only assertion that does not require
-    // synchronization with the connection-handling I/O thread.
+    // Synchronize on the error_handler firing; this proves the EOF
+    // branch executed rather than just observing acceptor liveness.
+    EXPECT_TRUE(wait_until_no_errors_or(
+        std::chrono::milliseconds(1000),
+        [this]() {
+            std::lock_guard<std::mutex> lock(errors_mutex_);
+            for (const auto& e : errors_) {
+                if (e.find("Failed to read connection preface")
+                    != std::string::npos) {
+                    return true;
+                }
+            }
+            return false;
+        }))
+        << "expected the error handler to fire on the zero-byte EOF "
+           "preface path";
+
     EXPECT_TRUE(server_->is_running());
 }
 
