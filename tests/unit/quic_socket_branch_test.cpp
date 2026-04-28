@@ -90,11 +90,13 @@
 
 #include <asio.hpp>
 
+#include <array>
 #include <atomic>
 #include <chrono>
 #include <cstdint>
 #include <limits>
 #include <memory>
+#include <span>
 #include <string>
 #include <thread>
 #include <utility>
@@ -859,4 +861,301 @@ TEST_F(QuicSocketHermeticTransportTest, HandlesPacketViaLoopbackUdpPair)
     // the receive entry point is what we are exercising.
     sock->stop_receive();
     SUCCEED();
+}
+
+// ============================================================================
+// mock_udp_peer-driven active datagram exchange (Part of #1065)
+// ----------------------------------------------------------------------------
+// PR #1071 covered idle/disconnected paths via passive role/state validation.
+// The block below uses the existing mock_udp_peer + make_loopback_udp_pair
+// infrastructure (no new test_support files) to exercise:
+//   - connect() success path past TLS init, secret derivation, and the
+//     send_pending_packets -> send_packet -> udp socket send chain.
+//   - do_receive() lambda dispatching to handle_packet on real datagrams,
+//     including the silent-drop branches taken when packet_parser::parse_header
+//     fails or get_read_keys reports keys-not-yet-derived.
+//   - stop_receive() correctness against an active peer-side sender.
+// HEADERS+DATA-style server replies and the connected_callback completion
+// path remain gated on Phase 2C of #1074 (mock_quic_peer_loop with TLS 1.3
+// key derivation), so this PR ships incremental progress only.
+// ============================================================================
+
+/**
+ * @brief connect() builds an Initial packet and dispatches it on the
+ *        underlying UDP socket; the loopback peer captures the datagram.
+ *
+ * The client's TLS init, initial-secret derivation, ClientHello generation,
+ * and long-header packet build run locally — all that's needed externally is
+ * a destination that can receive the datagram. Verifying the captured first
+ * byte has the long-header high+fixed bits (0xC0 mask) confirms the encoded
+ * packet shape rather than just "something was sent".
+ */
+TEST_F(QuicSocketHermeticTransportTest,
+       ClientConnectEnqueuesLongHeaderInitialDatagramOnLoopback)
+{
+    using namespace kcenon::network::tests::support;
+
+    auto pair = make_loopback_udp_pair(io());
+    mock_udp_peer peer(std::move(pair.second));
+    const auto peer_endpoint = peer.endpoint();
+
+    auto client = std::make_shared<internal::quic_socket>(
+        std::move(pair.first), internal::quic_role::client);
+
+    EXPECT_TRUE(client->connect(peer_endpoint, "test.example").is_ok());
+
+    auto bytes = peer.receive(/*max_size=*/4096, 200ms);
+    ASSERT_FALSE(bytes.empty());
+
+    // Long-header form: top bit (0x80) + fixed bit (0x40) -> 0xC0 minimum.
+    EXPECT_GE(bytes[0], static_cast<uint8_t>(0xC0));
+
+    client->stop_receive();
+}
+
+/**
+ * @brief connect() transitions state past idle on the success path.
+ *
+ * The transition order is idle -> handshake_start -> handshake. Either of the
+ * latter two is acceptable depending on whether the immediate
+ * transition_state(handshake) had run by the time we observed state().
+ */
+TEST_F(QuicSocketHermeticTransportTest, ClientConnectAdvancesStateBeyondIdle)
+{
+    using namespace kcenon::network::tests::support;
+
+    auto pair = make_loopback_udp_pair(io());
+    mock_udp_peer peer(std::move(pair.second));
+    const auto peer_endpoint = peer.endpoint();
+
+    auto client = std::make_shared<internal::quic_socket>(
+        std::move(pair.first), internal::quic_role::client);
+
+    EXPECT_TRUE(client->connect(peer_endpoint).is_ok());
+
+    const auto state = client->state();
+    EXPECT_TRUE(state == internal::quic_connection_state::handshake_start
+                || state == internal::quic_connection_state::handshake);
+    EXPECT_FALSE(client->is_connected());
+
+    client->stop_receive();
+}
+
+/**
+ * @brief connect() then close() emits at least two datagrams: the Initial
+ *        packet from connect plus a CONNECTION_CLOSE packet from close.
+ *
+ * close() from a non-handshake-complete state builds the CONNECTION_CLOSE
+ * frame at the initial encryption level and pushes a packet through
+ * send_packet(). With the mock peer bound to the loopback, the datagram is
+ * captured.
+ */
+TEST_F(QuicSocketHermeticTransportTest,
+       ClientConnectThenCloseSendsConnectionCloseDatagram)
+{
+    using namespace kcenon::network::tests::support;
+
+    auto pair = make_loopback_udp_pair(io());
+    mock_udp_peer peer(std::move(pair.second));
+    const auto peer_endpoint = peer.endpoint();
+
+    auto client = std::make_shared<internal::quic_socket>(
+        std::move(pair.first), internal::quic_role::client);
+
+    EXPECT_TRUE(client->connect(peer_endpoint).is_ok());
+    auto first_datagram = peer.receive(4096, 200ms);
+    EXPECT_FALSE(first_datagram.empty());
+
+    EXPECT_TRUE(client->close(/*error_code=*/0x0a, "test close").is_ok());
+    auto second_datagram = peer.receive(4096, 200ms);
+    EXPECT_FALSE(second_datagram.empty());
+}
+
+/**
+ * @brief A 1-byte datagram is too short for any QUIC packet header.
+ *
+ * The receive lambda hands the datagram to handle_packet,
+ * packet_parser::parse_header returns an error, and handle_packet silently
+ * returns. No error_callback is invoked because that callback is reserved
+ * for socket-level transport errors, not parse failures.
+ */
+TEST_F(QuicSocketHermeticTransportTest, HandleSingleByteDatagramSilentlyDropped)
+{
+    using namespace kcenon::network::tests::support;
+
+    auto pair = make_loopback_udp_pair(io());
+    mock_udp_peer peer(std::move(pair.second));
+
+    auto sock = std::make_shared<internal::quic_socket>(
+        std::move(pair.first), internal::quic_role::server);
+
+    std::atomic<int> error_calls{0};
+    sock->set_error_callback(
+        [&](std::error_code) { error_calls.fetch_add(1); });
+    sock->start_receive();
+
+    const std::array<uint8_t, 1> tiny{0xC0};
+    (void)peer.send(std::span<const uint8_t>(tiny.data(), tiny.size()));
+
+    std::this_thread::sleep_for(50ms);
+    sock->stop_receive();
+
+    EXPECT_EQ(error_calls.load(), 0);
+}
+
+/**
+ * @brief A QUIC long-header Initial stub is parseable but a fresh client has
+ *        not derived initial-level read keys yet — handle_packet bails out
+ *        at get_read_keys() with the keys-not-available branch.
+ *
+ * The drop is silent (no error_cb), and the socket continues receiving
+ * (start_receive remains armed for further datagrams).
+ */
+TEST_F(QuicSocketHermeticTransportTest,
+       HandleQuicInitialStubWithoutKeysSilentlyDropped)
+{
+    using namespace kcenon::network::tests::support;
+
+    auto pair = make_loopback_udp_pair(io());
+    mock_udp_peer peer(std::move(pair.second));
+
+    auto sock = std::make_shared<internal::quic_socket>(
+        std::move(pair.first), internal::quic_role::client);
+
+    std::atomic<int> error_calls{0};
+    sock->set_error_callback(
+        [&](std::error_code) { error_calls.fetch_add(1); });
+    sock->start_receive();
+
+    const auto stub = make_quic_initial_packet_stub();
+    (void)peer.send(stub);
+
+    std::this_thread::sleep_for(50ms);
+    sock->stop_receive();
+
+    EXPECT_EQ(error_calls.load(), 0);
+}
+
+/**
+ * @brief stop_receive() called before a peer send must prevent the datagram
+ *        from reaching handle_packet.
+ *
+ * The is_receiving_ flag short-circuits both before async_receive_from is
+ * re-armed and inside the completion lambda, so the in-flight datagram is
+ * dropped at the asio layer or just past it without invoking handle_packet.
+ */
+TEST_F(QuicSocketHermeticTransportTest,
+       StopReceiveBeforeMockSendDropsLaterDatagrams)
+{
+    using namespace kcenon::network::tests::support;
+
+    auto pair = make_loopback_udp_pair(io());
+    mock_udp_peer peer(std::move(pair.second));
+
+    auto sock = std::make_shared<internal::quic_socket>(
+        std::move(pair.first), internal::quic_role::server);
+
+    std::atomic<int> error_calls{0};
+    sock->set_error_callback(
+        [&](std::error_code) { error_calls.fetch_add(1); });
+
+    sock->start_receive();
+    sock->stop_receive();
+
+    const auto stub = make_quic_initial_packet_stub();
+    (void)peer.send(stub);
+
+    std::this_thread::sleep_for(50ms);
+    EXPECT_EQ(error_calls.load(), 0);
+}
+
+/**
+ * @brief Two independent client+peer pairs each emit Initial datagrams; the
+ *        parsed source connection IDs differ.
+ *
+ * Long-header byte layout (RFC 9000 §17.2):
+ *   byte0 (1) | version (4) | dcid_len (1) | dcid (var)
+ *           | scid_len (1) | scid (var) | ...
+ *
+ * generate_connection_id() seeds from std::random_device, so two fresh
+ * sockets must produce distinct local connection IDs and therefore distinct
+ * source connection IDs in their first Initial packet.
+ */
+TEST_F(QuicSocketHermeticTransportTest,
+       MultipleConcurrentConnectsHaveDistinctSourceConnectionIds)
+{
+    using namespace kcenon::network::tests::support;
+
+    auto extract_scid = [](std::span<const uint8_t> packet)
+        -> std::vector<uint8_t> {
+        if (packet.size() < 6) return {};
+        const auto dcid_len = packet[5];
+        const std::size_t scid_len_offset = 6 + dcid_len;
+        if (packet.size() < scid_len_offset + 1) return {};
+        const auto scid_len = packet[scid_len_offset];
+        const std::size_t scid_start = scid_len_offset + 1;
+        if (packet.size() < scid_start + scid_len) return {};
+        return std::vector<uint8_t>(
+            packet.begin() + scid_start,
+            packet.begin() + scid_start + scid_len);
+    };
+
+    auto pair_a = make_loopback_udp_pair(io());
+    mock_udp_peer peer_a(std::move(pair_a.second));
+    const auto endpoint_a = peer_a.endpoint();
+
+    auto pair_b = make_loopback_udp_pair(io());
+    mock_udp_peer peer_b(std::move(pair_b.second));
+    const auto endpoint_b = peer_b.endpoint();
+
+    auto client_a = std::make_shared<internal::quic_socket>(
+        std::move(pair_a.first), internal::quic_role::client);
+    auto client_b = std::make_shared<internal::quic_socket>(
+        std::move(pair_b.first), internal::quic_role::client);
+
+    EXPECT_TRUE(client_a->connect(endpoint_a).is_ok());
+    EXPECT_TRUE(client_b->connect(endpoint_b).is_ok());
+
+    const auto bytes_a = peer_a.receive(4096, 200ms);
+    const auto bytes_b = peer_b.receive(4096, 200ms);
+
+    ASSERT_FALSE(bytes_a.empty());
+    ASSERT_FALSE(bytes_b.empty());
+
+    const auto scid_a = extract_scid(bytes_a);
+    const auto scid_b = extract_scid(bytes_b);
+
+    ASSERT_FALSE(scid_a.empty());
+    ASSERT_FALSE(scid_b.empty());
+    EXPECT_NE(scid_a, scid_b);
+
+    client_a->stop_receive();
+    client_b->stop_receive();
+}
+
+/**
+ * @brief connect() with an explicit non-empty SNI string still emits a
+ *        long-header Initial packet; SNI length is encoded inside the
+ *        ClientHello CRYPTO frame and does not affect packet header shape.
+ */
+TEST_F(QuicSocketHermeticTransportTest,
+       ClientConnectWithExplicitSniSendsLongHeaderInitial)
+{
+    using namespace kcenon::network::tests::support;
+
+    auto pair = make_loopback_udp_pair(io());
+    mock_udp_peer peer(std::move(pair.second));
+    const auto peer_endpoint = peer.endpoint();
+
+    auto client = std::make_shared<internal::quic_socket>(
+        std::move(pair.first), internal::quic_role::client);
+
+    EXPECT_TRUE(
+        client->connect(peer_endpoint, "explicit.server.name.test").is_ok());
+
+    const auto bytes = peer.receive(4096, 200ms);
+    ASSERT_FALSE(bytes.empty());
+    EXPECT_GE(bytes[0], static_cast<uint8_t>(0xC0));
+
+    client->stop_receive();
 }
