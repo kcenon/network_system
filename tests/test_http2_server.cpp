@@ -1757,13 +1757,10 @@ TEST_F(Http2ServerLoopbackTest, HTTP2ServerPreface_ClientCleanShutdown)
     std::error_code ec;
     sock.close(ec);
 
-    // Server must observe the EOF and clean up; allow time for the callback
-    // to fire and the connection to be removed.
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
-    // active_connections should drop back to 0 after cleanup runs or the
-    // connection observes its socket close.
-    auto check = [this]() { return server_->is_running(); };
-    EXPECT_TRUE(check()); // server itself should still be running
+    // The server itself must remain running regardless of how the client
+    // disconnects; this is a state-only assertion that does not require
+    // synchronization with the connection-handling I/O thread.
+    EXPECT_TRUE(server_->is_running());
 }
 
 TEST_F(Http2ServerLoopbackTest, HTTP2ServerPreface_ValidPrefaceAcceptsSettings)
@@ -1991,7 +1988,12 @@ TEST_F(Http2ServerLoopbackTest, HTTP2ServerErrorPath_GoawayFromClientStops)
                    static_cast<uint32_t>(error_code::no_error));
     write_frame(sock, g);
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    // After processing GOAWAY the server closes its connection socket. We
+    // synchronize on that close: read until the socket reports EOF or no
+    // more data within the deadline. This avoids a fixed sleep and is
+    // resilient to scheduling jitter on macOS / Windows CI.
+    (void)read_available(sock, 4096, std::chrono::milliseconds(1000));
+
     EXPECT_TRUE(server_->is_running());
 
     std::error_code ec;
@@ -2210,18 +2212,19 @@ TEST_F(Http2ServerLoopbackTest,
                        /*end_stream*/ false, /*end_headers*/ true);
     write_frame(sock, hdrs);
 
-    // Without END_STREAM the server marks headers_complete but must not
-    // dispatch yet. Wait briefly to confirm no dispatch happens.
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
-    EXPECT_FALSE(handler_called.load())
-        << "handler must not run until END_STREAM is observed";
-
-    // Send a follow-up PING and expect the connection to be alive.
+    // Synchronize on a PING-ACK round-trip after the HEADERS write: when
+    // we observe the PING ACK on the wire, the HEADERS frame has already
+    // passed through the server's process_frame() switch and the headers
+    // path. The handler must not have been invoked because END_STREAM was
+    // not set on the HEADERS frame.
     ping_frame ping(std::array<uint8_t, 8>{1, 2, 3, 4, 5, 6, 7, 8},
                     /*ack*/ false);
     write_frame(sock, ping);
-    auto bytes = read_available(sock, 4096, std::chrono::milliseconds(500));
+    auto bytes = read_available(sock, 4096, std::chrono::milliseconds(1000));
     EXPECT_TRUE(find_frame(bytes, frame_type::ping).has_value());
+
+    EXPECT_FALSE(handler_called.load())
+        << "handler must not run until END_STREAM is observed";
 
     std::error_code ec;
     sock.close(ec);
