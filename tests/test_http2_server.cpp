@@ -1785,3 +1785,354 @@ TEST_F(Http2ServerLoopbackTest, HTTP2ServerPreface_ValidPrefaceAcceptsSettings)
     std::error_code ec;
     sock.close(ec);
 }
+
+// ============================================================================
+// HTTP2ServerErrorPath_* — frame parse errors and protocol error responses
+// ============================================================================
+
+namespace
+{
+
+// Build an HPACK-encoded header block for a GET request.
+std::vector<uint8_t> encode_get_headers(hpack_encoder& encoder,
+                                        const std::string& path)
+{
+    std::vector<http_header> headers = {
+        {":method", "GET"},
+        {":scheme", "http"},
+        {":path", path},
+        {":authority", "localhost"}
+    };
+    return encoder.encode(headers);
+}
+
+} // namespace
+
+TEST_F(Http2ServerLoopbackTest, HTTP2ServerErrorPath_HpackCompressionError)
+{
+    auto port = start_server();
+    ASSERT_NE(port, 0);
+
+    asio::io_context io;
+    auto sock = connect_client(io, port);
+    write_preface(sock);
+
+    // Drain the server's initial SETTINGS frame.
+    (void)read_available(sock, 1024, std::chrono::milliseconds(300));
+
+    // HEADERS frame with a deliberately corrupt HPACK header block. The
+    // 0x80 prefix indicates an indexed header field with an invalid index
+    // (0 is reserved in HPACK), which triggers a decode error and the
+    // server's COMPRESSION_ERROR GOAWAY path.
+    std::vector<uint8_t> bad_hpack = {0x80, 0x80, 0x80, 0x80};
+    headers_frame f(/*stream_id*/ 1, bad_hpack,
+                    /*end_stream*/ true, /*end_headers*/ true);
+    write_frame(sock, f);
+
+    // Expect a GOAWAY frame from the server.
+    auto bytes = read_available(sock, 4096, std::chrono::milliseconds(1000));
+    auto goaway_off = find_frame(bytes, frame_type::goaway);
+    EXPECT_TRUE(goaway_off.has_value())
+        << "expected GOAWAY after corrupt HPACK block";
+
+    std::error_code ec;
+    sock.close(ec);
+}
+
+TEST_F(Http2ServerLoopbackTest, HTTP2ServerErrorPath_SettingsAckSent)
+{
+    auto port = start_server();
+    ASSERT_NE(port, 0);
+
+    asio::io_context io;
+    auto sock = connect_client(io, port);
+    write_preface(sock);
+    (void)read_available(sock, 1024, std::chrono::milliseconds(300));
+
+    // Send a non-ACK SETTINGS frame exercising every setting_identifier
+    // branch.
+    std::vector<setting_parameter> params = {
+        {static_cast<uint16_t>(setting_identifier::header_table_size), 8192},
+        {static_cast<uint16_t>(setting_identifier::enable_push), 0},
+        {static_cast<uint16_t>(setting_identifier::max_concurrent_streams),
+         50},
+        {static_cast<uint16_t>(setting_identifier::initial_window_size),
+         131072},
+        {static_cast<uint16_t>(setting_identifier::max_frame_size), 32768},
+        {static_cast<uint16_t>(setting_identifier::max_header_list_size),
+         16384},
+    };
+    settings_frame f(params, /*ack*/ false);
+    write_frame(sock, f);
+
+    // Server must respond with a SETTINGS ACK frame (length 0, ACK flag).
+    auto bytes = read_available(sock, 4096, std::chrono::milliseconds(1000));
+    bool found_ack = false;
+    std::size_t off = 0;
+    while (off + 9 <= bytes.size()) {
+        uint32_t length = (static_cast<uint32_t>(bytes[off]) << 16) |
+                          (static_cast<uint32_t>(bytes[off + 1]) << 8) |
+                          static_cast<uint32_t>(bytes[off + 2]);
+        auto t = static_cast<frame_type>(bytes[off + 3]);
+        uint8_t flags = bytes[off + 4];
+        if (t == frame_type::settings && length == 0
+            && (flags & frame_flags::ack) != 0) {
+            found_ack = true;
+            break;
+        }
+        off += 9 + length;
+    }
+    EXPECT_TRUE(found_ack) << "expected SETTINGS ACK from server";
+
+    std::error_code ec;
+    sock.close(ec);
+}
+
+TEST_F(Http2ServerLoopbackTest, HTTP2ServerErrorPath_SettingsAckFromClientIgnored)
+{
+    auto port = start_server();
+    ASSERT_NE(port, 0);
+
+    asio::io_context io;
+    auto sock = connect_client(io, port);
+    write_preface(sock);
+    (void)read_available(sock, 1024, std::chrono::milliseconds(300));
+
+    // Send only a SETTINGS ACK; the server's handle_settings_frame must
+    // early-return without sending anything in response.
+    settings_frame ack({}, /*ack*/ true);
+    write_frame(sock, ack);
+
+    // No new bytes from the server beyond the initial SETTINGS already drained.
+    auto bytes = read_available(sock, 64, std::chrono::milliseconds(200));
+    EXPECT_TRUE(bytes.empty())
+        << "server must not respond to a SETTINGS ACK";
+
+    EXPECT_TRUE(server_->is_running());
+    {
+        std::lock_guard<std::mutex> lock(errors_mutex_);
+        EXPECT_TRUE(errors_.empty()) << "no errors expected for SETTINGS ACK";
+    }
+
+    std::error_code ec;
+    sock.close(ec);
+}
+
+TEST_F(Http2ServerLoopbackTest, HTTP2ServerErrorPath_PingFrameAcked)
+{
+    auto port = start_server();
+    ASSERT_NE(port, 0);
+
+    asio::io_context io;
+    auto sock = connect_client(io, port);
+    write_preface(sock);
+    (void)read_available(sock, 1024, std::chrono::milliseconds(300));
+
+    std::array<uint8_t, 8> opaque = {1, 2, 3, 4, 5, 6, 7, 8};
+    ping_frame ping(opaque, /*ack*/ false);
+    write_frame(sock, ping);
+
+    auto bytes = read_available(sock, 4096, std::chrono::milliseconds(1000));
+    bool found_ping_ack = false;
+    std::size_t off = 0;
+    while (off + 9 <= bytes.size()) {
+        uint32_t length = (static_cast<uint32_t>(bytes[off]) << 16) |
+                          (static_cast<uint32_t>(bytes[off + 1]) << 8) |
+                          static_cast<uint32_t>(bytes[off + 2]);
+        auto t = static_cast<frame_type>(bytes[off + 3]);
+        uint8_t flags = bytes[off + 4];
+        if (t == frame_type::ping && (flags & frame_flags::ack) != 0
+            && length == 8) {
+            found_ping_ack = true;
+            for (std::size_t i = 0; i < 8; ++i) {
+                EXPECT_EQ(bytes[off + 9 + i], opaque[i]);
+            }
+            break;
+        }
+        off += 9 + length;
+    }
+    EXPECT_TRUE(found_ping_ack) << "expected PING ACK from server";
+
+    std::error_code ec;
+    sock.close(ec);
+}
+
+TEST_F(Http2ServerLoopbackTest, HTTP2ServerErrorPath_PingAckIgnored)
+{
+    auto port = start_server();
+    ASSERT_NE(port, 0);
+
+    asio::io_context io;
+    auto sock = connect_client(io, port);
+    write_preface(sock);
+    (void)read_available(sock, 1024, std::chrono::milliseconds(300));
+
+    ping_frame ping_ack(std::array<uint8_t, 8>{}, /*ack*/ true);
+    write_frame(sock, ping_ack);
+
+    auto bytes = read_available(sock, 64, std::chrono::milliseconds(200));
+    EXPECT_FALSE(find_frame(bytes, frame_type::ping).has_value());
+
+    std::error_code ec;
+    sock.close(ec);
+}
+
+TEST_F(Http2ServerLoopbackTest, HTTP2ServerErrorPath_GoawayFromClientStops)
+{
+    auto port = start_server();
+    ASSERT_NE(port, 0);
+
+    asio::io_context io;
+    auto sock = connect_client(io, port);
+    write_preface(sock);
+    (void)read_available(sock, 1024, std::chrono::milliseconds(300));
+
+    goaway_frame g(/*last_stream_id*/ 0,
+                   static_cast<uint32_t>(error_code::no_error));
+    write_frame(sock, g);
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    EXPECT_TRUE(server_->is_running());
+
+    std::error_code ec;
+    sock.close(ec);
+}
+
+TEST_F(Http2ServerLoopbackTest, HTTP2ServerErrorPath_UnknownFrameTypeIgnored)
+{
+    auto port = start_server();
+    ASSERT_NE(port, 0);
+
+    asio::io_context io;
+    auto sock = connect_client(io, port);
+    write_preface(sock);
+    (void)read_available(sock, 1024, std::chrono::milliseconds(300));
+
+    // CONTINUATION (0x9) is unsupported by process_frame's switch and falls
+    // into the default branch; the server must keep reading.
+    std::vector<uint8_t> raw_frame = {
+        0x00, 0x00, 0x00,        // length 0
+        0x09,                    // type CONTINUATION
+        0x04,                    // END_HEADERS
+        0x00, 0x00, 0x00, 0x01   // stream_id 1
+    };
+    write_bytes(sock, raw_frame);
+
+    ping_frame ping(std::array<uint8_t, 8>{0xa, 0xb, 0xc, 0xd,
+                                           0xe, 0xf, 0x1, 0x2},
+                    /*ack*/ false);
+    write_frame(sock, ping);
+
+    auto bytes = read_available(sock, 4096, std::chrono::milliseconds(1000));
+    EXPECT_TRUE(find_frame(bytes, frame_type::ping).has_value())
+        << "server should still process frames after an unknown type";
+
+    std::error_code ec;
+    sock.close(ec);
+}
+
+TEST_F(Http2ServerLoopbackTest, HTTP2ServerErrorPath_ZeroLengthFrame)
+{
+    auto port = start_server();
+    ASSERT_NE(port, 0);
+
+    asio::io_context io;
+    auto sock = connect_client(io, port);
+    write_preface(sock);
+    (void)read_available(sock, 1024, std::chrono::milliseconds(300));
+
+    // Zero-length SETTINGS ACK exercises the length==0 branch where
+    // read_frame_header parses the frame directly without a payload read.
+    std::vector<uint8_t> raw_frame = {
+        0x00, 0x00, 0x00,        // length 0
+        0x04,                    // type SETTINGS
+        0x01,                    // ACK flag
+        0x00, 0x00, 0x00, 0x00   // stream_id 0
+    };
+    write_bytes(sock, raw_frame);
+
+    ping_frame ping(std::array<uint8_t, 8>{0x11, 0x22, 0x33, 0x44,
+                                           0x55, 0x66, 0x77, 0x88},
+                    /*ack*/ false);
+    write_frame(sock, ping);
+
+    auto bytes = read_available(sock, 4096, std::chrono::milliseconds(1000));
+    EXPECT_TRUE(find_frame(bytes, frame_type::ping).has_value())
+        << "server must keep reading after a zero-length frame";
+
+    std::error_code ec;
+    sock.close(ec);
+}
+
+TEST_F(Http2ServerLoopbackTest, HTTP2ServerErrorPath_RstStreamFrame)
+{
+    auto port = start_server();
+    ASSERT_NE(port, 0);
+
+    asio::io_context io;
+    auto sock = connect_client(io, port);
+    write_preface(sock);
+    (void)read_available(sock, 1024, std::chrono::milliseconds(300));
+
+    hpack_encoder enc(4096);
+    auto block = encode_get_headers(enc, "/abc");
+    headers_frame hdrs(/*stream_id*/ 3, block,
+                       /*end_stream*/ false, /*end_headers*/ true);
+    write_frame(sock, hdrs);
+
+    rst_stream_frame rst(/*stream_id*/ 3,
+                         static_cast<uint32_t>(error_code::cancel));
+    write_frame(sock, rst);
+
+    ping_frame ping(std::array<uint8_t, 8>{0xaa, 0xbb, 0xcc, 0xdd,
+                                           0xee, 0xff, 0x00, 0x11},
+                    /*ack*/ false);
+    write_frame(sock, ping);
+
+    auto bytes = read_available(sock, 4096, std::chrono::milliseconds(1000));
+    EXPECT_TRUE(find_frame(bytes, frame_type::ping).has_value());
+
+    std::error_code ec;
+    sock.close(ec);
+}
+
+TEST_F(Http2ServerLoopbackTest, HTTP2ServerErrorPath_RequestHandlerException)
+{
+    server_->set_request_handler(
+        [](http2_server_stream& /*stream*/,
+           const http2_request& /*req*/) {
+            throw std::runtime_error("test handler failure");
+        });
+
+    auto port = start_server();
+    ASSERT_NE(port, 0);
+
+    asio::io_context io;
+    auto sock = connect_client(io, port);
+    write_preface(sock);
+    (void)read_available(sock, 1024, std::chrono::milliseconds(300));
+
+    hpack_encoder enc(4096);
+    auto block = encode_get_headers(enc, "/throws");
+    headers_frame hdrs(/*stream_id*/ 1, block,
+                       /*end_stream*/ true, /*end_headers*/ true);
+    write_frame(sock, hdrs);
+
+    EXPECT_TRUE(wait_until_no_errors_or(
+        std::chrono::milliseconds(1000),
+        [this]() {
+            std::lock_guard<std::mutex> lock(errors_mutex_);
+            for (const auto& e : errors_) {
+                if (e.find("Request handler exception")
+                    != std::string::npos) {
+                    return true;
+                }
+            }
+            return false;
+        }))
+        << "expected the error handler to receive a 'Request handler "
+           "exception' notification";
+
+    std::error_code ec;
+    sock.close(ec);
+}
