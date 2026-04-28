@@ -823,7 +823,7 @@ TEST_F(Http2ClientHermeticTransportTest,
         "/stream",
         {},
         [](std::vector<uint8_t>) {},
-        [](std::vector<http_header>) {},
+        [](std::vector<http2::http_header>) {},
         [](int) {});
     EXPECT_TRUE(stream_result.is_ok());
     if (stream_result.is_ok())
@@ -851,7 +851,7 @@ TEST_F(Http2ClientHermeticTransportTest,
         "/streaming-write",
         {},
         [](std::vector<uint8_t>) {},
-        [](std::vector<http_header>) {},
+        [](std::vector<http2::http_header>) {},
         [](int) {});
     ASSERT_TRUE(stream_result.is_ok());
     auto stream_id = stream_result.value();
@@ -951,7 +951,7 @@ TEST_F(Http2ClientHermeticTransportTest,
         "/cancel-target",
         {},
         [](std::vector<uint8_t>) {},
-        [](std::vector<http_header>) {},
+        [](std::vector<http2::http_header>) {},
         [](int) {});
     ASSERT_TRUE(stream_result.is_ok());
 
@@ -981,7 +981,7 @@ TEST_F(Http2ClientHermeticTransportTest,
         "/idempotent-close",
         {},
         [](std::vector<uint8_t>) {},
-        [](std::vector<http_header>) {},
+        [](std::vector<http2::http_header>) {},
         [](int) {});
     ASSERT_TRUE(stream_result.is_ok());
     auto stream_id = stream_result.value();
