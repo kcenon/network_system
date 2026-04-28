@@ -33,6 +33,7 @@
 #include "internal/protocols/http2/http2_client.h"
 
 #include "hermetic_transport_fixture.h"
+#include "mock_h2_server_peer.h"
 #include "mock_tls_socket.h"
 
 #include <gtest/gtest.h>
@@ -633,4 +634,57 @@ TEST_F(Http2ClientHermeticTransportTest, ConnectAttemptsHandshakeAgainstLoopback
     client->disconnect();
     connector.join();
     EXPECT_TRUE(connect_returned.load());
+}
+
+// ============================================================================
+// mock_h2_server_peer demo (Phase 2A of #1074)
+//
+// Drives http2_client::connect() against an in-process server-side HTTP/2
+// peer that performs the connection-preface read, SETTINGS exchange, and
+// SETTINGS-ACK send. Without the peer, connect() either stalls or returns
+// after a timeout because tls_loopback_listener stops at TLS handshake.
+// With the peer, the post-connect public methods (get_settings, disconnect)
+// run against a fully-settled client connection — code paths not previously
+// reachable from a hermetic CI environment.
+// ============================================================================
+
+TEST_F(Http2ClientHermeticTransportTest,
+       ConnectCompletesSettingsExchangeWithMockPeer)
+{
+    using namespace kcenon::network::tests::support;
+
+    mock_h2_server_peer peer(io());
+
+    auto client = std::make_shared<http2::http2_client>("mock-h2-peer-test");
+    ASSERT_NE(client, nullptr);
+    client->set_timeout(std::chrono::milliseconds(2000));
+
+    std::thread connector([&]() {
+        (void)client->connect("127.0.0.1", peer.port());
+    });
+
+    // Wait for the mock peer to complete the SETTINGS exchange. Once true,
+    // the worker has read the preface, sent server SETTINGS, read client
+    // SETTINGS, and sent SETTINGS-ACK without error.
+    EXPECT_TRUE(wait_for(
+        [&]() { return peer.settings_exchanged(); },
+        std::chrono::seconds(3)));
+    EXPECT_FALSE(peer.io_failed());
+    EXPECT_TRUE(client->is_connected());
+
+    // Reach a post-connect public method. Prior to mock_h2_server_peer the
+    // client could not complete connect() against a hermetic peer, so this
+    // code path was only reachable via the DISABLED_ConnectToHttpbin
+    // integration test that the coverage workflow does not run.
+    const auto local_settings = client->get_settings();
+    EXPECT_GT(local_settings.initial_window_size, 0u);
+    EXPECT_GT(local_settings.max_frame_size, 0u);
+
+    // Drive the disconnect() path — it builds a goaway_frame and writes it
+    // to the SSL stream before tearing down the connection. The mock peer
+    // drains this frame in its post-handshake loop.
+    (void)client->disconnect();
+    EXPECT_FALSE(client->is_connected());
+
+    connector.join();
 }
