@@ -1055,3 +1055,50 @@ TEST_F(Http2ClientHermeticTransportTest,
 
     setup.connector.join();
 }
+
+// ============================================================================
+// Phase 2A.2 connected-state success path (Issue #1074)
+//
+// mock_h2_server_peer in reply_mode::echo_one reads the client request
+// stream after the SETTINGS exchange and replies on the same stream_id
+// with a HEADERS frame (`:status: 200`, HPACK static index 8 = 0x88) plus
+// a single DATA frame ("ok", END_STREAM). This drives http2_client's
+// handle_headers_frame and handle_data_frame success branches that the
+// drain_only mode cannot reach — previously those paths were only
+// reachable through the DISABLED_ConnectToHttpbin integration test that
+// the coverage workflow does not run.
+// ============================================================================
+
+TEST_F(Http2ClientHermeticTransportTest,
+       GetSucceedsWhenPeerRepliesWithHeadersAndData)
+{
+    using namespace kcenon::network::tests::support;
+    mock_h2_server_peer peer(io(), reply_mode::echo_one);
+    auto setup = make_connected_client(peer, "echo-one-get-test");
+
+    EXPECT_TRUE(wait_for(
+        [&]() { return peer.settings_exchanged(); },
+        std::chrono::seconds(3)));
+    EXPECT_TRUE(setup.client->is_connected());
+
+    // GET drives create_stream / build_headers / encoder_.encode /
+    // send_frame on the connected path. The mock peer replies with status
+    // 200 and a 2-byte body, which exercises handle_headers_frame and
+    // handle_data_frame (END_STREAM branch) inside the client's
+    // process_frame dispatcher.
+    auto response = setup.client->get("/echo", {});
+    ASSERT_TRUE(response.is_ok());
+    EXPECT_EQ(response.value().status_code, 200);
+    EXPECT_EQ(response.value().get_body_string(), "ok");
+
+    // The peer observed exactly one client request stream (stream id 1
+    // for a fresh client) and wrote both response frames before the
+    // worker entered the drain loop.
+    EXPECT_TRUE(peer.request_received());
+    EXPECT_TRUE(peer.response_sent());
+    EXPECT_GT(peer.last_request_stream_id(), 0u);
+    EXPECT_FALSE(peer.io_failed());
+
+    (void)setup.client->disconnect();
+    setup.connector.join();
+}

@@ -29,7 +29,7 @@ follow-up tests drive those methods.
 | `mock_tls_socket.h/.cpp` | RSA-2048 self-signed cert generation, server/client `ssl::context` factories, and a `tls_loopback_listener` RAII helper. |
 | `mock_udp_peer.h/.cpp` | UDP peer wrapper for QUIC tests plus a stub QUIC long-header Initial-packet builder. |
 | `mock_ws_handshake.h/.cpp` | RFC 6455 client upgrade request and frame builders for WebSocket server tests. |
-| `mock_h2_server_peer.h/.cpp` | Server-side HTTP/2 framing peer (Phase 2A of #1074): connection preface read, server SETTINGS send, client SETTINGS read, SETTINGS-ACK send. Composes `tls_loopback_listener` and runs the exchange on a dedicated worker thread. |
+| `mock_h2_server_peer.h/.cpp` | Server-side HTTP/2 framing peer (Phase 2A + 2A.2 of #1074): connection preface read, server SETTINGS send, client SETTINGS read, SETTINGS-ACK send. With `reply_mode::echo_one`, also reads one client request stream and replies with `:status: 200` HEADERS + a small END_STREAM DATA frame. Composes `tls_loopback_listener` and runs the exchange on a dedicated worker thread. |
 
 ## Composition pattern
 
@@ -103,6 +103,37 @@ TEST_F(MyHttp2ClientTest, ConnectCompletesSettingsExchange)
 }
 ```
 
+To exercise the response success path (Phase 2A.2), construct the peer
+with `reply_mode::echo_one`. The peer will read one client request stream
+after SETTINGS and reply on the same stream_id with `:status: 200` plus a
+small body:
+
+```cpp
+TEST_F(MyHttp2ClientTest, GetReturnsResponseFromMockPeer)
+{
+    using namespace kcenon::network::tests::support;
+
+    mock_h2_server_peer peer(io(), reply_mode::echo_one);
+    auto client = std::make_shared<http2::http2_client>("test");
+    client->set_timeout(std::chrono::milliseconds(2000));
+
+    std::thread connector([&]() {
+        (void)client->connect("127.0.0.1", peer.port());
+    });
+    wait_for([&]() { return peer.settings_exchanged(); },
+             std::chrono::seconds(3));
+
+    auto response = client->get("/echo", {});
+    ASSERT_TRUE(response.is_ok());
+    EXPECT_EQ(response.value().status_code, 200);
+    EXPECT_TRUE(peer.request_received());
+    EXPECT_TRUE(peer.response_sent());
+
+    (void)client->disconnect();
+    connector.join();
+}
+```
+
 ## Linking from a test target
 
 The fixture is built as `network_test_support` (alias `network::test_support`)
@@ -140,7 +171,7 @@ Phases land as independent PRs.
 | Phase | Component | Status |
 |-------|-----------|--------|
 | 2A | `mock_h2_server_peer` (preface + SETTINGS exchange + ACK) | shipped |
-| 2A.2 | `mock_h2_server_peer` HEADERS+DATA reply for one stream | follow-up |
+| 2A.2 | `mock_h2_server_peer` HEADERS+DATA reply for one stream (`reply_mode::echo_one`) | shipped |
 | 2B | `mock_grpc_server_peer` (h2 + gRPC framing + trailers) | not started |
 | 2C | `mock_quic_peer_loop` (Initial → Handshake → 1-RTT) | not started |
 | 2D | `network_test_friends.h` (private-method injection points) | not started |
