@@ -5007,6 +5007,21 @@ add_network_test(network_websocket_server_branch_test
                  unit/websocket_server_branch_test.cpp)
 target_link_libraries(network_websocket_server_branch_test PRIVATE network::test_support)
 
+# WebSocket server in-process loopback coverage: drives messaging_ws_server
+# end-to-end against a real RFC 6455 client (built from internal::websocket_socket)
+# to reach branches that are unreachable without a live handshake — namely
+# do_start_impl / do_stop_impl success paths, do_accept loop, handle_new_connection
+# success / max_connections-zero limit / handshake-failure branches, on_message
+# text+binary dispatch, on_close, broadcast_text / broadcast_binary populated-
+# session paths, get_connection / get_all_connections success, the auto_pong
+# true and false branches, ~messaging_ws_server while running, bind_failed
+# catch arm of do_start_impl, and ws_connection / ws_connection_impl methods
+# reachable only after a real connection (id / is_connected / path /
+# remote_endpoint / send / send_text / send_binary / close / close(code,reason))
+# (Issue #1067)
+add_network_test(network_websocket_server_loopback_test
+                 unit/websocket_server_loopback_test.cpp)
+
 # HTTP parser extended coverage: url_encode/decode edge cases (percent
 # truncation, high-bit bytes, hex case), query string delimiter handling
 # (leading/trailing '&', duplicate keys, URL-encoded delimiters), cookie
