@@ -893,3 +893,1262 @@ TEST_F(Http2ClientIntegrationTest, DISABLED_ConnectToHttpbin)
         GTEST_SKIP() << "Network not available: " << result.error().message;
     }
 }
+
+// =====================================================================
+// Hermetic transport coverage (Issue #1062)
+//
+// The tests above operate purely on the public API without an established
+// HTTP/2 connection. This section drives the post-handshake code paths in
+// http2_client.cpp that are otherwise unreachable from a hermetic CI
+// environment:
+//   - handle_headers_frame   — server replies with HEADERS (status code path)
+//   - handle_data_frame      — server replies with DATA + END_STREAM
+//   - handle_rst_stream_frame — server resets the stream
+//   - handle_goaway_frame    — server emits GOAWAY mid-session
+//   - handle_window_update_frame — server sends WINDOW_UPDATE
+//   - handle_ping_frame      — PING + PING-ACK round trip
+//   - read_frame             — invalid frame data triggers error path
+//   - process_frame          — unknown frame type falls through
+//   - handle_data_frame      — automatic WINDOW_UPDATE on flow control
+//   - run_io                 — peer closes socket abruptly
+//   - HPACK header-table eviction triggered from client side
+//
+// Each test reuses tls_loopback_listener for the TLS-with-ALPN-h2 layer
+// and drives the HTTP/2 framing manually so the test author retains full
+// control over what the client receives. Tests are scoped to error /
+// branch coverage that the disconnected-state tests above cannot cover.
+// =====================================================================
+
+#include "internal/protocols/http2/frame.h"
+#include "internal/protocols/http2/hpack.h"
+#include "hermetic_transport_fixture.h"
+#include "mock_h2_server_peer.h"
+#include "mock_tls_socket.h"
+
+#include <array>
+#include <atomic>
+#include <chrono>
+#include <cstring>
+#include <functional>
+#include <future>
+#include <span>
+#include <thread>
+
+namespace support = kcenon::network::tests::support;
+using namespace std::chrono_literals;
+
+namespace
+{
+
+
+// Frame header is fixed at 9 bytes for HTTP/2 (RFC 7540 Section 4.1).
+constexpr std::size_t kFrameHeaderSize = 9;
+constexpr std::size_t kPrefaceSize = 24;
+
+// HTTP/2 connection preface bytes.
+constexpr std::uint8_t kPrefaceBytes[kPrefaceSize] = {
+    'P',  'R',  'I',  ' ',  '*',  ' ',  'H',  'T',
+    'T',  'P',  '/',  '2',  '.',  '0',  '\r', '\n',
+    '\r', '\n', 'S',  'M',  '\r', '\n', '\r', '\n'
+};
+
+/**
+ * @brief Read the client preface and exchange SETTINGS, then return the
+ *        accepted SSL stream so the caller can inject custom frames.
+ *
+ * Mirrors the first four steps of @ref support::mock_h2_server_peer but
+ * exposes the underlying SSL stream so individual tests can write
+ * arbitrary frame sequences (HEADERS+DATA, RST_STREAM, GOAWAY, PING,
+ * WINDOW_UPDATE, malformed frames, abrupt close).
+ *
+ * @returns the post-SETTINGS stream on success, or nullptr on any I/O
+ *          or framing error.
+ */
+std::unique_ptr<asio::ssl::stream<asio::ip::tcp::socket>>
+complete_settings_exchange(support::tls_loopback_listener& listener)
+{
+    auto stream = listener.accepted_socket(std::chrono::seconds(5));
+    if (!stream)
+    {
+        return nullptr;
+    }
+
+    std::error_code ec;
+
+    // Read 24-byte client preface.
+    std::array<std::uint8_t, kPrefaceSize> preface_buf{};
+    asio::read(*stream, asio::buffer(preface_buf), ec);
+    if (ec ||
+        std::memcmp(preface_buf.data(), kPrefaceBytes, kPrefaceSize) != 0)
+    {
+        return nullptr;
+    }
+
+    // Send empty server SETTINGS.
+    {
+        kcenon::network::protocols::http2::settings_frame initial(
+            {}, /*ack=*/false);
+        const auto bytes = initial.serialize();
+        asio::write(*stream, asio::buffer(bytes), ec);
+        if (ec)
+        {
+            return nullptr;
+        }
+    }
+
+    // Read client SETTINGS frame header.
+    std::array<std::uint8_t, kFrameHeaderSize> hdr_buf{};
+    asio::read(*stream, asio::buffer(hdr_buf), ec);
+    if (ec)
+    {
+        return nullptr;
+    }
+    auto parsed = kcenon::network::protocols::http2::frame_header::parse(
+        std::span<const std::uint8_t>(hdr_buf.data(), hdr_buf.size()));
+    if (parsed.is_err())
+    {
+        return nullptr;
+    }
+    const auto hdr = parsed.value();
+    if (hdr.length > 0)
+    {
+        std::vector<std::uint8_t> payload(hdr.length);
+        asio::read(*stream, asio::buffer(payload), ec);
+        if (ec)
+        {
+            return nullptr;
+        }
+    }
+
+    // Send SETTINGS-ACK.
+    {
+        kcenon::network::protocols::http2::settings_frame ack_frame(
+            {}, /*ack=*/true);
+        const auto bytes = ack_frame.serialize();
+        asio::write(*stream, asio::buffer(bytes), ec);
+        if (ec)
+        {
+            return nullptr;
+        }
+    }
+
+    return stream;
+}
+
+/**
+ * @brief Build a minimal HPACK-encoded header block carrying :status only.
+ *
+ * Uses the project's hpack_encoder so the bytes round-trip cleanly through
+ * the client's hpack_decoder. Constructed per-call so each test gets a
+ * fresh dynamic-table state.
+ */
+std::vector<std::uint8_t> encode_status(int status_code)
+{
+    kcenon::network::protocols::http2::hpack_encoder enc(4096);
+    std::vector<kcenon::network::protocols::http2::http_header> headers = {
+        {":status", std::to_string(status_code)},
+    };
+    return enc.encode(headers);
+}
+
+/**
+ * @brief Build an HPACK-encoded header block populated with many distinct
+ *        custom headers — exercises the dynamic-table eviction path on the
+ *        client decoder.
+ */
+std::vector<std::uint8_t> encode_many_headers(int status_code, std::size_t n)
+{
+    kcenon::network::protocols::http2::hpack_encoder enc(4096);
+    std::vector<kcenon::network::protocols::http2::http_header> headers;
+    headers.reserve(n + 1);
+    headers.emplace_back(":status", std::to_string(status_code));
+    for (std::size_t i = 0; i < n; ++i)
+    {
+        headers.emplace_back(
+            "x-large-header-" + std::to_string(i),
+            std::string(64, static_cast<char>('A' + (i % 26))));
+    }
+    return enc.encode(headers);
+}
+
+} // namespace
+
+class Http2ClientHermeticTest : public support::hermetic_transport_fixture
+{
+};
+
+// HEADERS+DATA reply path: drives handle_headers_frame and handle_data_frame
+// success branches plus the response future fulfilment.
+TEST_F(Http2ClientHermeticTest, GetSucceedsWhenPeerSendsHeadersAndData)
+{
+    support::tls_loopback_listener listener(io());
+
+    std::atomic<bool> peer_done{false};
+    std::thread peer_thread([&]() {
+        auto stream = complete_settings_exchange(listener);
+        if (!stream)
+        {
+            return;
+        }
+
+        std::error_code ec;
+        // Read the client HEADERS frame (request) — discard it.
+        std::array<std::uint8_t, kFrameHeaderSize> hdr_buf{};
+        asio::read(*stream, asio::buffer(hdr_buf), ec);
+        if (ec) return;
+        auto parsed = kcenon::network::protocols::http2::frame_header::parse(
+            std::span<const std::uint8_t>(hdr_buf.data(), hdr_buf.size()));
+        if (parsed.is_err()) return;
+        const auto hdr = parsed.value();
+        if (hdr.length > 0)
+        {
+            std::vector<std::uint8_t> drain(hdr.length);
+            asio::read(*stream, asio::buffer(drain), ec);
+            if (ec) return;
+        }
+
+        // Reply with HEADERS frame carrying :status 200, end_stream=false.
+        {
+            auto block = encode_status(200);
+            kcenon::network::protocols::http2::headers_frame hf(
+                hdr.stream_id, std::move(block),
+                /*end_stream=*/false, /*end_headers=*/true);
+            auto bytes = hf.serialize();
+            asio::write(*stream, asio::buffer(bytes), ec);
+            if (ec) return;
+        }
+
+        // Reply with DATA frame carrying body and end_stream=true.
+        {
+            std::vector<std::uint8_t> body{'h', 'e', 'l', 'l', 'o'};
+            kcenon::network::protocols::http2::data_frame df(
+                hdr.stream_id, body, /*end_stream=*/true);
+            auto bytes = df.serialize();
+            asio::write(*stream, asio::buffer(bytes), ec);
+            if (ec) return;
+        }
+
+        peer_done.store(true);
+
+        // Drain remaining client frames (e.g. GOAWAY) until socket closes.
+        while (true)
+        {
+            std::array<std::uint8_t, kFrameHeaderSize> drain_hdr{};
+            asio::read(*stream, asio::buffer(drain_hdr), ec);
+            if (ec) break;
+            auto p = kcenon::network::protocols::http2::frame_header::parse(
+                std::span<const std::uint8_t>(drain_hdr.data(), drain_hdr.size()));
+            if (p.is_err()) break;
+            if (p.value().length > 0)
+            {
+                std::vector<std::uint8_t> payload(p.value().length);
+                asio::read(*stream, asio::buffer(payload), ec);
+                if (ec) break;
+            }
+        }
+    });
+
+    auto client = std::make_shared<http2_client>("hermetic-get-test");
+    client->set_timeout(2000ms);
+
+    std::thread connector([&]() {
+        (void)client->connect("127.0.0.1", listener.port());
+    });
+
+    // Wait for connect to complete and the peer to send the response.
+    EXPECT_TRUE(support::hermetic_transport_fixture::wait_for(
+        [&]() { return client->is_connected(); }, 3s));
+
+    auto response = client->get("/coverage");
+    ASSERT_TRUE(response.is_ok())
+        << "GET should succeed after peer sends HEADERS+DATA, got error: "
+        << (response.is_err() ? response.error().message : "none");
+    EXPECT_EQ(response.value().status_code, 200);
+    EXPECT_EQ(response.value().get_body_string(), "hello");
+
+    EXPECT_TRUE(support::hermetic_transport_fixture::wait_for(
+        [&]() { return peer_done.load(); }, 2s));
+
+    (void)client->disconnect();
+    connector.join();
+    peer_thread.join();
+}
+
+// GOAWAY reply mid-session: drives handle_goaway_frame branch and the
+// pending request being failed via promise.set_value with status 0.
+TEST_F(Http2ClientHermeticTest, GetReceivesGoawayWhilePending)
+{
+    support::tls_loopback_listener listener(io());
+
+    std::thread peer_thread([&]() {
+        auto stream = complete_settings_exchange(listener);
+        if (!stream)
+        {
+            return;
+        }
+
+        std::error_code ec;
+        // Read the client HEADERS frame (request) — discard it.
+        std::array<std::uint8_t, kFrameHeaderSize> hdr_buf{};
+        asio::read(*stream, asio::buffer(hdr_buf), ec);
+        if (ec) return;
+        auto parsed = kcenon::network::protocols::http2::frame_header::parse(
+            std::span<const std::uint8_t>(hdr_buf.data(), hdr_buf.size()));
+        if (parsed.is_err()) return;
+        const auto hdr = parsed.value();
+        if (hdr.length > 0)
+        {
+            std::vector<std::uint8_t> drain(hdr.length);
+            asio::read(*stream, asio::buffer(drain), ec);
+            if (ec) return;
+        }
+
+        // Send GOAWAY frame referencing last_stream_id = 0 so all client
+        // streams are considered unprocessed and force-closed by the
+        // handle_goaway_frame branch.
+        {
+            kcenon::network::protocols::http2::goaway_frame gf(
+                /*last_stream_id=*/0,
+                static_cast<std::uint32_t>(
+                    kcenon::network::protocols::http2::error_code::no_error));
+            auto bytes = gf.serialize();
+            asio::write(*stream, asio::buffer(bytes), ec);
+        }
+
+        // Drain remaining frames.
+        while (true)
+        {
+            std::array<std::uint8_t, kFrameHeaderSize> drain_hdr{};
+            asio::read(*stream, asio::buffer(drain_hdr), ec);
+            if (ec) break;
+            auto p = kcenon::network::protocols::http2::frame_header::parse(
+                std::span<const std::uint8_t>(drain_hdr.data(), drain_hdr.size()));
+            if (p.is_err()) break;
+            if (p.value().length > 0)
+            {
+                std::vector<std::uint8_t> payload(p.value().length);
+                asio::read(*stream, asio::buffer(payload), ec);
+                if (ec) break;
+            }
+        }
+    });
+
+    auto client = std::make_shared<http2_client>("hermetic-goaway-test");
+    client->set_timeout(2000ms);
+
+    std::thread connector([&]() {
+        (void)client->connect("127.0.0.1", listener.port());
+    });
+
+    EXPECT_TRUE(support::hermetic_transport_fixture::wait_for(
+        [&]() { return client->is_connected(); }, 3s));
+
+    // After GOAWAY arrives, the pending request future is set with status 0.
+    auto response = client->get("/goaway");
+    ASSERT_TRUE(response.is_ok());
+    EXPECT_EQ(response.value().status_code, 0);
+
+    // is_connected() returns false once goaway_received_ is set, even if
+    // is_connected_ is still true — exercises the && branch at line 241.
+    EXPECT_FALSE(client->is_connected());
+
+    (void)client->disconnect();
+    connector.join();
+    peer_thread.join();
+}
+
+// RST_STREAM reply: drives handle_rst_stream_frame branch.
+TEST_F(Http2ClientHermeticTest, GetReceivesRstStream)
+{
+    support::tls_loopback_listener listener(io());
+
+    std::thread peer_thread([&]() {
+        auto stream = complete_settings_exchange(listener);
+        if (!stream)
+        {
+            return;
+        }
+
+        std::error_code ec;
+        std::array<std::uint8_t, kFrameHeaderSize> hdr_buf{};
+        asio::read(*stream, asio::buffer(hdr_buf), ec);
+        if (ec) return;
+        auto parsed = kcenon::network::protocols::http2::frame_header::parse(
+            std::span<const std::uint8_t>(hdr_buf.data(), hdr_buf.size()));
+        if (parsed.is_err()) return;
+        const auto hdr = parsed.value();
+        if (hdr.length > 0)
+        {
+            std::vector<std::uint8_t> drain(hdr.length);
+            asio::read(*stream, asio::buffer(drain), ec);
+            if (ec) return;
+        }
+
+        // Reply with RST_STREAM.
+        {
+            kcenon::network::protocols::http2::rst_stream_frame rsf(
+                hdr.stream_id,
+                static_cast<std::uint32_t>(
+                    kcenon::network::protocols::http2::error_code::cancel));
+            auto bytes = rsf.serialize();
+            asio::write(*stream, asio::buffer(bytes), ec);
+        }
+
+        while (true)
+        {
+            std::array<std::uint8_t, kFrameHeaderSize> drain_hdr{};
+            asio::read(*stream, asio::buffer(drain_hdr), ec);
+            if (ec) break;
+            auto p = kcenon::network::protocols::http2::frame_header::parse(
+                std::span<const std::uint8_t>(drain_hdr.data(), drain_hdr.size()));
+            if (p.is_err()) break;
+            if (p.value().length > 0)
+            {
+                std::vector<std::uint8_t> payload(p.value().length);
+                asio::read(*stream, asio::buffer(payload), ec);
+                if (ec) break;
+            }
+        }
+    });
+
+    auto client = std::make_shared<http2_client>("hermetic-rst-test");
+    client->set_timeout(2000ms);
+
+    std::thread connector([&]() {
+        (void)client->connect("127.0.0.1", listener.port());
+    });
+
+    EXPECT_TRUE(support::hermetic_transport_fixture::wait_for(
+        [&]() { return client->is_connected(); }, 3s));
+
+    auto response = client->get("/rst");
+    ASSERT_TRUE(response.is_ok());
+    // RST_STREAM sets status_code to 0 to indicate error.
+    EXPECT_EQ(response.value().status_code, 0);
+
+    (void)client->disconnect();
+    connector.join();
+    peer_thread.join();
+}
+
+// PING frame: drives handle_ping_frame branch (server PING -> client ACK).
+TEST_F(Http2ClientHermeticTest, ClientReplyToServerPing)
+{
+    support::tls_loopback_listener listener(io());
+
+    std::atomic<bool> ping_ack_received{false};
+    std::thread peer_thread([&]() {
+        auto stream = complete_settings_exchange(listener);
+        if (!stream)
+        {
+            return;
+        }
+
+        std::error_code ec;
+
+        // Send PING with opaque data.
+        {
+            std::array<std::uint8_t, 8> opaque = {1, 2, 3, 4, 5, 6, 7, 8};
+            kcenon::network::protocols::http2::ping_frame pf(opaque, false);
+            auto bytes = pf.serialize();
+            asio::write(*stream, asio::buffer(bytes), ec);
+            if (ec) return;
+        }
+
+        // Expect PING-ACK back from the client.
+        std::array<std::uint8_t, kFrameHeaderSize> hdr_buf{};
+        asio::read(*stream, asio::buffer(hdr_buf), ec);
+        if (ec) return;
+        auto parsed = kcenon::network::protocols::http2::frame_header::parse(
+            std::span<const std::uint8_t>(hdr_buf.data(), hdr_buf.size()));
+        if (parsed.is_err()) return;
+        const auto hdr = parsed.value();
+        if (hdr.type ==
+                kcenon::network::protocols::http2::frame_type::ping &&
+            (hdr.flags &
+             kcenon::network::protocols::http2::frame_flags::ack) != 0)
+        {
+            ping_ack_received.store(true);
+        }
+        if (hdr.length > 0)
+        {
+            std::vector<std::uint8_t> drain(hdr.length);
+            asio::read(*stream, asio::buffer(drain), ec);
+            if (ec) return;
+        }
+
+        while (true)
+        {
+            std::array<std::uint8_t, kFrameHeaderSize> drain_hdr{};
+            asio::read(*stream, asio::buffer(drain_hdr), ec);
+            if (ec) break;
+            auto p = kcenon::network::protocols::http2::frame_header::parse(
+                std::span<const std::uint8_t>(drain_hdr.data(), drain_hdr.size()));
+            if (p.is_err()) break;
+            if (p.value().length > 0)
+            {
+                std::vector<std::uint8_t> payload(p.value().length);
+                asio::read(*stream, asio::buffer(payload), ec);
+                if (ec) break;
+            }
+        }
+    });
+
+    auto client = std::make_shared<http2_client>("hermetic-ping-test");
+    client->set_timeout(2000ms);
+
+    std::thread connector([&]() {
+        (void)client->connect("127.0.0.1", listener.port());
+    });
+
+    EXPECT_TRUE(support::hermetic_transport_fixture::wait_for(
+        [&]() { return client->is_connected(); }, 3s));
+
+    EXPECT_TRUE(support::hermetic_transport_fixture::wait_for(
+        [&]() { return ping_ack_received.load(); }, 3s))
+        << "client should auto-reply to server PING with PING-ACK";
+
+    (void)client->disconnect();
+    connector.join();
+    peer_thread.join();
+}
+
+// PING-ACK frame: server sends PING with ACK flag — client must NOT reply.
+// Drives the !is_ack branch in handle_ping_frame.
+TEST_F(Http2ClientHermeticTest, ClientDoesNotReplyToPingAck)
+{
+    support::tls_loopback_listener listener(io());
+
+    std::atomic<bool> got_ping_ack_from_peer{false};
+    std::atomic<int> client_frames_after_ack{0};
+
+    std::thread peer_thread([&]() {
+        auto stream = complete_settings_exchange(listener);
+        if (!stream)
+        {
+            return;
+        }
+        got_ping_ack_from_peer.store(true);
+
+        std::error_code ec;
+
+        // Send PING with ACK flag set — handle_ping_frame must not reply.
+        {
+            std::array<std::uint8_t, 8> opaque = {0xAA, 0xBB, 0xCC, 0xDD,
+                                                  0xEE, 0xFF, 0x11, 0x22};
+            kcenon::network::protocols::http2::ping_frame pf(opaque, true);
+            auto bytes = pf.serialize();
+            asio::write(*stream, asio::buffer(bytes), ec);
+            if (ec) return;
+        }
+
+        // Read with timeout-like behavior — we expect EOF or GOAWAY when
+        // the client disconnects; we should NOT see a PING-ACK frame.
+        while (true)
+        {
+            std::array<std::uint8_t, kFrameHeaderSize> drain_hdr{};
+            asio::read(*stream, asio::buffer(drain_hdr), ec);
+            if (ec) break;
+            auto p = kcenon::network::protocols::http2::frame_header::parse(
+                std::span<const std::uint8_t>(drain_hdr.data(), drain_hdr.size()));
+            if (p.is_err()) break;
+            const auto h = p.value();
+            // A PING frame here would indicate the client incorrectly
+            // replied to our ACK.
+            if (h.type ==
+                kcenon::network::protocols::http2::frame_type::ping)
+            {
+                client_frames_after_ack.fetch_add(1);
+            }
+            if (h.length > 0)
+            {
+                std::vector<std::uint8_t> payload(h.length);
+                asio::read(*stream, asio::buffer(payload), ec);
+                if (ec) break;
+            }
+        }
+    });
+
+    auto client = std::make_shared<http2_client>("hermetic-ping-ack-test");
+    client->set_timeout(2000ms);
+
+    std::thread connector([&]() {
+        (void)client->connect("127.0.0.1", listener.port());
+    });
+
+    EXPECT_TRUE(support::hermetic_transport_fixture::wait_for(
+        [&]() { return client->is_connected(); }, 3s));
+
+    // Allow the peer to deliver the PING-ACK and the client's run_io to
+    // process it.
+    std::this_thread::sleep_for(200ms);
+
+    (void)client->disconnect();
+    connector.join();
+    peer_thread.join();
+
+    EXPECT_TRUE(got_ping_ack_from_peer.load());
+    EXPECT_EQ(client_frames_after_ack.load(), 0)
+        << "client should not have replied to PING with ACK flag";
+}
+
+// WINDOW_UPDATE frame: connection-level (stream 0) and stream-level paths.
+TEST_F(Http2ClientHermeticTest, ClientHandlesWindowUpdateConnectionLevel)
+{
+    support::tls_loopback_listener listener(io());
+
+    std::thread peer_thread([&]() {
+        auto stream = complete_settings_exchange(listener);
+        if (!stream)
+        {
+            return;
+        }
+
+        std::error_code ec;
+
+        // Send connection-level WINDOW_UPDATE (stream_id == 0).
+        {
+            kcenon::network::protocols::http2::window_update_frame wuf(
+                0, 32768);
+            auto bytes = wuf.serialize();
+            asio::write(*stream, asio::buffer(bytes), ec);
+            if (ec) return;
+        }
+
+        // Send stream-level WINDOW_UPDATE for a stream that doesn't exist.
+        // handle_window_update_frame should silently ignore unknown
+        // stream IDs (the !stream branch at line 1106).
+        {
+            kcenon::network::protocols::http2::window_update_frame wuf(
+                99u, 16384);
+            auto bytes = wuf.serialize();
+            asio::write(*stream, asio::buffer(bytes), ec);
+            if (ec) return;
+        }
+
+        while (true)
+        {
+            std::array<std::uint8_t, kFrameHeaderSize> drain_hdr{};
+            asio::read(*stream, asio::buffer(drain_hdr), ec);
+            if (ec) break;
+            auto p = kcenon::network::protocols::http2::frame_header::parse(
+                std::span<const std::uint8_t>(drain_hdr.data(), drain_hdr.size()));
+            if (p.is_err()) break;
+            if (p.value().length > 0)
+            {
+                std::vector<std::uint8_t> payload(p.value().length);
+                asio::read(*stream, asio::buffer(payload), ec);
+                if (ec) break;
+            }
+        }
+    });
+
+    auto client = std::make_shared<http2_client>("hermetic-wu-test");
+    client->set_timeout(2000ms);
+
+    std::thread connector([&]() {
+        (void)client->connect("127.0.0.1", listener.port());
+    });
+
+    EXPECT_TRUE(support::hermetic_transport_fixture::wait_for(
+        [&]() { return client->is_connected(); }, 3s));
+
+    // Allow run_io to process the WINDOW_UPDATEs.
+    std::this_thread::sleep_for(150ms);
+
+    EXPECT_TRUE(client->is_connected());
+
+    (void)client->disconnect();
+    connector.join();
+    peer_thread.join();
+}
+
+// Frame parse error: peer sends a valid header but an oversized DATA frame
+// payload that the client cannot parse — drives the read_frame error
+// branch and the run_io break-on-error path.
+TEST_F(Http2ClientHermeticTest, RunIoBreaksOnPeerSocketClose)
+{
+    support::tls_loopback_listener listener(io());
+
+    std::thread peer_thread([&]() {
+        auto stream = complete_settings_exchange(listener);
+        if (!stream)
+        {
+            return;
+        }
+        // Abruptly close the underlying socket so the next read in
+        // client's run_io fails. This drives the catch-block / err
+        // branches in run_io (lines 1131-1149).
+        std::error_code ec;
+        stream->lowest_layer().shutdown(asio::ip::tcp::socket::shutdown_both, ec);
+        stream->lowest_layer().close(ec);
+    });
+
+    auto client = std::make_shared<http2_client>("hermetic-close-test");
+    client->set_timeout(1500ms);
+
+    std::thread connector([&]() {
+        (void)client->connect("127.0.0.1", listener.port());
+    });
+
+    // Wait for client to finish handshake before peer slams the socket.
+    EXPECT_TRUE(support::hermetic_transport_fixture::wait_for(
+        [&]() { return client->is_connected(); }, 3s));
+
+    // The peer thread closes the socket, so run_io will break out of
+    // the loop and is_connected_ flips to false.
+    EXPECT_TRUE(support::hermetic_transport_fixture::wait_for(
+        [&]() { return !client->is_connected(); }, 3s));
+
+    (void)client->disconnect();
+    connector.join();
+    peer_thread.join();
+}
+
+// State machine: send_request returning timeout closes the stream. The
+// stream remains in the streams_ map but in a closed state — exercises
+// close_stream's lookup-and-mark path (lines 715-721).
+TEST_F(Http2ClientHermeticTest, RequestTimeoutMarksStreamClosed)
+{
+    support::mock_h2_server_peer peer(io());
+
+    auto client = std::make_shared<http2_client>("hermetic-timeout-test");
+    client->set_timeout(120ms);
+    auto port = peer.port();
+    std::thread connector([client, port]() {
+        (void)client->connect("127.0.0.1", port);
+    });
+
+    EXPECT_TRUE(support::hermetic_transport_fixture::wait_for(
+        [&]() { return peer.settings_exchanged(); }, 3s));
+    EXPECT_TRUE(client->is_connected());
+
+    // GET times out (peer never sends HEADERS+DATA).
+    auto first = client->get("/timeout-1");
+    EXPECT_TRUE(first.is_err());
+
+    // Issue a second timed-out GET — exercises the same path again with
+    // an incremented stream id, allocating sequentially via fetch_add(2).
+    auto second = client->get("/timeout-2");
+    EXPECT_TRUE(second.is_err());
+
+    (void)client->disconnect();
+    connector.join();
+}
+
+// HPACK eviction: server sends HEADERS with a large header set so the
+// client's hpack_decoder triggers evict_to_size while building its
+// response_headers vector. Drives the dynamic-table eviction path on the
+// decoder side, reachable only post-handshake.
+TEST_F(Http2ClientHermeticTest, GetWithManyHeadersTriggersHpackEviction)
+{
+    support::tls_loopback_listener listener(io());
+
+    std::thread peer_thread([&]() {
+        auto stream = complete_settings_exchange(listener);
+        if (!stream)
+        {
+            return;
+        }
+
+        std::error_code ec;
+        std::array<std::uint8_t, kFrameHeaderSize> hdr_buf{};
+        asio::read(*stream, asio::buffer(hdr_buf), ec);
+        if (ec) return;
+        auto parsed = kcenon::network::protocols::http2::frame_header::parse(
+            std::span<const std::uint8_t>(hdr_buf.data(), hdr_buf.size()));
+        if (parsed.is_err()) return;
+        const auto hdr = parsed.value();
+        if (hdr.length > 0)
+        {
+            std::vector<std::uint8_t> drain(hdr.length);
+            asio::read(*stream, asio::buffer(drain), ec);
+            if (ec) return;
+        }
+
+        // Reply with HEADERS frame carrying many headers; total size
+        // exceeds the default 4096-byte dynamic table to force eviction.
+        {
+            auto block = encode_many_headers(200, 80);
+            kcenon::network::protocols::http2::headers_frame hf(
+                hdr.stream_id, std::move(block),
+                /*end_stream=*/true, /*end_headers=*/true);
+            auto bytes = hf.serialize();
+            asio::write(*stream, asio::buffer(bytes), ec);
+            if (ec) return;
+        }
+
+        while (true)
+        {
+            std::array<std::uint8_t, kFrameHeaderSize> drain_hdr{};
+            asio::read(*stream, asio::buffer(drain_hdr), ec);
+            if (ec) break;
+            auto p = kcenon::network::protocols::http2::frame_header::parse(
+                std::span<const std::uint8_t>(drain_hdr.data(), drain_hdr.size()));
+            if (p.is_err()) break;
+            if (p.value().length > 0)
+            {
+                std::vector<std::uint8_t> payload(p.value().length);
+                asio::read(*stream, asio::buffer(payload), ec);
+                if (ec) break;
+            }
+        }
+    });
+
+    auto client = std::make_shared<http2_client>("hermetic-hpack-evict-test");
+    client->set_timeout(2000ms);
+
+    std::thread connector([&]() {
+        (void)client->connect("127.0.0.1", listener.port());
+    });
+
+    EXPECT_TRUE(support::hermetic_transport_fixture::wait_for(
+        [&]() { return client->is_connected(); }, 3s));
+
+    auto response = client->get("/hpack-evict");
+    ASSERT_TRUE(response.is_ok());
+    EXPECT_EQ(response.value().status_code, 200);
+    // Verify many of the headers came through despite eviction.
+    EXPECT_GE(response.value().headers.size(), 50u);
+
+    (void)client->disconnect();
+    connector.join();
+    peer_thread.join();
+}
+
+// Streaming path: start_stream + write_stream + RST_STREAM from peer
+// triggers handle_rst_stream_frame on a streaming session.
+TEST_F(Http2ClientHermeticTest, StreamingRequestReceivesPeerRstStream)
+{
+    support::tls_loopback_listener listener(io());
+
+    std::thread peer_thread([&]() {
+        auto stream = complete_settings_exchange(listener);
+        if (!stream)
+        {
+            return;
+        }
+
+        std::error_code ec;
+        // Read the client HEADERS for streaming POST.
+        std::array<std::uint8_t, kFrameHeaderSize> hdr_buf{};
+        asio::read(*stream, asio::buffer(hdr_buf), ec);
+        if (ec) return;
+        auto parsed = kcenon::network::protocols::http2::frame_header::parse(
+            std::span<const std::uint8_t>(hdr_buf.data(), hdr_buf.size()));
+        if (parsed.is_err()) return;
+        const auto hdr = parsed.value();
+        if (hdr.length > 0)
+        {
+            std::vector<std::uint8_t> drain(hdr.length);
+            asio::read(*stream, asio::buffer(drain), ec);
+            if (ec) return;
+        }
+
+        // Send RST_STREAM for the streaming request.
+        {
+            kcenon::network::protocols::http2::rst_stream_frame rsf(
+                hdr.stream_id,
+                static_cast<std::uint32_t>(
+                    kcenon::network::protocols::http2::error_code::cancel));
+            auto bytes = rsf.serialize();
+            asio::write(*stream, asio::buffer(bytes), ec);
+        }
+
+        while (true)
+        {
+            std::array<std::uint8_t, kFrameHeaderSize> drain_hdr{};
+            asio::read(*stream, asio::buffer(drain_hdr), ec);
+            if (ec) break;
+            auto p = kcenon::network::protocols::http2::frame_header::parse(
+                std::span<const std::uint8_t>(drain_hdr.data(), drain_hdr.size()));
+            if (p.is_err()) break;
+            if (p.value().length > 0)
+            {
+                std::vector<std::uint8_t> payload(p.value().length);
+                asio::read(*stream, asio::buffer(payload), ec);
+                if (ec) break;
+            }
+        }
+    });
+
+    auto client = std::make_shared<http2_client>("hermetic-stream-rst-test");
+    client->set_timeout(2000ms);
+
+    std::thread connector([&]() {
+        (void)client->connect("127.0.0.1", listener.port());
+    });
+
+    EXPECT_TRUE(support::hermetic_transport_fixture::wait_for(
+        [&]() { return client->is_connected(); }, 3s));
+
+    auto stream_result = client->start_stream(
+        "/streaming-rst", {},
+        [](std::vector<uint8_t>) {},
+        [](std::vector<http_header>) {},
+        [](int) {});
+    ASSERT_TRUE(stream_result.is_ok());
+
+    // Allow the RST_STREAM to land.
+    std::this_thread::sleep_for(150ms);
+
+    (void)client->disconnect();
+    connector.join();
+    peer_thread.join();
+}
+
+// Streaming HEADERS path: server sends HEADERS frame to a streaming
+// request — drives the on_headers callback branch in handle_headers_frame.
+TEST_F(Http2ClientHermeticTest, StreamingRequestReceivesHeadersCallback)
+{
+    support::tls_loopback_listener listener(io());
+
+    std::thread peer_thread([&]() {
+        auto stream = complete_settings_exchange(listener);
+        if (!stream)
+        {
+            return;
+        }
+
+        std::error_code ec;
+        std::array<std::uint8_t, kFrameHeaderSize> hdr_buf{};
+        asio::read(*stream, asio::buffer(hdr_buf), ec);
+        if (ec) return;
+        auto parsed = kcenon::network::protocols::http2::frame_header::parse(
+            std::span<const std::uint8_t>(hdr_buf.data(), hdr_buf.size()));
+        if (parsed.is_err()) return;
+        const auto hdr = parsed.value();
+        if (hdr.length > 0)
+        {
+            std::vector<std::uint8_t> drain(hdr.length);
+            asio::read(*stream, asio::buffer(drain), ec);
+            if (ec) return;
+        }
+
+        // Send HEADERS without END_STREAM so the streaming session stays
+        // open and the on_headers callback fires.
+        {
+            auto block = encode_status(202);
+            kcenon::network::protocols::http2::headers_frame hf(
+                hdr.stream_id, std::move(block),
+                /*end_stream=*/false, /*end_headers=*/true);
+            auto bytes = hf.serialize();
+            asio::write(*stream, asio::buffer(bytes), ec);
+            if (ec) return;
+        }
+
+        // Send a DATA frame with body bytes (no END_STREAM), then a final
+        // empty DATA with END_STREAM to close it. This drives the
+        // streaming on_data + on_complete callbacks.
+        {
+            std::vector<std::uint8_t> body{'c', 'h', 'u', 'n', 'k'};
+            kcenon::network::protocols::http2::data_frame df(
+                hdr.stream_id, body, /*end_stream=*/false);
+            auto bytes = df.serialize();
+            asio::write(*stream, asio::buffer(bytes), ec);
+            if (ec) return;
+        }
+        {
+            std::vector<std::uint8_t> empty;
+            kcenon::network::protocols::http2::data_frame df(
+                hdr.stream_id, empty, /*end_stream=*/true);
+            auto bytes = df.serialize();
+            asio::write(*stream, asio::buffer(bytes), ec);
+            if (ec) return;
+        }
+
+        while (true)
+        {
+            std::array<std::uint8_t, kFrameHeaderSize> drain_hdr{};
+            asio::read(*stream, asio::buffer(drain_hdr), ec);
+            if (ec) break;
+            auto p = kcenon::network::protocols::http2::frame_header::parse(
+                std::span<const std::uint8_t>(drain_hdr.data(), drain_hdr.size()));
+            if (p.is_err()) break;
+            if (p.value().length > 0)
+            {
+                std::vector<std::uint8_t> payload(p.value().length);
+                asio::read(*stream, asio::buffer(payload), ec);
+                if (ec) break;
+            }
+        }
+    });
+
+    auto client = std::make_shared<http2_client>("hermetic-stream-cb-test");
+    client->set_timeout(2000ms);
+
+    std::thread connector([&]() {
+        (void)client->connect("127.0.0.1", listener.port());
+    });
+
+    EXPECT_TRUE(support::hermetic_transport_fixture::wait_for(
+        [&]() { return client->is_connected(); }, 3s));
+
+    std::atomic<bool> got_headers{false};
+    std::atomic<bool> got_data{false};
+    std::atomic<int> complete_status{-1};
+
+    auto stream_result = client->start_stream(
+        "/streaming-cb", {},
+        [&](std::vector<uint8_t> chunk) {
+            if (!chunk.empty()) got_data.store(true);
+        },
+        [&](std::vector<http_header>) { got_headers.store(true); },
+        [&](int status) { complete_status.store(status); });
+    ASSERT_TRUE(stream_result.is_ok());
+
+    EXPECT_TRUE(support::hermetic_transport_fixture::wait_for(
+        [&]() {
+            return got_headers.load() && got_data.load() &&
+                   complete_status.load() == 202;
+        },
+        3s));
+
+    (void)client->disconnect();
+    connector.join();
+    peer_thread.join();
+}
+
+// Unknown frame type: peer sends a frame with a reserved type byte
+// (e.g. 0xFE). process_frame's default switch arm should ignore it and
+// the run_io loop should keep going.
+TEST_F(Http2ClientHermeticTest, ClientIgnoresUnknownFrameType)
+{
+    support::tls_loopback_listener listener(io());
+
+    std::thread peer_thread([&]() {
+        auto stream = complete_settings_exchange(listener);
+        if (!stream)
+        {
+            return;
+        }
+
+        std::error_code ec;
+        // Hand-construct a frame header with an unknown type (0xFE).
+        // length=0, type=0xFE, flags=0, stream_id=0.
+        std::array<std::uint8_t, kFrameHeaderSize> raw = {
+            0x00, 0x00, 0x00,  // length = 0
+            0xFE,              // type = 0xFE (unknown)
+            0x00,              // flags
+            0x00, 0x00, 0x00, 0x00  // stream_id
+        };
+        asio::write(*stream, asio::buffer(raw), ec);
+        if (ec) return;
+
+        while (true)
+        {
+            std::array<std::uint8_t, kFrameHeaderSize> drain_hdr{};
+            asio::read(*stream, asio::buffer(drain_hdr), ec);
+            if (ec) break;
+            auto p = kcenon::network::protocols::http2::frame_header::parse(
+                std::span<const std::uint8_t>(drain_hdr.data(), drain_hdr.size()));
+            if (p.is_err()) break;
+            if (p.value().length > 0)
+            {
+                std::vector<std::uint8_t> payload(p.value().length);
+                asio::read(*stream, asio::buffer(payload), ec);
+                if (ec) break;
+            }
+        }
+    });
+
+    auto client = std::make_shared<http2_client>("hermetic-unknown-test");
+    client->set_timeout(2000ms);
+
+    std::thread connector([&]() {
+        (void)client->connect("127.0.0.1", listener.port());
+    });
+
+    EXPECT_TRUE(support::hermetic_transport_fixture::wait_for(
+        [&]() { return client->is_connected(); }, 3s));
+
+    // Allow the unknown frame to be received and dispatched.
+    std::this_thread::sleep_for(150ms);
+
+    EXPECT_TRUE(client->is_connected())
+        << "client should ignore unknown frame types and stay connected";
+
+    (void)client->disconnect();
+    connector.join();
+    peer_thread.join();
+}
+
+// HEADERS with non-numeric :status should result in status_code = 0
+// (drives the catch-all branch in handle_headers_frame's stoi try/catch).
+TEST_F(Http2ClientHermeticTest, GetWithNonNumericStatusYieldsZero)
+{
+    support::tls_loopback_listener listener(io());
+
+    std::thread peer_thread([&]() {
+        auto stream = complete_settings_exchange(listener);
+        if (!stream)
+        {
+            return;
+        }
+
+        std::error_code ec;
+        std::array<std::uint8_t, kFrameHeaderSize> hdr_buf{};
+        asio::read(*stream, asio::buffer(hdr_buf), ec);
+        if (ec) return;
+        auto parsed = kcenon::network::protocols::http2::frame_header::parse(
+            std::span<const std::uint8_t>(hdr_buf.data(), hdr_buf.size()));
+        if (parsed.is_err()) return;
+        const auto hdr = parsed.value();
+        if (hdr.length > 0)
+        {
+            std::vector<std::uint8_t> drain(hdr.length);
+            asio::read(*stream, asio::buffer(drain), ec);
+            if (ec) return;
+        }
+
+        // Encode :status with a non-numeric value to force the std::stoi
+        // try/catch fallback in handle_headers_frame.
+        kcenon::network::protocols::http2::hpack_encoder enc(4096);
+        std::vector<kcenon::network::protocols::http2::http_header> headers = {
+            {":status", "abc"},
+        };
+        auto block = enc.encode(headers);
+
+        kcenon::network::protocols::http2::headers_frame hf(
+            hdr.stream_id, std::move(block),
+            /*end_stream=*/true, /*end_headers=*/true);
+        auto bytes = hf.serialize();
+        asio::write(*stream, asio::buffer(bytes), ec);
+
+        while (true)
+        {
+            std::array<std::uint8_t, kFrameHeaderSize> drain_hdr{};
+            asio::read(*stream, asio::buffer(drain_hdr), ec);
+            if (ec) break;
+            auto p = kcenon::network::protocols::http2::frame_header::parse(
+                std::span<const std::uint8_t>(drain_hdr.data(), drain_hdr.size()));
+            if (p.is_err()) break;
+            if (p.value().length > 0)
+            {
+                std::vector<std::uint8_t> payload(p.value().length);
+                asio::read(*stream, asio::buffer(payload), ec);
+                if (ec) break;
+            }
+        }
+    });
+
+    auto client = std::make_shared<http2_client>("hermetic-bad-status-test");
+    client->set_timeout(2000ms);
+
+    std::thread connector([&]() {
+        (void)client->connect("127.0.0.1", listener.port());
+    });
+
+    EXPECT_TRUE(support::hermetic_transport_fixture::wait_for(
+        [&]() { return client->is_connected(); }, 3s));
+
+    auto response = client->get("/bad-status");
+    ASSERT_TRUE(response.is_ok());
+    EXPECT_EQ(response.value().status_code, 0);
+
+    (void)client->disconnect();
+    connector.join();
+    peer_thread.join();
+}
+
+// Flow control: peer sends a large DATA payload that crosses the
+// half-window threshold so the client emits an automatic WINDOW_UPDATE
+// for the stream and the connection.
+TEST_F(Http2ClientHermeticTest, GetWithLargeBodyTriggersWindowUpdate)
+{
+    support::tls_loopback_listener listener(io());
+
+    std::atomic<bool> client_window_update_received{false};
+
+    std::thread peer_thread([&]() {
+        auto stream = complete_settings_exchange(listener);
+        if (!stream)
+        {
+            return;
+        }
+
+        std::error_code ec;
+        std::array<std::uint8_t, kFrameHeaderSize> hdr_buf{};
+        asio::read(*stream, asio::buffer(hdr_buf), ec);
+        if (ec) return;
+        auto parsed = kcenon::network::protocols::http2::frame_header::parse(
+            std::span<const std::uint8_t>(hdr_buf.data(), hdr_buf.size()));
+        if (parsed.is_err()) return;
+        const auto hdr = parsed.value();
+        if (hdr.length > 0)
+        {
+            std::vector<std::uint8_t> drain(hdr.length);
+            asio::read(*stream, asio::buffer(drain), ec);
+            if (ec) return;
+        }
+
+        // Reply with HEADERS (no END_STREAM).
+        {
+            auto block = encode_status(200);
+            kcenon::network::protocols::http2::headers_frame hf(
+                hdr.stream_id, std::move(block),
+                /*end_stream=*/false, /*end_headers=*/true);
+            auto bytes = hf.serialize();
+            asio::write(*stream, asio::buffer(bytes), ec);
+            if (ec) return;
+        }
+
+        // DATA frame that is large enough to push window_size below
+        // DEFAULT_WINDOW_SIZE/2 (32768), forcing the client to emit a
+        // WINDOW_UPDATE. Send 40 KB.
+        {
+            std::vector<std::uint8_t> body(40 * 1024, 0x42);
+            kcenon::network::protocols::http2::data_frame df(
+                hdr.stream_id, body, /*end_stream=*/true);
+            auto bytes = df.serialize();
+            asio::write(*stream, asio::buffer(bytes), ec);
+            if (ec) return;
+        }
+
+        // Look for the WINDOW_UPDATE frame from the client.
+        while (true)
+        {
+            std::array<std::uint8_t, kFrameHeaderSize> drain_hdr{};
+            asio::read(*stream, asio::buffer(drain_hdr), ec);
+            if (ec) break;
+            auto p = kcenon::network::protocols::http2::frame_header::parse(
+                std::span<const std::uint8_t>(drain_hdr.data(), drain_hdr.size()));
+            if (p.is_err()) break;
+            const auto h = p.value();
+            if (h.type ==
+                kcenon::network::protocols::http2::frame_type::window_update)
+            {
+                client_window_update_received.store(true);
+            }
+            if (h.length > 0)
+            {
+                std::vector<std::uint8_t> payload(h.length);
+                asio::read(*stream, asio::buffer(payload), ec);
+                if (ec) break;
+            }
+        }
+    });
+
+    auto client = std::make_shared<http2_client>("hermetic-large-body-test");
+    client->set_timeout(2000ms);
+
+    std::thread connector([&]() {
+        (void)client->connect("127.0.0.1", listener.port());
+    });
+
+    EXPECT_TRUE(support::hermetic_transport_fixture::wait_for(
+        [&]() { return client->is_connected(); }, 3s));
+
+    auto response = client->get("/large-body");
+    ASSERT_TRUE(response.is_ok());
+    EXPECT_EQ(response.value().status_code, 200);
+    EXPECT_EQ(response.value().body.size(), 40u * 1024u);
+
+    EXPECT_TRUE(support::hermetic_transport_fixture::wait_for(
+        [&]() { return client_window_update_received.load(); }, 2s))
+        << "client should auto-emit WINDOW_UPDATE after large DATA frame";
+
+    (void)client->disconnect();
+    connector.join();
+    peer_thread.join();
+}

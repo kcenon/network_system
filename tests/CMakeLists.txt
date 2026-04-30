@@ -1171,6 +1171,7 @@ if(GTest_FOUND OR GTEST_FOUND)
 
         target_link_libraries(network_http2_client_test PRIVATE
             network_system
+            network::test_support
             GTest::gtest
             GTest::gtest_main
             Threads::Threads
