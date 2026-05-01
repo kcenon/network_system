@@ -577,7 +577,7 @@ auto result = client.connect()
 ```cmake
 # Core options
 option(BUILD_TESTS "Build unit tests" ON)
-option(BUILD_SAMPLES "Build sample programs" ON)
+option(BUILD_EXAMPLES "Build usage examples" ON)
 option(BUILD_BENCHMARKS "Build performance benchmarks" ON)
 
 # Integration options

@@ -265,7 +265,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # 옵션
 option(BUILD_SHARED_LIBS "Build using shared libraries" OFF)
 option(BUILD_TESTS "Build tests" ON)
-option(BUILD_SAMPLES "Build samples" ON)
+option(BUILD_EXAMPLES "Build examples" ON)
 option(BUILD_WITH_CONTAINER_SYSTEM "Build with container_system integration" ON)
 option(BUILD_WITH_THREAD_SYSTEM "Build with thread_system integration" ON)
 option(BUILD_MESSAGING_BRIDGE "Build messaging_system bridge" ON)
@@ -318,7 +318,7 @@ if(BUILD_TESTS)
 endif()
 
 # 샘플
-if(BUILD_SAMPLES)
+if(BUILD_EXAMPLES)
     add_subdirectory(samples)
 endif()
 
@@ -517,7 +517,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BUILD_DIR="$SCRIPT_DIR/build"
 BUILD_TYPE="${BUILD_TYPE:-Release}"
 BUILD_TESTS="${BUILD_TESTS:-ON}"
-BUILD_SAMPLES="${BUILD_SAMPLES:-ON}"
+BUILD_EXAMPLES="${BUILD_EXAMPLES:-ON}"
 VERBOSE="${VERBOSE:-OFF}"
 
 # Parse command line arguments
@@ -535,8 +535,8 @@ while [[ $# -gt 0 ]]; do
             BUILD_TESTS="OFF"
             shift
             ;;
-        --no-samples)
-            BUILD_SAMPLES="OFF"
+        --no-examples)
+            BUILD_EXAMPLES="OFF"
             shift
             ;;
         --verbose)
@@ -554,7 +554,7 @@ while [[ $# -gt 0 ]]; do
             echo "  --debug        Build in Debug mode"
             echo "  --release      Build in Release mode (default)"
             echo "  --no-tests     Don't build tests"
-            echo "  --no-samples   Don't build samples"
+            echo "  --no-examples   Don't build examples"
             echo "  --verbose      Verbose build output"
             echo "  --clean        Clean build directory"
             echo "  -h, --help     Show this help"
@@ -572,7 +572,7 @@ echo "Building NetworkSystem"
 echo "========================================="
 echo "Build Type: $BUILD_TYPE"
 echo "Build Tests: $BUILD_TESTS"
-echo "Build Samples: $BUILD_SAMPLES"
+echo "Build Examples: $BUILD_EXAMPLES"
 echo "Build Directory: $BUILD_DIR"
 echo "========================================="
 
@@ -584,7 +584,7 @@ cd "$BUILD_DIR"
 cmake .. \
     -DCMAKE_BUILD_TYPE="$BUILD_TYPE" \
     -DBUILD_TESTS="$BUILD_TESTS" \
-    -DBUILD_SAMPLES="$BUILD_SAMPLES" \
+    -DBUILD_EXAMPLES="$BUILD_EXAMPLES" \
     -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
 
 # Build
@@ -889,7 +889,7 @@ verify_migration() {
 
     # 빌드 테스트
     log_info "Running build test..."
-    if ./build.sh --no-tests --no-samples; then
+    if ./build.sh --no-tests --no-examples; then
         log_success "Build test passed"
     else
         log_error "Build test failed"

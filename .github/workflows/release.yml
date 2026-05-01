@@ -77,7 +77,7 @@ jobs:
           -DBUILD_WITH_CONTAINER_SYSTEM=OFF \
           -DBUILD_MESSAGING_BRIDGE=OFF \
           -DBUILD_TESTS=ON \
-          -DBUILD_SAMPLES=OFF
+          -DBUILD_EXAMPLES=OFF
 
     - name: Configure CMake (Windows)
       if: runner.os == 'Windows'
@@ -93,7 +93,7 @@ jobs:
           -DBUILD_WITH_CONTAINER_SYSTEM=OFF \
           -DBUILD_MESSAGING_BRIDGE=OFF \
           -DBUILD_TESTS=ON \
-          -DBUILD_SAMPLES=OFF
+          -DBUILD_EXAMPLES=OFF
 
     - name: Build (Unix)
       if: runner.os != 'Windows'

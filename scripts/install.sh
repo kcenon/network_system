@@ -15,7 +15,7 @@ NC='\033[0m' # No Color
 INSTALL_PREFIX="/usr/local"
 BUILD_TYPE="Release"
 BUILD_TESTS=OFF
-BUILD_SAMPLES=OFF
+BUILD_EXAMPLES=OFF
 PARALLEL_JOBS=$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 4)
 
 # Print colored message
@@ -43,7 +43,7 @@ Options:
     -p, --prefix PATH       Installation prefix (default: /usr/local)
     -t, --build-type TYPE   Build type: Debug, Release, RelWithDebInfo (default: Release)
     --with-tests            Build tests
-    --with-samples          Build sample programs
+    --with-examples         Build example programs
     -j, --jobs N            Number of parallel jobs (default: auto-detect)
     --clean                 Clean build directory before building
     --uninstall             Uninstall Network System
@@ -51,7 +51,7 @@ Options:
 Examples:
     $0                                  # Default installation
     $0 --prefix ~/local --with-tests   # Install to home directory with tests
-    $0 --build-type Debug --with-samples # Debug build with samples
+    $0 --build-type Debug --with-examples # Debug build with examples
     $0 --uninstall                     # Remove installation
 
 EOF
@@ -76,8 +76,8 @@ while [[ $# -gt 0 ]]; do
             BUILD_TESTS=ON
             shift
             ;;
-        --with-samples)
-            BUILD_SAMPLES=ON
+        --with-examples)
+            BUILD_EXAMPLES=ON
             shift
             ;;
         -j|--jobs)
@@ -224,7 +224,7 @@ build_network_system() {
         -DCMAKE_BUILD_TYPE="$BUILD_TYPE" \
         -DCMAKE_INSTALL_PREFIX="$INSTALL_PREFIX" \
         -DBUILD_TESTS="$BUILD_TESTS" \
-        -DBUILD_SAMPLES="$BUILD_SAMPLES" \
+        -DBUILD_EXAMPLES="$BUILD_EXAMPLES" \
         -DBUILD_SHARED_LIBS=OFF
 
     # Build

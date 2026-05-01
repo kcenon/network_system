@@ -85,7 +85,7 @@ mkdir build && cd build
 cmake .. -G Ninja \
   -DCMAKE_BUILD_TYPE=Release \
   -DBUILD_TESTS=ON \
-  -DBUILD_SAMPLES=ON
+  -DBUILD_EXAMPLES=ON
 ninja
 ```
 
@@ -109,7 +109,7 @@ mkdir build && cd build
 cmake .. -G Ninja \
   -DCMAKE_BUILD_TYPE=Release \
   -DBUILD_TESTS=ON \
-  -DBUILD_SAMPLES=ON
+  -DBUILD_EXAMPLES=ON
 ninja
 ```
 
@@ -171,7 +171,7 @@ mkdir build && cd build
 cmake .. -G Ninja \
   -DCMAKE_BUILD_TYPE=Release \
   -DBUILD_TESTS=ON \
-  -DBUILD_SAMPLES=ON
+  -DBUILD_EXAMPLES=ON
 ninja
 ```
 
@@ -183,7 +183,7 @@ ninja
 |--------|---------|-------------|
 | `BUILD_SHARED_LIBS` | OFF | 공유 라이브러리로 빌드 |
 | `BUILD_TESTS` | ON | 단위 테스트 빌드 |
-| `BUILD_SAMPLES` | ON | 샘플 애플리케이션 빌드 |
+| `BUILD_EXAMPLES` | ON | 사용 예제 빌드 |
 | `BUILD_WITH_CONTAINER_SYSTEM` | ON | container_system 통합 활성화 |
 | `BUILD_WITH_THREAD_SYSTEM` | ON | thread_system 통합 활성화 |
 | `BUILD_MESSAGING_BRIDGE` | ON | messaging_system 호환성 브리지 빌드 |
@@ -193,7 +193,7 @@ ninja
 
 #### 최소 빌드
 ```bash
-cmake .. -DBUILD_TESTS=OFF -DBUILD_SAMPLES=OFF
+cmake .. -DBUILD_TESTS=OFF -DBUILD_EXAMPLES=OFF
 ```
 
 #### 전체 기능 빌드
@@ -201,7 +201,7 @@ cmake .. -DBUILD_TESTS=OFF -DBUILD_SAMPLES=OFF
 cmake .. -G Ninja \
   -DCMAKE_BUILD_TYPE=Release \
   -DBUILD_TESTS=ON \
-  -DBUILD_SAMPLES=ON \
+  -DBUILD_EXAMPLES=ON \
   -DBUILD_WITH_CONTAINER_SYSTEM=ON \
   -DBUILD_WITH_THREAD_SYSTEM=ON \
   -DBUILD_MESSAGING_BRIDGE=ON

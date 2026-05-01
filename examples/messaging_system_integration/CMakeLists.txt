@@ -15,14 +15,6 @@ include_directories(${network_system_DIR}/include)
 # Link to network_system library
 link_directories(${network_system_BUILD_DIR})
 
-# Legacy compatibility example
-add_executable(legacy_compatibility legacy_compatibility.cpp)
-target_link_libraries(legacy_compatibility
-    PRIVATE
-    ${network_system_BUILD_DIR}/libnetwork_system.a
-    pthread
-)
-
 # Modern usage example
 add_executable(modern_usage modern_usage.cpp)
 target_link_libraries(modern_usage
@@ -33,13 +25,9 @@ target_link_libraries(modern_usage
 
 # Add container_system include if available
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../../../container_system")
-    target_include_directories(legacy_compatibility
-        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../../container_system
-    )
     target_include_directories(modern_usage
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../../container_system
     )
-    target_compile_definitions(legacy_compatibility PRIVATE WITH_CONTAINER_SYSTEM)
     target_compile_definitions(modern_usage PRIVATE WITH_CONTAINER_SYSTEM)
 endif()
 
@@ -47,30 +35,25 @@ endif()
 if(APPLE)
     # macOS specific settings
     # Add ASIO include path
-    target_include_directories(legacy_compatibility PRIVATE /opt/homebrew/include)
     target_include_directories(modern_usage PRIVATE /opt/homebrew/include)
 
-    target_compile_definitions(legacy_compatibility PRIVATE ASIO_STANDALONE)
     target_compile_definitions(modern_usage PRIVATE ASIO_STANDALONE)
 elseif(WIN32)
     # Windows specific settings
-    target_link_libraries(legacy_compatibility PRIVATE ws2_32 mswsock)
     target_link_libraries(modern_usage PRIVATE ws2_32 mswsock)
-    target_compile_definitions(legacy_compatibility PRIVATE _WIN32_WINNT=0x0601)
     target_compile_definitions(modern_usage PRIVATE _WIN32_WINNT=0x0601)
 endif()
 
 # Output directory
-set_target_properties(legacy_compatibility modern_usage
+set_target_properties(modern_usage
     PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/bin"
 )
 
 # Installation rules (optional)
-install(TARGETS legacy_compatibility modern_usage
+install(TARGETS modern_usage
     RUNTIME DESTINATION bin
 )
 
 message(STATUS "Messaging System Integration Examples configured")
-message(STATUS "  - legacy_compatibility: Demonstrates backward compatibility")
 message(STATUS "  - modern_usage: Shows modern API features")

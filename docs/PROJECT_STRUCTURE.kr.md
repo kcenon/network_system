@@ -40,7 +40,7 @@ category: "PROJ"
 network_system/
 ├── 📁 include/network_system/     # 공개 헤더 파일 (API)
 ├── 📁 src/                        # 구현 파일
-├── 📁 samples/                    # 사용 예제
+├── 📁 examples/                   # 사용 예제
 ├── 📁 tests/                      # 테스트 스위트
 ├── 📁 benchmarks/                 # 성능 벤치마크
 ├── 📁 integration_tests/          # 통합 테스트 프레임워크
@@ -126,8 +126,8 @@ network_system/
    - 최신 API: `include/kcenon/network/<area>/<header>.h` (권장).
    - 레거시 호환 API: `include/network_system/<area>/<header>.h` (레거시 표면을 확장하는 경우에만).
 
-8. **테스트, 벤치마크, 또는 샘플** 추가인가?
-   - 해당 디렉토리 README 의 규칙에 따라 `tests/unit/`, `tests/integration/`, `benchmarks/`, 또는 `samples/`.
+8. **테스트, 벤치마크, 또는 예제** 추가인가?
+   - 해당 디렉토리 README 의 규칙에 따라 `tests/unit/`, `tests/integration/`, `benchmarks/`, 또는 `examples/`.
 
 ### 워크드 예제
 

@@ -38,7 +38,7 @@ This document provides a comprehensive guide to the project directory structure,
 network_system/
 ├── 📁 include/network_system/     # Public header files (API)
 ├── 📁 src/                        # Implementation files
-├── 📁 samples/                    # Usage examples
+├── 📁 examples/                   # Usage examples
 ├── 📁 tests/                      # Test suites
 ├── 📁 benchmarks/                 # Performance benchmarks
 ├── 📁 integration_tests/          # Integration test framework
@@ -64,7 +64,7 @@ The split is intentional and the rule below is the single source of truth:
 | Location | Target name(s) | Purpose | Stability | Consumed by |
 |----------|----------------|---------|-----------|-------------|
 | `libs/network-*/` | `kcenon::network::tcp`, `kcenon::network::udp`, `kcenon::network::websocket`, `kcenon::network::http2`, `kcenon::network::quic`, `kcenon::network::grpc`, `kcenon::network::core`, `kcenon::network::all` | Public, modular, ABI-stable protocol libraries. Each module has its own `CMakeLists.txt`, public headers under `include/network_<protocol>/`, and is independently consumable via `find_package`. | Public ABI. Breaking changes follow semver. | Downstream projects link the protocol(s) they need (`kcenon::network::tcp` etc.) directly. |
-| `src/` | `network_system::network_system` (umbrella) | Internal implementation behind the umbrella target. Protocol entry-point factories (`src/protocol/`), heavy protocol implementations (`src/protocols/`), facade layer (`src/facade/`), adapters, sessions, integrations, tracing, and internal utilities live here. | Internal. Symbols are reorganized as needed; no API guarantees. | The umbrella `network_system::network_system` target — used by samples, tests, and benchmarks inside this repo, and by consumers that want every protocol in one library. |
+| `src/` | `network_system::network_system` (umbrella) | Internal implementation behind the umbrella target. Protocol entry-point factories (`src/protocol/`), heavy protocol implementations (`src/protocols/`), facade layer (`src/facade/`), adapters, sessions, integrations, tracing, and internal utilities live here. | Internal. Symbols are reorganized as needed; no API guarantees. | The umbrella `network_system::network_system` target — used by examples, tests, and benchmarks inside this repo, and by consumers that want every protocol in one library. |
 
 **Rule of thumb:**
 
@@ -125,8 +125,8 @@ Use this tree when adding a new piece of code. Pick the first branch that matche
    - Modern API: `include/kcenon/network/<area>/<header>.h` (preferred).
    - Legacy compatibility API: `include/network_system/<area>/<header>.h` (only when extending the legacy surface).
 
-8. **Adding a test, benchmark, or sample**?
-   - `tests/unit/`, `tests/integration/`, `benchmarks/`, or `samples/` per the conventions in those directories' READMEs.
+8. **Adding a test, benchmark, or example**?
+   - `tests/unit/`, `tests/integration/`, `benchmarks/`, or `examples/` per the conventions in those directories' READMEs.
 
 ### Worked examples
 
