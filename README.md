@@ -68,7 +68,7 @@ vcpkg install kcenon-network-system[ssl,ecosystem] \
 | `ssl` | off | Explicit SSL/TLS support flag | openssl >= 3.0.0 |
 | `ecosystem` | off | Logger and container integration | logger_system, container_system |
 | `testing` | off | Unit tests and benchmarks | gtest, benchmark |
-| `samples` | off | Sample applications | — |
+| `examples` | off | Usage examples | — |
 | `docs` | off | Doxygen documentation | — |
 
 ### CMake Integration
@@ -854,7 +854,7 @@ To remove all build directories at once:
 | Option | Default | Description |
 |--------|---------|-------------|
 | `BUILD_TESTS` | ON | Build unit tests |
-| `BUILD_SAMPLES` | ON | Build sample applications |
+| `BUILD_EXAMPLES` | ON | Build usage examples |
 | `BUILD_TLS_SUPPORT` | ON | Enable TLS/SSL support |
 | `BUILD_WEBSOCKET_SUPPORT` | ON | Enable WebSocket protocol |
 | `NETWORK_BUILD_BENCHMARKS` | OFF | Build performance benchmarks |
@@ -868,23 +868,24 @@ To remove all build directories at once:
 
 ## Examples
 
-Complete examples are available in the `samples/` directory:
+Complete examples are available in the `examples/` directory:
 
 - **basic_usage.cpp** - Basic TCP client/server
-- **simple_tcp_server.cpp** - TCP server with session management
-- **simple_tcp_client.cpp** - TCP client with reconnection
+- **tcp_echo_server.cpp** - TCP server with session management
+- **tcp_client.cpp** - TCP client using the facade API
 - **simple_http_server.cpp** - HTTP server with routing
 - **simple_http_client.cpp** - HTTP client with various request types
-- **websocket_example.cpp** - WebSocket server and client
+- **websocket_chat.cpp** - WebSocket chat server and client
 - **quic_server_example.cpp** - QUIC server with multi-stream support
 - **quic_client_example.cpp** - QUIC client with stream multiplexing
 - **grpc_service_example.cpp** - gRPC service registration and management
 
 Build and run examples:
 ```bash
-cmake --build build --target samples
-./build/bin/simple_tcp_server
-./build/bin/simple_tcp_client
+cmake -B build -DBUILD_EXAMPLES=ON
+cmake --build build
+./build/bin/examples/example_tcp_echo_server
+./build/bin/examples/example_tcp_client
 ```
 
 ---

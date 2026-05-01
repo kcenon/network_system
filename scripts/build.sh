@@ -17,7 +17,7 @@ cd "$PROJECT_ROOT"
 # Default values
 BUILD_TYPE="Release"
 BUILD_TESTS="ON"
-BUILD_SAMPLES="OFF"
+BUILD_EXAMPLES="OFF"
 BUILD_DOCS="OFF"
 CLEAN_BUILD=false
 VERBOSE=false
@@ -44,7 +44,7 @@ usage() {
     echo "  -d, --debug         Build in Debug mode (default: Release)"
     echo "  -c, --clean         Clean build (remove build directory first)"
     echo "  -t, --no-tests      Don't build tests"
-    echo "  -s, --samples       Build samples"
+    echo "  -s, --examples      Build examples"
     echo "  -D, --docs          Build documentation"
     echo "  -v, --verbose       Verbose output"
     echo "  -j, --jobs N        Number of parallel jobs (default: $JOBS)"
@@ -69,8 +69,8 @@ while [[ $# -gt 0 ]]; do
             BUILD_TESTS="OFF"
             shift
             ;;
-        -s|--samples)
-            BUILD_SAMPLES="ON"
+        -s|--examples)
+            BUILD_EXAMPLES="ON"
             shift
             ;;
         -D|--docs)
@@ -96,7 +96,7 @@ done
 print_info "Network System Build Configuration:"
 print_info "  Build Type: $BUILD_TYPE"
 print_info "  Build Tests: $BUILD_TESTS"
-print_info "  Build Samples: $BUILD_SAMPLES"
+print_info "  Build Samples: $BUILD_EXAMPLES"
 print_info "  Build Docs: $BUILD_DOCS"
 print_info "  Parallel Jobs: $JOBS"
 print_info "  Clean Build: $CLEAN_BUILD"
@@ -117,7 +117,7 @@ print_info "Configuring with CMake..."
 CMAKE_ARGS=(
     -DCMAKE_BUILD_TYPE="$BUILD_TYPE"
     -DBUILD_TESTS="$BUILD_TESTS"
-    -DBUILD_SAMPLES="$BUILD_SAMPLES"
+    -DBUILD_EXAMPLES="$BUILD_EXAMPLES"
     -DBUILD_WITH_CONTAINER_SYSTEM=OFF
 )
 
@@ -179,8 +179,8 @@ if [ "$BUILD_TESTS" = "ON" ]; then
     print_info "  Unit Tests: run via 'ctest' from build/ directory"
     print_info "  Benchmarks: build/bin/network_benchmark_tests"
 fi
-if [ "$BUILD_SAMPLES" = "ON" ]; then
-    print_info "  Samples: build/bin/"
+if [ "$BUILD_EXAMPLES" = "ON" ]; then
+    print_info "  Examples: build/bin/examples/"
 fi
 
 # Print network usage notes

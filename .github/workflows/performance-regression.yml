@@ -38,7 +38,7 @@ jobs:
           -DBUILD_WITH_CONTAINER_SYSTEM=OFF \
           -DBUILD_MESSAGING_BRIDGE=OFF \
           -DBUILD_TESTS=OFF \
-          -DBUILD_SAMPLES=OFF || true
+          -DBUILD_EXAMPLES=OFF || true
         cmake --build build-base --target network_benchmarks || true
 
     - name: Run Base Benchmark
@@ -71,7 +71,7 @@ jobs:
           -DBUILD_WITH_CONTAINER_SYSTEM=OFF \
           -DBUILD_MESSAGING_BRIDGE=OFF \
           -DBUILD_TESTS=OFF \
-          -DBUILD_SAMPLES=OFF || true
+          -DBUILD_EXAMPLES=OFF || true
         cmake --build build-pr --target network_benchmarks || true
 
     - name: Run PR Benchmark

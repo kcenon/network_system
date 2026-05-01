@@ -30,7 +30,7 @@ jobs:
           -DCMAKE_CXX_COMPILER=clang++ \
           -DCMAKE_C_COMPILER=clang \
           -DBUILD_TESTS=OFF \
-          -DBUILD_SAMPLES=OFF \
+          -DBUILD_EXAMPLES=OFF \
           -DBUILD_WITH_CONTAINER_SYSTEM=OFF \
           -DBUILD_WITH_THREAD_SYSTEM=OFF \
           -DBUILD_WITH_LOGGER_SYSTEM=OFF \

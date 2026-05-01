@@ -262,7 +262,7 @@ auto post_response = client->post(
 - WebSocket upgrade support
 - Advanced middleware support
 
-See `samples/simple_http_server.cpp` and `samples/simple_http_client.cpp` for complete examples.
+See `examples/simple_http_server.cpp` and `examples/simple_http_client.cpp` for complete examples.
 
 ### QUIC Protocol (RFC 9000)
 
@@ -949,7 +949,7 @@ The following features are tracked in the [Changelog](CHANGELOG.md) under the "U
   - ✅ Stream multiplexing
   - ✅ Header compression (HPACK - RFC 7541)
   - ✅ Flow control with window updates
-  - See `samples/http2_server_example.cpp` for server example
+  - See `examples/http2_server_example.cpp` for server example
 
 - 🔬 **gRPC Integration** (Prototype): High-performance RPC framework
   - Unary, server streaming, client streaming, and bidirectional streaming RPC

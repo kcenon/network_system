@@ -85,7 +85,7 @@ mkdir build && cd build
 cmake .. -G Ninja \
   -DCMAKE_BUILD_TYPE=Release \
   -DBUILD_TESTS=ON \
-  -DBUILD_SAMPLES=ON
+  -DBUILD_EXAMPLES=ON
 ninja
 ```
 
@@ -109,7 +109,7 @@ mkdir build && cd build
 cmake .. -G Ninja \
   -DCMAKE_BUILD_TYPE=Release \
   -DBUILD_TESTS=ON \
-  -DBUILD_SAMPLES=ON
+  -DBUILD_EXAMPLES=ON
 ninja
 ```
 
@@ -171,7 +171,7 @@ mkdir build && cd build
 cmake .. -G Ninja \
   -DCMAKE_BUILD_TYPE=Release \
   -DBUILD_TESTS=ON \
-  -DBUILD_SAMPLES=ON
+  -DBUILD_EXAMPLES=ON
 ninja
 ```
 
@@ -183,7 +183,7 @@ ninja
 |--------|---------|-------------|
 | `BUILD_SHARED_LIBS` | OFF | Build as shared library |
 | `BUILD_TESTS` | ON | Build unit tests |
-| `BUILD_SAMPLES` | ON | Build sample applications |
+| `BUILD_EXAMPLES` | ON | Build usage examples |
 | `BUILD_WITH_CONTAINER_SYSTEM` | ON | Enable container_system integration |
 | `BUILD_WITH_THREAD_SYSTEM` | ON | Enable thread_system integration |
 | `BUILD_MESSAGING_BRIDGE` | ON | Build messaging_system compatibility bridge |
@@ -228,7 +228,7 @@ If gRPC is not found, the build will automatically fall back to the prototype im
 
 #### Minimal Build
 ```bash
-cmake .. -DBUILD_TESTS=OFF -DBUILD_SAMPLES=OFF
+cmake .. -DBUILD_TESTS=OFF -DBUILD_EXAMPLES=OFF
 ```
 
 #### Full Feature Build
@@ -236,7 +236,7 @@ cmake .. -DBUILD_TESTS=OFF -DBUILD_SAMPLES=OFF
 cmake .. -G Ninja \
   -DCMAKE_BUILD_TYPE=Release \
   -DBUILD_TESTS=ON \
-  -DBUILD_SAMPLES=ON \
+  -DBUILD_EXAMPLES=ON \
   -DBUILD_WITH_CONTAINER_SYSTEM=ON \
   -DBUILD_WITH_THREAD_SYSTEM=ON \
   -DBUILD_MESSAGING_BRIDGE=ON

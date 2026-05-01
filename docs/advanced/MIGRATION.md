@@ -1480,13 +1480,13 @@ After successful migration, you should observe these performance characteristics
 | **Troubleshooting** | [docs/guides/TROUBLESHOOTING.md](../guides/TROUBLESHOOTING.md) | Common issues and solutions |
 | **Changelog** | [CHANGELOG.md](../../CHANGELOG.md) | Version history |
 
-### Sample Code
+### Example Code
 
-| Sample | Location | Purpose |
-|--------|----------|---------|
-| **Basic Usage** | [samples/basic_usage.cpp](../../samples/basic_usage.cpp) | Simple client/server example |
-| **TCP Demo** | [samples/tcp_server_client.cpp](../../samples/tcp_server_client.cpp) | Full TCP implementation |
-| **Integration** | [samples/messaging_system_integration/](../../samples/messaging_system_integration/) | messaging_system integration |
+| Example | Location | Purpose |
+|---------|----------|---------|
+| **Basic Usage** | [examples/basic_usage.cpp](../../examples/basic_usage.cpp) | Simple client/server example |
+| **TCP Echo Server** | [examples/tcp_echo_server.cpp](../../examples/tcp_echo_server.cpp) | Minimal TCP server using facade API |
+| **Integration** | [examples/messaging_system_integration/](../../examples/messaging_system_integration/) | messaging_system integration |
 | **Benchmarks** | [benchmarks/](../../benchmarks/) | Performance testing |
 
 ### Community Support

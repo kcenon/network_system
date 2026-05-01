@@ -35,6 +35,11 @@ set(EXAMPLE_PROGRAMS
     udp_echo
     connection_pool
     observer_pattern
+    basic_usage
+    concepts_example
+    memory_profile_demo
+    simple_http_client
+    simple_http_server
 )
 
 # Protocol facade examples
@@ -48,6 +53,14 @@ list(APPEND EXAMPLE_PROGRAMS
     network_metrics_example
     grpc_service_example
 )
+
+# Examples that need additional libraries (TLS / network-quic)
+set(EXAMPLES_NEEDING_OPENSSL
+    http2_server_example
+    quic_client_example
+    quic_server_example
+)
+list(APPEND EXAMPLE_PROGRAMS ${EXAMPLES_NEEDING_OPENSSL})
 
 # WebSocket example (requires BUILD_WEBSOCKET_SUPPORT)
 if(BUILD_WEBSOCKET_SUPPORT)
@@ -77,6 +90,26 @@ foreach(EXAMPLE ${EXAMPLE_PROGRAMS})
         network_system
         Threads::Threads
     )
+
+    # Additional linking for examples requiring TLS (HTTP/2, QUIC)
+    if(EXAMPLE IN_LIST EXAMPLES_NEEDING_OPENSSL)
+        find_package(OpenSSL QUIET)
+        if(OpenSSL_FOUND)
+            target_link_libraries(example_${EXAMPLE} PRIVATE
+                OpenSSL::SSL
+                OpenSSL::Crypto
+            )
+        endif()
+    endif()
+
+    # Additional linking for QUIC examples requiring network-quic library
+    if(EXAMPLE MATCHES "quic_(client|server)_example")
+        if(TARGET network-quic)
+            target_link_libraries(example_${EXAMPLE} PRIVATE
+                network-quic
+            )
+        endif()
+    endif()
 
     # Configure ASIO
     setup_asio_integration(example_${EXAMPLE})

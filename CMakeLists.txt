@@ -32,8 +32,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 option(BUILD_SHARED_LIBS "Build using shared libraries" OFF)
 option(BUILD_TESTS "Build tests" ON)
-option(BUILD_SAMPLES "Build samples" ON)
-option(BUILD_EXAMPLES "Build usage examples" OFF)
+option(BUILD_EXAMPLES "Build usage examples" ON)
 option(BUILD_WEBSOCKET_SUPPORT "Build WebSocket protocol support (RFC 6455)" ON)
 option(BUILD_MESSAGING_BRIDGE "Build messaging_system bridge" ON)
 option(ENABLE_COVERAGE "Enable code coverage" OFF)
@@ -833,7 +832,7 @@ if(BUILD_VERIFY_BUILD)
 endif()
 
 ##################################################
-# Tests and Samples
+# Tests and Examples
 ##################################################
 
 if(BUILD_TESTS)
@@ -853,16 +852,6 @@ if(BUILD_TESTS)
     if(NETWORK_BUILD_INTEGRATION_TESTS AND EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/integration_tests/CMakeLists.txt)
         add_subdirectory(integration_tests)
         message(STATUS "Network system integration tests enabled")
-    endif()
-endif()
-
-if(BUILD_SAMPLES)
-    message(STATUS "Building network_system samples")
-
-    # Add samples subdirectory if it exists
-    if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/samples/CMakeLists.txt)
-        add_subdirectory(samples)
-        message(STATUS "Network system samples enabled")
     endif()
 endif()
 
@@ -1013,7 +1002,6 @@ message(STATUS "  C++ standard: ${CMAKE_CXX_STANDARD}")
 message(STATUS "  Shared libs: ${BUILD_SHARED_LIBS}")
 message(STATUS "  Tests: ${BUILD_TESTS}")
 message(STATUS "  Integration tests: ${NETWORK_BUILD_INTEGRATION_TESTS}")
-message(STATUS "  Samples: ${BUILD_SAMPLES}")
 message(STATUS "  Examples: ${BUILD_EXAMPLES}")
 message(STATUS "  Verify build: ${BUILD_VERIFY_BUILD}")
 message(STATUS "  TLS/SSL support: ${BUILD_TLS_SUPPORT}")
