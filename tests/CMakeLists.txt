@@ -52,58 +52,78 @@ endif()
 ##################################################
 
 if(GTest_FOUND OR GTEST_FOUND)
-    # Create unit test executable
-    add_executable(network_unit_tests
-        unit_tests.cpp
-    )
-
-    # Link dependencies
-    target_link_libraries(network_unit_tests PRIVATE
-        network_system
-        GTest::gtest
-        GTest::gtest_main
-        Threads::Threads
-    )
-
-    # Setup ASIO integration (required for network_system headers)
-    setup_asio_integration(network_unit_tests)
-
-    # Add system integration paths
-    if(CONTAINER_SYSTEM_INCLUDE_DIR)
-        target_include_directories(network_unit_tests PRIVATE ${CONTAINER_SYSTEM_INCLUDE_DIR})
-        target_compile_definitions(network_unit_tests PRIVATE WITH_CONTAINER_SYSTEM)
-    endif()
-
-    if(THREAD_SYSTEM_INCLUDE_DIR)
-        target_include_directories(network_unit_tests PRIVATE ${THREAD_SYSTEM_INCLUDE_DIR})
-        target_compile_definitions(network_unit_tests PRIVATE WITH_THREAD_SYSTEM)
-    endif()
-
-    if(LOGGER_SYSTEM_INCLUDE_DIR)
-        target_include_directories(network_unit_tests PRIVATE ${LOGGER_SYSTEM_INCLUDE_DIR})
-        target_compile_definitions(network_unit_tests PRIVATE WITH_LOGGER_SYSTEM)
-    endif()
-
-    if(COMMON_SYSTEM_INCLUDE_DIR)
-        target_include_directories(network_unit_tests PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
-        target_compile_definitions(network_unit_tests PRIVATE WITH_COMMON_SYSTEM)
-    endif()
-
-    # Set properties
-    set_target_properties(network_unit_tests PROPERTIES
-        CXX_STANDARD 20
-        CXX_STANDARD_REQUIRED ON
-        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
-    )
-
-    # Don't add suite-level test to prevent port conflicts during parallel execution
-    # add_test(NAME NetworkUnitTests COMMAND network_unit_tests)
-
-    # Enable test discovery
     include(GoogleTest)
-    network_gtest_discover_tests(network_unit_tests
-        DISCOVERY_TIMEOUT 60
-    )
+
+    # ------------------------------------------------------------------
+    # Helper to register a per-concern messaging test executable that
+    # links network::test_support and inherits the optional WITH_* defines
+    # the legacy network_unit_tests target carried (Issue #1088).
+    # ------------------------------------------------------------------
+    function(network_add_messaging_test target source)
+        add_executable(${target} ${source})
+
+        target_link_libraries(${target} PRIVATE
+            network_system
+            network::test_support
+            GTest::gtest
+            GTest::gtest_main
+            Threads::Threads
+        )
+
+        target_include_directories(${target} PRIVATE
+            ${CMAKE_CURRENT_SOURCE_DIR}
+        )
+
+        setup_asio_integration(${target})
+
+        if(CONTAINER_SYSTEM_INCLUDE_DIR)
+            target_include_directories(${target} PRIVATE ${CONTAINER_SYSTEM_INCLUDE_DIR})
+            target_compile_definitions(${target} PRIVATE WITH_CONTAINER_SYSTEM)
+        endif()
+
+        if(THREAD_SYSTEM_INCLUDE_DIR)
+            target_include_directories(${target} PRIVATE ${THREAD_SYSTEM_INCLUDE_DIR})
+            target_compile_definitions(${target} PRIVATE WITH_THREAD_SYSTEM)
+        endif()
+
+        if(LOGGER_SYSTEM_INCLUDE_DIR)
+            target_include_directories(${target} PRIVATE ${LOGGER_SYSTEM_INCLUDE_DIR})
+            target_compile_definitions(${target} PRIVATE WITH_LOGGER_SYSTEM)
+        endif()
+
+        if(COMMON_SYSTEM_INCLUDE_DIR)
+            target_include_directories(${target} PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+            target_compile_definitions(${target} PRIVATE WITH_COMMON_SYSTEM)
+        endif()
+
+        set_target_properties(${target} PROPERTIES
+            CXX_STANDARD 20
+            CXX_STANDARD_REQUIRED ON
+            RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+        )
+
+        # Each split file requests an OS-assigned ephemeral port via
+        # messaging_loopback_fixture, so per-suite registration is parallel-safe.
+        network_gtest_discover_tests(${target}
+            DISCOVERY_TIMEOUT 60
+        )
+    endfunction()
+
+    # Per-concern messaging test executables (Issue #1088 split of
+    # tests/unit_tests.cpp). Each one owns a single test class so ctest -j N
+    # never serializes the whole suite on a single binary.
+    network_add_messaging_test(network_messaging_server_lifecycle_test
+        unit/messaging_server_lifecycle_test.cpp)
+    network_add_messaging_test(network_messaging_client_lifecycle_test
+        unit/messaging_client_lifecycle_test.cpp)
+    network_add_messaging_test(network_messaging_transfer_test
+        unit/messaging_transfer_test.cpp)
+    network_add_messaging_test(network_messaging_server_session_test
+        unit/messaging_server_session_test.cpp)
+    network_add_messaging_test(network_messaging_id_test
+        unit/messaging_id_test.cpp)
+    network_add_messaging_test(network_messaging_stress_test
+        stress/messaging_stress_test.cpp)
 
     # Thread safety tests (Phase 1 - Task 1.6)
     add_executable(network_thread_safety_test

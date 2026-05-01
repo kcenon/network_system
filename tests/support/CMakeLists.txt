@@ -7,6 +7,7 @@
 
 add_library(network_test_support STATIC
     hermetic_transport_fixture.cpp
+    messaging_loopback_fixture.cpp
     mock_tls_socket.cpp
     mock_udp_peer.cpp
     mock_ws_handshake.cpp
