@@ -23,6 +23,8 @@ category: "PROJ"
 ## 목차
 
 - [디렉토리 개요](#디렉토리-개요)
+- [libs/ vs src/ 경계](#libs-vs-src-경계)
+- [의사 결정 트리: 새 코드는 어디에 두는가?](#의사-결정-트리-새-코드는-어디에-두는가)
 - [코어 컴포넌트](#코어-컴포넌트)
 - [소스 구성](#소스-구성)
 - [테스트 구성](#테스트-구성)
@@ -53,6 +55,85 @@ network_system/
 ├── 📄 README.kr.md                # 한국어 문서
 └── 📄 BASELINE.md                 # 성능 기준선
 ```
+
+---
+
+## libs/ vs src/ 경계
+
+`network_system`은 프로토콜 구현을 **두 개의 병렬 위치**에 배포합니다.
+이 분할은 의도적이며, 아래 규칙이 단일 진실 공급원 (single source of truth) 입니다:
+
+| 위치 | 타겟 이름 | 목적 | 안정성 | 사용처 |
+|------|-----------|------|--------|--------|
+| `libs/network-*/` | `kcenon::network::tcp`, `kcenon::network::udp`, `kcenon::network::websocket`, `kcenon::network::http2`, `kcenon::network::quic`, `kcenon::network::grpc`, `kcenon::network::core`, `kcenon::network::all` | 공개, 모듈식, ABI 안정 프로토콜 라이브러리. 각 모듈은 자체 `CMakeLists.txt` 와 `include/network_<protocol>/` 하위의 공개 헤더를 가지며, `find_package` 를 통해 독립적으로 사용 가능합니다. | 공개 ABI. 호환성을 깨는 변경은 semver 를 따릅니다. | 다운스트림 프로젝트는 필요한 프로토콜 (`kcenon::network::tcp` 등) 을 직접 링크합니다. |
+| `src/` | `network_system::network_system` (umbrella) | umbrella 타겟의 내부 구현. 프로토콜 entry-point 팩토리 (`src/protocol/`), 무거운 프로토콜 구현 (`src/protocols/`), 파사드 레이어 (`src/facade/`), 어댑터, 세션, 통합, 트레이싱, 내부 유틸리티가 여기에 위치합니다. | 내부. 심볼은 필요에 따라 재구성되며, API 보장은 없습니다. | umbrella `network_system::network_system` 타겟 — 이 저장소 내부의 샘플, 테스트, 벤치마크에서 사용되며, 모든 프로토콜을 하나의 라이브러리로 사용하려는 소비자도 사용합니다. |
+
+**핵심 규칙:**
+
+- 단일 프로토콜에 대한 **독립적이고 의존성이 최소화된 라이브러리** 가 필요한가? → `libs/network-<protocol>/` 아래에 추가하고, `include/network_<protocol>/` 에 헤더를 노출시킵니다.
+- umbrella 빌드 뒤에서 **여러 조각을 연결** (팩토리, 파사드, 어댑터, 세션, 트레이싱, 통합) 해야 하는가? → `src/` 아래에 추가합니다.
+
+> 마이그레이션 이력: TCP 와 UDP 는 `libs/network-tcp/` 와 `libs/network-udp/` 로의 마이그레이션을 완료했습니다.
+> WebSocket, QUIC, HTTP/2, gRPC 는 현재 umbrella `src/` 트리 (`src/protocol/` 와 `src/protocols/` 경로) 와
+> 모듈식 `libs/network-*/` 패키지에 **모두** 존재합니다.
+> umbrella 트리는 `libs/` 동등성이 완료될 때까지 하위 호환성을 위해 컴파일 가능 상태로 유지됩니다.
+
+### `src/protocol/` vs `src/protocols/`
+
+이 두 디렉토리는 첫눈에 동일해 보이지만 서로 다른 역할을 수행합니다.
+둘 다 현재 활성 상태이며, 루트 `CMakeLists.txt` 에서 컴파일됩니다:
+
+| 디렉토리 | 레이아웃 | 목적 | 어떤 것이 들어가나 |
+|----------|----------|------|---------------------|
+| `src/protocol/` (단수) | 평탄한 `.cpp` 파일들: `tcp.cpp`, `udp.cpp`, `quic.cpp`, `websocket.cpp` | **얇은 프로토콜 entry point** — 통합 팩토리 API (`kcenon::network::protocol::<proto>::connect()`, `listen()`, `create_connection()`, `create_listener()`) 를 충족합니다. 각 파일은 작고 (~50-150 라인), `src/unified/adapters/` 의 어댑터로 위임합니다. | 프로토콜별 한 개의 파일로, `include/kcenon/network/detail/protocol/<proto>.h` 에 정의된 통합 팩토리 함수를 노출합니다. |
+| `src/protocols/` (복수) | 프로토콜별 하위 디렉토리: `grpc/`, `http2/`, `quic/` | **완전한 프로토콜 구현** — 프레임 파서, 상태 머신, 혼잡 제어기, 패킷 보호, HPACK 등. 파일들은 크고 (보통 5-50 KB), 프로토콜 로직 자체를 포함합니다. | 자체 지원 소스 파일 서브트리가 필요한 프로토콜의 구현 세부 사항. |
+
+요약하면: `src/protocol/` 은 *"어떻게 이 프로토콜의 연결을 생성하는가?"* 에 답하고,
+`src/protocols/` 는 *"이 프로토콜이 와이어 위에서 실제로 어떻게 동작하는가?"* 에 답합니다.
+
+> 2026-05 기준 두 디렉토리 모두 현재 사용 중이며, 둘 중 어느 것도 레거시가 아닙니다.
+> 디렉토리명 변경은 이 문서의 범위 밖입니다. 단/복수 쌍이 걸림돌이 된다면 임시 수정 대신 후속 이슈를 등록하십시오.
+
+---
+
+## 의사 결정 트리: 새 코드는 어디에 두는가?
+
+새 코드를 추가할 때 이 트리를 사용하십시오. 일치하는 첫 번째 분기를 선택합니다.
+
+1. **완전히 새로운 프로토콜 구현** (예: MQTT, WebTransport) 인가?
+   - 자체 `CMakeLists.txt`, `include/network_<protocol>/`, `src/` 를 갖춘 `libs/network-<protocol>/` 를 생성합니다.
+   - umbrella 빌드에서도 노출이 필요하면, 모듈식 라이브러리로 위임하는 얇은 entry-point 파일을 `src/protocol/<protocol>.cpp` 아래에 추가합니다.
+
+2. **기존 프로토콜의 와이어 레벨 구현** (프레임 파서, 혼잡 제어기, 코덱, 상태 머신) 추가인가?
+   - 프로토콜이 모듈식 라이브러리 (`libs/network-<protocol>/`) 로 이미 마이그레이션된 경우, 그곳이 표준 위치입니다.
+   - 그렇지 않으면, `src/protocols/<protocol>/` 의 동료 옆에 추가합니다.
+   - `libs/` 와 `src/protocols/` 양쪽에 동일 소스 파일을 중복 배치하는 것을 피하십시오.
+     일시적으로 둘 다 존재해야 한다면 미러링하고, 루트 `CMakeLists.txt` 에 마이그레이션 상태를 표시하는 주석을 추가합니다.
+
+3. **기존 프로토콜에 대한 새로운 팩토리 entry point** (`connect()`, `listen()`, `create_connection()`) 추가인가?
+   - `src/protocol/<protocol>.cpp` 와 그에 상응하는 `include/kcenon/network/detail/protocol/<protocol>.h` 헤더를 수정합니다.
+
+4. **파사드 추가** (프로토콜 위의 고수준 편의 래퍼) 인가?
+   - `src/facade/<protocol>_facade.cpp` 와 `include/kcenon/network/facade/<protocol>_facade.h`.
+
+5. **어댑터 추가** (레거시 클래스를 통합 `i_connection` / `i_listener` 인터페이스에 연결) 인가?
+   - `src/adapters/<thing>_adapter.cpp`.
+
+6. **세션, 내부 헬퍼, 또는 통합** (thread/container/logger 브릿지) 추가인가?
+   - 각각 `src/session/`, `src/internal/`, 또는 `src/integration/`.
+
+7. **다운스트림 소비자가 include 해야 할 공개 헤더** 추가인가?
+   - 최신 API: `include/kcenon/network/<area>/<header>.h` (권장).
+   - 레거시 호환 API: `include/network_system/<area>/<header>.h` (레거시 표면을 확장하는 경우에만).
+
+8. **테스트, 벤치마크, 또는 샘플** 추가인가?
+   - 해당 디렉토리 README 의 규칙에 따라 `tests/unit/`, `tests/integration/`, `benchmarks/`, 또는 `samples/`.
+
+### 워크드 예제
+
+- **"새로운 HTTP/3 프레임 타입 추가"** — `src/protocols/http3/frame.cpp` 를 수정합니다 (HTTP/3 이 새로 도입되는 경우 디렉토리를 생성). 모듈식 라이브러리가 존재하면 `libs/network-http3/` 에도 미러링합니다.
+- **"TCP 용 `connect_with_retry()` 헬퍼 추가"** — `src/protocol/tcp.cpp` (entry-point 위임) 를 수정합니다. 헬퍼가 공개 ABI 를 가로지르면 구현은 `libs/network-tcp/src/` 에 위치하고, 그렇지 않으면 `src/` 에 머무를 수 있습니다.
+- **"TCP 세션에 새 logger 콜백 연결"** — `src/integration/logger_integration.cpp` 와 `include/kcenon/network/integration/logger_integration.h`. `libs/network-tcp/` 아래에 추가하지 **마십시오**.
 
 ---
 
