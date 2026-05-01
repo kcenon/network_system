@@ -2031,9 +2031,12 @@ if(GTest_FOUND OR GTEST_FOUND)
 
     target_link_libraries(network_messaging_quic_server_test PRIVATE
         network_system
+        network::test_support
         GTest::gtest
         GTest::gtest_main
         Threads::Threads
+        OpenSSL::SSL
+        OpenSSL::Crypto
     )
 
     setup_asio_integration(network_messaging_quic_server_test)
