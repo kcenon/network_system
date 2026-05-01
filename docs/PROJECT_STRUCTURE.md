@@ -21,6 +21,8 @@ This document provides a comprehensive guide to the project directory structure,
 ## Table of Contents
 
 - [Directory Overview](#directory-overview)
+- [libs/ vs src/ Boundary](#libs-vs-src-boundary)
+- [Decision Tree: Where Does New Code Go?](#decision-tree-where-does-new-code-go)
 - [Core Components](#core-components)
 - [Source Organization](#source-organization)
 - [Test Organization](#test-organization)
@@ -51,6 +53,86 @@ network_system/
 ├── 📄 README.kr.md                # Korean documentation
 └── 📄 BASELINE.md                 # Performance baseline
 ```
+
+---
+
+## libs/ vs src/ Boundary
+
+`network_system` ships its protocol implementations in **two parallel locations**.
+The split is intentional and the rule below is the single source of truth:
+
+| Location | Target name(s) | Purpose | Stability | Consumed by |
+|----------|----------------|---------|-----------|-------------|
+| `libs/network-*/` | `kcenon::network::tcp`, `kcenon::network::udp`, `kcenon::network::websocket`, `kcenon::network::http2`, `kcenon::network::quic`, `kcenon::network::grpc`, `kcenon::network::core`, `kcenon::network::all` | Public, modular, ABI-stable protocol libraries. Each module has its own `CMakeLists.txt`, public headers under `include/network_<protocol>/`, and is independently consumable via `find_package`. | Public ABI. Breaking changes follow semver. | Downstream projects link the protocol(s) they need (`kcenon::network::tcp` etc.) directly. |
+| `src/` | `network_system::network_system` (umbrella) | Internal implementation behind the umbrella target. Protocol entry-point factories (`src/protocol/`), heavy protocol implementations (`src/protocols/`), facade layer (`src/facade/`), adapters, sessions, integrations, tracing, and internal utilities live here. | Internal. Symbols are reorganized as needed; no API guarantees. | The umbrella `network_system::network_system` target — used by samples, tests, and benchmarks inside this repo, and by consumers that want every protocol in one library. |
+
+**Rule of thumb:**
+
+- Need a **standalone, minimal-dependency library** for one protocol? → Add it under `libs/network-<protocol>/` and expose headers in `include/network_<protocol>/`.
+- Need to **wire pieces together** (factory, facade, adapter, session, tracing, integration) behind the umbrella build? → Add it under `src/`.
+
+> Migration history: TCP and UDP have completed the migration into `libs/network-tcp/` and
+> `libs/network-udp/`. WebSocket, QUIC, HTTP/2, and gRPC currently live in **both** the
+> umbrella `src/` tree (via `src/protocol/` and `src/protocols/`) and the modular
+> `libs/network-*/` packages. The umbrella tree is kept compiling for backward compatibility
+> until `libs/` parity is complete.
+
+### `src/protocol/` vs `src/protocols/`
+
+These two directories look identical at a glance but serve different roles. Both are
+currently active and compiled by the root `CMakeLists.txt`:
+
+| Directory | Layout | Purpose | What goes here |
+|-----------|--------|---------|----------------|
+| `src/protocol/` (singular) | Flat `.cpp` files: `tcp.cpp`, `udp.cpp`, `quic.cpp`, `websocket.cpp` | **Thin protocol entry points** that satisfy the unified factory API (`kcenon::network::protocol::<proto>::connect()`, `listen()`, `create_connection()`, `create_listener()`). Each file is small (~50-150 lines) and forwards to adapters in `src/unified/adapters/`. | One file per protocol that exposes the unified factory functions defined in `include/kcenon/network/detail/protocol/<proto>.h`. |
+| `src/protocols/` (plural) | Per-protocol subdirectories: `grpc/`, `http2/`, `quic/` | **Full protocol implementations** — frame parsers, state machines, congestion controllers, packet protection, HPACK, etc. Files are large (typically 5-50 KB each) and contain the protocol logic itself. | Implementation details for protocols that need their own subtree of supporting source files. |
+
+In short: `src/protocol/` answers *"how do I create a connection of this protocol?"*, and
+`src/protocols/` answers *"how does this protocol actually work on the wire?"*.
+
+> Both directories are current as of 2026-05. Neither is legacy. Renaming is out of scope
+> for this document; if the singular/plural pair becomes a stumbling block, raise a
+> follow-up issue rather than fixing it ad-hoc.
+
+---
+
+## Decision Tree: Where Does New Code Go?
+
+Use this tree when adding a new piece of code. Pick the first branch that matches.
+
+1. **Implementing a brand-new protocol** (e.g., MQTT, WebTransport)?
+   - Create `libs/network-<protocol>/` with its own `CMakeLists.txt`, `include/network_<protocol>/`, and `src/`.
+   - If the umbrella build needs to expose it as well, add a thin entry-point file under `src/protocol/<protocol>.cpp` that forwards to the modular library.
+
+2. **Adding to an existing protocol's wire-level implementation** (frame parser, congestion controller, codec, state machine)?
+   - Modular library (`libs/network-<protocol>/`) is the canonical home if the protocol has been migrated there.
+   - Otherwise, add it under `src/protocols/<protocol>/` next to its peers.
+   - Avoid duplicating the same source file in both `libs/` and `src/protocols/`. If both must temporarily exist, mirror them and add a comment in the root `CMakeLists.txt` indicating the migration status.
+
+3. **Adding a new factory entry point** (`connect()`, `listen()`, `create_connection()` for an existing protocol)?
+   - Edit `src/protocol/<protocol>.cpp` and the corresponding header in `include/kcenon/network/detail/protocol/<protocol>.h`.
+
+4. **Adding a facade** (high-level convenience wrapper over a protocol)?
+   - `src/facade/<protocol>_facade.cpp` plus `include/kcenon/network/facade/<protocol>_facade.h`.
+
+5. **Adding an adapter** (bridging a legacy class to the unified `i_connection` / `i_listener` interfaces)?
+   - `src/adapters/<thing>_adapter.cpp`.
+
+6. **Adding a session, internal helper, or integration** (thread/container/logger bridge)?
+   - `src/session/`, `src/internal/`, or `src/integration/` respectively.
+
+7. **Adding a public header that downstream consumers should include**?
+   - Modern API: `include/kcenon/network/<area>/<header>.h` (preferred).
+   - Legacy compatibility API: `include/network_system/<area>/<header>.h` (only when extending the legacy surface).
+
+8. **Adding a test, benchmark, or sample**?
+   - `tests/unit/`, `tests/integration/`, `benchmarks/`, or `samples/` per the conventions in those directories' READMEs.
+
+### Worked examples
+
+- **"Add a new HTTP/3 frame type"** — Modify `src/protocols/http3/frame.cpp` (creating the directory if HTTP/3 is being introduced), and mirror to `libs/network-http3/` once the modular library exists.
+- **"Add a `connect_with_retry()` helper for TCP"** — Edit `src/protocol/tcp.cpp` (forwarding entry points). The implementation lives in `libs/network-tcp/src/` if the helper crosses the public ABI; otherwise it can stay in `src/`.
+- **"Wire a new logger callback into TCP sessions"** — `src/integration/logger_integration.cpp` plus `include/kcenon/network/integration/logger_integration.h`. Do **not** add it under `libs/network-tcp/`.
 
 ---
 
