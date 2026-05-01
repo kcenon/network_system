@@ -157,14 +157,14 @@ fi
 # Run tests if built
 if [ "$BUILD_TESTS" = "ON" ]; then
     print_info "Running tests..."
-    if [ -f "bin/network_unit_tests" ]; then
-        if ./bin/network_unit_tests; then
+    if command -v ctest >/dev/null 2>&1; then
+        if ctest --output-on-failure -j "$(nproc 2>/dev/null || echo 4)"; then
             print_info "Unit tests passed!"
         else
             print_warning "Some unit tests failed (this may be due to network port availability)"
         fi
     else
-        print_warning "Unit tests not found. Skipping tests."
+        print_warning "ctest not found. Skipping tests."
     fi
 fi
 
@@ -176,7 +176,7 @@ echo ""
 print_info "Summary:"
 print_info "  Library: build/lib/libnetwork.*"
 if [ "$BUILD_TESTS" = "ON" ]; then
-    print_info "  Unit Tests: build/bin/network_unit_tests"
+    print_info "  Unit Tests: run via 'ctest' from build/ directory"
     print_info "  Benchmarks: build/bin/network_benchmark_tests"
 fi
 if [ "$BUILD_SAMPLES" = "ON" ]; then
