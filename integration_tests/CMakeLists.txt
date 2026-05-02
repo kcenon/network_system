@@ -96,6 +96,11 @@ if(CONTAINER_SYSTEM_INCLUDE_DIR)
     target_include_directories(connection_lifecycle_test PRIVATE ${CONTAINER_SYSTEM_INCLUDE_DIR})
 endif()
 
+# See issue #1095: required for transitive <kcenon/container/...> includes via network_system headers.
+if(CONTAINER_SYSTEM_NEW_INCLUDE_DIR)
+    target_include_directories(connection_lifecycle_test PRIVATE ${CONTAINER_SYSTEM_NEW_INCLUDE_DIR})
+endif()
+
 if(THREAD_SYSTEM_INCLUDE_DIR)
     target_include_directories(connection_lifecycle_test PRIVATE ${THREAD_SYSTEM_INCLUDE_DIR})
 endif()
@@ -155,6 +160,10 @@ setup_asio_integration(protocol_integration_test)
 # Add system integration paths
 if(CONTAINER_SYSTEM_INCLUDE_DIR)
     target_include_directories(protocol_integration_test PRIVATE ${CONTAINER_SYSTEM_INCLUDE_DIR})
+endif()
+
+if(CONTAINER_SYSTEM_NEW_INCLUDE_DIR)
+    target_include_directories(protocol_integration_test PRIVATE ${CONTAINER_SYSTEM_NEW_INCLUDE_DIR})
 endif()
 
 if(THREAD_SYSTEM_INCLUDE_DIR)
@@ -217,6 +226,10 @@ if(CONTAINER_SYSTEM_INCLUDE_DIR)
     target_include_directories(network_performance_test PRIVATE ${CONTAINER_SYSTEM_INCLUDE_DIR})
 endif()
 
+if(CONTAINER_SYSTEM_NEW_INCLUDE_DIR)
+    target_include_directories(network_performance_test PRIVATE ${CONTAINER_SYSTEM_NEW_INCLUDE_DIR})
+endif()
+
 if(THREAD_SYSTEM_INCLUDE_DIR)
     target_include_directories(network_performance_test PRIVATE ${THREAD_SYSTEM_INCLUDE_DIR})
 endif()
@@ -275,6 +288,10 @@ setup_asio_integration(error_handling_test)
 # Add system integration paths
 if(CONTAINER_SYSTEM_INCLUDE_DIR)
     target_include_directories(error_handling_test PRIVATE ${CONTAINER_SYSTEM_INCLUDE_DIR})
+endif()
+
+if(CONTAINER_SYSTEM_NEW_INCLUDE_DIR)
+    target_include_directories(error_handling_test PRIVATE ${CONTAINER_SYSTEM_NEW_INCLUDE_DIR})
 endif()
 
 if(THREAD_SYSTEM_INCLUDE_DIR)
@@ -377,6 +394,10 @@ if(CONTAINER_SYSTEM_INCLUDE_DIR)
     target_include_directories(tcp_load_test PRIVATE ${CONTAINER_SYSTEM_INCLUDE_DIR})
 endif()
 
+if(CONTAINER_SYSTEM_NEW_INCLUDE_DIR)
+    target_include_directories(tcp_load_test PRIVATE ${CONTAINER_SYSTEM_NEW_INCLUDE_DIR})
+endif()
+
 if(THREAD_SYSTEM_INCLUDE_DIR)
     target_include_directories(tcp_load_test PRIVATE ${THREAD_SYSTEM_INCLUDE_DIR})
 endif()
@@ -432,6 +453,10 @@ if(CONTAINER_SYSTEM_INCLUDE_DIR)
     target_include_directories(udp_load_test PRIVATE ${CONTAINER_SYSTEM_INCLUDE_DIR})
 endif()
 
+if(CONTAINER_SYSTEM_NEW_INCLUDE_DIR)
+    target_include_directories(udp_load_test PRIVATE ${CONTAINER_SYSTEM_NEW_INCLUDE_DIR})
+endif()
+
 if(THREAD_SYSTEM_INCLUDE_DIR)
     target_include_directories(udp_load_test PRIVATE ${THREAD_SYSTEM_INCLUDE_DIR})
 endif()
@@ -484,6 +509,10 @@ setup_asio_integration(websocket_load_test)
 
 if(CONTAINER_SYSTEM_INCLUDE_DIR)
     target_include_directories(websocket_load_test PRIVATE ${CONTAINER_SYSTEM_INCLUDE_DIR})
+endif()
+
+if(CONTAINER_SYSTEM_NEW_INCLUDE_DIR)
+    target_include_directories(websocket_load_test PRIVATE ${CONTAINER_SYSTEM_NEW_INCLUDE_DIR})
 endif()
 
 if(THREAD_SYSTEM_INCLUDE_DIR)

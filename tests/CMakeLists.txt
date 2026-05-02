@@ -81,6 +81,14 @@ if(GTest_FOUND OR GTEST_FOUND)
             target_compile_definitions(${target} PRIVATE WITH_CONTAINER_SYSTEM)
         endif()
 
+        # network_system public headers transitively #include <kcenon/container/...>
+        # which lives under <root>/include. setup_container_system_integration() adds
+        # this PRIVATE on the library target, so it does not propagate to consumers.
+        # See issue #1095.
+        if(CONTAINER_SYSTEM_NEW_INCLUDE_DIR)
+            target_include_directories(${target} PRIVATE ${CONTAINER_SYSTEM_NEW_INCLUDE_DIR})
+        endif()
+
         if(THREAD_SYSTEM_INCLUDE_DIR)
             target_include_directories(${target} PRIVATE ${THREAD_SYSTEM_INCLUDE_DIR})
             target_compile_definitions(${target} PRIVATE WITH_THREAD_SYSTEM)
@@ -144,6 +152,10 @@ if(GTest_FOUND OR GTEST_FOUND)
     if(CONTAINER_SYSTEM_INCLUDE_DIR)
         target_include_directories(network_thread_safety_test PRIVATE ${CONTAINER_SYSTEM_INCLUDE_DIR})
         target_compile_definitions(network_thread_safety_test PRIVATE WITH_CONTAINER_SYSTEM)
+    endif()
+
+    if(CONTAINER_SYSTEM_NEW_INCLUDE_DIR)
+        target_include_directories(network_thread_safety_test PRIVATE ${CONTAINER_SYSTEM_NEW_INCLUDE_DIR})
     endif()
 
     if(THREAD_SYSTEM_INCLUDE_DIR)
@@ -459,6 +471,10 @@ if(GTest_FOUND OR GTEST_FOUND)
     if(CONTAINER_SYSTEM_INCLUDE_DIR)
         target_include_directories(network_messaging_bridge_interface_test PRIVATE ${CONTAINER_SYSTEM_INCLUDE_DIR})
         target_compile_definitions(network_messaging_bridge_interface_test PRIVATE WITH_CONTAINER_SYSTEM)
+    endif()
+
+    if(CONTAINER_SYSTEM_NEW_INCLUDE_DIR)
+        target_include_directories(network_messaging_bridge_interface_test PRIVATE ${CONTAINER_SYSTEM_NEW_INCLUDE_DIR})
     endif()
 
     set_target_properties(network_messaging_bridge_interface_test PROPERTIES
@@ -2644,6 +2660,10 @@ if(FALSE AND benchmark_FOUND)
         target_compile_definitions(network_benchmark_tests PRIVATE WITH_CONTAINER_SYSTEM)
     endif()
 
+    if(CONTAINER_SYSTEM_NEW_INCLUDE_DIR)
+        target_include_directories(network_benchmark_tests PRIVATE ${CONTAINER_SYSTEM_NEW_INCLUDE_DIR})
+    endif()
+
     if(THREAD_SYSTEM_INCLUDE_DIR)
         target_include_directories(network_benchmark_tests PRIVATE ${THREAD_SYSTEM_INCLUDE_DIR})
         target_compile_definitions(network_benchmark_tests PRIVATE WITH_THREAD_SYSTEM)
@@ -4352,6 +4372,10 @@ endif()
 if(CONTAINER_SYSTEM_INCLUDE_DIR)
     target_include_directories(network_system_lifecycle_test PRIVATE ${CONTAINER_SYSTEM_INCLUDE_DIR})
     target_compile_definitions(network_system_lifecycle_test PRIVATE WITH_CONTAINER_SYSTEM)
+endif()
+
+if(CONTAINER_SYSTEM_NEW_INCLUDE_DIR)
+    target_include_directories(network_system_lifecycle_test PRIVATE ${CONTAINER_SYSTEM_NEW_INCLUDE_DIR})
 endif()
 
 set_target_properties(network_system_lifecycle_test PROPERTIES

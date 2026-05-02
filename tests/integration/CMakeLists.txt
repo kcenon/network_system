@@ -36,6 +36,14 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/test_e2e.cpp)
         target_compile_definitions(test_e2e PRIVATE WITH_CONTAINER_SYSTEM)
     endif()
 
+    # network_system public headers transitively #include <kcenon/container/...>
+    # which lives under <root>/include. setup_container_system_integration() adds
+    # this PRIVATE on the library target, so it does not propagate to consumers.
+    # See issue #1095.
+    if(CONTAINER_SYSTEM_NEW_INCLUDE_DIR)
+        target_include_directories(test_e2e PRIVATE ${CONTAINER_SYSTEM_NEW_INCLUDE_DIR})
+    endif()
+
     if(THREAD_SYSTEM_INCLUDE_DIR)
         target_include_directories(test_e2e PRIVATE ${THREAD_SYSTEM_INCLUDE_DIR})
         target_compile_definitions(test_e2e PRIVATE WITH_THREAD_SYSTEM)
@@ -79,6 +87,10 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/test_integration.cpp)
     if(CONTAINER_SYSTEM_INCLUDE_DIR)
         target_include_directories(stress_test PRIVATE ${CONTAINER_SYSTEM_INCLUDE_DIR})
         target_compile_definitions(stress_test PRIVATE WITH_CONTAINER_SYSTEM)
+    endif()
+
+    if(CONTAINER_SYSTEM_NEW_INCLUDE_DIR)
+        target_include_directories(stress_test PRIVATE ${CONTAINER_SYSTEM_NEW_INCLUDE_DIR})
     endif()
 
     if(THREAD_SYSTEM_INCLUDE_DIR)
@@ -127,6 +139,10 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/test_websocket_e2e.cpp)
     if(CONTAINER_SYSTEM_INCLUDE_DIR)
         target_include_directories(test_websocket_e2e PRIVATE ${CONTAINER_SYSTEM_INCLUDE_DIR})
         target_compile_definitions(test_websocket_e2e PRIVATE WITH_CONTAINER_SYSTEM)
+    endif()
+
+    if(CONTAINER_SYSTEM_NEW_INCLUDE_DIR)
+        target_include_directories(test_websocket_e2e PRIVATE ${CONTAINER_SYSTEM_NEW_INCLUDE_DIR})
     endif()
 
     if(THREAD_SYSTEM_INCLUDE_DIR)
@@ -181,6 +197,10 @@ if(BUILD_QUIC_SUPPORT AND EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/test_quic_e2e.cpp)
     if(CONTAINER_SYSTEM_INCLUDE_DIR)
         target_include_directories(test_quic_e2e PRIVATE ${CONTAINER_SYSTEM_INCLUDE_DIR})
         target_compile_definitions(test_quic_e2e PRIVATE WITH_CONTAINER_SYSTEM)
+    endif()
+
+    if(CONTAINER_SYSTEM_NEW_INCLUDE_DIR)
+        target_include_directories(test_quic_e2e PRIVATE ${CONTAINER_SYSTEM_NEW_INCLUDE_DIR})
     endif()
 
     if(THREAD_SYSTEM_INCLUDE_DIR)
@@ -242,6 +262,10 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/test_metrics_integration.cpp)
         target_compile_definitions(test_metrics_integration PRIVATE WITH_CONTAINER_SYSTEM)
     endif()
 
+    if(CONTAINER_SYSTEM_NEW_INCLUDE_DIR)
+        target_include_directories(test_metrics_integration PRIVATE ${CONTAINER_SYSTEM_NEW_INCLUDE_DIR})
+    endif()
+
     if(THREAD_SYSTEM_INCLUDE_DIR)
         target_include_directories(test_metrics_integration PRIVATE ${THREAD_SYSTEM_INCLUDE_DIR})
         target_compile_definitions(test_metrics_integration PRIVATE WITH_THREAD_SYSTEM)
@@ -287,6 +311,10 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/test_tracing_integration.cpp)
     if(CONTAINER_SYSTEM_INCLUDE_DIR)
         target_include_directories(test_tracing_integration PRIVATE ${CONTAINER_SYSTEM_INCLUDE_DIR})
         target_compile_definitions(test_tracing_integration PRIVATE WITH_CONTAINER_SYSTEM)
+    endif()
+
+    if(CONTAINER_SYSTEM_NEW_INCLUDE_DIR)
+        target_include_directories(test_tracing_integration PRIVATE ${CONTAINER_SYSTEM_NEW_INCLUDE_DIR})
     endif()
 
     if(THREAD_SYSTEM_INCLUDE_DIR)

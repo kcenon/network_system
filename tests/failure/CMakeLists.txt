@@ -22,6 +22,11 @@ if(GTest_FOUND OR GTEST_FOUND)
         target_compile_definitions(network_failure_test PRIVATE WITH_CONTAINER_SYSTEM)
     endif()
 
+    # See issue #1095: required for transitive <kcenon/container/...> includes via network_system headers.
+    if(CONTAINER_SYSTEM_NEW_INCLUDE_DIR)
+        target_include_directories(network_failure_test PRIVATE ${CONTAINER_SYSTEM_NEW_INCLUDE_DIR})
+    endif()
+
     if(THREAD_SYSTEM_INCLUDE_DIR)
         target_include_directories(network_failure_test PRIVATE ${THREAD_SYSTEM_INCLUDE_DIR})
         target_compile_definitions(network_failure_test PRIVATE WITH_THREAD_SYSTEM)
@@ -64,6 +69,10 @@ if(GTest_FOUND OR GTEST_FOUND)
     if(CONTAINER_SYSTEM_INCLUDE_DIR)
         target_include_directories(network_boundary_test PRIVATE ${CONTAINER_SYSTEM_INCLUDE_DIR})
         target_compile_definitions(network_boundary_test PRIVATE WITH_CONTAINER_SYSTEM)
+    endif()
+
+    if(CONTAINER_SYSTEM_NEW_INCLUDE_DIR)
+        target_include_directories(network_boundary_test PRIVATE ${CONTAINER_SYSTEM_NEW_INCLUDE_DIR})
     endif()
 
     if(THREAD_SYSTEM_INCLUDE_DIR)
