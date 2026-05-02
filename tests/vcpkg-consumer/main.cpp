@@ -22,7 +22,7 @@
 
 // Tier 1: thread_system (transitive dependency)
 #ifdef HAS_THREAD_SYSTEM
-#include <thread_system/utilities/formatter.h>
+#include <kcenon/thread/utils/formatter.h>
 #endif
 
 int main()
