@@ -1,115 +1,33 @@
 ##################################################
 # network_system_targets.cmake
 #
-# Library target rules for network_system.
+# Library target rules for the main network_system library.
 #
 # This module owns:
-#   - network-integration-objects (OBJECT library, shared
-#     between network_system and network-tcp to avoid ODR
-#     violations - Issue #555)
 #   - network_system (the main library + ALIAS)
 #   - All optional feature wiring on the main target:
 #     TLS/SSL, WebSocket, LZ4, ZLIB, official gRPC,
 #     verify_build, messaging bridge, integration setup.
 #
-# This module is a logical unit because every directive
-# below either defines or directly mutates the
-# network_system / network-integration-objects targets.
-#
 # Preconditions (must be satisfied before include()ing):
 #   - find_network_system_dependencies() has been called
 #     (provides ASIO discovery state, GRPC_FOUND, etc.)
 #   - check_network_system_features() has been called
-#   - libs/network-core (and optional libs/network-*) have
-#     been added via add_subdirectory if present, so that
-#     TARGET <name> checks below can match.
-##################################################
-
-##################################################
-# Internal symlink for namespaced headers
+#   - network_system_integration_objects.cmake has already
+#     defined network-integration-objects.
+#   - libs/network-core, libs/network-tcp, libs/network-udp,
+#     libs/network-* protocol subdirectories have already
+#     been add_subdirectory()'d so that the TARGET <name>
+#     checks below match (Issue #538/554/618).
 #
-# Public headers use #include "kcenon/network/internal/..."
-# which must resolve from the PRIVATE src/ include directory
-# at build time.
-# COPY_ON_ERROR: falls back to a directory copy on platforms
-# where symlinks require elevated privileges (e.g. Windows
-# without Developer Mode).
+# Why ordering matters: network_system links PUBLIC against
+# network-core / network-tcp / network-udp to inherit the
+# include paths exposed by network-integration-objects (most
+# notably the root-level network-core/include path that
+# resolves `kcenon/network-core/...` headers). Skip the
+# preceding subdirectories and the link calls below silently
+# become no-ops, leading to "file not found" errors.
 ##################################################
-set(_INTERNAL_LINK_DIR "${CMAKE_CURRENT_BINARY_DIR}/internal_include/kcenon/network")
-file(MAKE_DIRECTORY "${_INTERNAL_LINK_DIR}")
-file(CREATE_LINK
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/internal"
-    "${_INTERNAL_LINK_DIR}/internal"
-    COPY_ON_ERROR
-    SYMBOLIC
-)
-
-##################################################
-# Shared Integration Objects (ODR Fix - Issue #555)
-#
-# These sources are shared between network_system and
-# network-tcp. Using an OBJECT library ensures symbols are
-# defined exactly once, preventing ODR (One Definition Rule)
-# violations that cause SEGV in sanitizer tests.
-#
-# IMPORTANT: This must be defined BEFORE add_subdirectory(libs/network-tcp)
-# so that network-tcp can link against it.
-##################################################
-
-add_library(network-integration-objects OBJECT
-    src/integration/logger_integration.cpp
-    src/integration/thread_integration.cpp
-    src/integration/io_context_thread_manager.cpp
-    src/integration/monitoring_integration.cpp
-    src/integration/thread_system_adapter.cpp
-    src/integration/thread_pool_bridge.cpp
-    src/integration/observability_bridge.cpp
-    src/integration/network_system_bridge.cpp
-    src/core/network_context.cpp
-    src/session/messaging_session.cpp
-    src/metrics/network_metrics.cpp
-    src/metrics/sliding_histogram.cpp
-    src/metrics/histogram.cpp
-)
-
-# Configure integration objects with necessary includes and dependencies
-target_include_directories(network-integration-objects
-    PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/network-core/include>
-    PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}/src
-        ${CMAKE_CURRENT_BINARY_DIR}/internal_include
-)
-
-target_compile_features(network-integration-objects PUBLIC cxx_std_20)
-
-# ASIO setup for integration objects
-find_package(asio QUIET CONFIG)
-if(TARGET asio::asio)
-    target_link_libraries(network-integration-objects PUBLIC asio::asio)
-else()
-    find_path(ASIO_INCLUDE_DIR
-        NAMES asio.hpp
-        PATHS
-            /opt/homebrew/include
-            /usr/local/include
-            /usr/include
-        DOC "Path to standalone ASIO headers"
-    )
-    if(ASIO_INCLUDE_DIR)
-        target_include_directories(network-integration-objects SYSTEM PUBLIC
-            $<BUILD_INTERFACE:${ASIO_INCLUDE_DIR}>
-        )
-        target_compile_definitions(network-integration-objects PUBLIC ASIO_STANDALONE)
-    endif()
-endif()
-
-# common_system integration for network-integration-objects
-setup_common_system_integration(network-integration-objects)
-
-# Export the OBJECT library for network-tcp to use
-set(NETWORK_INTEGRATION_OBJECTS_TARGET network-integration-objects CACHE INTERNAL "Integration objects target")
 
 ##################################################
 # Create Main Library

@@ -24,16 +24,21 @@ endif()
 #                         (network_system_dependencies.cmake,
 #                          network_system_features.cmake,
 #                          network_system_integration.cmake)
-#   6. main library targets
+#   6. libs/network-core (header-only interfaces)
+#   7. shared ODR OBJECT library
+#                         (network_system_integration_objects.cmake)
+#   8. modular protocol libraries
+#                         (network_system_protocol_libs.cmake)
+#   9. main library targets
 #                         (network_system_targets.cmake)
-#   7. protocol libs + tests / examples / benchmarks / fuzz
+#  10. tests / examples / benchmarks / fuzz subdirectories
 #                         (network_system_subdirs.cmake)
-#   8. installation       (network_system_install.cmake)
-#   9. CPack              (network_system_cpack.cmake)
-#  10. C++20 module target
+#  11. installation       (network_system_install.cmake)
+#  12. CPack              (network_system_cpack.cmake)
+#  13. C++20 module target
 #                         (network_system_modules.cmake,
 #                          gated on NETWORK_BUILD_MODULES)
-#  11. summary printout   (network_system_summary.cmake)
+#  14. summary printout   (network_system_summary.cmake)
 #
 # Adding a new option, sanitizer, or install rule should be
 # a single-file diff against the matching module — if you
@@ -67,24 +72,35 @@ find_package(PkgConfig QUIET)
 find_network_system_dependencies()
 check_network_system_features()
 
-# network-core (header-only, must come before network_system
-# targets so that network_system can link against it).
+# network-core (header-only, must come before
+# network-integration-objects so the integration objects
+# can link against it).
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/libs/network-core/CMakeLists.txt)
     add_subdirectory(libs/network-core)
     message(STATUS "network-core library enabled")
 endif()
 
-# Main library targets:
-#   - network-integration-objects (OBJECT lib, ODR-shared
-#     between network_system and network-tcp - Issue #555).
-#   - network_system (main library + network_system::network_system alias).
-#   - verify_build (optional, off by default).
-#
-# Must be included BEFORE network_system_subdirs.cmake so
-# libs/network-tcp can link against network-integration-objects.
+# Shared OBJECT library for ODR-fix sources (Issue #555).
+# Defines network-integration-objects with the PUBLIC
+# network-core/include path that downstream libs (network-tcp,
+# network-udp) inherit, which in turn lets the main
+# network_system library resolve `kcenon/network-core/...`
+# headers via target_link_libraries(network_system PUBLIC
+# network-tcp / network-udp). Must come BEFORE the protocol
+# subdirectories.
+include(cmake/network_system_integration_objects.cmake)
+
+# Modular protocol libraries (libs/network-tcp etc.). These
+# come BEFORE network_system_targets.cmake because
+# target_link_libraries(network_system PUBLIC network-tcp)
+# in that module is gated on `if(TARGET network-tcp)` and
+# silently no-ops when the target does not yet exist.
+include(cmake/network_system_protocol_libs.cmake)
+
+# Main network_system library + verify_build executable.
 include(cmake/network_system_targets.cmake)
 
-# Protocol libraries + tests/examples/benchmarks/fuzz.
+# Tests, examples, benchmarks, fuzzing.
 include(cmake/network_system_subdirs.cmake)
 
 # Skip installation in unified build to avoid export conflicts.
