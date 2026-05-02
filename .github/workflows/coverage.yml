@@ -48,6 +48,7 @@ jobs:
       uses: actions/checkout@v6
       with:
         repository: kcenon/container_system
+        ref: develop  # see #1095: pin until EPIC #531 reaches main
         path: container_system
         token: ${{ secrets.GITHUB_TOKEN }}
 
