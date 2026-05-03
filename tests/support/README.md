@@ -30,6 +30,7 @@ follow-up tests drive those methods.
 | `mock_udp_peer.h/.cpp` | UDP peer wrapper for QUIC tests plus a stub QUIC long-header Initial-packet builder. |
 | `mock_ws_handshake.h/.cpp` | RFC 6455 client upgrade request and frame builders for WebSocket server tests. |
 | `mock_h2_server_peer.h/.cpp` | Server-side HTTP/2 framing peer (Phase 2A + 2A.2 of #1074): connection preface read, server SETTINGS send, client SETTINGS read, SETTINGS-ACK send. With `reply_mode::echo_one`, also reads one client request stream and replies with `:status: 200` HEADERS + a small END_STREAM DATA frame. Composes `tls_loopback_listener` and runs the exchange on a dedicated worker thread. |
+| `mock_grpc_server_peer.h/.cpp` | Server-side gRPC framing peer (Phase 2B of #1074): same SETTINGS exchange as `mock_h2_server_peer`. With `grpc_reply_mode::echo_unary`, additionally reads one client request stream and replies with `:status: 200` + `content-type: application/grpc` HEADERS, one length-prefixed DATA frame (gRPC 5-byte header + payload), and a trailing HEADERS frame carrying `grpc-status: 0` (END_STREAM). Drives `grpc_client::call_raw` past the trailer-scan and `grpc_message::parse` branches. |
 
 ## Composition pattern
 
@@ -130,6 +131,53 @@ TEST_F(MyHttp2ClientTest, GetReturnsResponseFromMockPeer)
     EXPECT_TRUE(peer.response_sent());
 
     (void)client->disconnect();
+    connector.join();
+}
+```
+
+For gRPC client tests that need a successful unary RPC reply (Phase 2B),
+use `mock_grpc_server_peer` which layers gRPC framing on top of the
+HTTP/2 SETTINGS exchange. With `grpc_reply_mode::echo_unary`, the peer
+reads one client request stream after SETTINGS and replies on the same
+stream with response HEADERS (`:status: 200`,
+`content-type: application/grpc`), one length-prefixed gRPC DATA frame,
+and trailing HEADERS (`grpc-status: 0`, END_STREAM):
+
+```cpp
+#include "hermetic_transport_fixture.h"
+#include "mock_grpc_server_peer.h"
+
+class MyGrpcClientTest
+    : public kcenon::network::tests::support::hermetic_transport_fixture
+{
+};
+
+TEST_F(MyGrpcClientTest, CallRawReturnsResponseFromMockGrpcPeer)
+{
+    using namespace kcenon::network::tests::support;
+
+    mock_grpc_server_peer peer(io(), grpc_reply_mode::echo_unary);
+
+    grpc::grpc_channel_config cfg;
+    cfg.use_tls = true;
+    cfg.default_timeout = std::chrono::milliseconds(2000);
+
+    const std::string target =
+        "127.0.0.1:" + std::to_string(static_cast<unsigned>(peer.port()));
+    auto client = std::make_shared<grpc::grpc_client>(target, cfg);
+
+    std::thread connector([&]() { (void)client->connect(); });
+    wait_for([&]() { return peer.settings_exchanged(); },
+             std::chrono::seconds(3));
+
+    auto response = client->call_raw(
+        "/svc/Echo", std::vector<uint8_t>{0x01, 0x02});
+    ASSERT_TRUE(response.is_ok());
+    EXPECT_EQ(response.value().data, (std::vector<uint8_t>{'o', 'k'}));
+    EXPECT_TRUE(peer.request_received());
+    EXPECT_TRUE(peer.response_sent());
+
+    client->disconnect();
     connector.join();
 }
 ```

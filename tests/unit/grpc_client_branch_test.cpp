@@ -1193,3 +1193,71 @@ TEST_F(GrpcClientHermeticTransportTest, DisconnectIsIdempotentAfterFullHandshake
 
     setup.connector.join();
 }
+
+// ============================================================================
+// Phase 2B demo: drive grpc_client::call_raw post-connect success path via
+// mock_grpc_server_peer (Phase 2B of #1074, on top of Phase 2A/2A.2).
+//
+// mock_grpc_server_peer extends mock_h2_server_peer's framing model with the
+// gRPC-specific server-side reply trio:
+//   1. response HEADERS (`:status: 200`, `content-type: application/grpc`)
+//   2. DATA frame carrying one length-prefixed gRPC message
+//   3. trailing HEADERS (`grpc-status: 0`, END_STREAM)
+//
+// This pushes call_raw past the http2_client::post wait, the response.headers
+// trailer scan (grpc_status extraction), and the grpc_message::parse on the
+// response body — branches that the Phase 2A `mock_h2_server_peer` peer
+// could not exercise because it never replied with HEADERS+DATA.
+// ============================================================================
+
+#include "mock_grpc_server_peer.h"
+
+TEST_F(GrpcClientHermeticTransportTest, CallRawSucceedsWithMockGrpcPeerEchoUnary)
+{
+    using namespace kcenon::network::tests::support;
+
+    mock_grpc_server_peer peer(io(), grpc_reply_mode::echo_unary);
+
+    grpc_channel_config cfg;
+    cfg.use_tls = true;
+    cfg.default_timeout = std::chrono::milliseconds(2000);
+
+    const std::string target =
+        "127.0.0.1:" + std::to_string(static_cast<unsigned>(peer.port()));
+    auto client = std::make_shared<grpc_client>(target, cfg);
+
+    std::thread connector([client]() { (void)client->connect(); });
+
+    EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged(); },
+                         std::chrono::seconds(3)));
+    ASSERT_TRUE(client->is_connected());
+
+    // call_raw drives: is_connected() check, method validation, header
+    // build, grpc_message::serialize, http2_client::post wait,
+    // response.headers trailer scan (grpc_status extraction), and
+    // grpc_message::parse on the response body.
+    auto result = client->call_raw(
+        "/svc/Echo", std::vector<uint8_t>{0x01, 0x02, 0x03});
+
+    EXPECT_TRUE(result.is_ok());
+    if (result.is_ok())
+    {
+        // The mock peer always replies with the body "ok".
+        const auto& msg = result.value();
+        ASSERT_EQ(msg.data.size(), 2u);
+        EXPECT_EQ(msg.data[0], 'o');
+        EXPECT_EQ(msg.data[1], 'k');
+    }
+
+    // The peer accumulated the client's request body (including the
+    // gRPC 5-byte length prefix). Verifying the prefix sanity-checks
+    // that the client serialized through the gRPC frame layer.
+    EXPECT_TRUE(peer.request_received());
+    EXPECT_TRUE(peer.response_sent());
+    const auto body = peer.request_body();
+    ASSERT_GE(body.size(), 5u);
+    EXPECT_EQ(body[0], 0x00);  // not compressed
+
+    client->disconnect();
+    connector.join();
+}
