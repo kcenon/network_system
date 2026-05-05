@@ -13,6 +13,7 @@ add_library(network_test_support STATIC
     mock_ws_handshake.cpp
     mock_h2_server_peer.cpp
     mock_grpc_server_peer.cpp
+    mock_quic_peer_loop.cpp
 )
 
 target_include_directories(network_test_support
