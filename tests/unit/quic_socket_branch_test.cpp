@@ -84,6 +84,7 @@
 #include "internal/quic_socket.h"
 
 #include "hermetic_transport_fixture.h"
+#include "mock_quic_peer_loop.h"
 #include "mock_udp_peer.h"
 
 #include <gtest/gtest.h>
@@ -1156,6 +1157,51 @@ TEST_F(QuicSocketHermeticTransportTest,
     const auto bytes = peer.receive(4096, 200ms);
     ASSERT_FALSE(bytes.empty());
     EXPECT_GE(bytes[0], static_cast<uint8_t>(0xC0));
+
+    client->stop_receive();
+}
+
+// ============================================================================
+// Phase 2C: mock_quic_peer_loop — drives process_crypto_frame (Issue #1074)
+// ----------------------------------------------------------------------------
+// mock_quic_peer_loop receives the client's first Initial datagram, derives
+// QUIC-v1 initial keys from the client's original DCID (RFC 9001 §5.2), and
+// replies with a server Initial packet carrying a stub crypto_frame
+// (type 0x06). quic_socket::handle_packet decrypts the reply and dispatches
+// to process_crypto_frame — a branch previously unreachable from tests.
+// ============================================================================
+
+/**
+ * @brief mock_quic_peer_loop receives the client's Initial, replies with a
+ *        server Initial carrying a crypto_frame stub, and sets initial_sent().
+ *
+ * The value of this test is that process_crypto_frame executes; coverage
+ * tooling records the branch. The client exposes no dedicated
+ * post-process_crypto_frame observable from outside, so the minimum
+ * assertion is: peer sent its Initial without I/O failure.
+ */
+TEST_F(QuicSocketHermeticTransportTest,
+       ProcessCryptoFrameReachableViaMockQuicPeerLoop)
+{
+    using namespace kcenon::network::tests::support;
+
+    mock_quic_peer_loop peer(io());
+
+    // Create a client socket connected to the peer's loopback address.
+    asio::ip::udp::socket udp_sock(io(), asio::ip::udp::v4());
+    auto client = std::make_shared<internal::quic_socket>(
+        std::move(udp_sock), internal::quic_role::client);
+
+    // connect() sends the client's Initial datagram to the peer and begins
+    // receiving. The peer's worker will receive it, derive keys, and reply.
+    EXPECT_TRUE(client->connect(peer.peer_endpoint(), "test.example").is_ok());
+
+    // Wait up to 3 s for the peer to send its server Initial reply.
+    EXPECT_TRUE(wait_for([&]{ return peer.initial_sent(); },
+                         std::chrono::seconds(3)));
+
+    // Peer must not have exited via an I/O or key-derivation failure.
+    EXPECT_FALSE(peer.io_failed());
 
     client->stop_receive();
 }

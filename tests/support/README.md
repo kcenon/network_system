@@ -31,6 +31,7 @@ follow-up tests drive those methods.
 | `mock_ws_handshake.h/.cpp` | RFC 6455 client upgrade request and frame builders for WebSocket server tests. |
 | `mock_h2_server_peer.h/.cpp` | Server-side HTTP/2 framing peer (Phase 2A + 2A.2 of #1074): connection preface read, server SETTINGS send, client SETTINGS read, SETTINGS-ACK send. With `reply_mode::echo_one`, also reads one client request stream and replies with `:status: 200` HEADERS + a small END_STREAM DATA frame. Composes `tls_loopback_listener` and runs the exchange on a dedicated worker thread. |
 | `mock_grpc_server_peer.h/.cpp` | Server-side gRPC framing peer (Phase 2B of #1074): same SETTINGS exchange as `mock_h2_server_peer`. With `grpc_reply_mode::echo_unary`, additionally reads one client request stream and replies with `:status: 200` + `content-type: application/grpc` HEADERS, one length-prefixed DATA frame (gRPC 5-byte header + payload), and a trailing HEADERS frame carrying `grpc-status: 0` (END_STREAM). Drives `grpc_client::call_raw` past the trailer-scan and `grpc_message::parse` branches. |
+| `mock_quic_peer_loop.h/.cpp` | Server-side QUIC Initial echo peer (Phase 2C of #1074): receives one client Initial datagram, derives QUIC-v1 initial keys from the original DCID, replies with a valid Initial packet carrying a stub `crypto_frame`, enabling `quic_socket::process_crypto_frame` to be reached from a hermetic test. |
 
 ## Composition pattern
 
