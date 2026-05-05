@@ -52,6 +52,13 @@ namespace kcenon::network::session
 	class quic_session;
 } // namespace kcenon::network::session
 
+#if defined(NETWORK_ENABLE_TEST_INJECTION)
+namespace kcenon::network::tests::support
+{
+	class quic_server_probe;
+} // namespace kcenon::network::tests::support
+#endif
+
 namespace kcenon::network::core
 {
 
@@ -410,6 +417,12 @@ namespace kcenon::network::core
 #endif // KCENON_WITH_COMMON_SYSTEM
 
 	private:
+#if defined(NETWORK_ENABLE_TEST_INJECTION)
+		// Test-only: grants tests/support/quic_server_probe access to private
+		// surfaces without leaking them through the public API.
+		friend class kcenon::network::tests::support::quic_server_probe;
+#endif
+
 		// =====================================================================
 		// Internal Implementation Methods
 		// =====================================================================

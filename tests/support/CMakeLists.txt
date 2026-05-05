@@ -14,6 +14,8 @@ add_library(network_test_support STATIC
     mock_h2_server_peer.cpp
     mock_grpc_server_peer.cpp
     mock_quic_peer_loop.cpp
+    quic_server_probe.cpp
+    ws_server_probe.cpp
 )
 
 target_include_directories(network_test_support
