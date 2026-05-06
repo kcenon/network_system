@@ -4959,6 +4959,18 @@ add_network_test(network_http2_client_branch_test
                  unit/http2_client_branch_test.cpp)
 target_link_libraries(network_http2_client_branch_test PRIVATE network::test_support)
 
+# Phase 2E.R3 (Issue #1106): Two slow_write/echo_one positive-path TEST_F
+# cases pass under Debug/Release but fail under coverage instrumentation
+# because lcov/gcov slow the SETTINGS handshake past the 2-3 second wait
+# budget. Define NETWORK_COVERAGE_BUILD when ENABLE_COVERAGE is on so
+# those two tests are excluded from coverage runs only — they remain in
+# Debug/Release builds where they exercise the partial-read accumulator
+# and request-error branches as designed.
+if(ENABLE_COVERAGE)
+    target_compile_definitions(network_http2_client_branch_test PRIVATE
+        NETWORK_COVERAGE_BUILD)
+endif()
+
 # gRPC client branch coverage: grpc_channel_config full-field round-trip with
 # boundary values, call_options::set_timeout duration variants, metadata
 # growth, varied target construction, wait_for_connected timeout budget,
