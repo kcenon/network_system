@@ -156,8 +156,9 @@ auto build_server_initial(
 
 } // namespace
 
-mock_quic_peer_loop::mock_quic_peer_loop(asio::io_context& io)
-    : socket_(io, asio::ip::udp::v4())
+mock_quic_peer_loop::mock_quic_peer_loop(asio::io_context& io,
+                                         injection_spec inject)
+    : socket_(io, asio::ip::udp::v4()), injector_(inject)
 {
     // Bind to loopback with an ephemeral port.
     socket_.bind(asio::ip::udp::endpoint(asio::ip::address_v4::loopback(), 0));
@@ -237,15 +238,34 @@ void mock_quic_peer_loop::run()
         }
 
         // Step 6: send reply back to the sender (the client's address).
-        socket_.send_to(asio::buffer(packet.data(), packet.size()), sender, 0, ec);
-        if (ec)
+        // Phase 2E: optionally apply byte-level fault injection. UDP is a
+        // datagram protocol, so the injector's pure transform variant is
+        // used here — the per-byte pacing slow_write mode is meaningless
+        // for a single send_to and is treated as a pass-through by
+        // transform().
+        auto wire = injector_.transform(
+            std::span<const std::uint8_t>(packet.data(), packet.size()));
+        if (wire.has_value())
         {
-            io_failed_.store(true);
-            return;
+            if (!wire->empty())
+            {
+                socket_.send_to(asio::buffer(wire->data(), wire->size()),
+                                sender, 0, ec);
+                if (ec)
+                {
+                    io_failed_.store(true);
+                    return;
+                }
+            }
+            // Step 7: signal that the Initial was sent. Truncate-to-zero
+            // is treated the same as a successful send (the test asked
+            // for an empty datagram).
+            initial_sent_.store(true);
         }
-
-        // Step 7: signal that the Initial was sent.
-        initial_sent_.store(true);
+        // injection_mode::drop: deliberately skip send_to. The client
+        // never sees a server Initial, which drives idle-timeout /
+        // retransmit branches in quic_socket. initial_sent_ stays false
+        // so tests can distinguish drop from a normal reply.
 
         // Step 8: drain remaining datagrams until stop_ is set.
         while (!stop_.load())

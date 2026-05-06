@@ -16,6 +16,7 @@ add_library(network_test_support STATIC
     mock_quic_peer_loop.cpp
     quic_server_probe.cpp
     ws_server_probe.cpp
+    frame_injector.cpp
 )
 
 target_include_directories(network_test_support

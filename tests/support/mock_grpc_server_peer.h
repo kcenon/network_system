@@ -58,6 +58,7 @@
  * is ephemeral.
  */
 
+#include "frame_injector.h"
 #include "mock_tls_socket.h"
 
 #include <asio/io_context.hpp>
@@ -146,10 +147,18 @@ public:
      * @param mode Post-handshake behavior. Defaults to
      *        @ref grpc_reply_mode::drain_only for backward compatibility
      *        with timeout-path tests.
+     * @param inject Server-side fault injection (Phase 2E). Default
+     *        @ref injection_mode::none preserves Phase 2B behavior.
+     *        Applied to every server-originated frame on the wire (server
+     *        SETTINGS, SETTINGS-ACK, response HEADERS, gRPC DATA, trailing
+     *        HEADERS), allowing tests to drive @c grpc_client parse /
+     *        status-extraction error branches without modifying production
+     *        code.
      */
     explicit mock_grpc_server_peer(asio::io_context& io,
                                    grpc_reply_mode mode
-                                       = grpc_reply_mode::drain_only);
+                                       = grpc_reply_mode::drain_only,
+                                   injection_spec inject = {});
 
     /**
      * @brief Destructor. Signals the worker to stop, closes the listener,
@@ -264,6 +273,7 @@ private:
 
     tls_loopback_listener listener_;
     grpc_reply_mode mode_;
+    frame_injector injector_;
     std::atomic<bool> settings_exchanged_{false};
     std::atomic<bool> io_failed_{false};
     std::atomic<bool> stop_{false};

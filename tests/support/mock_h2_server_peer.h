@@ -58,6 +58,7 @@
  * ephemeral.
  */
 
+#include "frame_injector.h"
 #include "mock_tls_socket.h"
 
 #include <asio/io_context.hpp>
@@ -142,9 +143,16 @@ public:
      * @param mode Post-handshake behavior. Defaults to
      *        @ref reply_mode::drain_only for backward compatibility with
      *        Phase 2A timeout-path tests.
+     * @param inject Server-side fault injection (Phase 2E). Default
+     *        @ref injection_mode::none preserves Phase 2A/2A.2 behavior.
+     *        Applied to every server-originated frame on the wire
+     *        (server SETTINGS, SETTINGS-ACK, response HEADERS, response
+     *        DATA), allowing tests to drive client-side parse / timeout
+     *        branches without modifying production code.
      */
     explicit mock_h2_server_peer(asio::io_context& io,
-                                 reply_mode mode = reply_mode::drain_only);
+                                 reply_mode mode = reply_mode::drain_only,
+                                 injection_spec inject = {});
 
     /**
      * @brief Destructor. Signals the worker to stop, closes the listener,
@@ -244,6 +252,7 @@ private:
 
     tls_loopback_listener listener_;
     reply_mode mode_;
+    frame_injector injector_;
     std::atomic<bool> settings_exchanged_{false};
     std::atomic<bool> io_failed_{false};
     std::atomic<bool> stop_{false};

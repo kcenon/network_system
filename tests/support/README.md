@@ -32,6 +32,8 @@ follow-up tests drive those methods.
 | `mock_h2_server_peer.h/.cpp` | Server-side HTTP/2 framing peer (Phase 2A + 2A.2 of #1074): connection preface read, server SETTINGS send, client SETTINGS read, SETTINGS-ACK send. With `reply_mode::echo_one`, also reads one client request stream and replies with `:status: 200` HEADERS + a small END_STREAM DATA frame. Composes `tls_loopback_listener` and runs the exchange on a dedicated worker thread. |
 | `mock_grpc_server_peer.h/.cpp` | Server-side gRPC framing peer (Phase 2B of #1074): same SETTINGS exchange as `mock_h2_server_peer`. With `grpc_reply_mode::echo_unary`, additionally reads one client request stream and replies with `:status: 200` + `content-type: application/grpc` HEADERS, one length-prefixed DATA frame (gRPC 5-byte header + payload), and a trailing HEADERS frame carrying `grpc-status: 0` (END_STREAM). Drives `grpc_client::call_raw` past the trailer-scan and `grpc_message::parse` branches. |
 | `mock_quic_peer_loop.h/.cpp` | Server-side QUIC Initial echo peer (Phase 2C of #1074): receives one client Initial datagram, derives QUIC-v1 initial keys from the original DCID, replies with a valid Initial packet carrying a stub `crypto_frame`, enabling `quic_socket::process_crypto_frame` to be reached from a hermetic test. |
+| `network_test_friends.h` + `quic_server_probe.h/.cpp` + `ws_server_probe.h/.cpp` | Friend-test injection points (Phase 2D of #1074): forwarders that grant tests access to the previously-private `messaging_quic_server::handle_packet` and `messaging_ws_server::handle_new_connection` entry points under the `NETWORK_ENABLE_TEST_INJECTION` build gate. |
+| `frame_injector.h/.cpp` | Composable byte-level fault hooks (Phase 2E of #1074): `injection_mode::none`, `drop`, `truncate`, `malform`, `slow_write`. Pluggable into the three server peers (h2 / gRPC / QUIC) via an optional constructor argument and into raw client→server byte streams (e.g. WebSocket fed to `ws_server_probe`) via `frame_injector::write` / `frame_injector::transform`. |
 
 ## Composition pattern
 
@@ -221,7 +223,130 @@ Phases land as independent PRs.
 |-------|-----------|--------|
 | 2A | `mock_h2_server_peer` (preface + SETTINGS exchange + ACK) | shipped |
 | 2A.2 | `mock_h2_server_peer` HEADERS+DATA reply for one stream (`reply_mode::echo_one`) | shipped |
-| 2B | `mock_grpc_server_peer` (h2 + gRPC framing + trailers) | not started |
-| 2C | `mock_quic_peer_loop` (Initial → Handshake → 1-RTT) | not started |
-| 2D | `network_test_friends.h` (private-method injection points) | not started |
-| 2E | `frame_injector` (drop / truncate / malformed / slow-write hooks) | not started |
+| 2B | `mock_grpc_server_peer` (h2 + gRPC framing + trailers) | shipped |
+| 2C | `mock_quic_peer_loop` (Initial → Handshake stub) | shipped |
+| 2D | `network_test_friends.h` + `quic_server_probe` + `ws_server_probe` | shipped |
+| 2E | `frame_injector` (drop / truncate / malform / slow-write hooks) | shipped |
+
+## Phase 2E: composing `frame_injector` with each peer
+
+`frame_injector` is a small, header-only-ish (`.cpp` only carries the pure
+`transform` variant) helper that captures one of five fault modes
+(`none`, `drop`, `truncate`, `malform`, `slow_write`) and applies it to any
+byte buffer about to be written to a sync ASIO stream or sent as a UDP
+datagram. The five modes are documented exhaustively in
+`frame_injector.h`; this section shows the four canonical compositions
+exercised by `tests/unit/frame_injector_demo_test.cpp`.
+
+### h2 / gRPC peers — opt-in third constructor argument
+
+Both `mock_h2_server_peer` and `mock_grpc_server_peer` accept an optional
+`injection_spec` after the `reply_mode`. Default-constructed
+(`injection_mode::none`) means the peer is byte-identical to its Phase
+2A/2A.2/2B baseline:
+
+```cpp
+#include "frame_injector.h"
+#include "mock_h2_server_peer.h"
+
+// HTTP/2: drop the very first server frame so the SETTINGS handshake
+// never completes — drives http2_client's connect-timeout branch.
+injection_spec spec;
+spec.mode = injection_mode::drop;
+
+mock_h2_server_peer peer(io(), reply_mode::drain_only, spec);
+
+auto client = std::make_shared<http2::http2_client>("h2-drop-demo");
+client->set_timeout(std::chrono::milliseconds(500));
+
+std::thread connector([&]() {
+    (void)client->connect("127.0.0.1", peer.port());
+});
+EXPECT_FALSE(wait_for([&]() { return peer.settings_exchanged(); },
+                      std::chrono::milliseconds(300)));
+EXPECT_FALSE(client->is_connected());
+(void)client->disconnect();
+connector.join();
+```
+
+The same pattern composes with `mock_grpc_server_peer` and any of the
+remaining modes — for example `injection_mode::malform` with
+`malform_offset = 3` flips the type byte of the SETTINGS-ACK header and
+exercises the gRPC client's parse / unexpected-frame error branch.
+
+### QUIC peer — datagram-level transform
+
+`mock_quic_peer_loop` accepts the same `injection_spec` directly (there
+is no `reply_mode` for QUIC). `slow_write` is treated as a pass-through
+because UDP is a datagram protocol; `drop` skips the `send_to` entirely
+and leaves `peer.initial_sent()` reporting `false` so tests can
+distinguish "the wire bytes never left" from "the bytes were corrupted":
+
+```cpp
+#include "frame_injector.h"
+#include "mock_quic_peer_loop.h"
+
+// QUIC: flip the long-header form / fixed bits so quic_socket rejects
+// the server Initial at the version gate before reaching the
+// process_crypto_frame branch.
+injection_spec spec;
+spec.mode = injection_mode::malform;
+spec.malform_offset = 0;
+spec.malform_xor = 0xC0;
+
+mock_quic_peer_loop peer(io(), spec);
+
+asio::ip::udp::socket udp_sock(io(), asio::ip::udp::v4());
+auto client = std::make_shared<internal::quic_socket>(
+    std::move(udp_sock), internal::quic_role::client);
+
+EXPECT_TRUE(client->connect(peer.peer_endpoint(), "test.example").is_ok());
+EXPECT_TRUE(wait_for([&]() { return peer.initial_sent(); },
+                     std::chrono::seconds(3)));
+client->stop_receive();
+```
+
+### WebSocket — composing with `ws_server_probe`
+
+The WebSocket family has no equivalent of `mock_h2_server_peer`. Phase
+2E demonstrates composability against the Phase 2D friend-test probe
+instead: build a raw client→server stream with `make_loopback_tcp_pair`,
+write through `frame_injector::write` (here `slow_write` to drive the
+partial-read code paths in any future framed-server test), and hand the
+already-connected server socket to `ws_server_probe`:
+
+```cpp
+#include "frame_injector.h"
+#include "ws_server_probe.h"
+#include "hermetic_transport_fixture.h"
+
+constexpr std::array<std::uint8_t, 8> wire{ /* ... */ };
+
+auto [client, accepted] = make_loopback_tcp_pair(io());
+
+injection_spec spec;
+spec.mode = injection_mode::slow_write;
+spec.slow_step = std::chrono::microseconds{500};
+frame_injector inject(spec);
+
+std::thread writer([&]() {
+    std::error_code wec;
+    (void)inject.write(client, std::span<const std::uint8_t>(wire), wec);
+});
+
+std::array<std::uint8_t, wire.size()> received{};
+std::error_code rec;
+asio::read(accepted, asio::buffer(received), rec);
+writer.join();
+ASSERT_FALSE(rec);
+
+messaging_ws_server server("ws-slow-demo");
+auto sock = std::make_shared<asio::ip::tcp::socket>(std::move(accepted));
+EXPECT_NO_FATAL_FAILURE(
+    ws_server_probe::invoke_handle_new_connection(server, sock));
+```
+
+Once Phase 2 is wholly shipped (this entry), the six follow-up coverage
+sub-issues #1062-#1067 take over: each of them adds the protocol-specific
+`TEST_F` body that drives the >=80 % line / >=70 % branch acceptance
+target on the relevant target file, layered on the substrate above.
