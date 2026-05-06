@@ -67,6 +67,7 @@
 #include <atomic>
 #include <cstdint>
 #include <thread>
+#include <vector>
 
 namespace kcenon::network::tests::support
 {
@@ -149,10 +150,22 @@ public:
      *        (server SETTINGS, SETTINGS-ACK, response HEADERS, response
      *        DATA), allowing tests to drive client-side parse / timeout
      *        branches without modifying production code.
+     * @param post_handshake_frames Optional pre-serialized HTTP/2 frame
+     *        byte buffers (Phase 2E.R3) to send from server to client
+     *        immediately after the SETTINGS-ACK and before any per-mode
+     *        request/response handling. Each entry is written verbatim
+     *        without passing through the @p inject transform, allowing
+     *        callers to construct precisely-formed PING/GOAWAY/
+     *        WINDOW_UPDATE/RST_STREAM frames (or arbitrary bytes for the
+     *        unknown-frame-type path) so the client's @c process_frame
+     *        dispatcher exercises handler branches that the request path
+     *        cannot reach. Default empty preserves Phase 2A/2A.2 behavior.
      */
-    explicit mock_h2_server_peer(asio::io_context& io,
-                                 reply_mode mode = reply_mode::drain_only,
-                                 injection_spec inject = {});
+    explicit mock_h2_server_peer(
+        asio::io_context& io,
+        reply_mode mode = reply_mode::drain_only,
+        injection_spec inject = {},
+        std::vector<std::vector<std::uint8_t>> post_handshake_frames = {});
 
     /**
      * @brief Destructor. Signals the worker to stop, closes the listener,
@@ -253,6 +266,7 @@ private:
     tls_loopback_listener listener_;
     reply_mode mode_;
     frame_injector injector_;
+    std::vector<std::vector<std::uint8_t>> post_handshake_frames_;
     std::atomic<bool> settings_exchanged_{false};
     std::atomic<bool> io_failed_{false};
     std::atomic<bool> stop_{false};

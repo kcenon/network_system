@@ -46,9 +46,13 @@ constexpr std::uint8_t kPrefaceBytes[kPrefaceSize] = {
 
 } // namespace
 
-mock_h2_server_peer::mock_h2_server_peer(asio::io_context& io, reply_mode mode,
-                                         injection_spec inject)
-    : listener_(io), mode_(mode), injector_(inject)
+mock_h2_server_peer::mock_h2_server_peer(
+    asio::io_context& io, reply_mode mode, injection_spec inject,
+    std::vector<std::vector<std::uint8_t>> post_handshake_frames)
+    : listener_(io),
+      mode_(mode),
+      injector_(inject),
+      post_handshake_frames_(std::move(post_handshake_frames))
 {
     worker_ = std::thread([this]() { this->run(); });
 }
@@ -155,6 +159,26 @@ void mock_h2_server_peer::run()
     }
 
     settings_exchanged_.store(true);
+
+    // Phase 2E.R3: emit any caller-supplied server-originated frames
+    // (e.g. PING, GOAWAY, WINDOW_UPDATE, RST_STREAM, unknown-type) so the
+    // client's process_frame dispatcher reaches handler branches that the
+    // request path cannot drive. These bytes bypass the injector — callers
+    // construct them with exact wire formats so frame::parse will accept
+    // them and route them to the intended handler.
+    for (const auto& frame_bytes : post_handshake_frames_)
+    {
+        if (frame_bytes.empty())
+        {
+            continue;
+        }
+        asio::write(*stream, asio::buffer(frame_bytes), ec);
+        if (ec)
+        {
+            io_failed_.store(true);
+            return;
+        }
+    }
 
     // Phase 2A.2: optionally read one client request stream and reply with
     // a server HEADERS+DATA pair before falling through to the drain loop.
