@@ -117,8 +117,9 @@ auto build_grpc_framed_body(std::span<const std::uint8_t> payload)
 } // namespace
 
 mock_grpc_server_peer::mock_grpc_server_peer(asio::io_context& io,
-                                             grpc_reply_mode mode)
-    : listener_(io), mode_(mode)
+                                             grpc_reply_mode mode,
+                                             injection_spec inject)
+    : listener_(io), mode_(mode), injector_(inject)
 {
     worker_ = std::thread([this]() { this->run(); });
 }
@@ -168,7 +169,9 @@ void mock_grpc_server_peer::run()
     {
         http2::settings_frame initial({}, /*ack=*/false);
         const auto bytes = initial.serialize();
-        asio::write(*stream, asio::buffer(bytes), ec);
+        injector_.write(
+            *stream,
+            std::span<const std::uint8_t>(bytes.data(), bytes.size()), ec);
         if (ec)
         {
             io_failed_.store(true);
@@ -218,7 +221,9 @@ void mock_grpc_server_peer::run()
     {
         http2::settings_frame ack_frame({}, /*ack=*/true);
         const auto bytes = ack_frame.serialize();
-        asio::write(*stream, asio::buffer(bytes), ec);
+        injector_.write(
+            *stream,
+            std::span<const std::uint8_t>(bytes.data(), bytes.size()), ec);
         if (ec)
         {
             io_failed_.store(true);
@@ -320,7 +325,10 @@ void mock_grpc_server_peer::run()
                 request_stream_id, header_block,
                 /*end_stream=*/false, /*end_headers=*/true);
             const auto bytes = response_headers.serialize();
-            asio::write(*stream, asio::buffer(bytes), ec);
+            injector_.write(
+                *stream,
+                std::span<const std::uint8_t>(bytes.data(), bytes.size()),
+                ec);
             if (ec)
             {
                 io_failed_.store(true);
@@ -339,7 +347,10 @@ void mock_grpc_server_peer::run()
                 request_stream_id, framed,
                 /*end_stream=*/false, /*padded=*/false);
             const auto bytes = response_data.serialize();
-            asio::write(*stream, asio::buffer(bytes), ec);
+            injector_.write(
+                *stream,
+                std::span<const std::uint8_t>(bytes.data(), bytes.size()),
+                ec);
             if (ec)
             {
                 io_failed_.store(true);
@@ -358,7 +369,10 @@ void mock_grpc_server_peer::run()
                 request_stream_id, trailer_block,
                 /*end_stream=*/true, /*end_headers=*/true);
             const auto bytes = trailers.serialize();
-            asio::write(*stream, asio::buffer(bytes), ec);
+            injector_.write(
+                *stream,
+                std::span<const std::uint8_t>(bytes.data(), bytes.size()),
+                ec);
             if (ec)
             {
                 io_failed_.store(true);

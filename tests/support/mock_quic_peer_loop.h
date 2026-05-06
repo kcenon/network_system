@@ -36,6 +36,8 @@
  * ephemeral.
  */
 
+#include "frame_injector.h"
+
 #include <asio/io_context.hpp>
 #include <asio/ip/udp.hpp>
 
@@ -71,8 +73,20 @@ public:
      * @brief Construct the peer, binding a loopback UDP socket and spawning
      *        the worker thread.
      * @param io io_context for constructing the UDP socket.
+     * @param inject Server-side fault injection (Phase 2E). Default
+     *        @ref injection_mode::none preserves Phase 2C behavior.
+     *        Applied to the server Initial datagram before @c send_to:
+     *        - @ref injection_mode::drop skips the @c send_to entirely
+     *          (the client never sees a server Initial reply, driving
+     *          its idle-timeout / retransmit branches).
+     *        - @ref injection_mode::truncate / @ref injection_mode::malform
+     *          corrupt the packet so @c quic_socket::handle_packet
+     *          rejects header protection or payload decryption.
+     *        - @ref injection_mode::slow_write is treated as a
+     *          pass-through for UDP (a datagram is not a byte stream).
      */
-    explicit mock_quic_peer_loop(asio::io_context& io);
+    explicit mock_quic_peer_loop(asio::io_context& io,
+                                 injection_spec inject = {});
 
     /**
      * @brief Destructor. Sets stop_, closes the socket, and joins the worker.
@@ -136,6 +150,7 @@ private:
     asio::ip::udp::socket socket_;
     asio::ip::udp::endpoint endpoint_;
     uint16_t port_{0};
+    frame_injector injector_;
 
     std::atomic<bool> stop_{false};
     std::atomic<bool> initial_sent_{false};

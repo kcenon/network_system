@@ -5088,6 +5088,15 @@ add_network_test(network_ws_server_probe_test
                  unit/ws_server_probe_test.cpp)
 target_link_libraries(network_ws_server_probe_test PRIVATE network::test_support)
 
+# Frame-injection demo (Issue #1074 Phase 2E): one TEST_F per protocol
+# family demonstrating that tests/support/frame_injector composes with
+# mock_h2_server_peer / mock_grpc_server_peer / mock_quic_peer_loop and
+# the Phase 2D ws_server_probe to drive previously-unreachable error
+# branches (drop, malform, malform, slow-write).
+add_network_test(network_frame_injector_demo_test
+                 unit/frame_injector_demo_test.cpp)
+target_link_libraries(network_frame_injector_demo_test PRIVATE network::test_support)
+
 # HTTP parser extended coverage: url_encode/decode edge cases (percent
 # truncation, high-bit bytes, hex case), query string delimiter handling
 # (leading/trailing '&', duplicate keys, URL-encoded delimiters), cookie
