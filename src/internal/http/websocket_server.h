@@ -30,6 +30,13 @@ namespace kcenon::network::internal
 	class websocket_socket;
 }
 
+#if defined(NETWORK_ENABLE_TEST_INJECTION)
+namespace kcenon::network::tests::support
+{
+	class ws_server_probe;
+} // namespace kcenon::network::tests::support
+#endif
+
 namespace kcenon::network::core
 {
 	class ws_session_manager;
@@ -386,6 +393,12 @@ namespace kcenon::network::core
 		auto set_error_callback(interfaces::i_websocket_server::error_callback_t callback) -> void override;
 
 	private:
+#if defined(NETWORK_ENABLE_TEST_INJECTION)
+		// Test-only: grants tests/support/ws_server_probe access to private
+		// surfaces without leaking them through the public API.
+		friend class kcenon::network::tests::support::ws_server_probe;
+#endif
+
 		// =====================================================================
 		// Internal Implementation Methods
 		// =====================================================================

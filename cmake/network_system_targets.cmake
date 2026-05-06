@@ -155,6 +155,15 @@ add_library(network_system
 # Alias for build-tree consumers (FetchContent / add_subdirectory)
 add_library(network_system::network_system ALIAS network_system)
 
+# Test-only friend access gate (Issue #1074 Phase 2D).
+# When BUILD_TESTS=ON, expose NETWORK_ENABLE_TEST_INJECTION so that production
+# headers can compile in friend declarations for tests/support/*_probe types
+# that drive otherwise-private server-side methods. PUBLIC propagation lets the
+# probe translation units pick up the same definition transitively.
+if(BUILD_TESTS)
+    target_compile_definitions(network_system PUBLIC NETWORK_ENABLE_TEST_INJECTION)
+endif()
+
 # Suppress warnings inherited from parent project (especially from ASIO)
 # WARNING: Suppressions removed for strict code quality check.
 # Fix the code instead of suppressing warnings!

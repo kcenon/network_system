@@ -5074,6 +5074,20 @@ target_link_libraries(network_websocket_server_branch_test PRIVATE network::test
 add_network_test(network_websocket_server_loopback_test
                  unit/websocket_server_loopback_test.cpp)
 
+# Friend-test injection demo (Issue #1074 Phase 2D): invokes the previously
+# private messaging_quic_server::handle_packet entry point through the
+# tests/support/quic_server_probe forwarder, gated by NETWORK_ENABLE_TEST_INJECTION.
+add_network_test(network_quic_server_probe_test
+                 unit/quic_server_probe_test.cpp)
+target_link_libraries(network_quic_server_probe_test PRIVATE network::test_support)
+
+# Friend-test injection demo (Issue #1074 Phase 2D): invokes the previously
+# private messaging_ws_server::handle_new_connection entry point through the
+# tests/support/ws_server_probe forwarder, gated by NETWORK_ENABLE_TEST_INJECTION.
+add_network_test(network_ws_server_probe_test
+                 unit/ws_server_probe_test.cpp)
+target_link_libraries(network_ws_server_probe_test PRIVATE network::test_support)
+
 # HTTP parser extended coverage: url_encode/decode edge cases (percent
 # truncation, high-bit bytes, hex case), query string delimiter handling
 # (leading/trailing '&', duplicate keys, URL-encoded delimiters), cookie
