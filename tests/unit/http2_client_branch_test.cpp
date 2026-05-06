@@ -1102,3 +1102,216 @@ TEST_F(Http2ClientHermeticTransportTest,
     (void)setup.client->disconnect();
     setup.connector.join();
 }
+
+// ============================================================================
+// Phase 2E.R2: frame_injector-driven error coverage (Issue #1106, Part of #953)
+//
+// All TEST_F below compose mock_h2_server_peer with frame_injector to drive
+// previously-unreachable error branches in http2_client.cpp. The Phase 2E
+// substrate (#1074, PR #1105) routes every server-originated frame write
+// through injector_.write(), so a single injection_spec applies uniformly
+// to every write the peer emits during the handshake (server SETTINGS, then
+// SETTINGS-ACK; for reply_mode::echo_one, additionally response HEADERS and
+// DATA). Tests therefore choose injection parameters such that the targeted
+// fault either (a) lands on the very first server-originated frame so that
+// is_connected() never flips true, or (b) is constructed to be a no-op for
+// the 9-byte empty-payload SETTINGS frames and only takes effect on the
+// longer response frames in echo_one mode.
+//
+// Round 1 of #953 (#991, #1062) raised happy-path coverage but left
+// http2_client.cpp at 18.8% line / 9.9% branch (run 25430202846,
+// 2026-05-06) because the error branches required exactly this kind of
+// fault injection that did not exist until Phase 2E (#1074) shipped.
+// ============================================================================
+
+TEST_F(Http2ClientHermeticTransportTest,
+       DropFirstServerSettingsLeavesClientUnconnected)
+{
+    using namespace kcenon::network::tests::support;
+    injection_spec spec;
+    spec.mode = injection_mode::drop;
+
+    mock_h2_server_peer peer(io(), reply_mode::drain_only, spec);
+
+    auto client = std::make_shared<http2::http2_client>("phase-2e-r2-drop");
+    client->set_timeout(std::chrono::milliseconds(500));
+
+    std::thread connector(
+        [&]() { (void)client->connect("127.0.0.1", peer.port()); });
+
+    // The peer's injector swallows the first server SETTINGS write. Without
+    // server SETTINGS the client cannot complete the handshake; is_connected()
+    // never flips true and the peer's worker is blocked at the
+    // read-client-SETTINGS step (which is never sent). This drives the
+    // connect-timeout branch in http2_client::connect() that previously
+    // required an unreachable network condition.
+    EXPECT_FALSE(wait_for([&]() { return client->is_connected(); },
+                          std::chrono::milliseconds(300)));
+    EXPECT_FALSE(peer.settings_exchanged());
+
+    (void)client->disconnect();
+    connector.join();
+}
+
+TEST_F(Http2ClientHermeticTransportTest,
+       TruncatedServerSettingsHeaderTimesOutConnect)
+{
+    using namespace kcenon::network::tests::support;
+    injection_spec spec;
+    spec.mode = injection_mode::truncate;
+    spec.truncate_at = 4;  // partial 9-byte frame header → unparseable
+
+    mock_h2_server_peer peer(io(), reply_mode::drain_only, spec);
+
+    auto client = std::make_shared<http2::http2_client>("phase-2e-r2-truncate");
+    client->set_timeout(std::chrono::milliseconds(500));
+
+    std::thread connector(
+        [&]() { (void)client->connect("127.0.0.1", peer.port()); });
+
+    // The client receives 4 bytes (less than a complete 9-byte frame header)
+    // and waits indefinitely for the remaining 5 bytes. This drives the
+    // partial-header / read-loop short-read branch in http2_client.cpp that
+    // a well-formed peer never exercises. is_connected() stays false; the
+    // peer's worker is also stuck at the read-client-SETTINGS step.
+    EXPECT_FALSE(wait_for([&]() { return client->is_connected(); },
+                          std::chrono::milliseconds(300)));
+
+    (void)client->disconnect();
+    connector.join();
+}
+
+TEST_F(Http2ClientHermeticTransportTest,
+       MalformedServerSettingsTypeByteTriggersConnectTimeout)
+{
+    using namespace kcenon::network::tests::support;
+    injection_spec spec;
+    spec.mode = injection_mode::malform;
+    spec.malform_offset = 3;     // type byte of an HTTP/2 frame header
+    spec.malform_xor = 0x0F;     // 0x04 (SETTINGS) -> 0x0B (unknown)
+
+    mock_h2_server_peer peer(io(), reply_mode::drain_only, spec);
+
+    auto client = std::make_shared<http2::http2_client>(
+        "phase-2e-r2-malform-type");
+    client->set_timeout(std::chrono::milliseconds(500));
+
+    std::thread connector(
+        [&]() { (void)client->connect("127.0.0.1", peer.port()); });
+
+    // The first server-originated frame arrives with type byte = 0x0B,
+    // which the client cannot dispatch as SETTINGS. Per RFC 7540 §5.5 the
+    // client must ignore unknown frame types, so it discards the frame
+    // and waits for actual SETTINGS that never arrive. is_connected()
+    // stays false; this exercises the unknown-type dispatch branch in
+    // http2_client::process_frame() distinct from the partial-header path
+    // covered by TruncatedServerSettingsHeaderTimesOutConnect above.
+    EXPECT_FALSE(wait_for([&]() { return client->is_connected(); },
+                          std::chrono::milliseconds(300)));
+
+    (void)client->disconnect();
+    connector.join();
+}
+
+TEST_F(Http2ClientHermeticTransportTest,
+       MalformedServerSettingsStreamIdNonZeroIsProtocolError)
+{
+    using namespace kcenon::network::tests::support;
+    injection_spec spec;
+    spec.mode = injection_mode::malform;
+    spec.malform_offset = 8;     // last byte of stream_id (header offsets 5-8)
+    spec.malform_xor = 0x01;     // flips low bit: stream_id 0 -> 1
+
+    mock_h2_server_peer peer(io(), reply_mode::drain_only, spec);
+
+    auto client = std::make_shared<http2::http2_client>(
+        "phase-2e-r2-malform-sid");
+    client->set_timeout(std::chrono::milliseconds(500));
+
+    std::thread connector(
+        [&]() { (void)client->connect("127.0.0.1", peer.port()); });
+
+    // RFC 7540 §6.5: a SETTINGS frame whose stream identifier is non-zero
+    // MUST be treated as a connection error of type PROTOCOL_ERROR. Even
+    // a lenient implementation will not flip is_connected() to true on a
+    // SETTINGS frame received on stream 1 because the SETTINGS exchange
+    // has not been validated. This drives the stream-id validation branch
+    // in handle_settings_frame that handle_data_frame / handle_headers_frame
+    // do not exercise.
+    EXPECT_FALSE(wait_for([&]() { return client->is_connected(); },
+                          std::chrono::milliseconds(300)));
+
+    (void)client->disconnect();
+    connector.join();
+}
+
+TEST_F(Http2ClientHermeticTransportTest,
+       SlowWriteServerSettingsStillCompletesHandshake)
+{
+    using namespace kcenon::network::tests::support;
+    injection_spec spec;
+    spec.mode = injection_mode::slow_write;
+    spec.slow_step = std::chrono::microseconds(500);
+
+    mock_h2_server_peer peer(io(), reply_mode::drain_only, spec);
+
+    auto client = std::make_shared<http2::http2_client>("phase-2e-r2-slow");
+    client->set_timeout(std::chrono::seconds(2));
+
+    std::thread connector(
+        [&]() { (void)client->connect("127.0.0.1", peer.port()); });
+
+    // Each of the 9 bytes of server SETTINGS arrives 500 microseconds apart,
+    // so the full frame transmission takes ~4.5 ms. The handshake completes
+    // because slow_write does not corrupt the bytes — it only paces them.
+    // This drives the partial-read / accumulating-buffer branch in
+    // http2_client's frame-reader that a single-shot write does not exercise:
+    // the read callback is invoked multiple times before a complete header
+    // is in the buffer. Use a generous wait budget because SETTINGS-ACK
+    // is also paced byte-by-byte.
+    EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged(); },
+                         std::chrono::seconds(3)));
+    EXPECT_FALSE(peer.io_failed());
+    EXPECT_TRUE(client->is_connected());
+
+    (void)client->disconnect();
+    connector.join();
+}
+
+TEST_F(Http2ClientHermeticTransportTest,
+       EchoOneTruncateAtNineDropsResponsePayloadFailingGet)
+{
+    using namespace kcenon::network::tests::support;
+    injection_spec spec;
+    spec.mode = injection_mode::truncate;
+    spec.truncate_at = 9;  // empty SETTINGS frames are exactly 9 bytes (no-op)
+                           // longer response HEADERS + DATA frames lose their
+                           // payloads, leaving headers-only on the wire.
+
+    mock_h2_server_peer peer(io(), reply_mode::echo_one, spec);
+    auto setup = make_connected_client(peer, "phase-2e-r2-trunc-resp",
+                                       std::chrono::milliseconds(500));
+
+    // SETTINGS exchange completes because empty SETTINGS frames are exactly
+    // 9 bytes total and truncate_at = 9 keeps the entire buffer. The client
+    // therefore reaches the connected state.
+    EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged(); },
+                         std::chrono::seconds(3)));
+    EXPECT_TRUE(setup.client->is_connected());
+
+    // The peer's response HEADERS frame is 10 bytes (9-byte header +
+    // 1-byte HPACK payload 0x88 = ":status: 200"); after truncate_at = 9
+    // only the header reaches the client. The DATA frame is similarly
+    // truncated to its 9-byte header. The client therefore reads a frame
+    // header that promises a 1-byte HPACK payload but receives the next
+    // frame's header bytes in its place, corrupting either the HPACK
+    // decoder state or the request-completion machinery. Either way the
+    // GET resolves as an error rather than a successful response,
+    // exercising the request-error / timeout branch on the connected
+    // path that the happy-path echo_one tests do not reach.
+    auto response = setup.client->get("/echo", {});
+    EXPECT_TRUE(response.is_err());
+
+    (void)setup.client->disconnect();
+    setup.connector.join();
+}
