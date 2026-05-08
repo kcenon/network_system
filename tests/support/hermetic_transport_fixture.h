@@ -35,6 +35,25 @@
 #include <thread>
 #include <utility>
 
+/**
+ * @def NETWORK_COVERAGE_TIMEOUT_MULTIPLIER
+ * @brief Coverage-only multiplier for hermetic-fixture wait budgets (Issue #1112).
+ *
+ * Defaults to @c 1 so Debug/Release behaviour is unchanged. The build system
+ * defines this to a larger value (e.g. @c 5) when @c ENABLE_COVERAGE is ON
+ * (see @c tests/support/CMakeLists.txt) so SETTINGS-handshake budgets stretch
+ * past the slowdown introduced by
+ * @c -fprofile-arcs / @c -ftest-coverage instrumentation. Diagnosis: PR #1111
+ * observed handshakes taking 5.1-5.4s under coverage versus 100-300ms in
+ * Debug/Release, aborting all instrumented dispatcher TEST_F at the
+ * @c wait_for(... settings_exchanged() ..., 3s) gate and producing 0pp delta on
+ * @c src/protocols/http2/http2_client.cpp for three consecutive rounds
+ * (PR #1108, PR #1109).
+ */
+#ifndef NETWORK_COVERAGE_TIMEOUT_MULTIPLIER
+#define NETWORK_COVERAGE_TIMEOUT_MULTIPLIER 1
+#endif
+
 namespace kcenon::network::tests::support
 {
 
@@ -82,10 +101,18 @@ protected:
      * @return true if the predicate became true, false on timeout.
      *
      * Polls every 5ms — adequate for unit-test scale without burning CPU.
+     *
+     * The default timeout scales by @ref NETWORK_COVERAGE_TIMEOUT_MULTIPLIER so
+     * coverage-instrumented builds (where the SETTINGS handshake can take
+     * 5.1-5.4s vs 100-300ms in Debug/Release) get a proportionally larger
+     * budget. The multiplier defaults to @c 1, so Debug/Release behaviour is
+     * unchanged. Callers passing an explicit @p timeout should multiply by
+     * @ref NETWORK_COVERAGE_TIMEOUT_MULTIPLIER themselves at the call site.
      */
     [[nodiscard]] static auto wait_for(
         std::function<bool()> predicate,
-        std::chrono::milliseconds timeout = std::chrono::seconds(2)) -> bool
+        std::chrono::milliseconds timeout =
+            std::chrono::seconds(2) * NETWORK_COVERAGE_TIMEOUT_MULTIPLIER) -> bool
     {
         const auto deadline = std::chrono::steady_clock::now() + timeout;
         while (std::chrono::steady_clock::now() < deadline)

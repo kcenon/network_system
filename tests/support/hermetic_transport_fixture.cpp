@@ -47,8 +47,12 @@ make_loopback_tcp_pair(asio::io_context& io)
         throw std::runtime_error("loopback tcp connect failed: " + connect_ec.message());
     }
 
-    // Spin briefly waiting for the accept handler to run.
-    const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(2);
+    // Spin briefly waiting for the accept handler to run. The budget scales
+    // with NETWORK_COVERAGE_TIMEOUT_MULTIPLIER so coverage-instrumented builds
+    // get a proportionally larger window for the kernel to drive the accept
+    // handler (Issue #1112).
+    const auto deadline = std::chrono::steady_clock::now()
+        + std::chrono::seconds(2) * NETWORK_COVERAGE_TIMEOUT_MULTIPLIER;
     while (!accepted_side.is_open() && std::chrono::steady_clock::now() < deadline)
     {
         std::this_thread::sleep_for(std::chrono::milliseconds(2));
