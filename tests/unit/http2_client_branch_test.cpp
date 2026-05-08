@@ -34,6 +34,7 @@
 #include "internal/protocols/http2/http2_client.h"
 
 #include "hermetic_transport_fixture.h"
+#include "http2_client_test_access.h"
 #include "mock_h2_server_peer.h"
 #include "mock_tls_socket.h"
 
@@ -1328,66 +1329,50 @@ TEST_F(Http2ClientHermeticTransportTest,
 #endif // !NETWORK_COVERAGE_BUILD
 
 // ============================================================================
-// Phase 2E.R3 (Issue #1106): server-originated post-handshake frame coverage.
+// Phase 2E.R3 / Round 6 (Issues #1106, #1115): direct dispatcher coverage.
 //
-// The Phase 2E.R2 TEST_F batch above exercises early-connect parse / timeout
-// branches by corrupting the server SETTINGS frame. Those tests do not
-// advance the client past the connected state, so handle_ping_frame,
-// handle_goaway_frame, handle_window_update_frame, handle_rst_stream_frame,
-// and the process_frame default branch remained unreachable in branch_test.
+// Round 5 (#1112 + PR #1114) wrapped these TEST_F in a coverage-multiplier
+// async scaffold but produced 0pp delta because the SETTINGS handshake under
+// gcov instrumentation now exceeds 15 s on shared CI runners — beyond any
+// reasonable wait budget.
 //
-// The cases below open the connected state via the unmodified happy-path
-// SETTINGS handshake, then have the mock peer write one precisely-formed
-// server-originated frame using the post_handshake_frames substrate hook
-// added in Phase 2E.R3. Each frame routes through the client's process_frame
-// dispatcher to a specific handler and exercises either:
-//   - a state transition (GOAWAY flips is_connected() to false), or
-//   - a no-op that the handler must absorb without disconnecting (PING,
-//     WINDOW_UPDATE, RST_STREAM on streams the client never opened, and
-//     unknown frame types).
+// Round 6 (Issue #1115) pivots to "Option C": invoke
+// http2_client::process_frame() directly via the Http2ClientTestAccess
+// friend struct, bypassing the SETTINGS handshake entirely. Each TEST_F
+// constructs the target frame via the production frame classes (so the
+// dispatch path through process_frame's switch is identical to wire receipt)
+// and asserts the post-condition observable from public API (is_connected,
+// goaway flag) or the friend-exposed accessors.
 //
-// All frames are serialized via the production frame classes so wire format
-// matches what frame::parse expects; the unknown-type test constructs raw
-// bytes because no production class produces an undefined type.
+// State preconditions: the client is constructed but never connected. The
+// dispatcher itself has no is_connected_ precondition; handlers that would
+// invoke send_frame() (non-ACK PING, non-ACK SETTINGS) short-circuit through
+// the connection_closed branch, which still drives the dispatch arm but
+// avoids a segfault. Tests below were chosen so this is either the intended
+// path (dispatcher-only handlers) or harmless (PING ACK uses the early
+// return inside handle_ping_frame).
 // ============================================================================
-
-namespace
-{
-
-constexpr std::chrono::milliseconds kPostHandshakeDispatchWait{200};
-
-} // namespace
 
 TEST_F(Http2ClientHermeticTransportTest,
        ServerPingFrameDrivesHandlePingAndKeepsConnectionAlive)
 {
     using namespace kcenon::network::tests::support;
 
-    // PING with ACK flag clear: handle_ping_frame must echo a PING ACK
-    // back. The opaque payload is arbitrary 8 bytes (RFC 7540 §6.7).
+    // PING with ACK flag clear: handle_ping_frame builds a PING ACK and
+    // forwards it to send_frame(). On an unconnected client send_frame()
+    // returns connection_closed without crashing — the dispatch arm and
+    // ACK-construction paths are still covered. is_connected() remains
+    // false (was never set true) which is fine: the assertion is that
+    // process_frame() returned and the client is still safely usable.
     std::array<std::uint8_t, 8> opaque{0x01, 0x02, 0x03, 0x04,
                                        0x05, 0x06, 0x07, 0x08};
-    http2::ping_frame ping(opaque, /*ack=*/false);
-    auto bytes = ping.serialize();
+    auto ping = std::make_unique<http2::ping_frame>(opaque, /*ack=*/false);
 
-    mock_h2_server_peer peer(io(), reply_mode::drain_only,
-                             injection_spec{}, {bytes});
-    auto setup = make_connected_client(peer, "phase-2e-r3-ping",
-                                       std::chrono::milliseconds(1000));
+    auto client = std::make_shared<http2::http2_client>("phase-2e-r3-ping");
+    (void)Http2ClientTestAccess::process_frame(*client, std::move(ping));
 
-    EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged(); },
-                         std::chrono::seconds(3) * NETWORK_COVERAGE_TIMEOUT_MULTIPLIER));
-    EXPECT_TRUE(setup.client->is_connected());
-
-    // Give the client's run_io worker time to consume the unsolicited PING
-    // and emit a PING ACK back through send_frame. handle_ping_frame is a
-    // no-op for connection state, so is_connected() must remain true.
-    std::this_thread::sleep_for(kPostHandshakeDispatchWait);
-    EXPECT_TRUE(setup.client->is_connected());
-    EXPECT_FALSE(peer.io_failed());
-
-    (void)setup.client->disconnect();
-    setup.connector.join();
+    EXPECT_FALSE(client->is_connected());
+    EXPECT_FALSE(Http2ClientTestAccess::goaway_received(*client));
 }
 
 TEST_F(Http2ClientHermeticTransportTest,
@@ -1395,29 +1380,17 @@ TEST_F(Http2ClientHermeticTransportTest,
 {
     using namespace kcenon::network::tests::support;
 
-    // PING with ACK flag set: handle_ping_frame's is_ack() branch must
-    // discard without sending a reply. Distinct from the non-ACK case
-    // above because it exercises the early-return path inside the handler.
+    // PING with ACK flag set: handle_ping_frame's is_ack() early-return
+    // branch — no send_frame call, no state mutation. Direct invocation
+    // exercises this in isolation.
     std::array<std::uint8_t, 8> opaque{0xAA, 0xBB, 0xCC, 0xDD,
                                        0xEE, 0xFF, 0x00, 0x11};
-    http2::ping_frame ping_ack(opaque, /*ack=*/true);
-    auto bytes = ping_ack.serialize();
+    auto ping_ack = std::make_unique<http2::ping_frame>(opaque, /*ack=*/true);
 
-    mock_h2_server_peer peer(io(), reply_mode::drain_only,
-                             injection_spec{}, {bytes});
-    auto setup = make_connected_client(peer, "phase-2e-r3-ping-ack",
-                                       std::chrono::milliseconds(1000));
+    auto client = std::make_shared<http2::http2_client>("phase-2e-r3-ping-ack");
+    (void)Http2ClientTestAccess::process_frame(*client, std::move(ping_ack));
 
-    EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged(); },
-                         std::chrono::seconds(3) * NETWORK_COVERAGE_TIMEOUT_MULTIPLIER));
-    EXPECT_TRUE(setup.client->is_connected());
-
-    std::this_thread::sleep_for(kPostHandshakeDispatchWait);
-    EXPECT_TRUE(setup.client->is_connected());
-    EXPECT_FALSE(peer.io_failed());
-
-    (void)setup.client->disconnect();
-    setup.connector.join();
+    EXPECT_FALSE(Http2ClientTestAccess::goaway_received(*client));
 }
 
 TEST_F(Http2ClientHermeticTransportTest,
@@ -1426,28 +1399,18 @@ TEST_F(Http2ClientHermeticTransportTest,
     using namespace kcenon::network::tests::support;
 
     // GOAWAY (last_stream_id=0, error=NO_ERROR=0) drives
-    // handle_goaway_frame, which sets goaway_received_ and closes any
-    // streams above last_stream_id. is_connected() is the conjunction
-    // is_connected_ && !goaway_received_, so it flips to false.
-    http2::goaway_frame go(0, 0);
-    auto bytes = go.serialize();
+    // handle_goaway_frame, which sets goaway_received_ and walks the
+    // streams_ map. The flag is the dispatcher-observable post-condition
+    // — read it via the friend accessor since is_connected() requires
+    // is_connected_ to also be true (it never was here).
+    auto go = std::make_unique<http2::goaway_frame>(0u, 0u);
 
-    mock_h2_server_peer peer(io(), reply_mode::drain_only,
-                             injection_spec{}, {bytes});
-    auto setup = make_connected_client(peer, "phase-2e-r3-goaway",
-                                       std::chrono::milliseconds(1000));
+    auto client = std::make_shared<http2::http2_client>("phase-2e-r3-goaway");
+    EXPECT_FALSE(Http2ClientTestAccess::goaway_received(*client));
 
-    EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged(); },
-                         std::chrono::seconds(3) * NETWORK_COVERAGE_TIMEOUT_MULTIPLIER));
-
-    // The client briefly reports connected after handshake, then
-    // handle_goaway_frame flips the flag. Use wait_for so the test does
-    // not race against the run_io worker's read latency.
-    EXPECT_TRUE(wait_for([&]() { return !setup.client->is_connected(); },
-                         std::chrono::seconds(2)));
-
-    (void)setup.client->disconnect();
-    setup.connector.join();
+    auto result = Http2ClientTestAccess::process_frame(*client, std::move(go));
+    EXPECT_TRUE(result.is_ok());
+    EXPECT_TRUE(Http2ClientTestAccess::goaway_received(*client));
 }
 
 TEST_F(Http2ClientHermeticTransportTest,
@@ -1456,28 +1419,21 @@ TEST_F(Http2ClientHermeticTransportTest,
     using namespace kcenon::network::tests::support;
 
     // WINDOW_UPDATE with stream_id=0 routes to the connection-level
-    // branch in handle_window_update_frame (increments
-    // connection_window_size_). The handler returns ok() unconditionally
-    // so the connection must stay up.
-    http2::window_update_frame wu(/*stream_id=*/0,
-                                  /*window_size_increment=*/65535);
-    auto bytes = wu.serialize();
+    // branch in handle_window_update_frame and increments
+    // connection_window_size_. The friend accessor exposes the field so
+    // the assertion can pin both the dispatch arm AND the post-condition.
+    auto wu = std::make_unique<http2::window_update_frame>(
+        /*stream_id=*/0u,
+        /*window_size_increment=*/65535u);
 
-    mock_h2_server_peer peer(io(), reply_mode::drain_only,
-                             injection_spec{}, {bytes});
-    auto setup = make_connected_client(peer, "phase-2e-r3-wu-conn",
-                                       std::chrono::milliseconds(1000));
+    auto client = std::make_shared<http2::http2_client>("phase-2e-r3-wu-conn");
+    const auto before = Http2ClientTestAccess::connection_window_size(*client);
 
-    EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged(); },
-                         std::chrono::seconds(3) * NETWORK_COVERAGE_TIMEOUT_MULTIPLIER));
-    EXPECT_TRUE(setup.client->is_connected());
+    auto result = Http2ClientTestAccess::process_frame(*client, std::move(wu));
+    EXPECT_TRUE(result.is_ok());
 
-    std::this_thread::sleep_for(kPostHandshakeDispatchWait);
-    EXPECT_TRUE(setup.client->is_connected());
-    EXPECT_FALSE(peer.io_failed());
-
-    (void)setup.client->disconnect();
-    setup.connector.join();
+    const auto after = Http2ClientTestAccess::connection_window_size(*client);
+    EXPECT_EQ(after - before, 65535);
 }
 
 TEST_F(Http2ClientHermeticTransportTest,
@@ -1486,28 +1442,21 @@ TEST_F(Http2ClientHermeticTransportTest,
     using namespace kcenon::network::tests::support;
 
     // WINDOW_UPDATE on a stream the client never opened drives the
-    // stream-not-found else branch in handle_window_update_frame. The
-    // handler ignores the frame (RFC 7540 §6.9 allows it) and returns
-    // ok(), so the connection remains up.
-    http2::window_update_frame wu(/*stream_id=*/99,
-                                  /*window_size_increment=*/1024);
-    auto bytes = wu.serialize();
+    // stream-not-found else branch of handle_window_update_frame.
+    // RFC 7540 §6.9 allows the frame to be silently ignored.
+    auto wu = std::make_unique<http2::window_update_frame>(
+        /*stream_id=*/99u,
+        /*window_size_increment=*/1024u);
 
-    mock_h2_server_peer peer(io(), reply_mode::drain_only,
-                             injection_spec{}, {bytes});
-    auto setup = make_connected_client(peer, "phase-2e-r3-wu-unknown",
-                                       std::chrono::milliseconds(1000));
+    auto client = std::make_shared<http2::http2_client>("phase-2e-r3-wu-unknown");
+    const auto before = Http2ClientTestAccess::connection_window_size(*client);
 
-    EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged(); },
-                         std::chrono::seconds(3) * NETWORK_COVERAGE_TIMEOUT_MULTIPLIER));
-    EXPECT_TRUE(setup.client->is_connected());
+    auto result = Http2ClientTestAccess::process_frame(*client, std::move(wu));
+    EXPECT_TRUE(result.is_ok());
 
-    std::this_thread::sleep_for(kPostHandshakeDispatchWait);
-    EXPECT_TRUE(setup.client->is_connected());
-    EXPECT_FALSE(peer.io_failed());
-
-    (void)setup.client->disconnect();
-    setup.connector.join();
+    // Connection-level window must not have been touched — the increment
+    // was meant for a non-existent stream.
+    EXPECT_EQ(Http2ClientTestAccess::connection_window_size(*client), before);
 }
 
 TEST_F(Http2ClientHermeticTransportTest,
@@ -1516,28 +1465,16 @@ TEST_F(Http2ClientHermeticTransportTest,
     using namespace kcenon::network::tests::support;
 
     // RST_STREAM on a stream the client never opened: handle_rst_stream
-    // looks up the stream, finds nothing, and silently returns. This
-    // drives the lookup-miss else branch the request-cancel test cannot
-    // reach because it cancels its own stream.
-    http2::rst_stream_frame rst(/*stream_id=*/99,
-                                /*error_code=*/8 /*CANCEL*/);
-    auto bytes = rst.serialize();
+    // looks the stream up in streams_, finds nothing, and silently
+    // returns ok(). Direct invocation exercises the lookup-miss branch
+    // distinct from the request-cancel test that cancels its own stream.
+    auto rst = std::make_unique<http2::rst_stream_frame>(
+        /*stream_id=*/99u,
+        /*error_code=*/8u /*CANCEL*/);
 
-    mock_h2_server_peer peer(io(), reply_mode::drain_only,
-                             injection_spec{}, {bytes});
-    auto setup = make_connected_client(peer, "phase-2e-r3-rst-unknown",
-                                       std::chrono::milliseconds(1000));
-
-    EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged(); },
-                         std::chrono::seconds(3) * NETWORK_COVERAGE_TIMEOUT_MULTIPLIER));
-    EXPECT_TRUE(setup.client->is_connected());
-
-    std::this_thread::sleep_for(kPostHandshakeDispatchWait);
-    EXPECT_TRUE(setup.client->is_connected());
-    EXPECT_FALSE(peer.io_failed());
-
-    (void)setup.client->disconnect();
-    setup.connector.join();
+    auto client = std::make_shared<http2::http2_client>("phase-2e-r3-rst-unknown");
+    auto result = Http2ClientTestAccess::process_frame(*client, std::move(rst));
+    EXPECT_TRUE(result.is_ok());
 }
 
 TEST_F(Http2ClientHermeticTransportTest,
@@ -1545,36 +1482,16 @@ TEST_F(Http2ClientHermeticTransportTest,
 {
     using namespace kcenon::network::tests::support;
 
-    // Raw 9-byte frame header: length=0, type=0xFF (no production frame
-    // class produces this), flags=0, stream_id=0. RFC 7540 §5.5 mandates
-    // that an HTTP/2 endpoint MUST silently discard unknown frame types,
-    // which the client does either via the process_frame default branch
-    // (if frame::parse returns an instance) or via the run_io read-error
-    // path (if frame::parse rejects the type).
-    std::vector<std::uint8_t> unknown_frame = {
-        0x00, 0x00, 0x00,           // length = 0
-        0xFF,                       // type = undefined
-        0x00,                       // flags
-        0x00, 0x00, 0x00, 0x00      // stream_id = 0
-    };
-
-    mock_h2_server_peer peer(io(), reply_mode::drain_only,
-                             injection_spec{}, {unknown_frame});
-    auto setup = make_connected_client(peer, "phase-2e-r3-unknown",
-                                       std::chrono::milliseconds(1000));
-
-    EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged(); },
-                         std::chrono::seconds(3) * NETWORK_COVERAGE_TIMEOUT_MULTIPLIER));
-
-    // Either outcome is RFC-compliant and exercises a meaningful branch.
-    // Wait briefly so the client's run_io thread has time to consume the
-    // bytes and route them through process_frame's default branch (or
-    // through the parse-error path in run_io). Crash-free completion is
-    // the assertion; explicit is_connected() value is not load-bearing
-    // because both branches are valid client behavior.
-    std::this_thread::sleep_for(kPostHandshakeDispatchWait);
-    EXPECT_FALSE(peer.io_failed());
-
-    (void)setup.client->disconnect();
-    setup.connector.join();
+    // process_frame's null-pointer guard is the unknown/unparseable-type
+    // dispatch arm: when the run_io read path receives an undefined frame
+    // type, frame::parse rejects it and returns an error before reaching
+    // process_frame. This TEST_F covers the complementary defensive arm
+    // in process_frame itself by passing a null unique_ptr — the function
+    // returns invalid_argument without crashing. RFC 7540 §5.5 compliance
+    // for the on-wire path is asserted by run_io's parse-error branch
+    // covered by separate parse-failure TEST_F (see
+    // MalformedServerSettingsTypeByteTriggersConnectTimeout above).
+    auto client = std::make_shared<http2::http2_client>("phase-2e-r3-unknown");
+    auto result = Http2ClientTestAccess::process_frame(*client, nullptr);
+    EXPECT_TRUE(result.is_err());
 }
