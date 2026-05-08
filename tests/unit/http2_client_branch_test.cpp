@@ -1478,20 +1478,28 @@ TEST_F(Http2ClientHermeticTransportTest,
 }
 
 TEST_F(Http2ClientHermeticTransportTest,
-       ServerUnknownFrameTypeIsHandledWithoutCrashing)
+       ProcessFrameNullPointerGuardReturnsInvalidArgument)
 {
     using namespace kcenon::network::tests::support;
 
-    // process_frame's null-pointer guard is the unknown/unparseable-type
-    // dispatch arm: when the run_io read path receives an undefined frame
-    // type, frame::parse rejects it and returns an error before reaching
-    // process_frame. This TEST_F covers the complementary defensive arm
-    // in process_frame itself by passing a null unique_ptr — the function
-    // returns invalid_argument without crashing. RFC 7540 §5.5 compliance
-    // for the on-wire path is asserted by run_io's parse-error branch
-    // covered by separate parse-failure TEST_F (see
-    // MalformedServerSettingsTypeByteTriggersConnectTimeout above).
-    auto client = std::make_shared<http2::http2_client>("phase-2e-r3-unknown");
+    // Pre-Round-6 this TEST_F was named ServerUnknownFrameTypeIsHandled-
+    // WithoutCrashing and sent a wire-level raw frame header with type=0xFF,
+    // covering EITHER the process_frame default switch arm OR the run_io
+    // parse-error path (RFC 7540 §5.5 unknown-type discard). The Round-6
+    // direct-call refactor cannot construct a frame instance with an
+    // undefined type — frame::parse rejects unknown types upstream of
+    // process_frame, so the only undefined-type path reachable from this
+    // call site is run_io's parse-error branch, which is covered by
+    // MalformedServerSettingsTypeByteTriggersConnectTimeout above.
+    //
+    // What this TEST_F now covers is the null-pointer defensive guard at
+    // src/protocols/http2/http2_client.cpp:620, which returns
+    // invalid_argument when process_frame is called with a null
+    // unique_ptr<frame>. This is a complementary arm — the wire path can
+    // never reach it (frame::parse never returns a null Result on success)
+    // but defensive-programming of internal callers is a meaningful
+    // coverage point.
+    auto client = std::make_shared<http2::http2_client>("phase-2e-r3-null");
     auto result = http2_client_test_access::process_frame(*client, nullptr);
     EXPECT_TRUE(result.is_err());
 }
