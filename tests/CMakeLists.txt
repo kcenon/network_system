@@ -4959,6 +4959,16 @@ add_network_test(network_http2_client_branch_test
                  unit/http2_client_branch_test.cpp)
 target_link_libraries(network_http2_client_branch_test PRIVATE network::test_support)
 
+# Issue #1115 (Round 6 of #1106 / #953): enable the friend-injected
+# dispatcher access path for hermetic dispatcher coverage. With this macro
+# defined, src/internal/protocols/http2/http2_client.h befriends
+# tests::support::Http2ClientTestAccess so the test target can invoke
+# private process_frame() directly, bypassing the SETTINGS handshake that
+# exceeds 15 s under coverage instrumentation (PR #1114 Round 5 evidence).
+# Production builds (where the macro is undefined) compile byte-identical.
+target_compile_definitions(network_http2_client_branch_test PRIVATE
+    NETWORK_HTTP2_CLIENT_FRIEND_TESTS=1)
+
 # Phase 2E.R3 (Issue #1106): Two slow_write/echo_one positive-path TEST_F
 # cases pass under Debug/Release but fail under coverage instrumentation
 # because lcov/gcov slow the SETTINGS handshake past the 2-3 second wait
