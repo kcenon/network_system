@@ -630,7 +630,7 @@ TEST_F(Http2ClientHermeticTransportTest, ConnectAttemptsHandshakeAgainstLoopback
     // may or may not complete depending on how http2_client drives ALPN.
     EXPECT_TRUE(wait_for(
         [&]() { return listener.accepted(); },
-        std::chrono::seconds(3)));
+        std::chrono::seconds(3) * NETWORK_COVERAGE_TIMEOUT_MULTIPLIER));
 
     client->disconnect();
     connector.join();
@@ -669,7 +669,7 @@ TEST_F(Http2ClientHermeticTransportTest,
     // SETTINGS, and sent SETTINGS-ACK without error.
     EXPECT_TRUE(wait_for(
         [&]() { return peer.settings_exchanged(); },
-        std::chrono::seconds(3)));
+        std::chrono::seconds(3) * NETWORK_COVERAGE_TIMEOUT_MULTIPLIER));
     EXPECT_FALSE(peer.io_failed());
     EXPECT_TRUE(client->is_connected());
 
@@ -719,7 +719,7 @@ struct connected_client_setup
 inline connected_client_setup make_connected_client(
     kcenon::network::tests::support::mock_h2_server_peer& peer,
     const char* client_id,
-    std::chrono::milliseconds request_timeout = std::chrono::milliseconds(2000))
+    std::chrono::milliseconds request_timeout = std::chrono::milliseconds(2000) * NETWORK_COVERAGE_TIMEOUT_MULTIPLIER)
 {
     auto client = std::make_shared<http2::http2_client>(client_id);
     client->set_timeout(request_timeout);
@@ -741,7 +741,7 @@ TEST_F(Http2ClientHermeticTransportTest,
 
     EXPECT_TRUE(wait_for(
         [&]() { return peer.settings_exchanged(); },
-        std::chrono::seconds(3)));
+        std::chrono::seconds(3) * NETWORK_COVERAGE_TIMEOUT_MULTIPLIER));
     EXPECT_TRUE(setup.client->is_connected());
 
     // The first connect() succeeded; a second invocation must short-circuit
@@ -765,7 +765,7 @@ TEST_F(Http2ClientHermeticTransportTest,
 
     EXPECT_TRUE(wait_for(
         [&]() { return peer.settings_exchanged(); },
-        std::chrono::seconds(3)));
+        std::chrono::seconds(3) * NETWORK_COVERAGE_TIMEOUT_MULTIPLIER));
     EXPECT_TRUE(setup.client->is_connected());
 
     // mock_h2_server_peer (Phase 2A) does not reply with HEADERS+DATA, so
@@ -790,7 +790,7 @@ TEST_F(Http2ClientHermeticTransportTest,
 
     EXPECT_TRUE(wait_for(
         [&]() { return peer.settings_exchanged(); },
-        std::chrono::seconds(3)));
+        std::chrono::seconds(3) * NETWORK_COVERAGE_TIMEOUT_MULTIPLIER));
     EXPECT_TRUE(setup.client->is_connected());
 
     // POST drives both the HEADERS frame transmit and the body-bearing DATA
@@ -813,7 +813,7 @@ TEST_F(Http2ClientHermeticTransportTest,
 
     EXPECT_TRUE(wait_for(
         [&]() { return peer.settings_exchanged(); },
-        std::chrono::seconds(3)));
+        std::chrono::seconds(3) * NETWORK_COVERAGE_TIMEOUT_MULTIPLIER));
     EXPECT_TRUE(setup.client->is_connected());
 
     // start_stream returns the allocated stream_id when is_connected() is
@@ -845,7 +845,7 @@ TEST_F(Http2ClientHermeticTransportTest,
 
     EXPECT_TRUE(wait_for(
         [&]() { return peer.settings_exchanged(); },
-        std::chrono::seconds(3)));
+        std::chrono::seconds(3) * NETWORK_COVERAGE_TIMEOUT_MULTIPLIER));
     EXPECT_TRUE(setup.client->is_connected());
 
     auto stream_result = setup.client->start_stream(
@@ -880,7 +880,7 @@ TEST_F(Http2ClientHermeticTransportTest,
 
     EXPECT_TRUE(wait_for(
         [&]() { return peer.settings_exchanged(); },
-        std::chrono::seconds(3)));
+        std::chrono::seconds(3) * NETWORK_COVERAGE_TIMEOUT_MULTIPLIER));
     EXPECT_TRUE(setup.client->is_connected());
 
     // 99'999 is far above any stream id allocated by start_stream and is
@@ -904,7 +904,7 @@ TEST_F(Http2ClientHermeticTransportTest,
 
     EXPECT_TRUE(wait_for(
         [&]() { return peer.settings_exchanged(); },
-        std::chrono::seconds(3)));
+        std::chrono::seconds(3) * NETWORK_COVERAGE_TIMEOUT_MULTIPLIER));
     EXPECT_TRUE(setup.client->is_connected());
 
     // Connected + unknown stream id drives the not_found branch at
@@ -925,7 +925,7 @@ TEST_F(Http2ClientHermeticTransportTest,
 
     EXPECT_TRUE(wait_for(
         [&]() { return peer.settings_exchanged(); },
-        std::chrono::seconds(3)));
+        std::chrono::seconds(3) * NETWORK_COVERAGE_TIMEOUT_MULTIPLIER));
     EXPECT_TRUE(setup.client->is_connected());
 
     // not_found branch at http2_client.cpp:407-409.
@@ -945,7 +945,7 @@ TEST_F(Http2ClientHermeticTransportTest,
 
     EXPECT_TRUE(wait_for(
         [&]() { return peer.settings_exchanged(); },
-        std::chrono::seconds(3)));
+        std::chrono::seconds(3) * NETWORK_COVERAGE_TIMEOUT_MULTIPLIER));
     EXPECT_TRUE(setup.client->is_connected());
 
     auto stream_result = setup.client->start_stream(
@@ -975,7 +975,7 @@ TEST_F(Http2ClientHermeticTransportTest,
 
     EXPECT_TRUE(wait_for(
         [&]() { return peer.settings_exchanged(); },
-        std::chrono::seconds(3)));
+        std::chrono::seconds(3) * NETWORK_COVERAGE_TIMEOUT_MULTIPLIER));
     EXPECT_TRUE(setup.client->is_connected());
 
     auto stream_result = setup.client->start_stream(
@@ -1010,7 +1010,7 @@ TEST_F(Http2ClientHermeticTransportTest,
 
     EXPECT_TRUE(wait_for(
         [&]() { return peer.settings_exchanged(); },
-        std::chrono::seconds(3)));
+        std::chrono::seconds(3) * NETWORK_COVERAGE_TIMEOUT_MULTIPLIER));
     EXPECT_TRUE(setup.client->is_connected());
 
     // set_settings updates local_settings_ and rewires the HPACK encoder /
@@ -1038,7 +1038,7 @@ TEST_F(Http2ClientHermeticTransportTest,
 
     EXPECT_TRUE(wait_for(
         [&]() { return peer.settings_exchanged(); },
-        std::chrono::seconds(3)));
+        std::chrono::seconds(3) * NETWORK_COVERAGE_TIMEOUT_MULTIPLIER));
     EXPECT_TRUE(setup.client->is_connected());
 
     // Two disconnect()s in a row: the first drives the GOAWAY emit +
@@ -1079,7 +1079,7 @@ TEST_F(Http2ClientHermeticTransportTest,
 
     EXPECT_TRUE(wait_for(
         [&]() { return peer.settings_exchanged(); },
-        std::chrono::seconds(3)));
+        std::chrono::seconds(3) * NETWORK_COVERAGE_TIMEOUT_MULTIPLIER));
     EXPECT_TRUE(setup.client->is_connected());
 
     // GET drives create_stream / build_headers / encoder_.encode /
@@ -1280,7 +1280,7 @@ TEST_F(Http2ClientHermeticTransportTest,
     // is in the buffer. Use a generous wait budget because SETTINGS-ACK
     // is also paced byte-by-byte.
     EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged(); },
-                         std::chrono::seconds(3)));
+                         std::chrono::seconds(3) * NETWORK_COVERAGE_TIMEOUT_MULTIPLIER));
     EXPECT_FALSE(peer.io_failed());
     EXPECT_TRUE(client->is_connected());
 
@@ -1306,7 +1306,7 @@ TEST_F(Http2ClientHermeticTransportTest,
     // 9 bytes total and truncate_at = 9 keeps the entire buffer. The client
     // therefore reaches the connected state.
     EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged(); },
-                         std::chrono::seconds(3)));
+                         std::chrono::seconds(3) * NETWORK_COVERAGE_TIMEOUT_MULTIPLIER));
     EXPECT_TRUE(setup.client->is_connected());
 
     // The peer's response HEADERS frame is 10 bytes (9-byte header +
@@ -1376,7 +1376,7 @@ TEST_F(Http2ClientHermeticTransportTest,
                                        std::chrono::milliseconds(1000));
 
     EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged(); },
-                         std::chrono::seconds(3)));
+                         std::chrono::seconds(3) * NETWORK_COVERAGE_TIMEOUT_MULTIPLIER));
     EXPECT_TRUE(setup.client->is_connected());
 
     // Give the client's run_io worker time to consume the unsolicited PING
@@ -1409,7 +1409,7 @@ TEST_F(Http2ClientHermeticTransportTest,
                                        std::chrono::milliseconds(1000));
 
     EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged(); },
-                         std::chrono::seconds(3)));
+                         std::chrono::seconds(3) * NETWORK_COVERAGE_TIMEOUT_MULTIPLIER));
     EXPECT_TRUE(setup.client->is_connected());
 
     std::this_thread::sleep_for(kPostHandshakeDispatchWait);
@@ -1438,7 +1438,7 @@ TEST_F(Http2ClientHermeticTransportTest,
                                        std::chrono::milliseconds(1000));
 
     EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged(); },
-                         std::chrono::seconds(3)));
+                         std::chrono::seconds(3) * NETWORK_COVERAGE_TIMEOUT_MULTIPLIER));
 
     // The client briefly reports connected after handshake, then
     // handle_goaway_frame flips the flag. Use wait_for so the test does
@@ -1469,7 +1469,7 @@ TEST_F(Http2ClientHermeticTransportTest,
                                        std::chrono::milliseconds(1000));
 
     EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged(); },
-                         std::chrono::seconds(3)));
+                         std::chrono::seconds(3) * NETWORK_COVERAGE_TIMEOUT_MULTIPLIER));
     EXPECT_TRUE(setup.client->is_connected());
 
     std::this_thread::sleep_for(kPostHandshakeDispatchWait);
@@ -1499,7 +1499,7 @@ TEST_F(Http2ClientHermeticTransportTest,
                                        std::chrono::milliseconds(1000));
 
     EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged(); },
-                         std::chrono::seconds(3)));
+                         std::chrono::seconds(3) * NETWORK_COVERAGE_TIMEOUT_MULTIPLIER));
     EXPECT_TRUE(setup.client->is_connected());
 
     std::this_thread::sleep_for(kPostHandshakeDispatchWait);
@@ -1529,7 +1529,7 @@ TEST_F(Http2ClientHermeticTransportTest,
                                        std::chrono::milliseconds(1000));
 
     EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged(); },
-                         std::chrono::seconds(3)));
+                         std::chrono::seconds(3) * NETWORK_COVERAGE_TIMEOUT_MULTIPLIER));
     EXPECT_TRUE(setup.client->is_connected());
 
     std::this_thread::sleep_for(kPostHandshakeDispatchWait);
@@ -1564,7 +1564,7 @@ TEST_F(Http2ClientHermeticTransportTest,
                                        std::chrono::milliseconds(1000));
 
     EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged(); },
-                         std::chrono::seconds(3)));
+                         std::chrono::seconds(3) * NETWORK_COVERAGE_TIMEOUT_MULTIPLIER));
 
     // Either outcome is RFC-compliant and exercises a meaningful branch.
     // Wait briefly so the client's run_io thread has time to consume the
