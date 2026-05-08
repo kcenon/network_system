@@ -24,11 +24,11 @@
 #include <string>
 #include <vector>
 
-#ifdef NETWORK_HTTP2_CLIENT_FRIEND_TESTS
+#if defined(NETWORK_ENABLE_TEST_INJECTION)
 namespace kcenon::network::tests::support
 {
-    struct Http2ClientTestAccess;
-}
+    class http2_client_test_access;
+} // namespace kcenon::network::tests::support
 #endif
 
 namespace kcenon::network::protocols::http2
@@ -160,11 +160,6 @@ namespace kcenon::network::protocols::http2
      */
     class http2_client : public std::enable_shared_from_this<http2_client>
     {
-#ifdef NETWORK_HTTP2_CLIENT_FRIEND_TESTS
-        // Issue #1115: hermetic dispatcher coverage via direct private-method
-        // invocation. Production builds (macro undefined) compile byte-identical.
-        friend struct ::kcenon::network::tests::support::Http2ClientTestAccess;
-#endif
     public:
         /*!
          * \brief Construct HTTP/2 client
@@ -415,6 +410,16 @@ namespace kcenon::network::protocols::http2
             "PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n";
         static constexpr size_t FRAME_HEADER_SIZE = 9;
         static constexpr size_t DEFAULT_WINDOW_SIZE = 65535;
+
+#if defined(NETWORK_ENABLE_TEST_INJECTION)
+        // Test-only: grants tests/support/http2_client_test_access access to
+        // the private process_frame() dispatcher and selected member fields
+        // without leaking them through the public API. Used by
+        // tests/unit/http2_client_branch_test.cpp to bypass the SETTINGS
+        // handshake gate that exceeds 15 s under coverage instrumentation
+        // (Issue #1115).
+        friend class kcenon::network::tests::support::http2_client_test_access;
+#endif
     };
 
 } // namespace kcenon::network::protocols::http2

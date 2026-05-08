@@ -8,42 +8,46 @@
  * @file http2_client_test_access.h
  * @brief Friend-accessor for hermetic dispatcher coverage (Issue #1115).
  *
- * Production builds compile byte-identical: this header is only consumed by
- * the test target that defines @c NETWORK_HTTP2_CLIENT_FRIEND_TESTS, and
- * @ref kcenon::network::protocols::http2::http2_client befriends
- * @ref Http2ClientTestAccess only when that macro is defined.
+ * Reuses the existing Phase 2D friend gate @c NETWORK_ENABLE_TEST_INJECTION
+ * (defined PUBLIC on @c network_system when @c BUILD_TESTS=ON, see
+ * @c cmake/network_system_targets.cmake). Production builds with
+ * @c BUILD_TESTS=OFF compile byte-identical because the macro is undefined
+ * and the friend declaration / forward declaration in
+ * @c http2_client.h are gated by @c #if defined(NETWORK_ENABLE_TEST_INJECTION).
  *
  * Rationale (PR #1111 Round-4 diagnosis, Issue #1115 Round-6 pivot): the
  * SETTINGS handshake under coverage instrumentation exceeds 15 s on shared
  * CI runners, exhausting any reasonable @c wait_for budget. Tests that
  * exercise the @c http2_client::process_frame dispatcher cannot reach the
  * dispatcher branches via the async SETTINGS path within a coverage-friendly
- * budget. Direct invocation via this access struct sidesteps the handshake
+ * budget. Direct invocation via this access class sidesteps the handshake
  * entirely while still routing through the production frame dispatch logic.
  */
 
 #include "internal/protocols/http2/frame.h"
 #include "internal/protocols/http2/http2_client.h"
 
+#include <cstdint>
 #include <memory>
 
 namespace kcenon::network::tests::support
 {
 
 /**
- * @brief Test-only friend struct exposing private dispatcher entry points
- *        of @ref http2_client.
+ * @brief Test-only friend class exposing private dispatcher entry points
+ *        of @ref kcenon::network::protocols::http2::http2_client.
  *
- * Only declared and defined when @c NETWORK_HTTP2_CLIENT_FRIEND_TESTS is
- * defined on the consuming translation unit. The production header
- * forward-declares this struct under the same guard and befriends it; with
- * the macro undefined the struct does not exist and cannot be instantiated.
+ * Forward-declared in @c tests/support/network_test_friends.h alongside
+ * @c quic_server_probe and @c ws_server_probe. The production header
+ * @c http2_client.h forward-declares this class under
+ * @c #if defined(NETWORK_ENABLE_TEST_INJECTION) and grants friendship.
  *
- * Each static thunk is a pure forwarding call to a private @c http2_client
- * method. The struct itself holds no state.
+ * Each static thunk is a pure forwarding call to a private member of
+ * @c http2_client. The class itself holds no state.
  */
-struct Http2ClientTestAccess
+class http2_client_test_access
 {
+public:
     /**
      * @brief Direct invocation of @c http2_client::process_frame.
      *
@@ -57,8 +61,7 @@ struct Http2ClientTestAccess
      * @c connection_closed branch when invoked on an unconnected client —
      * this is observed behavior, not a precondition violation.
      *
-     * @param client Target client instance (typically heap-allocated via
-     *               @c std::make_shared).
+     * @param client Target client instance.
      * @param f      Frame to dispatch. Ownership is transferred.
      * @return Whatever @c http2_client::process_frame returns
      *         (@c VoidResult: ok() or an error_void).
@@ -75,10 +78,10 @@ struct Http2ClientTestAccess
      *
      * Mirrors the post-condition observable from @c is_connected() for
      * tests that need to assert @c handle_goaway_frame fired without
-     * also having @c is_connected_ flipped (the production
+     * also having @c is_connected_ flipped — the production
      * @c is_connected() returns @c is_connected_ && !goaway_received_, so a
      * fresh client where @c is_connected_ is @c false would mask the
-     * goaway-received signal otherwise).
+     * goaway-received signal otherwise.
      */
     static auto goaway_received(
         const ::kcenon::network::protocols::http2::http2_client& client) -> bool

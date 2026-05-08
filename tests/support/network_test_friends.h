@@ -18,4 +18,5 @@ namespace kcenon::network::tests::support
 {
 class quic_server_probe;
 class ws_server_probe;
+class http2_client_test_access;
 } // namespace kcenon::network::tests::support

@@ -1337,8 +1337,8 @@ TEST_F(Http2ClientHermeticTransportTest,
 // reasonable wait budget.
 //
 // Round 6 (Issue #1115) pivots to "Option C": invoke
-// http2_client::process_frame() directly via the Http2ClientTestAccess
-// friend struct, bypassing the SETTINGS handshake entirely. Each TEST_F
+// http2_client::process_frame() directly via the http2_client_test_access
+// friend class, bypassing the SETTINGS handshake entirely. Each TEST_F
 // constructs the target frame via the production frame classes (so the
 // dispatch path through process_frame's switch is identical to wire receipt)
 // and asserts the post-condition observable from public API (is_connected,
@@ -1369,10 +1369,10 @@ TEST_F(Http2ClientHermeticTransportTest,
     auto ping = std::make_unique<http2::ping_frame>(opaque, /*ack=*/false);
 
     auto client = std::make_shared<http2::http2_client>("phase-2e-r3-ping");
-    (void)Http2ClientTestAccess::process_frame(*client, std::move(ping));
+    (void)http2_client_test_access::process_frame(*client, std::move(ping));
 
     EXPECT_FALSE(client->is_connected());
-    EXPECT_FALSE(Http2ClientTestAccess::goaway_received(*client));
+    EXPECT_FALSE(http2_client_test_access::goaway_received(*client));
 }
 
 TEST_F(Http2ClientHermeticTransportTest,
@@ -1388,9 +1388,9 @@ TEST_F(Http2ClientHermeticTransportTest,
     auto ping_ack = std::make_unique<http2::ping_frame>(opaque, /*ack=*/true);
 
     auto client = std::make_shared<http2::http2_client>("phase-2e-r3-ping-ack");
-    (void)Http2ClientTestAccess::process_frame(*client, std::move(ping_ack));
+    (void)http2_client_test_access::process_frame(*client, std::move(ping_ack));
 
-    EXPECT_FALSE(Http2ClientTestAccess::goaway_received(*client));
+    EXPECT_FALSE(http2_client_test_access::goaway_received(*client));
 }
 
 TEST_F(Http2ClientHermeticTransportTest,
@@ -1406,11 +1406,11 @@ TEST_F(Http2ClientHermeticTransportTest,
     auto go = std::make_unique<http2::goaway_frame>(0u, 0u);
 
     auto client = std::make_shared<http2::http2_client>("phase-2e-r3-goaway");
-    EXPECT_FALSE(Http2ClientTestAccess::goaway_received(*client));
+    EXPECT_FALSE(http2_client_test_access::goaway_received(*client));
 
-    auto result = Http2ClientTestAccess::process_frame(*client, std::move(go));
+    auto result = http2_client_test_access::process_frame(*client, std::move(go));
     EXPECT_TRUE(result.is_ok());
-    EXPECT_TRUE(Http2ClientTestAccess::goaway_received(*client));
+    EXPECT_TRUE(http2_client_test_access::goaway_received(*client));
 }
 
 TEST_F(Http2ClientHermeticTransportTest,
@@ -1427,12 +1427,12 @@ TEST_F(Http2ClientHermeticTransportTest,
         /*window_size_increment=*/65535u);
 
     auto client = std::make_shared<http2::http2_client>("phase-2e-r3-wu-conn");
-    const auto before = Http2ClientTestAccess::connection_window_size(*client);
+    const auto before = http2_client_test_access::connection_window_size(*client);
 
-    auto result = Http2ClientTestAccess::process_frame(*client, std::move(wu));
+    auto result = http2_client_test_access::process_frame(*client, std::move(wu));
     EXPECT_TRUE(result.is_ok());
 
-    const auto after = Http2ClientTestAccess::connection_window_size(*client);
+    const auto after = http2_client_test_access::connection_window_size(*client);
     EXPECT_EQ(after - before, 65535);
 }
 
@@ -1449,14 +1449,14 @@ TEST_F(Http2ClientHermeticTransportTest,
         /*window_size_increment=*/1024u);
 
     auto client = std::make_shared<http2::http2_client>("phase-2e-r3-wu-unknown");
-    const auto before = Http2ClientTestAccess::connection_window_size(*client);
+    const auto before = http2_client_test_access::connection_window_size(*client);
 
-    auto result = Http2ClientTestAccess::process_frame(*client, std::move(wu));
+    auto result = http2_client_test_access::process_frame(*client, std::move(wu));
     EXPECT_TRUE(result.is_ok());
 
     // Connection-level window must not have been touched — the increment
     // was meant for a non-existent stream.
-    EXPECT_EQ(Http2ClientTestAccess::connection_window_size(*client), before);
+    EXPECT_EQ(http2_client_test_access::connection_window_size(*client), before);
 }
 
 TEST_F(Http2ClientHermeticTransportTest,
@@ -1473,7 +1473,7 @@ TEST_F(Http2ClientHermeticTransportTest,
         /*error_code=*/8u /*CANCEL*/);
 
     auto client = std::make_shared<http2::http2_client>("phase-2e-r3-rst-unknown");
-    auto result = Http2ClientTestAccess::process_frame(*client, std::move(rst));
+    auto result = http2_client_test_access::process_frame(*client, std::move(rst));
     EXPECT_TRUE(result.is_ok());
 }
 
@@ -1492,6 +1492,6 @@ TEST_F(Http2ClientHermeticTransportTest,
     // covered by separate parse-failure TEST_F (see
     // MalformedServerSettingsTypeByteTriggersConnectTimeout above).
     auto client = std::make_shared<http2::http2_client>("phase-2e-r3-unknown");
-    auto result = Http2ClientTestAccess::process_frame(*client, nullptr);
+    auto result = http2_client_test_access::process_frame(*client, nullptr);
     EXPECT_TRUE(result.is_err());
 }
