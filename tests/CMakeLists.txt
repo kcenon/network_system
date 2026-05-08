@@ -4959,6 +4959,16 @@ add_network_test(network_http2_client_branch_test
                  unit/http2_client_branch_test.cpp)
 target_link_libraries(network_http2_client_branch_test PRIVATE network::test_support)
 
+# Issue #1115 (Round 6 of #1106 / #953): the dispatcher TEST_F batch in
+# this target invokes private http2_client::process_frame() through
+# tests::support::http2_client_test_access. The friend gate
+# NETWORK_ENABLE_TEST_INJECTION is defined PUBLIC on the network_system
+# target when BUILD_TESTS=ON (see cmake/network_system_targets.cmake:163-165),
+# so the macro propagates here transitively — no per-target definition
+# is required. The production header
+# src/internal/protocols/http2/http2_client.h befriends
+# tests::support::http2_client_test_access under the same gate.
+
 # Phase 2E.R3 (Issue #1106): Two slow_write/echo_one positive-path TEST_F
 # cases pass under Debug/Release but fail under coverage instrumentation
 # because lcov/gcov slow the SETTINGS handshake past the 2-3 second wait
