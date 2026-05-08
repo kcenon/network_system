@@ -35,6 +35,21 @@ target_link_libraries(network_test_support
 
 setup_asio_integration(network_test_support)
 
+# Issue #1112: Under coverage instrumentation (-fprofile-arcs -ftest-coverage)
+# the SETTINGS handshake driving Http2ClientHermeticTransportTest TEST_F cases
+# takes 5.1-5.4s vs 100-300ms in Debug/Release, exceeding the fixture-wide
+# wait_for(..., 3s) budget and aborting all instrumented dispatcher tests
+# before they reach the branches under measurement. We scale every hermetic-
+# fixture wait budget by NETWORK_COVERAGE_TIMEOUT_MULTIPLIER, defined here
+# only when ENABLE_COVERAGE is ON. Outside coverage builds the macro defaults
+# to 1 in the header, so Debug/Release behaviour is unchanged. PUBLIC so test
+# executables consuming hermetic_transport_fixture.h via this library inherit
+# the same multiplier at the point of header inclusion.
+if(ENABLE_COVERAGE)
+    target_compile_definitions(network_test_support PUBLIC
+        NETWORK_COVERAGE_TIMEOUT_MULTIPLIER=5)
+endif()
+
 set_target_properties(network_test_support PROPERTIES
     CXX_STANDARD 20
     CXX_STANDARD_REQUIRED ON
