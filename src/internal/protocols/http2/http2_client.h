@@ -24,6 +24,13 @@
 #include <string>
 #include <vector>
 
+#ifdef NETWORK_HTTP2_CLIENT_FRIEND_TESTS
+namespace kcenon::network::tests::support
+{
+    struct Http2ClientTestAccess;
+}
+#endif
+
 namespace kcenon::network::protocols::http2
 {
     /*!
@@ -153,6 +160,11 @@ namespace kcenon::network::protocols::http2
      */
     class http2_client : public std::enable_shared_from_this<http2_client>
     {
+#ifdef NETWORK_HTTP2_CLIENT_FRIEND_TESTS
+        // Issue #1115: hermetic dispatcher coverage via direct private-method
+        // invocation. Production builds (macro undefined) compile byte-identical.
+        friend struct ::kcenon::network::tests::support::Http2ClientTestAccess;
+#endif
     public:
         /*!
          * \brief Construct HTTP/2 client
