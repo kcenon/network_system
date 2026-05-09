@@ -5004,6 +5004,20 @@ add_network_test(network_grpc_client_branch_test
                  unit/grpc_client_branch_test.cpp)
 target_link_libraries(network_grpc_client_branch_test PRIVATE network::test_support)
 
+# gRPC client extended coverage: post-handshake call_raw success paths with
+# metadata + deadline variants, call_raw_async success-result delivery via
+# callback, wait_for_connected polling-loop terminal success branch,
+# server_stream_raw / client_stream_raw / bidi_stream_raw post-connect
+# acquisition with default and full options, multi-handle coexistence on a
+# single client, second-connect short-circuit, disconnect-then-call-raw error
+# guards. Builds on top of the Phase 2A/2B mock_grpc_server_peer and
+# mock_h2_server_peer substrate to drive paths uncovered by hermetic
+# public-API tests (Issue #1120, Round 3 of #953).
+add_network_test(network_grpc_client_extended_coverage_test
+                 unit/grpc_client_extended_coverage_test.cpp)
+target_link_libraries(network_grpc_client_extended_coverage_test
+                      PRIVATE network::test_support)
+
 # HTTP/2 server branch coverage: tls_config field round-trips with boundary
 # values, http2_server construction with empty/long/binary server IDs,
 # http2_settings round-trip with zero/UINT32_MAX boundaries plus repeated
