@@ -5129,6 +5129,22 @@ add_network_test(network_quic_server_branch_test
                  unit/quic_server_branch_test.cpp)
 target_link_libraries(network_quic_server_branch_test PRIVATE network::test_support)
 
+# QUIC server dispatcher branch coverage: invokes the previously private
+# generate_session_id, on_session_close, cleanup_dead_sessions, start_receive,
+# start_cleanup_timer, and invoke_*_callback dispatchers of
+# messaging_quic_server through the tests::support::quic_server_probe friend.
+# Mirrors the strategy of Issue #1122 (quic_socket dispatcher) / #1121
+# (http2_server dispatcher). The friend gate NETWORK_ENABLE_TEST_INJECTION
+# is defined PUBLIC on the network_system target when BUILD_TESTS=ON (see
+# cmake/network_system_targets.cmake), so the macro propagates here
+# transitively. Targets the previously unreachable branches in
+# src/experimental/quic_server.cpp to reach >=70% line / >=50% branch
+# coverage (Issue #1123).
+add_network_test(network_quic_server_dispatcher_branch_test
+                 unit/quic_server_dispatcher_branch_test.cpp)
+target_link_libraries(network_quic_server_dispatcher_branch_test
+                      PRIVATE network::test_support)
+
 # WebSocket server branch coverage: ws_server_config full-field round-trip
 # (port / max_connections / ping_interval / max_message_size at zero / 1 /
 # max boundaries, path with empty / 1024-char / binary-byte values,
