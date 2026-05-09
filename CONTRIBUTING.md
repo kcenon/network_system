@@ -16,6 +16,7 @@ Thank you for your interest in contributing to Network System! This guide will h
 - [Code Style](#code-style)
 - [Testing](#testing)
 - [Documentation](#documentation)
+- [v1.0 API Freeze Policy](#v10-api-freeze-policy)
 - [Submitting Changes](#submitting-changes)
 - [Review Process](#review-process)
 
@@ -200,6 +201,63 @@ cmake --build build
 - Add docstrings for new public functions/classes
 - Include examples for new features
 - Provide both English and Korean versions for major documents
+
+---
+
+## v1.0 API Freeze Policy
+
+After the v1.0 tag is published, the **public API surface is frozen** under
+[Semantic Versioning](https://semver.org/spec/v2.0.0.html). The frozen
+surface is enumerated in [`docs/v1.0-api-surface.md`](docs/v1.0-api-surface.md)
+and consists of every header under `include/kcenon/network/` excluding
+the `detail/` subtree.
+
+### What is frozen
+
+For every public header listed in the audit:
+
+- **No symbol removal** — A type, function, or macro that exists at v1.0
+  may not be removed for the entire v1.x cycle. Use `[[deprecated]]` to
+  signal intent; remove only at v2.0.
+- **No rename** — Renaming a public type, function, or namespace is a
+  breaking change.
+- **No signature change** — Argument types, return types, default
+  arguments, `noexcept` qualifiers, template parameter packs, and
+  concept constraints are part of the contract.
+- **No `throw` introduction** — Enforced by
+  `.github/workflows/public-api-check.yml`. Public functions either
+  return `Result<T>` / `VoidResult` or are `noexcept`.
+
+### What remains free to evolve
+
+- **`include/kcenon/network/detail/`** — Implementation-detail headers
+  (34 files at the time of freeze). These are not part of the v1.0
+  contract and may be reorganized, renamed, or deleted in any v1.x
+  patch.
+- **Adding new public symbols** is non-breaking as long as it does not
+  shadow or conflict with existing usage.
+- **Adding new overloads** is non-breaking as long as it does not change
+  overload resolution for existing call sites.
+- **Source-only changes** behind the public headers (algorithmic
+  improvements, performance optimizations, bug fixes) are non-breaking.
+
+### Submitting changes that touch public headers
+
+Pull requests modifying any file under `include/kcenon/network/`
+(outside `detail/`) must:
+
+1. Cite the `docs/v1.0-api-surface.md` audit row for the affected
+   header in the PR description.
+2. Confirm whether the change is **additive** (new symbol / new overload)
+   or **breaking** (removal / rename / signature change).
+3. If breaking, the PR must target a future major version branch and
+   not be merged into the v1.x line.
+4. Pass the existing `public-api-check.yml` CI job (no `throw` in public
+   headers).
+
+When in doubt, open an issue against
+[#964](https://github.com/kcenon/network_system/issues/964) (or its
+v2.0 successor epic) before opening the PR.
 
 ---
 
