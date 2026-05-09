@@ -5078,6 +5078,36 @@ add_network_test(network_quic_socket_branch_test
                  unit/quic_socket_branch_test.cpp)
 target_link_libraries(network_quic_socket_branch_test PRIVATE network::test_support)
 
+# QUIC socket dispatcher branch coverage (Issue #1122, Round 1 of #953):
+# Direct-dispatch tests for process_frame variant arms (padding, ping, ack,
+# stream, connection_close, handshake_done, plus the implicit fall-through
+# arm covering the 13 unhandled variants), process_stream_frame callback-
+# set + callback-empty branches, process_connection_close_frame callback-
+# set + callback-empty branches and the resulting draining-state
+# transition, process_handshake_done_frame client-when-incomplete +
+# client-when-already-complete short-circuit + server-role ignore branch,
+# process_ack_frame placeholder no-op invocation, queue_crypto_data
+# single-payload + multiple-payload + larger-payload append paths,
+# send_pending_packets early-return on idle / closed states + populated-
+# queue dispatch, determine_encryption_level for every long-header
+# packet_type (initial / zero_rtt / handshake / retry-default-fallthrough)
+# and short-header (application), transition_state walking every reachable
+# state, on_retransmit_timeout drives send_pending_packets, and
+# process_crypto_frame TLS-uninitialized error-path early-return. Mirrors
+# the strategy of Issue #1115 (http2_client) / #1119 (http2_client
+# dispatcher) / #1121 (http2_server dispatcher) by invoking
+# quic_socket::process_frame() and its private peers directly through the
+# tests::support::quic_socket_test_access friend class. The friend gate
+# NETWORK_ENABLE_TEST_INJECTION is defined PUBLIC on the network_system
+# target when BUILD_TESTS=ON (see cmake/network_system_targets.cmake), so
+# the macro propagates here transitively — no per-target definition is
+# required. The production header src/internal/quic_socket.h befriends
+# tests::support::quic_socket_test_access under the same gate.
+add_network_test(network_quic_socket_dispatcher_branch_test
+                 unit/quic_socket_dispatcher_branch_test.cpp)
+target_link_libraries(network_quic_socket_dispatcher_branch_test
+                      PRIVATE network::test_support)
+
 # QUIC server branch coverage: quic_server_config full-field round-trip
 # (cert/key/ca paths, ALPN vector, all numeric settings at zero/max
 # boundaries, retry_key vector, full-config copy round-trip), construction
