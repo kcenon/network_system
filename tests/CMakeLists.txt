@@ -5032,6 +5032,22 @@ add_network_test(network_http2_server_branch_test
                  unit/http2_server_branch_test.cpp)
 target_link_libraries(network_http2_server_branch_test PRIVATE network::test_support)
 
+# HTTP/2 server dispatcher branch coverage (Issue #1121, Round 3 of #953):
+# Direct-dispatch tests for process_frame switch arms and individual handler
+# branches in src/protocols/http2/http2_server.cpp. Mirrors the strategy of
+# Issue #1115 (http2_client) / Issue #1119 (http2_client_dispatcher) by
+# invoking http2_server_connection::process_frame() directly through the
+# tests::support::http2_server_test_access friend class. The friend gate
+# NETWORK_ENABLE_TEST_INJECTION is defined PUBLIC on the network_system
+# target when BUILD_TESTS=ON (see cmake/network_system_targets.cmake), so
+# the macro propagates here transitively — no per-target definition is
+# required. The production header src/internal/protocols/http2/http2_server.h
+# befriends tests::support::http2_server_test_access under the same gate.
+add_network_test(network_http2_server_dispatcher_branch_test
+                 unit/http2_server_dispatcher_branch_test.cpp)
+target_link_libraries(network_http2_server_dispatcher_branch_test
+                      PRIVATE network::test_support)
+
 # QUIC socket branch coverage: many short-lived client / server instances,
 # default invariants for state / role / is_connected / is_handshake_complete /
 # remote_endpoint / remote_connection_id, local_connection_id RFC 9000 length
