@@ -120,6 +120,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Moved `mainpage.dox` from project root to `docs/` directory
 
 ### Changed
+- **Deprecated API audit for v1.0 freeze (#1127)**
+  - Completed inventory of every `[[deprecated]]` attribute and `#pragma message("Deprecated:")` shim across `include/`, `src/`, and `cmake/` per the v1.0 freeze plan in [#964](https://github.com/kcenon/network_system/issues/964).
+  - Audit decision: freeze the deprecated surface as-is for v1.0; no symbols removed in this audit.
+  - Disposition recorded: 1 `[[deprecated]]` macro (retained, permanent — `NETWORK_EXPERIMENTAL_API`), 14 `cmake/compat/` header shims (retained, removal target v1.1.0), 6 CHANGELOG-announced deprecations missing source-level markers (retained through v1.x).
+  - Full inventory and per-symbol removal targets recorded in [`docs/migration/deprecated_api_audit_v1_0.md`](migration/deprecated_api_audit_v1_0.md).
+  - No source code changes — this PR is documentation-only.
 - **Complete `Result<T>` migration for public API (#988)**
   - Public headers under `include/kcenon/network/` now contain zero `throw` statements; every public function either returns `common::Result<T>` / `common::VoidResult` or is declared `noexcept`.
   - New lightweight CI workflow `.github/workflows/public-api-check.yml` greps `include/` and fails the build if `throw` is reintroduced, locking in the invariant.

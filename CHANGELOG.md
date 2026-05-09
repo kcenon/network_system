@@ -36,6 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Unify vcpkg manifest mode across all CI platforms (Linux, macOS, Windows) replacing per-platform manual ecosystem dependency builds ([#885](https://github.com/kcenon/network_system/issues/885))
 - **Complete `Result<T>` migration for public API** — public headers now contain zero `throw` statements; every public function either returns `common::Result<T>` / `common::VoidResult` or is `noexcept`. Enforced by a new `public-api-check` CI job that rejects any PR reintroducing `throw` into `include/kcenon/network/`. ([#988](https://github.com/kcenon/network_system/issues/988))
+- **Deprecated API audit for v1.0 freeze** — completed inventory of every `[[deprecated]]` attribute and `#pragma message("Deprecated:")` shim across `include/`, `src/`, and `cmake/`. Audit decision: freeze the deprecated surface as-is for v1.0; no symbols removed in this audit. Disposition recorded for 1 `[[deprecated]]` macro (retained, permanent), 14 `cmake/compat/` header shims (retained, removal target v1.1.0), and 6 CHANGELOG-announced deprecations missing source-level markers (retained through v1.x). See [`docs/migration/deprecated_api_audit_v1_0.md`](docs/migration/deprecated_api_audit_v1_0.md) for the full inventory and per-symbol removal targets ([#1127](https://github.com/kcenon/network_system/issues/1127), part of [#964](https://github.com/kcenon/network_system/issues/964))
 
 ### Performance
 
