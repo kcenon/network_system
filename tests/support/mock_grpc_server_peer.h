@@ -89,7 +89,16 @@ enum class grpc_reply_mode
     /// length-prefixed DATA frame, and trailers
     /// (`grpc-status: 0`, END_STREAM). Drives the response-success path on
     /// @c grpc_client::call_raw.
-    echo_unary
+    echo_unary,
+
+    /// Same framing as @ref grpc_reply_mode::echo_unary but the trailing
+    /// HEADERS frame carries a non-OK terminal status (`grpc-status: 14`,
+    /// UNAVAILABLE) so the client takes the gRPC error-status dispatch
+    /// branch in @c call_raw. The HTTP-level reply is unchanged
+    /// (`:status: 200`), so this drives only the gRPC-level error path
+    /// — distinct from the HTTP-status branch reachable via header
+    /// truncation.
+    echo_unary_error_status
 };
 
 /**

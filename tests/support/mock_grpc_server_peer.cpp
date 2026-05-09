@@ -97,6 +97,19 @@ auto build_trailer_header_block() -> std::vector<std::uint8_t>
     return encode_literal_header("grpc-status", "0");
 }
 
+// Build an HPACK trailer block carrying a non-OK gRPC terminal status.
+//   grpc-status: 14   (UNAVAILABLE)
+//   grpc-message: peer-unavailable
+// The two-line block lets the client drive both the grpc_status
+// extraction branch and the grpc_message capture branch.
+auto build_error_trailer_header_block() -> std::vector<std::uint8_t>
+{
+    auto block = encode_literal_header("grpc-status", "14");
+    auto msg = encode_literal_header("grpc-message", "peer-unavailable");
+    block.insert(block.end(), msg.begin(), msg.end());
+    return block;
+}
+
 // Build a length-prefixed gRPC message body
 // (1 byte compressed flag = 0, 4 bytes big-endian length, payload).
 auto build_grpc_framed_body(std::span<const std::uint8_t> payload)
@@ -233,11 +246,14 @@ void mock_grpc_server_peer::run()
 
     settings_exchanged_.store(true);
 
-    // grpc_reply_mode::echo_unary: read one client request stream and
-    // reply with HEADERS (status 200) + DATA (length-prefixed body) +
-    // trailing HEADERS (grpc-status: 0, END_STREAM). The drain loop
-    // afterwards absorbs PING/GOAWAY frames emitted during disconnect().
-    if (mode_ == grpc_reply_mode::echo_unary)
+    // grpc_reply_mode::echo_unary / echo_unary_error_status: read one
+    // client request stream and reply with HEADERS (status 200) + DATA
+    // (length-prefixed body) + trailing HEADERS (grpc-status: 0 for
+    // echo_unary, grpc-status: 14 for echo_unary_error_status,
+    // END_STREAM). The drain loop afterwards absorbs PING/GOAWAY frames
+    // emitted during disconnect().
+    if (mode_ == grpc_reply_mode::echo_unary ||
+        mode_ == grpc_reply_mode::echo_unary_error_status)
     {
         std::uint32_t request_stream_id = 0;
         bool headers_received = false;
@@ -358,13 +374,17 @@ void mock_grpc_server_peer::run()
             }
         }
 
-        // Send trailing HEADERS frame: "grpc-status: 0", END_STREAM set.
+        // Send trailing HEADERS frame: "grpc-status: 0" (echo_unary) or
+        // "grpc-status: 14" (echo_unary_error_status), END_STREAM set.
         // gRPC carries terminal status as HTTP/2 trailers in the success
         // path; the client extracts this from response.headers (the
         // http2_client merges trailers into the headers vector before
         // delivering the response).
         {
-            const auto trailer_block = build_trailer_header_block();
+            const auto trailer_block =
+                (mode_ == grpc_reply_mode::echo_unary_error_status)
+                    ? build_error_trailer_header_block()
+                    : build_trailer_header_block();
             http2::headers_frame trailers(
                 request_stream_id, trailer_block,
                 /*end_stream=*/true, /*end_headers=*/true);
