@@ -4981,6 +4981,19 @@ if(ENABLE_COVERAGE)
         NETWORK_COVERAGE_BUILD)
 endif()
 
+# HTTP/2 client dispatcher branch coverage (Issue #1119, Round 3 of #953):
+# Direct-dispatch tests for known-stream branches in handle_rst_stream_frame,
+# handle_data_frame, handle_headers_frame, handle_window_update_frame, plus
+# default-arm coverage for additional frame types and private-helper
+# coverage (build_headers, allocate_stream_id). Reuses the
+# http2_client_test_access friend gate established by Issue #1115. Stream-
+# seeding helpers in tests/support/http2_client_test_access.h enable the
+# known-stream success-path branches that Round 6 / Round 2 left untouched.
+add_network_test(network_http2_client_dispatcher_branch_test
+                 unit/http2_client_dispatcher_branch_test.cpp)
+target_link_libraries(network_http2_client_dispatcher_branch_test
+                      PRIVATE network::test_support)
+
 # gRPC client branch coverage: grpc_channel_config full-field round-trip with
 # boundary values, call_options::set_timeout duration variants, metadata
 # growth, varied target construction, wait_for_connected timeout budget,
