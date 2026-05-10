@@ -155,6 +155,16 @@ add_library(network_system
 # Alias for build-tree consumers (FetchContent / add_subdirectory)
 add_library(network_system::network_system ALIAS network_system)
 
+# Stabilize the canonical export target name for v1.0 (Issue #1126).
+# EXPORT_NAME pins the spelling that downstream consumers see after
+# install + find_package(network_system); combined with the
+# `NAMESPACE network_system::` in cmake/network_system_install.cmake,
+# this guarantees the canonical target is `network_system::network_system`
+# in both build-tree (ALIAS above) and install-tree (export set) usage.
+set_target_properties(network_system PROPERTIES
+    EXPORT_NAME network_system
+)
+
 # Test-only friend access gate (Issue #1074 Phase 2D).
 # When BUILD_TESTS=ON, expose NETWORK_ENABLE_TEST_INJECTION so that production
 # headers can compile in friend declarations for tests/support/*_probe types

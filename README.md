@@ -78,6 +78,11 @@ find_package(network_system CONFIG REQUIRED)
 target_link_libraries(your_target PRIVATE network_system::network_system)
 ```
 
+The canonical export target is `network_system::network_system`. This name is
+the v1.0 stable contract for downstream consumers and is guaranteed across
+both build-tree (FetchContent / add_subdirectory) and install-tree
+(`find_package`) consumption. No deprecated target spellings are exported.
+
 ### Minimal Example
 
 ```cpp
