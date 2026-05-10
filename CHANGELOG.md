@@ -6,7 +6,7 @@
 
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
@@ -32,23 +32,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Protocol factories (4): `tcp`, `udp`, `websocket`, `quic`
   - HTTP/2 (1): `http2_server_stream`
   - Internal (1): `websocket_socket`
-
-### Changed
-
-- Unify vcpkg manifest mode across all CI platforms (Linux, macOS, Windows) replacing per-platform manual ecosystem dependency builds ([#885](https://github.com/kcenon/network_system/issues/885))
-- **Complete `Result<T>` migration for public API** — public headers now contain zero `throw` statements; every public function either returns `common::Result<T>` / `common::VoidResult` or is `noexcept`. Enforced by a new `public-api-check` CI job that rejects any PR reintroducing `throw` into `include/kcenon/network/`. ([#988](https://github.com/kcenon/network_system/issues/988))
-- **Deprecated API audit for v1.0 freeze** — completed inventory of every `[[deprecated]]` attribute and `#pragma message("Deprecated:")` shim across `include/`, `src/`, and `cmake/`. Audit decision: freeze the deprecated surface as-is for v1.0; no symbols removed in this audit. Disposition recorded for 1 `[[deprecated]]` macro (retained, permanent), 14 `cmake/compat/` header shims (retained, removal target v1.1.0), and 6 CHANGELOG-announced deprecations missing source-level markers (retained through v1.x). See [`docs/migration/deprecated_api_audit_v1_0.md`](docs/migration/deprecated_api_audit_v1_0.md) for the full inventory and per-symbol removal targets ([#1127](https://github.com/kcenon/network_system/issues/1127), part of [#964](https://github.com/kcenon/network_system/issues/964))
-
-### Performance
-
-- Parallelize connection pool initialization with `std::async` ([#870](https://github.com/kcenon/network_system/issues/870))
-
-### Security
-
-- Mark `no_tls` policy as deprecated with warning to use TLS-enabled policies in production ([#871](https://github.com/kcenon/network_system/issues/871))
-
-### Tests
-
+- Extend `rate_limiter` to support composite session-based identification keys ([#872](https://github.com/kcenon/network_system/issues/872))
+- Migration guide for transitioning from adapters to NetworkSystemBridge pattern
+  - Comprehensive step-by-step migration instructions
+  - API comparison tables for old vs new patterns
+  - Common migration patterns and examples
+  - Troubleshooting section
 - Increase unit test coverage from 21% to 40% target ([#873](https://github.com/kcenon/network_system/issues/873))
   - Add `network_system_test` covering `network_manager` lifecycle, connection, and disconnection
   - Add `message_validator_extended_test` for extended message validation edge cases
@@ -57,61 +46,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Expand HPACK (`src/protocols/http2/hpack.cpp`) unit coverage with `hpack_extra_coverage_test` — closes static-table boundary lookups, decoder happy paths for literal-without-indexing / never-indexed prefixes, multi-byte integer non-overflow path, huffman stub contract, and mixed static/dynamic round-trips ([#1031](https://github.com/kcenon/network_system/issues/1031))
 - Pivot 7 dispatcher-only TEST_F in `tests/unit/http2_client_branch_test.cpp` to friend-injected `process_frame` (Round 6) — adds `tests/support/http2_client_test_access.h` as a single dedicated friend struct gated by the existing `NETWORK_ENABLE_TEST_INJECTION` macro (matching the `quic_server.h:55` / `websocket_server.h:33` pattern), bypassing the SETTINGS-handshake `wait_for` path that PR #1114 (Round 5) demonstrated to be structurally bounded by the ctest 300 s timeout under coverage instrumentation. Test #5868 measured 15.175 s and test #5869 hit the 300 s timeout in Coverage Analysis run [25562347620](https://github.com/kcenon/network_system/actions/runs/25562347620); after this refactor the same seven `Server*` TEST_F (`ServerPingFrameDrivesHandlePingAndKeepsConnectionAlive`, `ServerPingAckFrameIsAbsorbedSilently`, `ServerGoawayFrameFlipsConnectionStateToDisconnected`, `ServerWindowUpdateOnConnectionStreamExpandsWindow`, `ServerWindowUpdateOnUnknownStreamIsSilentlyIgnored`, `ServerRstStreamOnUnknownStreamIsSilentlyIgnored`, `ServerUnknownFrameTypeIsHandledWithoutCrashing`) complete in 0 ms wall-time under both Debug and Coverage builds. The 14 connect-state public-API TEST_F (`StartStream*`, `WriteStream*`, `CancelStream*`, `SecondConnect*`, `SendRequestTimesOut*`, `PostWithBody*`, `SetSettings*`) genuinely require the connected-state path and remain on the PR #1114 multiplier scaffold — out of scope for Round 6. Production header (`src/internal/protocols/http2/http2_client.h`) compiles byte-identical when `BUILD_TESTS=OFF` because the `NETWORK_ENABLE_TEST_INJECTION` macro is undefined in production builds. Post-merge `Coverage Analysis` workflow on develop will produce the definitive lcov measurement against the PR #1109 baseline (LH/LF=108/576 = 18.75% line, BRH/BRF=97/979 = 9.91% branch); acceptance gate is ≥+20pp line / ≥+10pp branch on `src/internal/protocols/http2/http2_client.cpp` ([#1115](https://github.com/kcenon/network_system/issues/1115), [#1116](https://github.com/kcenon/network_system/pull/1116), part of [#953](https://github.com/kcenon/network_system/issues/953))
 
-### Added
+### Changed
 
-- Extend `rate_limiter` to support composite session-based identification keys ([#872](https://github.com/kcenon/network_system/issues/872))
-- Migration guide for transitioning from adapters to NetworkSystemBridge pattern
-  - Comprehensive step-by-step migration instructions
-  - API comparison tables for old vs new patterns
-  - Common migration patterns and examples
-  - Troubleshooting section
+- Unify vcpkg manifest mode across all CI platforms (Linux, macOS, Windows) replacing per-platform manual ecosystem dependency builds ([#885](https://github.com/kcenon/network_system/issues/885))
+- **Complete `Result<T>` migration for public API** — public headers now contain zero `throw` statements; every public function either returns `common::Result<T>` / `common::VoidResult` or is `noexcept`. Enforced by a new `public-api-check` CI job that rejects any PR reintroducing `throw` into `include/kcenon/network/`. ([#988](https://github.com/kcenon/network_system/issues/988))
+- **Deprecated API audit for v1.0 freeze** — completed inventory of every `[[deprecated]]` attribute and `#pragma message("Deprecated:")` shim across `include/`, `src/`, and `cmake/`. Audit decision: freeze the deprecated surface as-is for v1.0; no symbols removed in this audit. Disposition recorded for 1 `[[deprecated]]` macro (retained, permanent), 14 `cmake/compat/` header shims (retained, removal target v1.1.0), and 6 CHANGELOG-announced deprecations missing source-level markers (retained through v1.x). See [`docs/migration/deprecated_api_audit_v1_0.md`](docs/migration/deprecated_api_audit_v1_0.md) for the full inventory and per-symbol removal targets ([#1127](https://github.com/kcenon/network_system/issues/1127), part of [#964](https://github.com/kcenon/network_system/issues/964))
+- Parallelize connection pool initialization with `std::async` ([#870](https://github.com/kcenon/network_system/issues/870))
 
 ### Deprecated
-- `thread_system_pool_adapter` class
-  - Replaced by `ThreadPoolBridge` from `network_system_bridge.h`
-  - Will be removed in v3.0.0
-  - See [migration guide](docs/migration/adapter_to_bridge_migration.md)
 
-- `common_thread_pool_adapter` class
-  - Replaced by `ThreadPoolBridge` from `network_system_bridge.h`
-  - Will be removed in v3.0.0
-  - See [migration guide](docs/migration/adapter_to_bridge_migration.md)
+- `thread_system_pool_adapter` class — replaced by `ThreadPoolBridge` from `network_system_bridge.h`; removal target v3.0.0. See [migration guide](docs/migration/adapter_to_bridge_migration.md)
+- `common_thread_pool_adapter` class — replaced by `ThreadPoolBridge` from `network_system_bridge.h`; removal target v3.0.0. See [migration guide](docs/migration/adapter_to_bridge_migration.md)
+- `common_logger_adapter` class — replaced by `ObservabilityBridge` from `network_system_bridge.h`; removal target v3.0.0. See [migration guide](docs/migration/adapter_to_bridge_migration.md)
+- `common_monitoring_adapter` class — replaced by `ObservabilityBridge` from `network_system_bridge.h`; removal target v3.0.0. See [migration guide](docs/migration/adapter_to_bridge_migration.md)
+- `bind_thread_system_pool_into_manager()` function — replaced by `NetworkSystemBridge::with_thread_system()`; removal target v3.0.0. See [migration guide](docs/migration/adapter_to_bridge_migration.md)
 
-- `common_logger_adapter` class
-  - Replaced by `ObservabilityBridge` from `network_system_bridge.h`
-  - Will be removed in v3.0.0
-  - See [migration guide](docs/migration/adapter_to_bridge_migration.md)
-
-- `common_monitoring_adapter` class
-  - Replaced by `ObservabilityBridge` from `network_system_bridge.h`
-  - Will be removed in v3.0.0
-  - See [migration guide](docs/migration/adapter_to_bridge_migration.md)
-
-- `bind_thread_system_pool_into_manager()` function
-  - Replaced by `NetworkSystemBridge::with_thread_system()`
-  - Will be removed in v3.0.0
-  - See [migration guide](docs/migration/adapter_to_bridge_migration.md)
-
-### Deprecation Timeline
+Deprecation timeline:
 - **v2.1.0** (current): Deprecated adapters marked with `[[deprecated]]` attribute
 - **v2.2.0** (Q2 2026): Migration strongly encouraged
 - **v3.0.0** (Q3 2026): Deprecated adapters will be removed
 
-Users are encouraged to migrate to the new `NetworkSystemBridge` facade as soon as possible.
-See the [migration guide](docs/migration/adapter_to_bridge_migration.md) for detailed instructions.
+Users are encouraged to migrate to the new `NetworkSystemBridge` facade as soon as possible. See the [migration guide](docs/migration/adapter_to_bridge_migration.md) for detailed instructions.
+
+### Security
+
+- Mark `no_tls` policy as deprecated with warning to use TLS-enabled policies in production ([#871](https://github.com/kcenon/network_system/issues/871))
 
 ---
 
-## How to Read This Changelog
+## [v1.0.0] - TBD
 
-- **Added**: New features
-- **Changed**: Changes in existing functionality
-- **Deprecated**: Features that will be removed in future versions
-- **Removed**: Removed features
-- **Fixed**: Bug fixes
-- **Security**: Security fixes
-
-For migration assistance, please refer to the migration guides in the `docs/migration/` directory.
+> **Note**: v1.0.0 is the API-frozen public release. Entries currently in the `[Unreleased]` section will be moved here at tag time. After v1.0.0, public headers under `include/kcenon/network/` are governed by Semantic Versioning and may not have symbols removed, renamed, or signature-changed without a major version bump. The `detail/` subtree remains free to evolve in v1.x patches without SemVer impact. See [`docs/v1.0-api-surface.md`](docs/v1.0-api-surface.md) and the v1.0 freeze policy in `CONTRIBUTING.md`.
 
 ---
 
@@ -162,20 +127,16 @@ For migration assistance, please refer to the migration guides in the `docs/migr
 - Renamed `_KO.md` documentation files to `.kr.md` for naming consistency
 
 ### Removed
-- `compatibility.h` and `network_module` namespace aliases (#488)
-- Deprecated WebSocket API methods (#487)
-- Deprecated UDP API methods (#490)
-- Deprecated `generate_session_id()` method (#489)
+- **BREAKING**: `compatibility.h` and `network_module` namespace aliases — `network_module` namespace no longer available (#488)
+- **BREAKING**: Deprecated WebSocket API methods (#487)
+- **BREAKING**: Deprecated UDP API methods (#490)
+- **BREAKING**: Deprecated `generate_session_id()` method (#489)
+- **BREAKING**: Dropped OpenSSL 1.1.1 support; OpenSSL 3.x is now required (#491)
 
 ### Fixed
 - `io_context` lifecycle management issues (#400, #410)
 - Thread pool API compatibility for `thread_system` integration (#493, #495)
 - PTO timeout loss detection handling for QUIC (#414, #418)
-
-### Breaking Changes
-- **OpenSSL 3.x only**: Dropped OpenSSL 1.1.1 support; OpenSSL 3.x is now required (#491)
-- **Namespace aliases removed**: `network_module` namespace no longer available (#488)
-- **Deprecated APIs removed**: WebSocket, UDP, and session manager deprecated methods removed (#487, #489, #490)
 
 ---
 
@@ -526,3 +487,36 @@ For migration assistance, please refer to the migration guides in the `docs/migr
 - Session management foundation
 - Message pipeline processing
 - High-performance asynchronous messaging infrastructure
+
+---
+
+## Section Definitions
+
+This changelog follows the [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.1.0/) standard sections:
+
+- **Added** — new features
+- **Changed** — changes in existing functionality
+- **Deprecated** — soon-to-be removed features
+- **Removed** — now-removed features
+- **Fixed** — bug fixes
+- **Security** — vulnerability fixes
+
+For migration assistance, please refer to the migration guides in the `docs/migration/` directory.
+
+[Unreleased]: https://github.com/kcenon/network_system/compare/v2.0.0...HEAD
+[v1.0.0]: https://github.com/kcenon/network_system/releases/tag/v1.0.0
+[v2.0.0]: https://github.com/kcenon/network_system/compare/v1.5.0...v2.0.0
+[v1.5.0]: https://github.com/kcenon/network_system/compare/v1.4.0...v1.5.0
+[v1.4.0]: https://github.com/kcenon/network_system/compare/v1.3.0...v1.4.0
+[v1.3.0]: https://github.com/kcenon/network_system/compare/v1.2.0...v1.3.0
+[v1.2.0]: https://github.com/kcenon/network_system/compare/v1.1.0...v1.2.0
+[v1.1.0]: https://github.com/kcenon/network_system/compare/v1.0.0...v1.1.0
+[v0.8.0]: https://github.com/kcenon/network_system/compare/v0.7.0...v0.8.0
+[v0.7.0]: https://github.com/kcenon/network_system/compare/v0.6.0...v0.7.0
+[v0.6.0]: https://github.com/kcenon/network_system/compare/v0.5.0...v0.6.0
+[v0.5.0]: https://github.com/kcenon/network_system/compare/v0.4.0...v0.5.0
+[v0.4.0]: https://github.com/kcenon/network_system/compare/v0.3.0...v0.4.0
+[v0.3.0]: https://github.com/kcenon/network_system/compare/v0.2.0...v0.3.0
+[v0.2.0]: https://github.com/kcenon/network_system/compare/v0.1.0...v0.2.0
+[v0.1.0]: https://github.com/kcenon/network_system/compare/v0.0.1...v0.1.0
+[v0.0.1]: https://github.com/kcenon/network_system/releases/tag/v0.0.1
