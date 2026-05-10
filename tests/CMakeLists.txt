@@ -5199,6 +5199,20 @@ add_network_test(network_ws_server_probe_test
                  unit/ws_server_probe_test.cpp)
 target_link_libraries(network_ws_server_probe_test PRIVATE network::test_support)
 
+# WebSocket server dispatcher branch coverage: invokes the previously private
+# on_message, on_close, on_error, do_accept, and invoke_*_callback dispatchers
+# of messaging_ws_server through the tests::support::ws_server_probe friend.
+# Mirrors the strategy of Issue #1123 (quic_server dispatcher) / #1121
+# (http2_server dispatcher). The friend gate NETWORK_ENABLE_TEST_INJECTION
+# is defined PUBLIC on the network_system target when BUILD_TESTS=ON, so the
+# macro propagates here transitively. Targets the previously unreachable
+# branches in src/http/websocket_server.cpp to reach >=70% line / >=50%
+# branch coverage (Issue #1124).
+add_network_test(network_websocket_server_dispatcher_branch_test
+                 unit/websocket_server_dispatcher_branch_test.cpp)
+target_link_libraries(network_websocket_server_dispatcher_branch_test
+                      PRIVATE network::test_support)
+
 # Frame-injection demo (Issue #1074 Phase 2E): one TEST_F per protocol
 # family demonstrating that tests/support/frame_injector composes with
 # mock_h2_server_peer / mock_grpc_server_peer / mock_quic_peer_loop and
