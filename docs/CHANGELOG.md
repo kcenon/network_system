@@ -16,7 +16,7 @@ category: "PROJ"
 
 All notable changes to the Network System project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
@@ -587,7 +587,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Simplifies code by ~300 lines across multiple files
   - `utils::compression_pipeline` (actual LZ4/gzip implementation) remains available as standalone utility
 
-### Refactored
+### Changed
 - **Memory Profiler**: Migrated from `std::thread` to `thread_integration_manager::submit_delayed_task()` (#277)
   - Removed dedicated `std::thread worker_` member
   - Periodic sampling now runs through shared thread pool
@@ -732,11 +732,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Constexpr helper functions for length calculation
   - Comprehensive test suite with RFC 9000 example values
 
-### Planned
-- C++20 coroutine full integration
-- HTTP/2 and HTTP/3 support
-- Advanced load balancing algorithms
-
 ---
 
 ## [1.5.0] - 2025-11-14
@@ -798,7 +793,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Simplified test data to use std::string
   - All tests work without container_system dependency
 
-### Technical Details
+**Technical details:**
 - ZLIB version 1.2.12 integration
 - AddressSanitizer verified: zero memory leaks
 - ThreadSanitizer verified: no data races or deadlocks
@@ -849,7 +844,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated IMPROVEMENTS.md to mark Issue #4 (Add TLS/SSL Support) as completed
 - Reorganized CMakeLists.txt to separate TLS/SSL sources from base library
 
-### Technical Details
+**Technical details:**
 - Uses OpenSSL 3.6.0 for cryptographic operations
 - Parallel class hierarchy maintains backward compatibility
 - SSL context lifetime managed by server/client instances
@@ -893,7 +888,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated `messaging_server` thread safety documentation to reflect mutex-protected sessions
 - Updated IMPROVEMENTS.md to mark Issues #1, #2, #3 as completed
 
-### Technical Details
+**Technical details:**
 - Session cleanup uses `is_stopped()` check with atomic operations
 - Backpressure applies at 1000 messages, disconnects at 2000
 - Connection pool uses RAII for safe resource management
@@ -975,7 +970,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Reorganized integration test CMakeLists.txt with framework library
 - Updated test suite count from 4 to 7 (added TCP, UDP, WebSocket load tests)
 
-### Technical Details
+**Technical details:**
 - All load tests use localhost loopback for consistent measurements
 - Tests automatically skip in CI environments to avoid timing-related flakiness
 - Memory profiling uses platform-native APIs for accurate measurements
