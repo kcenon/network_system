@@ -697,6 +697,30 @@ thread_integration_manager::instance().set_thread_pool(adapted);
 - 🔧 [Build Guide](docs/guides/BUILD.md) - Detailed build instructions
 - 🚀 [Migration Guide](docs/MIGRATION.md) - Migrating from messaging_system
 
+#### Generated API Docs (Doxygen)
+
+The full Doxygen-generated reference for the v1.0 public API is published from
+the `main` branch by the
+[Generate-Documentation workflow](.github/workflows/build-Doxygen.yaml) and
+hosted on GitHub Pages at:
+
+- https://kcenon.github.io/network_system/
+
+To regenerate the HTML locally:
+
+```bash
+doxygen Doxyfile
+# Output: documents/html/index.html
+```
+
+The
+[Doxygen Warnings Check workflow](.github/workflows/doxygen-warnings-check.yml)
+runs on every PR and fails the build if any header under
+`include/kcenon/network/` (excluding `detail/`) emits a Doxygen warning.
+This guards the v1.0 public API surface defined in
+[docs/v1.0-api-surface.md](docs/v1.0-api-surface.md) against documentation
+regressions.
+
 ### Advanced Topics
 - ⚡ [Performance & Benchmarks](docs/BENCHMARKS.md) - Performance metrics and testing
 - 🏭 [Production Quality](docs/PRODUCTION_QUALITY.md) - CI/CD, security, quality assurance

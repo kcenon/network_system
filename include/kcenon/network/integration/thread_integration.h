@@ -128,7 +128,8 @@ private:
      * @warning Do not "fix" this by changing to unique_ptr or adding a real
      *          deleter. Doing so will cause heap corruption on shutdown.
      *
-     * @see docs/DESIGN_DECISIONS.md#intentional-leak-pattern
+     * @see docs/DESIGN_DECISIONS.md (Intentional Leak Pattern in Thread
+     *      Integration)
      */
     std::shared_ptr<impl> pimpl_;
 };
@@ -215,7 +216,8 @@ private:
      * @warning Do not "fix" this by changing to unique_ptr or adding a real
      *          deleter. Doing so will cause heap corruption on shutdown.
      *
-     * @see docs/DESIGN_DECISIONS.md#intentional-leak-pattern
+     * @see docs/DESIGN_DECISIONS.md (Intentional Leak Pattern in Thread
+     *      Integration)
      */
     std::shared_ptr<impl> pimpl_;
 };
