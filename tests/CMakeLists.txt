@@ -4901,6 +4901,15 @@ add_network_test(network_quic_frame_coverage_test unit/quic_frame_coverage_test.
 # stream flag combination crossed with truncation positions (Issue #1146)
 add_network_test(network_quic_frame_branch_test unit/quic_frame_branch_test.cpp)
 
+# QUIC packet branch-coverage uplift: targets the unhit conditional branches in
+# src/protocols/quic/packet.cpp identified via gcov HTML inspection -- long /
+# short header discrimination, every length-check false branch, dcid/scid max
+# boundary, Initial token-length and packet-length varint truncation, the
+# wrap-around arms of packet_number::decode (RFC 9000 Appendix A), every
+# encoded_length threshold crossing, is_version_negotiation outcome matrix,
+# and the parse_header dispatch error propagation (Issue #1147)
+add_network_test(network_quic_packet_branch_test unit/quic_packet_branch_test.cpp)
+
 message(STATUS "QUIC protocol module unit tests enabled (Issue #974)")
 
 ##################################################
