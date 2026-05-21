@@ -4868,6 +4868,22 @@ add_network_test(network_quic_crypto_module_test unit/quic_crypto_test.cpp)
 add_network_test(network_quic_crypto_extended_test unit/quic_crypto_extended_test.cpp)
 add_network_test(network_quic_connection_module_test unit/quic_connection_test.cpp)
 add_network_test(network_quic_connection_extended_test unit/quic_connection_extended_test.cpp)
+
+# QUIC connection branch coverage: drives the private dispatch helpers
+# (handle_frame, process_frames, build_packet, generate_ack_frame,
+# handle_loss_detection_result, generate_probe_packets,
+# queue_frames_for_retransmission, update_state) and state guards
+# (close re-entry, enter_closing/draining no-op arms, on_timeout drain
+# vs idle, next_timeout closed/draining) of connection.cpp through the
+# tests::support::quic_connection_test_access friend. Reuses the
+# NETWORK_ENABLE_TEST_INJECTION gate (PUBLIC on network_system when
+# BUILD_TESTS=ON; see cmake/network_system_targets.cmake). Mirrors the
+# strategy of Issue #1115 (http2_client) and #1122 (quic_socket).
+# Targets the 655-branch gap in src/protocols/quic/connection.cpp to
+# reach >=80% line / >=70% branch coverage (Issue #1145).
+add_network_test(network_quic_connection_branch_test
+                 unit/quic_connection_branch_test.cpp)
+target_link_libraries(network_quic_connection_branch_test PRIVATE network::test_support)
 add_network_test(network_quic_socket_construction_test unit/quic_socket_construction_test.cpp)
 
 # QUIC frame extended coverage: parser error paths (truncated inputs at every
