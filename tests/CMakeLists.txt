@@ -4893,6 +4893,14 @@ add_network_test(network_quic_socket_construction_test unit/quic_socket_construc
 # round-trip coverage for frame_builder::build(variant) dispatch (Issue #1011)
 add_network_test(network_quic_frame_coverage_test unit/quic_frame_coverage_test.cpp)
 
+# QUIC frame branch-coverage uplift: targets the unhit conditional branches in
+# src/protocols/quic/frame.cpp identified via gcov HTML inspection -- truncated
+# ACK range_count varint, build_ack empty / multi-range loop body, crypto and
+# new_token length-vs-remaining boundary, connection_close reason boundary,
+# new_connection_id failure points and cid_len boundary, every (FIN/LEN/OFF)
+# stream flag combination crossed with truncation positions (Issue #1146)
+add_network_test(network_quic_frame_branch_test unit/quic_frame_branch_test.cpp)
+
 message(STATUS "QUIC protocol module unit tests enabled (Issue #974)")
 
 ##################################################
