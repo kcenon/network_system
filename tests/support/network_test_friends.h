@@ -21,4 +21,5 @@ class ws_server_probe;
 class http2_client_test_access;
 class http2_server_test_access;
 class quic_socket_test_access;
+class quic_connection_test_access;
 } // namespace kcenon::network::tests::support
