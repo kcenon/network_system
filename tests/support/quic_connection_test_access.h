@@ -408,6 +408,41 @@ public:
     {
         return conn.get_pn_space(level).sent_packets.size();
     }
+
+    /**
+     * @brief Forward to @c connection::to_sent_packet.
+     *
+     * The helper is otherwise dead code in the production translation unit
+     * (no caller in @c connection.cpp). Exposing it through the friend lets
+     * the field-by-field copy lines be measured under coverage.
+     */
+    static auto to_sent_packet(
+        const quic_priv::connection& conn,
+        const quic_priv::sent_packet_info& info) -> quic_priv::sent_packet
+    {
+        return conn.to_sent_packet(info);
+    }
+
+    /**
+     * @brief Build a fully-populated @c sent_packet_info (used together with
+     *        @c to_sent_packet to round-trip the copy logic).
+     */
+    static auto make_sent_packet_info(
+        std::uint64_t pn,
+        std::size_t bytes,
+        bool ack_eliciting,
+        bool in_flight,
+        quic_priv::encryption_level level) -> quic_priv::sent_packet_info
+    {
+        quic_priv::sent_packet_info info;
+        info.packet_number = pn;
+        info.sent_time = std::chrono::steady_clock::now();
+        info.sent_bytes = bytes;
+        info.ack_eliciting = ack_eliciting;
+        info.in_flight = in_flight;
+        info.level = level;
+        return info;
+    }
 };
 
 } // namespace kcenon::network::tests::support
