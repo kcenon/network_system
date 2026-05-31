@@ -266,6 +266,20 @@ auto dtls_socket::do_receive() -> void
 		});
 }
 
+auto dtls_socket::deliver_encrypted(const std::vector<uint8_t>& data,
+                                     const asio::ip::udp::endpoint& sender) -> void
+{
+	if (data.empty())
+	{
+		return;
+	}
+
+	// Reuse the same record-processing path the internal receive loop uses.
+	// SSL/BIO access inside process_received_data() is serialized by
+	// ssl_mutex_, so injecting from a server's demultiplexing thread is safe.
+	process_received_data(data, sender);
+}
+
 auto dtls_socket::process_received_data(const std::vector<uint8_t>& data,
                                          const asio::ip::udp::endpoint& sender) -> void
 {
