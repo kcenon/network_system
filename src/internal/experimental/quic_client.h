@@ -249,6 +249,11 @@ namespace kcenon::network::core
 		/*!
 		 * \brief Get connection statistics.
 		 * \return Current connection stats.
+		 *
+		 * \note Experimental: statistics retrieval is not yet wired to the
+		 *       underlying QUIC stack and currently returns a default-constructed
+		 *       quic_connection_stats. Tracked by the protocol support audit
+		 *       (PROTOCOL_SUPPORT.md, QUIC = experimental).
 		 */
 		[[nodiscard]] auto stats() const -> quic_connection_stats;
 
@@ -370,6 +375,11 @@ namespace kcenon::network::core
 		 * \return Protocol string if negotiated, empty optional otherwise.
 		 *
 		 * Implements i_quic_client::alpn_protocol().
+		 *
+		 * \note Experimental: ALPN negotiation result retrieval is not yet wired
+		 *       to the handshake layer and currently returns std::nullopt.
+		 *       Tracked by the protocol support audit (PROTOCOL_SUPPORT.md,
+		 *       QUIC = experimental).
 		 */
 		[[nodiscard]] auto alpn_protocol() const -> std::optional<std::string> override;
 
