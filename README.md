@@ -333,6 +333,28 @@ Starting with v2.0, network_system is organized into protocol-specific libraries
 | [`network-grpc`](libs/network-grpc/) | gRPC high-performance RPC | network-quic |
 | [`network-all`](libs/network-all/) | Umbrella package (all protocols) | All above |
 
+### Protocol Support Status
+
+Audited support status per protocol (see
+[docs/PROTOCOL_SUPPORT.md](docs/PROTOCOL_SUPPORT.md) for the full matrix,
+evidence, and code-level findings):
+
+| Protocol | Status | Notes |
+|----------|--------|-------|
+| TCP | `production` | Async server/client, lifecycle, reconnection |
+| UDP | `production` | Connectionless datagram, broadcast/multicast |
+| TLS/SSL | `production` | TLS 1.2/1.3, certificate validation |
+| WebSocket | `production` | RFC 6455 framing, fragmentation, ping/pong |
+| HTTP/1.1 | `production` | Routing, cookies, multipart, gzip/deflate |
+| HTTP/2 | `production` | Multiplexed streams; HPACK Huffman is an experimental pass-through |
+| QUIC | `production` | RFC 9000/9001/9002 core; experimental client stats/ALPN accessors |
+| gRPC | `production` | Custom HTTP/2 transport + optional `grpc++` wrapper |
+| DTLS | `experimental` | Socket present and tested; server payload handling not yet wired |
+
+`production` protocols are covered by happy-path and non-happy-path tests.
+`experimental` surfaces are documented and excluded from the v1.0 stability
+guarantee.
+
 ### Dependency Graph
 
 ```
