@@ -330,6 +330,26 @@ v2.0부터 network_system은 유지보수성과 선택적 링크 향상을 위�
 | [`network-grpc`](libs/network-grpc/) | gRPC 고성능 RPC | network-quic |
 | [`network-all`](libs/network-all/) | 엄브렐러 패키지 (모든 프로토콜) | 위의 모든 것 |
 
+### 프로토콜 지원 상태
+
+프로토콜별 감사된 지원 상태입니다 (전체 매트릭스, 근거, 코드 수준 발견 사항은
+[docs/PROTOCOL_SUPPORT.md](docs/PROTOCOL_SUPPORT.md) 참조):
+
+| 프로토콜 | 상태 | 비고 |
+|----------|--------|-------|
+| TCP | `production` | 비동기 서버/클라이언트, 수명 주기, 재연결 |
+| UDP | `production` | 비연결형 데이터그램, 브로드캐스트/멀티캐스트 |
+| TLS/SSL | `production` | TLS 1.2/1.3, 인증서 검증 |
+| WebSocket | `production` | RFC 6455 프레이밍, 분할, ping/pong |
+| HTTP/1.1 | `production` | 라우팅, 쿠키, multipart, gzip/deflate |
+| HTTP/2 | `production` | 멀티플렉스 스트림; HPACK Huffman은 실험적 pass-through |
+| QUIC | `production` | RFC 9000/9001/9002 코어; 실험적 클라이언트 stats/ALPN 접근자 |
+| gRPC | `production` | 커스텀 HTTP/2 전송 + 선택적 `grpc++` 래퍼 |
+| DTLS | `experimental` | 소켓 존재 및 테스트됨; 서버 페이로드 처리 미연결 |
+
+`production` 프로토콜은 정상 경로 및 비정상 경로 테스트로 커버됩니다.
+`experimental` 표면은 문서화되어 있으며 v1.0 안정성 보장에서 제외됩니다.
+
 ### 의존성 그래프
 
 ```
