@@ -42,6 +42,17 @@ A modern C++20 asynchronous network library providing reusable transport primiti
 - 🔒 **Secure**: TLS 1.2/1.3 support, certificate validation, modern cipher suites
 - 🌐 **Cross-Platform**: Ubuntu, Windows, macOS with GCC, Clang, MSVC support
 
+> **Version status — v1.0 candidate (tag pending).** The current package version
+> is **`0.1.1`** (see `CMakeLists.txt` and `vcpkg.json`). The public API surface
+> has been audited and *frozen as a v1.0 candidate*
+> (see [docs/v1.0-api-surface.md](docs/v1.0-api-surface.md)), but **v1.0.0 has
+> not been released and the `v1.0.0` tag has not been published.** The tag is
+> gated on the remaining v1.0 readiness work (test-coverage target and the
+> upstream Tier 0-3 v1.0 epics) tracked in
+> [#964](https://github.com/kcenon/network_system/issues/964). Until v1.0.0 is
+> tagged, treat `network_system` as pre-1.0: the SemVer stability guarantees
+> described below apply only once the tag ships.
+
 ---
 
 ## Installation via vcpkg
@@ -79,9 +90,11 @@ target_link_libraries(your_target PRIVATE network_system::network_system)
 ```
 
 The canonical export target is `network_system::network_system`. This name is
-the v1.0 stable contract for downstream consumers and is guaranteed across
-both build-tree (FetchContent / add_subdirectory) and install-tree
-(`find_package`) consumption. No deprecated target spellings are exported.
+the intended v1.0 stable-contract target for downstream consumers (the v1.0
+guarantee takes effect once the v1.0.0 tag ships — see the version-status note
+above) and is already provided consistently across both build-tree (FetchContent
+/ add_subdirectory) and install-tree (`find_package`) consumption. No deprecated
+target spellings are exported.
 
 ### Minimal Example
 
@@ -352,8 +365,9 @@ evidence, and code-level findings):
 | DTLS | `experimental` | Socket present and tested; server payload handling not yet wired |
 
 `production` protocols are covered by happy-path and non-happy-path tests.
-`experimental` surfaces are documented and excluded from the v1.0 stability
-guarantee.
+`experimental` surfaces are documented and excluded from the (candidate) v1.0
+stability surface; the v1.0 guarantee itself takes effect only once the v1.0.0
+tag ships (see the version-status note in [Overview](#overview)).
 
 ### Dependency Graph
 
@@ -721,8 +735,8 @@ thread_integration_manager::instance().set_thread_pool(adapted);
 
 #### Generated API Docs (Doxygen)
 
-The full Doxygen-generated reference for the v1.0 public API is published from
-the `main` branch by the
+The full Doxygen-generated reference for the (candidate) v1.0 public API surface
+is published from the `main` branch by the
 [Generate-Documentation workflow](.github/workflows/build-Doxygen.yaml) and
 hosted on GitHub Pages at:
 

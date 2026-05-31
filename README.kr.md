@@ -42,6 +42,17 @@
 - 🔒 **보안**: TLS 1.2/1.3 지원, 인증서 검증, 최신 암호화 스위트
 - 🌐 **크로스 플랫폼**: GCC, Clang, MSVC 지원과 함께 Ubuntu, Windows, macOS
 
+> **버전 상태 — v1.0 후보(태그 보류 중).** 현재 패키지 버전은 **`0.1.1`**입니다
+> (`CMakeLists.txt` 및 `vcpkg.json` 참조). 공개 API 표면은 감사를 거쳐 *v1.0
+> 후보로 동결*되었으나(자세한 내용은
+> [docs/v1.0-api-surface.md](docs/v1.0-api-surface.md) 참조), **v1.0.0은 아직
+> 릴리스되지 않았으며 `v1.0.0` 태그도 발행되지 않았습니다.** 태그 발행은 남은
+> v1.0 준비 작업(테스트 커버리지 목표 및 상위 Tier 0-3 v1.0 epic)에 의해
+> 게이트되며 [#964](https://github.com/kcenon/network_system/issues/964)에서
+> 추적됩니다. v1.0.0이 태깅되기 전까지 `network_system`은 pre-1.0으로
+> 취급하십시오. 아래 설명된 SemVer 안정성 보장은 태그가 발행된 이후에만
+> 적용됩니다.
+
 ---
 
 ## vcpkg를 통한 설치
@@ -78,7 +89,7 @@ find_package(network_system CONFIG REQUIRED)
 target_link_libraries(your_target PRIVATE network_system::network_system)
 ```
 
-표준 내보내기 타깃은 `network_system::network_system`입니다. 이 이름은 다운스트림 소비자를 위한 v1.0 안정 계약이며, 빌드 트리(FetchContent / add_subdirectory)와 설치 트리(`find_package`) 소비 양쪽에서 보장됩니다. 더 이상 사용되지 않는 타깃 표기는 내보내지지 않습니다.
+표준 내보내기 타깃은 `network_system::network_system`입니다. 이 이름은 다운스트림 소비자를 위한 v1.0 안정 계약 타깃으로 의도되었으며(v1.0 보장은 v1.0.0 태그가 발행된 이후에 효력이 발생합니다 — 위의 버전 상태 노트 참조), 빌드 트리(FetchContent / add_subdirectory)와 설치 트리(`find_package`) 소비 양쪽에서 이미 일관되게 제공됩니다. 더 이상 사용되지 않는 타깃 표기는 내보내지지 않습니다.
 
 ### 최소 예제
 
@@ -348,7 +359,9 @@ v2.0부터 network_system은 유지보수성과 선택적 링크 향상을 위�
 | DTLS | `experimental` | 소켓 존재 및 테스트됨; 서버 페이로드 처리 미연결 |
 
 `production` 프로토콜은 정상 경로 및 비정상 경로 테스트로 커버됩니다.
-`experimental` 표면은 문서화되어 있으며 v1.0 안정성 보장에서 제외됩니다.
+`experimental` 표면은 문서화되어 있으며 (후보) v1.0 안정성 표면에서
+제외됩니다. v1.0 보장 자체는 v1.0.0 태그가 발행된 이후에만 효력이 발생합니다
+([개요](#개요)의 버전 상태 노트 참조).
 
 ### 의존성 그래프
 
@@ -716,7 +729,7 @@ thread_integration_manager::instance().set_thread_pool(adapted);
 
 #### 생성된 API 문서 (Doxygen)
 
-v1.0 공개 API에 대한 전체 Doxygen 생성 레퍼런스는 `main` 브랜치에서 [Generate-Documentation 워크플로](.github/workflows/build-Doxygen.yaml)에 의해 발행되며 GitHub Pages에 호스팅됩니다:
+(후보) v1.0 공개 API 표면에 대한 전체 Doxygen 생성 레퍼런스는 `main` 브랜치에서 [Generate-Documentation 워크플로](.github/workflows/build-Doxygen.yaml)에 의해 발행되며 GitHub Pages에 호스팅됩니다:
 
 - https://kcenon.github.io/network_system/
 
