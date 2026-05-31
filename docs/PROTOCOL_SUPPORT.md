@@ -23,8 +23,8 @@ the cross-system summary in kcenon/common_system#684.
 | TLS/SSL | `network-tcp` | `production` | `test_tls_config`, `secure_session_test`, `secure_messaging_*_test`, `mock_tls_socket` | TLS 1.2/1.3, certificate validation, modern cipher suites. |
 | WebSocket | `network-websocket` | `production` | `websocket_socket_test`, `websocket_frame_test`, `websocket_handshake_test`, `websocket_protocol_test`, `websocket_server_branch_test` | RFC 6455 framing, fragmentation, ping/pong. |
 | HTTP/1.1 | (core `src/http`) | `production` | `http_parser_branch_test`, `http_server_test`, `http_client_test`, `http_error_coverage_test`, `http_types_test` | Routing, cookies, multipart, chunked encoding, gzip/deflate. |
-| HTTP/2 | `network-http2` | `production` | `http2_client_branch_test`, `http2_server_branch_test`, `*_dispatcher_branch_test`, `http2_server_stream_test`, `http2_request_test` | Multiplexed streams, frame layer, server/client dispatch. HPACK Huffman is an experimental sub-surface (see below). |
-| HPACK | `network-http2` | `production` | `hpack_branch_test`, `hpack_coverage_test`, `hpack_extra_coverage_test`, `test_http2_hpack_rfc7541` | RFC 7541 static/dynamic table, integer/string coding. Huffman coding is an experimental pass-through (see HPACK Huffman row). |
+| HTTP/2 | `network-http2` | `production` | `http2_client_branch_test`, `http2_server_branch_test`, `*_dispatcher_branch_test`, `http2_server_stream_test`, `http2_request_test` | Multiplexed streams, frame layer, server/client dispatch. HPACK Huffman coding is implemented per RFC 7541 Appendix B. |
+| HPACK | `network-http2` | `production` | `hpack_branch_test`, `hpack_coverage_test`, `hpack_extra_coverage_test`, `test_http2_hpack_rfc7541` | RFC 7541 static/dynamic table, integer/string coding, and Appendix B Huffman coding. |
 | QUIC | `network-quic` | `production` | 30+ unit tests: `quic_packet_branch_test`, `quic_connection_branch_test`, `quic_frame_branch_test`, `quic_loss_detector_test`, `quic_congestion_controller_test`, `quic_socket_branch_test`, `test_quic_e2e` | RFC 9000/9001/9002 core: packets, frames, streams, loss detection, congestion control, crypto, varint, transport params. Connection-stats/ALPN-result accessors on the experimental client surface are incomplete (see experimental rows). |
 | gRPC | `network-grpc` | `production` | `grpc_client_branch_test`, `grpc_client_extended_coverage_test`, `test_grpc_*`, `mock_grpc_server_peer` | Custom HTTP/2 transport + optional official `grpc++` wrapper (`NETWORK_ENABLE_GRPC_OFFICIAL`, OFF by default). |
 | DTLS (secure UDP) | `network-udp` | `experimental` | `test_dtls_socket` | DTLS socket exists and is tested, but server-side session payload handling in `secure_messaging_udp_server::process_session_data` is not yet wired (data buffer unused, `// TODO: Use when DTLS handling is implemented`). |
@@ -37,7 +37,7 @@ classified with evidence and disposition.
 
 | Location | Marker / behavior | Status | Disposition |
 |----------|-------------------|--------|-------------|
-| `src/protocols/http2/hpack.cpp` (huffman::encode/decode/encoded_size, ~L306/609/651) | Huffman coding is a documented pass-through stub (returns input as-is); non-Huffman HPACK paths are fully RFC 7541 compliant | `experimental` | Keep; covered by `test_http2_hpack.cpp` Huffman stub tests asserting the pass-through contract and by `hpack_branch_test` H-bit branch. Real Huffman tables tracked by follow-up. |
+| `src/protocols/http2/hpack.cpp` (huffman::encode/decode/encoded_size) | RFC 7541 Appendix B Huffman coding implemented: bit-packed encode, trie-based decode with EOS/padding validation (RFC 7541 5.2), accurate `encoded_size`; the encoder selects Huffman only when it produces a smaller output | `production` | Resolved in kcenon/network_system#1157. Covered by `test_http2_hpack.cpp` Appendix C.4/C.6 conformance vectors and an all-byte round-trip test. |
 | `src/experimental/quic_client.cpp` `alpn_protocol()` (~L459) | Returns `std::nullopt`; ALPN negotiation result not retrieved from handshake | `experimental` | Header annotated as experimental. Internal header (`src/internal/experimental/`), not a public surface. Tracked by follow-up. |
 | `src/experimental/quic_client.cpp` `stats()` (~L470) | Returns default `quic_connection_stats{}`; not wired to live connection | `experimental` | Header annotated as experimental. Tracked by follow-up. |
 | `src/core/secure_messaging_udp_server.cpp` `process_session_data` (~L301) | `data` parameter `[[maybe_unused]]` pending DTLS payload handling | `experimental` | DTLS row above. Tracked by follow-up. |
@@ -68,7 +68,6 @@ adapter types. They are listed above so the markers are fully accounted for.
 Rows classified `experimental` with a genuine implementation gap are tracked by
 dedicated follow-up issues (see kcenon/network_system#1144 PR body for numbers):
 
-- HPACK Huffman coding: replace the pass-through stub with RFC 7541 Huffman tables.
 - Experimental QUIC client: wire `alpn_protocol()` and `stats()` to the live connection.
 - DTLS server: implement `secure_messaging_udp_server::process_session_data` payload handling.
 

@@ -320,36 +320,35 @@ class HuffmanExtraTest : public ::testing::Test
 {
 };
 
-TEST_F(HuffmanExtraTest, EncodedSizeMatchesInputSizeForStub)
+TEST_F(HuffmanExtraTest, EncodedSizeMatchesRfc7541AppendixB)
 {
-    // Stub implementation returns input size verbatim. Locking this contract
-    // makes any move to a real Huffman encoder visible here.
-    EXPECT_EQ(http2::huffman::encoded_size("a"), 1u);
-    EXPECT_EQ(http2::huffman::encoded_size("hello"), 5u);
-    EXPECT_EQ(http2::huffman::encoded_size(std::string(100, 'x')), 100u);
+    // Real RFC 7541 Appendix B Huffman code sizes (in bytes).
+    EXPECT_EQ(http2::huffman::encoded_size("a"), 1u);      // 5 bits -> 1 byte
+    EXPECT_EQ(http2::huffman::encoded_size("hello"), 4u);  // 28 bits -> 4 bytes
+    EXPECT_EQ(http2::huffman::encoded_size(std::string(100, 'x')),
+              88u);  // 700 bits -> 88 bytes
+    // encoded_size must always agree with the actual encoded byte count.
+    EXPECT_EQ(http2::huffman::encoded_size("hello"),
+              http2::huffman::encode("hello").size());
 }
 
-TEST_F(HuffmanExtraTest, EncodeProducesByteForByteStubOutput)
+TEST_F(HuffmanExtraTest, EncodeRoundTripsArbitraryBytes)
 {
     const std::string input = "abc\x01\x02\x03";
     auto encoded = http2::huffman::encode(input);
-    ASSERT_EQ(encoded.size(), input.size());
-    for (size_t i = 0; i < input.size(); ++i)
-    {
-        EXPECT_EQ(encoded[i], static_cast<uint8_t>(input[i]));
-    }
+    auto decoded = http2::huffman::decode(as_span(encoded));
+    ASSERT_TRUE(decoded.is_ok());
+    EXPECT_EQ(decoded.value(), input);
 }
 
-TEST_F(HuffmanExtraTest, DecodeReturnsByteForByteStubOutput)
+TEST_F(HuffmanExtraTest, DecodeRoundTripsControlAndHighBytes)
 {
-    std::vector<uint8_t> data = {'x', 'y', 'z', 0x00, 0xFF};
-    auto result = http2::huffman::decode(as_span(data));
-    ASSERT_TRUE(result.is_ok());
-    ASSERT_EQ(result.value().size(), data.size());
-    for (size_t i = 0; i < data.size(); ++i)
-    {
-        EXPECT_EQ(static_cast<uint8_t>(result.value()[i]), data[i]);
-    }
+    const std::string input = {'x', 'y', 'z', '\x00', '\xff'};
+    auto encoded = http2::huffman::encode(input);
+    auto decoded = http2::huffman::decode(as_span(encoded));
+    ASSERT_TRUE(decoded.is_ok());
+    ASSERT_EQ(decoded.value().size(), input.size());
+    EXPECT_EQ(decoded.value(), input);
 }
 
 // ============================================================================
