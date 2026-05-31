@@ -21,9 +21,11 @@ All rights reserved.
 
 #define NETWORK_USE_EXPERIMENTAL
 #include "internal/experimental/quic_client.h"
+#include "internal/quic_socket.h"
 
 #include <gtest/gtest.h>
 
+#include <chrono>
 #include <memory>
 #include <string>
 #include <vector>
@@ -205,6 +207,48 @@ TEST_F(ExperimentalQuicClientTest, StatsBeforeConnect)
 	auto stats = client->stats();
 	EXPECT_EQ(stats.bytes_sent, 0u);
 	EXPECT_EQ(stats.bytes_received, 0u);
+}
+
+// stats() and alpn_protocol() delegate to the live quic_socket accessors added
+// for this change. A freshly constructed socket must report zeroed counters and
+// no negotiated ALPN — the same defaults the client surfaces before connecting.
+TEST(QuicSocketStatsAccessorsTest, StartAtDefaults)
+{
+	asio::io_context io;
+	asio::ip::udp::socket udp(io, asio::ip::udp::v4());
+	auto sock = std::make_shared<kcenon::network::internal::quic_socket>(
+		std::move(udp), kcenon::network::internal::quic_role::client);
+
+	EXPECT_EQ(sock->packets_sent(), 0u);
+	EXPECT_EQ(sock->packets_received(), 0u);
+	EXPECT_EQ(sock->bytes_sent(), 0u);
+	EXPECT_EQ(sock->bytes_received(), 0u);
+	EXPECT_TRUE(sock->negotiated_alpn().empty());
+}
+
+// connect() emits the QUIC Initial packet, so the live send counters that
+// stats() reports must advance. Driven directly on the socket with a
+// single-threaded io_context for deterministic, leak-free teardown.
+TEST(QuicSocketStatsAccessorsTest, ConnectIncrementsSentCounters)
+{
+	asio::io_context io;
+	asio::ip::udp::socket udp(io, asio::ip::udp::v4());
+	auto sock = std::make_shared<kcenon::network::internal::quic_socket>(
+		std::move(udp), kcenon::network::internal::quic_role::client);
+
+	asio::ip::udp::endpoint server(asio::ip::make_address("127.0.0.1"), 59998);
+	auto result = sock->connect(server, "example.com");
+	io.run_for(std::chrono::milliseconds(200));
+	sock->stop_receive();
+	io.run_for(std::chrono::milliseconds(50));
+
+	if (result.is_err())
+	{
+		GTEST_SKIP() << "QUIC connect unavailable in this environment";
+	}
+	// The Initial packet counts as at least one sent packet / some bytes.
+	EXPECT_GT(sock->packets_sent(), 0u);
+	EXPECT_GT(sock->bytes_sent(), 0u);
 }
 
 TEST_F(ExperimentalQuicClientTest, EarlyDataNotAcceptedBeforeConnect)
