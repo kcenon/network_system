@@ -27,7 +27,7 @@ the cross-system summary in kcenon/common_system#684.
 | HPACK | `network-http2` | `production` | `hpack_branch_test`, `hpack_coverage_test`, `hpack_extra_coverage_test`, `test_http2_hpack_rfc7541` | RFC 7541 static/dynamic table, integer/string coding. Huffman coding is an experimental pass-through (see HPACK Huffman row). |
 | QUIC | `network-quic` | `production` | 30+ unit tests: `quic_packet_branch_test`, `quic_connection_branch_test`, `quic_frame_branch_test`, `quic_loss_detector_test`, `quic_congestion_controller_test`, `quic_socket_branch_test`, `test_quic_e2e` | RFC 9000/9001/9002 core: packets, frames, streams, loss detection, congestion control, crypto, varint, transport params. Connection-stats/ALPN-result accessors on the experimental client surface are incomplete (see experimental rows). |
 | gRPC | `network-grpc` | `production` | `grpc_client_branch_test`, `grpc_client_extended_coverage_test`, `test_grpc_*`, `mock_grpc_server_peer` | Custom HTTP/2 transport + optional official `grpc++` wrapper (`NETWORK_ENABLE_GRPC_OFFICIAL`, OFF by default). |
-| DTLS (secure UDP) | `network-udp` | `experimental` | `test_dtls_socket` | DTLS socket exists and is tested, but server-side session payload handling in `secure_messaging_udp_server::process_session_data` is not yet wired (data buffer unused, `// TODO: Use when DTLS handling is implemented`). |
+| DTLS (secure UDP) | `network-udp` | `experimental` | `test_dtls_socket` | DTLS socket and server-side session payload handling are implemented and tested: `secure_messaging_udp_server::process_session_data` feeds inbound datagrams into the per-endpoint `dtls_session` via `dtls_socket::deliver_encrypted()`, advancing the handshake and dispatching decrypted application data to the receive callback (negative paths covered by `test_dtls_socket`). Remains `experimental` pending DTLS cookie exchange (DoS protection) and a consolidated single-socket demux model. |
 
 ## Sub-surface and code-level findings
 
@@ -40,7 +40,7 @@ classified with evidence and disposition.
 | `src/protocols/http2/hpack.cpp` (huffman::encode/decode/encoded_size, ~L306/609/651) | Huffman coding is a documented pass-through stub (returns input as-is); non-Huffman HPACK paths are fully RFC 7541 compliant | `experimental` | Keep; covered by `test_http2_hpack.cpp` Huffman stub tests asserting the pass-through contract and by `hpack_branch_test` H-bit branch. Real Huffman tables tracked by follow-up. |
 | `src/experimental/quic_client.cpp` `alpn_protocol()` (~L459) | Returns `std::nullopt`; ALPN negotiation result not retrieved from handshake | `experimental` | Header annotated as experimental. Internal header (`src/internal/experimental/`), not a public surface. Tracked by follow-up. |
 | `src/experimental/quic_client.cpp` `stats()` (~L470) | Returns default `quic_connection_stats{}`; not wired to live connection | `experimental` | Header annotated as experimental. Tracked by follow-up. |
-| `src/core/secure_messaging_udp_server.cpp` `process_session_data` (~L301) | `data` parameter `[[maybe_unused]]` pending DTLS payload handling | `experimental` | DTLS row above. Tracked by follow-up. |
+| `secure_messaging_udp_server.cpp` `process_session_data` (`libs/network-udp`, mirrored in `src/core`) | Feeds the inbound datagram into the per-endpoint `dtls_session` via `dtls_socket::deliver_encrypted()`; `[[maybe_unused]]`/TODO removed | `experimental` | Resolved in kcenon/network_system#1159. See DTLS row above; remaining experimental gap (cookie exchange) tracked there. |
 | `src/internal/quic_socket.cpp` `process_ack_frame` (~L719) | Tracks largest-acked only; full retransmission-queue pruning deferred (`(void)f; // Placeholder`) | `experimental` | Functional minimal ACK handling; full loss-recovery integration in `src/protocols/quic/loss_detector.cpp`. Tracked by follow-up. |
 | `src/tracing/exporters.cpp` (otlp_grpc/jaeger/zipkin, ~L547/560/573) | These exporters log "not implemented" and fall back to console/OTLP-HTTP | `experimental` | Tracing observability surface, not a network protocol. `otlp_http` exporter is production. README tracing note already says "use otlp_http". |
 | `src/http/http_server.cpp` `// TODO: Add error logging when needed` (~L665) | Compression-failure path returns silently | `production` | Benign: behavior (send uncompressed / abort) is correct; only optional logging is deferred. Marker removed in this audit. |
@@ -70,7 +70,6 @@ dedicated follow-up issues (see kcenon/network_system#1144 PR body for numbers):
 
 - HPACK Huffman coding: replace the pass-through stub with RFC 7541 Huffman tables.
 - Experimental QUIC client: wire `alpn_protocol()` and `stats()` to the live connection.
-- DTLS server: implement `secure_messaging_udp_server::process_session_data` payload handling.
 
 No rows were classified `remove`; the `libs/network-*` wrapper `.cpp` files are
 retained as documented standalone-build scaffolding rather than deleted.

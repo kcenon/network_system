@@ -298,7 +298,7 @@ auto secure_messaging_udp_server::do_receive() -> void
 }
 
 auto secure_messaging_udp_server::process_session_data(
-	[[maybe_unused]] const std::vector<uint8_t>& data,  // TODO: Use when DTLS handling is implemented
+	const std::vector<uint8_t>& data,
 	const asio::ip::udp::endpoint& sender) -> void
 {
 	std::shared_ptr<dtls_session> session;
@@ -313,7 +313,9 @@ auto secure_messaging_udp_server::process_session_data(
 		}
 	}
 
-	// Create new session if needed
+	// Create a new session on first contact (e.g. an inbound ClientHello).
+	// create_session() registers the receive callback and starts the
+	// server-role handshake for this endpoint.
 	if (!session)
 	{
 		session = create_session(sender);
@@ -323,17 +325,15 @@ auto secure_messaging_udp_server::process_session_data(
 		}
 	}
 
-	// For a proper DTLS server, we would need to:
-	// 1. Parse the DTLS record to determine if it's a ClientHello
-	// 2. Handle cookie exchange for DoS protection
-	// 3. Create per-client SSL objects
-
-	// For this implementation, we rely on the dtls_socket to handle
-	// the DTLS protocol, but in a real server, each client needs its own
-	// SSL object and BIO pair.
-
-	// Note: A complete DTLS server implementation would require
-	// more sophisticated session management. This is a simplified version.
+	// Feed the encrypted datagram into the per-endpoint DTLS session. While
+	// the handshake is incomplete the record advances it; once established,
+	// the record is decrypted and the application payload is dispatched
+	// through the receive callback registered in create_session(). Malformed
+	// or out-of-order records are handled best-effort and dropped.
+	if (session->socket)
+	{
+		session->socket->deliver_encrypted(data, sender);
+	}
 }
 
 auto secure_messaging_udp_server::create_session(

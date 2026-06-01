@@ -241,6 +241,90 @@ TEST_F(DtlsSocketTest, SendBeforeHandshakeFails)
 }
 
 // ============================================================================
+// Deliver Encrypted (server-side payload injection) Tests
+// ============================================================================
+//
+// deliver_encrypted() is the entry point a server uses to feed datagrams it
+// received on its own UDP socket into a per-client dtls_session. These tests
+// cover the negative paths called out by the server payload work: malformed
+// records, empty payloads, and injection before the handshake is established.
+
+// A datagram injected before the handshake completes must never surface as
+// decrypted application data on the receive callback.
+TEST_F(DtlsSocketTest, DeliverEncryptedBeforeHandshakeDoesNotInvokeReceiveCallback)
+{
+	auto socket = create_server_socket();
+	auto dtls = dtls_socket::create(std::move(socket), server_ctx_.get()).value();
+
+	std::atomic<bool> received{false};
+	dtls->set_receive_callback(
+		[&received](const std::vector<uint8_t>&, const asio::ip::udp::endpoint&)
+		{
+			received.store(true);
+		});
+
+	asio::ip::udp::endpoint sender(asio::ip::make_address("127.0.0.1"), 55555);
+	std::vector<uint8_t> bogus = {0x17, 0xfe, 0xfd, 0x00, 0x01, 0xde, 0xad, 0xbe, 0xef};
+
+	EXPECT_NO_THROW({ dtls->deliver_encrypted(bogus, sender); });
+	EXPECT_FALSE(received.load());
+}
+
+// Empty payloads are a no-op: no BIO write, no callback, no crash.
+TEST_F(DtlsSocketTest, DeliverEncryptedEmptyDataIsNoOp)
+{
+	auto socket = create_server_socket();
+	auto dtls = dtls_socket::create(std::move(socket), server_ctx_.get()).value();
+
+	std::atomic<bool> received{false};
+	dtls->set_receive_callback(
+		[&received](const std::vector<uint8_t>&, const asio::ip::udp::endpoint&)
+		{
+			received.store(true);
+		});
+
+	asio::ip::udp::endpoint sender(asio::ip::make_address("127.0.0.1"), 55556);
+	EXPECT_NO_THROW({ dtls->deliver_encrypted(std::vector<uint8_t>{}, sender); });
+	EXPECT_FALSE(received.load());
+}
+
+// A malformed record injected while a server-role handshake is in progress
+// must be handled gracefully. The handshake either reports failure or keeps
+// waiting for valid input; in neither case is the receive callback invoked.
+TEST_F(DtlsSocketTest, DeliverEncryptedMalformedHandshakeRecordIsHandledGracefully)
+{
+	auto socket = create_server_socket();
+	auto dtls = dtls_socket::create(std::move(socket), server_ctx_.get()).value();
+
+	std::atomic<bool> received{false};
+	dtls->set_receive_callback(
+		[&received](const std::vector<uint8_t>&, const asio::ip::udp::endpoint&)
+		{
+			received.store(true);
+		});
+
+	asio::ip::udp::endpoint sender(asio::ip::make_address("127.0.0.1"), 55557);
+	dtls->set_peer_endpoint(sender);
+
+	// Begin a server-role handshake so the injected record is routed through
+	// the handshake state machine rather than the application-data path.
+	dtls->async_handshake(dtls_socket::handshake_type::server,
+	                      [](std::error_code) {});
+
+	std::vector<uint8_t> garbage(64, 0xAB);
+
+	EXPECT_NO_THROW({
+		dtls->deliver_encrypted(garbage, sender);
+		dtls->deliver_encrypted(garbage, sender);
+	});
+
+	// Malformed handshake input never yields decrypted application data.
+	EXPECT_FALSE(received.load());
+
+	dtls->stop_receive();
+}
+
+// ============================================================================
 // Handshake Tests
 // ============================================================================
 

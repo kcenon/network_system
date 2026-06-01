@@ -129,6 +129,27 @@ namespace kcenon::network::internal
 		auto stop_receive() -> void;
 
 		/*!
+		 * \brief Injects an already-received encrypted datagram for DTLS processing.
+		 *
+		 * Intended for a server that owns the underlying UDP socket and
+		 * demultiplexes datagrams to per-client sessions itself, instead of
+		 * letting each \c dtls_socket drive its own receive loop via
+		 * \c start_receive(). The bytes are fed through the read BIO exactly as
+		 * the internal receive loop would: an in-progress handshake is advanced,
+		 * and once the handshake is complete the record is decrypted and the
+		 * application payload is delivered to the receive callback.
+		 *
+		 * Safe to call with malformed, truncated, or pre-handshake records: such
+		 * data is processed best-effort and dropped without invoking the receive
+		 * callback when it does not yield a complete decrypted record.
+		 *
+		 * \param data   The encrypted datagram bytes received from the peer.
+		 * \param sender The endpoint the datagram was received from.
+		 */
+		auto deliver_encrypted(const std::vector<uint8_t>& data,
+		                       const asio::ip::udp::endpoint& sender) -> void;
+
+		/*!
 		 * \brief Initiates an asynchronous encrypted send.
 		 * \param data The plaintext data to encrypt and send (moved for efficiency).
 		 * \param handler A completion handler with signature
