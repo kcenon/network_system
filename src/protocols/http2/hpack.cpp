@@ -295,21 +295,24 @@ namespace kcenon::network::protocols::http2
     {
         std::vector<uint8_t> result;
 
-        // String length (with Huffman bit)
-        auto length_bytes = encode_integer(str.size(), 7);
-        if (!huffman)
+        if (huffman)
         {
-            result.insert(result.end(), length_bytes.begin(), length_bytes.end());
-        }
-        else
-        {
-            // Huffman encoding not implemented yet
-            // Set H bit in first byte
-            length_bytes[0] |= 0x80;
-            result.insert(result.end(), length_bytes.begin(), length_bytes.end());
+            // Only use Huffman coding when it actually shrinks the string;
+            // RFC 7541 5.2 lets the encoder choose per string.
+            auto encoded = huffman::encode(str);
+            if (encoded.size() < str.size())
+            {
+                auto length_bytes = encode_integer(encoded.size(), 7);
+                length_bytes[0] |= 0x80;  // Set H bit
+                result.insert(result.end(), length_bytes.begin(), length_bytes.end());
+                result.insert(result.end(), encoded.begin(), encoded.end());
+                return result;
+            }
         }
 
-        // String data
+        // Raw literal: length with the H bit clear, then the octets verbatim.
+        auto length_bytes = encode_integer(str.size(), 7);
+        result.insert(result.end(), length_bytes.begin(), length_bytes.end());
         result.insert(result.end(), str.begin(), str.end());
 
         return result;
@@ -606,8 +609,12 @@ namespace kcenon::network::protocols::http2
         std::string result;
         if (huffman)
         {
-            // Huffman decoding not implemented yet - just return raw for now
-            result.assign(data.begin(), data.begin() + length);
+            auto decoded = huffman::decode(data.subspan(0, length));
+            if (decoded.is_err())
+            {
+                return decoded.error();
+            }
+            result = std::move(decoded.value());
         }
         else
         {
@@ -648,25 +655,214 @@ namespace kcenon::network::protocols::http2
         return error_info(107, "Invalid dynamic table index", "hpack");
     }
 
-    // Huffman coding (basic stub implementation)
+    // Huffman coding (RFC 7541 Appendix B)
     namespace huffman
     {
+        namespace
+        {
+            // RFC 7541 Appendix B static Huffman code: {code, bit length} per
+            // symbol. Index 0..255 are octet values; index 256 is the EOS symbol.
+            struct huffman_symbol
+            {
+                uint32_t code;
+                uint8_t bits;
+            };
+
+            constexpr huffman_symbol kHuffmanTable[257] = {
+                {0x1ff8u, 13},    {0x7fffd8u, 23},  {0xfffffe2u, 28}, {0xfffffe3u, 28},
+                {0xfffffe4u, 28}, {0xfffffe5u, 28}, {0xfffffe6u, 28}, {0xfffffe7u, 28},
+                {0xfffffe8u, 28}, {0xffffeau, 24},  {0x3ffffffcu, 30},{0xfffffe9u, 28},
+                {0xfffffeau, 28}, {0x3ffffffdu, 30},{0xfffffebu, 28}, {0xfffffecu, 28},
+                {0xfffffedu, 28}, {0xfffffeeu, 28}, {0xfffffefu, 28}, {0xffffff0u, 28},
+                {0xffffff1u, 28}, {0xffffff2u, 28}, {0x3ffffffeu, 30},{0xffffff3u, 28},
+                {0xffffff4u, 28}, {0xffffff5u, 28}, {0xffffff6u, 28}, {0xffffff7u, 28},
+                {0xffffff8u, 28}, {0xffffff9u, 28}, {0xffffffau, 28}, {0xffffffbu, 28},
+                {0x14u, 6},       {0x3f8u, 10},     {0x3f9u, 10},     {0xffau, 12},
+                {0x1ff9u, 13},    {0x15u, 6},       {0xf8u, 8},       {0x7fau, 11},
+                {0x3fau, 10},     {0x3fbu, 10},     {0xf9u, 8},       {0x7fbu, 11},
+                {0xfau, 8},       {0x16u, 6},       {0x17u, 6},       {0x18u, 6},
+                {0x0u, 5},        {0x1u, 5},        {0x2u, 5},        {0x19u, 6},
+                {0x1au, 6},       {0x1bu, 6},       {0x1cu, 6},       {0x1du, 6},
+                {0x1eu, 6},       {0x1fu, 6},       {0x5cu, 7},       {0xfbu, 8},
+                {0x7ffcu, 15},    {0x20u, 6},       {0xffbu, 12},     {0x3fcu, 10},
+                {0x1ffau, 13},    {0x21u, 6},       {0x5du, 7},       {0x5eu, 7},
+                {0x5fu, 7},       {0x60u, 7},       {0x61u, 7},       {0x62u, 7},
+                {0x63u, 7},       {0x64u, 7},       {0x65u, 7},       {0x66u, 7},
+                {0x67u, 7},       {0x68u, 7},       {0x69u, 7},       {0x6au, 7},
+                {0x6bu, 7},       {0x6cu, 7},       {0x6du, 7},       {0x6eu, 7},
+                {0x6fu, 7},       {0x70u, 7},       {0x71u, 7},       {0x72u, 7},
+                {0xfcu, 8},       {0x73u, 7},       {0xfdu, 8},       {0x1ffbu, 13},
+                {0x7fff0u, 19},   {0x1ffcu, 13},    {0x3ffcu, 14},    {0x22u, 6},
+                {0x7ffdu, 15},    {0x3u, 5},        {0x23u, 6},       {0x4u, 5},
+                {0x24u, 6},       {0x5u, 5},        {0x25u, 6},       {0x26u, 6},
+                {0x27u, 6},       {0x6u, 5},        {0x74u, 7},       {0x75u, 7},
+                {0x28u, 6},       {0x29u, 6},       {0x2au, 6},       {0x7u, 5},
+                {0x2bu, 6},       {0x76u, 7},       {0x2cu, 6},       {0x8u, 5},
+                {0x9u, 5},        {0x2du, 6},       {0x77u, 7},       {0x78u, 7},
+                {0x79u, 7},       {0x7au, 7},       {0x7bu, 7},       {0x7ffeu, 15},
+                {0x7fcu, 11},     {0x3ffdu, 14},    {0x1ffdu, 13},    {0xffffffcu, 28},
+                {0xfffe6u, 20},   {0x3fffd2u, 22},  {0xfffe7u, 20},   {0xfffe8u, 20},
+                {0x3fffd3u, 22},  {0x3fffd4u, 22},  {0x3fffd5u, 22},  {0x7fffd9u, 23},
+                {0x3fffd6u, 22},  {0x7fffdau, 23},  {0x7fffdbu, 23},  {0x7fffdcu, 23},
+                {0x7fffddu, 23},  {0x7fffdeu, 23},  {0xffffebu, 24},  {0x7fffdfu, 23},
+                {0xffffecu, 24},  {0xffffedu, 24},  {0x3fffd7u, 22},  {0x7fffe0u, 23},
+                {0xffffeeu, 24},  {0x7fffe1u, 23},  {0x7fffe2u, 23},  {0x7fffe3u, 23},
+                {0x7fffe4u, 23},  {0x1fffdcu, 21},  {0x3fffd8u, 22},  {0x7fffe5u, 23},
+                {0x3fffd9u, 22},  {0x7fffe6u, 23},  {0x7fffe7u, 23},  {0xffffefu, 24},
+                {0x3fffdau, 22},  {0x1fffddu, 21},  {0xfffe9u, 20},   {0x3fffdbu, 22},
+                {0x3fffdcu, 22},  {0x7fffe8u, 23},  {0x7fffe9u, 23},  {0x1fffdeu, 21},
+                {0x7fffeau, 23},  {0x3fffddu, 22},  {0x3fffdeu, 22},  {0xfffff0u, 24},
+                {0x1fffdfu, 21},  {0x3fffdfu, 22},  {0x7fffebu, 23},  {0x7fffecu, 23},
+                {0x1fffe0u, 21},  {0x1fffe1u, 21},  {0x3fffe0u, 22},  {0x1fffe2u, 21},
+                {0x7fffedu, 23},  {0x3fffe1u, 22},  {0x7fffeeu, 23},  {0x7fffefu, 23},
+                {0xfffeau, 20},   {0x3fffe2u, 22},  {0x3fffe3u, 22},  {0x3fffe4u, 22},
+                {0x7ffff0u, 23},  {0x3fffe5u, 22},  {0x3fffe6u, 22},  {0x7ffff1u, 23},
+                {0x3ffffe0u, 26}, {0x3ffffe1u, 26}, {0xfffebu, 20},   {0x7fff1u, 19},
+                {0x3fffe7u, 22},  {0x7ffff2u, 23},  {0x3fffe8u, 22},  {0x1ffffecu, 25},
+                {0x3ffffe2u, 26}, {0x3ffffe3u, 26}, {0x3ffffe4u, 26}, {0x7ffffdeu, 27},
+                {0x7ffffdfu, 27}, {0x3ffffe5u, 26}, {0xfffff1u, 24},  {0x1ffffedu, 25},
+                {0x7fff2u, 19},   {0x1fffe3u, 21},  {0x3ffffe6u, 26}, {0x7ffffe0u, 27},
+                {0x7ffffe1u, 27}, {0x3ffffe7u, 26}, {0x7ffffe2u, 27}, {0xfffff2u, 24},
+                {0x1fffe4u, 21},  {0x1fffe5u, 21},  {0x3ffffe8u, 26}, {0x3ffffe9u, 26},
+                {0xffffffdu, 28}, {0x7ffffe3u, 27}, {0x7ffffe4u, 27}, {0x7ffffe5u, 27},
+                {0xfffecu, 20},   {0xfffff3u, 24},  {0xfffedu, 20},   {0x1fffe6u, 21},
+                {0x3fffe9u, 22},  {0x1fffe7u, 21},  {0x1fffe8u, 21},  {0x7ffff3u, 23},
+                {0x3fffeau, 22},  {0x3fffebu, 22},  {0x1ffffeeu, 25}, {0x1ffffefu, 25},
+                {0xfffff4u, 24},  {0xfffff5u, 24},  {0x3ffffeau, 26}, {0x7ffff4u, 23},
+                {0x3ffffebu, 26}, {0x7ffffe6u, 27}, {0x3ffffecu, 26}, {0x3ffffedu, 26},
+                {0x7ffffe7u, 27}, {0x7ffffe8u, 27}, {0x7ffffe9u, 27}, {0x7ffffeau, 27},
+                {0x7ffffebu, 27}, {0xffffffeu, 28}, {0x7ffffecu, 27}, {0x7ffffedu, 27},
+                {0x7ffffeeu, 27}, {0x7ffffefu, 27}, {0x7fffff0u, 27}, {0x3ffffeeu, 26},
+                {0x3fffffffu, 30},  // 256: EOS
+            };
+
+            constexpr int kEosSymbol = 256;
+
+            // Decoding trie node: child indices for bit 0 / bit 1 (-1 if absent)
+            // and the decoded symbol at a leaf (-1 for internal nodes).
+            struct decode_node
+            {
+                int children[2] = {-1, -1};
+                int symbol = -1;
+            };
+
+            auto build_decode_tree() -> std::vector<decode_node>
+            {
+                std::vector<decode_node> nodes(1);  // root at index 0
+                for (int sym = 0; sym < 257; ++sym)
+                {
+                    const auto& entry = kHuffmanTable[sym];
+                    int cur = 0;
+                    for (int b = static_cast<int>(entry.bits) - 1; b >= 0; --b)
+                    {
+                        int bit = static_cast<int>((entry.code >> b) & 1u);
+                        int next = nodes[cur].children[bit];
+                        if (next == -1)
+                        {
+                            nodes.push_back(decode_node{});
+                            next = static_cast<int>(nodes.size()) - 1;
+                            nodes[cur].children[bit] = next;
+                        }
+                        cur = next;
+                    }
+                    nodes[cur].symbol = sym;
+                }
+                return nodes;
+            }
+        }  // namespace
+
         auto encode(std::string_view input) -> std::vector<uint8_t>
         {
-            // Stub: just return the input as-is
-            return std::vector<uint8_t>(input.begin(), input.end());
+            std::vector<uint8_t> out;
+            out.reserve(input.size());
+
+            uint64_t buffer = 0;
+            int buffer_bits = 0;
+
+            for (unsigned char ch : input)
+            {
+                const auto& entry = kHuffmanTable[ch];
+                buffer = (buffer << entry.bits) | entry.code;
+                buffer_bits += entry.bits;
+
+                while (buffer_bits >= 8)
+                {
+                    buffer_bits -= 8;
+                    out.push_back(static_cast<uint8_t>(buffer >> buffer_bits));
+                }
+                // Keep only the still-pending low bits to avoid emitting stale data.
+                buffer &= (1ull << buffer_bits) - 1;
+            }
+
+            if (buffer_bits > 0)
+            {
+                // Pad the final byte with the most significant bits of EOS (all 1s).
+                int pad = 8 - buffer_bits;
+                out.push_back(static_cast<uint8_t>((buffer << pad) | ((1u << pad) - 1)));
+            }
+
+            return out;
         }
 
         auto decode(std::span<const uint8_t> data) -> Result<std::string>
         {
-            // Stub: just return the data as-is
-            return std::string(data.begin(), data.end());
+            static const std::vector<decode_node> tree = build_decode_tree();
+
+            std::string out;
+            int node = 0;
+            int partial_bits = 0;
+            bool partial_all_ones = true;
+
+            for (uint8_t byte : data)
+            {
+                for (int i = 7; i >= 0; --i)
+                {
+                    int bit = (byte >> i) & 1;
+                    node = tree[node].children[bit];
+                    if (node == -1)
+                    {
+                        return error_info(108, "Invalid Huffman code", "hpack");
+                    }
+                    ++partial_bits;
+                    if (bit == 0)
+                    {
+                        partial_all_ones = false;
+                    }
+
+                    if (tree[node].symbol >= 0)
+                    {
+                        if (tree[node].symbol == kEosSymbol)
+                        {
+                            // RFC 7541 5.2: EOS in the encoded data is an error.
+                            return error_info(108, "EOS symbol in Huffman-encoded data",
+                                              "hpack");
+                        }
+                        out.push_back(static_cast<char>(tree[node].symbol));
+                        node = 0;
+                        partial_bits = 0;
+                        partial_all_ones = true;
+                    }
+                }
+            }
+
+            // RFC 7541 5.2: any trailing bits must be valid EOS padding —
+            // at most 7 bits, all set to 1.
+            if (node != 0 && (partial_bits > 7 || !partial_all_ones))
+            {
+                return error_info(108, "Invalid Huffman padding", "hpack");
+            }
+
+            return out;
         }
 
         auto encoded_size(std::string_view input) -> size_t
         {
-            // Stub: return input size
-            return input.size();
+            size_t bits = 0;
+            for (unsigned char ch : input)
+            {
+                bits += kHuffmanTable[ch].bits;
+            }
+            return (bits + 7) / 8;
         }
     }
 

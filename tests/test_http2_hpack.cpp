@@ -756,31 +756,108 @@ TEST_F(HpackTest, DecoderHandlesMultipleHeadersWithSameName)
 }
 
 // ============================================================
-// Huffman Stub Tests
+// Huffman Coding Tests (RFC 7541 Appendix B / Appendix C)
 // ============================================================
 
-TEST_F(HpackTest, HuffmanEncodeStub)
+TEST_F(HpackTest, HuffmanEncodeRfc7541C41Authority)
 {
-    auto encoded = huffman::encode("hello");
-    // Stub returns raw bytes
-    ASSERT_EQ(encoded.size(), 5u);
-    EXPECT_EQ(encoded[0], 'h');
-    EXPECT_EQ(encoded[4], 'o');
+    // RFC 7541 C.4.1: ":authority: www.example.com"
+    auto encoded = huffman::encode("www.example.com");
+    std::vector<uint8_t> expected = {0xf1, 0xe3, 0xc2, 0xe5, 0xf2, 0x3a,
+                                     0x6b, 0xa0, 0xab, 0x90, 0xf4, 0xff};
+    EXPECT_EQ(encoded, expected);
+    EXPECT_EQ(huffman::encoded_size("www.example.com"), expected.size());
 }
 
-TEST_F(HpackTest, HuffmanDecodeStub)
+TEST_F(HpackTest, HuffmanEncodeRfc7541C42NoCache)
 {
-    std::vector<uint8_t> data = {'w', 'o', 'r', 'l', 'd'};
-    auto result = huffman::decode(data);
-    ASSERT_TRUE(result.is_ok());
-    EXPECT_EQ(result.value(), "world");
+    // RFC 7541 C.4.2: "cache-control: no-cache"
+    auto encoded = huffman::encode("no-cache");
+    std::vector<uint8_t> expected = {0xa8, 0xeb, 0x10, 0x64, 0x9c, 0xbf};
+    EXPECT_EQ(encoded, expected);
 }
 
-TEST_F(HpackTest, HuffmanEncodedSizeStub)
+TEST_F(HpackTest, HuffmanEncodeRfc7541C43Custom)
 {
-    EXPECT_EQ(huffman::encoded_size("test"), 4u);
-    EXPECT_EQ(huffman::encoded_size(""), 0u);
-    EXPECT_EQ(huffman::encoded_size("hello world"), 11u);
+    // RFC 7541 C.4.3: "custom-key: custom-value"
+    EXPECT_EQ(huffman::encode("custom-key"),
+              (std::vector<uint8_t>{0x25, 0xa8, 0x49, 0xe9, 0x5b, 0xa9, 0x7d, 0x7f}));
+    EXPECT_EQ(huffman::encode("custom-value"),
+              (std::vector<uint8_t>{0x25, 0xa8, 0x49, 0xe9, 0x5b, 0xb8, 0xe8, 0xb4, 0xbf}));
+}
+
+TEST_F(HpackTest, HuffmanEncodeRfc7541C6Response)
+{
+    // RFC 7541 C.6.1 response header field values.
+    EXPECT_EQ(huffman::encode("302"), (std::vector<uint8_t>{0x64, 0x02}));
+    EXPECT_EQ(huffman::encode("private"),
+              (std::vector<uint8_t>{0xae, 0xc3, 0x77, 0x1a, 0x4b}));
+    EXPECT_EQ(huffman::encode("https://www.example.com"),
+              (std::vector<uint8_t>{0x9d, 0x29, 0xad, 0x17, 0x18, 0x63, 0xc7, 0x8f, 0x0b,
+                                    0x97, 0xc8, 0xe9, 0xae, 0x82, 0xae, 0x43, 0xd3}));
+}
+
+TEST_F(HpackTest, HuffmanDecodeRfc7541Vectors)
+{
+    // Explicit decode of the C.4.1 Huffman-coded vector.
+    std::vector<uint8_t> c41 = {0xf1, 0xe3, 0xc2, 0xe5, 0xf2, 0x3a,
+                                0x6b, 0xa0, 0xab, 0x90, 0xf4, 0xff};
+    auto decoded = huffman::decode(c41);
+    ASSERT_TRUE(decoded.is_ok());
+    EXPECT_EQ(decoded.value(), "www.example.com");
+
+    auto roundtrip = [](const std::string& s) {
+        auto dec = huffman::decode(huffman::encode(s));
+        return dec.is_ok() ? dec.value() : std::string("<error>");
+    };
+    EXPECT_EQ(roundtrip("no-cache"), "no-cache");
+    EXPECT_EQ(roundtrip("custom-key"), "custom-key");
+    EXPECT_EQ(roundtrip("custom-value"), "custom-value");
+    EXPECT_EQ(roundtrip("Mon, 21 Oct 2013 20:13:21 GMT"),
+              "Mon, 21 Oct 2013 20:13:21 GMT");
+    EXPECT_EQ(roundtrip("https://www.example.com"), "https://www.example.com");
+}
+
+TEST_F(HpackTest, HuffmanRoundTripAllByteValues)
+{
+    // Every octet value must survive an encode/decode round trip, and
+    // encoded_size must match the produced byte count.
+    for (int c = 0; c < 256; ++c)
+    {
+        std::string s(1, static_cast<char>(c));
+        auto enc = huffman::encode(s);
+        auto dec = huffman::decode(enc);
+        ASSERT_TRUE(dec.is_ok()) << "decode failed for byte " << c;
+        ASSERT_EQ(dec.value().size(), 1u);
+        EXPECT_EQ(static_cast<unsigned char>(dec.value()[0]),
+                  static_cast<unsigned char>(c)) << "round trip mismatch for byte " << c;
+        EXPECT_EQ(huffman::encoded_size(s), enc.size());
+    }
+}
+
+TEST_F(HpackTest, HuffmanDecodeRejectsEosSymbol)
+{
+    // A run of 1-bits long enough to contain the 30-bit EOS code is invalid
+    // (RFC 7541 5.2).
+    std::vector<uint8_t> all_ones = {0xff, 0xff, 0xff, 0xff};
+    EXPECT_TRUE(huffman::decode(all_ones).is_err());
+}
+
+TEST_F(HpackTest, HuffmanDecodeRejectsInvalidPadding)
+{
+    // 'a' = 00101 (5 bits); a trailing pad of 000 is not the EOS prefix.
+    std::vector<uint8_t> bad_padding = {0x28};  // 00101 000
+    EXPECT_TRUE(huffman::decode(bad_padding).is_err());
+}
+
+TEST_F(HpackTest, HuffmanEncodedSizeMatchesEncode)
+{
+    for (const auto& s : {std::string("hello world"), std::string("test"),
+                          std::string(""), std::string(":method"),
+                          std::string("X-Custom-Header-Value-123")})
+    {
+        EXPECT_EQ(huffman::encoded_size(s), huffman::encode(s).size());
+    }
 }
 
 TEST_F(HpackTest, HuffmanEmptyInput)
