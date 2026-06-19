@@ -438,6 +438,11 @@ auto quic_socket::remote_connection_id() const -> const connection_id&
 // Internal Methods
 // =============================================================================
 
+auto quic_socket::negotiated_alpn() const -> std::string
+{
+	return crypto_.get_alpn();
+}
+
 auto quic_socket::do_receive() -> void
 {
 	if (!is_receiving_.load())
@@ -471,6 +476,9 @@ auto quic_socket::do_receive() -> void
 
 			if (bytes_transferred > 0)
 			{
+				packets_received_.fetch_add(1, std::memory_order_relaxed);
+				bytes_received_.fetch_add(bytes_transferred,
+				                          std::memory_order_relaxed);
 				handle_packet(std::span(recv_buffer_.data(), bytes_transferred));
 			}
 
@@ -874,6 +882,9 @@ auto quic_socket::send_packet(encryption_level level,
 
 	auto self = shared_from_this();
 	auto buffer = std::make_shared<std::vector<uint8_t>>(std::move(protected_packet));
+
+	packets_sent_.fetch_add(1, std::memory_order_relaxed);
+	bytes_sent_.fetch_add(buffer->size(), std::memory_order_relaxed);
 
 	udp_socket_.async_send_to(
 		asio::buffer(*buffer),

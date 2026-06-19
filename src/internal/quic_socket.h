@@ -297,6 +297,40 @@ namespace kcenon::network::internal
 		 */
 		auto socket() const -> const asio::ip::udp::socket& { return udp_socket_; }
 
+		// =====================================================================
+		// Connection statistics
+		// =====================================================================
+
+		/*!
+		 * \brief Get the ALPN protocol negotiated during the handshake.
+		 * \return Negotiated protocol string, or empty if none was negotiated.
+		 */
+		[[nodiscard]] auto negotiated_alpn() const -> std::string;
+
+		/*! \brief Total QUIC packets sent on this socket. */
+		[[nodiscard]] auto packets_sent() const noexcept -> uint64_t
+		{
+			return packets_sent_.load(std::memory_order_relaxed);
+		}
+
+		/*! \brief Total QUIC packets received on this socket. */
+		[[nodiscard]] auto packets_received() const noexcept -> uint64_t
+		{
+			return packets_received_.load(std::memory_order_relaxed);
+		}
+
+		/*! \brief Total bytes sent on this socket (protected packet sizes). */
+		[[nodiscard]] auto bytes_sent() const noexcept -> uint64_t
+		{
+			return bytes_sent_.load(std::memory_order_relaxed);
+		}
+
+		/*! \brief Total bytes received on this socket (datagram sizes). */
+		[[nodiscard]] auto bytes_received() const noexcept -> uint64_t
+		{
+			return bytes_received_.load(std::memory_order_relaxed);
+		}
+
 	private:
 		// =====================================================================
 		// Internal Methods
@@ -415,6 +449,12 @@ namespace kcenon::network::internal
 
 		//! Connection state
 		std::atomic<quic_connection_state> state_{quic_connection_state::idle};
+
+		//! Live transport counters surfaced through quic_connection_stats.
+		std::atomic<uint64_t> packets_sent_{0};
+		std::atomic<uint64_t> packets_received_{0};
+		std::atomic<uint64_t> bytes_sent_{0};
+		std::atomic<uint64_t> bytes_received_{0};
 
 		//! QUIC crypto handler
 		protocols::quic::quic_crypto crypto_;

@@ -456,8 +456,17 @@ auto messaging_quic_client::set_alpn_protocols(
 
 auto messaging_quic_client::alpn_protocol() const -> std::optional<std::string>
 {
-	// TODO: Implement ALPN negotiation result retrieval
-	return std::nullopt;
+	auto local_socket = get_socket();
+	if (!local_socket)
+	{
+		return std::nullopt;
+	}
+	auto alpn = local_socket->negotiated_alpn();
+	if (alpn.empty())
+	{
+		return std::nullopt;
+	}
+	return alpn;
 }
 
 auto messaging_quic_client::is_early_data_accepted() const -> bool
@@ -467,8 +476,24 @@ auto messaging_quic_client::is_early_data_accepted() const -> bool
 
 auto messaging_quic_client::stats() const -> quic_connection_stats
 {
-	// TODO: Implement connection statistics retrieval
-	return quic_connection_stats{};
+	quic_connection_stats stats;
+
+	auto local_socket = get_socket();
+	if (local_socket)
+	{
+		// Live transport counters from the socket.
+		stats.bytes_sent = local_socket->bytes_sent();
+		stats.bytes_received = local_socket->bytes_received();
+		stats.packets_sent = local_socket->packets_sent();
+		stats.packets_received = local_socket->packets_received();
+
+		// NOTE: packets_lost, smoothed_rtt, min_rtt, and cwnd require the QUIC
+		// loss-detection / RTT-estimation / congestion-control stack, which is
+		// not yet integrated into the experimental client's socket. They remain
+		// zero until that stack is wired in (see kcenon/network_system#1158).
+	}
+
+	return stats;
 }
 
 auto messaging_quic_client::do_connect(std::string_view host,
