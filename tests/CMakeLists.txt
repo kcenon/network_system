@@ -68,6 +68,9 @@ if(GTest_FOUND OR GTEST_FOUND)
             GTest::gtest
             GTest::gtest_main
             Threads::Threads
+            # logger_system's HMAC integrity policy pulls in OpenSSL libcrypto
+            # (EVP_MAC_*); link it transitively for these logger-consuming tests.
+            $<TARGET_NAME_IF_EXISTS:OpenSSL::Crypto>
         )
 
         target_include_directories(${target} PRIVATE

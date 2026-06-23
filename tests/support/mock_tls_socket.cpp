@@ -92,9 +92,11 @@ using bio_ptr = std::unique_ptr<BIO, bio_deleter>;
     ASN1_INTEGER_set(X509_get_serialNumber(cert.get()), 1);
 
     // Validity: now to now + 100 years (drift-insensitive).
-    constexpr long kHundredYearsSeconds = 60L * 60 * 24 * 365 * 100;
+    // Use X509_time_adj_ex (day-based) for notAfter: 100 years in seconds
+    // (~3.15e9) overflows a 32-bit long (LLP64/Windows), and X509_gmtime_adj's
+    // offset argument is a long.
     if (X509_gmtime_adj(X509_get_notBefore(cert.get()), 0) == nullptr ||
-        X509_gmtime_adj(X509_get_notAfter(cert.get()), kHundredYearsSeconds) == nullptr)
+        X509_time_adj_ex(X509_get_notAfter(cert.get()), 365 * 100, 0, nullptr) == nullptr)
     {
         throw std::runtime_error("X509 validity setup failed: " + openssl_error_string());
     }
