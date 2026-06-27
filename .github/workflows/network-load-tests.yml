@@ -41,7 +41,8 @@ jobs:
           -DCMAKE_CXX_COMPILER=g++-14 \
           -DBUILD_TESTS=ON \
           -DBUILD_BENCHMARKS=OFF \
-          -DBUILD_EXAMPLES=OFF
+          -DBUILD_EXAMPLES=OFF \
+          -DBUILD_SAMPLES=OFF
 
     - name: Build
       run: cmake --build build --config ${{ env.BUILD_TYPE }}
@@ -126,7 +127,8 @@ jobs:
           -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
           -DBUILD_TESTS=ON \
           -DBUILD_BENCHMARKS=OFF \
-          -DBUILD_EXAMPLES=OFF
+          -DBUILD_EXAMPLES=OFF \
+          -DBUILD_SAMPLES=OFF
 
     - name: Build
       run: cmake --build build --config ${{ env.BUILD_TYPE }}
@@ -207,7 +209,8 @@ jobs:
           -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} `
           -DBUILD_TESTS=ON `
           -DBUILD_BENCHMARKS=OFF `
-          -DBUILD_EXAMPLES=OFF
+          -DBUILD_EXAMPLES=OFF `
+          -DBUILD_SAMPLES=OFF
 
     - name: Build
       run: cmake --build build --config ${{ env.BUILD_TYPE }}
