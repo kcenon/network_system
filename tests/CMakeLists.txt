@@ -62,19 +62,12 @@ if(GTest_FOUND OR GTEST_FOUND)
     function(network_add_messaging_test target source)
         add_executable(${target} ${source})
 
-        # logger_system's HMAC integrity policy (rotating_file_writer.cpp) uses
-        # OpenSSL EVP_MAC, but logger only links libcrypto when its encryption
-        # option is on. Ensure OpenSSL is found and link libcrypto on these
-        # logger-consuming test executables regardless of network's TLS flags.
-        find_package(OpenSSL 3.0.0 REQUIRED)
-
         target_link_libraries(${target} PRIVATE
             network_system
             network::test_support
             GTest::gtest
             GTest::gtest_main
             Threads::Threads
-            OpenSSL::Crypto
         )
 
         target_include_directories(${target} PRIVATE

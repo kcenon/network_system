@@ -163,7 +163,14 @@ function(setup_logger_system_integration target)
         message(STATUS "Configured ${target} with logger_system integration")
     else()
         message(STATUS "${target}: logger_system not found, using common_system's ILogger")
+        return()
     endif()
+
+    # logger_system's HMAC integrity policy uses OpenSSL EVP_MAC symbols. Some
+    # logger builds do not publish libcrypto themselves, so network_system keeps
+    # libcrypto after logger in consumers' static link lines.
+    find_package(OpenSSL 3.0.0 REQUIRED)
+    target_link_libraries(${target} PUBLIC ${OPENSSL_CRYPTO_LIBRARY})
 endfunction()
 
 ##################################################
