@@ -35,7 +35,7 @@ endfunction()
 function(install_network_system_headers)
     install(DIRECTORY include/
         DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-        FILES_MATCHING PATTERN "*.h"
+        FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp" PATTERN "*.inl" PATTERN "*.tpp"
     )
 
     # Install internal headers under namespaced path (Issue #944, vcpkg-registry#79)
@@ -44,7 +44,7 @@ function(install_network_system_headers)
     # these must be available under the namespaced include directory.
     install(DIRECTORY src/internal/
         DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/kcenon/network/internal
-        FILES_MATCHING PATTERN "*.h"
+        FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp" PATTERN "*.inl" PATTERN "*.tpp"
     )
 
     # Backward-compatible wrapper headers at the old install path (Issue vcpkg-registry#79)

@@ -37,10 +37,10 @@ jobs:
       run: |
         cmake -B build -G Ninja \
           -DCMAKE_BUILD_TYPE=Release \
-          -DBUILD_WITH_COMMON_SYSTEM=ON \
-          -DBUILD_WITH_LOGGER_SYSTEM=OFF \
-          -DBUILD_WITH_THREAD_SYSTEM=OFF \
-          -DBUILD_WITH_CONTAINER_SYSTEM=OFF \
+          -DKCENON_WITH_COMMON_SYSTEM=ON \
+          -DKCENON_WITH_LOGGER_SYSTEM=OFF \
+          -DKCENON_WITH_THREAD_SYSTEM=OFF \
+          -DKCENON_WITH_CONTAINER_SYSTEM=OFF \
           -DBUILD_TESTS=OFF \
           -DBUILD_EXAMPLES=OFF \
           -DBUILD_EXAMPLES=OFF
@@ -151,10 +151,10 @@ jobs:
         cmake -B build -G Ninja \
           -DCMAKE_BUILD_TYPE=Debug \
           -DCMAKE_TOOLCHAIN_FILE="${{ env.CMAKE_TOOLCHAIN_FILE }}" \
-          -DBUILD_WITH_COMMON_SYSTEM=ON \
-          -DBUILD_WITH_LOGGER_SYSTEM=ON \
-          -DBUILD_WITH_THREAD_SYSTEM=ON \
-          -DBUILD_WITH_CONTAINER_SYSTEM=ON \
+          -DKCENON_WITH_COMMON_SYSTEM=ON \
+          -DKCENON_WITH_LOGGER_SYSTEM=ON \
+          -DKCENON_WITH_THREAD_SYSTEM=ON \
+          -DKCENON_WITH_CONTAINER_SYSTEM=ON \
           -DBUILD_MESSAGING_BRIDGE=OFF \
           -DBUILD_TESTS=ON \
           -DBUILD_EXAMPLES=OFF
@@ -169,10 +169,10 @@ jobs:
         cmake -B build -G Ninja `
           -DCMAKE_BUILD_TYPE=Debug `
           -DCMAKE_TOOLCHAIN_FILE="${{ env.CMAKE_TOOLCHAIN_FILE }}" `
-          -DBUILD_WITH_COMMON_SYSTEM=ON `
-          -DBUILD_WITH_LOGGER_SYSTEM=ON `
-          -DBUILD_WITH_THREAD_SYSTEM=ON `
-          -DBUILD_WITH_CONTAINER_SYSTEM=ON `
+          -DKCENON_WITH_COMMON_SYSTEM=ON `
+          -DKCENON_WITH_LOGGER_SYSTEM=ON `
+          -DKCENON_WITH_THREAD_SYSTEM=ON `
+          -DKCENON_WITH_CONTAINER_SYSTEM=ON `
           -DBUILD_MESSAGING_BRIDGE=OFF `
           -DBUILD_TESTS=ON `
           -DBUILD_EXAMPLES=OFF
@@ -187,10 +187,10 @@ jobs:
           brew install googletest asio fmt openssl@3 lz4 zlib 2>/dev/null || true
         cmake -B build -G Ninja \
           -DCMAKE_BUILD_TYPE=Debug \
-          -DBUILD_WITH_COMMON_SYSTEM=ON \
-          -DBUILD_WITH_LOGGER_SYSTEM=ON \
-          -DBUILD_WITH_THREAD_SYSTEM=ON \
-          -DBUILD_WITH_CONTAINER_SYSTEM=ON \
+          -DKCENON_WITH_COMMON_SYSTEM=ON \
+          -DKCENON_WITH_LOGGER_SYSTEM=ON \
+          -DKCENON_WITH_THREAD_SYSTEM=ON \
+          -DKCENON_WITH_CONTAINER_SYSTEM=ON \
           -DBUILD_MESSAGING_BRIDGE=OFF \
           -DBUILD_TESTS=ON \
           -DBUILD_EXAMPLES=OFF
@@ -206,10 +206,10 @@ jobs:
         cmake -B build -G Ninja `
           -DCMAKE_BUILD_TYPE=Debug `
           -DCMAKE_TOOLCHAIN_FILE="$toolchainFile" `
-          -DBUILD_WITH_COMMON_SYSTEM=ON `
-          -DBUILD_WITH_LOGGER_SYSTEM=ON `
-          -DBUILD_WITH_THREAD_SYSTEM=ON `
-          -DBUILD_WITH_CONTAINER_SYSTEM=ON `
+          -DKCENON_WITH_COMMON_SYSTEM=ON `
+          -DKCENON_WITH_LOGGER_SYSTEM=ON `
+          -DKCENON_WITH_THREAD_SYSTEM=ON `
+          -DKCENON_WITH_CONTAINER_SYSTEM=ON `
           -DBUILD_MESSAGING_BRIDGE=OFF `
           -DBUILD_TESTS=ON `
           -DBUILD_EXAMPLES=OFF
@@ -416,10 +416,10 @@ jobs:
           -DCMAKE_BUILD_TYPE=Debug \
           -DCMAKE_PREFIX_PATH=${{ github.workspace }}/deps/install \
           -D${{ matrix.sanitizer.option }}=ON \
-          -DBUILD_WITH_COMMON_SYSTEM=ON \
-          -DBUILD_WITH_LOGGER_SYSTEM=ON \
-          -DBUILD_WITH_THREAD_SYSTEM=ON \
-          -DBUILD_WITH_CONTAINER_SYSTEM=ON \
+          -DKCENON_WITH_COMMON_SYSTEM=ON \
+          -DKCENON_WITH_LOGGER_SYSTEM=ON \
+          -DKCENON_WITH_THREAD_SYSTEM=ON \
+          -DKCENON_WITH_CONTAINER_SYSTEM=ON \
           -DBUILD_MESSAGING_BRIDGE=OFF \
           -DBUILD_TESTS=ON \
           -DBUILD_EXAMPLES=OFF \
@@ -497,10 +497,10 @@ jobs:
       run: |
         cmake -B build -G Ninja \
           -DCMAKE_BUILD_TYPE=Release \
-          -DBUILD_WITH_COMMON_SYSTEM=ON \
-          -DBUILD_WITH_LOGGER_SYSTEM=ON \
-          -DBUILD_WITH_THREAD_SYSTEM=ON \
-          -DBUILD_WITH_CONTAINER_SYSTEM=ON \
+          -DKCENON_WITH_COMMON_SYSTEM=ON \
+          -DKCENON_WITH_LOGGER_SYSTEM=ON \
+          -DKCENON_WITH_THREAD_SYSTEM=ON \
+          -DKCENON_WITH_CONTAINER_SYSTEM=ON \
           -DBUILD_EXAMPLES=OFF
         cmake --build build --config Release --parallel
         cmake --install build --prefix ${{ github.workspace }}/install

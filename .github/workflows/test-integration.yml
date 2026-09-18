@@ -114,10 +114,10 @@ jobs:
               -DCMAKE_C_COMPILER=gcc \
               -DCMAKE_CXX_COMPILER=g++ \
               -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
-              -DBUILD_WITH_COMMON_SYSTEM=ON \
-              -DBUILD_WITH_LOGGER_SYSTEM=OFF \
-              -DBUILD_WITH_THREAD_SYSTEM=OFF \
-              -DBUILD_WITH_CONTAINER_SYSTEM=OFF \
+              -DKCENON_WITH_COMMON_SYSTEM=ON \
+              -DKCENON_WITH_LOGGER_SYSTEM=OFF \
+              -DKCENON_WITH_THREAD_SYSTEM=OFF \
+              -DKCENON_WITH_CONTAINER_SYSTEM=OFF \
               -DBUILD_MESSAGING_BRIDGE=OFF \
               -DBUILD_TESTS=ON \
               -DBUILD_EXAMPLES=OFF \
@@ -128,10 +128,10 @@ jobs:
       run: |
         cmake -B build -G Ninja \
           -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
-          -DBUILD_WITH_COMMON_SYSTEM=ON \
-          -DBUILD_WITH_LOGGER_SYSTEM=OFF \
-          -DBUILD_WITH_THREAD_SYSTEM=OFF \
-          -DBUILD_WITH_CONTAINER_SYSTEM=OFF \
+          -DKCENON_WITH_COMMON_SYSTEM=ON \
+          -DKCENON_WITH_LOGGER_SYSTEM=OFF \
+          -DKCENON_WITH_THREAD_SYSTEM=OFF \
+          -DKCENON_WITH_CONTAINER_SYSTEM=OFF \
           -DBUILD_MESSAGING_BRIDGE=OFF \
           -DBUILD_TESTS=ON \
           -DBUILD_EXAMPLES=OFF \
@@ -210,7 +210,7 @@ jobs:
       if: matrix.build_type == 'Debug' && startsWith(matrix.os, 'ubuntu')
       uses: codecov/codecov-action@v6
       with:
-        file: ./build/coverage.info
+        files: ./build/coverage.info
         flags: unittests
         name: codecov-umbrella
         fail_ci_if_error: false
@@ -227,4 +227,3 @@ jobs:
           build/Testing/
           build/*.log
         retention-days: 7
-
