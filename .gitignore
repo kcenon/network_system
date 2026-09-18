@@ -97,3 +97,10 @@ container_system/
 
 #npm-cache
 .npm-cache/
+coherence-results/
+
+__pycache__/
+
+*.pyc
+
+!ci/*.json
