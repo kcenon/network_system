@@ -1,3 +1,5 @@
+include("${CMAKE_CURRENT_LIST_DIR}/KcenonDependencyOptions.cmake")
+
 ##################################################
 # network_system_options.cmake
 #
@@ -71,15 +73,19 @@ option(NETWORK_BUILD_MODULES "Build C++20 module version of network_system" OFF)
 ##################################################
 
 # Required dependencies (Tier 0-1)
-option(BUILD_WITH_COMMON_SYSTEM "Build with common_system integration (REQUIRED)" ON)
-option(BUILD_WITH_THREAD_SYSTEM "Build with thread_system integration (REQUIRED)" ON)
+kcenon_dependency_option(KCENON_WITH_COMMON_SYSTEM BUILD_WITH_COMMON_SYSTEM
+    "Build with common_system integration (REQUIRED)" ON)
+kcenon_dependency_option(KCENON_WITH_THREAD_SYSTEM BUILD_WITH_THREAD_SYSTEM
+    "Build with thread_system integration (REQUIRED)" ON)
 
 # Optional dependencies - logger_system is now OPTIONAL (runtime binding via GlobalLoggerRegistry)
 # Issue #285: Migrated to common_system's ILogger interface
-option(BUILD_WITH_LOGGER_SYSTEM "Build with logger_system integration (OPTIONAL - runtime binding)" OFF)
+kcenon_dependency_option(KCENON_WITH_LOGGER_SYSTEM BUILD_WITH_LOGGER_SYSTEM
+    "Build with logger_system integration (OPTIONAL - runtime binding)" OFF)
 
 # Optional dependencies
-option(BUILD_WITH_CONTAINER_SYSTEM "Build with container_system integration" ON)
+kcenon_dependency_option(KCENON_WITH_CONTAINER_SYSTEM BUILD_WITH_CONTAINER_SYSTEM
+    "Build with container_system integration" ON)
 
 # Official gRPC library integration (issue #360)
 # When enabled, wraps the official grpc++ library for production use.

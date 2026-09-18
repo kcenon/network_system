@@ -83,10 +83,10 @@
             "displayName": "CI Standalone",
             "description": "CI build without external dependencies",
             "cacheVariables": {
-                "BUILD_WITH_COMMON_SYSTEM": "OFF",
-                "BUILD_WITH_LOGGER_SYSTEM": "OFF",
-                "BUILD_WITH_THREAD_SYSTEM": "OFF",
-                "BUILD_WITH_CONTAINER_SYSTEM": "OFF",
+                "KCENON_WITH_COMMON_SYSTEM": "OFF",
+                "KCENON_WITH_LOGGER_SYSTEM": "OFF",
+                "KCENON_WITH_THREAD_SYSTEM": "OFF",
+                "KCENON_WITH_CONTAINER_SYSTEM": "OFF",
                 "BUILD_MESSAGING_BRIDGE": "OFF",
                 "BUILD_TESTS": "ON",
                 "BUILD_EXAMPLES": "OFF"
@@ -98,10 +98,10 @@
             "displayName": "CI Full",
             "description": "CI build with all external dependencies",
             "cacheVariables": {
-                "BUILD_WITH_COMMON_SYSTEM": "ON",
-                "BUILD_WITH_LOGGER_SYSTEM": "ON",
-                "BUILD_WITH_THREAD_SYSTEM": "ON",
-                "BUILD_WITH_CONTAINER_SYSTEM": "ON",
+                "KCENON_WITH_COMMON_SYSTEM": "ON",
+                "KCENON_WITH_LOGGER_SYSTEM": "ON",
+                "KCENON_WITH_THREAD_SYSTEM": "ON",
+                "KCENON_WITH_CONTAINER_SYSTEM": "ON",
                 "BUILD_MESSAGING_BRIDGE": "OFF",
                 "BUILD_TESTS": "ON",
                 "BUILD_EXAMPLES": "OFF"

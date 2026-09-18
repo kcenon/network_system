@@ -54,6 +54,7 @@ target_sources(network_system_modules
 target_include_directories(network_system_modules PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
+    $<INSTALL_INTERFACE:include/kcenon/network>
 )
 
 # Link dependencies

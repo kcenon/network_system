@@ -47,10 +47,10 @@ jobs:
           -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
           -DBUILD_TESTS=OFF \
           -DBUILD_EXAMPLES=OFF \
-          -DBUILD_WITH_COMMON_SYSTEM=OFF \
-          -DBUILD_WITH_LOGGER_SYSTEM=OFF \
-          -DBUILD_WITH_THREAD_SYSTEM=OFF \
-          -DBUILD_WITH_CONTAINER_SYSTEM=OFF \
+          -DKCENON_WITH_COMMON_SYSTEM=OFF \
+          -DKCENON_WITH_LOGGER_SYSTEM=OFF \
+          -DKCENON_WITH_THREAD_SYSTEM=OFF \
+          -DKCENON_WITH_CONTAINER_SYSTEM=OFF \
           -DBUILD_MESSAGING_BRIDGE=OFF
 
         find src include -name '*.cpp' -o -name '*.h' | \
@@ -153,10 +153,10 @@ jobs:
           -DCMAKE_C_FLAGS="--coverage -fprofile-arcs -ftest-coverage" \
           -DBUILD_TESTS=ON \
           -DBUILD_EXAMPLES=OFF \
-          -DBUILD_WITH_COMMON_SYSTEM=ON \
-          -DBUILD_WITH_LOGGER_SYSTEM=OFF \
-          -DBUILD_WITH_THREAD_SYSTEM=OFF \
-          -DBUILD_WITH_CONTAINER_SYSTEM=OFF \
+          -DKCENON_WITH_COMMON_SYSTEM=ON \
+          -DKCENON_WITH_LOGGER_SYSTEM=OFF \
+          -DKCENON_WITH_THREAD_SYSTEM=OFF \
+          -DKCENON_WITH_CONTAINER_SYSTEM=OFF \
           -DBUILD_MESSAGING_BRIDGE=OFF
 
     - name: Build
