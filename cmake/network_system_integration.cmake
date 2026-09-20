@@ -157,7 +157,15 @@ function(setup_logger_system_integration target)
     elseif(LOGGER_SYSTEM_INCLUDE_DIR)
         target_include_directories(${target} PRIVATE ${LOGGER_SYSTEM_INCLUDE_DIR})
         if(LOGGER_SYSTEM_LIBRARY)
-            target_link_libraries(${target} PUBLIC ${LOGGER_SYSTEM_LIBRARY})
+            # A library found by path has no CMake usage requirements. Keep
+            # logger's crypto dependencies after the archive so ELF linkers
+            # using --as-needed retain them for its HMAC/encryption symbols.
+            find_package(OpenSSL 3.0.0 REQUIRED)
+            target_link_libraries(${target} PUBLIC
+                ${LOGGER_SYSTEM_LIBRARY} OpenSSL::SSL OpenSSL::Crypto)
+            if(WIN32)
+                target_link_libraries(${target} PUBLIC advapi32)
+            endif()
         endif()
         target_compile_definitions(${target} PRIVATE WITH_LOGGER_SYSTEM)
         message(STATUS "Configured ${target} with logger_system integration")
