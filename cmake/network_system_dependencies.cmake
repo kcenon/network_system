@@ -401,7 +401,7 @@ function(find_logger_system)
         return()
     endif()
 
-    foreach(_candidate LoggerSystem logger logger_system::logger_system)
+    foreach(_candidate LoggerSystem logger logger_system::logger logger_system::logger_system)
         if(TARGET ${_candidate})
             message(STATUS "Found logger_system CMake target: ${_candidate}")
             set(LOGGER_SYSTEM_FOUND TRUE PARENT_SCOPE)
