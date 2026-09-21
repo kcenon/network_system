@@ -239,14 +239,22 @@ TEST_F(ActivityTrackingTest, GetIdleDuration)
 TEST_F(ActivityTrackingTest, GetIdleDurationAfterUpdate)
 {
 	std::this_thread::sleep_for(200ms);
+	const auto before_update = std::chrono::steady_clock::now();
 	manager_->update_activity("tracked_session");
+	const auto after_update = std::chrono::steady_clock::now();
 	std::this_thread::sleep_for(30ms);
 
+	const auto before_query = std::chrono::steady_clock::now();
 	auto idle_duration = manager_->get_idle_duration("tracked_session");
+	const auto after_query = std::chrono::steady_clock::now();
 
 	ASSERT_TRUE(idle_duration.has_value());
-	// Should reflect time since update (~30ms), not total time (~230ms)
-	EXPECT_LT(idle_duration->count(), 150);
+	// Measure elapsed time around the API calls: a busy runner may suspend
+	// this thread for longer than the requested sleep duration.
+	EXPECT_GE(*idle_duration, std::chrono::duration_cast<std::chrono::milliseconds>(
+		before_query - after_update));
+	EXPECT_LE(*idle_duration, std::chrono::duration_cast<std::chrono::milliseconds>(
+		after_query - before_update));
 }
 
 TEST_F(ActivityTrackingTest, GetIdleDurationNotFound)
