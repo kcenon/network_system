@@ -38,7 +38,7 @@ category: "PROJ"
 network_system/
 ├── 📁 include/network_system/     # 공개 헤더 파일 (API)
 ├── 📁 src/                        # 구현 파일
-├── 📁 samples/                    # 사용 예제
+├── 📁 examples/tutorials/         # 사용법 튜토리얼
 ├── 📁 tests/                      # 테스트 스위트
 ├── 📁 benchmarks/                 # 성능 벤치마크
 ├── 📁 integration_tests/          # 통합 테스트 프레임워크
