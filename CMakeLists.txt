@@ -856,10 +856,10 @@ endif()
 if(BUILD_SAMPLES)
     message(STATUS "Building network_system samples")
 
-    # Add samples subdirectory if it exists
-    if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/samples/CMakeLists.txt)
-        add_subdirectory(samples)
-        message(STATUS "Network system samples enabled")
+    # Tutorials retain the BUILD_SAMPLES compatibility option and binary dir.
+    if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/examples/tutorials/CMakeLists.txt)
+        add_subdirectory(examples/tutorials samples)
+        message(STATUS "Network system tutorials enabled")
     endif()
 endif()
 

@@ -1485,9 +1485,9 @@ After successful migration, you should observe these performance characteristics
 
 | Sample | Location | Purpose |
 |--------|----------|---------|
-| **Basic Usage** | [samples/basic_usage.cpp](/Users/raphaelshin/Sources/network_system/samples/basic_usage.cpp) | Simple client/server example |
-| **TCP Demo** | [samples/tcp_server_client.cpp](/Users/raphaelshin/Sources/network_system/samples/tcp_server_client.cpp) | Full TCP implementation |
-| **Integration** | [samples/messaging_system_integration/](/Users/raphaelshin/Sources/network_system/samples/messaging_system_integration/) | messaging_system integration |
+| **Basic Usage** | [`examples/tutorials/basic_usage.cpp`](../../examples/tutorials/basic_usage.cpp) | Simple client/server example |
+| **TCP Demo** | [`examples/tutorials/tcp_server_client.cpp`](../../examples/tutorials/tcp_server_client.cpp) | Full TCP implementation |
+| **Integration** | [`examples/tutorials/messaging_system_integration/`](../../examples/tutorials/messaging_system_integration/) | messaging_system integration |
 | **Benchmarks** | [benchmarks/](/Users/raphaelshin/Sources/network_system/benchmarks/) | Performance testing |
 
 ### Community Support

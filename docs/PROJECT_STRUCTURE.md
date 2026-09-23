@@ -36,7 +36,7 @@ This document provides a comprehensive guide to the project directory structure,
 network_system/
 ├── 📁 include/network_system/     # Public header files (API)
 ├── 📁 src/                        # Implementation files
-├── 📁 samples/                    # Usage examples
+├── 📁 examples/tutorials/         # Focused usage tutorials
 ├── 📁 tests/                      # Test suites
 ├── 📁 benchmarks/                 # Performance benchmarks
 ├── 📁 integration_tests/          # Integration test framework

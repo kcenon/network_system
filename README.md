@@ -42,6 +42,17 @@ A modern C++20 asynchronous network library providing reusable transport primiti
 - 🔒 **Secure**: TLS 1.2/1.3 support, certificate validation, modern cipher suites
 - 🌐 **Cross-Platform**: Ubuntu, Windows, macOS with GCC, Clang, MSVC support
 
+> **Version status — v1.0 candidate (tag pending).** The current package version
+> is **`0.1.1`** (see `CMakeLists.txt` and `vcpkg.json`). The public API surface
+> has been audited and *frozen as a v1.0 candidate*
+> (see [docs/v1.0-api-surface.md](docs/v1.0-api-surface.md)), but **v1.0.0 has
+> not been released and the `v1.0.0` tag has not been published.** The tag is
+> gated on the remaining v1.0 readiness work (test-coverage target and the
+> upstream Tier 0-3 v1.0 epics) tracked in
+> [#964](https://github.com/kcenon/network_system/issues/964). Until v1.0.0 is
+> tagged, treat `network_system` as pre-1.0: the SemVer stability guarantees
+> described below apply only once the tag ships.
+
 ---
 
 ## Installation via vcpkg
@@ -68,7 +79,7 @@ vcpkg install kcenon-network-system[ssl,ecosystem] \
 | `ssl` | off | Explicit SSL/TLS support flag | openssl >= 3.0.0 |
 | `ecosystem` | off | Logger and container integration | logger_system, container_system |
 | `testing` | off | Unit tests and benchmarks | gtest, benchmark |
-| `samples` | off | Sample applications | — |
+| `examples` | off | Usage examples | — |
 | `docs` | off | Doxygen documentation | — |
 
 ### CMake Integration
@@ -77,6 +88,13 @@ vcpkg install kcenon-network-system[ssl,ecosystem] \
 find_package(network_system CONFIG REQUIRED)
 target_link_libraries(your_target PRIVATE network_system::network_system)
 ```
+
+The canonical export target is `network_system::network_system`. This name is
+the intended v1.0 stable-contract target for downstream consumers (the v1.0
+guarantee takes effect once the v1.0.0 tag ships — see the version-status note
+above) and is already provided consistently across both build-tree (FetchContent
+/ add_subdirectory) and install-tree (`find_package`) consumption. No deprecated
+target spellings are exported.
 
 ### Minimal Example
 
@@ -327,6 +345,29 @@ Starting with v2.0, network_system is organized into protocol-specific libraries
 | [`network-quic`](libs/network-quic/) | QUIC (RFC 9000) | network-udp, OpenSSL |
 | [`network-grpc`](libs/network-grpc/) | gRPC high-performance RPC | network-quic |
 | [`network-all`](libs/network-all/) | Umbrella package (all protocols) | All above |
+
+### Protocol Support Status
+
+Audited support status per protocol (see
+[docs/PROTOCOL_SUPPORT.md](docs/PROTOCOL_SUPPORT.md) for the full matrix,
+evidence, and code-level findings):
+
+| Protocol | Status | Notes |
+|----------|--------|-------|
+| TCP | `production` | Async server/client, lifecycle, reconnection |
+| UDP | `production` | Connectionless datagram, broadcast/multicast |
+| TLS/SSL | `production` | TLS 1.2/1.3, certificate validation |
+| WebSocket | `production` | RFC 6455 framing, fragmentation, ping/pong |
+| HTTP/1.1 | `production` | Routing, cookies, multipart, gzip/deflate |
+| HTTP/2 | `production` | Multiplexed streams; HPACK Huffman is an experimental pass-through |
+| QUIC | `production` | RFC 9000/9001/9002 core; experimental client stats/ALPN accessors |
+| gRPC | `production` | Custom HTTP/2 transport + optional `grpc++` wrapper |
+| DTLS | `experimental` | Socket present and tested; server payload handling not yet wired |
+
+`production` protocols are covered by happy-path and non-happy-path tests.
+`experimental` surfaces are documented and excluded from the (candidate) v1.0
+stability surface; the v1.0 guarantee itself takes effect only once the v1.0.0
+tag ships (see the version-status note in [Overview](#overview)).
 
 ### Dependency Graph
 
@@ -689,22 +730,46 @@ thread_integration_manager::instance().set_thread_pool(adapted);
 - 📖 [Features Guide](docs/FEATURES.md) - Comprehensive feature descriptions
 - 🏗️ [Architecture](docs/ARCHITECTURE.md) - System design and patterns
 - 📘 [API Reference](docs/API_REFERENCE.md) - Complete API documentation
-- 🔧 [Build Guide](docs/BUILD.md) - Detailed build instructions
-- 🚀 [Migration Guide](docs/MIGRATION_GUIDE.md) - Migrating from messaging_system
+- 🔧 [Build Guide](docs/guides/BUILD.md) - Detailed build instructions
+- 🚀 [Migration Guide](docs/MIGRATION.md) - Migrating from messaging_system
+
+#### Generated API Docs (Doxygen)
+
+The full Doxygen-generated reference for the (candidate) v1.0 public API surface
+is published from the `main` branch by the
+[Generate-Documentation workflow](.github/workflows/build-Doxygen.yaml) and
+hosted on GitHub Pages at:
+
+- https://kcenon.github.io/network_system/
+
+To regenerate the HTML locally:
+
+```bash
+doxygen Doxyfile
+# Output: documents/html/index.html
+```
+
+The
+[Doxygen Warnings Check workflow](.github/workflows/doxygen-warnings-check.yml)
+runs on every PR and fails the build if any header under
+`include/kcenon/network/` (excluding `detail/`) emits a Doxygen warning.
+This guards the v1.0 public API surface defined in
+[docs/v1.0-api-surface.md](docs/v1.0-api-surface.md) against documentation
+regressions.
 
 ### Advanced Topics
 - ⚡ [Performance & Benchmarks](docs/BENCHMARKS.md) - Performance metrics and testing
 - 🏭 [Production Quality](docs/PRODUCTION_QUALITY.md) - CI/CD, security, quality assurance
 - 📁 [Project Structure](docs/PROJECT_STRUCTURE.md) - Directory organization and modules
 - 🧩 [C++20 Concepts](docs/advanced/CONCEPTS.md) - Compile-time type validation
-- 🔒 [TLS Setup Guide](docs/TLS_SETUP_GUIDE.md) - TLS/SSL configuration
-- 🔍 [Troubleshooting](docs/TROUBLESHOOTING.md) - Common issues and solutions
-- 🧪 [Load Test Guide](docs/LOAD_TEST_GUIDE.md) - Load testing procedures
+- 🔒 [TLS Setup Guide](docs/guides/TLS_SETUP_GUIDE.md) - TLS/SSL configuration
+- 🔍 [Troubleshooting](docs/guides/TROUBLESHOOTING.md) - Common issues and solutions
+- 🧪 [Load Test Guide](docs/guides/LOAD_TEST_GUIDE.md) - Load testing procedures
 - 📝 [Design Decisions](docs/DESIGN_DECISIONS.md) - Architectural patterns and rationale
 
 ### Development
 - 🔄 [Integration Guide](docs/INTEGRATION.md) - Ecosystem integration patterns
-- 📊 [Operations Guide](docs/OPERATIONS.md) - Deployment and operations
+- 📊 [Operations Guide](docs/advanced/OPERATIONS.md) - Deployment and operations
 - 📋 [Changelog](docs/CHANGELOG.md) - Version history and updates
 
 ---
@@ -854,7 +919,7 @@ To remove all build directories at once:
 | Option | Default | Description |
 |--------|---------|-------------|
 | `BUILD_TESTS` | ON | Build unit tests |
-| `BUILD_SAMPLES` | ON | Build sample applications |
+| `BUILD_EXAMPLES` | ON | Build usage examples |
 | `BUILD_TLS_SUPPORT` | ON | Enable TLS/SSL support |
 | `BUILD_WEBSOCKET_SUPPORT` | ON | Enable WebSocket protocol |
 | `NETWORK_BUILD_BENCHMARKS` | OFF | Build performance benchmarks |
@@ -868,23 +933,24 @@ To remove all build directories at once:
 
 ## Examples
 
-Complete examples are available in the `samples/` directory:
+Complete examples are available in the `examples/` directory:
 
 - **basic_usage.cpp** - Basic TCP client/server
-- **simple_tcp_server.cpp** - TCP server with session management
-- **simple_tcp_client.cpp** - TCP client with reconnection
+- **tcp_echo_server.cpp** - TCP server with session management
+- **tcp_client.cpp** - TCP client using the facade API
 - **simple_http_server.cpp** - HTTP server with routing
 - **simple_http_client.cpp** - HTTP client with various request types
-- **websocket_example.cpp** - WebSocket server and client
+- **websocket_chat.cpp** - WebSocket chat server and client
 - **quic_server_example.cpp** - QUIC server with multi-stream support
 - **quic_client_example.cpp** - QUIC client with stream multiplexing
 - **grpc_service_example.cpp** - gRPC service registration and management
 
 Build and run examples:
 ```bash
-cmake --build build --target samples
-./build/bin/simple_tcp_server
-./build/bin/simple_tcp_client
+cmake -B build -DBUILD_EXAMPLES=ON
+cmake --build build
+./build/bin/examples/example_tcp_echo_server
+./build/bin/examples/example_tcp_client
 ```
 
 ---
@@ -905,7 +971,8 @@ cmake --build build --target samples
 - 🚧 **Zero-Copy Pipelines**: Eliminate unnecessary buffer copies
 - 🚧 **HTTP/2 Client**: Modern HTTP/2 protocol support
 
-See [IMPROVEMENTS.md](IMPROVEMENTS.md) for detailed roadmap and tracking.
+<!-- TODO: IMPROVEMENTS.md not yet written; link to roadmap pending -->
+See the [Changelog](docs/CHANGELOG.md) for completed work and in-progress items.
 
 ---
 
@@ -915,7 +982,8 @@ Contributions are welcome! Please see our [Contributing Guide](docs/contributing
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Follow the [Coding Style Rules](CODING_STYLE_RULES.md)
+3. Follow the [Contributing Guide](docs/contributing/CONTRIBUTING.md) coding standards <!-- TODO: dedicated CODING_STYLE_RULES.md not yet written -->
+
 4. Commit changes with conventional commits
 5. Push to the branch (`git push origin feature/amazing-feature`)
 6. Open a Pull Request

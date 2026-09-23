@@ -125,7 +125,7 @@ network_system 문서에 오신 것을 환영합니다! 이것은 분산 시스�
 1. **빌드** - [빌드 가이드](guides/BUILD.kr.md)로 라이브러리 컴파일
 2. **아키텍처** - [아키텍처](ARCHITECTURE.kr.md)로 시스템 개요 파악
 3. **API** - [API 레퍼런스](API_REFERENCE.kr.md)로 기본 사용법 학습
-4. **예제** - `samples/` 디렉토리에서 동작하는 예제 확인
+4. **예제** - `examples/tutorials/` 디렉토리에서 동작하는 예제 확인
 
 **문제 발생 시**:
 - [트러블슈팅](guides/TROUBLESHOOTING.kr.md) 먼저 확인
