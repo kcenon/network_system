@@ -1,0 +1,5 @@
+<map id="kcenon::network::utils::connection_state::set_disconnected" name="kcenon::network::utils::connection_state::set_disconnected">
+<area shape="rect" id="Node000001" title="Transitions to disconnected state." alt="" coords="236,5,405,60"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1utils_1_1connection__state.html#a3ccbe97ab3a3a5da7785e6b3d2c6abaa" title="Resets to disconnected state." alt="" coords="5,13,188,53"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="222,35,188,35,188,30,222,30"/>
+</map>

@@ -1,0 +1,17 @@
+<map id="kcenon::network::protocols::grpc::grpc_client::impl::is_connected" name="kcenon::network::protocols::grpc::grpc_client::impl::is_connected">
+<area shape="rect" id="Node000001" title=" " alt="" coords="499,203,697,257"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1protocols_1_1grpc_1_1grpc__client_1_1impl.html#a64e6d2a5f62adf618381c42e2661a561" title=" " alt="" coords="252,5,451,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="567,193,516,132,484,101,449,74,431,63,433,58,452,69,488,97,520,129,571,190"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1protocols_1_1grpc_1_1grpc__client_1_1impl.html#a19da0c3df010229bc59dd7941c9f88ed" title=" " alt="" coords="252,84,451,139"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="537,198,450,152,424,141,426,136,452,148,540,194"/>
+<area shape="rect" id="Node000005" href="$classkcenon_1_1network_1_1protocols_1_1grpc_1_1grpc__client_1_1impl.html#a9923faf7cc40c83d28cc136ecefbfaef" title=" " alt="" coords="252,163,451,217"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="485,214,451,209,451,203,486,209"/>
+<area shape="rect" id="Node000006" href="$classkcenon_1_1network_1_1protocols_1_1grpc_1_1grpc__client.html#a174dc3e1ead3be4748815cb545e96d4a" title="Check if connected." alt="" coords="252,241,451,296"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="486,250,451,256,451,250,485,245"/>
+<area shape="rect" id="Node000007" href="$classkcenon_1_1network_1_1protocols_1_1grpc_1_1grpc__client_1_1impl.html#ada211ff7dd4a1a8bd25846f61db2fc11" title=" " alt="" coords="252,320,451,375"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="537,266,452,310,423,322,421,318,450,305,535,261"/>
+<area shape="rect" id="Node000008" href="$classkcenon_1_1network_1_1protocols_1_1grpc_1_1grpc__client_1_1impl.html#aa3956ce5cb509aff740270fdd88a0ecb" title=" " alt="" coords="252,399,451,453"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="571,270,519,330,487,361,452,388,431,401,428,396,449,384,484,357,515,326,567,267"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1protocols_1_1grpc_1_1grpc__client_1_1impl.html#af482c55fd98e4fc15fa798c01ecfb2d9" title=" " alt="" coords="5,84,204,139"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="238,114,204,114,204,109,238,109"/>
+</map>

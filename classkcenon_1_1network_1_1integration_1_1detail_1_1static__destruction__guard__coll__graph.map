@@ -1,0 +1,9 @@
+<map id="kcenon::network::integration::detail::static_destruction_guard" name="kcenon::network::integration::detail::static_destruction_guard">
+<area shape="rect" id="Node000001" title="Guard against logging during static destruction." alt="" coords="5,389,232,539"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="51,261,186,327"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="121,327,121,373,116,373,116,327"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="56,133,181,199"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="121,213,121,261,116,261,116,213"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="107,5,130,71"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="121,71,121,117,116,117,116,71"/>
+</map>

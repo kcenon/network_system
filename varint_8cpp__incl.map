@@ -1,0 +1,21 @@
+<map id="src/protocols/quic/varint.cpp" name="src/protocols/quic/varint.cpp">
+<area shape="rect" id="Node000001" title=" " alt="" coords="387,5,523,45"/>
+<area shape="rect" id="Node000002" href="$varint_8h.html" title=" " alt="" coords="387,93,523,133"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="458,46,458,79,453,79,453,46"/>
+<area shape="rect" id="Node000003" href="$result__types_8h.html" title="Network&#45;specific error and result type definitions." alt="" coords="147,181,313,221"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="407,136,293,179,291,174,405,131"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="338,189,405,214"/>
+<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="439,135,394,180,391,177,435,132"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="429,189,482,214"/>
+<area shape="poly" id="edge7_Node000002_Node000008" title=" " alt="" coords="458,134,458,175,453,175,453,134"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="507,189,567,214"/>
+<area shape="poly" id="edge8_Node000002_Node000009" title=" " alt="" coords="475,132,518,177,514,180,471,135"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="591,189,653,214"/>
+<area shape="poly" id="edge9_Node000002_Node000010" title=" " alt="" coords="493,131,589,180,587,185,491,136"/>
+<area shape="rect" id="Node000004" href="$detail_2config_2feature__flags_8h.html" title="Feature flags for network_system." alt="" coords="5,269,172,309"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="200,224,133,265,130,260,198,219"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="196,277,264,302"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="233,222,233,263,227,263,227,222"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="289,277,347,302"/>
+<area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="251,220,298,265,294,268,248,224"/>
+</map>

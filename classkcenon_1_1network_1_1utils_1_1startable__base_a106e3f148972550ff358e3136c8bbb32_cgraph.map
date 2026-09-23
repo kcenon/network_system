@@ -1,0 +1,5 @@
+<map id="kcenon::network::utils::startable_base::is_running" name="kcenon::network::utils::startable_base::is_running">
+<area shape="rect" id="Node000001" title="Checks if the component is currently running." alt="" coords="5,13,207,53"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1utils_1_1lifecycle__manager.html#a886ebda2e9af66e367ed4b8a563fcf7c" title="Checks if the component is currently running." alt="" coords="255,5,424,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="207,30,241,30,241,35,207,35"/>
+</map>

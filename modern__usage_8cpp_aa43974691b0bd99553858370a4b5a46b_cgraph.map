@@ -1,0 +1,13 @@
+<map id="demonstrate_advanced_features" name="demonstrate_advanced_features">
+<area shape="rect" id="Node000001" title="Demonstrate advanced features." alt="" coords="5,125,180,165"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1integration_1_1container__manager.html#a435769ab47ee6e0a8044c1d0b00a678a" title="Get the singleton instance." alt="" coords="228,29,447,69"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="131,123,227,79,248,71,250,76,229,84,133,128"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1integration_1_1thread__integration__manager.html#a90d93374dd61a18d654e2f7cedf38f57" title="Get the singleton instance." alt="" coords="230,118,445,173"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="180,143,217,143,217,148,180,148"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1integration_1_1container__manager.html#a2aa8a8c18591b8a4f4f59c7ea3f13063" title="Register a container implementation." alt="" coords="230,197,445,251"/>
+<area shape="poly" id="edge5_Node000001_Node000004" title=" " alt="" coords="157,163,240,190,238,195,155,168"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="292,30,289,20,297,10,313,5,337,3,366,6,381,13,379,18,364,11,337,8,314,10,300,15,295,21,297,28"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="290,118,290,108,299,99,315,93,337,91,365,94,380,102,378,107,363,100,337,97,316,99,302,103,295,110,295,118"/>
+<area shape="rect" id="Node000005" href="$classkcenon_1_1network_1_1integration_1_1container__manager_1_1impl.html#a4de19fcbd1a80e64c867ad02eb3b6743" title=" " alt="" coords="495,197,704,251"/>
+<area shape="poly" id="edge6_Node000004_Node000005" title=" " alt="" coords="445,221,481,221,481,227,445,227"/>
+</map>

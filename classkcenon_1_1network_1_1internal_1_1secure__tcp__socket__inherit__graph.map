@@ -1,0 +1,5 @@
+<map id="kcenon::network::internal::secure_tcp_socket" name="kcenon::network::internal::secure_tcp_socket">
+<area shape="rect" id="Node000001" title="A lightweight wrapper around asio::ssl::stream&lt;asio::ip::tcp::socket&gt;, enabling asynchronous TLS/SSL ..." alt="" coords="5,148,188,643"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="13,5,181,100"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="99,114,99,148,94,148,94,114"/>
+</map>

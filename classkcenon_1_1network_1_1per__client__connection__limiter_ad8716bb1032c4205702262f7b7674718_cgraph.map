@@ -1,0 +1,5 @@
+<map id="kcenon::network::per_client_connection_limiter::total_connections" name="kcenon::network::per_client_connection_limiter::total_connections">
+<area shape="rect" id="Node000001" title="Get total connection count." alt="" coords="5,5,199,60"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1connection__limiter.html#ac7adf5acdf8fdf041b076b235cb9fec5" title="Get current connection count." alt="" coords="247,13,456,53"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="199,30,233,30,233,35,199,35"/>
+</map>

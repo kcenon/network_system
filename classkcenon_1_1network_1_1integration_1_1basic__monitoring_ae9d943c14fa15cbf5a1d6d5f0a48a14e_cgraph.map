@@ -1,0 +1,5 @@
+<map id="kcenon::network::integration::basic_monitoring::is_logging_enabled" name="kcenon::network::integration::basic_monitoring::is_logging_enabled">
+<area shape="rect" id="Node000001" title="Check if logging is enabled." alt="" coords="5,5,221,60"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1integration_1_1basic__monitoring_1_1impl.html#af2ea8731d773b9322226d547a3e7107d" title=" " alt="" coords="269,5,479,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="221,30,256,30,256,35,221,35"/>
+</map>

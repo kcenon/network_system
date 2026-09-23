@@ -1,0 +1,9 @@
+<map id="kcenon::network::internal::ws_frame_header" name="kcenon::network::internal::ws_frame_header">
+<area shape="rect" id="Node000001" title="Represents a decoded WebSocket frame header." alt="" coords="5,389,185,589"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="12,261,179,327"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="98,327,98,373,93,373,93,327"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="38,133,153,199"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="98,213,98,261,93,261,93,213"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="84,5,107,71"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="98,71,98,117,93,117,93,71"/>
+</map>

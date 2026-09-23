@@ -1,0 +1,5 @@
+<map id="kcenon::network::utils::buffer_pool" name="kcenon::network::utils::buffer_pool">
+<area shape="rect" id="Node000001" title="Thread&#45;safe memory pool for reusable byte buffers." alt="" coords="19,133,178,313"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,5,192,85"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="101,99,101,133,96,133,96,99"/>
+</map>

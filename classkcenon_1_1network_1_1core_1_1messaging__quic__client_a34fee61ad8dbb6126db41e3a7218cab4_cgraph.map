@@ -1,0 +1,9 @@
+<map id="kcenon::network::core::messaging_quic_client::~messaging_quic_client" name="kcenon::network::core::messaging_quic_client::~messaging_quic_client">
+<area shape="rect" id="Node000001" title="Destructor; automatically calls stop_client() if running." alt="" coords="5,45,195,100"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1utils_1_1lifecycle__manager.html#a886ebda2e9af66e367ed4b8a563fcf7c" title="Checks if the component is currently running." alt="" coords="247,5,417,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="195,54,234,47,234,52,196,59"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1core_1_1messaging__quic__client.html#a8b0effd05041ea8b9f4b818a2586e62e" title="Stops the client and releases all resources." alt="" coords="243,84,421,139"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="196,86,230,92,229,97,195,91"/>
+<area shape="rect" id="Node000004" href="$namespacekcenon_1_1network.html#aa32d0dbfdee046c2c0cde3667c5f05a8" title=" " alt="" coords="469,99,624,124"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="421,109,455,109,455,114,421,114"/>
+</map>

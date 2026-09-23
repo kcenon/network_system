@@ -1,0 +1,5 @@
+<map id="kcenon::network::session::messaging_session::close" name="kcenon::network::session::messaging_session::close">
+<area shape="rect" id="Node000001" title="Closes the session." alt="" coords="5,13,204,53"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1session_1_1messaging__session.html#ade9eaedf460c5bb36bc263bb87da8661" title="Stops the session by closing the socket and marking the session as inactive." alt="" coords="252,5,445,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="204,30,239,30,239,35,204,35"/>
+</map>

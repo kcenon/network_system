@@ -1,0 +1,7 @@
+<map id="demo_message_framing" name="demo_message_framing">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,45,188,70"/>
+<area shape="rect" id="Node000002" href="$structkcenon_1_1network_1_1protocols_1_1grpc_1_1grpc__message.html#a88edb1a928bcf6b946913aabf47de081" title="Serialize message to bytes with length prefix." alt="" coords="257,5,479,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="188,44,243,37,244,43,189,49"/>
+<area shape="rect" id="Node000003" href="$structkcenon_1_1network_1_1protocols_1_1grpc_1_1grpc__message.html#aaf2ed2e97522c2553385ef9ba1149fae" title="Get total serialized size including header." alt="" coords="236,69,500,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="189,65,222,69,222,75,188,71"/>
+</map>

@@ -1,0 +1,5 @@
+<map id="kcenon::network::protocols::grpc::server_stream_reader_impl::read" name="kcenon::network::protocols::grpc::server_stream_reader_impl::read">
+<area shape="rect" id="Node000001" title="Read next message from stream." alt="" coords="5,5,215,60"/>
+<area shape="rect" id="Node000002" href="$structkcenon_1_1network_1_1protocols_1_1grpc_1_1grpc__message.html#a2e062180dd3966fa2eaf169957e08366" title="Parse gRPC message from raw bytes." alt="" coords="263,13,467,53"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="215,30,249,30,249,35,215,35"/>
+</map>

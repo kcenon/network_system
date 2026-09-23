@@ -1,0 +1,7 @@
+<map id="kcenon::network::utils::startable_base::derived" name="kcenon::network::utils::startable_base::derived">
+<area shape="rect" id="Node000001" title="CRTP accessor for derived class." alt="" coords="240,37,423,77"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1utils_1_1startable__base.html#a1fb9401c25a1196298ad186713d8392c" title="Unified start operation with lifecycle management." alt="" coords="5,5,192,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="226,46,192,41,193,36,227,40"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1utils_1_1startable__base.html#a09de80568b447ebd2ab27f9fa9d3c21f" title="Unified stop operation with lifecycle management." alt="" coords="6,69,191,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="227,74,192,79,191,74,226,69"/>
+</map>

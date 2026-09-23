@@ -1,0 +1,5 @@
+<map id="kcenon::network::internal::websocket_protocol::create_pong" name="kcenon::network::internal::websocket_protocol::create_pong">
+<area shape="rect" id="Node000001" title="Creates a pong control frame." alt="" coords="5,5,252,45"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1internal_1_1websocket__frame.html#a519a43a9ad353d868f9bef5066ff88b6" title="Encodes data into a WebSocket frame." alt="" coords="300,5,547,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="252,23,286,23,286,28,252,28"/>
+</map>

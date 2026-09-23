@@ -1,0 +1,5 @@
+<map id="kcenon::network::protocols::quic::connection::reset_idle_timer" name="kcenon::network::protocols::quic::connection::reset_idle_timer">
+<area shape="rect" id="Node000001" title="Reset idle timer." alt="" coords="268,5,467,60"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1connection.html#acb424893a0406449962cc18453b9a596" title="Construct a connection." alt="" coords="5,13,220,53"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="254,35,220,35,220,30,254,30"/>
+</map>

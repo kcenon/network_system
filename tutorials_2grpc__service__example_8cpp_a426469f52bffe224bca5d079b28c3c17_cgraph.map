@@ -1,0 +1,7 @@
+<map id="demo_timeout_parsing" name="demo_timeout_parsing">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,45,177,70"/>
+<area shape="rect" id="Node000002" href="$namespacekcenon_1_1network_1_1protocols_1_1grpc.html#a95294d297122adbe9fefe05e6b846872" title="Format timeout as gRPC timeout string." alt="" coords="225,5,424,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="178,43,211,38,212,43,178,48"/>
+<area shape="rect" id="Node000003" href="$namespacekcenon_1_1network_1_1protocols_1_1grpc.html#ab2a88776d8daf7ea17249a58b87bbde6" title="Parse timeout string (e.g., &quot;10S&quot;, &quot;100m&quot;, &quot;1000u&quot;)" alt="" coords="225,69,424,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="178,67,212,71,211,77,178,72"/>
+</map>

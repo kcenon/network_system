@@ -1,0 +1,43 @@
+<map id="kcenon::network::tracing::span::impl" name="kcenon::network::tracing::span::impl">
+<area shape="rect" id="Node000001" title="Internal implementation structure for span." alt="" coords="575,1275,750,1475"/>
+<area shape="rect" id="Node000016" title=" " alt="" coords="441,1537,615,1632"/>
+<area shape="poly" id="edge22_Node000016_Node000001" title=" " alt="" coords="601,1476,569,1525,565,1522,596,1473"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="846,148,925,213"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="914,212,936,242,956,279,972,321,979,365,979,1166,973,1203,958,1236,936,1264,907,1289,874,1310,838,1327,767,1353,765,1348,836,1322,871,1305,904,1285,932,1261,954,1233,968,1202,973,1166,973,366,967,323,952,282,931,245,910,215"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="667,327,821,407"/>
+<area shape="poly" id="edge10_Node000009_Node000002" title=" " alt="" coords="848,213,823,239,813,256,807,270,793,304,786,315,782,312,788,301,802,268,808,253,819,236,844,210"/>
+<area shape="rect" id="Node000013" href="$structkcenon_1_1network_1_1tracing_1_1span__event.html" title="Span event (timestamped annotation)" alt="" coords="639,740,814,820"/>
+<area shape="poly" id="edge16_Node000013_Node000002" title=" " alt="" coords="884,214,869,303,852,401,828,497,789,621,750,726,745,724,784,619,823,495,846,399,864,302,878,213"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="820,5,951,85"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="888,99,888,148,883,148,883,99"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1tracing_1_1trace__context.html" title="Immutable trace context for distributed tracing." alt="" coords="247,520,422,1040"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="380,1039,411,1128,432,1171,456,1210,478,1240,505,1267,563,1313,560,1317,501,1271,474,1244,451,1214,427,1173,406,1130,375,1041"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="106,327,246,407"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="194,406,244,536,239,538,189,408"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="296,148,411,213"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="285,211,246,239,214,282,192,327,187,325,209,279,242,235,282,207"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="270,334,437,399"/>
+<area shape="poly" id="edge8_Node000008_Node000006" title=" " alt="" coords="356,227,356,334,351,334,351,227"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="415,13,438,78"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="417,61,399,83,381,111,370,134,366,132,376,108,395,80,413,58"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="577,148,703,213"/>
+<area shape="poly" id="edge13_Node000010_Node000007" title=" " alt="" coords="440,52,577,137,574,141,437,56"/>
+<area shape="rect" id="Node000014" title=" " alt="" coords="413,431,534,496"/>
+<area shape="poly" id="edge19_Node000014_Node000007" title=" " alt="" coords="441,65,459,109,474,192,480,276,481,353,479,414,474,414,476,353,475,276,468,193,453,110,436,67"/>
+<area shape="rect" id="Node000017" title=" " alt="" coords="5,237,155,303"/>
+<area shape="poly" id="edge24_Node000017_Node000007" title=" " alt="" coords="417,56,144,231,141,226,414,52"/>
+<area shape="poly" id="edge7_Node000004_Node000008" title=" " alt="" coords="344,400,336,431,328,504,323,503,331,430,339,399"/>
+<area shape="poly" id="edge9_Node000001_Node000009" title=" " alt="" coords="810,405,828,429,865,515,886,591,896,660,894,727,885,795,869,868,828,1041,812,1099,789,1157,737,1261,732,1259,784,1155,806,1098,823,1039,864,867,880,795,889,727,890,661,881,592,860,517,823,432,806,409"/>
+<area shape="poly" id="edge17_Node000013_Node000009" title=" " alt="" coords="745,407,732,724,726,724,740,407"/>
+<area shape="poly" id="edge11_Node000009_Node000010" title=" " alt="" coords="633,227,633,265,636,284,644,301,654,316,668,329,665,333,650,320,639,304,631,285,627,265,628,227"/>
+<area shape="rect" id="Node000011" title=" " alt="" coords="629,13,651,78"/>
+<area shape="poly" id="edge12_Node000010_Node000011" title=" " alt="" coords="643,78,643,131,637,131,637,78"/>
+<area shape="rect" id="Node000012" title=" " alt="" coords="590,1117,735,1212"/>
+<area shape="poly" id="edge14_Node000001_Node000012" title=" " alt="" coords="665,1212,665,1258,660,1258,660,1212"/>
+<area shape="poly" id="edge15_Node000012_Node000013" title=" " alt="" coords="723,821,676,1101,671,1100,718,820"/>
+<area shape="poly" id="edge18_Node000012_Node000014" title=" " alt="" coords="472,510,462,630,456,785,457,863,461,935,470,995,485,1039,506,1068,532,1093,561,1114,591,1131,589,1136,558,1119,528,1097,502,1072,480,1041,465,997,456,936,451,864,451,785,457,630,466,509"/>
+<area shape="rect" id="Node000015" href="$classkcenon_1_1network_1_1tracing_1_1span.html" title="RAII span for distributed tracing." alt="" coords="507,1695,682,1975"/>
+<area shape="poly" id="edge20_Node000001_Node000015" title=" " alt="" coords="614,1694,624,1632,644,1491,650,1491,629,1632,620,1695"/>
+<area shape="poly" id="edge21_Node000015_Node000016" title=" " alt="" coords="543,1632,556,1678,551,1680,538,1633"/>
+<area shape="poly" id="edge23_Node000016_Node000017" title=" " alt="" coords="78,316,71,462,71,1376,73,1404,81,1430,93,1453,109,1473,152,1508,205,1534,265,1553,327,1566,441,1579,441,1584,326,1572,264,1559,203,1539,149,1512,106,1477,89,1456,76,1432,68,1405,65,1376,65,462,73,316"/>
+</map>

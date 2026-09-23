@@ -1,0 +1,15 @@
+<map id="main" name="main">
+<area shape="rect" id="Node000001" title="Main function demonstrating modern usage." alt="" coords="5,133,60,158"/>
+<area shape="rect" id="Node000002" href="$modern__usage_8cpp.html#aa43974691b0bd99553858370a4b5a46b" title="Demonstrate advanced features." alt="" coords="108,125,283,165"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="60,143,94,143,94,148,60,148"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1integration_1_1container__manager.html#a435769ab47ee6e0a8044c1d0b00a678a" title="Get the singleton instance." alt="" coords="331,29,549,69"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="234,123,330,79,351,71,353,76,332,84,236,128"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1integration_1_1thread__integration__manager.html#a90d93374dd61a18d654e2f7cedf38f57" title="Get the singleton instance." alt="" coords="333,118,547,173"/>
+<area shape="poly" id="edge4_Node000002_Node000004" title=" " alt="" coords="283,143,319,143,319,148,283,148"/>
+<area shape="rect" id="Node000005" href="$classkcenon_1_1network_1_1integration_1_1container__manager.html#a2aa8a8c18591b8a4f4f59c7ea3f13063" title="Register a container implementation." alt="" coords="333,197,547,251"/>
+<area shape="poly" id="edge6_Node000002_Node000005" title=" " alt="" coords="259,163,342,190,341,195,258,168"/>
+<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="395,30,392,20,399,10,415,5,440,3,468,6,484,13,481,18,467,11,440,8,417,10,402,15,397,21,400,28"/>
+<area shape="poly" id="edge5_Node000004_Node000004" title=" " alt="" coords="393,118,393,108,401,99,417,93,440,91,467,94,483,102,481,107,466,100,440,97,418,99,404,103,398,110,398,118"/>
+<area shape="rect" id="Node000006" href="$classkcenon_1_1network_1_1integration_1_1container__manager_1_1impl.html#a4de19fcbd1a80e64c867ad02eb3b6743" title=" " alt="" coords="597,197,807,251"/>
+<area shape="poly" id="edge7_Node000005_Node000006" title=" " alt="" coords="548,221,584,221,584,227,548,227"/>
+</map>

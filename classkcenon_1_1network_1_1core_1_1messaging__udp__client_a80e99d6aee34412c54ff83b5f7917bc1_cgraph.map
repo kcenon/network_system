@@ -1,0 +1,9 @@
+<map id="kcenon::network::core::messaging_udp_client::~messaging_udp_client" name="kcenon::network::core::messaging_udp_client::~messaging_udp_client">
+<area shape="rect" id="Node000001" title="Destructor. Automatically calls stop_client() if the client is still running." alt="" coords="5,45,192,100"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1utils_1_1lifecycle__manager.html#a886ebda2e9af66e367ed4b8a563fcf7c" title="Checks if the component is currently running." alt="" coords="243,5,412,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="192,54,229,47,230,52,193,59"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1core_1_1messaging__udp__client.html#a2daa9a9c6d6473b2a75f9c56b81b659b" title="Stops the client and releases all resources." alt="" coords="240,84,415,139"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="193,86,227,92,226,97,192,91"/>
+<area shape="rect" id="Node000004" href="$namespacekcenon_1_1network.html#aa32d0dbfdee046c2c0cde3667c5f05a8" title=" " alt="" coords="463,99,617,124"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="415,109,449,109,449,114,415,114"/>
+</map>

@@ -1,0 +1,31 @@
+<map id="kcenon::network::utils::callback_manager::get" name="kcenon::network::utils::callback_manager::get">
+<area shape="rect" id="Node000001" title="Gets a callback at the specified index." alt="" coords="527,485,705,525"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1core_1_1messaging__server.html#aeb084341a00072d90729e2d126d93464" title="Gets a copy of the connection callback." alt="" coords="285,5,463,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="611,471,604,391,583,285,566,228,543,173,514,120,477,73,462,61,465,57,481,69,518,117,548,170,571,227,588,284,609,391,616,471"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1core_1_1secure__messaging__server.html#a2fa71b03dacd35959d0e6de8286868d9" title="Gets a copy of the connection callback." alt="" coords="275,84,473,139"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="608,471,597,405,573,319,556,274,535,230,508,189,477,152,463,141,466,137,481,148,513,186,539,228,561,272,578,318,602,404,614,470"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1core_1_1messaging__server.html#a69942fb096ac10289873c407d64774fb" title="Gets a copy of the disconnection callback." alt="" coords="284,163,464,217"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="604,472,588,420,563,355,526,288,503,258,477,231,462,220,465,215,480,227,507,254,530,286,568,353,593,418,609,471"/>
+<area shape="rect" id="Node000005" href="$classkcenon_1_1network_1_1core_1_1secure__messaging__server.html#a38594180fa2739abd11b7862527e5bff" title="Gets a copy of the disconnection callback." alt="" coords="269,241,479,296"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="598,473,578,436,551,392,517,348,477,309,460,298,463,294,480,305,521,344,555,389,583,433,602,471"/>
+<area shape="rect" id="Node000006" href="$classkcenon_1_1network_1_1core_1_1messaging__server.html#a5985136553235c2f21d2243749177149" title="Gets a copy of the error callback." alt="" coords="285,320,463,375"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="585,477,537,432,477,388,456,377,459,372,480,384,540,428,588,473"/>
+<area shape="rect" id="Node000007" href="$classkcenon_1_1network_1_1core_1_1messaging__udp__client.html#ad31956952bc2d612b1e5e98acdbb6ffa" title="Gets a copy of the error callback." alt="" coords="287,399,461,453"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="540,483,458,456,460,451,542,478"/>
+<area shape="rect" id="Node000008" href="$classkcenon_1_1network_1_1core_1_1messaging__udp__server.html#a5b3106e26c3e977bf644b24b59fe434d" title="Gets a copy of the error callback." alt="" coords="284,477,464,532"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="513,507,464,507,464,502,513,502"/>
+<area shape="rect" id="Node000009" href="$classkcenon_1_1network_1_1core_1_1secure__messaging__server.html#a83911e28a6b530c9057f24e1f4b22074" title="Gets a copy of the error callback." alt="" coords="275,556,473,611"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="542,531,460,558,458,553,540,526"/>
+<area shape="rect" id="Node000010" href="$classkcenon_1_1network_1_1core_1_1messaging__server.html#a6c53b74d220589bf3342ca933427796c" title="Gets a copy of the receive callback." alt="" coords="285,635,463,689"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="588,537,540,581,480,624,456,637,453,632,477,620,536,577,584,533"/>
+<area shape="rect" id="Node000011" href="$classkcenon_1_1network_1_1core_1_1messaging__udp__client.html#a7f00106cac5e1c6c16b057f6ea158e11" title="Gets a copy of the receive callback." alt="" coords="287,713,461,768"/>
+<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="602,538,582,576,555,620,521,664,480,703,461,715,458,711,477,699,517,660,551,617,578,573,597,536"/>
+<area shape="rect" id="Node000012" href="$classkcenon_1_1network_1_1core_1_1messaging__udp__server.html#a231cad10454ebb2eadee70b640515e9a" title="Gets a copy of the receive callback." alt="" coords="284,792,464,847"/>
+<area shape="poly" id="edge11_Node000001_Node000012" title=" " alt="" coords="609,539,593,591,567,656,530,723,507,754,480,781,463,794,460,790,477,777,503,750,525,720,562,654,588,590,604,537"/>
+<area shape="rect" id="Node000013" href="$classkcenon_1_1network_1_1core_1_1secure__messaging__server.html#ab91cc5b82556e3b3899078838975c5fc" title="Gets a copy of the receive callback." alt="" coords="275,871,473,925"/>
+<area shape="poly" id="edge12_Node000001_Node000013" title=" " alt="" coords="613,539,602,605,578,691,560,736,539,780,512,822,481,860,465,872,462,868,477,856,508,819,534,778,556,734,573,689,596,604,608,538"/>
+<area shape="rect" id="Node000014" href="$classkcenon_1_1network_1_1utils_1_1callback__manager.html#a15534bb29c2eac06f458e2fa8261580d" title="Invokes a callback at the specified index if set." alt="" coords="274,950,474,990"/>
+<area shape="poly" id="edge13_Node000001_Node000014" title=" " alt="" coords="617,539,610,619,590,726,572,783,549,839,519,892,481,939,463,952,459,948,477,935,514,889,544,837,567,781,585,725,605,619,611,538"/>
+<area shape="rect" id="Node000015" href="$classkcenon_1_1network_1_1utils_1_1callback__manager.html#ae8cac060a5a09e243066d618067e6ade" title="Invokes a callback conditionally." alt="" coords="5,950,221,990"/>
+<area shape="poly" id="edge14_Node000014_Node000015" title=" " alt="" coords="260,973,222,973,222,967,260,967"/>
+</map>

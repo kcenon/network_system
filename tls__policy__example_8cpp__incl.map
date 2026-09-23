@@ -1,0 +1,14 @@
+<map id="examples/tls_policy_example.cpp" name="examples/tls_policy_example.cpp">
+<area shape="rect" id="Node000001" title="Demonstrates TLS policy configuration for secure connections." alt="" coords="196,5,348,45"/>
+<area shape="rect" id="Node000002" href="$tls__policy_8h.html" title="Policy&#45;based TLS configuration (no_tls, require_tls, optional_tls)." alt="" coords="65,93,234,133"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="246,48,189,88,186,83,243,43"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="237,181,296,207"/>
+<area shape="poly" id="edge6_Node000001_Node000004" title=" " alt="" coords="274,46,270,168,265,168,269,46"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="309,101,389,126"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="291,44,332,88,328,92,287,47"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,181,85,207"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="126,136,73,175,70,171,123,131"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="179,131,240,172,237,176,176,136"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="110,181,202,207"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="154,133,156,167,151,168,148,134"/>
+</map>

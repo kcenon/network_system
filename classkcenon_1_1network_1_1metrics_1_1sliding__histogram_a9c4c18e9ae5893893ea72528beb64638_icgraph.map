@@ -1,0 +1,14 @@
+<map id="kcenon::network::metrics::sliding_histogram::expire_old_buckets" name="kcenon::network::metrics::sliding_histogram::expire_old_buckets">
+<area shape="rect" id="Node000001" title="Expire old buckets outside the window." alt="" coords="512,94,707,149"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1metrics_1_1sliding__histogram.html#ab0737c0166be498ce4e617818e777367" title="Create aggregated histogram from all buckets." alt="" coords="244,5,464,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="537,91,463,60,427,48,429,43,465,55,539,86"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1metrics_1_1sliding__histogram.html#ab361b5931e165429f0a9f18b9a3cb454" title="Get total number of observations in current window." alt="" coords="259,69,449,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="498,110,449,104,450,99,499,105"/>
+<area shape="rect" id="Node000005" href="$classkcenon_1_1network_1_1metrics_1_1sliding__histogram.html#ad398a3a2d2aa7299b391436dfb71a26d" title="Record a value observation." alt="" coords="257,133,451,173"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="499,138,452,144,451,138,498,133"/>
+<area shape="rect" id="Node000006" href="$classkcenon_1_1network_1_1metrics_1_1sliding__histogram.html#ab0b49683bbaf9f34f793e4cc751aa569" title="Get sum of all observations in current window." alt="" coords="261,197,447,237"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="539,157,465,188,429,200,427,195,463,183,537,152"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1metrics_1_1sliding__histogram.html#a4b942731eea612b99da34f901f538769" title="Get mean of all observations in current window." alt="" coords="5,133,196,173"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="262,115,181,136,180,131,260,110"/>
+<area shape="poly" id="edge6_Node000006_Node000004" title=" " alt="" coords="260,196,180,176,181,171,262,191"/>
+</map>

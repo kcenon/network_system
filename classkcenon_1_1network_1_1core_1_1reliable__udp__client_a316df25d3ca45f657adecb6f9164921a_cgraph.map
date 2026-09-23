@@ -1,0 +1,5 @@
+<map id="kcenon::network::core::reliable_udp_client::mode" name="kcenon::network::core::reliable_udp_client::mode">
+<area shape="rect" id="Node000001" title="Returns the current reliability mode." alt="" coords="5,13,204,53"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1core_1_1reliable__udp__client_1_1impl.html#ae9e857ae3fc81d80ef8e693e82f5b9a7" title=" " alt="" coords="252,5,419,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="204,30,238,30,238,35,204,35"/>
+</map>

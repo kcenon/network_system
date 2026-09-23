@@ -1,0 +1,9 @@
+<map id="kcenon::network::internal::socket_metrics" name="kcenon::network::internal::socket_metrics">
+<area shape="rect" id="Node000001" title="Runtime metrics for socket monitoring." alt="" coords="7,492,187,572"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,261,188,327"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="99,327,99,476,94,476,94,327"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="34,133,159,199"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="99,213,99,261,94,261,94,213"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="85,5,108,71"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="99,71,99,117,94,117,94,71"/>
+</map>

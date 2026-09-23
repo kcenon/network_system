@@ -1,0 +1,7 @@
+<map id="kcenon::network::core::messaging_server::stop_server" name="kcenon::network::core::messaging_server::stop_server">
+<area shape="rect" id="Node000001" title="Stops the server and closes all connections." alt="" coords="220,23,405,77"/>
+<area shape="rect" id="Node000002" href="$classModernServer.html#ab490e6ff198639b64b499bfe38ee5580" title=" " alt="" coords="14,5,163,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="206,37,163,31,164,26,207,32"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1core_1_1messaging__server.html#a3769db64eedebd23c32987967f2c725c" title="Destructor. If the server is still running, stop_server() is invoked." alt="" coords="5,55,172,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="206,68,172,73,172,67,206,63"/>
+</map>

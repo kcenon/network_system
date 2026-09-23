@@ -1,0 +1,8 @@
+<map id="demo_status_codes" name="demo_status_codes">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,42,156,67"/>
+<area shape="rect" id="Node000002" href="$structkcenon_1_1network_1_1protocols_1_1grpc_1_1grpc__status.html#a0c1d57bfb775d1e8dea8b104f0efe453" title="Get status code as string." alt="" coords="204,5,428,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="156,43,190,38,191,44,157,48"/>
+<area shape="rect" id="Node000003" href="$namespacekcenon_1_1network_1_1protocols_1_1grpc.html#af734a947f780a96caaf1e3c0475c3528" title="Convert status code to string." alt="" coords="476,35,684,75"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="156,54,204,55,428,55,462,54,462,60,428,60,204,60,156,59"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="428,35,463,39,462,44,428,40"/>
+</map>

@@ -1,0 +1,16 @@
+<map id="kcenon::network::tracing::span_event" name="kcenon::network::tracing::span_event">
+<area shape="rect" id="Node000001" title="Span event (timestamped annotation)" alt="" coords="164,433,339,513"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="241,148,320,213"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="293,213,298,237,310,324,309,363,298,410,294,420,289,418,293,409,304,362,305,325,293,238,288,214"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="111,291,266,371"/>
+<area shape="poly" id="edge4_Node000004_Node000002" title=" " alt="" coords="263,215,224,278,219,275,259,212"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="215,5,346,85"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="283,99,283,148,278,148,278,99"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="204,370,219,408,223,417,219,420,214,410,199,372"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="5,148,132,213"/>
+<area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="67,227,70,247,78,265,93,283,112,298,109,302,89,287,73,268,65,248,62,228"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="20,13,43,78"/>
+<area shape="poly" id="edge6_Node000005_Node000006" title=" " alt="" coords="31,78,31,101,35,123,39,132,34,134,30,125,26,101,25,78"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="96,13,119,78"/>
+<area shape="poly" id="edge7_Node000005_Node000007" title=" " alt="" coords="101,79,85,133,80,131,96,77"/>
+</map>

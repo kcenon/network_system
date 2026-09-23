@@ -1,0 +1,11 @@
+<map id="src/internal/utils/openssl_compat.h" name="src/internal/utils/openssl_compat.h">
+<area shape="rect" id="Node000001" title="OpenSSL utilities and version definitions." alt="" coords="222,5,366,45"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,93,151,119"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="243,48,123,91,122,86,241,43"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="175,93,282,119"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="280,47,249,84,245,81,276,44"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="307,93,412,119"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="312,44,343,81,339,84,308,47"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="435,93,547,119"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="342,43,450,86,448,91,340,48"/>
+</map>

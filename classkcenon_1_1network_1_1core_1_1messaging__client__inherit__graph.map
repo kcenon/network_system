@@ -1,0 +1,13 @@
+<map id="kcenon::network::core::messaging_client" name="kcenon::network::core::messaging_client">
+<area shape="rect" id="Node000001" title="A basic TCP client that connects to a remote host, sends/receives data using asynchronous operations,..." alt="" coords="192,932,409,1787"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,628,175,723"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="111,735,194,1006,189,1007,106,737"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1utils_1_1startable__base.html" title=" " alt="" coords="199,468,403,883"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="303,896,303,932,298,932,298,896"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1utils_1_1startable__base.html" title="CRTP base class providing unified start/stop lifecycle management." alt="" coords="201,5,400,405"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="303,419,303,468,298,468,298,419"/>
+<area shape="rect" id="Node000005" href="$classkcenon_1_1network_1_1interfaces_1_1i__protocol__client.html" title="Unified interface for all protocol client implementations." alt="" coords="427,555,641,795"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="492,809,412,1041,407,1040,487,807"/>
+<area shape="rect" id="Node000006" href="$classkcenon_1_1network_1_1interfaces_1_1i__network__component.html" title="Base interface for all network components." alt="" coords="437,95,631,315"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="537,329,537,555,531,555,531,329"/>
+</map>

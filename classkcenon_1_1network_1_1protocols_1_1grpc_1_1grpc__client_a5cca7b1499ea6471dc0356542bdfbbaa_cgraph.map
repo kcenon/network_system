@@ -1,0 +1,5 @@
+<map id="kcenon::network::protocols::grpc::grpc_client::target" name="kcenon::network::protocols::grpc::grpc_client::target">
+<area shape="rect" id="Node000001" title="Get the target address." alt="" coords="5,13,204,53"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1protocols_1_1grpc_1_1grpc__client_1_1impl.html#ae271e989b4318a122c8bbbf7d51e2aee" title=" " alt="" coords="252,5,451,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="204,30,238,30,238,35,204,35"/>
+</map>

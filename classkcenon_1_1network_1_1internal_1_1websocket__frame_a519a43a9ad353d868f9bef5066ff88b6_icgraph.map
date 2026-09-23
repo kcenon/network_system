@@ -1,0 +1,15 @@
+<map id="kcenon::network::internal::websocket_frame::encode_frame" name="kcenon::network::internal::websocket_frame::encode_frame">
+<area shape="rect" id="Node000001" title="Encodes data into a WebSocket frame." alt="" coords="625,149,872,189"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1internal_1_1websocket__protocol.html#aaae5156f984e0bc3fd1ccafb838390c8" title="Creates a binary message frame." alt="" coords="349,5,557,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="703,144,644,109,576,75,545,63,547,58,578,70,647,104,706,139"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1internal_1_1websocket__protocol.html#a1caee4b2fcafaf27a91af097161a8058" title="Creates a close control frame." alt="" coords="328,85,577,125"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="641,148,545,127,546,122,643,143"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1internal_1_1websocket__protocol.html#a2d7e78e1e0104c9bc898d4c90c13956d" title="Creates a ping control frame." alt="" coords="331,149,574,189"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="612,171,574,171,574,166,612,166"/>
+<area shape="rect" id="Node000005" href="$classkcenon_1_1network_1_1internal_1_1websocket__protocol.html#a102e364fb582aff2cf0e798cc8d8ac2e" title="Creates a pong control frame." alt="" coords="329,213,576,253"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="643,194,546,215,545,210,641,189"/>
+<area shape="rect" id="Node000007" href="$classkcenon_1_1network_1_1internal_1_1websocket__protocol.html#a87c3eb095a86677f425e111c3b18806b" title="Creates a text message frame." alt="" coords="349,277,557,332"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="706,198,647,233,578,267,547,280,545,275,576,262,644,228,703,194"/>
+<area shape="rect" id="Node000006" href="$classkcenon_1_1network_1_1internal_1_1websocket__socket.html#a7392c82d9efb9c328b9d512e2f399d1d" title="Constructs a websocket_socket wrapping an existing tcp_socket." alt="" coords="5,213,280,253"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="315,235,280,235,280,230,315,230"/>
+</map>

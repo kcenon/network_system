@@ -1,0 +1,25 @@
+<map id="src/protocols/grpc/frame.cpp" name="src/protocols/grpc/frame.cpp">
+<area shape="rect" id="Node000001" title=" " alt="" coords="545,5,683,45"/>
+<area shape="rect" id="Node000002" href="$include_2kcenon_2network_2detail_2protocols_2grpc_2frame_8h.html" title="gRPC message framing and serialization." alt="" coords="326,93,499,133"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="571,48,470,90,468,85,569,43"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="524,101,605,126"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="605,47,581,90,576,87,601,44"/>
+<area shape="rect" id="Node000011" title=" " alt="" coords="630,101,697,126"/>
+<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="627,44,652,87,647,90,623,47"/>
+<area shape="rect" id="Node000012" title=" " alt="" coords="721,101,795,126"/>
+<area shape="poly" id="edge11_Node000001_Node000012" title=" " alt="" coords="647,43,729,91,726,96,644,48"/>
+<area shape="rect" id="Node000003" href="$result__types_8h.html" title="Network&#45;specific error and result type definitions." alt="" coords="147,181,313,221"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="374,136,283,178,281,173,371,131"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="338,189,405,214"/>
+<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="406,135,385,177,381,175,401,132"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="429,189,482,214"/>
+<area shape="poly" id="edge7_Node000002_Node000008" title=" " alt="" coords="425,132,446,175,441,177,420,135"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="507,189,569,214"/>
+<area shape="poly" id="edge8_Node000002_Node000009" title=" " alt="" coords="442,131,511,179,508,183,439,136"/>
+<area shape="rect" id="Node000004" href="$detail_2config_2feature__flags_8h.html" title="Feature flags for network_system." alt="" coords="5,269,172,309"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="200,224,133,265,130,260,198,219"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="196,277,264,302"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="233,222,233,263,227,263,227,222"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="289,277,347,302"/>
+<area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="251,220,298,265,294,268,248,224"/>
+</map>

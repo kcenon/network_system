@@ -1,0 +1,9 @@
+<map id="ConnectionManager::start" name="ConnectionManager::start">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,77,165,117"/>
+<area shape="rect" id="Node000002" href="$classConnectionManager.html#a429a52253d23466a4aa1fd5838a22627" title=" " alt="" coords="215,5,394,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="146,75,229,47,231,52,148,80"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1unified_1_1i__listener.html#a13cb6daf9a7855c0da800bf82f756592" title="Sets the accept callback for new connections." alt="" coords="213,70,396,125"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="166,95,200,95,200,100,166,100"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1unified_1_1i__listener.html#adc561f85727346c582e60ba31aeb9fed" title="Starts listening for incoming connections." alt="" coords="213,149,396,189"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="148,115,231,142,229,147,146,120"/>
+</map>

@@ -1,0 +1,5 @@
+<map id="kcenon::network::protocols::quic::get_stream_flags" name="kcenon::network::protocols::quic::get_stream_flags">
+<area shape="rect" id="Node000001" title="Extract STREAM flags from frame type." alt="" coords="252,5,451,45"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1frame__parser.html#aeeb274219e3fe6087aa1a9c4255fc3aa" title="Parse a single frame from buffer." alt="" coords="5,5,204,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="238,28,204,28,204,23,238,23"/>
+</map>

@@ -1,0 +1,17 @@
+<map id="kcenon::network::protocols::http2::frame" name="kcenon::network::protocols::http2::frame">
+<area shape="rect" id="Node000001" title="Base class for HTTP/2 frames." alt="" coords="649,5,840,225"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1protocols_1_1http2_1_1data__frame.html" title="DATA frame (RFC 7540 Section 6.1)" alt="" coords="5,293,196,453"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="636,136,541,155,431,184,317,224,262,248,209,276,179,295,176,291,206,271,259,243,315,219,430,179,540,150,635,131"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1protocols_1_1http2_1_1goaway__frame.html" title="GOAWAY frame (RFC 7540 Section 6.8)" alt="" coords="220,273,411,473"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="638,162,532,212,476,242,423,276,412,284,409,279,421,271,473,238,529,207,636,157"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1protocols_1_1http2_1_1headers__frame.html" title="HEADERS frame (RFC 7540 Section 6.2)" alt="" coords="435,293,625,453"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="646,238,598,295,594,291,642,235"/>
+<area shape="rect" id="Node000005" href="$classkcenon_1_1network_1_1protocols_1_1http2_1_1ping__frame.html" title="PING frame (RFC 7540 Section 6.7)" alt="" coords="649,303,840,443"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="747,239,747,303,742,303,742,239"/>
+<area shape="rect" id="Node000006" href="$classkcenon_1_1network_1_1protocols_1_1http2_1_1rst__stream__frame.html" title="RST_STREAM frame (RFC 7540 Section 6.4)" alt="" coords="864,313,1055,433"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="847,234,912,312,908,315,843,238"/>
+<area shape="rect" id="Node000007" href="$classkcenon_1_1network_1_1protocols_1_1http2_1_1settings__frame.html" title="SETTINGS frame (RFC 7540 Section 6.5)" alt="" coords="1079,303,1269,443"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="854,157,960,207,1016,238,1069,271,1107,301,1104,305,1066,276,1013,242,958,212,851,162"/>
+<area shape="rect" id="Node000008" href="$classkcenon_1_1network_1_1protocols_1_1http2_1_1window__update__frame.html" title="WINDOW_UPDATE frame (RFC 7540 Section 6.9)" alt="" coords="1293,313,1505,433"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="854,132,949,152,1059,182,1174,221,1283,271,1340,311,1337,315,1281,276,1172,226,1057,187,948,158,853,137"/>
+</map>

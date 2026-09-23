@@ -1,0 +1,57 @@
+<map id="main" name="main">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,804,60,829"/>
+<area shape="rect" id="Node000002" href="$tutorials_2grpc__service__example_8cpp.html#a7d1522516b882b28a325e1d4c88ca45d" title=" " alt="" coords="110,148,301,173"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="32,804,52,634,74,509,105,381,125,325,147,270,188,185,193,187,152,272,130,327,111,383,79,510,58,635,38,804"/>
+<area shape="rect" id="Node000007" href="$tutorials_2grpc__service__example_8cpp.html#a3e3b664c7ba2d8066948c3d791aa2bcd" title=" " alt="" coords="119,768,291,793"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="60,809,130,794,131,799,61,814"/>
+<area shape="rect" id="Node000010" href="$tutorials_2grpc__service__example_8cpp.html#a1cd1935cf418979e4fd6c131fa4a3e01" title=" " alt="" coords="114,840,297,865"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="61,820,131,835,130,840,60,825"/>
+<area shape="rect" id="Node000013" href="$tutorials_2grpc__service__example_8cpp.html#ac94f0b706c003bfba0a05c9df1882d34" title=" " alt="" coords="108,395,303,420"/>
+<area shape="poly" id="edge12_Node000001_Node000013" title=" " alt="" coords="37,803,191,432,196,434,42,805"/>
+<area shape="rect" id="Node000021" href="$tutorials_2grpc__service__example_8cpp.html#a60ddfd2aa2665ab13d16508a856f829f" title=" " alt="" coords="130,961,281,987"/>
+<area shape="poly" id="edge23_Node000001_Node000021" title=" " alt="" coords="50,828,182,950,178,954,46,831"/>
+<area shape="rect" id="Node000024" href="$tutorials_2grpc__service__example_8cpp.html#a426469f52bffe224bca5d079b28c3c17" title=" " alt="" coords="119,1083,291,1108"/>
+<area shape="poly" id="edge27_Node000001_Node000024" title=" " alt="" coords="40,829,64,903,85,950,110,997,144,1038,179,1072,176,1076,140,1042,106,999,80,953,59,905,35,830"/>
+<area shape="rect" id="Node000003" href="$tutorials_2grpc__service__example_8cpp.html#ac0963918137489da0eef09bb465a1ca0" title="Simple echo handler that returns the request as&#45;is." alt="" coords="428,84,537,109"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="248,145,350,118,414,105,415,110,351,123,249,151"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1protocols_1_1grpc_1_1generic__service.html#ad05f60a3e958edf178a64b2e7fd34552" title="Get unary handler for a method." alt="" coords="383,5,582,60"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="222,146,278,108,350,69,369,61,371,66,352,74,280,113,225,150"/>
+<area shape="rect" id="Node000005" href="$classkcenon_1_1network_1_1protocols_1_1grpc_1_1generic__service.html#afb867c68bdc2936f7ab663cf941e981e" title="Register a unary method handler." alt="" coords="383,133,582,188"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="301,158,370,158,370,163,301,163"/>
+<area shape="rect" id="Node000006" href="$tutorials_2grpc__service__example_8cpp.html#a1da63bdd91b88440cb277fa9aa21e811" title="Handler that reverses the input bytes." alt="" coords="419,212,546,237"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="252,171,351,197,406,208,405,214,350,202,251,176"/>
+<area shape="rect" id="Node000008" href="$classkcenon_1_1network_1_1protocols_1_1grpc_1_1health__service.html#abe0e14a95887c33df875ccdef4496bb1" title="Get health status for a service." alt="" coords="383,675,582,729"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="251,765,372,731,373,736,252,770"/>
+<area shape="rect" id="Node000009" href="$classkcenon_1_1network_1_1protocols_1_1grpc_1_1health__service.html#ace73ee8d85789610f7e29c2f1f6f7cab" title="Set health status for a service." alt="" coords="383,753,582,808"/>
+<area shape="poly" id="edge8_Node000007_Node000009" title=" " alt="" coords="292,778,370,778,370,783,292,783"/>
+<area shape="rect" id="Node000011" href="$structkcenon_1_1network_1_1protocols_1_1grpc_1_1grpc__message.html#a88edb1a928bcf6b946913aabf47de081" title="Serialize message to bytes with length prefix." alt="" coords="371,833,594,873"/>
+<area shape="poly" id="edge10_Node000010_Node000011" title=" " alt="" coords="297,850,358,850,358,855,297,855"/>
+<area shape="rect" id="Node000012" href="$structkcenon_1_1network_1_1protocols_1_1grpc_1_1grpc__message.html#aaf2ed2e97522c2553385ef9ba1149fae" title="Get total serialized size including header." alt="" coords="351,897,615,937"/>
+<area shape="poly" id="edge11_Node000010_Node000012" title=" " alt="" coords="262,863,383,891,382,896,261,868"/>
+<area shape="poly" id="edge13_Node000013_Node000003" title=" " alt="" coords="209,393,267,251,309,170,329,139,349,119,380,102,414,95,415,100,382,108,352,123,333,143,313,173,272,253,214,395"/>
+<area shape="poly" id="edge17_Node000013_Node000005" title=" " alt="" coords="210,393,227,355,257,302,298,246,322,220,349,197,370,185,372,189,352,202,326,224,302,249,261,305,232,357,214,395"/>
+<area shape="poly" id="edge18_Node000013_Node000006" title=" " alt="" coords="212,393,232,362,263,322,302,281,349,246,376,235,405,228,406,233,378,240,352,251,306,285,267,326,236,365,216,396"/>
+<area shape="rect" id="Node000014" href="$classkcenon_1_1network_1_1protocols_1_1grpc_1_1service__registry.html#ac875e5285963e3d4e2e06d6a6f848740" title="Find a method by full path." alt="" coords="383,261,582,316"/>
+<area shape="poly" id="edge14_Node000013_Node000014" title=" " alt="" coords="225,392,280,359,350,325,369,317,371,322,352,330,283,364,228,397"/>
+<area shape="rect" id="Node000015" href="$classkcenon_1_1network_1_1protocols_1_1grpc_1_1generic__service.html#ab2f92542dee2d3dda414dd86067c48a7" title="Register a server streaming method handler." alt="" coords="353,340,612,395"/>
+<area shape="poly" id="edge15_Node000013_Node000015" title=" " alt="" coords="294,392,339,385,340,391,294,397"/>
+<area shape="rect" id="Node000016" href="$classkcenon_1_1network_1_1protocols_1_1grpc_1_1service__registry.html#afb1e3cc253508d4ea0fef4ed481a7638" title="Register a service." alt="" coords="383,419,582,473"/>
+<area shape="poly" id="edge16_Node000013_Node000016" title=" " alt="" coords="297,417,370,428,369,433,297,423"/>
+<area shape="rect" id="Node000017" href="$classkcenon_1_1network_1_1protocols_1_1grpc_1_1service__registry.html#a1a509a5d553c852444a8cc98c2900c06" title="Get list of all service names." alt="" coords="383,497,582,552"/>
+<area shape="poly" id="edge19_Node000013_Node000017" title=" " alt="" coords="229,418,284,449,352,482,372,490,370,495,350,487,281,454,226,423"/>
+<area shape="rect" id="Node000019" href="$tutorials_2grpc__service__example_8cpp.html#abc0df6d9afc5d741d9443e8d406b984b" title="Server streaming handler that sends multiple chunks." alt="" coords="421,576,545,601"/>
+<area shape="poly" id="edge21_Node000013_Node000019" title=" " alt="" coords="217,419,237,449,267,488,306,528,352,561,379,573,407,580,406,585,377,578,349,566,303,532,263,491,233,452,212,422"/>
+<area shape="rect" id="Node000020" href="$tutorials_2grpc__service__example_8cpp.html#ae6dcd3a5778afa2783e0ef3d56192948" title="Handler that returns current timestamp." alt="" coords="408,625,557,651"/>
+<area shape="poly" id="edge22_Node000013_Node000020" title=" " alt="" coords="214,419,231,457,260,510,301,565,325,590,352,610,373,621,395,628,393,633,371,626,349,615,322,594,297,568,256,513,226,460,209,421"/>
+<area shape="rect" id="Node000018" href="$classkcenon_1_1network_1_1protocols_1_1grpc_1_1service__registry_1_1impl.html#aed3db7a3fcc5205b3d9d2cf12b3b17f5" title=" " alt="" coords="667,497,866,552"/>
+<area shape="poly" id="edge20_Node000017_Node000018" title=" " alt="" coords="582,522,653,522,653,527,582,527"/>
+<area shape="rect" id="Node000022" href="$structkcenon_1_1network_1_1protocols_1_1grpc_1_1grpc__status.html#a0c1d57bfb775d1e8dea8b104f0efe453" title="Get status code as string." alt="" coords="371,1011,595,1051"/>
+<area shape="poly" id="edge24_Node000021_Node000022" title=" " alt="" coords="268,984,373,1006,371,1011,267,989"/>
+<area shape="rect" id="Node000023" href="$namespacekcenon_1_1network_1_1protocols_1_1grpc.html#af734a947f780a96caaf1e3c0475c3528" title="Convert status code to string." alt="" coords="663,982,871,1022"/>
+<area shape="poly" id="edge26_Node000021_Node000023" title=" " alt="" coords="281,975,649,993,649,999,281,980"/>
+<area shape="poly" id="edge25_Node000022_Node000023" title=" " alt="" coords="595,1017,649,1011,649,1017,595,1022"/>
+<area shape="rect" id="Node000025" href="$namespacekcenon_1_1network_1_1protocols_1_1grpc.html#a95294d297122adbe9fefe05e6b846872" title="Format timeout as gRPC timeout string." alt="" coords="383,1075,582,1115"/>
+<area shape="poly" id="edge28_Node000024_Node000025" title=" " alt="" coords="292,1093,370,1093,370,1098,292,1098"/>
+<area shape="rect" id="Node000026" href="$namespacekcenon_1_1network_1_1protocols_1_1grpc.html#ab2a88776d8daf7ea17249a58b87bbde6" title="Parse timeout string (e.g., &quot;10S&quot;, &quot;100m&quot;, &quot;1000u&quot;)" alt="" coords="383,1139,582,1179"/>
+<area shape="poly" id="edge29_Node000024_Node000026" title=" " alt="" coords="262,1106,383,1134,382,1139,261,1111"/>
+</map>

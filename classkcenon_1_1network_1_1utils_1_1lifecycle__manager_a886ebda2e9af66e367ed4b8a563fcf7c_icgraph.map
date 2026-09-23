@@ -1,0 +1,53 @@
+<map id="kcenon::network::utils::lifecycle_manager::is_running" name="kcenon::network::utils::lifecycle_manager::is_running">
+<area shape="rect" id="Node000001" title="Checks if the component is currently running." alt="" coords="800,735,969,790"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1utils_1_1startable__base.html#a09de80568b447ebd2ab27f9fa9d3c21f" title="Unified stop operation with lifecycle management." alt="" coords="554,5,739,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="878,722,867,575,844,377,827,276,806,185,780,110,766,81,750,59,737,48,740,44,754,56,770,78,785,108,811,184,833,275,850,376,873,575,884,722"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1core_1_1messaging__quic__client.html#a2eab74fffebacde8b04bf1512e2bf162" title="Checks if the client is currently running." alt="" coords="557,70,736,125"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="877,722,863,590,838,416,821,328,800,248,777,183,750,138,735,124,738,120,754,134,782,181,805,247,826,327,843,415,869,590,883,721"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1core_1_1messaging__quic__server.html#a0aba8fc661ec08bdc5e2ae41c315248e" title="Checks if the server is currently running." alt="" coords="555,149,738,203"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="876,722,860,606,833,455,816,379,796,311,774,255,750,216,736,204,740,200,754,213,779,253,801,309,821,378,838,454,865,605,881,722"/>
+<area shape="rect" id="Node000008" href="$classkcenon_1_1network_1_1core_1_1messaging__udp__client.html#ab376bfd739ae05ea007df6bf7db513fc" title="Checks if the client is currently running." alt="" coords="559,227,734,282"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="881,722,876,635,869,580,857,521,841,460,818,401,788,345,750,295,732,281,736,277,754,291,793,342,823,399,846,459,863,520,874,579,881,634,886,721"/>
+<area shape="rect" id="Node000009" href="$classkcenon_1_1network_1_1core_1_1messaging__udp__server.html#a22d1471453c5b0f6630b74d3733f01a1" title="Checks if the server is currently running." alt="" coords="557,306,737,361"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="878,722,869,648,847,555,831,506,809,459,783,414,750,374,735,362,738,357,754,370,787,411,814,456,836,504,852,554,874,647,883,721"/>
+<area shape="rect" id="Node000010" href="$classkcenon_1_1network_1_1core_1_1messaging__ws__client.html#a24635df3cfa521344543ee07ccadb5f9" title="Checks if the client is currently running." alt="" coords="562,385,731,439"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="874,722,861,663,837,591,801,517,777,483,750,453,730,438,733,434,754,449,782,480,805,514,842,589,866,661,879,721"/>
+<area shape="rect" id="Node000011" href="$classkcenon_1_1network_1_1core_1_1messaging__ws__server.html#a86aa3cffbb47608cf7504a7fe742f07c" title="Checks if the server is currently running." alt="" coords="559,463,734,518"/>
+<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="868,723,850,679,825,627,792,576,750,531,733,519,736,515,754,527,796,573,830,625,855,677,873,721"/>
+<area shape="rect" id="Node000012" href="$classkcenon_1_1network_1_1core_1_1secure__messaging__client.html#ab4cd69de769e24367b4dd264fd343934" title="Checks if the client is currently running." alt="" coords="549,542,744,597"/>
+<area shape="poly" id="edge11_Node000001_Node000012" title=" " alt="" coords="857,725,811,666,782,636,750,610,732,599,735,595,754,606,786,632,815,663,861,722"/>
+<area shape="rect" id="Node000013" href="$classkcenon_1_1network_1_1core_1_1secure__messaging__server.html#adec74ceba85ef1273507616d218661c4" title="Check if the server is currently running." alt="" coords="547,621,746,675"/>
+<area shape="poly" id="edge12_Node000001_Node000013" title=" " alt="" coords="827,730,751,689,725,678,727,673,753,684,830,726"/>
+<area shape="rect" id="Node000014" href="$classkcenon_1_1network_1_1core_1_1secure__messaging__udp__client.html#abebfe9413b150136a0221d4b28908a58" title="Checks if the client is currently running." alt="" coords="555,699,738,754"/>
+<area shape="poly" id="edge13_Node000001_Node000014" title=" " alt="" coords="786,750,738,743,739,738,787,745"/>
+<area shape="rect" id="Node000015" href="$classkcenon_1_1network_1_1utils_1_1startable__base.html#a106e3f148972550ff358e3136c8bbb32" title="Checks if the component is currently running." alt="" coords="546,779,747,819"/>
+<area shape="poly" id="edge14_Node000001_Node000015" title=" " alt="" coords="787,780,748,786,747,781,786,775"/>
+<area shape="rect" id="Node000018" href="$classkcenon_1_1network_1_1core_1_1messaging__quic__client.html#a34fee61ad8dbb6126db41e3a7218cab4" title="Destructor; automatically calls stop_client() if running." alt="" coords="552,843,741,898"/>
+<area shape="poly" id="edge17_Node000001_Node000018" title=" " alt="" coords="822,799,753,833,723,846,721,841,751,828,820,794"/>
+<area shape="rect" id="Node000019" href="$classkcenon_1_1network_1_1core_1_1messaging__quic__server.html#abad1d461af1627643a7f9b908bcc2b4c" title="Destructor; automatically calls stop_server() if running." alt="" coords="549,922,744,977"/>
+<area shape="poly" id="edge18_Node000001_Node000019" title=" " alt="" coords="859,803,814,859,785,888,754,913,734,924,731,920,750,908,781,884,810,856,855,800"/>
+<area shape="rect" id="Node000020" href="$classkcenon_1_1network_1_1core_1_1messaging__udp__client.html#a80e99d6aee34412c54ff83b5f7917bc1" title="Destructor. Automatically calls stop_client() if the client is still running." alt="" coords="553,1001,740,1055"/>
+<area shape="poly" id="edge19_Node000001_Node000020" title=" " alt="" coords="872,804,854,847,829,897,795,947,754,991,738,1003,735,998,750,987,791,944,824,894,850,845,867,802"/>
+<area shape="rect" id="Node000021" href="$classkcenon_1_1network_1_1core_1_1messaging__udp__server.html#a2e2d4968259dc39deffa0aef5bb5e123" title="Destructor. If the server is still running, stop_server() is invoked." alt="" coords="551,1079,742,1134"/>
+<area shape="poly" id="edge20_Node000001_Node000021" title=" " alt="" coords="879,804,865,862,841,933,805,1006,781,1040,754,1070,739,1081,736,1077,750,1066,777,1037,800,1003,836,931,860,861,874,803"/>
+<area shape="rect" id="Node000022" href="$classkcenon_1_1network_1_1core_1_1messaging__ws__client.html#a8f3eacef9e968b7f711049a2a55c0216" title="Destructor. Automatically stops the client if still running." alt="" coords="557,1158,737,1213"/>
+<area shape="poly" id="edge21_Node000001_Node000022" title=" " alt="" coords="883,804,873,877,852,969,835,1017,813,1064,787,1109,754,1149,738,1161,735,1157,750,1145,782,1106,809,1062,830,1015,846,967,868,876,878,804"/>
+<area shape="rect" id="Node000023" href="$classkcenon_1_1network_1_1core_1_1messaging__ws__server.html#a358c6888f8ae9358dcffd7b38a1b3f39" title="Destructor. Automatically stops the server if still running." alt="" coords="554,1237,739,1291"/>
+<area shape="poly" id="edge22_Node000001_Node000023" title=" " alt="" coords="886,804,881,890,862,1003,845,1063,822,1122,792,1177,754,1227,741,1238,738,1234,750,1224,788,1174,817,1119,840,1061,857,1002,875,890,881,804"/>
+<area shape="rect" id="Node000024" href="$classkcenon_1_1network_1_1core_1_1secure__messaging__client.html#a165a52cedad537ada2f1d83c47a968c5" title="Destructor. Calls stop_client() if still connected." alt="" coords="544,1315,749,1370"/>
+<area shape="poly" id="edge23_Node000001_Node000024" title=" " alt="" coords="881,804,865,919,838,1068,820,1143,801,1211,778,1267,754,1306,741,1317,738,1313,750,1302,774,1264,796,1209,815,1141,832,1067,859,918,876,803"/>
+<area shape="rect" id="Node000025" href="$classkcenon_1_1network_1_1core_1_1secure__messaging__server.html#a763176fc8cc996933dd017f366562ce7" title="Destructor. If the server is still running, stop_server() is invoked." alt="" coords="541,1394,752,1449"/>
+<area shape="poly" id="edge24_Node000001_Node000025" title=" " alt="" coords="882,804,868,934,843,1107,825,1194,805,1273,781,1339,754,1384,742,1396,738,1392,750,1381,776,1336,800,1272,820,1193,837,1106,863,934,877,803"/>
+<area shape="rect" id="Node000026" href="$classkcenon_1_1network_1_1core_1_1secure__messaging__udp__client.html#a5227e75ac8bc00bcd10f5e0f8098f840" title="Destructor. Automatically calls stop_client() if still running." alt="" coords="544,1473,749,1543"/>
+<area shape="poly" id="edge25_Node000001_Node000026" title=" " alt="" coords="883,804,870,949,846,1144,829,1243,808,1334,783,1410,769,1440,754,1463,742,1475,738,1471,750,1460,764,1437,778,1408,803,1333,823,1242,841,1143,865,948,878,803"/>
+<area shape="rect" id="Node000005" href="$classQuicServerDemo.html#a68648b43b2dc9009ededfb4264502be3" title=" " alt="" coords="323,156,493,196"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="542,179,494,179,494,173,542,173"/>
+<area shape="rect" id="Node000006" href="$classQuicServerDemo.html#a772d70f6da7837889f500eca3c4cc73a" title=" " alt="" coords="111,163,272,189"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="308,179,272,179,272,173,308,173"/>
+<area shape="rect" id="Node000007" href="$quic__server__example_8cpp.html#a0ddf1224851353fc92bfbff6f499fa97" title=" " alt="" coords="5,163,60,189"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="97,179,60,179,60,173,97,173"/>
+<area shape="rect" id="Node000016" href="$classkcenon_1_1network_1_1core_1_1messaging__client.html#ad2c16be136a7273e7d8044990f6fd289" title="Checks if the client is currently running." alt="" coords="325,771,491,826"/>
+<area shape="poly" id="edge15_Node000015_Node000016" title=" " alt="" coords="532,801,491,801,491,796,532,796"/>
+<area shape="rect" id="Node000017" href="$classkcenon_1_1network_1_1core_1_1messaging__client.html#a7518a4dd7ce28c37a194c0be321a0492" title="Destructor; automatically calls stop_client() if the client is still running." alt="" coords="108,771,275,826"/>
+<area shape="poly" id="edge16_Node000016_Node000017" title=" " alt="" coords="311,801,275,801,275,796,311,796"/>
+</map>

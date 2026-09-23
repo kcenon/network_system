@@ -1,0 +1,6 @@
+<map id="kcenon::network::initialize" name="kcenon::network::initialize">
+<area shape="rect" id="Node000001" title="Initialize the network system with default production configuration." alt="" coords="5,29,200,55"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="62,31,54,21,58,11,75,5,103,3,138,7,148,11,151,17,147,20,144,15,136,12,103,8,76,10,62,15,59,20,66,27"/>
+<area shape="rect" id="Node000002" href="$structkcenon_1_1network_1_1config_1_1network__config.html#aac72ff8ddf8a35ceb4abc23a9abf8b3a" title="Create production configuration." alt="" coords="248,22,455,62"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="200,39,234,39,234,45,200,45"/>
+</map>

@@ -1,0 +1,13 @@
+<map id="kcenon::network::core::unified_session_manager::impl::can_accept_connection" name="kcenon::network::core::unified_session_manager::impl::can_accept_connection">
+<area shape="rect" id="Node000001" title=" " alt="" coords="497,84,716,139"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1core_1_1unified__session__manager_1_1impl.html#a3c27c2123aedccc578b583f901cc8147" title=" " alt="" coords="251,5,446,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="503,82,438,63,440,58,504,77"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1core_1_1unified__session__manager_1_1impl.html#a5c388fd5429e67e995e630add10ddadc" title=" " alt="" coords="248,84,449,139"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="484,114,450,114,450,109,484,109"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1core_1_1unified__session__manager.html#aca930435e12be105f3a618793dd55947" title="Check if new connection can be accepted." alt="" coords="251,163,446,217"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="504,145,440,165,438,160,503,140"/>
+<area shape="rect" id="Node000005" href="$classkcenon_1_1network_1_1core_1_1unified__session__manager.html#a621867a45f4dbc737394e9f8236408d1" title="Add a session using type erasure." alt="" coords="5,123,200,177"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="237,175,200,168,201,163,238,169"/>
+<area shape="rect" id="Node000006" href="$classkcenon_1_1network_1_1core_1_1unified__session__manager.html#a9eb6f0c12595c85a9b87b1acc5ba41f9" title="Add a session and return the assigned ID." alt="" coords="5,201,200,256"/>
+<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="238,210,201,216,200,211,237,205"/>
+</map>

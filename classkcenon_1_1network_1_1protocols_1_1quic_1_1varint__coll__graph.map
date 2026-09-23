@@ -1,0 +1,3 @@
+<map id="kcenon::network::protocols::quic::varint" name="kcenon::network::protocols::quic::varint">
+<area shape="rect" id="Node000001" title="QUIC variable&#45;length integer encoding/decoding (RFC 9000 Section 16)" alt="" coords="5,5,196,365"/>
+</map>

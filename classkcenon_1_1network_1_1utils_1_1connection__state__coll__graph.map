@@ -1,0 +1,9 @@
+<map id="kcenon::network::utils::connection_state" name="kcenon::network::utils::connection_state">
+<area shape="rect" id="Node000001" title="Thread&#45;safe connection state management." alt="" coords="11,404,173,684"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,261,179,341"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="95,342,95,388,89,388,89,342"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="29,133,155,199"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="95,212,95,261,89,261,89,212"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="81,5,103,71"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="95,71,95,117,89,117,89,71"/>
+</map>

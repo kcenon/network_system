@@ -1,0 +1,5 @@
+<map id="src/internal/integration/observability_bridge.h" name="src/internal/integration/observability_bridge.h">
+<area shape="rect" id="Node000001" title="Observability (logger and monitoring) integration bridge for network_system." alt="" coords="23,5,193,45"/>
+<area shape="rect" id="Node000002" href="$observability__bridge_8cpp.html" title=" " alt="" coords="5,93,211,133"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="111,59,111,93,105,93,105,59"/>
+</map>

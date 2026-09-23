@@ -1,0 +1,5 @@
+<map id="kcenon::network::integration::ObservabilityBridge::shutdown" name="kcenon::network::integration::ObservabilityBridge::shutdown">
+<area shape="rect" id="Node000001" title="Shutdown the bridge." alt="" coords="5,5,236,45"/>
+<area shape="rect" id="Node000002" href="$namespacekcenon_1_1network.html#aa32d0dbfdee046c2c0cde3667c5f05a8" title=" " alt="" coords="284,13,439,38"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="236,23,270,23,270,28,236,28"/>
+</map>

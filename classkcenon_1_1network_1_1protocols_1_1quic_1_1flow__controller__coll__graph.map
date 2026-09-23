@@ -1,0 +1,3 @@
+<map id="kcenon::network::protocols::quic::flow_controller" name="kcenon::network::protocols::quic::flow_controller">
+<area shape="rect" id="Node000001" title="Connection&#45;level flow control for QUIC (RFC 9000 Section 4)" alt="" coords="5,5,199,445"/>
+</map>

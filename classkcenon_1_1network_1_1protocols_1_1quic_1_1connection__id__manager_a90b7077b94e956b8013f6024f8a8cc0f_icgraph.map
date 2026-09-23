@@ -1,0 +1,5 @@
+<map id="kcenon::network::protocols::quic::connection_id_manager::set_initial_peer_cid" name="kcenon::network::protocols::quic::connection_id_manager::set_initial_peer_cid">
+<area shape="rect" id="Node000001" title="Set the initial peer connection ID (from Initial packet)" alt="" coords="268,5,488,60"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1connection.html#acb424893a0406449962cc18453b9a596" title="Construct a connection." alt="" coords="5,13,220,53"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="255,35,220,35,220,30,255,30"/>
+</map>

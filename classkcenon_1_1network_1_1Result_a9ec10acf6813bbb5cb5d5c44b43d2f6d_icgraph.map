@@ -1,0 +1,9 @@
+<map id="kcenon::network::Result::is_ok" name="kcenon::network::Result::is_ok">
+<area shape="rect" id="Node000001" title=" " alt="" coords="479,45,657,85"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1Result.html#a71f6ed7945c754e2fd7ac76c9a911c61" title=" " alt="" coords="252,13,431,53"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="465,53,431,48,431,43,465,47"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1Result.html#a4df53f36870b5a74feca0945467c019e" title=" " alt="" coords="252,77,431,117"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="465,82,431,87,431,81,465,77"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1protocols_1_1grpc_1_1service__registry_1_1impl.html#a77aefff737e290127138e7ae70ff4a6e" title=" " alt="" coords="5,5,204,60"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="238,35,204,35,204,30,238,30"/>
+</map>

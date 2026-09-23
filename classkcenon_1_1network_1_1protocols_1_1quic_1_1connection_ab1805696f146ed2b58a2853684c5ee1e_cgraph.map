@@ -1,0 +1,19 @@
+<map id="kcenon::network::protocols::quic::connection::handle_loss_detection_result" name="kcenon::network::protocols::quic::connection::handle_loss_detection_result">
+<area shape="rect" id="Node000001" title="Handle loss detection result (RFC 9002)" alt="" coords="5,195,204,249"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1connection.html#a06bc4eb8eddacc230d3ca1022c607662" title="Generate probe packets for PTO (RFC 9002 Section 6.2.4) Sends one or two ack&#45;eliciting packets to pro..." alt="" coords="253,37,456,92"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="132,192,185,147,251,101,261,95,263,100,253,106,188,151,136,197"/>
+<area shape="rect" id="Node000006" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1congestion__controller.html#ad090868538b0241400040dc03e66edc6" title="Handle ECN congestion signal (RFC 9002 Section 7.1)" alt="" coords="252,116,457,171"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="191,192,253,172,255,178,193,197"/>
+<area shape="rect" id="Node000007" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1congestion__controller.html#a0bf259fc868f705c6ecbef48b2285adf" title="Handle packet acknowledgment (RFC 9002 Section 7.3)" alt="" coords="252,195,457,249"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="204,219,238,219,238,225,204,225"/>
+<area shape="rect" id="Node000008" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1congestion__controller.html#a1556b9b237f0b5d1c0ecf1ac9673888f" title="Handle packet loss (RFC 9002 Section 7.3.2)" alt="" coords="252,273,457,328"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="193,247,255,266,253,272,191,252"/>
+<area shape="rect" id="Node000009" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1connection.html#a9c7b2e77e7efe646fd9570cd739fbd6e" title="Queue frames from lost packet for retransmission." alt="" coords="253,352,457,407"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="137,248,189,292,253,337,266,344,263,348,251,342,186,297,133,252"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1quic__crypto.html#a50edbd655637b1d9aadcbe6bf24b359b" title="Get write keys for an encryption level." alt="" coords="505,37,704,92"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="456,62,491,62,491,67,456,67"/>
+<area shape="rect" id="Node000004" href="$namespacekcenon_1_1network_1_1protocols_1_1quic.html#a3366bf6044882f933e0621081d76882a" title="Convert encryption level to string for debugging." alt="" coords="752,5,951,60"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="704,49,738,45,739,50,705,54"/>
+<area shape="rect" id="Node000005" href="$namespacekcenon_1_1network.html#aa32d0dbfdee046c2c0cde3667c5f05a8" title=" " alt="" coords="774,84,929,109"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="705,75,760,82,760,88,704,80"/>
+</map>

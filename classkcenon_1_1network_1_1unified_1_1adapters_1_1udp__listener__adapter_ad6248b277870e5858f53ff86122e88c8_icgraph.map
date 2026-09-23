@@ -1,0 +1,5 @@
+<map id="kcenon::network::unified::adapters::udp_listener_adapter::setup_internal_callbacks" name="kcenon::network::unified::adapters::udp_listener_adapter::setup_internal_callbacks">
+<area shape="rect" id="Node000001" title="Sets up internal callbacks to bridge to unified callbacks." alt="" coords="277,5,460,75"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1unified_1_1adapters_1_1udp__listener__adapter.html#a386cef6c555ccf598511ab85ae006fe6" title="Constructs an adapter with a unique listener ID." alt="" coords="5,13,229,67"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="264,43,230,43,230,37,264,37"/>
+</map>

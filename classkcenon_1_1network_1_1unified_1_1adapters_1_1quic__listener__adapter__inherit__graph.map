@@ -1,0 +1,5 @@
+<map id="kcenon::network::unified::adapters::quic_listener_adapter" name="kcenon::network::unified::adapters::quic_listener_adapter">
+<area shape="rect" id="Node000001" title="Adapter that implements i_listener for QUIC protocol." alt="" coords="5,353,200,1028"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1unified_1_1i__listener.html" title="Core interface for passive network listeners (server&#45;side)" alt="" coords="15,5,190,305"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="105,319,105,353,100,353,100,319"/>
+</map>

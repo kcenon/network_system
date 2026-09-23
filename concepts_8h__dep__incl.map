@@ -1,0 +1,13 @@
+<map id="include/kcenon/network/concepts/concepts.h" name="include/kcenon/network/concepts/concepts.h">
+<area shape="rect" id="Node000001" title="Unified header for all C++20 concepts in network_system." alt="" coords="123,5,300,45"/>
+<area shape="rect" id="Node000002" href="$concepts__example_8cpp.html" title="Demonstrates usage of C++20 concepts in network_system." alt="" coords="24,93,199,133"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="181,56,135,95,132,91,177,52"/>
+<area shape="rect" id="Node000003" href="$network__system_8h.html" title="Main header for the Network System." alt="" coords="223,93,400,133"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="246,52,291,91,287,95,242,56"/>
+<area shape="rect" id="Node000004" href="$http__client__demo_8cpp.html" title=" " alt="" coords="5,189,172,229"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="255,141,135,191,133,186,253,136"/>
+<area shape="rect" id="Node000005" href="$modern__usage_8cpp.html" title="Example of using network_system with modern API and Result&lt;T&gt; pattern." alt="" coords="196,181,427,236"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="314,147,314,181,309,181,309,147"/>
+<area shape="rect" id="Node000006" href="$network__system_8cpp.html" title=" " alt="" coords="451,196,631,221"/>
+<area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="371,136,513,193,511,198,369,141"/>
+</map>

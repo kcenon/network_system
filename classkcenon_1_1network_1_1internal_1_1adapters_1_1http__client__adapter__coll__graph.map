@@ -1,0 +1,33 @@
+<map id="kcenon::network::internal::adapters::http_client_adapter" name="kcenon::network::internal::adapters::http_client_adapter">
+<area shape="rect" id="Node000001" title="Adapter that wraps http_client to implement i_protocol_client." alt="" coords="467,912,650,1387"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1interfaces_1_1i__protocol__client.html" title="Unified interface for all protocol client implementations." alt="" coords="13,580,227,820"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="238,818,469,1053,465,1057,234,822"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1interfaces_1_1i__network__component.html" title="Base interface for all network components." alt="" coords="5,208,200,428"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="111,441,117,580,112,580,106,442"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="259,667,338,733"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="317,732,364,819,461,985,457,987,359,821,312,734"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="224,278,355,358"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="293,372,301,667,295,667,288,372"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="373,653,547,747"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="473,747,506,895,500,897,468,748"/>
+<area shape="rect" id="Node000007" href="$classkcenon_1_1network_1_1core_1_1http__client.html" title="HTTP/1.1 client built on top of messaging_client." alt="" coords="379,148,538,488"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="430,489,431,556,446,636,440,637,425,556,424,489"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="367,5,550,85"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="461,99,461,148,456,148,456,99"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="563,285,712,351"/>
+<area shape="poly" id="edge8_Node000006_Node000009" title=" " alt="" coords="625,365,597,428,577,460,552,490,540,498,528,502,517,505,507,514,488,546,475,583,467,619,464,653,458,652,462,618,470,581,483,544,503,510,515,501,526,497,538,494,549,486,573,457,592,425,621,363"/>
+<area shape="rect" id="Node000014" title=" " alt="" coords="571,653,744,747"/>
+<area shape="poly" id="edge16_Node000014_Node000009" title=" " alt="" coords="642,364,658,652,652,652,637,365"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="815,13,838,78"/>
+<area shape="poly" id="edge9_Node000009_Node000010" title=" " alt="" coords="817,58,775,96,726,150,688,211,659,271,654,269,683,209,722,146,771,92,814,54"/>
+<area shape="rect" id="Node000012" title=" " alt="" coords="955,285,1080,351"/>
+<area shape="poly" id="edge12_Node000012_Node000010" title=" " alt="" coords="840,52,889,89,918,116,945,146,981,208,1005,269,1000,271,976,211,940,150,915,120,886,93,836,56"/>
+<area shape="rect" id="Node000011" title=" " alt="" coords="769,667,914,733"/>
+<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="824,734,661,991,657,988,819,731"/>
+<area shape="poly" id="edge11_Node000011_Node000012" title=" " alt="" coords="1001,365,945,489,859,668,855,666,940,487,996,362"/>
+<area shape="rect" id="Node000013" title=" " alt="" coords="938,667,1022,733"/>
+<area shape="poly" id="edge13_Node000001_Node000013" title=" " alt="" coords="972,734,955,777,929,822,868,895,799,964,730,1025,665,1076,662,1072,726,1021,796,960,864,892,924,818,950,775,967,732"/>
+<area shape="poly" id="edge14_Node000001_Node000014" title=" " alt="" coords="650,748,617,897,612,895,645,747"/>
+<area shape="rect" id="Node000015" href="$classkcenon_1_1network_1_1interfaces_1_1connection__observer.html" title="Observer interface for client connection events." alt="" coords="736,238,931,398"/>
+<area shape="poly" id="edge15_Node000014_Node000015" title=" " alt="" coords="842,398,840,437,834,479,822,520,802,558,792,568,781,572,770,575,759,582,729,610,702,641,698,638,725,607,756,578,768,570,779,567,789,563,798,554,817,518,829,478,835,437,837,398"/>
+</map>

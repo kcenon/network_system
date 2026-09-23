@@ -1,0 +1,5 @@
+<map id="kcenon::network::connection_limiter::can_accept" name="kcenon::network::connection_limiter::can_accept">
+<area shape="rect" id="Node000001" title="Check if a new connection can be accepted." alt="" coords="247,13,456,53"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1per__client__connection__limiter.html#ac8708381b5c52acc656be4c1d5682f2e" title="Try to accept a connection from a client." alt="" coords="5,5,199,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="233,35,199,35,199,30,233,30"/>
+</map>

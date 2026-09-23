@@ -1,0 +1,11 @@
+<map id="kcenon::network::utils::startable_base&lt; Derived &gt;" name="kcenon::network::utils::startable_base&lt; Derived &gt;">
+<area shape="rect" id="Node000001" title="CRTP base class providing unified start/stop lifecycle management." alt="" coords="132,5,331,405"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1utils_1_1startable__base.html" title=" " alt="" coords="16,468,220,883"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="161,419,158,430,149,468,144,467,153,429,155,418"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1utils_1_1startable__base.html" title=" " alt="" coords="252,468,456,883"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="304,418,307,429,317,467,312,468,302,430,299,419"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1core_1_1messaging__client.html" title="A basic TCP client that connects to a remote host, sends/receives data using asynchronous operations,..." alt="" coords="5,932,223,1787"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="119,896,119,932,114,932,114,896"/>
+<area shape="rect" id="Node000005" href="$classkcenon_1_1network_1_1core_1_1messaging__server.html" title="A server class that manages incoming TCP connections, creating messaging_session instances for each a..." alt="" coords="247,989,469,1729"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="358,897,359,989,353,989,353,897"/>
+</map>

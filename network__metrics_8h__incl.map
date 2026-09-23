@@ -1,0 +1,9 @@
+<map id="include/kcenon/network/detail/metrics/network_metrics.h" name="include/kcenon/network/detail/metrics/network_metrics.h">
+<area shape="rect" id="Node000001" title="Network system metrics definitions and reporting utilities." alt="" coords="37,5,215,60"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,108,76,133"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="102,62,64,100,60,96,98,58"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="101,108,151,133"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="129,60,129,94,123,94,123,60"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="175,108,234,133"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="152,58,187,96,183,99,148,62"/>
+</map>

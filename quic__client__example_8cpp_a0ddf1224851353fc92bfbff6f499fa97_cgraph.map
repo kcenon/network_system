@@ -1,0 +1,63 @@
+<map id="main" name="main">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,575,60,600"/>
+<area shape="rect" id="Node000002" href="$quic__client__example_8cpp.html#ae50df8b7e775e25b3383940d208f2e7c" title="Example with custom configuration." alt="" coords="117,549,257,575"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="60,580,102,573,103,578,60,586"/>
+<area shape="rect" id="Node000003" href="$classQuicClientDemo.html#a2950f6d0113f0a3c3117fa505cccb140" title=" " alt="" coords="108,599,265,624"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="60,589,95,594,94,600,60,594"/>
+<area shape="rect" id="Node000004" href="$classQuicClientDemo.html#a4cce78a029dd046510320ba11ba6a532" title=" " alt="" coords="316,249,489,289"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="245,596,263,584,288,542,322,464,387,300,392,302,327,466,292,545,267,588,247,601"/>
+<area shape="rect" id="Node000014" href="$classQuicClientDemo.html#a1970389e6a77403c0ed697caa07cc56a" title=" " alt="" coords="316,99,489,139"/>
+<area shape="poly" id="edge14_Node000003_Node000014" title=" " alt="" coords="248,597,263,584,291,541,304,501,306,461,302,421,296,379,292,335,296,288,311,236,338,188,370,148,374,151,342,191,316,238,301,289,297,335,301,379,307,420,312,461,309,502,296,544,267,588,251,601"/>
+<area shape="rect" id="Node000016" href="$classQuicClientDemo.html#ace772af91e52d8e855d97cbb81676fa0" title=" " alt="" coords="317,519,489,559"/>
+<area shape="poly" id="edge19_Node000003_Node000016" title=" " alt="" coords="227,596,264,583,330,561,331,566,266,589,228,601"/>
+<area shape="rect" id="Node000023" href="$classkcenon_1_1network_1_1core_1_1messaging__quic__client.html#a44debe477f2020ce1f844f3271f139fb" title="Starts the client with default configuration." alt="" coords="313,584,492,639"/>
+<area shape="poly" id="edge30_Node000003_Node000023" title=" " alt="" coords="266,609,300,609,300,614,266,614"/>
+<area shape="rect" id="Node000024" href="$classkcenon_1_1network_1_1core_1_1messaging__quic__client.html#addddeb41a6c308806e388693b694b8f1" title="Get connection statistics." alt="" coords="313,663,492,717"/>
+<area shape="poly" id="edge31_Node000003_Node000024" title=" " alt="" coords="224,622,315,655,313,660,222,627"/>
+<area shape="rect" id="Node000025" href="$classkcenon_1_1network_1_1core_1_1messaging__quic__client.html#a8b0effd05041ea8b9f4b818a2586e62e" title="Stops the client and releases all resources." alt="" coords="313,741,492,796"/>
+<area shape="poly" id="edge32_Node000003_Node000025" title=" " alt="" coords="201,622,248,671,280,700,315,726,324,732,321,737,312,731,277,704,244,675,197,626"/>
+<area shape="rect" id="Node000027" href="$classkcenon_1_1network_1_1core_1_1messaging__quic__client.html#a0c58e61dc1cd2f101d6b34895af93f72" title="Blocks until stop() is called." alt="" coords="313,820,492,875"/>
+<area shape="poly" id="edge34_Node000003_Node000027" title=" " alt="" coords="195,623,211,659,237,707,272,760,315,807,320,810,316,815,312,811,268,763,232,710,206,661,191,625"/>
+<area shape="rect" id="Node000005" href="$classkcenon_1_1network_1_1core_1_1messaging__quic__client.html#a53b51970802f4b9c82a8da8a232aa51b" title="Closes a stream (interface version)." alt="" coords="561,320,739,375"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="467,286,551,313,550,318,466,291"/>
+<area shape="rect" id="Node000007" href="$classkcenon_1_1network_1_1core_1_1messaging__quic__client.html#aa0ad9c63a53513b924e8baa28b925d30" title="Creates a new bidirectional stream (interface version)." alt="" coords="561,163,739,217"/>
+<area shape="poly" id="edge6_Node000004_Node000007" title=" " alt="" coords="466,246,550,219,551,224,467,251"/>
+<area shape="rect" id="Node000008" href="$classkcenon_1_1network_1_1core_1_1messaging__quic__client.html#a30b9d87b9d9e1116c241393f41d2651d" title="Creates a new unidirectional stream (interface version)." alt="" coords="540,84,760,139"/>
+<area shape="poly" id="edge7_Node000004_Node000008" title=" " alt="" coords="421,247,471,198,504,171,539,148,548,142,551,147,541,152,507,175,475,202,424,250"/>
+<area shape="rect" id="Node000009" href="$classkcenon_1_1network_1_1core_1_1messaging__quic__client.html#a629cae5f70ba19728569aadc8533eb96" title="Sends data on a specific stream (interface version)." alt="" coords="561,241,739,296"/>
+<area shape="poly" id="edge8_Node000004_Node000009" title=" " alt="" coords="490,266,547,266,547,271,490,271"/>
+<area shape="rect" id="Node000006" href="$namespacekcenon_1_1network.html#a9d2a06a302dea2b45b323b864eacad4a" title=" " alt="" coords="809,256,1013,281"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="739,318,855,283,856,288,740,323"/>
+<area shape="poly" id="edge12_Node000009_Node000006" title=" " alt="" coords="740,266,796,266,796,271,740,271"/>
+<area shape="rect" id="Node000010" href="$classkcenon_1_1network_1_1tracing_1_1trace__context.html#a0618b3e17f57071584025d5e47aa0541" title="Create a new root span with a new trace context." alt="" coords="808,134,1015,174"/>
+<area shape="poly" id="edge9_Node000009_Node000010" title=" " alt="" coords="728,239,759,226,859,178,862,183,761,231,730,244"/>
+<area shape="rect" id="Node000013" href="$namespacekcenon_1_1network_1_1tracing.html#a6ab950c88c5666f30b2db30609a6834a" title="Check if tracing is enabled." alt="" coords="820,42,1003,82"/>
+<area shape="poly" id="edge13_Node000009_Node000013" title=" " alt="" coords="738,241,758,227,776,201,783,176,789,149,806,120,826,102,849,87,852,91,830,106,810,124,794,151,788,177,781,204,762,231,741,245"/>
+<area shape="rect" id="Node000011" href="$namespacekcenon_1_1network_1_1tracing.html#a933bb00747359508e4c9b490d42c495d" title="Generate a random span ID." alt="" coords="1063,102,1245,142"/>
+<area shape="poly" id="edge10_Node000010_Node000011" title=" " alt="" coords="1014,138,1049,133,1049,138,1015,143"/>
+<area shape="rect" id="Node000012" href="$namespacekcenon_1_1network_1_1tracing.html#ab38da93c9d82d6795e6950368611ea35" title="Generate a random trace ID." alt="" coords="1063,166,1245,206"/>
+<area shape="poly" id="edge11_Node000010_Node000012" title=" " alt="" coords="1015,165,1049,170,1049,175,1014,170"/>
+<area shape="rect" id="Node000015" href="$classkcenon_1_1network_1_1core_1_1messaging__quic__client.html#a740d75052db8a3f7b1675301b22025d0" title="Send data on the default stream (stream 0)." alt="" coords="561,5,739,60"/>
+<area shape="poly" id="edge15_Node000014_Node000015" title=" " alt="" coords="460,97,558,62,559,67,462,102"/>
+<area shape="poly" id="edge17_Node000015_Node000006" title=" " alt="" coords="741,54,762,69,782,98,789,126,795,154,810,184,843,219,879,246,876,250,840,223,806,188,790,156,784,127,777,100,758,73,738,59"/>
+<area shape="poly" id="edge16_Node000015_Node000010" title=" " alt="" coords="734,58,761,69,867,125,864,129,759,74,732,63"/>
+<area shape="poly" id="edge18_Node000015_Node000013" title=" " alt="" coords="740,40,807,48,806,53,739,45"/>
+<area shape="rect" id="Node000017" href="$classkcenon_1_1network_1_1core_1_1messaging__quic__client.html#acf1506ceb7ab9398912f3a29bc83068d" title="Sets the callback for connection established (interface version)." alt="" coords="557,477,743,532"/>
+<area shape="poly" id="edge20_Node000016_Node000017" title=" " alt="" coords="489,525,544,517,544,522,489,530"/>
+<area shape="rect" id="Node000019" href="$classkcenon_1_1network_1_1core_1_1messaging__quic__client.html#a01d90dcbdda779d74d2593d3c86cc21e" title="Sets the callback for disconnection (interface version)." alt="" coords="548,556,752,611"/>
+<area shape="poly" id="edge22_Node000016_Node000019" title=" " alt="" coords="489,552,535,560,534,565,488,557"/>
+<area shape="rect" id="Node000020" href="$classkcenon_1_1network_1_1core_1_1messaging__quic__client.html#aebbfb2f961981afbbbcad9da6d7b1301" title="Sets the callback for errors (interface version)." alt="" coords="561,635,739,689"/>
+<area shape="poly" id="edge24_Node000016_Node000020" title=" " alt="" coords="471,557,494,569,509,582,518,595,527,607,542,620,552,626,549,631,538,624,523,611,514,598,505,586,490,574,469,562"/>
+<area shape="rect" id="Node000021" href="$classkcenon_1_1network_1_1core_1_1messaging__quic__client.html#a6eb85f5d1af46338997000ecc0ffc6ac" title="Sets the callback for received data on default stream (interface version)." alt="" coords="561,713,739,768"/>
+<area shape="poly" id="edge26_Node000016_Node000021" title=" " alt="" coords="478,557,494,569,507,586,514,603,519,636,523,668,530,683,542,699,551,706,547,710,538,703,525,686,518,669,513,636,509,604,502,589,490,573,475,562"/>
+<area shape="rect" id="Node000022" href="$classkcenon_1_1network_1_1core_1_1messaging__quic__client.html#ad1e7b016f190748ffd3bf40d5f1693a3" title="Sets the callback for stream data reception (all streams, legacy version)." alt="" coords="541,399,759,453"/>
+<area shape="poly" id="edge28_Node000016_Node000022" title=" " alt="" coords="436,517,539,462,553,456,555,461,541,467,439,521"/>
+<area shape="rect" id="Node000018" href="$namespacekcenon_1_1network.html#a15edd0988aec7155616b3ad3478471a5" title="Helper to convert enum to std::size_t for callback_manager access." alt="" coords="836,563,987,603"/>
+<area shape="poly" id="edge21_Node000017_Node000018" title=" " alt="" coords="742,530,832,557,830,562,741,535"/>
+<area shape="poly" id="edge23_Node000019_Node000018" title=" " alt="" coords="752,581,822,581,822,586,752,586"/>
+<area shape="poly" id="edge25_Node000020_Node000018" title=" " alt="" coords="739,633,830,605,832,610,740,638"/>
+<area shape="poly" id="edge27_Node000021_Node000018" title=" " alt="" coords="733,711,759,698,824,655,877,610,880,615,827,659,761,703,736,716"/>
+<area shape="poly" id="edge29_Node000022_Node000018" title=" " alt="" coords="738,451,761,462,827,507,881,552,878,556,824,511,759,467,736,456"/>
+<area shape="rect" id="Node000026" href="$namespacekcenon_1_1network.html#aa32d0dbfdee046c2c0cde3667c5f05a8" title=" " alt="" coords="573,792,727,817"/>
+<area shape="poly" id="edge33_Node000025_Node000026" title=" " alt="" coords="493,779,560,789,559,794,492,784"/>
+</map>

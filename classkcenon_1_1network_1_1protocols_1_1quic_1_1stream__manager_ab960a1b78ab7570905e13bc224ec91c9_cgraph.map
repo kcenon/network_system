@@ -1,0 +1,7 @@
+<map id="kcenon::network::protocols::quic::stream_manager::can_accept_peer_stream" name="kcenon::network::protocols::quic::stream_manager::can_accept_peer_stream">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,45,204,100"/>
+<area shape="rect" id="Node000002" href="$namespacekcenon_1_1network_1_1protocols_1_1quic_1_1stream__id__type.html#aff88d70985027a65c47d22ca0ee1fbdc" title="Get stream sequence number (stream_id &gt;&gt; 2)" alt="" coords="252,5,451,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="204,54,238,48,239,54,205,59"/>
+<area shape="rect" id="Node000003" href="$namespacekcenon_1_1network_1_1protocols_1_1quic_1_1stream__id__type.html#a5a2ee0a6d010e8c6931b554cc72243d5" title="Check if stream is bidirectional." alt="" coords="252,84,451,139"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="205,86,239,91,238,96,204,91"/>
+</map>

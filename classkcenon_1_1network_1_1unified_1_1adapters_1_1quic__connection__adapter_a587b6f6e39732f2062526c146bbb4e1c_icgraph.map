@@ -1,0 +1,5 @@
+<map id="kcenon::network::unified::adapters::quic_connection_adapter::close" name="kcenon::network::unified::adapters::quic_connection_adapter::close">
+<area shape="rect" id="Node000001" title="Closes the connection gracefully." alt="" coords="313,5,513,60"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1unified_1_1adapters_1_1quic__connection__adapter.html#a701f97fd4d0416531c5165b870c26704" title="Destructor ensures proper cleanup." alt="" coords="5,5,265,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="299,35,265,35,265,30,299,30"/>
+</map>

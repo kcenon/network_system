@@ -1,0 +1,7 @@
+<map id="websocket_server_example" name="websocket_server_example">
+<area shape="rect" id="Node000001" title="WebSocket server example using unified API." alt="" coords="5,42,208,67"/>
+<area shape="rect" id="Node000002" href="$namespacekcenon_1_1network_1_1protocol_1_1websocket.html#ad460ae1ac47836f2d1271962d36b6f43" title="Creates and starts a WebSocket listener in one call." alt="" coords="256,5,447,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="208,40,242,36,243,41,208,45"/>
+<area shape="rect" id="Node000003" href="$unified__server__example_8cpp.html#a56a285a4a5a3bbb1be0aed98535466bc" title="Protocol&#45;agnostic server setup." alt="" coords="298,70,405,95"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="208,64,285,72,284,78,208,69"/>
+</map>

@@ -1,0 +1,22 @@
+<map id="include/kcenon/network/facade/quic_facade.h" name="include/kcenon/network/facade/quic_facade.h">
+<area shape="rect" id="Node000001" title="Simplified facade for creating QUIC clients and servers." alt="" coords="183,5,361,45"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,101,72,126"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="218,48,85,96,79,98,77,93,83,91,216,43"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="96,101,173,126"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="243,48,166,96,163,91,240,43"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="197,101,272,126"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="266,47,248,89,243,87,261,45"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="315,277,373,302"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="280,45,340,263,335,264,275,46"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="347,101,410,126"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="297,44,355,90,352,94,294,48"/>
+<area shape="rect" id="Node000007" href="$result_8h.html" title="Public header for Result&lt;T&gt; error handling types." alt="" coords="434,93,601,133"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="327,43,452,86,450,91,325,48"/>
+<area shape="rect" id="Node000008" href="$result__types_8h.html" title="Network&#45;specific error and result type definitions." alt="" coords="425,181,591,221"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="518,134,514,168,509,168,513,133"/>
+<area shape="poly" id="edge10_Node000008_Node000005" title=" " alt="" coords="473,224,379,273,377,268,471,219"/>
+<area shape="rect" id="Node000009" href="$detail_2config_2feature__flags_8h.html" title="Feature flags for network_system." alt="" coords="415,269,582,309"/>
+<area shape="poly" id="edge8_Node000008_Node000009" title=" " alt="" coords="509,222,505,256,500,256,503,221"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="606,277,674,302"/>
+<area shape="poly" id="edge9_Node000008_Node000010" title=" " alt="" coords="539,219,612,267,609,271,536,224"/>
+</map>

@@ -1,0 +1,11 @@
+<map id="kcenon::network::metrics::histogram::record" name="kcenon::network::metrics::histogram::record">
+<area shape="rect" id="Node000001" title="Record a value observation." alt="" coords="5,101,192,141"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1metrics_1_1histogram.html#ac49b513af7fdde8a4020a1960a492ba0" title="Add to sum atomically." alt="" coords="240,5,427,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="140,99,239,55,258,47,260,52,241,60,142,104"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1metrics_1_1histogram.html#a0d7ccae0b87acc98cd84faf98553ba9b" title="Find bucket index for a value." alt="" coords="240,69,427,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="192,106,226,101,227,107,192,111"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1metrics_1_1histogram.html#a4a607bc3f048a8bfc4f162b8656abcf7" title="Update max value atomically." alt="" coords="240,133,427,173"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="192,131,227,136,226,141,192,137"/>
+<area shape="rect" id="Node000005" href="$classkcenon_1_1network_1_1metrics_1_1histogram.html#af57135aa33f55e0e97127ec5ac0bc83e" title="Update min value atomically." alt="" coords="240,197,427,237"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="142,139,241,183,260,190,258,195,239,188,140,144"/>
+</map>

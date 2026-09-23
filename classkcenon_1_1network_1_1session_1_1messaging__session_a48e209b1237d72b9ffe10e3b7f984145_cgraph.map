@@ -1,0 +1,14 @@
+<map id="kcenon::network::session::messaging_session::send_packet" name="kcenon::network::session::messaging_session::send_packet">
+<area shape="rect" id="Node000001" title="Sends data to the connected client, optionally using compression/encryption." alt="" coords="5,77,252,117"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1metrics_1_1metric__reporter.html#ad9908fd0ef3ec8950ede742bb774e586" title="Report bytes sent." alt="" coords="300,69,487,124"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="252,94,286,94,286,99,252,99"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1integration_1_1monitoring__integration__manager.html#a3a3880025d000147e508a14e7391e77c" title="Get the singleton instance." alt="" coords="535,29,744,84"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="487,79,521,73,521,79,487,84"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1integration_1_1monitoring__integration__manager.html#a6049b4de0cac7878938b8a4445415e7e" title="Report a counter metric." alt="" coords="535,108,744,163"/>
+<area shape="poly" id="edge4_Node000002_Node000004" title=" " alt="" coords="487,109,521,114,521,119,487,114"/>
+<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="592,29,592,19,600,10,616,5,639,3,667,6,683,14,680,18,666,11,639,8,617,10,603,15,597,21,597,29"/>
+<area shape="rect" id="Node000005" href="$classkcenon_1_1network_1_1integration_1_1monitoring__integration__manager.html#a0f8cb1959ed418ef13ec4b94aa0455dc" title="Get the current monitoring implementation." alt="" coords="792,108,1001,163"/>
+<area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="744,133,779,133,779,138,744,138"/>
+<area shape="rect" id="Node000006" href="$classkcenon_1_1network_1_1integration_1_1monitoring__integration__manager_1_1impl.html#a73273ad303eb22a30d5d02dff2ae7839" title=" " alt="" coords="1049,108,1280,163"/>
+<area shape="poly" id="edge6_Node000005_Node000006" title=" " alt="" coords="1001,133,1036,133,1036,138,1001,138"/>
+</map>

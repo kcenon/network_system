@@ -1,0 +1,5 @@
+<map id="kcenon::network::unified::i_listener::set_accept_callback" name="kcenon::network::unified::i_listener::set_accept_callback">
+<area shape="rect" id="Node000001" title="Sets the accept callback for new connections." alt="" coords="213,5,396,60"/>
+<area shape="rect" id="Node000002" href="$classConnectionManager.html#a0a7d75cca7aa48cf6111a6891a590ab4" title=" " alt="" coords="5,13,165,53"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="200,35,165,35,165,30,200,30"/>
+</map>

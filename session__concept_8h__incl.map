@@ -1,0 +1,24 @@
+<map id="src/internal/core/session_concept.h" name="src/internal/core/session_concept.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="461,5,641,45"/>
+<area shape="rect" id="Node000002" href="$result__types_8h.html" title="Network&#45;specific error and result type definitions." alt="" coords="137,93,304,133"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="479,48,307,93,305,87,478,43"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="305,189,363,214"/>
+<area shape="poly" id="edge8_Node000001_Node000005" title=" " alt="" coords="462,44,412,64,389,78,369,95,356,113,347,134,338,175,333,174,342,133,351,111,365,92,386,74,410,59,460,39"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="379,101,446,126"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="522,48,444,96,442,91,520,43"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="470,101,537,126"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="543,47,519,90,514,87,538,44"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="561,101,638,126"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="564,44,588,87,584,90,560,47"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="663,101,760,126"/>
+<area shape="poly" id="edge9_Node000001_Node000009" title=" " alt="" coords="588,43,679,92,677,97,585,48"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="784,101,860,126"/>
+<area shape="poly" id="edge10_Node000001_Node000010" title=" " alt="" coords="619,43,773,91,781,93,779,98,772,96,617,48"/>
+<area shape="rect" id="Node000011" title=" " alt="" coords="884,101,947,126"/>
+<area shape="poly" id="edge11_Node000001_Node000011" title=" " alt="" coords="642,38,754,59,873,91,880,93,878,98,872,96,752,64,641,43"/>
+<area shape="rect" id="Node000003" href="$detail_2config_2feature__flags_8h.html" title="Feature flags for network_system." alt="" coords="5,181,172,221"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="193,136,131,176,128,172,190,131"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="196,189,264,214"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="225,133,230,175,225,175,220,134"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="247,131,309,178,306,182,244,136"/>
+</map>

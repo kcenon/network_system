@@ -1,0 +1,10 @@
+<map id="kcenon::network::protocols::quic::connection::process_frames" name="kcenon::network::protocols::quic::connection::process_frames">
+<area shape="rect" id="Node000001" title="Process frames from a decrypted packet." alt="" coords="5,49,252,89"/>
+<area shape="rect" id="Node000002" href="$namespacekcenon_1_1network.html#a9d2a06a302dea2b45b323b864eacad4a" title=" " alt="" coords="307,5,511,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="239,46,325,30,326,36,240,51"/>
+<area shape="rect" id="Node000003" href="$namespacekcenon_1_1network.html#aa32d0dbfdee046c2c0cde3667c5f05a8" title=" " alt="" coords="567,85,721,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="252,73,553,90,553,96,252,78"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1frame__parser.html#a7d318b72237030056cc9dcf398f68f6e" title="Parse all frames from buffer." alt="" coords="300,106,519,146"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="228,86,298,101,297,106,227,91"/>
+<area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="519,110,553,106,553,111,519,116"/>
+</map>

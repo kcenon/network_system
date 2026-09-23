@@ -1,0 +1,13 @@
+<map id="kcenon::network::integration::basic_container" name="kcenon::network::integration::basic_container">
+<area shape="rect" id="Node000001" title="Basic container implementation for standalone use." alt="" coords="27,628,228,848"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1integration_1_1container__interface.html" title="Abstract interface for container operations." alt="" coords="5,405,207,565"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="117,579,121,627,115,628,111,579"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="231,438,407,533"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="286,535,223,616,219,613,282,531"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1integration_1_1basic__container_1_1impl.html" title=" " alt="" coords="153,133,355,313"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="279,313,306,421,301,423,274,314"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="379,191,529,256"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="434,270,346,439,341,437,429,267"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="443,5,465,71"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="457,71,457,174,451,174,451,71"/>
+</map>

@@ -1,0 +1,5 @@
+<map id="kcenon::network::utils::startable_base::wait_for_stop" name="kcenon::network::utils::startable_base::wait_for_stop">
+<area shape="rect" id="Node000001" title="Blocks until stop is called." alt="" coords="233,5,400,60"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1core_1_1messaging__client.html#a257b8fc6d5579e99ec1caf0bd549edad" title="Waits for the client to stop." alt="" coords="5,5,185,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="220,35,185,35,185,30,220,30"/>
+</map>

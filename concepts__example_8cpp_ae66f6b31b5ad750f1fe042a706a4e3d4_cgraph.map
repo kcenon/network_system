@@ -1,0 +1,25 @@
+<map id="main" name="main">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,133,60,159"/>
+<area shape="rect" id="Node000002" href="$concepts__example_8cpp.html#a77c3c23f60c767a4f4500bb2d612b6b8" title=" " alt="" coords="109,5,296,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="37,132,62,87,82,61,106,40,116,34,119,39,110,44,86,65,67,90,42,135"/>
+<area shape="rect" id="Node000004" href="$concepts__example_8cpp.html#a492d30e53518874102ea76d685bdb1d1" title=" " alt="" coords="116,55,289,80"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="47,131,73,109,107,89,124,82,126,87,109,94,76,114,50,135"/>
+<area shape="rect" id="Node000005" href="$concepts__example_8cpp.html#a586c53de92cd9003320628f0b16eca73" title=" " alt="" coords="119,104,286,129"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="60,139,115,129,116,134,61,144"/>
+<area shape="rect" id="Node000007" href="$concepts__example_8cpp.html#a3699c41ab2b570d1e99aab51aec287ff" title=" " alt="" coords="119,154,286,194"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="61,148,106,155,105,161,60,153"/>
+<area shape="rect" id="Node000009" href="$concepts__example_8cpp.html#a21f1fb04663f784a49564a92bb6dadaa" title=" " alt="" coords="120,218,285,258"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="49,157,76,181,109,204,122,210,120,215,107,208,72,185,45,161"/>
+<area shape="rect" id="Node000011" href="$concepts__example_8cpp.html#a4855ce2958bc7ff5b070c965258f55c3" title=" " alt="" coords="108,283,297,308"/>
+<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="40,158,64,211,84,242,110,268,120,275,117,279,106,272,80,245,59,214,36,160"/>
+<area shape="rect" id="Node000003" href="$concepts__example_8cpp.html#a00a3791e765fee359522727e0cbf94cc" title="Send data from any buffer type satisfying ByteBuffer concept." alt="" coords="376,5,475,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="296,15,362,15,362,21,296,21"/>
+<area shape="rect" id="Node000006" href="$concepts__example_8cpp.html#a2010a8a5f9bc246af256151111299dba" title="Set a timeout using any duration type." alt="" coords="375,104,475,129"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="287,114,361,114,361,119,287,119"/>
+<area shape="rect" id="Node000008" href="$concepts__example_8cpp.html#abbda187a239b81f5ef862ab85f833957" title="Receive data into a resizable buffer." alt="" coords="374,161,477,187"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="287,171,360,171,360,177,287,177"/>
+<area shape="rect" id="Node000010" href="$concepts__example_8cpp.html#af43d17c989e91a5eb4121f3da9a03740" title="Generic function that works with any NetworkClient." alt="" coords="381,225,469,251"/>
+<area shape="poly" id="edge9_Node000009_Node000010" title=" " alt="" coords="286,235,367,235,367,241,286,241"/>
+<area shape="rect" id="Node000012" href="$concepts__example_8cpp.html#ae48989974a2fd99d8c93d33647761500" title="Apply a reversible transformer to data." alt="" coords="345,283,505,308"/>
+<area shape="poly" id="edge11_Node000011_Node000012" title=" " alt="" coords="298,293,332,293,332,298,298,298"/>
+</map>

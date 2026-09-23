@@ -1,0 +1,5 @@
+<map id="kcenon::network::protocols::grpc::server_context" name="kcenon::network::protocols::grpc::server_context">
+<area shape="rect" id="Node000001" title="Context for handling a single RPC request." alt="" coords="5,5,196,225"/>
+<area shape="rect" id="Node000002" href="$classmock__server__context.html" title="Simple mock implementation of server_context for testing/examples." alt="" coords="8,273,193,559"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="103,239,103,273,98,273,98,239"/>
+</map>

@@ -1,0 +1,11 @@
+<map id="include/kcenon/network/config/config.h" name="include/kcenon/network/config/config.h">
+<area shape="rect" id="Node000001" title="Unified configuration header for network_system." alt="" coords="223,5,400,45"/>
+<area shape="rect" id="Node000002" href="$network__system_8h.html" title="Main header for the Network System." alt="" coords="223,93,400,133"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="314,59,314,93,309,93,309,59"/>
+<area shape="rect" id="Node000003" href="$http__client__demo_8cpp.html" title=" " alt="" coords="5,189,172,229"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="255,141,135,191,133,186,253,136"/>
+<area shape="rect" id="Node000004" href="$modern__usage_8cpp.html" title="Example of using network_system with modern API and Result&lt;T&gt; pattern." alt="" coords="196,181,427,236"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="314,147,314,181,309,181,309,147"/>
+<area shape="rect" id="Node000005" href="$network__system_8cpp.html" title=" " alt="" coords="451,196,631,221"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="371,136,513,193,511,198,369,141"/>
+</map>

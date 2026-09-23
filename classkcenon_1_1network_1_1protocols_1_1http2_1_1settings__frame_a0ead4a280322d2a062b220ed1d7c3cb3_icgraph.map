@@ -1,0 +1,11 @@
+<map id="kcenon::network::protocols::http2::settings_frame::parse" name="kcenon::network::protocols::http2::settings_frame::parse">
+<area shape="rect" id="Node000001" title="Parse SETTINGS frame from raw bytes." alt="" coords="532,77,747,117"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1protocols_1_1http2_1_1frame.html#a4021592f8f32bea6ed64fd080acec34b" title="Parse frame from raw bytes." alt="" coords="285,77,484,117"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="519,100,484,100,484,95,519,95"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1protocols_1_1http2_1_1http2__client.html#a2be50cd8bd3a3cf183a6161589026f89" title=" " alt="" coords="5,5,237,45"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="297,76,195,48,196,43,298,71"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1protocols_1_1http2_1_1http2__server__connection.html#ab32fb7e6c5a47f9d783c96b24729fe09" title=" " alt="" coords="5,70,237,125"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="272,100,237,100,237,95,272,95"/>
+<area shape="rect" id="Node000005" href="$classkcenon_1_1network_1_1protocols_1_1http2_1_1http2__server__connection.html#a15001c390e9a87e26f3a90eed9ebff65" title=" " alt="" coords="5,149,237,203"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="305,124,214,151,213,146,303,119"/>
+</map>

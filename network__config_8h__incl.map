@@ -1,0 +1,11 @@
+<map id="include/kcenon/network/detail/config/network_config.h" name="include/kcenon/network/detail/config/network_config.h">
+<area shape="rect" id="Node000001" title="Configuration structures for standalone network_system initialization." alt="" coords="81,5,258,60"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,115,72,141"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="134,62,67,110,64,105,131,58"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="96,115,155,141"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="159,61,139,104,134,102,154,59"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="179,115,250,141"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="185,59,205,102,201,104,180,61"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="275,108,507,148"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="233,58,335,100,333,105,231,63"/>
+</map>

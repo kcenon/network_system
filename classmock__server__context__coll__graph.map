@@ -1,0 +1,24 @@
+<map id="mock_server_context" name="mock_server_context">
+<area shape="rect" id="Node000001" title="Simple mock implementation of server_context for testing/examples." alt="" coords="141,745,327,951"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1protocols_1_1grpc_1_1server__context.html" title="Context for handling a single RPC request." alt="" coords="5,448,196,668"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="159,680,189,744,185,746,155,682"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="275,518,473,598"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="358,599,293,732,288,729,353,597"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="299,291,449,371"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="377,371,377,502,371,502,371,371"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="213,148,292,213"/>
+<area shape="poly" id="edge11_Node000001_Node000005" title=" " alt="" coords="254,214,240,729,235,729,249,214"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="264,213,275,239,291,265,302,278,298,281,287,268,270,242,259,215"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="187,5,318,85"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="255,99,255,148,250,148,250,99"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="333,148,471,213"/>
+<area shape="poly" id="edge6_Node000004_Node000007" title=" " alt="" coords="396,227,384,291,379,290,391,226"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="356,13,387,78"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="371,78,375,123,378,132,373,133,370,125,366,79"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="464,13,495,78"/>
+<area shape="poly" id="edge8_Node000007_Node000009" title=" " alt="" coords="473,79,452,125,445,136,441,133,448,123,468,77"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="481,298,603,363"/>
+<area shape="poly" id="edge9_Node000003_Node000010" title=" " alt="" coords="512,376,405,520,401,516,508,373"/>
+<area shape="rect" id="Node000011" title=" " alt="" coords="535,148,557,213"/>
+<area shape="poly" id="edge10_Node000010_Node000011" title=" " alt="" coords="548,214,546,282,541,282,542,214"/>
+</map>

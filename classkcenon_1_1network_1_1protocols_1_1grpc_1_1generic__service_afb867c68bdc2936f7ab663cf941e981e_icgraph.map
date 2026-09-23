@@ -1,0 +1,10 @@
+<map id="kcenon::network::protocols::grpc::generic_service::register_unary_method" name="kcenon::network::protocols::grpc::generic_service::register_unary_method">
+<area shape="rect" id="Node000001" title="Register a unary method handler." alt="" coords="351,16,549,71"/>
+<area shape="rect" id="Node000002" href="$tutorials_2grpc__service__example_8cpp.html#a7d1522516b882b28a325e1d4c88ca45d" title=" " alt="" coords="110,5,301,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="337,34,301,31,301,25,337,29"/>
+<area shape="rect" id="Node000004" href="$tutorials_2grpc__service__example_8cpp.html#ac94f0b706c003bfba0a05c9df1882d34" title=" " alt="" coords="108,55,303,80"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="337,57,303,60,303,55,337,52"/>
+<area shape="rect" id="Node000003" href="$tutorials_2grpc__service__example_8cpp.html#ae66f6b31b5ad750f1fe042a706a4e3d4" title=" " alt="" coords="5,31,60,56"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="105,35,60,42,60,37,105,30"/>
+<area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="100,55,60,50,61,44,101,50"/>
+</map>

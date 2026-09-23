@@ -1,0 +1,10 @@
+<map id="profile_message_throughput" name="profile_message_throughput">
+<area shape="rect" id="Node000001" title="Profile message throughput memory." alt="" coords="5,29,212,55"/>
+<area shape="rect" id="Node000002" href="$memory__profile__demo_8cpp.html#a6295c0a390ad165833a0089970921330" title="Get current RSS (Resident Set Size) in bytes." alt="" coords="477,5,600,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="212,34,464,19,464,25,213,39"/>
+<area shape="rect" id="Node000003" href="$memory__profile__demo_8cpp.html#a7791d3883beb680ea62515b4a8148ff8" title="Print memory statistics with label." alt="" coords="260,55,413,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="212,51,247,55,246,60,212,56"/>
+<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="389,52,472,31,473,37,390,57"/>
+<area shape="rect" id="Node000004" href="$memory__profile__demo_8cpp.html#a03a3bc83ede2b2959b4aece83006046e" title="Get current virtual memory size in bytes." alt="" coords="461,55,616,80"/>
+<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="413,65,448,65,448,70,413,70"/>
+</map>

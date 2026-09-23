@@ -1,0 +1,7 @@
+<map id="kcenon::network::core::messaging_server::get_disconnection_callback" name="kcenon::network::core::messaging_server::get_disconnection_callback">
+<area shape="rect" id="Node000001" title="Gets a copy of the disconnection callback." alt="" coords="5,30,185,85"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1utils_1_1callback__manager.html#af917154ed3a106fa43fa2b1f7092a97c" title="Gets a callback at the specified index." alt="" coords="233,5,412,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="185,42,219,37,220,42,186,47"/>
+<area shape="rect" id="Node000003" href="$namespacekcenon_1_1network.html#a15edd0988aec7155616b3ad3478471a5" title="Helper to convert enum to std::size_t for callback_manager access." alt="" coords="247,69,398,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="186,67,234,74,234,80,185,73"/>
+</map>

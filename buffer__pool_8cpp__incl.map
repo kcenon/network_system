@@ -1,0 +1,37 @@
+<map id="src/internal/utils/buffer_pool.cpp" name="src/internal/utils/buffer_pool.cpp">
+<area shape="rect" id="Node000001" title=" " alt="" coords="567,5,694,45"/>
+<area shape="rect" id="Node000002" href="$buffer__pool_8h.html" title=" " alt="" coords="5,189,112,214"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="570,48,110,187,109,182,568,43"/>
+<area shape="rect" id="Node000006" href="$logger__integration_8h.html" title="Logger system integration interface for network_system." alt="" coords="436,93,593,133"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="607,48,553,87,550,83,603,43"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="809,189,876,214"/>
+<area shape="poly" id="edge17_Node000001_Node000008" title=" " alt="" coords="633,45,638,88,646,111,659,132,675,146,690,156,721,164,756,168,798,179,804,181,802,186,797,184,755,173,720,169,688,160,672,150,655,135,641,114,633,90,628,46"/>
+<area shape="rect" id="Node000015" title=" " alt="" coords="669,101,731,126"/>
+<area shape="poly" id="edge18_Node000001_Node000015" title=" " alt="" coords="648,44,684,88,680,91,644,47"/>
+<area shape="rect" id="Node000016" title=" " alt="" coords="756,101,820,126"/>
+<area shape="poly" id="edge19_Node000001_Node000016" title=" " alt="" coords="666,43,756,92,754,96,664,48"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="25,269,92,295"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="61,214,61,255,56,255,56,214"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="225,269,303,295"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="89,212,222,262,220,267,88,217"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="131,269,194,295"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="76,212,138,259,135,263,72,216"/>
+<area shape="poly" id="edge8_Node000006_Node000004" title=" " alt="" coords="436,124,401,131,364,143,329,160,299,183,287,199,278,218,269,256,263,255,273,216,282,197,295,179,327,156,362,138,399,126,435,119"/>
+<area shape="rect" id="Node000007" href="$detail_2config_2feature__flags_8h.html" title="Feature flags for network_system." alt="" coords="535,181,702,221"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="539,132,587,170,583,174,536,136"/>
+<area shape="poly" id="edge7_Node000006_Node000008" title=" " alt="" coords="594,127,692,149,798,179,805,181,803,186,797,184,691,154,593,132"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="727,189,785,214"/>
+<area shape="poly" id="edge9_Node000006_Node000009" title=" " alt="" coords="577,131,716,179,720,181,718,186,714,184,575,136"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="137,189,234,214"/>
+<area shape="poly" id="edge10_Node000006_Node000010" title=" " alt="" coords="440,136,254,184,240,188,239,182,253,179,439,131"/>
+<area shape="rect" id="Node000011" href="$thread__integration_8h.html" title="Thread system integration interface for network_system." alt="" coords="310,181,511,221"/>
+<area shape="poly" id="edge11_Node000006_Node000011" title=" " alt="" coords="493,136,446,174,443,170,490,132"/>
+<area shape="poly" id="edge13_Node000011_Node000004" title=" " alt="" coords="377,224,299,265,296,260,374,219"/>
+<area shape="poly" id="edge16_Node000011_Node000005" title=" " alt="" coords="352,224,208,269,206,264,350,219"/>
+<area shape="rect" id="Node000012" title=" " alt="" coords="327,269,414,295"/>
+<area shape="poly" id="edge12_Node000011_Node000012" title=" " alt="" coords="403,223,385,258,380,256,399,220"/>
+<area shape="rect" id="Node000013" title=" " alt="" coords="439,269,500,295"/>
+<area shape="poly" id="edge14_Node000011_Node000013" title=" " alt="" coords="427,220,454,256,450,260,423,223"/>
+<area shape="rect" id="Node000014" title=" " alt="" coords="524,269,591,295"/>
+<area shape="poly" id="edge15_Node000011_Node000014" title=" " alt="" coords="447,219,525,260,522,265,445,224"/>
+</map>

@@ -1,0 +1,11 @@
+<map id="src/internal/websocket/websocket_frame.h" name="src/internal/websocket/websocket_frame.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="81,5,249,45"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,93,61,119"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="135,48,66,88,64,84,132,43"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="85,93,152,119"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="156,47,135,83,130,80,152,44"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="176,93,251,119"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="179,44,201,80,197,83,175,47"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="275,93,338,119"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="200,43,275,84,272,89,198,48"/>
+</map>

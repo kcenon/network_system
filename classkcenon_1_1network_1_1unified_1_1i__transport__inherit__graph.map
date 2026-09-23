@@ -1,0 +1,13 @@
+<map id="kcenon::network::unified::i_transport" name="kcenon::network::unified::i_transport">
+<area shape="rect" id="Node000001" title="Core interface for data transport abstraction." alt="" coords="373,5,548,305"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1unified_1_1i__connection.html" title="Core interface for active network connections." alt="" coords="373,353,548,693"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="463,319,463,353,458,353,458,319"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1unified_1_1adapters_1_1quic__connection__adapter.html" title="Adapter that wraps QUIC connection to implement i_connection." alt="" coords="5,741,217,1336"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="364,602,295,667,262,704,232,743,220,762,215,759,228,740,258,701,291,664,360,598"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1unified_1_1adapters_1_1tcp__connection__adapter.html" title="Adapter that wraps unified_messaging_client to implement i_connection." alt="" coords="242,801,447,1276"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="422,707,401,802,396,801,417,706"/>
+<area shape="rect" id="Node000005" href="$classkcenon_1_1network_1_1unified_1_1adapters_1_1udp__connection__adapter.html" title="Adapter that wraps messaging_udp_client to implement i_connection." alt="" coords="472,801,681,1276"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="504,706,526,801,521,802,499,707"/>
+<area shape="rect" id="Node000006" href="$classkcenon_1_1network_1_1unified_1_1adapters_1_1ws__connection__adapter.html" title="Adapter that wraps messaging_ws_client to implement i_connection." alt="" coords="706,781,909,1296"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="560,596,632,662,666,700,696,740,720,780,716,783,692,743,662,703,628,666,557,600"/>
+</map>

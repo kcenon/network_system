@@ -1,0 +1,11 @@
+<map id="include/kcenon/network/detail/tracing/tracing_config.h" name="include/kcenon/network/detail/tracing/tracing_config.h">
+<area shape="rect" id="Node000001" title="Configuration structures for OpenTelemetry tracing." alt="" coords="98,5,275,60"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,108,72,133"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="143,62,72,103,69,99,140,58"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="97,108,183,133"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="175,61,155,97,150,95,170,59"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="208,108,259,133"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="203,59,223,95,218,97,199,61"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="283,108,341,133"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="226,58,285,98,282,102,223,62"/>
+</map>

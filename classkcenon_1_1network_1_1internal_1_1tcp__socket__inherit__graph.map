@@ -1,0 +1,5 @@
+<map id="kcenon::network::internal::tcp_socket" name="kcenon::network::internal::tcp_socket">
+<area shape="rect" id="Node000001" title="A lightweight wrapper around asio::ip::tcp::socket, enabling asynchronous read and write operations." alt="" coords="5,133,247,768"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="35,5,217,85"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="129,99,129,133,123,133,123,99"/>
+</map>

@@ -1,0 +1,5 @@
+<map id="kcenon::network::protocols::grpc::generic_service" name="kcenon::network::protocols::grpc::generic_service">
+<area shape="rect" id="Node000001" title="A service that allows dynamic method registration." alt="" coords="5,173,205,621"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1protocols_1_1grpc_1_1service__base.html" title="Base class for all gRPC service implementations." alt="" coords="10,5,201,125"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="108,139,108,173,103,173,103,139"/>
+</map>

@@ -1,0 +1,14 @@
+<map id="QuicServerDemo::handle_command" name="QuicServerDemo::handle_command">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,91,189,131"/>
+<area shape="rect" id="Node000002" href="$classQuicServerDemo.html#ae2d527d067559820455e54e9d3f561c8" title=" " alt="" coords="240,34,417,74"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="178,89,234,75,235,80,179,94"/>
+<area shape="rect" id="Node000005" href="$classkcenon_1_1network_1_1core_1_1messaging__quic__server.html#a71d346e96176b4cd2fc014e26183c2e8" title="Get the number of active sessions." alt="" coords="468,84,651,139"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="189,109,454,109,454,114,189,114"/>
+<area shape="rect" id="Node000006" href="$classkcenon_1_1network_1_1core_1_1messaging__quic__server.html#a302a8f0809abaaf5194117cd02e387ca" title="Get all active sessions." alt="" coords="237,149,420,204"/>
+<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="170,129,225,145,224,150,168,134"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1core_1_1messaging__quic__server.html#a5466849c0d7d2713d39f9657a17667ee" title="Send data to all connected clients." alt="" coords="468,5,651,60"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="417,43,454,40,455,45,418,48"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="410,71,455,83,454,88,409,77"/>
+<area shape="rect" id="Node000004" href="$namespacekcenon_1_1network.html#aa32d0dbfdee046c2c0cde3667c5f05a8" title=" " alt="" coords="699,20,853,45"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="651,30,685,30,685,35,651,35"/>
+</map>

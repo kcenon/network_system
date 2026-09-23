@@ -1,0 +1,9 @@
+<map id="include/kcenon/network/unified/unified.h" name="include/kcenon/network/unified/unified.h">
+<area shape="rect" id="Node000001" title="Convenience header for the unified network interface API." alt="" coords="213,5,391,45"/>
+<area shape="rect" id="Node000002" href="$unified__client__example_8cpp.html" title="Example showing the new unified client interface usage." alt="" coords="5,93,185,148"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="249,53,155,96,152,91,247,49"/>
+<area shape="rect" id="Node000003" href="$unified__server__example_8cpp.html" title="Example showing the new unified server (listener) interface usage." alt="" coords="209,93,395,148"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="305,59,305,93,299,93,299,59"/>
+<area shape="rect" id="Node000004" href="$unified__messaging__example_8cpp.html" title="Demonstrates the unified transport interface abstraction." alt="" coords="419,101,631,141"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="361,48,481,98,479,103,359,53"/>
+</map>

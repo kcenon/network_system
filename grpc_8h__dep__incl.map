@@ -1,0 +1,7 @@
+<map id="include/kcenon/network/protocols/grpc/grpc.h" name="include/kcenon/network/protocols/grpc/grpc.h">
+<area shape="rect" id="Node000001" title="Unified gRPC protocol header." alt="" coords="107,5,284,45"/>
+<area shape="rect" id="Node000002" href="$grpc__service__example_8cpp.html" title="Demonstrates gRPC server and client using the facade API." alt="" coords="5,93,177,133"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="163,56,116,95,113,91,160,52"/>
+<area shape="rect" id="Node000003" href="$tutorials_2grpc__service__example_8cpp.html" title="Example demonstrating gRPC service registration and management." alt="" coords="201,93,400,133"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="231,52,279,91,276,95,227,56"/>
+</map>

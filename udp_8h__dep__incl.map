@@ -1,0 +1,19 @@
+<map id="include/kcenon/network/detail/protocol/udp.h" name="include/kcenon/network/detail/protocol/udp.h">
+<area shape="rect" id="Node000001" title="UDP protocol connection factory functions." alt="" coords="308,5,485,45"/>
+<area shape="rect" id="Node000002" href="$protocol_8h.html" title="Convenience header for all protocol factory functions." alt="" coords="213,93,391,133"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="367,57,325,95,321,91,364,53"/>
+<area shape="rect" id="Node000009" href="$udp_8cpp.html" title=" " alt="" coords="415,101,568,126"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="430,53,480,98,476,102,426,57"/>
+<area shape="rect" id="Node000003" href="$unified__client__example_8cpp.html" title="Example showing the new unified client interface usage." alt="" coords="5,181,185,236"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="249,141,155,184,152,179,247,137"/>
+<area shape="rect" id="Node000004" href="$unified__server__example_8cpp.html" title="Example showing the new unified server (listener) interface usage." alt="" coords="209,181,395,236"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="305,147,305,181,299,181,299,147"/>
+<area shape="rect" id="Node000005" href="$network__system_8h.html" title="Main header for the Network System." alt="" coords="419,189,596,229"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="357,136,467,186,465,191,355,141"/>
+<area shape="rect" id="Node000006" href="$http__client__demo_8cpp.html" title=" " alt="" coords="201,291,368,331"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="454,237,327,294,325,289,452,232"/>
+<area shape="rect" id="Node000007" href="$modern__usage_8cpp.html" title="Example of using network_system with modern API and Result&lt;T&gt; pattern." alt="" coords="392,284,623,339"/>
+<area shape="poly" id="edge6_Node000005_Node000007" title=" " alt="" coords="510,242,510,284,505,284,505,242"/>
+<area shape="rect" id="Node000008" href="$network__system_8cpp.html" title=" " alt="" coords="647,299,827,324"/>
+<area shape="poly" id="edge7_Node000005_Node000008" title=" " alt="" coords="564,232,711,296,709,301,562,237"/>
+</map>

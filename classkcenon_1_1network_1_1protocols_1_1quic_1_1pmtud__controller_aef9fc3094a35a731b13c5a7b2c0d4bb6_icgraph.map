@@ -1,0 +1,17 @@
+<map id="kcenon::network::protocols::quic::pmtud_controller::calculate_next_probe_size" name="kcenon::network::protocols::quic::pmtud_controller::calculate_next_probe_size">
+<area shape="rect" id="Node000001" title="Calculate next probe size using binary search." alt="" coords="784,124,987,179"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1pmtud__controller.html#a19b24b31b5e3f5b35952d81af28eba44" title="Handle ICMP Packet Too Big message." alt="" coords="537,5,736,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="824,120,735,74,710,63,712,58,737,69,826,115"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1pmtud__controller.html#a97c063b28338e0be3cad82cf13114cea" title="Handle probe acknowledgment." alt="" coords="537,84,736,139"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="770,136,736,130,737,125,771,130"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1pmtud__controller.html#aa5585fe6e5b401860264ff7f3ee261ce" title="Handle probe loss." alt="" coords="537,163,736,217"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="771,172,737,177,736,172,770,167"/>
+<area shape="rect" id="Node000006" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1pmtud__controller.html#aac2441ca2314da33167c834745306412" title="Start probing from base MTU." alt="" coords="537,241,736,296"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="823,188,737,231,708,244,706,239,735,226,821,183"/>
+<area shape="rect" id="Node000005" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1pmtud__controller.html#af64f6d0933da6fae8b694d134be8e5df" title="Handle timeout event." alt="" coords="291,163,489,217"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="523,193,490,193,490,187,523,187"/>
+<area shape="rect" id="Node000007" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1pmtud__controller.html#a41204283118e8fc9fd544ddead2d61ab" title="Enable PMTUD and start probing." alt="" coords="291,241,489,296"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="523,271,490,271,490,266,523,266"/>
+<area shape="rect" id="Node000008" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1connection.html#a08cfa78b7be7750927e05f2f54601113" title="Enable Path MTU Discovery." alt="" coords="5,249,243,289"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="277,271,243,271,243,266,277,266"/>
+</map>

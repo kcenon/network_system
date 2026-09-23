@@ -1,0 +1,11 @@
+<map id="kcenon::network::protocol::udp::create_connection" name="kcenon::network::protocol::udp::create_connection">
+<area shape="rect" id="Node000001" title="Creates a UDP connection (not yet started)" alt="" coords="433,54,624,94"/>
+<area shape="rect" id="Node000002" href="$namespacekcenon_1_1network_1_1protocol_1_1udp.html#a774eed059b0fd4d96b817f0fede34eda" title="Creates and starts a UDP connection in one call." alt="" coords="195,22,385,62"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="419,62,385,57,386,52,420,57"/>
+<area shape="rect" id="Node000005" href="$namespacekcenon_1_1network_1_1protocol_1_1udp.html#a04ea230cba5fe44b74b2d43049016a4d" title="Creates and starts a UDP connection using URL format." alt="" coords="195,86,385,126"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="420,91,386,96,385,91,419,86"/>
+<area shape="rect" id="Node000003" href="$unified__client__example_8cpp.html#a50f290667096f329c38c40f7cf5f4661" title="Example of protocol selection at runtime." alt="" coords="5,5,147,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="180,32,147,29,147,23,181,27"/>
+<area shape="rect" id="Node000004" href="$unified__client__example_8cpp.html#a8fe5ee46918025fafb628aaa56b1f47f" title="UDP client example using unified API." alt="" coords="21,55,131,80"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="181,58,132,63,132,58,180,52"/>
+</map>

@@ -1,0 +1,7 @@
+<map id="print_memory_stats" name="print_memory_stats">
+<area shape="rect" id="Node000001" title="Print memory statistics with label." alt="" coords="5,31,159,56"/>
+<area shape="rect" id="Node000002" href="$memory__profile__demo_8cpp.html#a6295c0a390ad165833a0089970921330" title="Get current RSS (Resident Set Size) in bytes." alt="" coords="223,5,345,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="158,31,208,25,209,30,159,36"/>
+<area shape="rect" id="Node000003" href="$memory__profile__demo_8cpp.html#a03a3bc83ede2b2959b4aece83006046e" title="Get current virtual memory size in bytes." alt="" coords="207,55,361,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="159,50,193,54,193,59,158,55"/>
+</map>

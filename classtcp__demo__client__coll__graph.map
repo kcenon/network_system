@@ -1,0 +1,7 @@
+<map id="tcp_demo_client" name="tcp_demo_client">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,263,225,448"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="76,135,155,200"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="118,200,118,246,113,246,113,200"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="50,5,181,85"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="118,99,118,134,113,134,113,99"/>
+</map>

@@ -1,0 +1,21 @@
+var session__model_8h =
+[
+    [ "kcenon::network::core::session_model< SessionType >", "classkcenon_1_1network_1_1core_1_1session__model.html", "classkcenon_1_1network_1_1core_1_1session__model" ],
+    [ "kcenon::network::core::session_model< SessionType >::has_id_method< T, typename >", "structkcenon_1_1network_1_1core_1_1session__model_1_1has__id__method.html", null ],
+    [ "kcenon::network::core::session_model< SessionType >::has_id_method< T, std::void_t< decltype(std::declval< const T & >().id())> >", "structkcenon_1_1network_1_1core_1_1session__model_1_1has__id__method_3_01T_00_01std_1_1void__t_39ae44dbf111c63a5c30888fdf8dde621.html", null ],
+    [ "kcenon::network::core::session_model< SessionType >::has_server_id_method< T, typename >", "structkcenon_1_1network_1_1core_1_1session__model_1_1has__server__id__method.html", null ],
+    [ "kcenon::network::core::session_model< SessionType >::has_server_id_method< T, std::void_t< decltype(std::declval< const T & >().server_id())> >", "structkcenon_1_1network_1_1core_1_1session__model_1_1has__server__id__method_3_01T_00_01std_1_1v1c04c91703ac0e2826152a3894bf7a8c.html", null ],
+    [ "kcenon::network::core::session_model< SessionType >::has_is_connected_method< T, typename >", "structkcenon_1_1network_1_1core_1_1session__model_1_1has__is__connected__method.html", null ],
+    [ "kcenon::network::core::session_model< SessionType >::has_is_connected_method< T, std::void_t< decltype(std::declval< const T & >().is_connected())> >", "structkcenon_1_1network_1_1core_1_1session__model_1_1has__is__connected__method_3_01T_00_01std_10eb3a13f85367f0c50cd87e3608c7bb4.html", null ],
+    [ "kcenon::network::core::session_model< SessionType >::has_is_stopped_method< T, typename >", "structkcenon_1_1network_1_1core_1_1session__model_1_1has__is__stopped__method.html", null ],
+    [ "kcenon::network::core::session_model< SessionType >::has_is_stopped_method< T, std::void_t< decltype(std::declval< const T & >().is_stopped())> >", "structkcenon_1_1network_1_1core_1_1session__model_1_1has__is__stopped__method_3_01T_00_01std_1_1437201d40c57c904df2adf48504293ee.html", null ],
+    [ "kcenon::network::core::session_model< SessionType >::has_send_method< T, typename >", "structkcenon_1_1network_1_1core_1_1session__model_1_1has__send__method.html", null ],
+    [ "kcenon::network::core::session_model< SessionType >::has_send_method< T, std::void_t< decltype(std::declval< T & >().send(std::declval< std::vector< uint8_t > && >()))> >", "structkcenon_1_1network_1_1core_1_1session__model_1_1has__send__method_3_01T_00_01std_1_1void__t14620cbbe17ed3e4038ff148cc7c854e.html", null ],
+    [ "kcenon::network::core::session_model< SessionType >::has_send_packet_method< T, typename >", "structkcenon_1_1network_1_1core_1_1session__model_1_1has__send__packet__method.html", null ],
+    [ "kcenon::network::core::session_model< SessionType >::has_send_packet_method< T, std::void_t< decltype(std::declval< T & >().send_packet(std::declval< std::vector< uint8_t > && >()))> >", "structkcenon_1_1network_1_1core_1_1session__model_1_1has__send__packet__method_3_01T_00_01std_1_7945d5941fdd51783c4d2decbd326deb.html", null ],
+    [ "kcenon::network::core::session_model< SessionType >::has_close_method< T, typename >", "structkcenon_1_1network_1_1core_1_1session__model_1_1has__close__method.html", null ],
+    [ "kcenon::network::core::session_model< SessionType >::has_close_method< T, std::void_t< decltype(std::declval< T & >().close())> >", "structkcenon_1_1network_1_1core_1_1session__model_1_1has__close__method_3_01T_00_01std_1_1void__2b455b66903d7823be546522c438fe4a.html", null ],
+    [ "kcenon::network::core::session_model< SessionType >::has_stop_session_method< T, typename >", "structkcenon_1_1network_1_1core_1_1session__model_1_1has__stop__session__method.html", null ],
+    [ "kcenon::network::core::session_model< SessionType >::has_stop_session_method< T, std::void_t< decltype(std::declval< T & >().stop_session())> >", "structkcenon_1_1network_1_1core_1_1session__model_1_1has__stop__session__method_3_01T_00_01std_19a3fc61519b158c6f0dbe0fe61bd5016.html", null ],
+    [ "make_session_model", "session__model_8h.html#a3bd7835563d6939d7146bb28711505f5", null ]
+];

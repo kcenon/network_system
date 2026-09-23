@@ -1,0 +1,9 @@
+<map id="kcenon::network::protocols::grpc::service_registry::impl::service_names" name="kcenon::network::protocols::grpc::service_registry::impl::service_names">
+<area shape="rect" id="Node000001" title=" " alt="" coords="597,5,796,60"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1protocols_1_1grpc_1_1service__registry.html#a1a509a5d553c852444a8cc98c2900c06" title="Get list of all service names." alt="" coords="351,5,549,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="583,35,550,35,550,30,583,30"/>
+<area shape="rect" id="Node000003" href="$tutorials_2grpc__service__example_8cpp.html#ac94f0b706c003bfba0a05c9df1882d34" title=" " alt="" coords="108,20,303,45"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="337,35,303,35,303,30,337,30"/>
+<area shape="rect" id="Node000004" href="$tutorials_2grpc__service__example_8cpp.html#ae66f6b31b5ad750f1fe042a706a4e3d4" title=" " alt="" coords="5,20,60,45"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="94,35,60,35,60,30,94,30"/>
+</map>

@@ -1,0 +1,9 @@
+<map id="include/kcenon/network/detail/utils/result_types.h" name="include/kcenon/network/detail/utils/result_types.h">
+<area shape="rect" id="Node000001" title="Network&#45;specific error and result type definitions." alt="" coords="135,5,325,45"/>
+<area shape="rect" id="Node000002" href="$detail_2config_2feature__flags_8h.html" title="Feature flags for network_system." alt="" coords="5,93,172,133"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="200,48,133,89,130,84,198,43"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="196,101,264,126"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="233,46,233,87,227,87,227,46"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="289,101,347,126"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="251,44,298,89,294,92,248,48"/>
+</map>

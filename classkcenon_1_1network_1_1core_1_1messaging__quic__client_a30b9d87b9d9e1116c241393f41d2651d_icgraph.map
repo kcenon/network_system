@@ -1,0 +1,9 @@
+<map id="kcenon::network::core::messaging_quic_client::create_unidirectional_stream" name="kcenon::network::core::messaging_quic_client::create_unidirectional_stream">
+<area shape="rect" id="Node000001" title="Creates a new unidirectional stream (interface version)." alt="" coords="535,5,755,60"/>
+<area shape="rect" id="Node000002" href="$classQuicClientDemo.html#a4cce78a029dd046510320ba11ba6a532" title=" " alt="" coords="313,13,487,53"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="521,35,487,35,487,30,521,30"/>
+<area shape="rect" id="Node000003" href="$classQuicClientDemo.html#a2950f6d0113f0a3c3117fa505cccb140" title=" " alt="" coords="108,20,265,45"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="300,35,265,35,265,30,300,30"/>
+<area shape="rect" id="Node000004" href="$quic__client__example_8cpp.html#a0ddf1224851353fc92bfbff6f499fa97" title=" " alt="" coords="5,20,60,45"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="94,35,60,35,60,30,94,30"/>
+</map>

@@ -1,0 +1,7 @@
+<map id="kcenon::network::utils::callback_manager::invoke_if" name="kcenon::network::utils::callback_manager::invoke_if">
+<area shape="rect" id="Node000001" title="Invokes a callback conditionally." alt="" coords="5,5,221,45"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1utils_1_1callback__manager.html#a15534bb29c2eac06f458e2fa8261580d" title="Invokes a callback at the specified index if set." alt="" coords="269,5,469,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="221,23,255,23,255,28,221,28"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1utils_1_1callback__manager.html#af917154ed3a106fa43fa2b1f7092a97c" title="Gets a callback at the specified index." alt="" coords="517,5,696,45"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="470,23,503,23,503,28,470,28"/>
+</map>

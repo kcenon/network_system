@@ -1,0 +1,11 @@
+<map id="demo_handler_invocation" name="demo_handler_invocation">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,109,196,135"/>
+<area shape="rect" id="Node000002" href="$tutorials_2grpc__service__example_8cpp.html#ac0963918137489da0eef09bb465a1ca0" title="Simple echo handler that returns the request as&#45;is." alt="" coords="289,5,398,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="120,107,174,74,243,40,274,29,276,34,245,44,176,78,122,111"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1protocols_1_1grpc_1_1generic__service.html#ad05f60a3e958edf178a64b2e7fd34552" title="Get unary handler for a method." alt="" coords="244,55,443,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="178,107,230,98,231,103,179,112"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1protocols_1_1grpc_1_1generic__service.html#afb867c68bdc2936f7ab663cf941e981e" title="Register a unary method handler." alt="" coords="244,133,443,188"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="182,132,231,140,230,145,181,137"/>
+<area shape="rect" id="Node000005" href="$tutorials_2grpc__service__example_8cpp.html#a1da63bdd91b88440cb277fa9aa21e811" title="Handler that reverses the input bytes." alt="" coords="280,212,407,237"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="123,133,177,164,245,197,271,206,269,211,243,202,175,169,121,137"/>
+</map>

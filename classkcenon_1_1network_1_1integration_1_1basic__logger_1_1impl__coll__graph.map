@@ -1,0 +1,11 @@
+<map id="kcenon::network::integration::basic_logger::impl" name="kcenon::network::integration::basic_logger::impl">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,389,207,589"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="9,261,93,327"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="63,326,76,373,71,374,58,327"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="117,261,252,327"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="174,328,155,375,150,373,169,326"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="122,133,247,199"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="187,213,187,261,182,261,182,213"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="173,5,196,71"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="187,71,187,117,182,117,182,71"/>
+</map>

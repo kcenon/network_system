@@ -1,0 +1,7 @@
+<map id="kcenon::network::protocols::quic::stream::can_send" name="kcenon::network::protocols::quic::stream::can_send">
+<area shape="rect" id="Node000001" title="Check if stream can send data." alt="" coords="5,13,204,53"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1stream.html#a511d73ed588a57b76c1fcf0d7d0d2429" title="Check if stream is unidirectional." alt="" coords="252,13,479,53"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="204,30,238,30,238,35,204,35"/>
+<area shape="rect" id="Node000003" href="$namespacekcenon_1_1network_1_1protocols_1_1quic_1_1stream__id__type.html#a17c3f7ab3e04e97dfa1c277c672b4261" title="Check if stream is unidirectional." alt="" coords="527,5,725,60"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="479,30,513,30,513,35,479,35"/>
+</map>

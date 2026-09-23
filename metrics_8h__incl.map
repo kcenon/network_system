@@ -1,0 +1,36 @@
+<map id="include/kcenon/network/metrics/metrics.h" name="include/kcenon/network/metrics/metrics.h">
+<area shape="rect" id="Node000001" title="Unified metrics header for network_system." alt="" coords="291,5,468,45"/>
+<area shape="rect" id="Node000002" href="$network__metrics_8h.html" title="Network system metrics definitions and reporting utilities." alt="" coords="51,181,251,221"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="356,48,189,175,186,171,353,43"/>
+<area shape="rect" id="Node000006" href="$histogram_8h.html" title="Histogram metric implementation for latency distribution tracking." alt="" coords="296,181,463,221"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="382,46,382,168,377,168,377,46"/>
+<area shape="rect" id="Node000013" href="$sliding__histogram_8h.html" title="Sliding window histogram for time&#45;based latency tracking." alt="" coords="461,93,668,133"/>
+<area shape="poly" id="edge14_Node000001_Node000013" title=" " alt="" coords="421,43,513,85,511,90,419,48"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,269,76,295"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="126,224,70,263,67,259,123,219"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="183,269,234,295"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="167,220,194,256,190,260,163,223"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="101,269,159,295"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="149,222,139,256,134,255,144,221"/>
+<area shape="poly" id="edge9_Node000006_Node000004" title=" " alt="" coords="340,224,247,266,245,261,337,219"/>
+<area shape="poly" id="edge12_Node000006_Node000005" title=" " alt="" coords="320,224,173,270,172,265,319,219"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="346,269,413,295"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="382,222,382,255,377,255,377,222"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="437,269,503,295"/>
+<area shape="poly" id="edge7_Node000006_Node000008" title=" " alt="" coords="403,220,448,258,444,262,400,224"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="527,269,586,295"/>
+<area shape="poly" id="edge8_Node000006_Node000009" title=" " alt="" coords="423,219,519,261,517,266,421,224"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="610,269,687,295"/>
+<area shape="poly" id="edge10_Node000006_Node000010" title=" " alt="" coords="445,219,598,263,596,268,443,224"/>
+<area shape="rect" id="Node000011" title=" " alt="" coords="711,269,775,295"/>
+<area shape="poly" id="edge11_Node000006_Node000011" title=" " alt="" coords="463,216,698,266,697,272,462,222"/>
+<area shape="rect" id="Node000012" title=" " alt="" coords="259,269,321,295"/>
+<area shape="poly" id="edge13_Node000006_Node000012" title=" " alt="" coords="359,224,315,262,312,258,356,220"/>
+<area shape="poly" id="edge15_Node000013_Node000006" title=" " alt="" coords="525,136,433,178,431,173,523,131"/>
+<area shape="poly" id="edge18_Node000013_Node000010" title=" " alt="" coords="605,131,633,152,655,180,661,199,663,219,659,256,653,255,658,219,656,200,650,183,629,156,602,136"/>
+<area shape="poly" id="edge19_Node000013_Node000011" title=" " alt="" coords="606,131,642,152,677,179,710,218,733,256,729,259,705,221,673,183,639,157,604,136"/>
+<area shape="rect" id="Node000014" title=" " alt="" coords="487,189,554,214"/>
+<area shape="poly" id="edge16_Node000013_Node000014" title=" " alt="" coords="557,135,535,177,531,175,553,132"/>
+<area shape="rect" id="Node000015" title=" " alt="" coords="579,189,641,214"/>
+<area shape="poly" id="edge17_Node000013_Node000015" title=" " alt="" coords="577,132,600,175,595,177,572,135"/>
+</map>

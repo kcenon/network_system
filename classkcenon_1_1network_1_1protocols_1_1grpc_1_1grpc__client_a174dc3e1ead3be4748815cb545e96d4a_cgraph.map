@@ -1,0 +1,5 @@
+<map id="kcenon::network::protocols::grpc::grpc_client::is_connected" name="kcenon::network::protocols::grpc::grpc_client::is_connected">
+<area shape="rect" id="Node000001" title="Check if connected." alt="" coords="5,5,204,60"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1protocols_1_1grpc_1_1grpc__client_1_1impl.html#a0fe02349fd852c99459a0b27f8e504a2" title=" " alt="" coords="252,5,451,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="204,30,238,30,238,35,204,35"/>
+</map>

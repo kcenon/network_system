@@ -1,0 +1,15 @@
+<map id="kcenon::network::interfaces::i_protocol_client" name="kcenon::network::interfaces::i_protocol_client">
+<area shape="rect" id="Node000001" title="Unified interface for all protocol client implementations." alt="" coords="447,273,661,513"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1core_1_1messaging__client.html" title="A basic TCP client that connects to a remote host, sends/receives data using asynchronous operations,..." alt="" coords="5,561,223,1416"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="436,433,383,455,329,484,279,520,236,563,225,578,221,574,232,560,276,516,327,480,381,451,434,428"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1internal_1_1adapters_1_1http__client__adapter.html" title="Adapter that wraps http_client to implement i_protocol_client." alt="" coords="247,681,429,1296"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="462,527,444,562,421,621,401,682,396,680,416,619,440,560,458,524"/>
+<area shape="rect" id="Node000005" href="$classkcenon_1_1network_1_1internal_1_1adapters_1_1quic__client__adapter.html" title="Adapter that wraps messaging_quic_client to implement i_protocol_client." alt="" coords="454,701,654,1276"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="557,527,557,701,551,701,551,527"/>
+<area shape="rect" id="Node000006" href="$classkcenon_1_1network_1_1internal_1_1adapters_1_1udp__client__adapter.html" title="Adapter that wraps messaging_udp_client to implement i_protocol_client." alt="" coords="678,751,878,1226"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="650,524,668,560,705,654,733,750,728,752,700,656,664,562,645,526"/>
+<area shape="rect" id="Node000007" href="$classkcenon_1_1network_1_1internal_1_1adapters_1_1ws__client__adapter.html" title="Adapter that wraps messaging_ws_client to implement i_protocol_client." alt="" coords="902,749,1107,1229"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="675,424,731,446,790,476,845,513,892,560,922,602,946,649,965,698,980,748,975,749,960,700,941,651,917,605,888,563,842,518,787,481,729,451,673,429"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1interfaces_1_1i__network__component.html" title="Base interface for all network components." alt="" coords="457,5,651,225"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="557,239,557,273,551,273,551,239"/>
+</map>

@@ -1,0 +1,13 @@
+<map id="kcenon::network::protocols::quic::connection::close_application" name="kcenon::network::protocols::quic::connection::close_application">
+<area shape="rect" id="Node000001" title="Close connection due to application error." alt="" coords="5,94,204,149"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1tracing_1_1trace__context.html#a0618b3e17f57071584025d5e47aa0541" title="Create a new root span with a new trace context." alt="" coords="252,37,459,77"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="203,93,262,78,264,83,205,99"/>
+<area shape="rect" id="Node000005" href="$namespacekcenon_1_1network_1_1tracing.html#a6ab950c88c5666f30b2db30609a6834a" title="Check if tracing is enabled." alt="" coords="264,101,447,141"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="204,119,251,119,251,124,204,124"/>
+<area shape="rect" id="Node000006" href="$namespacekcenon_1_1network.html#aa32d0dbfdee046c2c0cde3667c5f05a8" title=" " alt="" coords="278,166,433,191"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="205,141,287,160,285,166,203,147"/>
+<area shape="rect" id="Node000003" href="$namespacekcenon_1_1network_1_1tracing.html#a933bb00747359508e4c9b490d42c495d" title="Generate a random span ID." alt="" coords="507,5,689,45"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="458,41,493,36,493,42,459,46"/>
+<area shape="rect" id="Node000004" href="$namespacekcenon_1_1network_1_1tracing.html#ab38da93c9d82d6795e6950368611ea35" title="Generate a random trace ID." alt="" coords="507,69,689,109"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="459,68,493,73,493,78,458,74"/>
+</map>

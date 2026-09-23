@@ -1,0 +1,5 @@
+<map id="kcenon::network::protocols::http2::dynamic_table::insert" name="kcenon::network::protocols::http2::dynamic_table::insert">
+<area shape="rect" id="Node000001" title="Insert header at beginning of table." alt="" coords="5,5,219,45"/>
+<area shape="rect" id="Node000002" href="$structkcenon_1_1network_1_1protocols_1_1http2_1_1http__header.html#adc82094f39e7072739850a7e8b67c17a" title=" " alt="" coords="267,5,465,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="219,23,253,23,253,28,219,28"/>
+</map>

@@ -1,0 +1,35 @@
+<map id="src/internal/core/network_context.h" name="src/internal/core/network_context.h">
+<area shape="rect" id="Node000001" title="Global context for shared network system resources." alt="" coords="423,5,607,45"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="499,269,577,295"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="423,35,273,52,193,66,119,85,59,110,36,124,20,140,11,157,9,176,16,196,32,219,54,231,97,241,223,258,367,269,486,276,486,281,366,274,222,263,96,246,52,236,28,223,11,199,3,176,5,155,16,137,33,120,56,105,118,80,192,61,273,46,423,30"/>
+<area shape="rect" id="Node000003" href="$thread__integration_8h.html" title="Thread system integration interface for network_system." alt="" coords="707,181,908,221"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="608,42,666,62,721,91,761,128,791,168,787,171,757,132,718,96,664,67,607,48"/>
+<area shape="rect" id="Node000008" href="$logger__integration_8h.html" title="Logger system integration interface for network_system." alt="" coords="339,93,497,133"/>
+<area shape="poly" id="edge8_Node000001_Node000008" title=" " alt="" coords="495,48,452,86,448,82,492,44"/>
+<area shape="rect" id="Node000013" href="$monitoring__integration_8h.html" title="Monitoring system integration interface for network_system." alt="" coords="521,93,707,133"/>
+<area shape="poly" id="edge15_Node000001_Node000013" title=" " alt="" coords="539,44,584,82,580,86,535,48"/>
+<area shape="poly" id="edge4_Node000003_Node000002" title=" " alt="" coords="743,224,590,268,589,263,742,219"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="715,269,801,295"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="798,223,775,259,770,256,793,220"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="826,269,887,295"/>
+<area shape="poly" id="edge5_Node000003_Node000005" title=" " alt="" coords="821,220,844,256,840,259,817,223"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="911,269,978,295"/>
+<area shape="poly" id="edge6_Node000003_Node000006" title=" " alt="" coords="841,219,914,260,911,265,839,224"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="628,269,691,295"/>
+<area shape="poly" id="edge7_Node000003_Node000007" title=" " alt="" coords="773,224,694,265,692,260,771,219"/>
+<area shape="poly" id="edge11_Node000008_Node000002" title=" " alt="" coords="431,132,488,220,520,258,516,261,484,223,426,135"/>
+<area shape="poly" id="edge14_Node000008_Node000003" title=" " alt="" coords="497,129,709,176,708,181,496,135"/>
+<area shape="rect" id="Node000009" href="$detail_2config_2feature__flags_8h.html" title="Feature flags for network_system." alt="" coords="43,181,209,221"/>
+<area shape="poly" id="edge9_Node000008_Node000009" title=" " alt="" coords="355,136,203,180,202,175,353,131"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="234,189,301,214"/>
+<area shape="poly" id="edge10_Node000008_Node000010" title=" " alt="" coords="386,136,300,184,298,180,383,131"/>
+<area shape="rect" id="Node000011" title=" " alt="" coords="498,189,557,214"/>
+<area shape="poly" id="edge12_Node000008_Node000011" title=" " alt="" coords="444,132,503,178,500,182,441,136"/>
+<area shape="rect" id="Node000012" title=" " alt="" coords="325,189,423,214"/>
+<area shape="poly" id="edge13_Node000008_Node000012" title=" " alt="" coords="410,135,389,177,384,175,406,132"/>
+<area shape="poly" id="edge17_Node000013_Node000002" title=" " alt="" coords="609,134,571,222,553,258,548,256,566,220,604,132"/>
+<area shape="poly" id="edge19_Node000013_Node000003" title=" " alt="" coords="657,131,753,173,751,178,655,136"/>
+<area shape="poly" id="edge18_Node000013_Node000011" title=" " alt="" coords="597,136,551,180,547,177,593,132"/>
+<area shape="rect" id="Node000014" title=" " alt="" coords="631,189,682,214"/>
+<area shape="poly" id="edge16_Node000013_Node000014" title=" " alt="" coords="626,132,647,175,642,177,621,135"/>
+</map>

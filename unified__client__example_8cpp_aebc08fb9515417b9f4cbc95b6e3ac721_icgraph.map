@@ -1,0 +1,9 @@
+<map id="handle_connection" name="handle_connection">
+<area shape="rect" id="Node000001" title="Protocol&#45;agnostic connection handler." alt="" coords="208,55,352,80"/>
+<area shape="rect" id="Node000002" href="$unified__client__example_8cpp.html#aa295dd123c5dea0dbb00469c77a837c6" title="TCP client example using unified API." alt="" coords="29,5,136,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="215,54,134,33,135,28,216,49"/>
+<area shape="rect" id="Node000003" href="$unified__client__example_8cpp.html#a8fe5ee46918025fafb628aaa56b1f47f" title="UDP client example using unified API." alt="" coords="27,55,138,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="194,70,139,70,139,65,194,65"/>
+<area shape="rect" id="Node000004" href="$unified__client__example_8cpp.html#ae5bd0f7610bd9eba9eed4b8134220859" title="WebSocket client example using unified API." alt="" coords="5,104,160,129"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="216,86,135,107,134,101,215,81"/>
+</map>

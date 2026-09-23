@@ -1,0 +1,5 @@
+<map id="kcenon::network::internal::websocket_frame::calculate_header_size" name="kcenon::network::internal::websocket_frame::calculate_header_size">
+<area shape="rect" id="Node000001" title="Calculates the size of the frame header." alt="" coords="324,5,536,60"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1internal_1_1websocket__protocol.html#a6a57f262fb0afdc06e50e8763aa6191a" title="Processes incoming frames from the buffer." alt="" coords="5,13,276,53"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="310,35,276,35,276,30,310,30"/>
+</map>

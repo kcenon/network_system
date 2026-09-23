@@ -1,0 +1,5 @@
+<map id="kcenon::network::integration::basic_monitoring" name="kcenon::network::integration::basic_monitoring">
+<area shape="rect" id="Node000001" title="Basic monitoring implementation for standalone use." alt="" coords="5,293,207,513"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1integration_1_1monitoring__interface.html" title="Interface for monitoring integration." alt="" coords="5,5,207,245"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="109,259,109,293,103,293,103,259"/>
+</map>

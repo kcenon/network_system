@@ -1,0 +1,7 @@
+<map id="kcenon::network::protocols::quic::initial_keys::derive_keys" name="kcenon::network::protocols::quic::initial_keys::derive_keys">
+<area shape="rect" id="Node000001" title="Derive keys from an initial secret." alt="" coords="284,49,509,89"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1quic__crypto.html#ab18f907eef79c7acd74144003d345b2f" title="Derive 0&#45;RTT keys from session ticket." alt="" coords="21,5,220,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="270,55,220,48,220,43,271,50"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1quic__crypto.html#a0874bb3562d790b7e188c0e443cc4fbb" title="Perform a key update (1&#45;RTT only)" alt="" coords="5,85,236,125"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="271,88,237,92,236,87,270,82"/>
+</map>

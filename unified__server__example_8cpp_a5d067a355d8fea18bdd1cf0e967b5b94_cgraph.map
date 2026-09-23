@@ -1,0 +1,9 @@
+<map id="udp_server_example" name="udp_server_example">
+<area shape="rect" id="Node000001" title="UDP server example using unified API." alt="" coords="5,42,164,67"/>
+<area shape="rect" id="Node000002" href="$namespacekcenon_1_1network_1_1protocol_1_1udp.html#a40931fe2c9e60386f6ee9f8ce585b0d0" title="Creates and starts a UDP listener in one call." alt="" coords="212,5,403,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="164,42,198,37,199,42,165,47"/>
+<area shape="rect" id="Node000004" href="$unified__server__example_8cpp.html#a56a285a4a5a3bbb1be0aed98535466bc" title="Protocol&#45;agnostic server setup." alt="" coords="254,70,361,95"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="165,62,241,72,240,77,164,67"/>
+<area shape="rect" id="Node000003" href="$namespacekcenon_1_1network_1_1protocol_1_1udp.html#a7cd12bc44e611efcfe54b22ba655a31d" title="Creates a UDP listener (not yet listening)" alt="" coords="451,5,641,45"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="403,23,437,23,437,28,403,28"/>
+</map>

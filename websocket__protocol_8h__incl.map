@@ -1,0 +1,21 @@
+<map id="src/internal/websocket/websocket_protocol.h" name="src/internal/websocket/websocket_protocol.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="252,5,420,45"/>
+<area shape="rect" id="Node000002" href="$websocket__frame_8h.html" title=" " alt="" coords="105,93,258,133"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="303,48,229,89,226,84,301,43"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="5,181,72,207"/>
+<area shape="poly" id="edge6_Node000001_Node000004" title=" " alt="" coords="252,36,213,44,171,55,131,72,95,95,79,112,66,131,48,169,44,167,61,128,75,108,92,91,129,68,170,50,211,38,251,31"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="275,181,338,207"/>
+<area shape="poly" id="edge10_Node000001_Node000006" title=" " alt="" coords="335,46,325,94,313,168,308,167,320,93,329,45"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="334,101,421,126"/>
+<area shape="poly" id="edge7_Node000001_Node000007" title=" " alt="" coords="348,44,368,87,363,89,343,47"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="445,101,499,126"/>
+<area shape="poly" id="edge8_Node000001_Node000008" title=" " alt="" coords="367,43,444,91,441,96,364,48"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="523,101,581,126"/>
+<area shape="poly" id="edge9_Node000001_Node000009" title=" " alt="" coords="388,43,512,91,516,93,514,98,510,96,387,48"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="96,181,152,207"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="170,135,143,172,139,168,165,132"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="148,136,73,177,70,172,146,131"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="176,181,251,207"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="192,133,206,168,201,170,187,135"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="213,131,278,172,275,176,210,136"/>
+</map>

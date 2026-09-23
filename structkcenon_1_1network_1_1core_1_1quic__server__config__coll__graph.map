@@ -1,0 +1,17 @@
+<map id="kcenon::network::core::quic_server_config" name="kcenon::network::core::quic_server_config">
+<area shape="rect" id="Node000001" title="Configuration options for QUIC server." alt="" coords="185,404,379,644"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="332,148,411,213"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="395,213,404,236,409,243,415,244,424,244,432,248,436,259,433,282,400,381,389,405,385,403,396,379,427,281,430,260,428,251,423,249,415,250,406,248,400,239,390,215"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="193,276,371,341"/>
+<area shape="poly" id="edge4_Node000004_Node000002" title=" " alt="" coords="345,215,327,239,310,263,306,260,323,236,341,212"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="306,5,437,85"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="374,99,374,148,369,148,369,99"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="285,341,285,388,279,388,279,341"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="77,148,199,213"/>
+<area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="181,221,213,250,242,274,239,278,210,254,178,225"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="5,276,164,341"/>
+<area shape="poly" id="edge8_Node000007_Node000005" title=" " alt="" coords="93,225,86,238,82,257,81,276,76,276,76,256,81,236,88,223"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="127,13,149,78"/>
+<area shape="poly" id="edge6_Node000005_Node000006" title=" " alt="" coords="141,78,141,131,135,131,135,78"/>
+<area shape="poly" id="edge7_Node000001_Node000007" title=" " alt="" coords="116,340,176,405,172,408,112,343"/>
+</map>

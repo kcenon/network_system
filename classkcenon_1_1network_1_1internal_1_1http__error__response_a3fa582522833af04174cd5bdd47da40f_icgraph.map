@@ -1,0 +1,5 @@
+<map id="kcenon::network::internal::http_error_response::build_json_error" name="kcenon::network::internal::http_error_response::build_json_error">
+<area shape="rect" id="Node000001" title="Build JSON format error response (RFC 7807)" alt="" coords="220,5,408,60"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1core_1_1http__server.html#ada7b9ac3f340cfc7573ca117bb97ae16" title="Build error response using registered handlers." alt="" coords="5,5,172,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="206,35,172,35,172,30,206,30"/>
+</map>

@@ -1,0 +1,9 @@
+<map id="kcenon::network::session::quic_session" name="kcenon::network::session::quic_session">
+<area shape="rect" id="Node000001" title="Represents a single QUIC client session on the server side." alt="" coords="114,516,311,1016"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,351,201,431"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="121,443,142,515,137,517,116,445"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1interfaces_1_1i__quic__session.html" title="Interface for a QUIC session on the server side." alt="" coords="226,313,421,468"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="299,482,289,516,284,515,294,481"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1interfaces_1_1i__session.html" title="Interface for a single client session on the server side." alt="" coords="226,5,421,265"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="326,279,326,313,321,313,321,279"/>
+</map>

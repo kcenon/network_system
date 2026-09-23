@@ -1,0 +1,6 @@
+<map id="kcenon::network::integration::logger_integration_manager::instance" name="kcenon::network::integration::logger_integration_manager::instance">
+<area shape="rect" id="Node000001" title="Get the singleton instance." alt="" coords="5,29,220,84"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="62,29,62,19,71,10,88,5,113,3,142,6,159,14,156,18,141,11,113,8,89,10,74,15,67,21,67,29"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1integration_1_1logger__integration__manager.html#a2013b915d54feceb3a45f40a6f5a2408" title=" " alt="" coords="268,29,483,84"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="220,54,254,54,254,59,220,59"/>
+</map>

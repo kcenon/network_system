@@ -1,0 +1,11 @@
+<map id="kcenon::network::protocols::quic::connection::apply_remote_params" name="kcenon::network::protocols::quic::connection::apply_remote_params">
+<area shape="rect" id="Node000001" title="Apply remote transport parameters." alt="" coords="5,124,204,179"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1connection__id__manager.html#a70a4ada68205f08b6e921ed0a0a9e54d" title="Set the active connection ID limit." alt="" coords="252,5,472,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="150,121,251,69,265,63,267,68,253,74,153,126"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1stream__manager.html#accd78ecf27213c8c771c7ccc8618fe3b" title="Set maximum bidirectional streams peer can initiate." alt="" coords="259,84,465,139"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="204,133,246,127,246,132,205,139"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1stream__manager.html#a90a9e91cceaa38439a9038aaabe8230d" title="Set maximum unidirectional streams peer can initiate." alt="" coords="261,163,463,217"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="204,164,248,170,247,175,204,169"/>
+<area shape="rect" id="Node000005" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1flow__controller.html#a182e03d0d8f922b9fbe0ec79793a5352" title="Update the send limit (from peer&#39;s MAX_DATA)" alt="" coords="263,241,461,296"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="155,176,253,226,271,234,269,239,251,231,153,181"/>
+</map>

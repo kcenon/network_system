@@ -1,0 +1,5 @@
+<map id="kcenon::network::internal::adapters::quic_client_adapter::quic_client_adapter" name="kcenon::network::internal::adapters::quic_client_adapter::quic_client_adapter">
+<area shape="rect" id="Node000001" title="Constructs an adapter with a unique client ID." alt="" coords="5,13,220,67"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1internal_1_1adapters_1_1quic__client__adapter.html#a8951411a95b3af2fe7728f625ca297d3" title="Sets up internal callbacks to bridge QUIC callbacks to i_protocol_client callbacks." alt="" coords="268,5,456,75"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="220,37,254,37,254,43,220,43"/>
+</map>

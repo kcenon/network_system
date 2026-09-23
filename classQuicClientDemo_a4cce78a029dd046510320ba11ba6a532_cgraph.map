@@ -1,0 +1,22 @@
+<map id="QuicClientDemo::demo_multi_stream" name="QuicClientDemo::demo_multi_stream">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,131,179,171"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1core_1_1messaging__quic__client.html#a53b51970802f4b9c82a8da8a232aa51b" title="Closes a stream (interface version)." alt="" coords="247,5,426,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="122,129,170,99,225,69,239,63,241,68,228,74,172,104,125,133"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1core_1_1messaging__quic__client.html#aa0ad9c63a53513b924e8baa28b925d30" title="Creates a new bidirectional stream (interface version)." alt="" coords="247,84,426,139"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="179,135,233,126,234,131,179,140"/>
+<area shape="rect" id="Node000005" href="$classkcenon_1_1network_1_1core_1_1messaging__quic__client.html#a30b9d87b9d9e1116c241393f41d2651d" title="Creates a new unidirectional stream (interface version)." alt="" coords="227,163,447,217"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="179,162,213,168,213,173,179,168"/>
+<area shape="rect" id="Node000006" href="$classkcenon_1_1network_1_1core_1_1messaging__quic__client.html#a629cae5f70ba19728569aadc8533eb96" title="Sends data on a specific stream (interface version)." alt="" coords="247,241,426,296"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="126,169,173,198,228,226,244,234,242,238,226,231,170,202,123,174"/>
+<area shape="rect" id="Node000003" href="$namespacekcenon_1_1network.html#a9d2a06a302dea2b45b323b864eacad4a" title=" " alt="" coords="496,93,700,119"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="427,55,540,87,538,92,426,60"/>
+<area shape="poly" id="edge9_Node000006_Node000003" title=" " alt="" coords="421,239,445,226,482,203,517,176,572,126,576,130,520,180,485,207,448,231,423,243"/>
+<area shape="rect" id="Node000007" href="$classkcenon_1_1network_1_1tracing_1_1trace__context.html#a0618b3e17f57071584025d5e47aa0541" title="Create a new root span with a new trace context." alt="" coords="495,217,701,257"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="426,255,481,248,482,254,427,260"/>
+<area shape="rect" id="Node000010" href="$namespacekcenon_1_1network_1_1tracing.html#a6ab950c88c5666f30b2db30609a6834a" title="Check if tracing is enabled." alt="" coords="507,281,689,321"/>
+<area shape="poly" id="edge10_Node000006_Node000010" title=" " alt="" coords="427,277,493,285,493,290,426,282"/>
+<area shape="rect" id="Node000008" href="$namespacekcenon_1_1network_1_1tracing.html#a933bb00747359508e4c9b490d42c495d" title="Generate a random span ID." alt="" coords="749,185,932,225"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="701,220,735,216,736,221,702,226"/>
+<area shape="rect" id="Node000009" href="$namespacekcenon_1_1network_1_1tracing.html#ab38da93c9d82d6795e6950368611ea35" title="Generate a random trace ID." alt="" coords="749,249,932,289"/>
+<area shape="poly" id="edge8_Node000007_Node000009" title=" " alt="" coords="702,248,736,252,735,258,701,253"/>
+</map>

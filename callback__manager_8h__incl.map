@@ -1,0 +1,17 @@
+<map id="include/kcenon/network/detail/utils/callback_manager.h" name="include/kcenon/network/detail/utils/callback_manager.h">
+<area shape="rect" id="Node000001" title="Thread&#45;safe callback registration and invocation manager." alt="" coords="262,5,439,60"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,108,72,133"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="262,61,86,109,84,104,261,56"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="97,108,183,133"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="287,63,182,105,180,100,285,58"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="208,108,272,133"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="318,62,267,102,264,97,315,58"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="297,108,405,133"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="353,60,353,94,348,94,348,60"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="429,108,483,133"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="385,58,433,97,429,101,381,62"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="507,108,567,133"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="409,58,501,100,499,105,407,62"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="591,108,654,133"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="435,58,579,103,577,108,433,63"/>
+</map>

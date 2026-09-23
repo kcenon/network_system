@@ -1,0 +1,5 @@
+<map id="kcenon::network::session::secure_session" name="kcenon::network::session::secure_session">
+<area shape="rect" id="Node000001" title="Manages a single connected secure (TLS/SSL) client session on the server side, providing asynchronous..." alt="" coords="5,133,223,633"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="8,5,220,85"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="117,99,117,133,111,133,111,99"/>
+</map>

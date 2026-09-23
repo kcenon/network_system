@@ -1,0 +1,21 @@
+<map id="src/internal/utils/memory_profiler.h" name="src/internal/utils/memory_profiler.h">
+<area shape="rect" id="Node000001" title="Lightweight, cross&#45;platform process memory profiler (optional)" alt="" coords="344,5,489,45"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,93,76,119"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="344,43,90,96,89,91,343,38"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="101,93,167,119"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="350,48,181,94,180,89,348,43"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="191,93,258,119"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="372,48,266,91,264,86,370,43"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="282,93,349,119"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="394,48,343,87,340,82,391,43"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="373,93,460,119"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="419,46,419,79,414,79,414,46"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="485,93,546,119"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="442,43,491,82,488,87,439,48"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="570,93,634,119"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="462,43,563,85,561,90,460,48"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="659,93,721,119"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="483,43,646,89,645,95,481,48"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="746,93,805,119"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="490,38,733,90,732,96,489,43"/>
+</map>

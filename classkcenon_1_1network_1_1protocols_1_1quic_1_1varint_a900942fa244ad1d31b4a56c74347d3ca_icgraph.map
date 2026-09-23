@@ -1,0 +1,43 @@
+<map id="kcenon::network::protocols::quic::varint::decode" name="kcenon::network::protocols::quic::varint::decode">
+<area shape="rect" id="Node000001" title="Decode variable&#45;length integer from buffer." alt="" coords="593,679,792,719"/>
+<area shape="rect" id="Node000002" href="$structkcenon_1_1network_1_1protocols_1_1quic_1_1transport__parameters.html#ac618410062df381b4ad6da906e28e336" title="Decode transport parameters from binary format." alt="" coords="317,5,524,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="685,665,669,536,640,359,620,269,598,187,572,120,558,94,543,75,523,58,526,54,547,71,563,91,577,118,603,185,626,268,645,358,674,535,690,665"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1frame__parser.html#aeeb274219e3fe6087aa1a9c4255fc3aa" title="Parse a single frame from buffer." alt="" coords="321,85,520,125"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="684,666,667,548,637,389,617,309,595,237,570,178,543,139,519,122,522,117,547,135,575,176,600,235,623,308,642,388,672,547,690,665"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1frame__parser.html#a4890376f3a194e61c32a3ee3731f4334" title=" " alt="" coords="307,149,534,189"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="689,666,685,574,678,514,666,449,648,382,622,317,588,256,543,203,528,191,532,187,547,199,592,253,627,314,653,381,672,448,684,513,691,573,695,666"/>
+<area shape="rect" id="Node000005" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1frame__parser.html#a168b47e38ea3073c637c9bbc3392eab3" title=" " alt="" coords="321,213,520,268"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="687,666,677,588,654,485,635,430,611,377,581,327,544,283,519,265,522,261,547,279,585,324,616,374,640,428,659,483,682,587,692,665"/>
+<area shape="rect" id="Node000006" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1frame__parser.html#ad0f7ad65946f778e01b506fb7bad360b" title=" " alt="" coords="299,293,543,333"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="685,666,672,599,647,512,629,467,606,423,577,382,544,347,527,335,530,331,547,343,582,379,610,420,634,464,652,510,678,597,690,665"/>
+<area shape="rect" id="Node000007" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1frame__parser.html#aa43e0ab133876578109c4bacf62712ce" title=" " alt="" coords="321,357,520,412"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="680,667,663,614,635,549,596,482,571,452,544,425,519,410,521,405,547,421,575,448,600,479,640,547,668,612,685,666"/>
+<area shape="rect" id="Node000008" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1packet__parser.html#a864235b7100202a8613d5e5dde108528" title="Parse a long header packet." alt="" coords="321,436,521,491"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="673,668,652,630,623,586,586,542,544,504,520,490,522,486,547,500,590,538,627,583,657,627,678,666"/>
+<area shape="rect" id="Node000010" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1frame__parser.html#af6e3284368ae546234f8307bfacfd431" title=" " alt="" coords="321,515,520,569"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="660,671,608,626,544,583,519,571,521,567,547,578,611,622,663,667"/>
+<area shape="rect" id="Node000011" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1frame__parser.html#a3d8967ecd4f68d783d8504365dd13338" title=" " alt="" coords="321,593,520,648"/>
+<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="609,678,515,651,517,646,611,673"/>
+<area shape="rect" id="Node000012" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1frame__parser.html#aaff4ee73769e9b01ad5994f845cc78db" title=" " alt="" coords="321,672,520,727"/>
+<area shape="poly" id="edge11_Node000001_Node000012" title=" " alt="" coords="579,702,520,702,520,697,579,697"/>
+<area shape="rect" id="Node000013" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1frame__parser.html#acfd3cca3b4c01d66cf0189e56283815b" title=" " alt="" coords="321,751,520,805"/>
+<area shape="poly" id="edge12_Node000001_Node000013" title=" " alt="" coords="611,726,517,753,515,748,609,721"/>
+<area shape="rect" id="Node000014" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1frame__parser.html#ae91286195ec5ccb720b55843a81c290f" title=" " alt="" coords="321,829,520,884"/>
+<area shape="poly" id="edge13_Node000001_Node000014" title=" " alt="" coords="663,731,611,776,547,819,520,832,517,827,544,814,608,772,660,727"/>
+<area shape="rect" id="Node000015" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1frame__parser.html#a84eb2eaec7604981085913978893df5d" title=" " alt="" coords="321,908,520,963"/>
+<area shape="poly" id="edge14_Node000001_Node000015" title=" " alt="" coords="677,734,656,771,626,815,590,859,547,897,522,912,519,907,544,893,586,856,622,812,651,769,673,731"/>
+<area shape="rect" id="Node000016" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1frame__parser.html#aa7fdd22c92cbeccea813d37eaabf066e" title=" " alt="" coords="321,987,520,1041"/>
+<area shape="poly" id="edge15_Node000001_Node000016" title=" " alt="" coords="685,733,668,786,639,851,600,918,575,949,547,976,521,992,519,988,544,972,571,945,595,915,635,849,663,784,680,732"/>
+<area shape="rect" id="Node000017" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1frame__parser.html#ae08e609948528a44330a4f7deb609ae2" title=" " alt="" coords="321,1065,520,1120"/>
+<area shape="poly" id="edge16_Node000001_Node000017" title=" " alt="" coords="690,733,676,800,651,886,632,932,609,976,581,1018,547,1055,522,1072,519,1068,544,1051,576,1015,604,974,627,930,646,885,671,799,684,732"/>
+<area shape="rect" id="Node000018" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1frame__parser.html#abc98d5d13ed9976e15e3ded15395fbfe" title=" " alt="" coords="296,1145,545,1185"/>
+<area shape="poly" id="edge17_Node000001_Node000018" title=" " alt="" coords="693,733,685,815,663,922,644,979,619,1035,587,1088,547,1133,529,1147,525,1142,544,1129,583,1084,614,1033,639,977,657,921,679,814,688,733"/>
+<area shape="rect" id="Node000019" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1frame__parser.html#ab9fc3c79337983d3719aa61f4f09c6de" title=" " alt="" coords="321,1209,520,1264"/>
+<area shape="poly" id="edge18_Node000001_Node000019" title=" " alt="" coords="694,734,689,825,681,885,669,949,651,1016,625,1082,591,1144,547,1199,522,1217,519,1213,543,1195,586,1141,620,1080,646,1014,664,948,676,884,684,825,689,733"/>
+<area shape="rect" id="Node000020" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1frame__parser.html#af88682791217bd4fc6ee4aa2d6ad95ba" title=" " alt="" coords="321,1288,520,1343"/>
+<area shape="poly" id="edge19_Node000001_Node000020" title=" " alt="" coords="690,733,672,853,642,1016,622,1098,600,1173,575,1235,547,1277,522,1296,519,1292,543,1274,570,1232,595,1171,617,1097,637,1015,667,853,684,733"/>
+<area shape="rect" id="Node000021" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1frame__parser.html#a61554f9c8d53afb981fee66c8f49e890" title="Get the frame type from raw data without full parsing." alt="" coords="307,1367,535,1407"/>
+<area shape="poly" id="edge20_Node000001_Node000021" title=" " alt="" coords="691,733,676,869,648,1055,629,1150,606,1236,579,1307,563,1335,547,1356,530,1369,527,1365,543,1352,559,1332,574,1305,600,1235,623,1149,643,1054,671,868,686,733"/>
+<area shape="rect" id="Node000009" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1connection.html#a3cdbd77b9c7f4478c725b6ced253719a" title="Receive and process a packet." alt="" coords="5,443,248,483"/>
+<area shape="poly" id="edge8_Node000008_Node000009" title=" " alt="" coords="307,466,248,466,248,461,307,461"/>
+</map>

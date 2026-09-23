@@ -1,0 +1,18 @@
+<map id="kcenon::network::protocols::http2::http2_stream" name="kcenon::network::protocols::http2::http2_stream">
+<area shape="rect" id="Node000001" title="HTTP/2 stream state and data." alt="" coords="189,681,380,981"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="115,509,273,604"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="202,603,214,657,216,665,211,667,209,658,197,605"/>
+<area shape="rect" id="Node000003" href="$structkcenon_1_1network_1_1protocols_1_1http2_1_1http__header.html" title="HTTP header name&#45;value pair." alt="" coords="5,277,196,417"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="92,417,94,452,104,484,111,495,107,498,100,486,89,453,87,418"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="61,135,140,200"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="103,200,103,261,98,261,98,200"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="35,5,166,85"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="103,99,103,134,98,134,98,99"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="268,315,389,380"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="259,390,232,414,210,443,198,475,194,509,189,509,193,474,205,440,228,410,256,386"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="297,524,456,589"/>
+<area shape="poly" id="edge8_Node000008_Node000006" title=" " alt="" coords="342,393,372,523,367,525,336,394"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="317,135,340,200"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="331,200,331,298,326,298,326,200"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="368,591,343,667,338,665,363,589"/>
+</map>

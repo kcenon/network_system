@@ -1,0 +1,5 @@
+<map id="kcenon::network::protocols::grpc::service_registry::is_reflection_enabled" name="kcenon::network::protocols::grpc::service_registry::is_reflection_enabled">
+<area shape="rect" id="Node000001" title="Check if reflection is enabled." alt="" coords="5,5,204,60"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1protocols_1_1grpc_1_1service__registry_1_1impl.html#ae5d5b73233bcc8171df82bca785ae724" title=" " alt="" coords="252,5,457,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="204,30,238,30,238,35,204,35"/>
+</map>

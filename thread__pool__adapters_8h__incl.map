@@ -1,0 +1,25 @@
+<map id="src/internal/integration/thread_pool_adapters.h" name="src/internal/integration/thread_pool_adapters.h">
+<area shape="rect" id="Node000001" title="Bidirectional adapters between network_system&#39;s thread_pool_interface and common_system&#39;s IExecutor/I..." alt="" coords="379,5,558,45"/>
+<area shape="rect" id="Node000002" href="$detail_2config_2feature__flags_8h.html" title="Feature flags for network_system." alt="" coords="5,93,172,133"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="386,48,186,93,185,88,385,43"/>
+<area shape="rect" id="Node000003" href="$thread__integration_8h.html" title="Thread system integration interface for network_system." alt="" coords="299,93,500,133"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="455,47,425,84,421,81,451,44"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="167,181,253,207"/>
+<area shape="poly" id="edge9_Node000001_Node000004" title=" " alt="" coords="380,46,326,66,276,95,258,112,244,131,222,170,218,167,239,129,254,109,272,91,324,61,378,41"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="278,181,355,207"/>
+<area shape="poly" id="edge11_Node000001_Node000005" title=" " alt="" coords="380,40,329,60,306,75,288,95,282,112,284,132,291,151,302,169,297,171,286,153,279,133,277,112,284,92,303,71,326,55,378,35"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="469,181,530,207"/>
+<area shape="poly" id="edge10_Node000001_Node000006" title=" " alt="" coords="488,44,503,66,515,93,519,112,518,132,511,168,506,167,513,132,513,113,510,94,499,69,483,47"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="554,181,621,207"/>
+<area shape="poly" id="edge8_Node000001_Node000007" title=" " alt="" coords="492,44,535,92,560,131,579,168,574,170,555,134,531,95,488,48"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="627,101,713,126"/>
+<area shape="poly" id="edge12_Node000001_Node000009" title=" " alt="" coords="514,43,632,93,630,98,512,48"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="738,101,797,126"/>
+<area shape="poly" id="edge13_Node000001_Node000010" title=" " alt="" coords="557,43,640,64,727,91,733,93,731,98,725,96,638,69,555,48"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="355,136,252,178,250,173,353,131"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="381,135,341,174,337,170,377,132"/>
+<area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="425,131,475,170,472,175,422,136"/>
+<area shape="poly" id="edge6_Node000003_Node000007" title=" " alt="" coords="445,131,548,173,546,178,443,136"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="380,181,443,207"/>
+<area shape="poly" id="edge7_Node000003_Node000008" title=" " alt="" coords="405,133,410,167,405,168,400,134"/>
+</map>

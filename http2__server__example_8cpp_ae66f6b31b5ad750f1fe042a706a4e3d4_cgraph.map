@@ -1,0 +1,17 @@
+<map id="main" name="main">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,139,60,164"/>
+<area shape="rect" id="Node000002" href="$structkcenon_1_1network_1_1protocols_1_1http2_1_1http2__request.html#a18a5221b1a2a940e0ce814dd51422a90" title="Get Content&#45;Type header value." alt="" coords="112,5,311,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="41,137,68,103,106,69,114,64,117,69,110,73,72,107,45,140"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1protocols_1_1http2_1_1http2__server__stream.html#a8de5f7865c3f87aa48ef9697f5ad1243" title="Send response data." alt="" coords="108,84,315,139"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="60,143,94,135,95,140,61,148"/>
+<area shape="rect" id="Node000006" href="$classkcenon_1_1network_1_1protocols_1_1http2_1_1http2__server__stream.html#a3bb49ea2d1b39b2ed0054098aa995f42" title="Send response headers." alt="" coords="108,163,315,217"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="61,155,95,162,94,167,60,160"/>
+<area shape="rect" id="Node000007" href="$tcp__echo__server_8cpp.html#a8804db44b6d4c5752e6de5593562df06" title=" " alt="" coords="153,241,270,267"/>
+<area shape="poly" id="edge8_Node000001_Node000007" title=" " alt="" coords="44,162,71,196,89,213,109,228,140,241,138,245,107,232,86,217,67,199,40,166"/>
+<area shape="rect" id="Node000004" href="$namespacekcenon_1_1network.html#a9d2a06a302dea2b45b323b864eacad4a" title=" " alt="" coords="363,107,567,132"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="315,112,349,113,349,118,315,117"/>
+<area shape="rect" id="Node000005" href="$namespacekcenon_1_1network.html#aa32d0dbfdee046c2c0cde3667c5f05a8" title=" " alt="" coords="387,163,542,188"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="316,135,401,157,400,162,314,140"/>
+<area shape="poly" id="edge6_Node000006_Node000004" title=" " alt="" coords="309,160,405,133,406,138,311,165"/>
+<area shape="poly" id="edge7_Node000006_Node000005" title=" " alt="" coords="315,181,373,178,374,183,315,187"/>
+</map>

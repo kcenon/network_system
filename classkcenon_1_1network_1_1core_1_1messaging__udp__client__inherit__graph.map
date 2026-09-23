@@ -1,0 +1,9 @@
+<map id="kcenon::network::core::messaging_udp_client" name="kcenon::network::core::messaging_udp_client">
+<area shape="rect" id="Node000001" title="A UDP client that sends datagrams to a target endpoint and can receive responses." alt="" coords="94,501,291,1101"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,316,175,411"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="107,423,125,500,120,502,101,424"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1interfaces_1_1i__udp__client.html" title="Interface for UDP client components." alt="" coords="199,273,394,453"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="275,467,267,502,262,500,270,466"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1interfaces_1_1i__network__component.html" title="Base interface for all network components." alt="" coords="199,5,394,225"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="299,239,299,273,294,273,294,239"/>
+</map>

@@ -1,0 +1,17 @@
+<map id="kcenon::network::protocols::grpc::grpc_message::serialize" name="kcenon::network::protocols::grpc::grpc_message::serialize">
+<area shape="rect" id="Node000001" title="Serialize message to bytes with length prefix." alt="" coords="520,141,743,181"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1protocols_1_1grpc_1_1grpc__client_1_1impl.html#a19da0c3df010229bc59dd7941c9f88ed" title=" " alt="" coords="263,5,461,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="584,136,471,75,441,63,443,58,473,70,587,131"/>
+<area shape="rect" id="Node000004" href="$tutorials_2grpc__service__example_8cpp.html#a1cd1935cf418979e4fd6c131fa4a3e01" title=" " alt="" coords="271,84,453,109"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="535,140,471,125,418,112,419,107,473,119,536,135"/>
+<area shape="rect" id="Node000006" href="$classkcenon_1_1network_1_1protocols_1_1grpc_1_1grpc__client_1_1impl.html#ada211ff7dd4a1a8bd25846f61db2fc11" title=" " alt="" coords="263,133,461,188"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="506,163,462,163,462,158,506,158"/>
+<area shape="rect" id="Node000007" href="$classkcenon_1_1network_1_1protocols_1_1grpc_1_1bidi__stream__impl.html#a0b89fd16ee8eca1b6fde6a6db297f0f2" title="Write message to stream." alt="" coords="252,213,472,253"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="543,187,438,215,437,210,542,182"/>
+<area shape="rect" id="Node000008" href="$classkcenon_1_1network_1_1protocols_1_1grpc_1_1client__stream__writer__impl.html#a610f64b81bd77fc9a484069d8c559e53" title="Write message to stream." alt="" coords="262,277,462,332"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="594,191,538,229,473,267,445,280,443,275,471,262,535,225,591,187"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1protocols_1_1grpc_1_1grpc__client_1_1impl.html#af482c55fd98e4fc15fa798c01ecfb2d9" title=" " alt="" coords="5,5,204,60"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="249,35,204,35,204,30,249,30"/>
+<area shape="rect" id="Node000005" href="$tutorials_2grpc__service__example_8cpp.html#ae66f6b31b5ad750f1fe042a706a4e3d4" title=" " alt="" coords="77,84,132,109"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="257,99,132,99,132,94,257,94"/>
+</map>

@@ -1,0 +1,20 @@
+<map id="QuicClientDemo" name="QuicClientDemo">
+<area shape="rect" id="Node000001" title="Simple QUIC client demo." alt="" coords="198,448,418,613"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="31,298,110,363"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="98,362,156,422,186,446,183,451,153,426,94,365"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,133,136,213"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="73,228,73,298,68,298,68,228"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="134,291,319,371"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="245,370,271,432,266,434,240,372"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="167,141,316,206"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="240,220,233,291,228,290,234,219"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="315,5,338,71"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="317,59,273,128,268,125,313,56"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="349,141,475,206"/>
+<area shape="poly" id="edge8_Node000008_Node000006" title=" " alt="" coords="340,56,385,125,381,128,336,59"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="343,298,489,363"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="401,365,363,435,358,432,396,362"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="416,220,418,298,413,298,411,220"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="513,298,597,363"/>
+<area shape="poly" id="edge9_Node000001_Node000009" title=" " alt="" coords="551,365,541,396,522,426,481,461,434,489,431,484,478,457,518,422,536,394,546,363"/>
+</map>

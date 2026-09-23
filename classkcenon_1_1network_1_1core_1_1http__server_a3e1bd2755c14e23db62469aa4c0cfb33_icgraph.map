@@ -1,0 +1,5 @@
+<map id="kcenon::network::core::http_server::create_error_response" name="kcenon::network::core::http_server::create_error_response">
+<area shape="rect" id="Node000001" title="Create default error response." alt="" coords="240,5,407,60"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1core_1_1http__server.html#a1481dd09d1f4534ac023c4db17a815a7" title="Construct HTTP server with server ID." alt="" coords="5,13,192,53"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="226,35,192,35,192,30,226,30"/>
+</map>

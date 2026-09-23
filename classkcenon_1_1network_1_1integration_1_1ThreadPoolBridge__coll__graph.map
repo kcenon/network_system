@@ -1,0 +1,33 @@
+<map id="kcenon::network::integration::ThreadPoolBridge" name="kcenon::network::integration::ThreadPoolBridge">
+<area shape="rect" id="Node000001" title="Bridge for thread pool integration implementing INetworkBridge." alt="" coords="281,931,482,1171"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1integration_1_1INetworkBridge.html" title="Abstract interface for external system integration bridges." alt="" coords="38,708,239,868"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="223,876,282,939,278,943,219,880"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="191,500,369,595"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="289,594,309,718,337,867,348,914,343,916,332,869,304,719,284,595"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1integration_1_1thread__pool__interface.html" title="Interface for thread pool integration." alt="" coords="179,148,381,408"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="283,408,283,483,277,483,277,408"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="5,245,155,311"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="86,324,92,360,102,400,118,439,141,474,164,496,192,513,189,518,161,500,137,478,113,442,97,401,86,361,81,325"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="439,13,462,78"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="440,51,392,59,322,77,242,106,204,126,168,150,131,189,104,232,99,229,127,185,165,146,201,122,240,101,320,72,391,54,439,46"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="405,245,531,311"/>
+<area shape="poly" id="edge8_Node000008_Node000006" title=" " alt="" coords="453,78,455,124,465,229,459,229,449,124,448,78"/>
+<area shape="rect" id="Node000014" title=" " alt="" coords="667,245,794,311"/>
+<area shape="poly" id="edge16_Node000014_Node000006" title=" " alt="" coords="464,50,573,102,658,146,691,186,714,229,710,232,686,189,654,150,571,107,461,55"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="331,619,477,684"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="401,685,397,708,389,813,385,915,380,914,384,813,392,708,395,684"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="463,325,412,619,407,618,458,324"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="487,755,571,821"/>
+<area shape="poly" id="edge9_Node000001_Node000009" title=" " alt="" coords="514,822,459,918,455,915,509,819"/>
+<area shape="rect" id="Node000010" href="$structkcenon_1_1network_1_1integration_1_1BridgeMetrics.html" title="Metrics and health information for a bridge." alt="" coords="595,738,797,838"/>
+<area shape="poly" id="edge10_Node000001_Node000010" title=" " alt="" coords="657,840,590,909,498,979,494,975,586,905,653,837"/>
+<area shape="rect" id="Node000011" title=" " alt="" coords="619,507,773,587"/>
+<area shape="poly" id="edge11_Node000010_Node000011" title=" " alt="" coords="699,587,699,721,693,721,693,587"/>
+<area shape="rect" id="Node000012" title=" " alt="" coords="565,245,643,311"/>
+<area shape="poly" id="edge12_Node000011_Node000012" title=" " alt="" coords="612,310,627,387,656,475,664,492,659,494,651,477,622,388,606,311"/>
+<area shape="rect" id="Node000013" title=" " alt="" coords="547,5,677,85"/>
+<area shape="poly" id="edge13_Node000012_Node000013" title=" " alt="" coords="613,99,608,245,602,245,608,99"/>
+<area shape="poly" id="edge14_Node000011_Node000014" title=" " alt="" coords="727,325,704,507,698,507,722,324"/>
+<area shape="rect" id="Node000015" title=" " alt="" coords="719,13,742,78"/>
+<area shape="poly" id="edge15_Node000014_Node000015" title=" " alt="" coords="733,78,733,229,728,229,728,78"/>
+</map>

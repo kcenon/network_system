@@ -1,0 +1,5 @@
+<map id="kcenon::network::protocols::grpc::client_stream_writer_impl::writes_done" name="kcenon::network::protocols::grpc::client_stream_writer_impl::writes_done">
+<area shape="rect" id="Node000001" title="Signal that writing is done." alt="" coords="253,5,453,60"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1protocols_1_1grpc_1_1client__stream__writer__impl.html#a0da59a79cccd134d6baf419a9bd907f5" title="Finish the call and get response." alt="" coords="5,5,205,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="240,35,206,35,206,30,240,30"/>
+</map>

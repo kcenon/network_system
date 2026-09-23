@@ -1,0 +1,5 @@
+<map id="kcenon::network::core::secure_messaging_udp_server::stop_server" name="kcenon::network::core::secure_messaging_udp_server::stop_server">
+<area shape="rect" id="Node000001" title="Stops the server and releases all resources." alt="" coords="264,13,447,67"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1core_1_1secure__messaging__udp__server.html#aed73290b251b2ad2733d19ad1bc8b3b5" title="Destructor. Automatically calls stop_server() if still running." alt="" coords="5,5,216,75"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="250,43,216,43,216,37,250,37"/>
+</map>

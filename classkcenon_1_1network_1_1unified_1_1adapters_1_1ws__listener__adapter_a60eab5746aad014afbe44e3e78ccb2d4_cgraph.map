@@ -1,0 +1,5 @@
+<map id="kcenon::network::unified::adapters::ws_listener_adapter::ws_listener_adapter" name="kcenon::network::unified::adapters::ws_listener_adapter::ws_listener_adapter">
+<area shape="rect" id="Node000001" title="Constructs an adapter with a unique listener ID." alt="" coords="5,13,224,67"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1unified_1_1adapters_1_1ws__listener__adapter.html#a4d6599609ef1cd9fc6926aa1a80e4b6d" title="Sets up internal callbacks to bridge to unified callbacks." alt="" coords="272,5,455,75"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="224,37,258,37,258,43,224,43"/>
+</map>

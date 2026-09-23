@@ -1,0 +1,9 @@
+<map id="kcenon::network::protocols::quic::connection::disable_pmtud" name="kcenon::network::protocols::quic::connection::disable_pmtud">
+<area shape="rect" id="Node000001" title="Disable Path MTU Discovery." alt="" coords="5,91,245,131"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1pmtud__controller.html#aea6d53060e7ecb85946ba33e2659e041" title="Disable PMTUD." alt="" coords="297,5,495,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="194,89,288,61,289,66,196,94"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1pmtud__controller.html#aa83fe656ba92109c2094cbbff43aa599" title="Get minimum MTU." alt="" coords="297,84,495,139"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="245,109,283,109,283,114,245,114"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1congestion__controller.html#a1317294d595488d6c689083794755989" title="Set max datagram size." alt="" coords="293,163,499,217"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="196,129,289,156,288,161,194,134"/>
+</map>

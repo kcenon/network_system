@@ -1,0 +1,15 @@
+<map id="kcenon::network::utils::memory_profiler::start" name="kcenon::network::utils::memory_profiler::start">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,109,181,149"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1utils_1_1memory__profiler.html#a6df143a94d978f9aad21a349e6effd14" title=" " alt="" coords="229,101,433,156"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="182,126,216,126,216,131,182,131"/>
+<area shape="poly" id="edge4_Node000002_Node000002" title=" " alt="" coords="285,101,285,91,294,82,309,77,331,75,358,78,373,86,371,90,357,83,331,80,310,82,297,87,290,93,290,101"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1integration_1_1thread__integration__manager.html#a90d93374dd61a18d654e2f7cedf38f57" title="Get the singleton instance." alt="" coords="481,29,696,84"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="429,99,477,85,478,90,430,104"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1utils_1_1memory__profiler.html#a624a9db693398b55de2c6c2a7eb14a53" title=" " alt="" coords="486,109,691,149"/>
+<area shape="poly" id="edge5_Node000002_Node000004" title=" " alt="" coords="434,126,472,126,472,131,434,131"/>
+<area shape="rect" id="Node000006" href="$classkcenon_1_1network_1_1integration_1_1thread__integration__manager.html#a5243355b3b331dcd4212b3652f8d15f4" title="Submit a task with delay." alt="" coords="481,173,696,228"/>
+<area shape="poly" id="edge7_Node000002_Node000006" title=" " alt="" coords="430,154,478,167,477,172,429,159"/>
+<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="541,29,541,19,550,10,566,5,589,3,616,6,632,14,630,18,615,11,589,8,567,10,553,15,546,21,546,29"/>
+<area shape="rect" id="Node000005" href="$classkcenon_1_1network_1_1utils_1_1memory__profiler.html#a0c9e3f0a75bb4c3b385487771d142820" title=" " alt="" coords="744,101,927,156"/>
+<area shape="poly" id="edge6_Node000004_Node000005" title=" " alt="" coords="691,126,730,126,730,131,691,131"/>
+</map>
