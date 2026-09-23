@@ -751,6 +751,9 @@ target_include_directories(network_system
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
+        # Installed internal headers retain source-relative "internal/..."
+        # includes, so consumers also need the namespaced internal root.
+        $<INSTALL_INTERFACE:include/kcenon/network>
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/src
         ${CMAKE_CURRENT_BINARY_DIR}/internal_include
