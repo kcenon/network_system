@@ -113,7 +113,9 @@ auto packet_number::decode(uint64_t truncated_pn, size_t pn_length,
     uint64_t candidate_pn = (expected_pn & ~pn_mask) | truncated_pn;
 
     // Handle wrap-around cases
-    if (candidate_pn <= expected_pn - pn_hwin && candidate_pn < (1ULL << 62) - pn_win)
+    // Compare the distance without subtracting from an expected number that
+    // can be smaller than half the window (including the first packet).
+    if (candidate_pn + pn_hwin <= expected_pn && candidate_pn < (1ULL << 62) - pn_win)
     {
         return candidate_pn + pn_win;
     }

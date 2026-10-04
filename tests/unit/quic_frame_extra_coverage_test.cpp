@@ -208,11 +208,12 @@ TEST(QuicFrameExtraAck, ParseAckWithRangesAccumulatesRangeVector)
     ASSERT_TRUE(result.is_ok());
     const auto* f = std::get_if<quic::ack_frame>(&result.value().first);
     ASSERT_NE(f, nullptr);
-    ASSERT_EQ(f->ranges.size(), 2u);
-    EXPECT_EQ(f->ranges[0].gap, 1u);
-    EXPECT_EQ(f->ranges[0].length, 2u);
-    EXPECT_EQ(f->ranges[1].gap, 3u);
-    EXPECT_EQ(f->ranges[1].length, 4u);
+    ASSERT_EQ(f->ranges.size(), 3u);
+    EXPECT_EQ(f->ranges[0].length, 0u);
+    EXPECT_EQ(f->ranges[1].gap, 1u);
+    EXPECT_EQ(f->ranges[1].length, 2u);
+    EXPECT_EQ(f->ranges[2].gap, 3u);
+    EXPECT_EQ(f->ranges[2].length, 4u);
 }
 
 TEST(QuicFrameExtraAck, ParseAckTruncatedAtRangeGap)

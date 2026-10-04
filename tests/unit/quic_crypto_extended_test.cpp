@@ -108,15 +108,17 @@ std::vector<uint8_t> make_buffer(size_t n, uint8_t seed = 0)
 
 class HkdfExtractExtendedTest : public ::testing::Test {};
 
-TEST_F(HkdfExtractExtendedTest, EmptySaltReturnsError)
+TEST_F(HkdfExtractExtendedTest, EmptySaltUsesHashLengthZeroSalt)
 {
-    // OpenSSL's HKDF rejects zero-length salt via set1_hkdf_salt, exercising
-    // the salt-error path in extract().
+    // RFC 5869 section 2.2 defines an omitted salt as HashLen zero bytes.
     std::vector<uint8_t> salt;
     std::vector<uint8_t> ikm = {0x01, 0x02, 0x03, 0x04};
 
     auto r = quic::hkdf::extract(salt, ikm);
-    EXPECT_FALSE(r.is_ok());
+    ASSERT_TRUE(r.is_ok());
+    auto explicit_zero_salt = quic::hkdf::extract(std::vector<uint8_t>(32, 0), ikm);
+    ASSERT_TRUE(explicit_zero_salt.is_ok());
+    EXPECT_EQ(r.value(), explicit_zero_salt.value());
 }
 
 TEST_F(HkdfExtractExtendedTest, EmptyIkmReturnsError)

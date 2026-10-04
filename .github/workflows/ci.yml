@@ -4,7 +4,7 @@ on:
   push:
     branches: [ main, develop, phase-* ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, develop ]
 
 jobs:
   # Quick minimal build for fast feedback (Linux-only, no dependencies)
@@ -128,7 +128,7 @@ jobs:
       id: vcpkg-installed
       with:
         path: ${{ github.workspace }}/vcpkg_installed
-        key: ${{ runner.os }}-${{ matrix.compiler }}-vcpkg-installed-${{ matrix.triplet }}-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json') }}
+        key: ${{ runner.os }}-${{ matrix.compiler }}-vcpkg-installed-${{ matrix.triplet }}-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json', 'vcpkg-ports/**') }}
         restore-keys: |
           ${{ runner.os }}-${{ matrix.compiler }}-vcpkg-installed-${{ matrix.triplet }}-
 
@@ -219,7 +219,7 @@ jobs:
       if: runner.os != 'Windows'
       run: |
         cd build
-        ctest -C Debug --output-on-failure --verbose --no-tests=error
+        ctest -C Debug --output-on-failure --verbose --no-tests=error --timeout 120
 
     - name: Upload build artifacts
       if: failure()
@@ -257,7 +257,7 @@ jobs:
           - name: UndefinedBehaviorSanitizer
             option: ENABLE_UBSAN
             env_var: UBSAN_OPTIONS
-            env_value: "print_stacktrace=1:halt_on_error=0"
+            env_value: "print_stacktrace=1:halt_on_error=1"
             cxx_flags: "-fsanitize=undefined -fno-omit-frame-pointer -g"
 
     steps:

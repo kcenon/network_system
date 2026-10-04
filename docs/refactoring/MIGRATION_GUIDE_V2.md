@@ -1,5 +1,5 @@
 ---
-doc_id: "NET-MIGR-006"
+doc_id: "NET-MIGR-008"
 doc_title: "Migration Guide: network_system v1.x → v2.0"
 doc_version: "1.0.0"
 doc_date: "2026-04-04"

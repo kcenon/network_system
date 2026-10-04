@@ -274,14 +274,6 @@ function(find_thread_system)
 
     message(STATUS "Looking for thread_system...")
 
-    # Check if THREAD_SYSTEM_INCLUDE_DIR is already set (e.g., by parent project via FetchContent)
-    if(THREAD_SYSTEM_INCLUDE_DIR AND EXISTS "${THREAD_SYSTEM_INCLUDE_DIR}/kcenon/thread/core/thread_pool.h")
-        message(STATUS "Found thread_system via pre-set THREAD_SYSTEM_INCLUDE_DIR: ${THREAD_SYSTEM_INCLUDE_DIR}")
-        set(THREAD_SYSTEM_FOUND TRUE PARENT_SCOPE)
-        set(THREAD_SYSTEM_INCLUDE_DIR ${THREAD_SYSTEM_INCLUDE_DIR} PARENT_SCOPE)
-        return()
-    endif()
-
     foreach(_candidate thread_system ThreadSystem utilities thread_system::thread_system)
         if(TARGET ${_candidate})
             message(STATUS "Found thread_system CMake target: ${_candidate}")
@@ -290,6 +282,31 @@ function(find_thread_system)
             return()
         endif()
     endforeach()
+
+    # Prefer the installed target: its public definitions describe the ABI
+    # (notably USE_STD_JTHREAD), which a header path and archive cannot convey.
+    find_package(thread_system CONFIG QUIET)
+    if(TARGET thread_system::thread_system)
+        set(THREAD_SYSTEM_FOUND TRUE PARENT_SCOPE)
+        set(THREAD_SYSTEM_TARGET thread_system::thread_system PARENT_SCOPE)
+        get_target_property(_thread_includes thread_system::thread_system INTERFACE_INCLUDE_DIRECTORIES)
+        foreach(_include IN LISTS _thread_includes)
+            if(EXISTS "${_include}/kcenon/thread/core/thread_pool.h")
+                set(THREAD_SYSTEM_INCLUDE_DIR "${_include}" PARENT_SCOPE)
+                break()
+            endif()
+        endforeach()
+        message(STATUS "Found installed thread_system CMake target")
+        return()
+    endif()
+
+    # Legacy path-only integrations remain available when no target exists.
+    if(THREAD_SYSTEM_INCLUDE_DIR AND EXISTS "${THREAD_SYSTEM_INCLUDE_DIR}/kcenon/thread/core/thread_pool.h")
+        message(STATUS "Found thread_system via pre-set THREAD_SYSTEM_INCLUDE_DIR: ${THREAD_SYSTEM_INCLUDE_DIR}")
+        set(THREAD_SYSTEM_FOUND TRUE PARENT_SCOPE)
+        set(THREAD_SYSTEM_INCLUDE_DIR ${THREAD_SYSTEM_INCLUDE_DIR} PARENT_SCOPE)
+        return()
+    endif()
 
     # Prioritize environment variable, then standard paths
     set(_thread_search_paths)
@@ -494,11 +511,21 @@ function(find_common_system)
         return()
     endif()
 
-    foreach(_candidate common_system kcenon::common kcenon::common_system)
+    foreach(_candidate common_system::common_system kcenon::common_system common_system kcenon::common)
         if(TARGET ${_candidate})
             message(STATUS "Found common_system CMake target: ${_candidate}")
             set(COMMON_SYSTEM_FOUND TRUE PARENT_SCOPE)
             set(COMMON_SYSTEM_TARGET ${_candidate} PARENT_SCOPE)
+            # A transitive package may have imported the target before this
+            # finder runs. Keep the include path used by integration tests and
+            # feature detection as well as the target's usage requirements.
+            get_target_property(_common_includes ${_candidate} INTERFACE_INCLUDE_DIRECTORIES)
+            foreach(_include IN LISTS _common_includes)
+                if(EXISTS "${_include}/kcenon/common/patterns/result.h")
+                    set(COMMON_SYSTEM_INCLUDE_DIR "${_include}" PARENT_SCOPE)
+                    break()
+                endif()
+            endforeach()
             return()
         endif()
     endforeach()
@@ -710,6 +737,7 @@ function(find_network_system_dependencies)
     set(THREAD_SYSTEM_FOUND ${THREAD_SYSTEM_FOUND} PARENT_SCOPE)
     set(THREAD_SYSTEM_INCLUDE_DIR ${THREAD_SYSTEM_INCLUDE_DIR} PARENT_SCOPE)
     set(THREAD_SYSTEM_LIBRARY ${THREAD_SYSTEM_LIBRARY} PARENT_SCOPE)
+    set(THREAD_SYSTEM_TARGET ${THREAD_SYSTEM_TARGET} PARENT_SCOPE)
 
     set(LOGGER_SYSTEM_FOUND ${LOGGER_SYSTEM_FOUND} PARENT_SCOPE)
     set(LOGGER_SYSTEM_INCLUDE_DIR ${LOGGER_SYSTEM_INCLUDE_DIR} PARENT_SCOPE)
@@ -718,6 +746,7 @@ function(find_network_system_dependencies)
 
     set(COMMON_SYSTEM_FOUND ${COMMON_SYSTEM_FOUND} PARENT_SCOPE)
     set(COMMON_SYSTEM_INCLUDE_DIR ${COMMON_SYSTEM_INCLUDE_DIR} PARENT_SCOPE)
+    set(COMMON_SYSTEM_TARGET ${COMMON_SYSTEM_TARGET} PARENT_SCOPE)
 
     # gRPC variables (optional - for NETWORK_ENABLE_GRPC_OFFICIAL)
     set(GRPC_FOUND ${GRPC_FOUND} PARENT_SCOPE)

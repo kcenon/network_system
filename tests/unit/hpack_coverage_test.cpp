@@ -453,9 +453,8 @@ TEST_F(HpackDecoderErrorTest, LiteralWithIndexingMissingValueAfterName)
 TEST_F(HpackDecoderErrorTest, IntegerOverflowFromExcessiveContinuationBytes)
 {
     // First byte 0xFF: indexed, value seed = 127. Each subsequent 0xFF
-    // continues with 7 bits. The decoder accumulates m += 7 and bails out
-    // when m >= 64 → error 102. We provide enough continuation bytes to
-    // trip the overflow (m starts at 0 so 10 iterations push m to 70).
+    // continues with 7 bits. Reject before either the shift or addition
+    // can exceed the uint64_t representation (error 102).
     std::vector<uint8_t> bytes = {
         0xFF,
         0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
@@ -464,6 +463,35 @@ TEST_F(HpackDecoderErrorTest, IntegerOverflowFromExcessiveContinuationBytes)
     };
     auto result = decoder_.decode(as_span(bytes));
     EXPECT_TRUE(result.is_err());
+}
+
+TEST_F(HpackDecoderErrorTest, WideIntegerDoesNotWrapToStaticTableIndex)
+{
+    // Index 2^35 cannot refer to the static table; all 35 bits must survive.
+    std::vector<uint8_t> bytes = {0xff, 0x81, 0xff, 0xff, 0xff, 0x7f};
+    auto result = decoder_.decode(as_span(bytes));
+    ASSERT_TRUE(result.is_err());
+    EXPECT_EQ(result.error().code, 107);
+}
+
+TEST_F(HpackDecoderErrorTest, MaximumIntegerIsDecodedWithoutOverflow)
+{
+    // UINT64_MAX is representable, but not a valid dynamic table index.
+    std::vector<uint8_t> bytes = {
+        0xff, 0x80, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x01};
+    auto result = decoder_.decode(as_span(bytes));
+    ASSERT_TRUE(result.is_err());
+    EXPECT_EQ(result.error().code, 107);
+}
+
+TEST_F(HpackDecoderErrorTest, IntegerAdditionOverflowIsRejected)
+{
+    // UINT64_MAX + 1 must not wrap to index zero after adding the prefix.
+    std::vector<uint8_t> bytes = {
+        0xff, 0x81, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x01};
+    auto result = decoder_.decode(as_span(bytes));
+    ASSERT_TRUE(result.is_err());
+    EXPECT_EQ(result.error().code, 102);
 }
 
 TEST_F(HpackDecoderErrorTest, LiteralWithoutIndexingTruncatedFails)

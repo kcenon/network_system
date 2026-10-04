@@ -137,12 +137,13 @@ TEST_F(QuicSessionTest, SendStringWithoutSocketReturnsError)
 	EXPECT_TRUE(result.is_err());
 }
 
-TEST_F(QuicSessionTest, CloseWithErrorCodeWithoutSocket)
+TEST_F(QuicSessionTest, CloseWithoutSocketIsIdempotent)
 {
 	auto session = std::make_shared<quic_session>(nullptr, "session");
 
 	auto result = session->close(0);
-	EXPECT_TRUE(result.is_err());
+	EXPECT_TRUE(result.is_ok());
+	EXPECT_TRUE(session->close(0).is_ok());
 }
 
 // ============================================================================

@@ -202,6 +202,8 @@ MANIFEST
 
     # Copy registry configuration from project root
     cp "${PROJECT_ROOT}/vcpkg-configuration.json" "${BUILD_DIR}/vcpkg-configuration.json"
+    # Configuration overlay paths are relative to the copied manifest root.
+    cp -R "${PROJECT_ROOT}/vcpkg-ports" "${BUILD_DIR}/"
 
     log_ok "Validation directory ready: ${BUILD_DIR}"
 }

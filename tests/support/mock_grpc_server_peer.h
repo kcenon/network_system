@@ -118,7 +118,7 @@ enum class grpc_reply_mode
  *     (void)client.connect();
  * });
  *
- * EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged(); },
+ * EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged() && client.is_connected(); },
  *                      std::chrono::seconds(3)));
  * EXPECT_TRUE(client.is_connected());
  *
@@ -132,7 +132,7 @@ enum class grpc_reply_mode
  *
  * grpc::grpc_client client(...);
  * std::thread connector([&]() { (void)client.connect(); });
- * wait_for([&]() { return peer.settings_exchanged(); },
+ * wait_for([&]() { return peer.settings_exchanged() && client.is_connected(); },
  *          std::chrono::seconds(3));
  *
  * auto response = client.call_raw("/svc/Method", {0x01, 0x02},

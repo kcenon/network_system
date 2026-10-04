@@ -5,6 +5,7 @@
 #include "internal/protocols/http2/hpack.h"
 #include <algorithm>
 #include <cstring>
+#include <limits>
 
 namespace kcenon::network::protocols::http2
 {
@@ -566,18 +567,18 @@ namespace kcenon::network::protocols::http2
             uint8_t byte = data[0];
             data = data.subspan(1);
 
-            value += (byte & 0x7F) << m;
-            m += 7;
-
-            if (m >= 64)
+            const uint64_t payload = byte & 0x7F;
+            if (m >= 64 || payload > ((std::numeric_limits<uint64_t>::max() - value) >> m))
             {
                 return error_info(102, "Integer overflow", "hpack");
             }
+            value += payload << m;
 
             if ((byte & 0x80) == 0)
             {
                 break;
             }
+            m += 7;
         } while (true);
 
         return value;

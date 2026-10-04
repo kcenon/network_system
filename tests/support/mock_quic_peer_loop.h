@@ -38,6 +38,7 @@
 
 #include "frame_injector.h"
 
+#include <asio/buffer.hpp>
 #include <asio/io_context.hpp>
 #include <asio/ip/udp.hpp>
 
@@ -89,7 +90,7 @@ public:
                                  injection_spec inject = {});
 
     /**
-     * @brief Destructor. Sets stop_, closes the socket, and joins the worker.
+     * @brief Destructor. Stops and joins the worker before closing the socket.
      */
     ~mock_quic_peer_loop();
 
@@ -146,6 +147,8 @@ private:
      * @brief Worker-thread entry point. Runs the receive-derive-reply loop.
      */
     void run();
+    auto receive(asio::mutable_buffer buffer, asio::ip::udp::endpoint& sender,
+                 std::error_code& ec) -> std::size_t;
 
     asio::ip::udp::socket socket_;
     asio::ip::udp::endpoint endpoint_;

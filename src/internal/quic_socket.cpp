@@ -886,10 +886,7 @@ auto quic_socket::send_packet(encryption_level level,
 	packets_sent_.fetch_add(1, std::memory_order_relaxed);
 	bytes_sent_.fetch_add(buffer->size(), std::memory_order_relaxed);
 
-	udp_socket_.async_send_to(
-		asio::buffer(*buffer),
-		remote_endpoint_,
-		[self, buffer](std::error_code ec, std::size_t /*bytes_sent*/)
+	auto on_sent = [self, buffer](std::error_code ec, std::size_t /*bytes_sent*/)
 		{
 			if (ec && ec != asio::error::operation_aborted)
 			{
@@ -899,7 +896,20 @@ auto quic_socket::send_packet(encryption_level level,
 					self->error_cb_(ec);
 				}
 			}
-		});
+		};
+
+	// Connected UDP sockets reject send_to on some platforms (including
+	// macOS). Use the established peer when the supplied socket is connected.
+	std::error_code endpoint_error;
+	const auto connected_endpoint = udp_socket_.remote_endpoint(endpoint_error);
+	if (!endpoint_error && connected_endpoint == remote_endpoint_)
+	{
+		udp_socket_.async_send(asio::buffer(*buffer), std::move(on_sent));
+	}
+	else
+	{
+		udp_socket_.async_send_to(asio::buffer(*buffer), remote_endpoint_, std::move(on_sent));
+	}
 
 	return ok();
 }

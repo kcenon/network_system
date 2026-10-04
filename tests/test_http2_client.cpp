@@ -1032,6 +1032,18 @@ complete_settings_exchange(support::tls_loopback_listener& listener)
         }
     }
 
+    // Complete both sides of the SETTINGS exchange. Otherwise the next
+    // read mistakes the client's SETTINGS-ACK for a request HEADERS frame.
+    std::array<std::uint8_t, kFrameHeaderSize> ack_buf{};
+    asio::read(*stream, asio::buffer(ack_buf), ec);
+    if (ec) return nullptr;
+    auto client_ack = kcenon::network::protocols::http2::frame_header::parse(ack_buf);
+    if (client_ack.is_err() ||
+        client_ack.value().type != kcenon::network::protocols::http2::frame_type::settings ||
+        (client_ack.value().flags & kcenon::network::protocols::http2::frame_flags::ack) == 0 ||
+        client_ack.value().length != 0 || client_ack.value().stream_id != 0)
+        return nullptr;
+
     return stream;
 }
 
@@ -1081,7 +1093,7 @@ class Http2ClientHermeticTest : public support::hermetic_transport_fixture
 // success branches plus the response future fulfilment.
 TEST_F(Http2ClientHermeticTest, GetSucceedsWhenPeerSendsHeadersAndData)
 {
-    support::tls_loopback_listener listener(io());
+    support::tls_loopback_listener listener(io(), /*trusted=*/true);
 
     std::atomic<bool> peer_done{false};
     std::thread peer_thread([&]() {
@@ -1152,7 +1164,9 @@ TEST_F(Http2ClientHermeticTest, GetSucceedsWhenPeerSendsHeadersAndData)
     client->set_timeout(2000ms);
 
     std::thread connector([&]() {
-        (void)client->connect("127.0.0.1", listener.port());
+        auto connected = client->connect("127.0.0.1", listener.port());
+        EXPECT_TRUE(connected.is_ok())
+            << (connected.is_err() ? connected.error().message : "");
     });
 
     // Wait for connect to complete and the peer to send the response.
@@ -1178,7 +1192,7 @@ TEST_F(Http2ClientHermeticTest, GetSucceedsWhenPeerSendsHeadersAndData)
 // pending request being failed via promise.set_value with status 0.
 TEST_F(Http2ClientHermeticTest, GetReceivesGoawayWhilePending)
 {
-    support::tls_loopback_listener listener(io());
+    support::tls_loopback_listener listener(io(), /*trusted=*/true);
 
     std::thread peer_thread([&]() {
         auto stream = complete_settings_exchange(listener);
@@ -1260,7 +1274,7 @@ TEST_F(Http2ClientHermeticTest, GetReceivesGoawayWhilePending)
 // RST_STREAM reply: drives handle_rst_stream_frame branch.
 TEST_F(Http2ClientHermeticTest, GetReceivesRstStream)
 {
-    support::tls_loopback_listener listener(io());
+    support::tls_loopback_listener listener(io(), /*trusted=*/true);
 
     std::thread peer_thread([&]() {
         auto stream = complete_settings_exchange(listener);
@@ -1334,7 +1348,7 @@ TEST_F(Http2ClientHermeticTest, GetReceivesRstStream)
 // PING frame: drives handle_ping_frame branch (server PING -> client ACK).
 TEST_F(Http2ClientHermeticTest, ClientReplyToServerPing)
 {
-    support::tls_loopback_listener listener(io());
+    support::tls_loopback_listener listener(io(), /*trusted=*/true);
 
     std::atomic<bool> ping_ack_received{false};
     std::thread peer_thread([&]() {
@@ -1417,7 +1431,7 @@ TEST_F(Http2ClientHermeticTest, ClientReplyToServerPing)
 // Drives the !is_ack branch in handle_ping_frame.
 TEST_F(Http2ClientHermeticTest, ClientDoesNotReplyToPingAck)
 {
-    support::tls_loopback_listener listener(io());
+    support::tls_loopback_listener listener(io(), /*trusted=*/true);
 
     std::atomic<bool> got_ping_ack_from_peer{false};
     std::atomic<int> client_frames_after_ack{0};
@@ -1495,7 +1509,7 @@ TEST_F(Http2ClientHermeticTest, ClientDoesNotReplyToPingAck)
 // WINDOW_UPDATE frame: connection-level (stream 0) and stream-level paths.
 TEST_F(Http2ClientHermeticTest, ClientHandlesWindowUpdateConnectionLevel)
 {
-    support::tls_loopback_listener listener(io());
+    support::tls_loopback_listener listener(io(), /*trusted=*/true);
 
     std::thread peer_thread([&]() {
         auto stream = complete_settings_exchange(listener);
@@ -1568,14 +1582,17 @@ TEST_F(Http2ClientHermeticTest, ClientHandlesWindowUpdateConnectionLevel)
 // branch and the run_io break-on-error path.
 TEST_F(Http2ClientHermeticTest, RunIoBreaksOnPeerSocketClose)
 {
-    support::tls_loopback_listener listener(io());
+    support::tls_loopback_listener listener(io(), /*trusted=*/true);
 
+    std::promise<void> close_peer;
+    auto close_signal = close_peer.get_future();
     std::thread peer_thread([&]() {
         auto stream = complete_settings_exchange(listener);
         if (!stream)
         {
             return;
         }
+        close_signal.wait();
         // Abruptly close the underlying socket so the next read in
         // client's run_io fails. This drives the catch-block / err
         // branches in run_io (lines 1131-1149).
@@ -1587,13 +1604,10 @@ TEST_F(Http2ClientHermeticTest, RunIoBreaksOnPeerSocketClose)
     auto client = std::make_shared<http2_client>("hermetic-close-test");
     client->set_timeout(1500ms);
 
-    std::thread connector([&]() {
-        (void)client->connect("127.0.0.1", listener.port());
-    });
-
-    // Wait for client to finish handshake before peer slams the socket.
-    EXPECT_TRUE(support::hermetic_transport_fixture::wait_for(
-        [&]() { return client->is_connected(); }, 3s));
+    auto connected = client->connect("127.0.0.1", listener.port());
+    EXPECT_TRUE(connected.is_ok());
+    EXPECT_TRUE(client->is_connected());
+    close_peer.set_value();
 
     // The peer thread closes the socket, so run_io will break out of
     // the loop and is_connected_ flips to false.
@@ -1601,7 +1615,6 @@ TEST_F(Http2ClientHermeticTest, RunIoBreaksOnPeerSocketClose)
         [&]() { return !client->is_connected(); }, 3s));
 
     (void)client->disconnect();
-    connector.join();
     peer_thread.join();
 }
 
@@ -1620,7 +1633,7 @@ TEST_F(Http2ClientHermeticTest, RequestTimeoutMarksStreamClosed)
     });
 
     EXPECT_TRUE(support::hermetic_transport_fixture::wait_for(
-        [&]() { return peer.settings_exchanged(); }, 3s));
+        [&]() { return peer.settings_exchanged() && client->is_connected(); }, 3s));
     EXPECT_TRUE(client->is_connected());
 
     // GET times out (peer never sends HEADERS+DATA).
@@ -1642,7 +1655,7 @@ TEST_F(Http2ClientHermeticTest, RequestTimeoutMarksStreamClosed)
 // decoder side, reachable only post-handshake.
 TEST_F(Http2ClientHermeticTest, GetWithManyHeadersTriggersHpackEviction)
 {
-    support::tls_loopback_listener listener(io());
+    support::tls_loopback_listener listener(io(), /*trusted=*/true);
 
     std::thread peer_thread([&]() {
         auto stream = complete_settings_exchange(listener);
@@ -1720,7 +1733,7 @@ TEST_F(Http2ClientHermeticTest, GetWithManyHeadersTriggersHpackEviction)
 // triggers handle_rst_stream_frame on a streaming session.
 TEST_F(Http2ClientHermeticTest, StreamingRequestReceivesPeerRstStream)
 {
-    support::tls_loopback_listener listener(io());
+    support::tls_loopback_listener listener(io(), /*trusted=*/true);
 
     std::thread peer_thread([&]() {
         auto stream = complete_settings_exchange(listener);
@@ -1801,7 +1814,7 @@ TEST_F(Http2ClientHermeticTest, StreamingRequestReceivesPeerRstStream)
 // request — drives the on_headers callback branch in handle_headers_frame.
 TEST_F(Http2ClientHermeticTest, StreamingRequestReceivesHeadersCallback)
 {
-    support::tls_loopback_listener listener(io());
+    support::tls_loopback_listener listener(io(), /*trusted=*/true);
 
     std::thread peer_thread([&]() {
         auto stream = complete_settings_exchange(listener);
@@ -1914,7 +1927,7 @@ TEST_F(Http2ClientHermeticTest, StreamingRequestReceivesHeadersCallback)
 // the run_io loop should keep going.
 TEST_F(Http2ClientHermeticTest, ClientIgnoresUnknownFrameType)
 {
-    support::tls_loopback_listener listener(io());
+    support::tls_loopback_listener listener(io(), /*trusted=*/true);
 
     std::thread peer_thread([&]() {
         auto stream = complete_settings_exchange(listener);
@@ -1977,7 +1990,7 @@ TEST_F(Http2ClientHermeticTest, ClientIgnoresUnknownFrameType)
 // (drives the catch-all branch in handle_headers_frame's stoi try/catch).
 TEST_F(Http2ClientHermeticTest, GetWithNonNumericStatusYieldsZero)
 {
-    support::tls_loopback_listener listener(io());
+    support::tls_loopback_listener listener(io(), /*trusted=*/true);
 
     std::thread peer_thread([&]() {
         auto stream = complete_settings_exchange(listener);
@@ -2056,7 +2069,7 @@ TEST_F(Http2ClientHermeticTest, GetWithNonNumericStatusYieldsZero)
 // for the stream and the connection.
 TEST_F(Http2ClientHermeticTest, GetWithLargeBodyTriggersWindowUpdate)
 {
-    support::tls_loopback_listener listener(io());
+    support::tls_loopback_listener listener(io(), /*trusted=*/true);
 
     std::atomic<bool> client_window_update_received{false};
 

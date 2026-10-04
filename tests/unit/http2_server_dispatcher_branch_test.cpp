@@ -55,6 +55,8 @@
 #include "http2_server_test_access.h"
 
 #include <gtest/gtest.h>
+#include <asio/read.hpp>
+#include <asio/write.hpp>
 
 #include <array>
 #include <chrono>
@@ -114,6 +116,17 @@ class Http2ServerDispatcherTest
     : public kcenon::network::tests::support::hermetic_transport_fixture
 {
 };
+
+TEST(LoopbackTcpPairTest, CompletesBeforeReturningWithoutIoWorker)
+{
+    asio::io_context io;
+    auto sockets = kcenon::network::tests::support::make_loopback_tcp_pair(io);
+    const std::array<char, 4> sent{'t', 'e', 's', 't'};
+    std::array<char, 4> received{};
+    asio::write(sockets.first, asio::buffer(sent));
+    asio::read(sockets.second, asio::buffer(received));
+    EXPECT_EQ(received, sent);
+}
 
 // ============================================================================
 // process_frame switch arm coverage

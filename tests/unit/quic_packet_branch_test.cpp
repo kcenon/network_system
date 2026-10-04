@@ -337,7 +337,7 @@ auto reference_decode_pn(uint64_t truncated_pn, size_t pn_length,
     uint64_t pn_hwin = pn_win / 2;
     uint64_t pn_mask = pn_win - 1;
     uint64_t candidate_pn = (expected_pn & ~pn_mask) | truncated_pn;
-    if (candidate_pn <= expected_pn - pn_hwin
+    if (expected_pn >= pn_hwin && candidate_pn <= expected_pn - pn_hwin
         && candidate_pn < (1ULL << 62) - pn_win)
     {
         return candidate_pn + pn_win;
@@ -407,13 +407,9 @@ TEST(QuicPacketBranchPacketNumberDecode, SubtractWindowBranchFirstConjunctFalse)
 
 TEST(QuicPacketBranchPacketNumberDecode, ZeroLargestRoundTrip)
 {
-    // expected = 1; truncated = 0; pn_length = 1.
-    // candidate = (1 & ~0xFF) | 0 = 0. 0 <= 1 - 128 underflows in unsigned
-    // arithmetic to a very large value, so 0 <= huge -> TRUE.
-    // 0 < 2^62 - 256 -> TRUE. Result = pn_win = 256.
-    // This tests the wrap-around when expected_pn - pn_hwin underflows.
-    auto v = quic::packet_number::decode(0, 1, 0);
-    EXPECT_EQ(v, reference_decode_pn(0, 1, 0));
+    // The first packet is zero; unsigned window arithmetic must not wrap.
+    EXPECT_EQ(quic::packet_number::decode(0, 1, 0), 0u);
+
 }
 
 TEST(QuicPacketBranchPacketNumberDecode, FourBytePacketNumberDecode)

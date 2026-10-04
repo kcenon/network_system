@@ -2238,9 +2238,11 @@ protected:
 TEST_F(Http2ServerLoopbackNoErrorHandlerTest,
        HTTP2ServerErrorPath_RequestHandlerExceptionWithoutErrorHandler)
 {
+    std::atomic<bool> handler_called{false};
     server_->set_request_handler(
-        [](http2_server_stream& /*stream*/,
+        [&](http2_server_stream& /*stream*/,
            const http2_request& /*req*/) {
+            handler_called = true;
             throw std::runtime_error("silent failure");
         });
 
@@ -2265,7 +2267,7 @@ TEST_F(Http2ServerLoopbackNoErrorHandlerTest,
     const auto deadline = std::chrono::steady_clock::now()
                           + std::chrono::milliseconds(1000);
     while (std::chrono::steady_clock::now() < deadline) {
-        if (server_->active_streams() == 0) {
+        if (handler_called && server_->active_streams() == 0) {
             stream_closed = true;
             break;
         }
@@ -2279,6 +2281,79 @@ TEST_F(Http2ServerLoopbackNoErrorHandlerTest,
 
     std::error_code ec;
     sock.close(ec);
+}
+
+TEST_F(Http2ServerLoopbackTest, HTTP2ServerShutdown_WaitsForActiveRequest)
+{
+    auto entered = std::make_shared<std::promise<void>>();
+    auto entered_future = entered->get_future();
+    auto release = std::make_shared<std::promise<void>>();
+    auto release_future = release->get_future().share();
+    server_->set_request_handler(
+        [entered, release_future](http2_server_stream&, const http2_request&) {
+            entered->set_value();
+            release_future.wait();
+        });
+
+    auto port = start_server();
+    ASSERT_NE(port, 0);
+    asio::io_context io;
+    auto sock = connect_client(io, port);
+    write_preface(sock);
+    (void)read_available(sock, 1024, std::chrono::milliseconds(300));
+    hpack_encoder enc(4096);
+    headers_frame hdrs(1, encode_get_headers(enc, "/shutdown"), true, true);
+    write_frame(sock, hdrs);
+
+    const auto entered_status = entered_future.wait_for(std::chrono::seconds(2));
+    if (entered_status != std::future_status::ready) {
+        release->set_value();
+        FAIL() << "request handler did not start";
+    }
+    auto stopped = std::async(std::launch::async, [server = server_]() {
+        return server->stop();
+    });
+    EXPECT_EQ(stopped.wait_for(std::chrono::milliseconds(50)),
+              std::future_status::timeout);
+    release->set_value();
+    ASSERT_EQ(stopped.wait_for(std::chrono::seconds(2)), std::future_status::ready);
+    EXPECT_TRUE(stopped.get().is_ok());
+    EXPECT_EQ(server_->active_connections(), 0u);
+}
+
+TEST_F(Http2ServerLoopbackTest, HTTP2ServerShutdown_InterruptsBlockedResponse)
+{
+    auto entered = std::make_shared<std::promise<void>>();
+    auto entered_future = entered->get_future();
+    server_->set_request_handler(
+        [entered](http2_server_stream& stream, const http2_request&) {
+            stream.send_headers(200, {});
+            entered->set_value();
+            stream.send_data(std::vector<uint8_t>(8 * 1024 * 1024, 'x'), true);
+        });
+
+    auto port = start_server();
+    ASSERT_NE(port, 0);
+    asio::io_context io;
+    auto sock = connect_client(io, port);
+    sock.set_option(asio::socket_base::receive_buffer_size(1024));
+    write_preface(sock);
+    (void)read_available(sock, 1024, std::chrono::milliseconds(300));
+    hpack_encoder enc(4096);
+    headers_frame hdrs(1, encode_get_headers(enc, "/blocked-response"), true, true);
+    write_frame(sock, hdrs);
+    ASSERT_EQ(entered_future.wait_for(std::chrono::seconds(2)), std::future_status::ready);
+
+    // Leave the response unread. Shutdown must unblock the synchronous writer
+    // while retaining the connection until its callback has returned.
+    auto stopped = std::async(std::launch::async, [server = server_]() {
+        return server->stop();
+    });
+    const auto status = stopped.wait_for(std::chrono::seconds(2));
+    std::error_code ec;
+    sock.close(ec); // Also releases the writer if the assertion fails.
+    EXPECT_EQ(status, std::future_status::ready);
+    EXPECT_TRUE(stopped.get().is_ok());
 }
 
 // ============================================================================
@@ -2909,4 +2984,3 @@ TEST_F(Http2ServerLoopbackTest,
     std::error_code ec;
     sock.close(ec);
 }
-

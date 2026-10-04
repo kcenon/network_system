@@ -635,7 +635,8 @@ TEST_F(AckFrameEncodingTest, BasicAckRoundTrip)
 	ASSERT_NE(ack, nullptr);
 	EXPECT_EQ(ack->largest_acknowledged, 42);
 	EXPECT_EQ(ack->ack_delay, 10);
-	EXPECT_TRUE(ack->ranges.empty());
+	ASSERT_EQ(ack->ranges.size(), 1u);
+	EXPECT_EQ(ack->ranges[0].length, 0u);
 	EXPECT_FALSE(ack->ecn.has_value());
 }
 

@@ -255,6 +255,7 @@ namespace kcenon::network::protocols::http2
         std::atomic<uint64_t> next_connection_id_{1};
 
         // Settings
+        mutable std::mutex settings_mutex_;
         http2_settings settings_;
 
         // HPACK encoder for all connections
@@ -350,6 +351,9 @@ namespace kcenon::network::protocols::http2
         [[nodiscard]] auto stream_count() const -> size_t;
 
     private:
+        friend class http2_server;
+        auto shutdown_transport() -> void;
+
         // Connection setup
         auto read_connection_preface() -> void;
         auto send_settings() -> VoidResult;
@@ -384,6 +388,7 @@ namespace kcenon::network::protocols::http2
         // Socket (one of these is used)
         std::unique_ptr<asio::ip::tcp::socket> plain_socket_;
         std::unique_ptr<asio::ssl::stream<asio::ip::tcp::socket>> tls_socket_;
+        std::mutex transport_shutdown_mutex_;       //!< Serialize close and shutdown
 
         // Connection state
         std::atomic<bool> is_alive_{true};

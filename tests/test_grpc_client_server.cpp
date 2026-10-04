@@ -1511,6 +1511,7 @@ TEST_F(GrpcMessageTest, EmptyMessageSerializeIsHeaderOnly)
 #if !defined(NETWORK_GRPC_OFFICIAL) || NETWORK_GRPC_OFFICIAL == 0
 
 #include "internal/protocols/http2/frame.h"
+#include "internal/protocols/http2/http2_client.h"
 #include "internal/protocols/http2/hpack.h"
 
 #include "hermetic_transport_fixture.h"
@@ -1627,6 +1628,18 @@ grpc_complete_settings_exchange(support_grpc::tls_loopback_listener& listener)
         }
     }
 
+    // Complete both sides of the SETTINGS exchange. Otherwise the next
+    // read mistakes the client's SETTINGS-ACK for a request HEADERS frame.
+    std::array<std::uint8_t, kFrameHeaderSize> ack_buf{};
+    asio::read(*stream, asio::buffer(ack_buf), ec);
+    if (ec) return nullptr;
+    auto client_ack = http2_grpc::frame_header::parse(ack_buf);
+    if (client_ack.is_err() ||
+        client_ack.value().type != http2_grpc::frame_type::settings ||
+        (client_ack.value().flags & http2_grpc::frame_flags::ack) == 0 ||
+        client_ack.value().length != 0 || client_ack.value().stream_id != 0)
+        return nullptr;
+
     return stream;
 }
 
@@ -1742,7 +1755,7 @@ class GrpcClientHermeticTransportCoverageTest
 //  - tracing attribute set_attribute("rpc.response.size", ...)
 TEST_F(GrpcClientHermeticTransportCoverageTest, CallRawSucceedsWithGrpcStatusOk)
 {
-    support_grpc::tls_loopback_listener listener(io());
+    support_grpc::tls_loopback_listener listener(io(), /*trusted=*/true);
 
     std::atomic<bool> peer_done{false};
     const std::vector<std::uint8_t> response_payload{
@@ -1809,7 +1822,7 @@ TEST_F(GrpcClientHermeticTransportCoverageTest, CallRawSucceedsWithGrpcStatusOk)
 TEST_F(GrpcClientHermeticTransportCoverageTest,
        CallRawMapsGrpcStatusNotFoundToError)
 {
-    support_grpc::tls_loopback_listener listener(io());
+    support_grpc::tls_loopback_listener listener(io(), /*trusted=*/true);
 
     std::thread peer_thread([&]() {
         auto stream = grpc_complete_settings_exchange(listener);
@@ -1859,7 +1872,7 @@ TEST_F(GrpcClientHermeticTransportCoverageTest,
 TEST_F(GrpcClientHermeticTransportCoverageTest,
        CallRawMapsGrpcStatusWithoutMessageUsesCodeName)
 {
-    support_grpc::tls_loopback_listener listener(io());
+    support_grpc::tls_loopback_listener listener(io(), /*trusted=*/true);
 
     std::thread peer_thread([&]() {
         auto stream = grpc_complete_settings_exchange(listener);
@@ -1915,7 +1928,7 @@ class GrpcClientHermeticStatusMapTest
 TEST_P(GrpcClientHermeticStatusMapTest, MapsCodeIntoErrorResult)
 {
     const auto [code, name] = GetParam();
-    support_grpc::tls_loopback_listener listener(io());
+    support_grpc::tls_loopback_listener listener(io(), /*trusted=*/true);
 
     std::thread peer_thread([&, code]() {
         auto stream = grpc_complete_settings_exchange(listener);
@@ -1981,7 +1994,7 @@ INSTANTIATE_TEST_SUITE_P(
 // branch which maps to status_code::unavailable regardless of trailers.
 TEST_F(GrpcClientHermeticTransportCoverageTest, CallRawMapsHttpErrorToUnavailable)
 {
-    support_grpc::tls_loopback_listener listener(io());
+    support_grpc::tls_loopback_listener listener(io(), /*trusted=*/true);
 
     std::thread peer_thread([&]() {
         auto stream = grpc_complete_settings_exchange(listener);
@@ -2031,7 +2044,7 @@ TEST_F(GrpcClientHermeticTransportCoverageTest, CallRawMapsHttpErrorToUnavailabl
 // grpc_message::parse().
 TEST_F(GrpcClientHermeticTransportCoverageTest, CallRawSucceedsWithEmptyBody)
 {
-    support_grpc::tls_loopback_listener listener(io());
+    support_grpc::tls_loopback_listener listener(io(), /*trusted=*/true);
 
     std::thread peer_thread([&]() {
         auto stream = grpc_complete_settings_exchange(listener);
@@ -2074,7 +2087,7 @@ TEST_F(GrpcClientHermeticTransportCoverageTest, CallRawSucceedsWithEmptyBody)
 TEST_F(GrpcClientHermeticTransportCoverageTest,
        CallRawErrorsWhenBodyIsMalformed)
 {
-    support_grpc::tls_loopback_listener listener(io());
+    support_grpc::tls_loopback_listener listener(io(), /*trusted=*/true);
 
     std::thread peer_thread([&]() {
         auto stream = grpc_complete_settings_exchange(listener);
@@ -2129,7 +2142,7 @@ TEST_F(GrpcClientHermeticTransportCoverageTest,
 TEST_F(GrpcClientHermeticTransportCoverageTest,
        CallRawSendsGrpcTimeoutHeaderWhenDeadlineSet)
 {
-    support_grpc::tls_loopback_listener listener(io());
+    support_grpc::tls_loopback_listener listener(io(), /*trusted=*/true);
 
     std::atomic<bool> grpc_timeout_seen{false};
     std::atomic<bool> custom_metadata_seen{false};
@@ -2220,7 +2233,7 @@ TEST_F(GrpcClientHermeticTransportCoverageTest,
 TEST_F(GrpcClientHermeticTransportCoverageTest,
        CallRawShortCircuitsOnExpiredDeadlineAfterHandshake)
 {
-    support_grpc::tls_loopback_listener listener(io());
+    support_grpc::tls_loopback_listener listener(io(), /*trusted=*/true);
 
     std::thread peer_thread([&]() {
         auto stream = grpc_complete_settings_exchange(listener);
@@ -2256,7 +2269,7 @@ TEST_F(GrpcClientHermeticTransportCoverageTest,
 TEST_F(GrpcClientHermeticTransportCoverageTest,
        ServerStreamReadAfterEndOfStreamReturnsError)
 {
-    support_grpc::tls_loopback_listener listener(io());
+    support_grpc::tls_loopback_listener listener(io(), /*trusted=*/true);
 
     std::thread peer_thread([&]() {
         auto stream = grpc_complete_settings_exchange(listener);
@@ -2317,7 +2330,7 @@ TEST_F(GrpcClientHermeticTransportCoverageTest,
 TEST_F(GrpcClientHermeticTransportCoverageTest,
        ServerStreamReadDeliversBufferedMessage)
 {
-    support_grpc::tls_loopback_listener listener(io());
+    support_grpc::tls_loopback_listener listener(io(), /*trusted=*/true);
 
     const std::vector<std::uint8_t> server_payload{0x10, 0x20, 0x30};
 
@@ -2397,7 +2410,7 @@ TEST_F(GrpcClientHermeticTransportCoverageTest,
 TEST_F(GrpcClientHermeticTransportCoverageTest,
        ServerStreamFinishCarriesUnavailableOnHttpError)
 {
-    support_grpc::tls_loopback_listener listener(io());
+    support_grpc::tls_loopback_listener listener(io(), /*trusted=*/true);
 
     std::thread peer_thread([&]() {
         auto stream = grpc_complete_settings_exchange(listener);
@@ -2457,7 +2470,7 @@ TEST_F(GrpcClientHermeticTransportCoverageTest,
 TEST_F(GrpcClientHermeticTransportCoverageTest,
        ClientStreamWriterWriteForwardsToHttp2)
 {
-    support_grpc::tls_loopback_listener listener(io());
+    support_grpc::tls_loopback_listener listener(io(), /*trusted=*/true);
 
     std::thread peer_thread([&]() {
         auto stream = grpc_complete_settings_exchange(listener);
@@ -2499,7 +2512,7 @@ TEST_F(GrpcClientHermeticTransportCoverageTest,
 TEST_F(GrpcClientHermeticTransportCoverageTest,
        ClientStreamWriteAfterWritesDoneFails)
 {
-    support_grpc::tls_loopback_listener listener(io());
+    support_grpc::tls_loopback_listener listener(io(), /*trusted=*/true);
 
     std::thread peer_thread([&]() {
         auto stream = grpc_complete_settings_exchange(listener);
@@ -2527,13 +2540,94 @@ TEST_F(GrpcClientHermeticTransportCoverageTest,
     peer_thread.join();
 }
 
+// Exercise full-duplex TLS while two callers write the same HTTP/2 stream.
+// The server echoes enough DATA to also trigger client WINDOW_UPDATE writes
+// from the reader callback, alongside the application writers.
+TEST_F(GrpcClientHermeticTransportCoverageTest,
+       ConcurrentHttp2WritersPreserveFramesDuringReplies)
+{
+    support_grpc::tls_loopback_listener listener(io(), /*trusted=*/true);
+    constexpr int writes_per_thread = 32;
+    constexpr int total_writes = 2 * writes_per_thread;
+    const std::vector<std::uint8_t> payload(1024, 0x5a);
+    std::atomic<int> received_frames{0};
+    std::thread peer_thread([&]() {
+        auto stream = grpc_complete_settings_exchange(listener);
+        if (!stream) return;
+        http2_grpc::frame_header header{};
+        if (!drain_one_frame(*stream, header)) return;
+        const auto stream_id = header.stream_id;
+        std::error_code ec;
+        http2_grpc::headers_frame initial(
+            stream_id, grpc_encode_response_headers(200, 0), false, true);
+        auto bytes = initial.serialize();
+        asio::write(*stream, asio::buffer(bytes), ec);
+        if (ec) return;
+        while (received_frames.load() < total_writes)
+        {
+            if (!drain_one_frame(*stream, header)) return;
+            if (header.type != http2_grpc::frame_type::data) continue;
+            if (header.stream_id != stream_id || header.length != payload.size()) return;
+            ++received_frames;
+            http2_grpc::data_frame reply(stream_id, payload, false);
+            bytes = reply.serialize();
+            asio::write(*stream, asio::buffer(bytes), ec);
+            if (ec) return;
+        }
+        http2_grpc::headers_frame final_headers(
+            stream_id, grpc_encode_response_headers(200, 0), true, true);
+        bytes = final_headers.serialize();
+        asio::write(*stream, asio::buffer(bytes), ec);
+        if (!ec) drain_until_eof(*stream);
+    });
+
+    http2_grpc::http2_client client("concurrent-writers");
+    auto connected = client.connect("127.0.0.1", listener.port());
+    EXPECT_TRUE(connected.is_ok());
+    std::atomic<std::size_t> received_bytes{0};
+    std::promise<int> completed;
+    auto completion = completed.get_future();
+    if (connected.is_ok())
+    {
+        auto stream = client.start_stream("/duplex", {},
+            [&](std::vector<std::uint8_t> data) { received_bytes += data.size(); },
+            [](std::vector<http2_grpc::http_header>) {},
+            [&](int status) { completed.set_value(status); });
+        EXPECT_TRUE(stream.is_ok());
+        if (stream.is_ok())
+        {
+            std::atomic<int> failed_writes{0};
+            auto write = [&]() {
+                for (int n = 0; n < writes_per_thread; ++n)
+                    if (client.write_stream(stream.value(), payload).is_err())
+                    {
+                        ++failed_writes;
+                        return;
+                    }
+            };
+            std::thread first(write);
+            std::thread second(write);
+            first.join();
+            second.join();
+            EXPECT_EQ(failed_writes.load(), 0);
+            const auto ready = completion.wait_for(3s);
+            EXPECT_EQ(ready, std::future_status::ready);
+            if (ready == std::future_status::ready) EXPECT_EQ(completion.get(), 200);
+            EXPECT_EQ(received_frames.load(), total_writes);
+            EXPECT_EQ(received_bytes.load(), total_writes * payload.size());
+        }
+    }
+    client.disconnect();
+    peer_thread.join();
+}
+
 // Bidi streaming write/read smoke: server replies with HEADERS+DATA mid-
 // stream, drives bidi_stream_impl::write, on_data, on_headers, read,
 // writes_done, and finish branches.
 TEST_F(GrpcClientHermeticTransportCoverageTest,
        BidiStreamWriteReadAndFinishExerciseAllImplPaths)
 {
-    support_grpc::tls_loopback_listener listener(io());
+    support_grpc::tls_loopback_listener listener(io(), /*trusted=*/true);
 
     const std::vector<std::uint8_t> server_payload{0x55, 0x66};
 
@@ -2542,6 +2636,7 @@ TEST_F(GrpcClientHermeticTransportCoverageTest,
         if (!stream) return;
 
         http2_grpc::frame_header req_hdr{};
+        if (!drain_one_frame(*stream, req_hdr)) return;
         if (!drain_one_frame(*stream, req_hdr)) return;
 
         std::error_code ec;
@@ -2589,17 +2684,12 @@ TEST_F(GrpcClientHermeticTransportCoverageTest,
     ASSERT_NE(bidi.get(), nullptr);
 
     // write goes through serialize + http2 write_stream.
-    (void)bidi->write(std::vector<std::uint8_t>{0x77, 0x88});
+    EXPECT_TRUE(bidi->write(std::vector<std::uint8_t>{0x77, 0x88}).is_ok());
 
-    std::this_thread::sleep_for(200ms);
-
-    // read pulls from buffer; may or may not have data depending on
-    // worker scheduling — both branches are valid coverage.
     auto first_read = bidi->read();
-    if (first_read.is_ok())
-    {
-        EXPECT_FALSE(first_read.value().data.empty());
-    }
+    EXPECT_TRUE(first_read.is_ok());
+    if (first_read.is_ok()) EXPECT_EQ(first_read.value().data, server_payload);
+    EXPECT_EQ(bidi->finish().code, grpc::status_code::ok);
 
     // writes_done is idempotent.
     (void)bidi->writes_done();
@@ -2615,7 +2705,7 @@ TEST_F(GrpcClientHermeticTransportCoverageTest,
 TEST_F(GrpcClientHermeticTransportCoverageTest,
        BidiWriteAfterWritesDoneIsRejected)
 {
-    support_grpc::tls_loopback_listener listener(io());
+    support_grpc::tls_loopback_listener listener(io(), /*trusted=*/true);
 
     std::thread peer_thread([&]() {
         auto stream = grpc_complete_settings_exchange(listener);
@@ -2649,7 +2739,7 @@ TEST_F(GrpcClientHermeticTransportCoverageTest,
 TEST_F(GrpcClientHermeticTransportCoverageTest,
        CallRawErrorsWhenPeerSendsRstStream)
 {
-    support_grpc::tls_loopback_listener listener(io());
+    support_grpc::tls_loopback_listener listener(io(), /*trusted=*/true);
 
     std::thread peer_thread([&]() {
         auto stream = grpc_complete_settings_exchange(listener);
@@ -2689,7 +2779,7 @@ TEST_F(GrpcClientHermeticTransportCoverageTest,
 TEST_F(GrpcClientHermeticTransportCoverageTest,
        CallRawAsyncDeliversSuccessAfterHeadersAndData)
 {
-    support_grpc::tls_loopback_listener listener(io());
+    support_grpc::tls_loopback_listener listener(io(), /*trusted=*/true);
 
     const std::vector<std::uint8_t> response_payload{0xAB, 0xCD};
 

@@ -131,8 +131,11 @@ set_target_properties(connection_lifecycle_test PROPERTIES
 # )
 
 include(GoogleTest)
+# Port probes release the descriptor before the server binds it. Serialize
+# cases sharing a port range while allowing the other test suites to run.
 network_gtest_discover_tests(connection_lifecycle_test
     DISCOVERY_TIMEOUT 60
+    PROPERTIES RESOURCE_LOCK integration_tcp_ports
 )
 
 ##################################################
@@ -197,6 +200,7 @@ set_target_properties(protocol_integration_test PROPERTIES
 
 network_gtest_discover_tests(protocol_integration_test
     DISCOVERY_TIMEOUT 60
+    PROPERTIES RESOURCE_LOCK integration_tcp_ports
 )
 
 ##################################################
@@ -261,6 +265,7 @@ set_target_properties(network_performance_test PROPERTIES
 
 network_gtest_discover_tests(network_performance_test
     DISCOVERY_TIMEOUT 60
+    PROPERTIES RESOURCE_LOCK integration_tcp_ports
 )
 
 ##################################################
@@ -328,7 +333,7 @@ set_target_properties(error_handling_test PROPERTIES
 # async_accept operations. This is excluded from sanitizer tests via label.
 network_gtest_discover_tests(error_handling_test
     DISCOVERY_TIMEOUT 60
-    PROPERTIES LABELS "integration;error_handling"
+    PROPERTIES LABELS "integration;error_handling" RESOURCE_LOCK integration_tcp_ports
     TEST_FILTER "-*RecoveryAfterServerRestart"
 )
 
@@ -339,6 +344,7 @@ add_test(
 )
 set_tests_properties(ErrorHandlingTest.RecoveryAfterServerRestart PROPERTIES
     LABELS "integration;error_handling;no_sanitizer"
+    RESOURCE_LOCK integration_tcp_ports
     TIMEOUT 60
 )
 
@@ -424,6 +430,7 @@ set_target_properties(tcp_load_test PROPERTIES
 
 network_gtest_discover_tests(tcp_load_test
     DISCOVERY_TIMEOUT 60
+    PROPERTIES RESOURCE_LOCK tcp_load_port
 )
 
 ##################################################
@@ -483,6 +490,9 @@ set_target_properties(udp_load_test PROPERTIES
 
 network_gtest_discover_tests(udp_load_test
     DISCOVERY_TIMEOUT 60
+    # These cases share a UDP port range; the legacy TCP port probe cannot
+    # reserve it against another UDP case running in a separate process.
+    PROPERTIES RESOURCE_LOCK udp_load_port
 )
 
 ##################################################
@@ -541,6 +551,7 @@ set_target_properties(websocket_load_test PROPERTIES
 
 network_gtest_discover_tests(websocket_load_test
     DISCOVERY_TIMEOUT 60
+    PROPERTIES RESOURCE_LOCK websocket_load_port
 )
 
 ##################################################

@@ -68,11 +68,11 @@ struct self_signed_pem
  * Configured for TLS 1.2+ with HTTP/2 ALPN ("h2") and HTTP/1.1 fallback so
  * both HTTP/2 and gRPC clients negotiate successfully.
  *
- * @param method @c asio::ssl::context::tlsv12_server (default) or any other
+ * @param method @c asio::ssl::context::tls_server (default) or any other
  *        server-side method.
  */
 [[nodiscard]] asio::ssl::context make_self_signed_ssl_context(
-    asio::ssl::context::method method = asio::ssl::context::tlsv12_server);
+    asio::ssl::context::method method = asio::ssl::context::tls_server);
 
 /**
  * @brief Construct a client-side @c asio::ssl::context that accepts the
@@ -105,7 +105,9 @@ public:
      * @brief Open the acceptor and start accepting one connection.
      * @param io io_context to run accept + handshake on.
      */
-    explicit tls_loopback_listener(asio::io_context& io);
+    // Trusted peers publish only their generated public certificate in a
+    // process-local temporary CA file. Private keys remain in memory.
+    explicit tls_loopback_listener(asio::io_context& io, bool trusted = false);
     ~tls_loopback_listener();
 
     tls_loopback_listener(const tls_loopback_listener&) = delete;
@@ -134,20 +136,17 @@ public:
     /**
      * @brief True if a connection has been accepted (handshake state ignored).
      */
-    [[nodiscard]] auto accepted() const -> bool { return accepted_.load(); }
+    [[nodiscard]] auto accepted() const -> bool;
 
     /**
      * @brief True if the TLS handshake completed successfully.
      */
-    [[nodiscard]] auto handshake_done() const -> bool { return handshake_done_.load(); }
+    [[nodiscard]] auto handshake_done() const -> bool;
 
 private:
-    asio::ssl::context server_ctx_;
-    asio::ip::tcp::acceptor acceptor_;
+    struct state;
+    std::shared_ptr<state> state_;
     asio::ip::tcp::endpoint endpoint_;
-    std::unique_ptr<asio::ssl::stream<asio::ip::tcp::socket>> accepted_stream_;
-    std::atomic<bool> accepted_{false};
-    std::atomic<bool> handshake_done_{false};
 };
 
 } // namespace kcenon::network::tests::support

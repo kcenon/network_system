@@ -323,7 +323,7 @@ namespace kcenon::network::protocols::grpc
 
     private:
         class impl;
-        std::unique_ptr<impl> impl_;
+        std::shared_ptr<impl> impl_;
     };
 
 } // namespace kcenon::network::protocols::grpc

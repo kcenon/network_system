@@ -18,9 +18,18 @@
 #include <openssl/x509.h>
 
 #include <asio/buffer.hpp>
+#include <asio/bind_executor.hpp>
+#include <asio/post.hpp>
+#include <asio/strand.hpp>
 
 #include <chrono>
+#include <cstdlib>
+#include <filesystem>
+#include <fstream>
 #include <memory>
+#include <mutex>
+#include <optional>
+#include <random>
 #include <stdexcept>
 #include <string>
 #include <thread>
@@ -208,7 +217,63 @@ int alpn_select_h2_then_http11(SSL* /*ssl*/,
 
 } // namespace
 
-asio::ssl::context make_self_signed_ssl_context(asio::ssl::context::method method)
+namespace
+{
+
+// CTest runs discovered cases in separate processes. Share one test identity
+// within a process so simultaneous mock peers use the same trust anchor.
+// The production client's verify_peer setting remains enabled.
+struct trusted_test_identity
+{
+    self_signed_pem pem = generate_self_signed_pem();
+    std::filesystem::path directory;
+    std::optional<std::string> previous_ca_file;
+
+    trusted_test_identity()
+    {
+        if (const char* previous = std::getenv("SSL_CERT_FILE"))
+        {
+            previous_ca_file = previous;
+        }
+        std::random_device random;
+        do
+        {
+            directory = std::filesystem::temp_directory_path() /
+                ("network-test-ca-" + std::to_string(random()) + "-" +
+                 std::to_string(random()));
+        } while (!std::filesystem::create_directory(directory));
+        auto ca_file = directory / "ca.pem";
+        std::ofstream output(ca_file);
+        output << pem.cert_pem;
+        output.close();
+        if (!output)
+        {
+            throw std::runtime_error("Cannot write test CA certificate");
+        }
+#ifdef _WIN32
+        _putenv_s("SSL_CERT_FILE", ca_file.string().c_str());
+#else
+        setenv("SSL_CERT_FILE", ca_file.string().c_str(), 1);
+#endif
+    }
+
+    ~trusted_test_identity()
+    {
+#ifdef _WIN32
+        _putenv_s("SSL_CERT_FILE", previous_ca_file.value_or("").c_str());
+#else
+        if (previous_ca_file)
+            setenv("SSL_CERT_FILE", previous_ca_file->c_str(), 1);
+        else
+            unsetenv("SSL_CERT_FILE");
+#endif
+        std::error_code ec;
+        std::filesystem::remove_all(directory, ec);
+    }
+};
+
+asio::ssl::context make_server_context(asio::ssl::context::method method,
+                                      const self_signed_pem& pem)
 {
     asio::ssl::context ctx(method);
     ctx.set_options(asio::ssl::context::default_workarounds |
@@ -216,7 +281,7 @@ asio::ssl::context make_self_signed_ssl_context(asio::ssl::context::method metho
                     asio::ssl::context::no_sslv3 |
                     asio::ssl::context::single_dh_use);
 
-    const auto pem = generate_self_signed_pem();
+    SSL_CTX_set_min_proto_version(ctx.native_handle(), TLS1_2_VERSION);
     ctx.use_certificate_chain(asio::buffer(pem.cert_pem));
     ctx.use_private_key(asio::buffer(pem.key_pem), asio::ssl::context::pem);
 
@@ -230,6 +295,19 @@ asio::ssl::context make_self_signed_ssl_context(asio::ssl::context::method metho
     return ctx;
 }
 
+asio::ssl::context make_trusted_server_context()
+{
+    static const trusted_test_identity identity;
+    return make_server_context(asio::ssl::context::tls_server, identity.pem);
+}
+
+} // namespace
+
+asio::ssl::context make_self_signed_ssl_context(asio::ssl::context::method method)
+{
+    return make_server_context(method, generate_self_signed_pem());
+}
+
 asio::ssl::context make_permissive_client_context()
 {
     asio::ssl::context ctx(asio::ssl::context::tlsv12_client);
@@ -237,48 +315,74 @@ asio::ssl::context make_permissive_client_context()
     return ctx;
 }
 
-tls_loopback_listener::tls_loopback_listener(asio::io_context& io)
-    : server_ctx_(make_self_signed_ssl_context())
-    , acceptor_(io)
+// Handlers retain the transport independently of the stack-allocated listener.
+// The strand serializes cancellation with the composed TLS handshake, while
+// the mutex protects transfer of the completed stream to a test worker.
+struct tls_loopback_listener::state
+{
+    state(asio::io_context& io, bool trusted)
+        : server_ctx(trusted ? make_trusted_server_context() : make_self_signed_ssl_context())
+        , strand(asio::make_strand(io))
+        , acceptor(io)
+        , stream(std::make_unique<asio::ssl::stream<asio::ip::tcp::socket>>(io, server_ctx))
+    {
+    }
+
+    asio::ssl::context server_ctx;
+    asio::strand<asio::io_context::executor_type> strand;
+    asio::ip::tcp::acceptor acceptor;
+    std::mutex mutex;
+    std::unique_ptr<asio::ssl::stream<asio::ip::tcp::socket>> stream;
+    std::atomic<bool> accepted{false};
+    std::atomic<bool> handshake_done{false};
+    bool stopped = false;
+};
+
+tls_loopback_listener::tls_loopback_listener(asio::io_context& io, bool trusted)
+    : state_(std::make_shared<state>(io, trusted))
 {
     using asio::ip::tcp;
-
+    auto shared = state_;
     tcp::endpoint bind_ep(asio::ip::address_v4::loopback(), 0);
-    acceptor_.open(bind_ep.protocol());
-    acceptor_.set_option(tcp::acceptor::reuse_address(true));
-    acceptor_.bind(bind_ep);
-    acceptor_.listen();
-    endpoint_ = acceptor_.local_endpoint();
+    shared->acceptor.open(bind_ep.protocol());
+    shared->acceptor.set_option(tcp::acceptor::reuse_address(true));
+    shared->acceptor.bind(bind_ep);
+    shared->acceptor.listen();
+    endpoint_ = shared->acceptor.local_endpoint();
 
-    // Begin accepting one connection. The handshake is also chained here so
-    // accepted_socket() returns only after a successful handshake.
-    auto stream = std::make_unique<asio::ssl::stream<tcp::socket>>(io, server_ctx_);
-    auto* raw = stream.get();
-    accepted_stream_ = std::move(stream);
-
-    acceptor_.async_accept(
-        raw->lowest_layer(),
-        [this, raw](const std::error_code& accept_ec) {
-            if (accept_ec)
-            {
-                return;
-            }
-            accepted_.store(true);
-            raw->async_handshake(
-                asio::ssl::stream_base::server,
-                [this](const std::error_code& hs_ec) {
-                    if (!hs_ec)
-                    {
-                        handshake_done_.store(true);
-                    }
-                });
-        });
+    shared->acceptor.async_accept(shared->stream->lowest_layer(),
+        asio::bind_executor(shared->strand, [shared](const std::error_code& accept_ec) {
+            std::lock_guard<std::mutex> lock(shared->mutex);
+            if (accept_ec || shared->stopped) return;
+            shared->accepted.store(true);
+            shared->stream->async_handshake(asio::ssl::stream_base::server,
+                asio::bind_executor(shared->strand, [shared](const std::error_code& hs_ec) {
+                    std::lock_guard<std::mutex> lock(shared->mutex);
+                    if (!hs_ec && !shared->stopped) shared->handshake_done.store(true);
+                }));
+        }));
 }
 
 tls_loopback_listener::~tls_loopback_listener()
 {
-    std::error_code ec;
-    acceptor_.close(ec);
+    auto shared = state_;
+    asio::post(shared->strand, [shared] {
+        std::lock_guard<std::mutex> lock(shared->mutex);
+        shared->stopped = true;
+        std::error_code ec;
+        shared->acceptor.close(ec);
+        if (shared->stream) shared->stream->lowest_layer().close(ec);
+    });
+}
+
+auto tls_loopback_listener::accepted() const -> bool
+{
+    return state_->accepted.load();
+}
+
+auto tls_loopback_listener::handshake_done() const -> bool
+{
+    return state_->handshake_done.load();
 }
 
 std::unique_ptr<asio::ssl::stream<asio::ip::tcp::socket>>
@@ -287,9 +391,9 @@ tls_loopback_listener::accepted_socket(std::chrono::milliseconds timeout)
     const auto deadline = std::chrono::steady_clock::now() + timeout;
     while (std::chrono::steady_clock::now() < deadline)
     {
-        if (handshake_done_.load())
         {
-            return std::move(accepted_stream_);
+            std::lock_guard<std::mutex> lock(state_->mutex);
+            if (state_->handshake_done.load()) return std::move(state_->stream);
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(5));
     }
