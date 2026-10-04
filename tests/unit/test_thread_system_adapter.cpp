@@ -40,6 +40,11 @@ protected:
 
 TEST_F(ThreadSystemAdapterTest, CreateDefault) {
     EXPECT_TRUE(adapter_->is_running());
+    // Pool startup launches workers asynchronously. Observe a completed task
+    // before checking the count of workers that reached the running state.
+    auto ready = adapter_->submit([] {});
+    ASSERT_EQ(ready.wait_for(std::chrono::seconds(5)), std::future_status::ready);
+    ready.get();
     EXPECT_GT(adapter_->worker_count(), 0u);
 }
 
