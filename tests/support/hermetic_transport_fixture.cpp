@@ -31,15 +31,9 @@ make_loopback_tcp_pair(asio::io_context& io)
     tcp::socket client_side(io);
     tcp::socket accepted_side(io);
 
-    // Asynchronously accept; the connect() call below drives the io_context
-    // worker that the fixture owns.
-    std::error_code accept_ec;
-    acceptor.async_accept(
-        accepted_side,
-        [&accept_ec](const std::error_code& ec) { accept_ec = ec; });
-
-    // Synchronous connect from the client side; the matching async_accept
-    // completes on the worker thread.
+    // The listener backlog completes the local connection before accept().
+    // Keep both operations synchronous: observing is_open() does not mean
+    // an async accept handler has finished writing its output arguments.
     std::error_code connect_ec;
     client_side.connect(endpoint, connect_ec);
     if (connect_ec)
@@ -47,20 +41,8 @@ make_loopback_tcp_pair(asio::io_context& io)
         throw std::runtime_error("loopback tcp connect failed: " + connect_ec.message());
     }
 
-    // Spin briefly waiting for the accept handler to run. The budget scales
-    // with NETWORK_COVERAGE_TIMEOUT_MULTIPLIER so coverage-instrumented builds
-    // get a proportionally larger window for the kernel to drive the accept
-    // handler (Issue #1112).
-    const auto deadline = std::chrono::steady_clock::now()
-        + std::chrono::seconds(2) * NETWORK_COVERAGE_TIMEOUT_MULTIPLIER;
-    while (!accepted_side.is_open() && std::chrono::steady_clock::now() < deadline)
-    {
-        std::this_thread::sleep_for(std::chrono::milliseconds(2));
-    }
-    if (!accepted_side.is_open())
-    {
-        throw std::runtime_error("loopback tcp accept did not complete");
-    }
+    std::error_code accept_ec;
+    acceptor.accept(accepted_side, accept_ec);
     if (accept_ec)
     {
         throw std::runtime_error("loopback tcp accept failed: " + accept_ec.message());
