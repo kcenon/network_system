@@ -216,23 +216,40 @@ TEST_F(TcpSocketExtraCoverageTest, TrySendSucceedsThenRejectsOnSecondAttempt)
 	ASSERT_NE(server, nullptr);
 	ASSERT_NE(client, nullptr);
 
+	// Keep completion handlers from draining the first send while checking
+	// the budget. A fast loopback write can otherwise finish between calls.
+	io_context_->stop();
+	io_thread_.join();
+	io_context_->restart();
 	server->start_read();
 
-	// First try_send: 32 bytes — under the 64-byte budget, should accept.
-	std::vector<uint8_t> first(32, 0xCC);
-	bool first_ok = client->try_send(
-		std::move(first),
-		[](std::error_code, std::size_t) {});
-	EXPECT_TRUE(first_ok);
+	auto first_done = std::make_shared<std::promise<std::error_code>>();
+	auto first_future = first_done->get_future();
+	EXPECT_TRUE(client->try_send(
+		std::vector<uint8_t>(32, 0xCC),
+		[first_done](std::error_code ec, std::size_t) { first_done->set_value(ec); }));
+	EXPECT_EQ(client->pending_bytes(), 32u);
 
-	// Immediately attempt a second 64-byte send before the first drains.
-	// 32 + 64 > 64 budget → must be rejected.
-	std::vector<uint8_t> second(64, 0xDD);
-	bool second_ok = client->try_send(
-		std::move(second),
-		[](std::error_code, std::size_t) {});
-	EXPECT_FALSE(second_ok);
-	EXPECT_GE(client->metrics().rejected_sends.load(), 1u);
+	// 32 pending bytes plus 64 new bytes exceeds the configured budget.
+	EXPECT_FALSE(client->try_send(
+		std::vector<uint8_t>(64, 0xDD),
+		[](std::error_code, std::size_t) {}));
+	EXPECT_EQ(client->metrics().rejected_sends.load(), 1u);
+
+	io_thread_ = std::thread([this]() { io_context_->run(); });
+	ASSERT_EQ(first_future.wait_for(std::chrono::seconds(2)), std::future_status::ready);
+	EXPECT_FALSE(first_future.get());
+	EXPECT_EQ(client->pending_bytes(), 0u);
+
+	// Once the first completion releases the budget, the larger send fits.
+	auto next_done = std::make_shared<std::promise<std::error_code>>();
+	auto next_future = next_done->get_future();
+	EXPECT_TRUE(client->try_send(
+		std::vector<uint8_t>(64, 0xDD),
+		[next_done](std::error_code ec, std::size_t) { next_done->set_value(ec); }));
+	ASSERT_EQ(next_future.wait_for(std::chrono::seconds(2)), std::future_status::ready);
+	EXPECT_FALSE(next_future.get());
+	EXPECT_EQ(client->pending_bytes(), 0u);
 
 	server->stop_read();
 }
