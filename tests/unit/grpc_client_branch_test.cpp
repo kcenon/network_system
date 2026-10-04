@@ -843,6 +843,8 @@ TEST(GrpcMetadataSemantics, EraseShrinksContainer)
  * and async connect attempt — paths that the public-API tests above could
  * not drive without an external server.
  */
+// Peer acknowledgment can precede publication of the client connected state.
+// Successful-handshake tests wait for both sides before exercising the client.
 class GrpcClientHermeticTransportTest
     : public kcenon::network::tests::support::hermetic_transport_fixture
 {
@@ -930,7 +932,9 @@ TEST_F(GrpcClientHermeticTransportTest, IsConnectedTrueAfterSettingsExchange)
     mock_h2_server_peer peer(io());
     auto setup = make_connected_grpc_client(peer);
 
-    EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged(); },
+    EXPECT_TRUE(wait_for([&]() {
+        return peer.settings_exchanged() && setup.client->is_connected();
+    },
                          std::chrono::seconds(3)));
     EXPECT_TRUE(setup.client->is_connected());
 
@@ -945,7 +949,9 @@ TEST_F(GrpcClientHermeticTransportTest, WaitForConnectedReturnsTrueAfterHandshak
     mock_h2_server_peer peer(io());
     auto setup = make_connected_grpc_client(peer);
 
-    EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged(); },
+    EXPECT_TRUE(wait_for([&]() {
+        return peer.settings_exchanged() && setup.client->is_connected();
+    },
                          std::chrono::seconds(3)));
     EXPECT_TRUE(setup.client->wait_for_connected(std::chrono::milliseconds(2000)));
 
@@ -960,7 +966,9 @@ TEST_F(GrpcClientHermeticTransportTest, SecondConnectReturnsOkOnAlreadyConnected
     mock_h2_server_peer peer(io());
     auto setup = make_connected_grpc_client(peer);
 
-    EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged(); },
+    EXPECT_TRUE(wait_for([&]() {
+        return peer.settings_exchanged() && setup.client->is_connected();
+    },
                          std::chrono::seconds(3)));
     ASSERT_TRUE(setup.client->is_connected());
 
@@ -979,7 +987,9 @@ TEST_F(GrpcClientHermeticTransportTest, TargetReturnsConfiguredAddressAfterHands
     mock_h2_server_peer peer(io());
     auto setup = make_connected_grpc_client(peer);
 
-    EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged(); },
+    EXPECT_TRUE(wait_for([&]() {
+        return peer.settings_exchanged() && setup.client->is_connected();
+    },
                          std::chrono::seconds(3)));
 
     const auto& target = setup.client->target();
@@ -996,7 +1006,9 @@ TEST_F(GrpcClientHermeticTransportTest, CallRawConnectedTimesOutWhenPeerSendsNoR
     mock_h2_server_peer peer(io());
     auto setup = make_connected_grpc_client(peer, std::chrono::milliseconds(150));
 
-    EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged(); },
+    EXPECT_TRUE(wait_for([&]() {
+        return peer.settings_exchanged() && setup.client->is_connected();
+    },
                          std::chrono::seconds(3)));
     ASSERT_TRUE(setup.client->is_connected());
 
@@ -1019,7 +1031,9 @@ TEST_F(GrpcClientHermeticTransportTest,
     mock_h2_server_peer peer(io());
     auto setup = make_connected_grpc_client(peer, std::chrono::milliseconds(150));
 
-    EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged(); },
+    EXPECT_TRUE(wait_for([&]() {
+        return peer.settings_exchanged() && setup.client->is_connected();
+    },
                          std::chrono::seconds(3)));
     ASSERT_TRUE(setup.client->is_connected());
 
@@ -1046,7 +1060,9 @@ TEST_F(GrpcClientHermeticTransportTest,
     mock_h2_server_peer peer(io());
     auto setup = make_connected_grpc_client(peer);
 
-    EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged(); },
+    EXPECT_TRUE(wait_for([&]() {
+        return peer.settings_exchanged() && setup.client->is_connected();
+    },
                          std::chrono::seconds(3)));
     ASSERT_TRUE(setup.client->is_connected());
 
@@ -1070,7 +1086,9 @@ TEST_F(GrpcClientHermeticTransportTest, ServerStreamRawConnectedReturnsValidRead
     mock_h2_server_peer peer(io());
     auto setup = make_connected_grpc_client(peer);
 
-    EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged(); },
+    EXPECT_TRUE(wait_for([&]() {
+        return peer.settings_exchanged() && setup.client->is_connected();
+    },
                          std::chrono::seconds(3)));
     ASSERT_TRUE(setup.client->is_connected());
 
@@ -1097,7 +1115,9 @@ TEST_F(GrpcClientHermeticTransportTest, ClientStreamRawConnectedReturnsValidWrit
     mock_h2_server_peer peer(io());
     auto setup = make_connected_grpc_client(peer);
 
-    EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged(); },
+    EXPECT_TRUE(wait_for([&]() {
+        return peer.settings_exchanged() && setup.client->is_connected();
+    },
                          std::chrono::seconds(3)));
     ASSERT_TRUE(setup.client->is_connected());
 
@@ -1121,7 +1141,9 @@ TEST_F(GrpcClientHermeticTransportTest, BidiStreamRawConnectedReturnsValidStream
     mock_h2_server_peer peer(io());
     auto setup = make_connected_grpc_client(peer);
 
-    EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged(); },
+    EXPECT_TRUE(wait_for([&]() {
+        return peer.settings_exchanged() && setup.client->is_connected();
+    },
                          std::chrono::seconds(3)));
     ASSERT_TRUE(setup.client->is_connected());
 
@@ -1149,7 +1171,9 @@ TEST_F(GrpcClientHermeticTransportTest, CallRawAsyncDeliversTimeoutErrorToCallba
     mock_h2_server_peer peer(io());
     auto setup = make_connected_grpc_client(peer, std::chrono::milliseconds(150));
 
-    EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged(); },
+    EXPECT_TRUE(wait_for([&]() {
+        return peer.settings_exchanged() && setup.client->is_connected();
+    },
                          std::chrono::seconds(3)));
     ASSERT_TRUE(setup.client->is_connected());
 
@@ -1177,7 +1201,9 @@ TEST_F(GrpcClientHermeticTransportTest, DisconnectIsIdempotentAfterFullHandshake
     mock_h2_server_peer peer(io());
     auto setup = make_connected_grpc_client(peer);
 
-    EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged(); },
+    EXPECT_TRUE(wait_for([&]() {
+        return peer.settings_exchanged() && setup.client->is_connected();
+    },
                          std::chrono::seconds(3)));
     ASSERT_TRUE(setup.client->is_connected());
 
@@ -1228,7 +1254,9 @@ TEST_F(GrpcClientHermeticTransportTest, CallRawSucceedsWithMockGrpcPeerEchoUnary
 
     std::thread connector([client]() { (void)client->connect(); });
 
-    EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged(); },
+    EXPECT_TRUE(wait_for([&]() {
+        return peer.settings_exchanged() && client->is_connected();
+    },
                          std::chrono::seconds(3)));
     ASSERT_TRUE(client->is_connected());
 
@@ -1409,7 +1437,9 @@ TEST_F(GrpcClientHermeticTransportTest,
     auto client = std::make_shared<grpc_client>(target, cfg);
     std::thread connector([client]() { (void)client->connect(); });
 
-    EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged(); },
+    EXPECT_TRUE(wait_for([&]() {
+        return peer.settings_exchanged() && client->is_connected();
+    },
                          std::chrono::seconds(3)));
     ASSERT_TRUE(client->is_connected());
 
@@ -1460,7 +1490,9 @@ TEST_F(GrpcClientHermeticTransportTest,
 
     // SETTINGS exchange completes because empty SETTINGS frames are
     // exactly 9 bytes total and truncate_at = 9 keeps the entire buffer.
-    EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged(); },
+    EXPECT_TRUE(wait_for([&]() {
+        return peer.settings_exchanged() && client->is_connected();
+    },
                          std::chrono::seconds(3)));
     ASSERT_TRUE(client->is_connected());
 
@@ -1508,7 +1540,9 @@ TEST_F(GrpcClientHermeticTransportTest,
     // exercise: the read callback is invoked multiple times before a
     // complete header is in the buffer. SETTINGS-ACK is also paced
     // byte-by-byte.
-    EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged(); },
+    EXPECT_TRUE(wait_for([&]() {
+        return peer.settings_exchanged() && client->is_connected();
+    },
                          std::chrono::seconds(3)));
     EXPECT_FALSE(peer.io_failed());
     EXPECT_TRUE(client->is_connected());
