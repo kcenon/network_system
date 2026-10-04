@@ -511,11 +511,21 @@ function(find_common_system)
         return()
     endif()
 
-    foreach(_candidate common_system kcenon::common kcenon::common_system)
+    foreach(_candidate common_system::common_system kcenon::common_system common_system kcenon::common)
         if(TARGET ${_candidate})
             message(STATUS "Found common_system CMake target: ${_candidate}")
             set(COMMON_SYSTEM_FOUND TRUE PARENT_SCOPE)
             set(COMMON_SYSTEM_TARGET ${_candidate} PARENT_SCOPE)
+            # A transitive package may have imported the target before this
+            # finder runs. Keep the include path used by integration tests and
+            # feature detection as well as the target's usage requirements.
+            get_target_property(_common_includes ${_candidate} INTERFACE_INCLUDE_DIRECTORIES)
+            foreach(_include IN LISTS _common_includes)
+                if(EXISTS "${_include}/kcenon/common/patterns/result.h")
+                    set(COMMON_SYSTEM_INCLUDE_DIR "${_include}" PARENT_SCOPE)
+                    break()
+                endif()
+            endforeach()
             return()
         endif()
     endforeach()
@@ -736,6 +746,7 @@ function(find_network_system_dependencies)
 
     set(COMMON_SYSTEM_FOUND ${COMMON_SYSTEM_FOUND} PARENT_SCOPE)
     set(COMMON_SYSTEM_INCLUDE_DIR ${COMMON_SYSTEM_INCLUDE_DIR} PARENT_SCOPE)
+    set(COMMON_SYSTEM_TARGET ${COMMON_SYSTEM_TARGET} PARENT_SCOPE)
 
     # gRPC variables (optional - for NETWORK_ENABLE_GRPC_OFFICIAL)
     set(GRPC_FOUND ${GRPC_FOUND} PARENT_SCOPE)
