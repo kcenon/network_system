@@ -219,7 +219,7 @@ jobs:
       if: runner.os != 'Windows'
       run: |
         cd build
-        ctest -C Debug --output-on-failure --verbose || true
+        ctest -C Debug --output-on-failure --verbose --no-tests=error
 
     - name: Upload build artifacts
       if: failure()
