@@ -215,23 +215,6 @@ auto messaging_quic_server::do_stop_impl() -> VoidResult
 {
 	try
 	{
-		// Cancel cleanup timer
-		if (cleanup_timer_)
-		{
-			cleanup_timer_->cancel();
-		}
-
-		// Close UDP socket
-		if (udp_socket_)
-		{
-			asio::error_code ec;
-			udp_socket_->cancel(ec);
-			if (udp_socket_->is_open())
-			{
-				udp_socket_->close(ec);
-			}
-		}
-
 		// Release work guard
 		if (work_guard_)
 		{
@@ -248,6 +231,24 @@ auto messaging_quic_server::do_stop_impl() -> VoidResult
 		if (io_context_future_.valid())
 		{
 			io_context_future_.wait();
+		}
+
+		// The worker may rearm receives or the cleanup timer until run() exits.
+		// Cancel and close their ASIO objects only after it has stopped.
+		if (cleanup_timer_)
+		{
+			cleanup_timer_->cancel();
+		}
+
+		// Close UDP socket
+		if (udp_socket_)
+		{
+			asio::error_code ec;
+			udp_socket_->cancel(ec);
+			if (udp_socket_->is_open())
+			{
+				udp_socket_->close(ec);
+			}
 		}
 
 		// No receive handler can add another session after this point.
