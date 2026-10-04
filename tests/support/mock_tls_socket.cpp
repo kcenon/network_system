@@ -20,7 +20,12 @@
 #include <asio/buffer.hpp>
 
 #include <chrono>
+#include <cstdlib>
+#include <filesystem>
+#include <fstream>
 #include <memory>
+#include <optional>
+#include <random>
 #include <stdexcept>
 #include <string>
 #include <thread>
@@ -208,7 +213,63 @@ int alpn_select_h2_then_http11(SSL* /*ssl*/,
 
 } // namespace
 
-asio::ssl::context make_self_signed_ssl_context(asio::ssl::context::method method)
+namespace
+{
+
+// CTest runs discovered cases in separate processes. Share one test identity
+// within a process so simultaneous mock peers use the same trust anchor.
+// The production client's verify_peer setting remains enabled.
+struct trusted_test_identity
+{
+    self_signed_pem pem = generate_self_signed_pem();
+    std::filesystem::path directory;
+    std::optional<std::string> previous_ca_file;
+
+    trusted_test_identity()
+    {
+        if (const char* previous = std::getenv("SSL_CERT_FILE"))
+        {
+            previous_ca_file = previous;
+        }
+        std::random_device random;
+        do
+        {
+            directory = std::filesystem::temp_directory_path() /
+                ("network-test-ca-" + std::to_string(random()) + "-" +
+                 std::to_string(random()));
+        } while (!std::filesystem::create_directory(directory));
+        auto ca_file = directory / "ca.pem";
+        std::ofstream output(ca_file);
+        output << pem.cert_pem;
+        output.close();
+        if (!output)
+        {
+            throw std::runtime_error("Cannot write test CA certificate");
+        }
+#ifdef _WIN32
+        _putenv_s("SSL_CERT_FILE", ca_file.string().c_str());
+#else
+        setenv("SSL_CERT_FILE", ca_file.string().c_str(), 1);
+#endif
+    }
+
+    ~trusted_test_identity()
+    {
+#ifdef _WIN32
+        _putenv_s("SSL_CERT_FILE", previous_ca_file.value_or("").c_str());
+#else
+        if (previous_ca_file)
+            setenv("SSL_CERT_FILE", previous_ca_file->c_str(), 1);
+        else
+            unsetenv("SSL_CERT_FILE");
+#endif
+        std::error_code ec;
+        std::filesystem::remove_all(directory, ec);
+    }
+};
+
+asio::ssl::context make_server_context(asio::ssl::context::method method,
+                                      const self_signed_pem& pem)
 {
     asio::ssl::context ctx(method);
     ctx.set_options(asio::ssl::context::default_workarounds |
@@ -216,7 +277,7 @@ asio::ssl::context make_self_signed_ssl_context(asio::ssl::context::method metho
                     asio::ssl::context::no_sslv3 |
                     asio::ssl::context::single_dh_use);
 
-    const auto pem = generate_self_signed_pem();
+    SSL_CTX_set_min_proto_version(ctx.native_handle(), TLS1_2_VERSION);
     ctx.use_certificate_chain(asio::buffer(pem.cert_pem));
     ctx.use_private_key(asio::buffer(pem.key_pem), asio::ssl::context::pem);
 
@@ -230,6 +291,19 @@ asio::ssl::context make_self_signed_ssl_context(asio::ssl::context::method metho
     return ctx;
 }
 
+asio::ssl::context make_trusted_server_context()
+{
+    static const trusted_test_identity identity;
+    return make_server_context(asio::ssl::context::tls_server, identity.pem);
+}
+
+} // namespace
+
+asio::ssl::context make_self_signed_ssl_context(asio::ssl::context::method method)
+{
+    return make_server_context(method, generate_self_signed_pem());
+}
+
 asio::ssl::context make_permissive_client_context()
 {
     asio::ssl::context ctx(asio::ssl::context::tlsv12_client);
@@ -237,8 +311,8 @@ asio::ssl::context make_permissive_client_context()
     return ctx;
 }
 
-tls_loopback_listener::tls_loopback_listener(asio::io_context& io)
-    : server_ctx_(make_self_signed_ssl_context())
+tls_loopback_listener::tls_loopback_listener(asio::io_context& io, bool trusted)
+    : server_ctx_(trusted ? make_trusted_server_context() : make_self_signed_ssl_context())
     , acceptor_(io)
 {
     using asio::ip::tcp;

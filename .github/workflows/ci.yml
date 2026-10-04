@@ -4,7 +4,7 @@ on:
   push:
     branches: [ main, develop, phase-* ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, develop ]
 
 jobs:
   # Quick minimal build for fast feedback (Linux-only, no dependencies)
@@ -219,7 +219,7 @@ jobs:
       if: runner.os != 'Windows'
       run: |
         cd build
-        ctest -C Debug --output-on-failure --verbose --no-tests=error
+        ctest -C Debug --output-on-failure --verbose --no-tests=error --timeout 120
 
     - name: Upload build artifacts
       if: failure()

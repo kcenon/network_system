@@ -68,11 +68,11 @@ struct self_signed_pem
  * Configured for TLS 1.2+ with HTTP/2 ALPN ("h2") and HTTP/1.1 fallback so
  * both HTTP/2 and gRPC clients negotiate successfully.
  *
- * @param method @c asio::ssl::context::tlsv12_server (default) or any other
+ * @param method @c asio::ssl::context::tls_server (default) or any other
  *        server-side method.
  */
 [[nodiscard]] asio::ssl::context make_self_signed_ssl_context(
-    asio::ssl::context::method method = asio::ssl::context::tlsv12_server);
+    asio::ssl::context::method method = asio::ssl::context::tls_server);
 
 /**
  * @brief Construct a client-side @c asio::ssl::context that accepts the
@@ -105,7 +105,9 @@ public:
      * @brief Open the acceptor and start accepting one connection.
      * @param io io_context to run accept + handshake on.
      */
-    explicit tls_loopback_listener(asio::io_context& io);
+    // Trusted peers publish only their generated public certificate in a
+    // process-local temporary CA file. Private keys remain in memory.
+    explicit tls_loopback_listener(asio::io_context& io, bool trusted = false);
     ~tls_loopback_listener();
 
     tls_loopback_listener(const tls_loopback_listener&) = delete;

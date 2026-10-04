@@ -755,6 +755,8 @@ public:
     {
     }
 
+    void set_stream_id(uint32_t stream_id) { stream_id_ = stream_id; }
+
     auto write(const std::vector<uint8_t>& message) -> VoidResult override
     {
         if (writes_done_)
@@ -882,6 +884,8 @@ public:
         , stream_ended_(false)
     {
     }
+
+    void set_stream_id(uint32_t stream_id) { stream_id_ = stream_id; }
 
     auto write(const std::vector<uint8_t>& message) -> VoidResult override
     {
@@ -1493,7 +1497,6 @@ public:
         }
 
         // Create the writer as shared_ptr for callback capture
-        auto stream_id_holder = std::make_shared<uint32_t>(0);
         auto writer = std::make_shared<client_stream_writer_impl>(http2_client_, 0);
 
         // Start streaming request
@@ -1512,11 +1515,7 @@ public:
         }
 
         // Update the writer with actual stream ID
-        auto actual_writer = std::make_shared<client_stream_writer_impl>(http2_client_, stream_result.value());
-
-        // Re-register callbacks with actual writer
-        // Note: This is a simplified implementation - in production, you'd want
-        // to properly update the stream callbacks
+        writer->set_stream_id(stream_result.value());
 
         struct shared_writer_holder : public grpc_client::client_stream_writer {
             std::shared_ptr<client_stream_writer_impl> impl;
@@ -1527,7 +1526,7 @@ public:
         };
 
         return ok(std::unique_ptr<grpc_client::client_stream_writer>(
-            new shared_writer_holder(actual_writer)));
+            new shared_writer_holder(writer)));
     }
 
     auto bidi_stream_raw(const std::string& method,
@@ -1597,8 +1596,8 @@ public:
                 err.code, err.message, "grpc::client", get_error_details(err));
         }
 
-        // Create actual bidi stream with proper stream ID
-        auto actual_bidi = std::make_shared<bidi_stream_impl>(http2_client_, stream_result.value());
+        // Return the same object captured by the response callbacks.
+        bidi->set_stream_id(stream_result.value());
 
         struct shared_bidi_holder : public grpc_client::bidi_stream {
             std::shared_ptr<bidi_stream_impl> impl;
@@ -1610,7 +1609,7 @@ public:
         };
 
         return ok(std::unique_ptr<grpc_client::bidi_stream>(
-            new shared_bidi_holder(actual_bidi)));
+            new shared_bidi_holder(bidi)));
     }
 
 private:

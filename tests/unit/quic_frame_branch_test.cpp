@@ -107,7 +107,8 @@ TEST(QuicFrameBranchAck, ZeroRangesNoLoopIteration)
     const auto* f = std::get_if<quic::ack_frame>(&result.value().first);
     ASSERT_NE(f, nullptr);
     EXPECT_EQ(f->largest_acknowledged, 5u);
-    EXPECT_TRUE(f->ranges.empty());
+    ASSERT_EQ(f->ranges.size(), 1u);
+    EXPECT_EQ(f->ranges[0].length, 5u);
 }
 
 TEST(QuicFrameBranchAck, OneRangeSingleLoopIteration)
@@ -126,9 +127,10 @@ TEST(QuicFrameBranchAck, OneRangeSingleLoopIteration)
     ASSERT_TRUE(result.is_ok());
     const auto* f = std::get_if<quic::ack_frame>(&result.value().first);
     ASSERT_NE(f, nullptr);
-    ASSERT_EQ(f->ranges.size(), 1u);
-    EXPECT_EQ(f->ranges[0].gap, 2u);
-    EXPECT_EQ(f->ranges[0].length, 3u);
+    ASSERT_EQ(f->ranges.size(), 2u);
+    EXPECT_EQ(f->ranges[0].length, 0u);
+    EXPECT_EQ(f->ranges[1].gap, 2u);
+    EXPECT_EQ(f->ranges[1].length, 3u);
 }
 
 TEST(QuicFrameBranchAck, ThreeRangesMultiLoopIterations)
@@ -149,8 +151,9 @@ TEST(QuicFrameBranchAck, ThreeRangesMultiLoopIterations)
     ASSERT_TRUE(result.is_ok());
     const auto* f = std::get_if<quic::ack_frame>(&result.value().first);
     ASSERT_NE(f, nullptr);
-    ASSERT_EQ(f->ranges.size(), 3u);
-    EXPECT_EQ(f->ranges[2].length, 7u);
+    ASSERT_EQ(f->ranges.size(), 4u);
+    EXPECT_EQ(f->ranges[0].length, 1u);
+    EXPECT_EQ(f->ranges[3].length, 7u);
 }
 
 TEST(QuicFrameBranchAck, EcnEct0TruncatedFourByteVarint)
@@ -598,7 +601,8 @@ TEST(QuicFrameBranchBuildAck, EmptyRangesNoEcn)
     ASSERT_TRUE(parsed.is_ok());
     const auto* g = std::get_if<quic::ack_frame>(&parsed.value().first);
     ASSERT_NE(g, nullptr);
-    EXPECT_TRUE(g->ranges.empty());
+    ASSERT_EQ(g->ranges.size(), 1u);
+    EXPECT_EQ(g->ranges[0].length, 0u);
 }
 
 TEST(QuicFrameBranchBuildAck, SingleRangeNoEcn)

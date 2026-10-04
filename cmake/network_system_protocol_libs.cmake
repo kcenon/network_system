@@ -65,3 +65,13 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/libs/network-all/CMakeLists.txt)
     add_subdirectory(libs/network-all)
     message(STATUS "network-all umbrella package enabled")
 endif()
+
+# Result<T> is part of the protocol ABI. The modular factories and adapters
+# must select the same common_system implementation as network_system and
+# the shared integration objects; copying OBJECT files alone does not inherit
+# their usage requirements.
+foreach(_protocol_target network-tcp network-udp network-websocket network-http2 network-quic network-grpc)
+    if(TARGET ${_protocol_target})
+        setup_common_system_integration(${_protocol_target})
+    endif()
+endforeach()

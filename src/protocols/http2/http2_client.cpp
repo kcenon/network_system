@@ -52,10 +52,7 @@ namespace kcenon::network::protocols::http2
     {
         try
         {
-            if (is_connected_)
-            {
-                disconnect();
-            }
+            disconnect();
         }
         catch (...)
         {
@@ -103,6 +100,15 @@ namespace kcenon::network::protocols::http2
 
         try
         {
+            // A failed connection can still own a socket and work guard.
+            // Release them while their original execution context is alive.
+            stop_io();
+            socket_.reset();
+            work_guard_.reset();
+            ssl_context_.reset();
+            io_context_.reset();
+            goaway_received_ = false;
+
             // Create I/O context
             io_context_ = std::make_unique<asio::io_context>();
 
@@ -152,7 +158,6 @@ namespace kcenon::network::protocols::http2
                                   "http2_client::connect");
             }
 
-            is_connected_ = true;
             is_running_ = true;
 
             // Send connection preface
@@ -181,6 +186,50 @@ namespace kcenon::network::protocols::http2
                 return settings_result;
             }
 
+            // The server connection preface must start with a non-ACK
+            // SETTINGS frame on stream zero (RFC 9113 section 3.4).
+            // Bound both reads by one deadline so a partial frame cannot
+            // leave connect() blocked indefinitely.
+            const auto deadline = std::chrono::steady_clock::now() + timeout_;
+            auto read_preface_bytes = [&](asio::mutable_buffer buffer) {
+                asio::steady_timer timer(*io_context_, deadline);
+                std::error_code read_error;
+                bool expired = false;
+                timer.async_wait([&](std::error_code ec) {
+                    if (!ec) {
+                        expired = true;
+                        std::error_code ignored;
+                        socket_->lowest_layer().cancel(ignored);
+                    }
+                });
+                asio::async_read(*socket_, buffer,
+                    [&](std::error_code ec, std::size_t) {
+                        read_error = ec;
+                        timer.cancel();
+                    });
+                io_context_->restart();
+                io_context_->run();
+                if (expired) throw std::runtime_error("Server SETTINGS timed out");
+                if (read_error) throw std::system_error(read_error);
+            };
+            std::vector<uint8_t> initial_header(FRAME_HEADER_SIZE);
+            read_preface_bytes(asio::buffer(initial_header));
+            auto header = frame_header::parse(initial_header);
+            if (header.is_err() || header.value().type != frame_type::settings ||
+                header.value().stream_id != 0 ||
+                (header.value().flags & frame_flags::ack) != 0 ||
+                header.value().length > local_settings_.max_frame_size) {
+                throw std::runtime_error("Invalid server SETTINGS preface");
+            }
+            std::vector<uint8_t> initial_payload(header.value().length);
+            if (!initial_payload.empty()) read_preface_bytes(asio::buffer(initial_payload));
+            initial_header.insert(initial_header.end(), initial_payload.begin(), initial_payload.end());
+            auto initial_frame = frame::parse(initial_header);
+            if (initial_frame.is_err()) throw std::runtime_error("Invalid server SETTINGS payload");
+            auto initial_result = process_frame(std::move(initial_frame.value()));
+            if (initial_result.is_err()) throw std::runtime_error(initial_result.error().message);
+
+            is_connected_ = true;
             // Start I/O thread
             work_guard_ = std::make_unique<asio::executor_work_guard<asio::io_context::executor_type>>(
                 asio::make_work_guard(*io_context_));
@@ -197,6 +246,7 @@ namespace kcenon::network::protocols::http2
         {
             is_connected_ = false;
             is_running_ = false;
+            stop_io();
             if (span)
             {
                 span->set_error(std::string("Connection failed: ") + e.what());
@@ -211,6 +261,7 @@ namespace kcenon::network::protocols::http2
     {
         if (!is_connected_)
         {
+            stop_io();
             return ok();
         }
 
@@ -1164,12 +1215,19 @@ namespace kcenon::network::protocols::http2
         {
             std::error_code ec;
             socket_->lowest_layer().shutdown(asio::ip::tcp::socket::shutdown_both, ec);
-            socket_->lowest_layer().close(ec);
         }
 
         if (io_future_.valid())
         {
-            io_future_.wait_for(std::chrono::seconds(5));
+            // Keep the native descriptor valid until the blocking reader
+            // observes shutdown. Closing it first races ASIO's poll loop.
+            io_future_.wait();
+        }
+
+        if (socket_ && socket_->lowest_layer().is_open())
+        {
+            std::error_code ec;
+            socket_->lowest_layer().close(ec);
         }
 
         if (io_context_)

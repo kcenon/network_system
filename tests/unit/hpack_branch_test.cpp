@@ -412,22 +412,19 @@ TEST(HpackDecoderNeverIndexed, FirstByteWithBit10AndIndexedName)
 
 TEST(HpackDecoderHuffmanFlag, StringWithHbitSetTakesHuffmanBranch)
 {
-    // Literal-with-indexing-new-name where both name and value strings carry
-    // the H bit (0x80). The implementation treats the Huffman branch as a
-    // passthrough, so the bytes after the length are returned verbatim — but
-    // the H bit still flips decode_string's `huffman` boolean, exercising
-    // the if(huffman) branch.
+    // RFC 7541 Appendix C.4.1: Huffman-encoded www.example.com.
+    // Both a literal name and a value must be decoded, never passed through.
     std::vector<uint8_t> bytes = {
         0x40,
-        0x83, 'a', 'b', 'c',
-        0x82, 'X', 'Y',
+        0x8c, 0xf1, 0xe3, 0xc2, 0xe5, 0xf2, 0x3a, 0x6b, 0xa0, 0xab, 0x90, 0xf4, 0xff,
+        0x8c, 0xf1, 0xe3, 0xc2, 0xe5, 0xf2, 0x3a, 0x6b, 0xa0, 0xab, 0x90, 0xf4, 0xff,
     };
     http2::hpack_decoder decoder;
     auto result = decoder.decode(as_span(bytes));
     ASSERT_TRUE(result.is_ok());
     ASSERT_EQ(result.value().size(), 1u);
-    EXPECT_EQ(result.value()[0].name, "abc");
-    EXPECT_EQ(result.value()[0].value, "XY");
+    EXPECT_EQ(result.value()[0].name, "www.example.com");
+    EXPECT_EQ(result.value()[0].value, "www.example.com");
 }
 
 TEST(HpackDecoderHuffmanFlag, IndexedHeaderFollowedByLiteralWithHbitValue)
@@ -439,7 +436,7 @@ TEST(HpackDecoderHuffmanFlag, IndexedHeaderFollowedByLiteralWithHbitValue)
         0x82,
         0x40,
         0x02, 'k', '1',
-        0x81, 'Z',
+        0x8c, 0xf1, 0xe3, 0xc2, 0xe5, 0xf2, 0x3a, 0x6b, 0xa0, 0xab, 0x90, 0xf4, 0xff,
     };
     http2::hpack_decoder decoder;
     auto result = decoder.decode(as_span(bytes));
@@ -448,7 +445,7 @@ TEST(HpackDecoderHuffmanFlag, IndexedHeaderFollowedByLiteralWithHbitValue)
     EXPECT_EQ(result.value()[0].name, ":method");
     EXPECT_EQ(result.value()[0].value, "GET");
     EXPECT_EQ(result.value()[1].name, "k1");
-    EXPECT_EQ(result.value()[1].value, "Z");
+    EXPECT_EQ(result.value()[1].value, "www.example.com");
 }
 
 // ============================================================================

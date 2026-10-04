@@ -164,6 +164,7 @@ auto connection_id_manager::is_stateless_reset_token(
 
 void connection_id_manager::retire_cids_prior_to(uint64_t prior_to)
 {
+    largest_retire_prior_to_ = std::max(largest_retire_prior_to_, prior_to);
     for (auto& entry : peer_cids_)
     {
         if (!entry.retired && entry.sequence_number < prior_to)

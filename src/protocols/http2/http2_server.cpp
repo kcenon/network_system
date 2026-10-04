@@ -38,6 +38,10 @@ namespace kcenon::network::protocols::http2
         }
 
         try {
+            stop_io();
+            cleanup_timer_.reset();
+            acceptor_.reset();
+            ssl_context_.reset();
             io_context_ = std::make_unique<asio::io_context>();
             work_guard_ = std::make_unique<asio::executor_work_guard<asio::io_context::executor_type>>(
                 io_context_->get_executor());
@@ -75,6 +79,10 @@ namespace kcenon::network::protocols::http2
         }
 
         try {
+            stop_io();
+            cleanup_timer_.reset();
+            acceptor_.reset();
+            ssl_context_.reset();
             io_context_ = std::make_unique<asio::io_context>();
             work_guard_ = std::make_unique<asio::executor_work_guard<asio::io_context::executor_type>>(
                 io_context_->get_executor());

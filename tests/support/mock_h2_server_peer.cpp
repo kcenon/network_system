@@ -49,7 +49,7 @@ constexpr std::uint8_t kPrefaceBytes[kPrefaceSize] = {
 mock_h2_server_peer::mock_h2_server_peer(
     asio::io_context& io, reply_mode mode, injection_spec inject,
     std::vector<std::vector<std::uint8_t>> post_handshake_frames)
-    : listener_(io),
+    : listener_(io, /*trusted=*/true),
       mode_(mode),
       injector_(inject),
       post_handshake_frames_(std::move(post_handshake_frames))
@@ -157,6 +157,18 @@ void mock_h2_server_peer::run()
             return;
         }
     }
+
+    // Require the client's acknowledgment before advertising a completed
+    // exchange. Fault-injected server SETTINGS must not look successful.
+    std::array<std::uint8_t, kFrameHeaderSize> client_ack_buf{};
+    asio::read(*stream, asio::buffer(client_ack_buf), ec);
+    if (ec) { io_failed_.store(true); return; }
+    auto client_ack = http2::frame_header::parse(client_ack_buf);
+    if (client_ack.is_err() ||
+        client_ack.value().type != http2::frame_type::settings ||
+        (client_ack.value().flags & http2::frame_flags::ack) == 0 ||
+        client_ack.value().length != 0 || client_ack.value().stream_id != 0)
+    { io_failed_.store(true); return; }
 
     settings_exchanged_.store(true);
 

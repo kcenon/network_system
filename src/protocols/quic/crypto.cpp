@@ -83,6 +83,10 @@ auto hkdf::extract(std::span<const uint8_t> salt,
             -1, "HKDF set md failed", "quic::hkdf", get_openssl_error_string());
     }
 
+    // RFC 5869 permits an absent salt. Normalize it instead of relying on
+    // OpenSSL version-specific handling of a null, zero-length buffer.
+    const std::array<uint8_t, secret_size> zero_salt{};
+    if (salt.empty()) salt = zero_salt;
     ret = EVP_PKEY_CTX_set1_hkdf_salt(pctx, salt.data(),
                                        static_cast<int>(salt.size()));
     if (ret <= 0)

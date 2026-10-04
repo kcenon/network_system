@@ -208,6 +208,8 @@ TEST_F(ThreadIntegrationManagerTest, SubmitDelayedTask)
 TEST_F(ThreadIntegrationManagerTest, GetMetrics)
 {
 	auto& mgr = integration::thread_integration_manager::instance();
+	// The pool is lazy; this test also runs alone under CTest discovery.
+	auto pool = mgr.get_thread_pool();
 
 	auto metrics = mgr.get_metrics();
 
