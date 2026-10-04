@@ -374,6 +374,8 @@ namespace kcenon::network::protocols::http2
         unsigned short port_ = 443;                      //!< Connected port
 
         // ASIO context
+        // Serialize connection setup and teardown, including failed handshakes.
+        std::mutex lifecycle_mutex_;
         std::unique_ptr<asio::io_context> io_context_;
         std::unique_ptr<asio::ssl::context> ssl_context_;
         std::unique_ptr<asio::ssl::stream<asio::ip::tcp::socket>> socket_;

@@ -136,20 +136,17 @@ public:
     /**
      * @brief True if a connection has been accepted (handshake state ignored).
      */
-    [[nodiscard]] auto accepted() const -> bool { return accepted_.load(); }
+    [[nodiscard]] auto accepted() const -> bool;
 
     /**
      * @brief True if the TLS handshake completed successfully.
      */
-    [[nodiscard]] auto handshake_done() const -> bool { return handshake_done_.load(); }
+    [[nodiscard]] auto handshake_done() const -> bool;
 
 private:
-    asio::ssl::context server_ctx_;
-    asio::ip::tcp::acceptor acceptor_;
+    struct state;
+    std::shared_ptr<state> state_;
     asio::ip::tcp::endpoint endpoint_;
-    std::unique_ptr<asio::ssl::stream<asio::ip::tcp::socket>> accepted_stream_;
-    std::atomic<bool> accepted_{false};
-    std::atomic<bool> handshake_done_{false};
 };
 
 } // namespace kcenon::network::tests::support

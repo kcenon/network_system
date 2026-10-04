@@ -41,6 +41,7 @@
 #include <gtest/gtest.h>
 
 #include <chrono>
+#include <array>
 #include <cstdint>
 #include <future>
 #include <limits>
@@ -604,6 +605,49 @@ class Http2ClientHermeticTransportTest
     : public kcenon::network::tests::support::hermetic_transport_fixture
 {
 };
+
+TEST(TlsLoopbackListenerTest, DestructionWithPendingHandshakeKeepsCallbacksAlive)
+{
+    using namespace kcenon::network::tests::support;
+    asio::io_context io;
+    asio::ip::tcp::socket client(io);
+    {
+        tls_loopback_listener listener(io);
+        client.connect(listener.endpoint());
+        while (!listener.accepted())
+        {
+            ASSERT_GT(io.run_one(), 0u);
+        }
+    }
+    // Deliver handshake cancellation after the listener has been destroyed.
+    // Its handshake and cancellation callbacks must still own their state.
+    io.run();
+    std::array<char, 1> data{};
+    std::error_code ec;
+    client.read_some(asio::buffer(data), ec);
+    EXPECT_TRUE(ec);
+}
+
+TEST_F(Http2ClientHermeticTransportTest, DisconnectWaitsForPendingConnect)
+{
+    using namespace kcenon::network::tests::support;
+    tls_loopback_listener listener(io(), /*trusted=*/true);
+    auto client = std::make_shared<http2::http2_client>("connect-disconnect-test");
+    client->set_timeout(std::chrono::milliseconds(300) * NETWORK_COVERAGE_TIMEOUT_MULTIPLIER);
+    auto connector = std::async(std::launch::async, [&] {
+        return client->connect("127.0.0.1", listener.port());
+    });
+    EXPECT_TRUE(wait_for([&] { return listener.handshake_done(); }));
+    auto disconnect = std::async(std::launch::async, [&] {
+        return client->disconnect();
+    });
+    // The peer never sends SETTINGS. Disconnect must let the bounded connect
+    // operation finish before changing its socket and execution context.
+    EXPECT_EQ(disconnect.wait_for(std::chrono::milliseconds(20)), std::future_status::timeout);
+    EXPECT_TRUE(connector.get().is_err());
+    EXPECT_TRUE(disconnect.get().is_ok());
+    EXPECT_FALSE(client->is_connected());
+}
 
 TEST_F(Http2ClientHermeticTransportTest, ConnectAttemptsHandshakeAgainstLoopbackTlsPeer)
 {

@@ -62,6 +62,7 @@ namespace kcenon::network::protocols::http2
 
     auto http2_client::connect(const std::string& host, unsigned short port) -> VoidResult
     {
+        std::lock_guard<std::mutex> lifecycle_lock(lifecycle_mutex_);
         // Create tracing span for connect operation
         auto span = tracing::is_tracing_enabled()
             ? std::make_optional(tracing::trace_context::create_span("http2.client.connect"))
@@ -259,6 +260,7 @@ namespace kcenon::network::protocols::http2
 
     auto http2_client::disconnect() -> VoidResult
     {
+        std::lock_guard<std::mutex> lifecycle_lock(lifecycle_mutex_);
         if (!is_connected_)
         {
             stop_io();

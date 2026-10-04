@@ -18,12 +18,16 @@
 #include <openssl/x509.h>
 
 #include <asio/buffer.hpp>
+#include <asio/bind_executor.hpp>
+#include <asio/post.hpp>
+#include <asio/strand.hpp>
 
 #include <chrono>
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
 #include <memory>
+#include <mutex>
 #include <optional>
 #include <random>
 #include <stdexcept>
@@ -311,48 +315,74 @@ asio::ssl::context make_permissive_client_context()
     return ctx;
 }
 
+// Handlers retain the transport independently of the stack-allocated listener.
+// The strand serializes cancellation with the composed TLS handshake, while
+// the mutex protects transfer of the completed stream to a test worker.
+struct tls_loopback_listener::state
+{
+    state(asio::io_context& io, bool trusted)
+        : server_ctx(trusted ? make_trusted_server_context() : make_self_signed_ssl_context())
+        , strand(asio::make_strand(io))
+        , acceptor(io)
+        , stream(std::make_unique<asio::ssl::stream<asio::ip::tcp::socket>>(io, server_ctx))
+    {
+    }
+
+    asio::ssl::context server_ctx;
+    asio::strand<asio::io_context::executor_type> strand;
+    asio::ip::tcp::acceptor acceptor;
+    std::mutex mutex;
+    std::unique_ptr<asio::ssl::stream<asio::ip::tcp::socket>> stream;
+    std::atomic<bool> accepted{false};
+    std::atomic<bool> handshake_done{false};
+    bool stopped = false;
+};
+
 tls_loopback_listener::tls_loopback_listener(asio::io_context& io, bool trusted)
-    : server_ctx_(trusted ? make_trusted_server_context() : make_self_signed_ssl_context())
-    , acceptor_(io)
+    : state_(std::make_shared<state>(io, trusted))
 {
     using asio::ip::tcp;
-
+    auto shared = state_;
     tcp::endpoint bind_ep(asio::ip::address_v4::loopback(), 0);
-    acceptor_.open(bind_ep.protocol());
-    acceptor_.set_option(tcp::acceptor::reuse_address(true));
-    acceptor_.bind(bind_ep);
-    acceptor_.listen();
-    endpoint_ = acceptor_.local_endpoint();
+    shared->acceptor.open(bind_ep.protocol());
+    shared->acceptor.set_option(tcp::acceptor::reuse_address(true));
+    shared->acceptor.bind(bind_ep);
+    shared->acceptor.listen();
+    endpoint_ = shared->acceptor.local_endpoint();
 
-    // Begin accepting one connection. The handshake is also chained here so
-    // accepted_socket() returns only after a successful handshake.
-    auto stream = std::make_unique<asio::ssl::stream<tcp::socket>>(io, server_ctx_);
-    auto* raw = stream.get();
-    accepted_stream_ = std::move(stream);
-
-    acceptor_.async_accept(
-        raw->lowest_layer(),
-        [this, raw](const std::error_code& accept_ec) {
-            if (accept_ec)
-            {
-                return;
-            }
-            accepted_.store(true);
-            raw->async_handshake(
-                asio::ssl::stream_base::server,
-                [this](const std::error_code& hs_ec) {
-                    if (!hs_ec)
-                    {
-                        handshake_done_.store(true);
-                    }
-                });
-        });
+    shared->acceptor.async_accept(shared->stream->lowest_layer(),
+        asio::bind_executor(shared->strand, [shared](const std::error_code& accept_ec) {
+            std::lock_guard<std::mutex> lock(shared->mutex);
+            if (accept_ec || shared->stopped) return;
+            shared->accepted.store(true);
+            shared->stream->async_handshake(asio::ssl::stream_base::server,
+                asio::bind_executor(shared->strand, [shared](const std::error_code& hs_ec) {
+                    std::lock_guard<std::mutex> lock(shared->mutex);
+                    if (!hs_ec && !shared->stopped) shared->handshake_done.store(true);
+                }));
+        }));
 }
 
 tls_loopback_listener::~tls_loopback_listener()
 {
-    std::error_code ec;
-    acceptor_.close(ec);
+    auto shared = state_;
+    asio::post(shared->strand, [shared] {
+        std::lock_guard<std::mutex> lock(shared->mutex);
+        shared->stopped = true;
+        std::error_code ec;
+        shared->acceptor.close(ec);
+        if (shared->stream) shared->stream->lowest_layer().close(ec);
+    });
+}
+
+auto tls_loopback_listener::accepted() const -> bool
+{
+    return state_->accepted.load();
+}
+
+auto tls_loopback_listener::handshake_done() const -> bool
+{
+    return state_->handshake_done.load();
 }
 
 std::unique_ptr<asio::ssl::stream<asio::ip::tcp::socket>>
@@ -361,9 +391,9 @@ tls_loopback_listener::accepted_socket(std::chrono::milliseconds timeout)
     const auto deadline = std::chrono::steady_clock::now() + timeout;
     while (std::chrono::steady_clock::now() < deadline)
     {
-        if (handshake_done_.load())
         {
-            return std::move(accepted_stream_);
+            std::lock_guard<std::mutex> lock(state_->mutex);
+            if (state_->handshake_done.load()) return std::move(state_->stream);
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(5));
     }
