@@ -328,7 +328,7 @@ private:
 };
 
 // Implementation class using official gRPC
-class grpc_client::impl
+class grpc_client::impl : public std::enable_shared_from_this<grpc_client::impl>
 {
 public:
     explicit impl(std::string target, grpc_channel_config config)
@@ -535,8 +535,8 @@ public:
                         const call_options& options) -> void
     {
         // Create async call in separate thread
-        std::thread([this, method, request, callback, options]() {
-            auto result = call_raw(method, request, options);
+        std::thread([self = shared_from_this(), method, request, callback, options]() {
+            auto result = self->call_raw(method, request, options);
             if (callback)
             {
                 callback(std::move(result));
@@ -1007,7 +1007,7 @@ private:
 };
 
 // Implementation class using HTTP/2 transport
-class grpc_client::impl
+class grpc_client::impl : public std::enable_shared_from_this<grpc_client::impl>
 {
 public:
     explicit impl(std::string target, grpc_channel_config config)
@@ -1344,8 +1344,8 @@ public:
     {
         // Execute asynchronously using thread pool
         integration::thread_integration_manager::instance().submit_task(
-            [this, method, request, callback, options]() {
-                auto result = call_raw(method, request, options);
+            [self = shared_from_this(), method, request, callback, options]() {
+                auto result = self->call_raw(method, request, options);
                 if (callback)
                 {
                     callback(std::move(result));
@@ -1403,16 +1403,24 @@ public:
             headers.emplace_back(key, value);
         }
 
-        // Create the reader as shared_ptr for callback capture
+        // Callbacks observe handles weakly: a handle owns its transport, so
+        // transport -> callback -> handle must not create an ownership cycle.
+        // Keep the handle alive locally until it is returned to the caller.
         auto reader = std::make_shared<server_stream_reader_impl>(http2_client_, 0);
 
         // Start streaming request
         auto stream_result = http2_client_->start_stream(
             method,
             headers,
-            [reader](std::vector<uint8_t> data) { reader->on_data(data); },
-            [reader](std::vector<http2::http_header> hdrs) { reader->on_headers(hdrs); },
-            [reader](int status) { reader->on_complete(status); });
+            [weak = std::weak_ptr{reader}](std::vector<uint8_t> data) {
+                if (auto stream = weak.lock()) stream->on_data(data);
+            },
+            [weak = std::weak_ptr{reader}](std::vector<http2::http_header> hdrs) {
+                if (auto stream = weak.lock()) stream->on_headers(hdrs);
+            },
+            [weak = std::weak_ptr{reader}](int status) {
+                if (auto stream = weak.lock()) stream->on_complete(status);
+            });
 
         if (stream_result.is_err())
         {
@@ -1496,16 +1504,22 @@ public:
             headers.emplace_back(key, value);
         }
 
-        // Create the writer as shared_ptr for callback capture
+        // Weak callback captures avoid a transport/stream ownership cycle.
         auto writer = std::make_shared<client_stream_writer_impl>(http2_client_, 0);
 
         // Start streaming request
         auto stream_result = http2_client_->start_stream(
             method,
             headers,
-            [writer](std::vector<uint8_t> data) { writer->on_data(data); },
-            [writer](std::vector<http2::http_header> hdrs) { writer->on_headers(hdrs); },
-            [writer](int status) { writer->on_complete(status); });
+            [weak = std::weak_ptr{writer}](std::vector<uint8_t> data) {
+                if (auto stream = weak.lock()) stream->on_data(data);
+            },
+            [weak = std::weak_ptr{writer}](std::vector<http2::http_header> hdrs) {
+                if (auto stream = weak.lock()) stream->on_headers(hdrs);
+            },
+            [weak = std::weak_ptr{writer}](int status) {
+                if (auto stream = weak.lock()) stream->on_complete(status);
+            });
 
         if (stream_result.is_err())
         {
@@ -1578,16 +1592,22 @@ public:
             headers.emplace_back(key, value);
         }
 
-        // Create the bidi stream as shared_ptr for callback capture
+        // Weak callback captures avoid a transport/stream ownership cycle.
         auto bidi = std::make_shared<bidi_stream_impl>(http2_client_, 0);
 
         // Start streaming request
         auto stream_result = http2_client_->start_stream(
             method,
             headers,
-            [bidi](std::vector<uint8_t> data) { bidi->on_data(data); },
-            [bidi](std::vector<http2::http_header> hdrs) { bidi->on_headers(hdrs); },
-            [bidi](int status) { bidi->on_complete(status); });
+            [weak = std::weak_ptr{bidi}](std::vector<uint8_t> data) {
+                if (auto stream = weak.lock()) stream->on_data(data);
+            },
+            [weak = std::weak_ptr{bidi}](std::vector<http2::http_header> hdrs) {
+                if (auto stream = weak.lock()) stream->on_headers(hdrs);
+            },
+            [weak = std::weak_ptr{bidi}](int status) {
+                if (auto stream = weak.lock()) stream->on_complete(status);
+            });
 
         if (stream_result.is_err())
         {
@@ -1627,7 +1647,7 @@ private:
 
 grpc_client::grpc_client(const std::string& target,
                          const grpc_channel_config& config)
-    : impl_(std::make_unique<impl>(target, config))
+    : impl_(std::make_shared<impl>(target, config))
 {
 }
 

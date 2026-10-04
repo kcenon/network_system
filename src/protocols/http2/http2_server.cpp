@@ -228,6 +228,7 @@ namespace kcenon::network::protocols::http2
 
     auto http2_server::set_settings(const http2_settings& settings) -> void
     {
+        std::lock_guard<std::mutex> lock(settings_mutex_);
         settings_ = settings;
         encoder_->set_max_table_size(settings.header_table_size);
         decoder_->set_max_table_size(settings.header_table_size);
@@ -235,6 +236,7 @@ namespace kcenon::network::protocols::http2
 
     auto http2_server::get_settings() const -> http2_settings
     {
+        std::lock_guard<std::mutex> lock(settings_mutex_);
         return settings_;
     }
 
@@ -298,7 +300,7 @@ namespace kcenon::network::protocols::http2
             auto conn = std::make_shared<http2_server_connection>(
                 conn_id,
                 std::move(socket),
-                settings_,
+                get_settings(),
                 request_handler_,
                 error_handler_);
 
@@ -340,7 +342,7 @@ namespace kcenon::network::protocols::http2
                     auto conn = std::make_shared<http2_server_connection>(
                         conn_id,
                         std::move(tls_socket),
-                        settings_,
+                        get_settings(),
                         request_handler_,
                         error_handler_);
 
@@ -469,11 +471,10 @@ namespace kcenon::network::protocols::http2
 
     auto http2_server_connection::stop() -> VoidResult
     {
-        if (!is_alive_) {
+        std::lock_guard<std::mutex> lock(transport_shutdown_mutex_);
+        if (!is_alive_.exchange(false)) {
             return ok();
         }
-
-        is_alive_ = false;
 
         // Close socket
         std::error_code ec;
@@ -489,7 +490,9 @@ namespace kcenon::network::protocols::http2
     auto http2_server_connection::shutdown_transport() -> void
     {
         // Shutdown interrupts synchronous writes without destroying the
-        // descriptor that the I/O worker may still be using.
+        // descriptor that the I/O worker may still be using. A read callback
+        // may close it concurrently, so serialize the descriptor operations.
+        std::lock_guard<std::mutex> lock(transport_shutdown_mutex_);
         std::error_code ec;
         if (use_tls_ && tls_socket_) {
             tls_socket_->lowest_layer().shutdown(asio::ip::tcp::socket::shutdown_both, ec);
@@ -869,7 +872,7 @@ namespace kcenon::network::protocols::http2
     {
         uint32_t stream_id = f.header().stream_id;
 
-        std::lock_guard<std::mutex> lock(streams_mutex_);
+        std::unique_lock<std::mutex> lock(streams_mutex_);
         auto it = streams_.find(stream_id);
         if (it == streams_.end()) {
             // Stream doesn't exist
@@ -898,7 +901,7 @@ namespace kcenon::network::protocols::http2
             stream.body_complete = true;
 
             // Need to unlock before dispatching
-            lock.~lock_guard();
+            lock.unlock();
             dispatch_request(stream_id);
         }
 

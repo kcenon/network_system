@@ -191,7 +191,7 @@ namespace kcenon::network::protocols::http2
             // SETTINGS frame on stream zero (RFC 9113 section 3.4).
             // Bound both reads by one deadline so a partial frame cannot
             // leave connect() blocked indefinitely.
-            const auto deadline = std::chrono::steady_clock::now() + timeout_;
+            const auto deadline = std::chrono::steady_clock::now() + timeout_.load();
             auto read_preface_bytes = [&](asio::mutable_buffer buffer) {
                 asio::steady_timer timer(*io_context_, deadline);
                 std::error_code read_error;
@@ -230,12 +230,18 @@ namespace kcenon::network::protocols::http2
             auto initial_result = process_frame(std::move(initial_frame.value()));
             if (initial_result.is_err()) throw std::runtime_error(initial_result.error().message);
 
-            is_connected_ = true;
-            // Start I/O thread
+            // All subsequent SSL operations run on this one executor thread.
+            // Publish the connected state while submissions are locked so no
+            // caller writes synchronously between startup and the first read.
             work_guard_ = std::make_unique<asio::executor_work_guard<asio::io_context::executor_type>>(
                 asio::make_work_guard(*io_context_));
-
-            io_future_ = std::async(std::launch::async, [this]() { run_io(); });
+            io_context_->restart();
+            {
+                std::lock_guard<std::mutex> lock(io_submission_mutex_);
+                io_active_ = true;
+                is_connected_ = true;
+                io_future_ = std::async(std::launch::async, [this]() { run_io(); });
+            }
 
             if (span)
             {
@@ -341,7 +347,7 @@ namespace kcenon::network::protocols::http2
 
     auto http2_client::get_timeout() const -> std::chrono::milliseconds
     {
-        return timeout_;
+        return timeout_.load();
     }
 
     auto http2_client::get_settings() const -> http2_settings
@@ -430,16 +436,12 @@ namespace kcenon::network::protocols::http2
         }
 
         // Send DATA frame
+        if (end_stream) stream->state = stream_state::half_closed_local;
         data_frame df(stream_id, std::vector<uint8_t>(data), end_stream);
         auto send_result = send_frame(df);
         if (send_result.is_err())
         {
             return send_result;
-        }
-
-        if (end_stream)
-        {
-            stream->state = stream_state::half_closed_local;
         }
 
         return ok();
@@ -468,6 +470,8 @@ namespace kcenon::network::protocols::http2
             return ok();  // Already closed
         }
 
+        // Publish the state before the peer can respond to END_STREAM.
+        stream->state = stream_state::half_closed_local;
         // Send empty DATA frame with END_STREAM
         data_frame df(stream_id, {}, true);
         auto send_result = send_frame(df);
@@ -476,7 +480,6 @@ namespace kcenon::network::protocols::http2
             return send_result;
         }
 
-        stream->state = stream_state::half_closed_local;
         return ok();
     }
 
@@ -599,7 +602,8 @@ namespace kcenon::network::protocols::http2
 
     auto http2_client::send_frame(const frame& f) -> VoidResult
     {
-        if (!socket_ || !socket_->lowest_layer().is_open())
+        std::unique_lock<std::mutex> lock(io_submission_mutex_);
+        if (!socket_ || !is_running_)
         {
             return error_void(error_codes::network_system::connection_closed,
                               "Connection closed", "http2_client::send_frame");
@@ -608,8 +612,32 @@ namespace kcenon::network::protocols::http2
         try
         {
             auto data = f.serialize();
-            asio::write(*socket_, asio::buffer(data));
-            return ok();
+            if (!io_active_)
+            {
+                // Connection preface only: the reader has not started yet.
+                asio::write(*socket_, asio::buffer(data));
+                return ok();
+            }
+
+            auto completion = std::make_shared<std::promise<VoidResult>>();
+            auto result = completion->get_future();
+            const bool on_io_thread = io_context_->get_executor().running_in_this_thread();
+            asio::post(*io_context_, [this, data = std::move(data), completion]() mutable {
+                if (!is_running_)
+                {
+                    completion->set_value(error_void(
+                        error_codes::network_system::connection_closed,
+                        "Connection closed", "http2_client::send_frame"));
+                    return;
+                }
+                const bool idle = pending_writes_.empty();
+                pending_writes_.push_back({std::move(data), completion});
+                if (idle) write_next_frame();
+            });
+            lock.unlock();
+            // Frame handlers enqueue protocol replies without waiting on their
+            // own executor. Public callers retain synchronous send results.
+            return on_io_thread ? ok() : result.get();
         }
         catch (const std::exception& e)
         {
@@ -619,53 +647,81 @@ namespace kcenon::network::protocols::http2
         }
     }
 
-    auto http2_client::read_frame() -> Result<std::unique_ptr<frame>>
+    auto http2_client::write_next_frame() -> void
     {
-        if (!socket_ || !socket_->lowest_layer().is_open())
-        {
-            return error<std::unique_ptr<frame>>(error_codes::network_system::connection_closed,
-                                                 "Connection closed",
-                                                 "http2_client::read_frame");
-        }
+        if (pending_writes_.empty()) return;
+        asio::async_write(*socket_, asio::buffer(pending_writes_.front().data),
+            [this](std::error_code ec, std::size_t) {
+                auto completion = std::move(pending_writes_.front().completion);
+                pending_writes_.pop_front();
+                if (ec)
+                {
+                    is_connected_ = false;
+                    completion->set_value(error_void(
+                        error_codes::network_system::send_failed, ec.message(),
+                        "http2_client::send_frame"));
+                    while (!pending_writes_.empty())
+                    {
+                        pending_writes_.front().completion->set_value(error_void(
+                            error_codes::network_system::send_failed, ec.message(),
+                            "http2_client::send_frame"));
+                        pending_writes_.pop_front();
+                    }
+                    return;
+                }
+                completion->set_value(ok());
+                write_next_frame();
+            });
+    }
 
-        try
-        {
-            // Read frame header (9 bytes)
-            std::vector<uint8_t> header_buf(FRAME_HEADER_SIZE);
-            asio::read(*socket_, asio::buffer(header_buf));
-
-            auto header_result = frame_header::parse(header_buf);
-            if (header_result.is_err())
-            {
-                const auto& err = header_result.error();
-                return error<std::unique_ptr<frame>>(err.code, err.message,
-                                                     "http2_client::read_frame",
-                                                     get_error_details(err));
-            }
-
-            const auto& header = header_result.value();
-
-            // Read frame payload
-            std::vector<uint8_t> payload(header.length);
-            if (header.length > 0)
-            {
-                asio::read(*socket_, asio::buffer(payload));
-            }
-
-            // Combine header and payload for parsing
-            std::vector<uint8_t> frame_data;
-            frame_data.reserve(FRAME_HEADER_SIZE + payload.size());
-            frame_data.insert(frame_data.end(), header_buf.begin(), header_buf.end());
-            frame_data.insert(frame_data.end(), payload.begin(), payload.end());
-
-            return frame::parse(frame_data);
-        }
-        catch (const std::exception& e)
-        {
-            return error<std::unique_ptr<frame>>(error_codes::network_system::receive_failed,
-                                                 std::string("Failed to read frame: ") + e.what(),
-                                                 "http2_client::read_frame");
-        }
+    auto http2_client::read_next_frame() -> void
+    {
+        if (!is_running_) return;
+        auto bytes = std::make_shared<std::vector<uint8_t>>(FRAME_HEADER_SIZE);
+        asio::async_read(*socket_, asio::buffer(*bytes),
+            [this, bytes](std::error_code ec, std::size_t) {
+                if (ec || !is_running_)
+                {
+                    if (ec) is_connected_ = false;
+                    return;
+                }
+                auto header = frame_header::parse(*bytes);
+                if (header.is_err())
+                {
+                    is_connected_ = false;
+                    return;
+                }
+                const auto length = header.value().length;
+                bytes->resize(FRAME_HEADER_SIZE + length);
+                auto complete = [this, bytes](std::error_code payload_error, std::size_t) {
+                    if (payload_error || !is_running_)
+                    {
+                        if (payload_error) is_connected_ = false;
+                        return;
+                    }
+                    try
+                    {
+                        auto parsed = frame::parse(*bytes);
+                        if (parsed.is_err())
+                        {
+                            is_connected_ = false;
+                            return;
+                        }
+                        process_frame(std::move(parsed.value()));
+                        read_next_frame();
+                    }
+                    catch (...)
+                    {
+                        is_connected_ = false;
+                    }
+                };
+                if (length == 0)
+                    complete({}, 0);
+                else
+                    asio::async_read(*socket_,
+                        asio::buffer(bytes->data() + FRAME_HEADER_SIZE, length),
+                        std::move(complete));
+            });
     }
 
     auto http2_client::process_frame(std::unique_ptr<frame> f) -> VoidResult
@@ -823,6 +879,7 @@ namespace kcenon::network::protocols::http2
 
         // Send HEADERS frame
         bool end_stream = body.empty();
+        if (end_stream) stream.state = stream_state::half_closed_local;
         headers_frame hf(stream.stream_id, std::move(encoded_headers), end_stream, true);
 
         auto send_result = send_frame(hf);
@@ -842,6 +899,7 @@ namespace kcenon::network::protocols::http2
         // Send DATA frame if body exists
         if (!body.empty())
         {
+            stream.state = stream_state::half_closed_local;
             data_frame df(stream.stream_id, std::vector<uint8_t>(body), true);
             send_result = send_frame(df);
             if (send_result.is_err())
@@ -856,16 +914,11 @@ namespace kcenon::network::protocols::http2
                                              "http2_client::send_request",
                                              get_error_details(err));
             }
-            stream.state = stream_state::half_closed_local;
-        }
-        else
-        {
-            stream.state = stream_state::half_closed_local;
         }
 
         // Wait for response with timeout
         auto future = stream.promise.get_future();
-        auto status = future.wait_for(timeout_);
+        auto status = future.wait_for(timeout_.load());
 
         if (status == std::future_status::timeout)
         {
@@ -1177,65 +1230,43 @@ namespace kcenon::network::protocols::http2
 
     auto http2_client::run_io() -> void
     {
-        while (is_running_ && is_connected_)
-        {
-            try
-            {
-                auto frame_result = read_frame();
-                if (frame_result.is_err())
-                {
-                    if (is_running_)
-                    {
-                        is_connected_ = false;
-                    }
-                    break;
-                }
-
-                process_frame(std::move(frame_result.value()));
-            }
-            catch (...)
-            {
-                if (is_running_)
-                {
-                    is_connected_ = false;
-                }
-                break;
-            }
-        }
+        read_next_frame();
+        io_context_->run();
     }
 
     auto http2_client::stop_io() -> void
     {
-        is_running_ = false;
-
-        if (work_guard_)
         {
-            work_guard_->reset();
+            std::lock_guard<std::mutex> lock(io_submission_mutex_);
+            is_running_ = false;
+            is_connected_ = false;
+            if (io_active_ && io_future_.valid())
+            {
+                // Cancel on the same executor as the SSL operations. Let run()
+                // drain their handlers so every waiting writer is completed.
+                asio::post(*io_context_, [this]() {
+                    std::error_code ec;
+                    socket_->lowest_layer().shutdown(asio::ip::tcp::socket::shutdown_both, ec);
+                    socket_->lowest_layer().close(ec);
+                    work_guard_->reset();
+                });
+            }
+            else
+            {
+                if (socket_)
+                {
+                    std::error_code ec;
+                    socket_->lowest_layer().close(ec);
+                }
+                if (work_guard_) work_guard_->reset();
+            }
         }
 
-        if (socket_ && socket_->lowest_layer().is_open())
-        {
-            std::error_code ec;
-            socket_->lowest_layer().shutdown(asio::ip::tcp::socket::shutdown_both, ec);
-        }
-
-        if (io_future_.valid())
-        {
-            // Keep the native descriptor valid until the blocking reader
-            // observes shutdown. Closing it first races ASIO's poll loop.
-            io_future_.wait();
-        }
-
-        if (socket_ && socket_->lowest_layer().is_open())
-        {
-            std::error_code ec;
-            socket_->lowest_layer().close(ec);
-        }
-
-        if (io_context_)
-        {
-            io_context_->stop();
-        }
+        if (io_future_.valid()) io_future_.wait();
+        std::lock_guard<std::mutex> lock(io_submission_mutex_);
+        io_future_ = {};
+        io_active_ = false;
+        if (io_context_) io_context_->stop();
     }
 
 } // namespace kcenon::network::protocols::http2

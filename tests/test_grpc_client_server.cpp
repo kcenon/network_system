@@ -1511,6 +1511,7 @@ TEST_F(GrpcMessageTest, EmptyMessageSerializeIsHeaderOnly)
 #if !defined(NETWORK_GRPC_OFFICIAL) || NETWORK_GRPC_OFFICIAL == 0
 
 #include "internal/protocols/http2/frame.h"
+#include "internal/protocols/http2/http2_client.h"
 #include "internal/protocols/http2/hpack.h"
 
 #include "hermetic_transport_fixture.h"
@@ -2536,6 +2537,87 @@ TEST_F(GrpcClientHermeticTransportCoverageTest,
 
     client->disconnect();
     connector.join();
+    peer_thread.join();
+}
+
+// Exercise full-duplex TLS while two callers write the same HTTP/2 stream.
+// The server echoes enough DATA to also trigger client WINDOW_UPDATE writes
+// from the reader callback, alongside the application writers.
+TEST_F(GrpcClientHermeticTransportCoverageTest,
+       ConcurrentHttp2WritersPreserveFramesDuringReplies)
+{
+    support_grpc::tls_loopback_listener listener(io(), /*trusted=*/true);
+    constexpr int writes_per_thread = 32;
+    constexpr int total_writes = 2 * writes_per_thread;
+    const std::vector<std::uint8_t> payload(1024, 0x5a);
+    std::atomic<int> received_frames{0};
+    std::thread peer_thread([&]() {
+        auto stream = grpc_complete_settings_exchange(listener);
+        if (!stream) return;
+        http2_grpc::frame_header header{};
+        if (!drain_one_frame(*stream, header)) return;
+        const auto stream_id = header.stream_id;
+        std::error_code ec;
+        http2_grpc::headers_frame initial(
+            stream_id, grpc_encode_response_headers(200, 0), false, true);
+        auto bytes = initial.serialize();
+        asio::write(*stream, asio::buffer(bytes), ec);
+        if (ec) return;
+        while (received_frames.load() < total_writes)
+        {
+            if (!drain_one_frame(*stream, header)) return;
+            if (header.type != http2_grpc::frame_type::data) continue;
+            if (header.stream_id != stream_id || header.length != payload.size()) return;
+            ++received_frames;
+            http2_grpc::data_frame reply(stream_id, payload, false);
+            bytes = reply.serialize();
+            asio::write(*stream, asio::buffer(bytes), ec);
+            if (ec) return;
+        }
+        http2_grpc::headers_frame final_headers(
+            stream_id, grpc_encode_response_headers(200, 0), true, true);
+        bytes = final_headers.serialize();
+        asio::write(*stream, asio::buffer(bytes), ec);
+        if (!ec) drain_until_eof(*stream);
+    });
+
+    http2_grpc::http2_client client("concurrent-writers");
+    auto connected = client.connect("127.0.0.1", listener.port());
+    EXPECT_TRUE(connected.is_ok());
+    std::atomic<std::size_t> received_bytes{0};
+    std::promise<int> completed;
+    auto completion = completed.get_future();
+    if (connected.is_ok())
+    {
+        auto stream = client.start_stream("/duplex", {},
+            [&](std::vector<std::uint8_t> data) { received_bytes += data.size(); },
+            [](std::vector<http2_grpc::http_header>) {},
+            [&](int status) { completed.set_value(status); });
+        EXPECT_TRUE(stream.is_ok());
+        if (stream.is_ok())
+        {
+            std::atomic<int> failed_writes{0};
+            auto write = [&]() {
+                for (int n = 0; n < writes_per_thread; ++n)
+                    if (client.write_stream(stream.value(), payload).is_err())
+                    {
+                        ++failed_writes;
+                        return;
+                    }
+            };
+            std::thread first(write);
+            std::thread second(write);
+            first.join();
+            second.join();
+            EXPECT_EQ(failed_writes.load(), 0);
+            const auto ready = completion.wait_for(3s);
+            EXPECT_EQ(ready, std::future_status::ready);
+            if (ready == std::future_status::ready) EXPECT_EQ(completion.get(), 200);
+            EXPECT_EQ(received_frames.load(), total_writes);
+            EXPECT_EQ(received_bytes.load(), total_writes * payload.size());
+        }
+    }
+    client.disconnect();
     peer_thread.join();
 }
 

@@ -15,6 +15,7 @@
 #include <chrono>
 #include <condition_variable>
 #include <cstdint>
+#include <deque>
 #include <functional>
 #include <future>
 #include <map>
@@ -77,7 +78,7 @@ namespace kcenon::network::protocols::http2
     struct http2_stream
     {
         uint32_t stream_id = 0;               //!< Stream identifier
-        stream_state state = stream_state::idle;  //!< Current state
+        std::atomic<stream_state> state{stream_state::idle};  //!< Current state
         std::vector<http_header> request_headers;  //!< Request headers
         std::vector<http_header> response_headers; //!< Response headers
         std::vector<uint8_t> request_body;    //!< Request body
@@ -94,8 +95,26 @@ namespace kcenon::network::protocols::http2
         std::function<void(int)> on_complete; //!< Callback when stream ends (status code)
 
         http2_stream() = default;
-        http2_stream(http2_stream&&) = default;
-        http2_stream& operator=(http2_stream&&) = default;
+        http2_stream(http2_stream&& other) noexcept { *this = std::move(other); }
+        auto operator=(http2_stream&& other) noexcept -> http2_stream&
+        {
+            if (this == &other) return *this;
+            stream_id = other.stream_id;
+            state.store(other.state.load());
+            request_headers = std::move(other.request_headers);
+            response_headers = std::move(other.response_headers);
+            request_body = std::move(other.request_body);
+            response_body = std::move(other.response_body);
+            window_size = other.window_size;
+            promise = std::move(other.promise);
+            headers_complete = other.headers_complete;
+            body_complete = other.body_complete;
+            is_streaming = other.is_streaming;
+            on_data = std::move(other.on_data);
+            on_headers = std::move(other.on_headers);
+            on_complete = std::move(other.on_complete);
+            return *this;
+        }
     };
 
     /*!
@@ -337,7 +356,8 @@ namespace kcenon::network::protocols::http2
 
         // Frame I/O
         auto send_frame(const frame& f) -> VoidResult;
-        auto read_frame() -> Result<std::unique_ptr<frame>>;
+        auto read_next_frame() -> void;
+        auto write_next_frame() -> void;
         auto process_frame(std::unique_ptr<frame> f) -> VoidResult;
 
         // Stream management
@@ -381,6 +401,17 @@ namespace kcenon::network::protocols::http2
         std::unique_ptr<asio::ssl::stream<asio::ip::tcp::socket>> socket_;
         std::unique_ptr<asio::executor_work_guard<asio::io_context::executor_type>> work_guard_;
         std::future<void> io_future_;
+        // The I/O thread owns every SSL operation after connection setup.
+        // Protect submission against shutdown; queued buffers live through
+        // asynchronous completion and writes never overlap one another.
+        std::mutex io_submission_mutex_;
+        bool io_active_ = false;
+        struct pending_write
+        {
+            std::vector<uint8_t> data;
+            std::shared_ptr<std::promise<VoidResult>> completion;
+        };
+        std::deque<pending_write> pending_writes_;
 
         // Connection state
         std::atomic<bool> is_connected_{false};
@@ -402,7 +433,7 @@ namespace kcenon::network::protocols::http2
         hpack_decoder decoder_;
 
         // Timeout
-        std::chrono::milliseconds timeout_{30000};
+        std::atomic<std::chrono::milliseconds> timeout_{std::chrono::milliseconds(30000)};
 
         // Read buffer
         std::vector<uint8_t> read_buffer_;
