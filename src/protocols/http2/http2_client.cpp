@@ -9,6 +9,7 @@
 #include "kcenon/network/detail/tracing/tracing_config.h"
 
 #include <algorithm>
+#include <limits>
 #include <thread>
 
 namespace kcenon::network::protocols::http2
@@ -1202,7 +1203,17 @@ namespace kcenon::network::protocols::http2
 
         if (stream_id == 0)
         {
-            // Connection-level window update
+            if (connection_window_size_ > std::numeric_limits<int32_t>::max() - increment)
+            {
+                // RFC 9113 section 6.9.1: reject the update before arithmetic.
+                goaway_frame goaway(0, static_cast<uint32_t>(error_code::flow_control_error));
+                send_frame(goaway);
+                goaway_received_ = true;
+                is_connected_ = false;
+                return error_void(static_cast<int>(error_code::flow_control_error),
+                                  "Connection flow-control window overflow",
+                                  "http2_client::handle_window_update_frame");
+            }
             connection_window_size_ += increment;
         }
         else
@@ -1210,6 +1221,28 @@ namespace kcenon::network::protocols::http2
             auto* stream = get_stream(stream_id);
             if (stream)
             {
+                if (stream->window_size > std::numeric_limits<int32_t>::max() - increment)
+                {
+                    rst_stream_frame reset(stream_id, static_cast<uint32_t>(error_code::flow_control_error));
+                    send_frame(reset);
+                    if (stream->state.exchange(stream_state::closed) != stream_state::closed)
+                    {
+                        if (stream->is_streaming)
+                        {
+                            if (stream->on_complete)
+                                stream->on_complete(static_cast<int>(error_code::flow_control_error));
+                        }
+                        else
+                        {
+                            http2_response response;
+                            response.status_code = 0;
+                            stream->promise.set_value(std::move(response));
+                        }
+                    }
+                    return error_void(static_cast<int>(error_code::flow_control_error),
+                                      "Stream flow-control window overflow",
+                                      "http2_client::handle_window_update_frame");
+                }
                 stream->window_size += increment;
             }
         }

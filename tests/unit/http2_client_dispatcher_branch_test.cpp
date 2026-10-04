@@ -269,28 +269,62 @@ TEST(Http2ClientDispatcherKnownStream, WindowUpdateOnKnownStreamIncrementsPerStr
               kBaseline + static_cast<std::int32_t>(kIncrement));
 }
 
-TEST(Http2ClientDispatcherKnownStream, WindowUpdateOnKnownStreamWithMaxIncrementSaturates)
+TEST(Http2ClientDispatcherKnownStream, WindowUpdateOverflowRejectsAndClosesStream)
 {
-    // Boundary case — RFC 7540 §6.9.1 bounds the increment at 2^31 - 1.
-    // Pass the maximum value and verify the per-stream window adjusts by
-    // that exact amount (the cast at http2_client.cpp:1095 is to int32_t,
-    // so the increment is treated as signed — positive max produces
-    // INT32_MAX delta).
-    auto client = std::make_shared<http2::http2_client>("dispatcher-wu-max");
+    auto client = std::make_shared<http2::http2_client>("dispatcher-wu-overflow");
+    constexpr std::uint32_t kStreamId = 1u;
+    auto response = http2_client_test_access::seed_stream(*client, kStreamId);
+
+    auto wu = std::make_unique<http2::window_update_frame>(kStreamId, 0x7fffffffu);
+    EXPECT_TRUE(http2_client_test_access::process_frame(*client, std::move(wu)).is_err());
+    EXPECT_EQ(http2_client_test_access::stream_window_size_of(*client, kStreamId), 65535);
+    EXPECT_EQ(http2_client_test_access::stream_state_of(*client, kStreamId),
+              http2::stream_state::closed);
+    ASSERT_EQ(response.wait_for(0ms), std::future_status::ready);
+    EXPECT_EQ(response.get().status_code, 0);
+}
+
+TEST(Http2ClientDispatcherKnownStream, WindowUpdateOverflowCompletesStreamingCallOnce)
+{
+    auto client = std::make_shared<http2::http2_client>("dispatcher-wu-streaming-overflow");
     constexpr std::uint32_t kStreamId = 1u;
     (void)http2_client_test_access::seed_stream(
-        *client, kStreamId, http2::stream_state::open, /*is_streaming=*/false);
+        *client, kStreamId, http2::stream_state::open, true);
+    int completions = 0;
+    http2_client_test_access::set_stream_callbacks(*client, kStreamId, {}, {}, [&](int code) {
+        EXPECT_EQ(code, static_cast<int>(http2::error_code::flow_control_error));
+        ++completions;
+    });
+    for (int i = 0; i < 2; ++i)
+    {
+        auto wu = std::make_unique<http2::window_update_frame>(kStreamId, 0x7fffffffu);
+        EXPECT_TRUE(http2_client_test_access::process_frame(*client, std::move(wu)).is_err());
+    }
+    EXPECT_EQ(completions, 1);
+}
 
-    constexpr std::uint32_t kMax = 0x7fffffffu;  // 2^31 - 1
-    auto wu = std::make_unique<http2::window_update_frame>(kStreamId, kMax);
-    EXPECT_TRUE(
-        http2_client_test_access::process_frame(*client, std::move(wu)).is_ok());
+TEST(Http2ClientDispatcherKnownStream, WindowUpdateAllowsMaximumStreamWindow)
+{
+    auto client = std::make_shared<http2::http2_client>("dispatcher-wu-stream-boundary");
+    constexpr std::uint32_t kStreamId = 1u;
+    (void)http2_client_test_access::seed_stream(*client, kStreamId);
+    auto wu = std::make_unique<http2::window_update_frame>(kStreamId, 0x7fffffffu - 65535u);
+    EXPECT_TRUE(http2_client_test_access::process_frame(*client, std::move(wu)).is_ok());
+    EXPECT_EQ(http2_client_test_access::stream_window_size_of(*client, kStreamId), 0x7fffffff);
+}
 
-    // Initial 65535 + INT32_MAX overflows int32 but the production code
-    // simply adds without checking. Just verify the value changed and the
-    // dispatch completed without crashing.
-    EXPECT_NE(http2_client_test_access::stream_window_size_of(*client, kStreamId),
-              static_cast<std::int32_t>(65535));
+TEST(Http2ClientDispatcherKnownStream, WindowUpdateAllowsMaximumConnectionWindowThenRejectsOverflow)
+{
+    auto client = std::make_shared<http2::http2_client>("dispatcher-wu-connection-boundary");
+    auto valid = std::make_unique<http2::window_update_frame>(0, 0x7fffffffu - 65535u);
+    EXPECT_TRUE(http2_client_test_access::process_frame(*client, std::move(valid)).is_ok());
+    EXPECT_EQ(http2_client_test_access::connection_window_size(*client), 0x7fffffff);
+
+    auto overflow = std::make_unique<http2::window_update_frame>(0, 1u);
+    EXPECT_TRUE(http2_client_test_access::process_frame(*client, std::move(overflow)).is_err());
+    EXPECT_EQ(http2_client_test_access::connection_window_size(*client), 0x7fffffff);
+    EXPECT_TRUE(http2_client_test_access::goaway_received(*client));
+    EXPECT_FALSE(client->is_connected());
 }
 
 // ============================================================================
