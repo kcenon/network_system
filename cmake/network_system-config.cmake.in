@@ -22,6 +22,11 @@ endif()
 unset(_NETWORK_WITH_TLS)
 unset(_NETWORK_WITH_WEBSOCKET)
 
+# Recreate logger's imported target for installed consumers when enabled.
+if(@BUILD_WITH_LOGGER_SYSTEM@)
+    find_dependency(logger_system CONFIG REQUIRED)
+endif()
+
 find_dependency(ZLIB REQUIRED)
 find_dependency(asio CONFIG REQUIRED)
 
