@@ -16,8 +16,10 @@
 #include "kcenon/network/detail/protocols/quic/connection_id.h"
 
 #include <asio/ip/udp.hpp>
+#include <asio/error.hpp>
 
 #include <array>
+#include <chrono>
 #include <cstdint>
 #include <thread>
 #include <vector>
@@ -162,6 +164,7 @@ mock_quic_peer_loop::mock_quic_peer_loop(asio::io_context& io,
 {
     // Bind to loopback with an ephemeral port.
     socket_.bind(asio::ip::udp::endpoint(asio::ip::address_v4::loopback(), 0));
+    socket_.non_blocking(true);
     endpoint_ = socket_.local_endpoint();
     port_ = endpoint_.port();
 
@@ -171,13 +174,31 @@ mock_quic_peer_loop::mock_quic_peer_loop(asio::io_context& io,
 mock_quic_peer_loop::~mock_quic_peer_loop()
 {
     stop_.store(true);
-    // Close the socket to unblock any pending recv_from.
-    std::error_code ec;
-    socket_.close(ec);
+    // Closing a descriptor from another thread does not interrupt a blocking
+    // receive on Linux. Let the bounded receive loop observe stop_ first.
     if (worker_.joinable())
     {
         worker_.join();
     }
+    std::error_code ec;
+    socket_.close(ec);
+}
+
+auto mock_quic_peer_loop::receive(asio::mutable_buffer buffer,
+                                  asio::ip::udp::endpoint& sender,
+                                  std::error_code& ec) -> std::size_t
+{
+    while (!stop_.load())
+    {
+        const auto n = socket_.receive_from(buffer, sender, 0, ec);
+        if (ec != asio::error::would_block && ec != asio::error::try_again)
+        {
+            return n;
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(2));
+    }
+    ec = asio::error::operation_aborted;
+    return 0;
 }
 
 void mock_quic_peer_loop::run()
@@ -189,8 +210,9 @@ void mock_quic_peer_loop::run()
         std::error_code ec;
 
         // Step 1: receive the client's first Initial datagram.
-        const std::size_t n = socket_.receive_from(
-            asio::buffer(buf.data(), buf.size()), sender, 0, ec);
+        const std::size_t n = receive(
+            asio::buffer(buf.data(), buf.size()), sender, ec);
+        if (stop_.load()) return;
         if (ec || n < k_min_datagram)
         {
             io_failed_.store(true);
@@ -272,9 +294,9 @@ void mock_quic_peer_loop::run()
         {
             std::array<uint8_t, k_recv_buf> drain_buf{};
             asio::ip::udp::endpoint drain_sender;
-            socket_.receive_from(
+            receive(
                 asio::buffer(drain_buf.data(), drain_buf.size()),
-                drain_sender, 0, ec);
+                drain_sender, ec);
             if (ec)
             {
                 break;

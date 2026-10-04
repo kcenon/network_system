@@ -101,5 +101,9 @@ endif()
 # common_system integration for network-integration-objects
 setup_common_system_integration(network-integration-objects)
 
+if(BUILD_WITH_THREAD_SYSTEM AND THREAD_SYSTEM_TARGET)
+    target_link_libraries(network-integration-objects PUBLIC ${THREAD_SYSTEM_TARGET})
+endif()
+
 # Export the OBJECT library for network-tcp/network-udp to use
 set(NETWORK_INTEGRATION_OBJECTS_TARGET network-integration-objects CACHE INTERNAL "Integration objects target")

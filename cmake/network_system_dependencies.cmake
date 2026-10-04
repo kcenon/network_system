@@ -274,14 +274,6 @@ function(find_thread_system)
 
     message(STATUS "Looking for thread_system...")
 
-    # Check if THREAD_SYSTEM_INCLUDE_DIR is already set (e.g., by parent project via FetchContent)
-    if(THREAD_SYSTEM_INCLUDE_DIR AND EXISTS "${THREAD_SYSTEM_INCLUDE_DIR}/kcenon/thread/core/thread_pool.h")
-        message(STATUS "Found thread_system via pre-set THREAD_SYSTEM_INCLUDE_DIR: ${THREAD_SYSTEM_INCLUDE_DIR}")
-        set(THREAD_SYSTEM_FOUND TRUE PARENT_SCOPE)
-        set(THREAD_SYSTEM_INCLUDE_DIR ${THREAD_SYSTEM_INCLUDE_DIR} PARENT_SCOPE)
-        return()
-    endif()
-
     foreach(_candidate thread_system ThreadSystem utilities thread_system::thread_system)
         if(TARGET ${_candidate})
             message(STATUS "Found thread_system CMake target: ${_candidate}")
@@ -290,6 +282,31 @@ function(find_thread_system)
             return()
         endif()
     endforeach()
+
+    # Prefer the installed target: its public definitions describe the ABI
+    # (notably USE_STD_JTHREAD), which a header path and archive cannot convey.
+    find_package(thread_system CONFIG QUIET)
+    if(TARGET thread_system::thread_system)
+        set(THREAD_SYSTEM_FOUND TRUE PARENT_SCOPE)
+        set(THREAD_SYSTEM_TARGET thread_system::thread_system PARENT_SCOPE)
+        get_target_property(_thread_includes thread_system::thread_system INTERFACE_INCLUDE_DIRECTORIES)
+        foreach(_include IN LISTS _thread_includes)
+            if(EXISTS "${_include}/kcenon/thread/core/thread_pool.h")
+                set(THREAD_SYSTEM_INCLUDE_DIR "${_include}" PARENT_SCOPE)
+                break()
+            endif()
+        endforeach()
+        message(STATUS "Found installed thread_system CMake target")
+        return()
+    endif()
+
+    # Legacy path-only integrations remain available when no target exists.
+    if(THREAD_SYSTEM_INCLUDE_DIR AND EXISTS "${THREAD_SYSTEM_INCLUDE_DIR}/kcenon/thread/core/thread_pool.h")
+        message(STATUS "Found thread_system via pre-set THREAD_SYSTEM_INCLUDE_DIR: ${THREAD_SYSTEM_INCLUDE_DIR}")
+        set(THREAD_SYSTEM_FOUND TRUE PARENT_SCOPE)
+        set(THREAD_SYSTEM_INCLUDE_DIR ${THREAD_SYSTEM_INCLUDE_DIR} PARENT_SCOPE)
+        return()
+    endif()
 
     # Prioritize environment variable, then standard paths
     set(_thread_search_paths)
@@ -710,6 +727,7 @@ function(find_network_system_dependencies)
     set(THREAD_SYSTEM_FOUND ${THREAD_SYSTEM_FOUND} PARENT_SCOPE)
     set(THREAD_SYSTEM_INCLUDE_DIR ${THREAD_SYSTEM_INCLUDE_DIR} PARENT_SCOPE)
     set(THREAD_SYSTEM_LIBRARY ${THREAD_SYSTEM_LIBRARY} PARENT_SCOPE)
+    set(THREAD_SYSTEM_TARGET ${THREAD_SYSTEM_TARGET} PARENT_SCOPE)
 
     set(LOGGER_SYSTEM_FOUND ${LOGGER_SYSTEM_FOUND} PARENT_SCOPE)
     set(LOGGER_SYSTEM_INCLUDE_DIR ${LOGGER_SYSTEM_INCLUDE_DIR} PARENT_SCOPE)

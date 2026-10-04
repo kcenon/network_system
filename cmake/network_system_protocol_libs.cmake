@@ -73,5 +73,10 @@ endif()
 foreach(_protocol_target network-tcp network-udp network-websocket network-http2 network-quic network-grpc)
     if(TARGET ${_protocol_target})
         setup_common_system_integration(${_protocol_target})
+        # Copying integration OBJECT files does not inherit the thread
+        # library's public ABI definitions either.
+        if(BUILD_WITH_THREAD_SYSTEM AND THREAD_SYSTEM_TARGET)
+            target_link_libraries(${_protocol_target} PUBLIC ${THREAD_SYSTEM_TARGET})
+        endif()
     endif()
 endforeach()

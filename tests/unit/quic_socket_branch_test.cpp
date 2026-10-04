@@ -1171,6 +1171,19 @@ TEST_F(QuicSocketHermeticTransportTest,
 // to process_crypto_frame — a branch previously unreachable from tests.
 // ============================================================================
 
+TEST(MockQuicPeerLoopTest, DestructionWithoutClientDoesNotBlock)
+{
+    using namespace kcenon::network::tests::support;
+    asio::io_context io;
+    const auto start = std::chrono::steady_clock::now();
+    {
+        mock_quic_peer_loop peer(io);
+        // Give the worker an opportunity to enter its initial receive.
+        std::this_thread::sleep_for(std::chrono::milliseconds(20));
+    }
+    EXPECT_LT(std::chrono::steady_clock::now() - start, std::chrono::seconds(2));
+}
+
 /**
  * @brief mock_quic_peer_loop receives the client's Initial, replies with a
  *        server Initial carrying a crypto_frame stub, and sets initial_sent().
