@@ -901,8 +901,8 @@ auto quic_socket::send_packet(encryption_level level,
 	// Connected UDP sockets reject send_to on some platforms (including
 	// macOS). Use the established peer when the supplied socket is connected.
 	std::error_code endpoint_error;
-	(void)udp_socket_.remote_endpoint(endpoint_error);
-	if (!endpoint_error)
+	const auto connected_endpoint = udp_socket_.remote_endpoint(endpoint_error);
+	if (!endpoint_error && connected_endpoint == remote_endpoint_)
 	{
 		udp_socket_.async_send(asio::buffer(*buffer), std::move(on_sent));
 	}
