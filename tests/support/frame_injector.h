@@ -51,6 +51,7 @@
 #include <asio/buffer.hpp>
 #include <asio/write.hpp>
 
+#include <algorithm>
 #include <chrono>
 #include <cstddef>
 #include <cstdint>
