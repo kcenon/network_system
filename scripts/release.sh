@@ -108,7 +108,7 @@ cd "$BUILD_DIR"
 cmake .. \
     -DCMAKE_BUILD_TYPE=Release \
     -DBUILD_TESTS=ON \
-    -DBUILD_SAMPLES=ON \
+    -DBUILD_EXAMPLES=ON \
     -DBUILD_SHARED_LIBS=OFF \
     -DCMAKE_INSTALL_PREFIX=/usr/local
 

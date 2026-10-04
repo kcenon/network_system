@@ -1,0 +1,352 @@
+# Hermetic Transport Fixture (Issue #1060)
+
+A static helper library — `network::test_support` — that provides byte-level
+loopback peers for HTTP/2, gRPC, QUIC, and WebSocket unit tests.
+
+The four lower-coverage protocol files in the repository
+(`http2_client.cpp`, `http2_server.cpp`, `grpc/client.cpp`,
+`websocket_server.cpp`, `quic_socket.cpp`, `quic_server.cpp`) carry a class of
+private async/socket-bound methods that cannot be exercised by pure public-API
+tests. Sub-issues #1048-#1053 added 4,383 LOC of hermetic gtest cases for
+these files yet moved overall filtered coverage by only +0.05pp / +0.07pp,
+because the private methods named in each file's "Honest scope statement"
+remained unreachable. This fixture is the structural complement that lets
+follow-up tests drive those methods.
+
+## What "hermetic" means here
+
+- Every socket binds to `127.0.0.1` with a kernel-assigned port (`:0`).
+- No DNS lookup, no external network interface, no on-disk secrets.
+- TLS certificates are generated in memory at fixture init using the OpenSSL
+  X509/EVP APIs (already a transitive dependency via `asio::ssl`).
+- Concurrent test executions never collide because every port is ephemeral.
+
+## Files
+
+| File | Purpose |
+|------|---------|
+| `hermetic_transport_fixture.h/.cpp` | GTest fixture base with shared `io_context` + worker thread, plus loopback TCP/UDP pair builders. |
+| `mock_tls_socket.h/.cpp` | RSA-2048 self-signed cert generation, server/client `ssl::context` factories, and a `tls_loopback_listener` RAII helper. |
+| `mock_udp_peer.h/.cpp` | UDP peer wrapper for QUIC tests plus a stub QUIC long-header Initial-packet builder. |
+| `mock_ws_handshake.h/.cpp` | RFC 6455 client upgrade request and frame builders for WebSocket server tests. |
+| `mock_h2_server_peer.h/.cpp` | Server-side HTTP/2 framing peer (Phase 2A + 2A.2 of #1074): connection preface read, server SETTINGS send, client SETTINGS read, SETTINGS-ACK send. With `reply_mode::echo_one`, also reads one client request stream and replies with `:status: 200` HEADERS + a small END_STREAM DATA frame. Composes `tls_loopback_listener` and runs the exchange on a dedicated worker thread. |
+| `mock_grpc_server_peer.h/.cpp` | Server-side gRPC framing peer (Phase 2B of #1074): same SETTINGS exchange as `mock_h2_server_peer`. With `grpc_reply_mode::echo_unary`, additionally reads one client request stream and replies with `:status: 200` + `content-type: application/grpc` HEADERS, one length-prefixed DATA frame (gRPC 5-byte header + payload), and a trailing HEADERS frame carrying `grpc-status: 0` (END_STREAM). Drives `grpc_client::call_raw` past the trailer-scan and `grpc_message::parse` branches. |
+| `mock_quic_peer_loop.h/.cpp` | Server-side QUIC Initial echo peer (Phase 2C of #1074): receives one client Initial datagram, derives QUIC-v1 initial keys from the original DCID, replies with a valid Initial packet carrying a stub `crypto_frame`, enabling `quic_socket::process_crypto_frame` to be reached from a hermetic test. |
+| `network_test_friends.h` + `quic_server_probe.h/.cpp` + `ws_server_probe.h/.cpp` | Friend-test injection points (Phase 2D of #1074): forwarders that grant tests access to the previously-private `messaging_quic_server::handle_packet` and `messaging_ws_server::handle_new_connection` entry points under the `NETWORK_ENABLE_TEST_INJECTION` build gate. |
+| `frame_injector.h/.cpp` | Composable byte-level fault hooks (Phase 2E of #1074): `injection_mode::none`, `drop`, `truncate`, `malform`, `slow_write`. Pluggable into the three server peers (h2 / gRPC / QUIC) via an optional constructor argument and into raw client→server byte streams (e.g. WebSocket fed to `ws_server_probe`) via `frame_injector::write` / `frame_injector::transform`. |
+
+## Composition pattern
+
+```cpp
+#include "hermetic_transport_fixture.h"
+#include "mock_tls_socket.h"
+
+class MyHttp2Test : public kcenon::network::tests::support::hermetic_transport_fixture
+{
+};
+
+TEST_F(MyHttp2Test, ConnectsToLoopbackTlsListener)
+{
+    using namespace kcenon::network::tests::support;
+
+    tls_loopback_listener listener(io());            // bind 127.0.0.1:0, accept one
+    auto client = std::make_shared<http2::http2_client>();
+
+    std::thread connector([&]() {
+        client->set_timeout(std::chrono::seconds(2));
+        (void)client->connect("127.0.0.1", listener.port());
+    });
+
+    EXPECT_TRUE(wait_for([&]() { return listener.accepted(); },
+                         std::chrono::seconds(3)));
+    client->disconnect();
+    connector.join();
+}
+```
+
+The same composition applies to the other three protocol families:
+
+- HTTP/2 server / gRPC client → `tls_loopback_listener`
+- HTTP/2 server connection → `make_loopback_tcp_pair(io())`
+- QUIC socket / server → `make_loopback_udp_pair(io())` + `mock_udp_peer`
+- WebSocket server → `make_loopback_tcp_pair(io())` + `mock_ws_handshake`
+  builders
+
+For HTTP/2 *client* tests that need to exercise post-connect code paths
+(SETTINGS exchange, GOAWAY emit on disconnect, etc.), use
+`mock_h2_server_peer` which layers HTTP/2 framing on top of
+`tls_loopback_listener`:
+
+```cpp
+#include "hermetic_transport_fixture.h"
+#include "mock_h2_server_peer.h"
+
+class MyHttp2ClientTest
+    : public kcenon::network::tests::support::hermetic_transport_fixture
+{
+};
+
+TEST_F(MyHttp2ClientTest, ConnectCompletesSettingsExchange)
+{
+    using namespace kcenon::network::tests::support;
+
+    mock_h2_server_peer peer(io());
+    auto client = std::make_shared<http2::http2_client>("test");
+    client->set_timeout(std::chrono::milliseconds(2000));
+
+    std::thread connector([&]() {
+        (void)client->connect("127.0.0.1", peer.port());
+    });
+
+    EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged() && client->is_connected(); },
+                         std::chrono::seconds(3)));
+    EXPECT_TRUE(client->is_connected());
+
+    (void)client->disconnect();   // emits GOAWAY, drained by the peer
+    connector.join();
+}
+```
+
+To exercise the response success path (Phase 2A.2), construct the peer
+with `reply_mode::echo_one`. The peer will read one client request stream
+after SETTINGS and reply on the same stream_id with `:status: 200` plus a
+small body:
+
+```cpp
+TEST_F(MyHttp2ClientTest, GetReturnsResponseFromMockPeer)
+{
+    using namespace kcenon::network::tests::support;
+
+    mock_h2_server_peer peer(io(), reply_mode::echo_one);
+    auto client = std::make_shared<http2::http2_client>("test");
+    client->set_timeout(std::chrono::milliseconds(2000));
+
+    std::thread connector([&]() {
+        (void)client->connect("127.0.0.1", peer.port());
+    });
+    wait_for([&]() { return peer.settings_exchanged() && client->is_connected(); },
+             std::chrono::seconds(3));
+
+    auto response = client->get("/echo", {});
+    ASSERT_TRUE(response.is_ok());
+    EXPECT_EQ(response.value().status_code, 200);
+    EXPECT_TRUE(peer.request_received());
+    EXPECT_TRUE(peer.response_sent());
+
+    (void)client->disconnect();
+    connector.join();
+}
+```
+
+For gRPC client tests that need a successful unary RPC reply (Phase 2B),
+use `mock_grpc_server_peer` which layers gRPC framing on top of the
+HTTP/2 SETTINGS exchange. With `grpc_reply_mode::echo_unary`, the peer
+reads one client request stream after SETTINGS and replies on the same
+stream with response HEADERS (`:status: 200`,
+`content-type: application/grpc`), one length-prefixed gRPC DATA frame,
+and trailing HEADERS (`grpc-status: 0`, END_STREAM):
+
+```cpp
+#include "hermetic_transport_fixture.h"
+#include "mock_grpc_server_peer.h"
+
+class MyGrpcClientTest
+    : public kcenon::network::tests::support::hermetic_transport_fixture
+{
+};
+
+TEST_F(MyGrpcClientTest, CallRawReturnsResponseFromMockGrpcPeer)
+{
+    using namespace kcenon::network::tests::support;
+
+    mock_grpc_server_peer peer(io(), grpc_reply_mode::echo_unary);
+
+    grpc::grpc_channel_config cfg;
+    cfg.use_tls = true;
+    cfg.default_timeout = std::chrono::milliseconds(2000);
+
+    const std::string target =
+        "127.0.0.1:" + std::to_string(static_cast<unsigned>(peer.port()));
+    auto client = std::make_shared<grpc::grpc_client>(target, cfg);
+
+    std::thread connector([&]() { (void)client->connect(); });
+    wait_for([&]() { return peer.settings_exchanged() && client->is_connected(); },
+             std::chrono::seconds(3));
+
+    auto response = client->call_raw(
+        "/svc/Echo", std::vector<uint8_t>{0x01, 0x02});
+    ASSERT_TRUE(response.is_ok());
+    EXPECT_EQ(response.value().data, (std::vector<uint8_t>{'o', 'k'}));
+    EXPECT_TRUE(peer.request_received());
+    EXPECT_TRUE(peer.response_sent());
+
+    client->disconnect();
+    connector.join();
+}
+```
+
+## Linking from a test target
+
+The fixture is built as `network_test_support` (alias `network::test_support`)
+and is added once via `add_subdirectory(support)` in `tests/CMakeLists.txt`.
+Existing `add_network_test()` invocations link it explicitly:
+
+```cmake
+add_network_test(my_branch_test unit/my_branch_test.cpp)
+target_link_libraries(my_branch_test PRIVATE network::test_support)
+```
+
+Header search paths and ASIO/OpenSSL/GTest include directories are
+transitively provided by the support library's `PUBLIC` link.
+
+## Honest-scope acknowledgements
+
+This PR ships the fixture infrastructure plus one demonstration `TEST_F` per
+target file (six branch_test files in total). Each demo verifies that the
+fixture composes cleanly with the protocol class under test — full per-file
+branch-coverage expansion lives in follow-up issues so each PR stays in the
+S/M size band.
+
+For the QUIC server and WebSocket server cases, `handle_packet()` and
+`handle_new_connection()` remain private; the demo tests therefore show
+byte-level synthesis (packet stub builder, RFC 6455 request builder) rather
+than direct private-method invocation. A future change adding a friend-test
+injection point or a full start_server() loop will let those drives complete.
+
+## Phase 2 progress (Issue #1074)
+
+Phase 2 of the fixture extends each loopback peer with the application-layer
+framing that lets `connect()`/`accept()` reach post-handshake code paths.
+Phases land as independent PRs.
+
+| Phase | Component | Status |
+|-------|-----------|--------|
+| 2A | `mock_h2_server_peer` (preface + SETTINGS exchange + ACK) | shipped |
+| 2A.2 | `mock_h2_server_peer` HEADERS+DATA reply for one stream (`reply_mode::echo_one`) | shipped |
+| 2B | `mock_grpc_server_peer` (h2 + gRPC framing + trailers) | shipped |
+| 2C | `mock_quic_peer_loop` (Initial → Handshake stub) | shipped |
+| 2D | `network_test_friends.h` + `quic_server_probe` + `ws_server_probe` | shipped |
+| 2E | `frame_injector` (drop / truncate / malform / slow-write hooks) | shipped |
+
+## Phase 2E: composing `frame_injector` with each peer
+
+`frame_injector` is a small, header-only-ish (`.cpp` only carries the pure
+`transform` variant) helper that captures one of five fault modes
+(`none`, `drop`, `truncate`, `malform`, `slow_write`) and applies it to any
+byte buffer about to be written to a sync ASIO stream or sent as a UDP
+datagram. The five modes are documented exhaustively in
+`frame_injector.h`; this section shows the four canonical compositions
+exercised by `tests/unit/frame_injector_demo_test.cpp`.
+
+### h2 / gRPC peers — opt-in third constructor argument
+
+Both `mock_h2_server_peer` and `mock_grpc_server_peer` accept an optional
+`injection_spec` after the `reply_mode`. Default-constructed
+(`injection_mode::none`) means the peer is byte-identical to its Phase
+2A/2A.2/2B baseline:
+
+```cpp
+#include "frame_injector.h"
+#include "mock_h2_server_peer.h"
+
+// HTTP/2: drop the very first server frame so the SETTINGS handshake
+// never completes — drives http2_client's connect-timeout branch.
+injection_spec spec;
+spec.mode = injection_mode::drop;
+
+mock_h2_server_peer peer(io(), reply_mode::drain_only, spec);
+
+auto client = std::make_shared<http2::http2_client>("h2-drop-demo");
+client->set_timeout(std::chrono::milliseconds(500));
+
+std::thread connector([&]() {
+    (void)client->connect("127.0.0.1", peer.port());
+});
+EXPECT_FALSE(wait_for([&]() { return peer.settings_exchanged(); },
+                      std::chrono::milliseconds(300)));
+EXPECT_FALSE(client->is_connected());
+(void)client->disconnect();
+connector.join();
+```
+
+The same pattern composes with `mock_grpc_server_peer` and any of the
+remaining modes — for example `injection_mode::malform` with
+`malform_offset = 3` flips the type byte of the SETTINGS-ACK header and
+exercises the gRPC client's parse / unexpected-frame error branch.
+
+### QUIC peer — datagram-level transform
+
+`mock_quic_peer_loop` accepts the same `injection_spec` directly (there
+is no `reply_mode` for QUIC). `slow_write` is treated as a pass-through
+because UDP is a datagram protocol; `drop` skips the `send_to` entirely
+and leaves `peer.initial_sent()` reporting `false` so tests can
+distinguish "the wire bytes never left" from "the bytes were corrupted":
+
+```cpp
+#include "frame_injector.h"
+#include "mock_quic_peer_loop.h"
+
+// QUIC: flip the long-header form / fixed bits so quic_socket rejects
+// the server Initial at the version gate before reaching the
+// process_crypto_frame branch.
+injection_spec spec;
+spec.mode = injection_mode::malform;
+spec.malform_offset = 0;
+spec.malform_xor = 0xC0;
+
+mock_quic_peer_loop peer(io(), spec);
+
+asio::ip::udp::socket udp_sock(io(), asio::ip::udp::v4());
+auto client = std::make_shared<internal::quic_socket>(
+    std::move(udp_sock), internal::quic_role::client);
+
+EXPECT_TRUE(client->connect(peer.peer_endpoint(), "test.example").is_ok());
+EXPECT_TRUE(wait_for([&]() { return peer.initial_sent(); },
+                     std::chrono::seconds(3)));
+client->stop_receive();
+```
+
+### WebSocket — composing with `ws_server_probe`
+
+The WebSocket family has no equivalent of `mock_h2_server_peer`. Phase
+2E demonstrates composability against the Phase 2D friend-test probe
+instead: build a raw client→server stream with `make_loopback_tcp_pair`,
+write through `frame_injector::write` (here `slow_write` to drive the
+partial-read code paths in any future framed-server test), and hand the
+already-connected server socket to `ws_server_probe`:
+
+```cpp
+#include "frame_injector.h"
+#include "ws_server_probe.h"
+#include "hermetic_transport_fixture.h"
+
+constexpr std::array<std::uint8_t, 8> wire{ /* ... */ };
+
+auto [client, accepted] = make_loopback_tcp_pair(io());
+
+injection_spec spec;
+spec.mode = injection_mode::slow_write;
+spec.slow_step = std::chrono::microseconds{500};
+frame_injector inject(spec);
+
+std::thread writer([&]() {
+    std::error_code wec;
+    (void)inject.write(client, std::span<const std::uint8_t>(wire), wec);
+});
+
+std::array<std::uint8_t, wire.size()> received{};
+std::error_code rec;
+asio::read(accepted, asio::buffer(received), rec);
+writer.join();
+ASSERT_FALSE(rec);
+
+messaging_ws_server server("ws-slow-demo");
+auto sock = std::make_shared<asio::ip::tcp::socket>(std::move(accepted));
+EXPECT_NO_FATAL_FAILURE(
+    ws_server_probe::invoke_handle_new_connection(server, sock));
+```
+
+Once Phase 2 is wholly shipped (this entry), the six follow-up coverage
+sub-issues #1062-#1067 take over: each of them adds the protocol-specific
+`TEST_F` body that drives the >=80 % line / >=70 % branch acceptance
+target on the relevant target file, layered on the substrate above.

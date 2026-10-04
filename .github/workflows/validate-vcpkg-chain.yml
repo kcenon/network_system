@@ -12,7 +12,7 @@ on:
       - 'scripts/validate_vcpkg_chain.sh'
       - '.github/workflows/validate-vcpkg-chain.yml'
   pull_request:
-    branches: [main]
+    branches: [main, develop]
     paths:
       - 'vcpkg-ports/**'
       - 'vcpkg.json'

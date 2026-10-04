@@ -27,6 +27,13 @@
 #include <string_view>
 #include <vector>
 
+#if defined(NETWORK_ENABLE_TEST_INJECTION)
+namespace kcenon::network::tests::support
+{
+    class http2_server_test_access;
+} // namespace kcenon::network::tests::support
+#endif
+
 namespace kcenon::network::protocols::http2
 {
     // Forward declaration
@@ -248,6 +255,7 @@ namespace kcenon::network::protocols::http2
         std::atomic<uint64_t> next_connection_id_{1};
 
         // Settings
+        mutable std::mutex settings_mutex_;
         http2_settings settings_;
 
         // HPACK encoder for all connections
@@ -343,6 +351,9 @@ namespace kcenon::network::protocols::http2
         [[nodiscard]] auto stream_count() const -> size_t;
 
     private:
+        friend class http2_server;
+        auto shutdown_transport() -> void;
+
         // Connection setup
         auto read_connection_preface() -> void;
         auto send_settings() -> VoidResult;
@@ -377,6 +388,7 @@ namespace kcenon::network::protocols::http2
         // Socket (one of these is used)
         std::unique_ptr<asio::ip::tcp::socket> plain_socket_;
         std::unique_ptr<asio::ssl::stream<asio::ip::tcp::socket>> tls_socket_;
+        std::mutex transport_shutdown_mutex_;       //!< Serialize close and shutdown
 
         // Connection state
         std::atomic<bool> is_alive_{true};
@@ -406,6 +418,16 @@ namespace kcenon::network::protocols::http2
         // Read buffer
         std::vector<uint8_t> read_buffer_;
         std::array<uint8_t, 9> frame_header_buffer_;
+
+#if defined(NETWORK_ENABLE_TEST_INJECTION)
+        // Test-only: grants tests/support/http2_server_test_access access to
+        // the private process_frame() dispatcher and selected member fields
+        // without leaking them through the public API. Used by
+        // tests/unit/http2_server_dispatcher_branch_test.cpp to bypass the
+        // SETTINGS handshake gate so per-frame branches can be measured under
+        // coverage instrumentation (Issue #1121).
+        friend class kcenon::network::tests::support::http2_server_test_access;
+#endif
     };
 
 } // namespace kcenon::network::protocols::http2

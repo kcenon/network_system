@@ -91,7 +91,7 @@ client->wait_for_stop();
 
 ### Server with UDP Support
 
-For server-side functionality, use `messaging_udp_server` (see [UDP_SUPPORT.md](../UDP_SUPPORT.md)):
+For server-side functionality, use `messaging_udp_server` (see [UDP_SUPPORT.md](../guides/UDP_SUPPORT.md)):
 
 ```cpp
 #include "kcenon/network/core/messaging_udp_server.h"
@@ -531,10 +531,10 @@ if (client->is_running()) {
 
 ## Related Documentation
 
-- [UDP Support Overview](../UDP_SUPPORT.md) - Basic UDP support documentation
-- [API Reference](API_REFERENCE.md) - Complete API documentation
+- [UDP Support Overview](../guides/UDP_SUPPORT.md) - Basic UDP support documentation
+- [API Reference](../API_REFERENCE.md) - Complete API documentation
 - [Performance Tuning](OPERATIONS.md) - Production optimization
-- [Troubleshooting](TROUBLESHOOTING.md) - Common issues and solutions
+- [Troubleshooting](../guides/TROUBLESHOOTING.md) - Common issues and solutions
 
 ---
 

@@ -71,13 +71,13 @@ jobs:
           -DCMAKE_BUILD_TYPE=Release \
           -DBUILD_SHARED_LIBS=OFF \
           -DCMAKE_INSTALL_PREFIX=install \
-          -DBUILD_WITH_COMMON_SYSTEM=OFF \
-          -DBUILD_WITH_LOGGER_SYSTEM=OFF \
-          -DBUILD_WITH_THREAD_SYSTEM=OFF \
-          -DBUILD_WITH_CONTAINER_SYSTEM=OFF \
+          -DKCENON_WITH_COMMON_SYSTEM=OFF \
+          -DKCENON_WITH_LOGGER_SYSTEM=OFF \
+          -DKCENON_WITH_THREAD_SYSTEM=OFF \
+          -DKCENON_WITH_CONTAINER_SYSTEM=OFF \
           -DBUILD_MESSAGING_BRIDGE=OFF \
           -DBUILD_TESTS=ON \
-          -DBUILD_SAMPLES=OFF
+          -DBUILD_EXAMPLES=OFF
 
     - name: Configure CMake (Windows)
       if: runner.os == 'Windows'
@@ -87,13 +87,13 @@ jobs:
           -DCMAKE_BUILD_TYPE=Release \
           -DBUILD_SHARED_LIBS=OFF \
           -DCMAKE_INSTALL_PREFIX=install \
-          -DBUILD_WITH_COMMON_SYSTEM=OFF \
-          -DBUILD_WITH_LOGGER_SYSTEM=OFF \
-          -DBUILD_WITH_THREAD_SYSTEM=OFF \
-          -DBUILD_WITH_CONTAINER_SYSTEM=OFF \
+          -DKCENON_WITH_COMMON_SYSTEM=OFF \
+          -DKCENON_WITH_LOGGER_SYSTEM=OFF \
+          -DKCENON_WITH_THREAD_SYSTEM=OFF \
+          -DKCENON_WITH_CONTAINER_SYSTEM=OFF \
           -DBUILD_MESSAGING_BRIDGE=OFF \
           -DBUILD_TESTS=ON \
-          -DBUILD_SAMPLES=OFF
+          -DBUILD_EXAMPLES=OFF
 
     - name: Build (Unix)
       if: runner.os != 'Windows'

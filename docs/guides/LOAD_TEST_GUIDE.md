@@ -28,8 +28,8 @@ This guide explains how to run network load tests, interpret results, and update
 
 ### Prerequisites
 
-- CMake 3.16 or higher
-- C++20 compatible compiler (GCC 11+, Clang 13+, MSVC 2019+)
+- CMake 3.20 or higher
+- C++20 compatible compiler (GCC 13+, Clang 17+, MSVC 2022+, Apple Clang 14+)
 - Python 3.7+ (for automation scripts)
 - Git and GitHub CLI (optional, for CI workflows)
 
@@ -421,7 +421,7 @@ for protocol, metrics in data['protocols'].items():
 ## References
 
 - [BASELINE.md](../performance/BASELINE.md) - Performance baseline documentation
-- [WEBSOCKET_IMPLEMENTATION_PLAN.md](WEBSOCKET_IMPLEMENTATION_PLAN.md) - Phase 7 implementation details
+<!-- TODO: WEBSOCKET_IMPLEMENTATION_PLAN.md not yet written -->
 - [Google Test Documentation](https://google.github.io/googletest/) - Test framework reference
 - [GitHub Actions Documentation](https://docs.github.com/en/actions) - CI/CD workflow reference
 

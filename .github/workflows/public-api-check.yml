@@ -1,0 +1,38 @@
+name: Public API Check
+
+# Lightweight static check that ensures the public header surface stays
+# exception-free (Result<T> only). Runs on every PR so regressions are
+# caught at review time, not post-merge.
+
+on:
+  push:
+    branches: [ main, develop, phase-* ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  no-throw-in-public-api:
+    name: No throw in public headers
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Check for throw statements in include/
+        run: |
+          set -o pipefail
+          # Look for actual `throw` statements in public headers. Comments,
+          # noexcept specifiers, and Doxygen @throws tags are excluded. The
+          # pattern requires `throw` to be followed by whitespace and either
+          # an identifier, semicolon, or opening paren — that's what real
+          # throw statements look like, not prose.
+          if grep -rnE '^[[:space:]]*throw[[:space:]]*[A-Za-z_(;]' \
+                 include/ --include='*.h' --include='*.hpp' \
+                 | grep -vE '//|/\*| \*|@throws|noexcept|throw_'; then
+            echo "::error::Found throw statement(s) in public headers."
+            echo "The public API is Result<T>-only; use Result<T> instead"
+            echo "of throwing. See docs/result-migration.md."
+            exit 1
+          fi
+          echo "OK — no throw statements in public headers."

@@ -8,9 +8,10 @@ project: "network_system"
 category: "GUID"
 ---
 
-# Network System Integration Guide
+# Network System Integration Guides Index
 
-> **SSOT**: This document is the single source of truth for **Network System Integration Guide**.
+> **Note**: See [../INTEGRATION.md](../INTEGRATION.md) for the canonical Integration Guide SSOT.
+> This document is an index of per-system integration guides (common/logger/monitoring).
 
 ## Overview
 
@@ -21,8 +22,11 @@ This directory contains integration guides for using network_system with other K
 - [With Common System](with-common-system.md) - Foundation interfaces and error handling
 - [With Logger System](with-logger.md) - Logging network events and errors
 - [With Monitoring System](with-monitoring.md) - Network metrics and observability
+<!-- TODO: with-thread-system.md and with-database-system.md not yet written -->
+<!--
 - [With Thread System](with-thread-system.md) - Async operations and thread pooling
 - [With Database System](with-database-system.md) - Network-based database protocols
+-->
 
 ## Quick Start
 
@@ -145,13 +149,15 @@ See: [with-logger.md](with-logger.md), [with-monitoring.md](with-monitoring.md)
 
 Dependencies: `database_system`, `thread_system`
 
-See: [with-database-system.md](with-database-system.md)
+<!-- TODO: with-database-system.md not yet written -->
+See: with-database-system.md (planned)
 
 ### 3. WebSocket Chat Server
 
 Dependencies: `logger_system`, `thread_system`, `container_system`
 
-See: [with-thread-system.md](with-thread-system.md)
+<!-- TODO: with-thread-system.md not yet written -->
+See: with-thread-system.md (planned)
 
 ## Performance Considerations
 
@@ -160,7 +166,7 @@ See: [with-thread-system.md](with-thread-system.md)
 - Enable connection pooling for database connections
 - Use monitoring to track network metrics and identify bottlenecks
 
-See: [../performance/OPTIMIZATION.md](../performance/OPTIMIZATION.md)
+See: [../advanced/PERFORMANCE_TUNING.md](../advanced/PERFORMANCE_TUNING.md) and [../performance/BASELINE.md](../performance/BASELINE.md)
 
 ## Security
 
@@ -169,14 +175,14 @@ See: [../performance/OPTIMIZATION.md](../performance/OPTIMIZATION.md)
 - Filter sensitive data from logs
 - Monitor for security events
 
-See: [../security/SECURITY.md](../security/SECURITY.md)
+See: [../guides/TLS_SETUP_GUIDE.md](../guides/TLS_SETUP_GUIDE.md) and [../DTLS_RESILIENT_GUIDE.md](../DTLS_RESILIENT_GUIDE.md)
 
 ## Additional Resources
 
 - [Network System API Reference](../API_REFERENCE.md)
 - [Network System Architecture](../ARCHITECTURE.md)
-- [Ecosystem Integration Guide](../../../ECOSYSTEM.md)
-- [Example Applications](../../../examples/network/)
+- [Ecosystem Integration Guide](../ECOSYSTEM.md)
+- [Example Applications](../../examples/)
 
 ## Support
 

@@ -25,20 +25,27 @@
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
 
-#include <stdexcept>
 #include <thread>  // For std::thread::hardware_concurrency and std::this_thread::sleep_for (fallback)
 
 #include <kcenon/thread/core/thread_worker.h>
 
 namespace kcenon::network::integration {
 
+Result<std::shared_ptr<thread_system_pool_adapter>> thread_system_pool_adapter::create(
+    std::shared_ptr<kcenon::thread::thread_pool> pool) {
+    if (!pool) {
+        return error<std::shared_ptr<thread_system_pool_adapter>>(
+            error_codes::common_errors::invalid_argument,
+            "thread_system_pool_adapter: pool is null",
+            "thread_system_pool_adapter::create");
+    }
+    return ok(std::shared_ptr<thread_system_pool_adapter>(
+        new thread_system_pool_adapter(std::move(pool))));
+}
+
 thread_system_pool_adapter::thread_system_pool_adapter(
     std::shared_ptr<kcenon::thread::thread_pool> pool)
     : pool_(std::move(pool)) {
-    if (!pool_) {
-        throw std::invalid_argument("thread_system_pool_adapter: pool is null");
-    }
-    // No scheduler thread needed - delayed tasks are handled by thread_pool::submit_delayed
 }
 
 thread_system_pool_adapter::~thread_system_pool_adapter() {
@@ -140,7 +147,8 @@ std::shared_ptr<thread_system_pool_adapter> thread_system_pool_adapter::create_d
     }
 
     (void)pool->start(); // best-effort start; ignore error to keep adapter usable
-    return std::make_shared<thread_system_pool_adapter>(std::move(pool));
+    auto result = thread_system_pool_adapter::create(std::move(pool));
+    return result.is_ok() ? result.value() : nullptr;
 }
 
 std::shared_ptr<thread_system_pool_adapter> thread_system_pool_adapter::from_service_or_default(
@@ -149,7 +157,8 @@ std::shared_ptr<thread_system_pool_adapter> thread_system_pool_adapter::from_ser
     try {
         auto& sc = kcenon::thread::service_container::global();
         if (auto existing = sc.resolve<kcenon::thread::thread_pool>()) {
-            return std::make_shared<thread_system_pool_adapter>(std::move(existing));
+            auto result = thread_system_pool_adapter::create(std::move(existing));
+            if (result.is_ok()) return result.value();
         }
     } catch (...) {
         // ignore and fallback

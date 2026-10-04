@@ -25,11 +25,12 @@ category: "GUID"
 
 ### 최소 요구 사항
 - C++20 호환 컴파일러
-  - GCC 11 이상
-  - Clang 14 이상
+  - GCC 13 이상
+  - Clang 17 이상
   - MSVC 2022 이상
-- CMake 3.16 이상
-- ASIO 라이브러리 또는 Boost.ASIO 1.28+
+  - Apple Clang 14 이상
+- CMake 3.20 이상
+- Standalone ASIO 1.30.2+ (Boost.ASIO 미지원)
 
 ### 선택적 의존성
 - fmt 라이브러리 10.0+ (사용 불가능한 경우 std::format으로 폴백)
@@ -72,8 +73,7 @@ sudo apt install -y build-essential cmake ninja-build
 # 필수 라이브러리 설치
 sudo apt install -y libasio-dev libfmt-dev
 
-# 선택 사항: Boost 설치 (Boost.ASIO 폴백용)
-sudo apt install -y libboost-all-dev
+# (Boost는 필요하지 않습니다; network_system은 standalone ASIO만 사용합니다.)
 
 # 선택 사항: 테스트 프레임워크 설치
 sudo apt install -y libgtest-dev libbenchmark-dev
@@ -85,7 +85,7 @@ mkdir build && cd build
 cmake .. -G Ninja \
   -DCMAKE_BUILD_TYPE=Release \
   -DBUILD_TESTS=ON \
-  -DBUILD_SAMPLES=ON
+  -DBUILD_EXAMPLES=ON
 ninja
 ```
 
@@ -109,7 +109,7 @@ mkdir build && cd build
 cmake .. -G Ninja \
   -DCMAKE_BUILD_TYPE=Release \
   -DBUILD_TESTS=ON \
-  -DBUILD_SAMPLES=ON
+  -DBUILD_EXAMPLES=ON
 ninja
 ```
 
@@ -171,7 +171,7 @@ mkdir build && cd build
 cmake .. -G Ninja \
   -DCMAKE_BUILD_TYPE=Release \
   -DBUILD_TESTS=ON \
-  -DBUILD_SAMPLES=ON
+  -DBUILD_EXAMPLES=ON
 ninja
 ```
 
@@ -183,7 +183,7 @@ ninja
 |--------|---------|-------------|
 | `BUILD_SHARED_LIBS` | OFF | 공유 라이브러리로 빌드 |
 | `BUILD_TESTS` | ON | 단위 테스트 빌드 |
-| `BUILD_SAMPLES` | ON | 샘플 애플리케이션 빌드 |
+| `BUILD_EXAMPLES` | ON | 사용 예제 빌드 |
 | `BUILD_WITH_CONTAINER_SYSTEM` | ON | container_system 통합 활성화 |
 | `BUILD_WITH_THREAD_SYSTEM` | ON | thread_system 통합 활성화 |
 | `BUILD_MESSAGING_BRIDGE` | ON | messaging_system 호환성 브리지 빌드 |
@@ -193,7 +193,7 @@ ninja
 
 #### 최소 빌드
 ```bash
-cmake .. -DBUILD_TESTS=OFF -DBUILD_SAMPLES=OFF
+cmake .. -DBUILD_TESTS=OFF -DBUILD_EXAMPLES=OFF
 ```
 
 #### 전체 기능 빌드
@@ -201,7 +201,7 @@ cmake .. -DBUILD_TESTS=OFF -DBUILD_SAMPLES=OFF
 cmake .. -G Ninja \
   -DCMAKE_BUILD_TYPE=Release \
   -DBUILD_TESTS=ON \
-  -DBUILD_SAMPLES=ON \
+  -DBUILD_EXAMPLES=ON \
   -DBUILD_WITH_CONTAINER_SYSTEM=ON \
   -DBUILD_WITH_THREAD_SYSTEM=ON \
   -DBUILD_MESSAGING_BRIDGE=ON

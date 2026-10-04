@@ -427,9 +427,10 @@ bridge->initialize(config);
 
 ## Related Documentation
 
-- [INetworkBridge Interface](../api/bridge_interface.md) - Base interface for all bridges
-- [ThreadPoolBridge](../api/thread_pool_bridge.md) - Thread pool bridge details
-- [Integration Architecture](../architecture/integration.md) - Overall integration design
+<!-- TODO: dedicated api/ and architecture/ subdirectories planned but not yet written -->
+- [Adapter to Bridge Migration](adapter_to_bridge_migration.md) - Companion migration guide
+- [Integration Guide](../INTEGRATION.md) - Ecosystem integration overview
+- [Architecture Overview](../ARCHITECTURE_OVERVIEW.md) - System architecture
 
 ## Support
 

@@ -80,6 +80,13 @@ Network System 프로젝트의 모든 주요 변경 사항이 이 파일에 문�
   - NETWORK_SYSTEM_SANITIZER로 새니타이저 민감 테스트 일관되게 스킵
 
 ### 추가됨
+- **11개 미테스트 모듈에 대한 단위 테스트 (#968)**
+  - 통합 브릿지 (5): `container_integration`, `io_context_thread_manager`, `logger_integration`, `monitoring_integration`, `thread_integration`
+  - 프로토콜 팩토리 (4): `tcp`, `udp`, `websocket`, `quic`
+  - HTTP/2 (1): `http2_server_stream`
+  - 내부 (1): `websocket_socket`
+  - 11개 테스트 타겟을 `tests/CMakeLists.txt`에 등록
+  - 단위 테스트 커버리지 48%에서 80% 달성을 위한 #953 커버리지 확장 작업의 일환
 - **OpenTelemetry 호환 분산 트레이싱 (#408)**: 분산 관측성을 위한 핵심 트레이싱 인프라 추가
   - 트레이스 ID, 스팬 ID, 부모 관계 관리를 위한 `trace_context` 클래스
   - RAII 기반 생명주기, 속성, 이벤트, 상태를 가진 `span` 클래스
@@ -821,7 +828,7 @@ Network System 프로젝트의 모든 주요 변경 사항이 이 파일에 문�
 ## 프로젝트 정보
 
 **저장소:** https://github.com/kcenon/network_system
-**문서:** [docs/](docs/)
+**문서:** [docs/README.md](README.md)
 **라이선스:** LICENSE 파일 참조
 **관리자:** kcenon@naver.com
 

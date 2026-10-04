@@ -5,7 +5,7 @@ param(
     [string]$InstallPrefix = "C:\Program Files\NetworkSystem",
     [string]$BuildType = "Release",
     [switch]$WithTests,
-    [switch]$WithSamples,
+    [switch]$WithExamples,
     [int]$Jobs = 0,
     [switch]$Clean,
     [switch]$Uninstall,
@@ -42,7 +42,7 @@ Options:
     -InstallPrefix PATH    Installation directory (default: C:\Program Files\NetworkSystem)
     -BuildType TYPE        Build type: Debug, Release, RelWithDebInfo (default: Release)
     -WithTests             Build tests
-    -WithSamples           Build sample programs
+    -WithExamples          Build example programs
     -Jobs N                Number of parallel jobs (default: auto-detect)
     -Clean                 Clean build directory before building
     -Uninstall             Uninstall Network System
@@ -51,7 +51,7 @@ Options:
 Examples:
     .\install.ps1                                     # Default installation
     .\install.ps1 -InstallPrefix C:\libs -WithTests   # Install to C:\libs with tests
-    .\install.ps1 -BuildType Debug -WithSamples       # Debug build with samples
+    .\install.ps1 -BuildType Debug -WithExamples      # Debug build with examples
     .\install.ps1 -Uninstall                          # Remove installation
 
 Requirements:
@@ -171,7 +171,7 @@ function Build-NetworkSystem {
             "-DCMAKE_BUILD_TYPE=$BuildType"
             "-DCMAKE_INSTALL_PREFIX=`"$InstallPrefix`""
             "-DBUILD_TESTS=$($WithTests.IsPresent)"
-            "-DBUILD_SAMPLES=$($WithSamples.IsPresent)"
+            "-DBUILD_EXAMPLES=$($WithExamples.IsPresent)"
             "-DBUILD_SHARED_LIBS=OFF"
         )
 

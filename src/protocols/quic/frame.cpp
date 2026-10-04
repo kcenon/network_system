@@ -423,7 +423,9 @@ auto frame_parser::parse_ack(std::span<const uint8_t> data, bool has_ecn)
         error_codes::common_errors::invalid_argument, "Failed to parse first ack range");
     offset += first_range.value().second;
 
-    // The first range implicitly starts at largest_acknowledged
+    // Keep the first range too: loss detection and build_ack both use
+    // ranges[0] for the range ending at largest_acknowledged.
+    f.ranges.push_back({0, first_range.value().first});
     // Additional ranges
     for (uint64_t i = 0; i < range_count.value().first; ++i)
     {
@@ -962,7 +964,7 @@ auto frame_builder::build_ack(const ack_frame& f) -> std::vector<uint8_t>
     append_varint(buffer, f.ack_delay);
 
     // ACK Range Count
-    append_varint(buffer, f.ranges.size());
+    append_varint(buffer, f.ranges.empty() ? 0 : f.ranges.size() - 1);
 
     // First ACK Range (largest_ack - smallest_ack in first range)
     // For simplicity, we'll use 0 if no ranges are specified

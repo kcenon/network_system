@@ -86,18 +86,18 @@ protected:
     std::shared_ptr<mock_thread_pool> pool_;
 };
 
-TEST_F(ThreadPoolBridgeTest, ConstructorWithNullPoolThrows) {
-    EXPECT_THROW(
-        ThreadPoolBridge(nullptr, ThreadPoolBridge::BackendType::Custom),
-        std::invalid_argument);
+TEST_F(ThreadPoolBridgeTest, CreateWithNullPoolReturnsError) {
+    auto result = ThreadPoolBridge::create(nullptr, ThreadPoolBridge::BackendType::Custom);
+    EXPECT_TRUE(result.is_err());
 }
 
-TEST_F(ThreadPoolBridgeTest, ConstructorWithValidPool) {
-    EXPECT_NO_THROW(ThreadPoolBridge(pool_, ThreadPoolBridge::BackendType::Custom));
+TEST_F(ThreadPoolBridgeTest, CreateWithValidPool) {
+    auto result = ThreadPoolBridge::create(pool_, ThreadPoolBridge::BackendType::Custom);
+    EXPECT_TRUE(result.is_ok());
 }
 
 TEST_F(ThreadPoolBridgeTest, InitializeSuccess) {
-    auto bridge = std::make_shared<ThreadPoolBridge>(pool_, ThreadPoolBridge::BackendType::Custom);
+    auto bridge = ThreadPoolBridge::create(pool_, ThreadPoolBridge::BackendType::Custom).value();
 
     BridgeConfig config;
     config.integration_name = "test_pool";
@@ -110,7 +110,7 @@ TEST_F(ThreadPoolBridgeTest, InitializeSuccess) {
 
 TEST_F(ThreadPoolBridgeTest, InitializeWithStoppedPoolFails) {
     pool_->set_running(false);
-    auto bridge = std::make_shared<ThreadPoolBridge>(pool_, ThreadPoolBridge::BackendType::Custom);
+    auto bridge = ThreadPoolBridge::create(pool_, ThreadPoolBridge::BackendType::Custom).value();
 
     BridgeConfig config;
     config.integration_name = "test_pool";
@@ -121,7 +121,7 @@ TEST_F(ThreadPoolBridgeTest, InitializeWithStoppedPoolFails) {
 }
 
 TEST_F(ThreadPoolBridgeTest, InitializeDisabledBridgeFails) {
-    auto bridge = std::make_shared<ThreadPoolBridge>(pool_, ThreadPoolBridge::BackendType::Custom);
+    auto bridge = ThreadPoolBridge::create(pool_, ThreadPoolBridge::BackendType::Custom).value();
 
     BridgeConfig config;
     config.integration_name = "test_pool";
@@ -133,7 +133,7 @@ TEST_F(ThreadPoolBridgeTest, InitializeDisabledBridgeFails) {
 }
 
 TEST_F(ThreadPoolBridgeTest, InitializeAlreadyInitializedFails) {
-    auto bridge = std::make_shared<ThreadPoolBridge>(pool_, ThreadPoolBridge::BackendType::Custom);
+    auto bridge = ThreadPoolBridge::create(pool_, ThreadPoolBridge::BackendType::Custom).value();
 
     BridgeConfig config;
     config.integration_name = "test_pool";
@@ -146,7 +146,7 @@ TEST_F(ThreadPoolBridgeTest, InitializeAlreadyInitializedFails) {
 }
 
 TEST_F(ThreadPoolBridgeTest, ShutdownSuccess) {
-    auto bridge = std::make_shared<ThreadPoolBridge>(pool_, ThreadPoolBridge::BackendType::Custom);
+    auto bridge = ThreadPoolBridge::create(pool_, ThreadPoolBridge::BackendType::Custom).value();
 
     BridgeConfig config;
     config.integration_name = "test_pool";
@@ -160,7 +160,7 @@ TEST_F(ThreadPoolBridgeTest, ShutdownSuccess) {
 }
 
 TEST_F(ThreadPoolBridgeTest, ShutdownIdempotent) {
-    auto bridge = std::make_shared<ThreadPoolBridge>(pool_, ThreadPoolBridge::BackendType::Custom);
+    auto bridge = ThreadPoolBridge::create(pool_, ThreadPoolBridge::BackendType::Custom).value();
 
     BridgeConfig config;
     config.integration_name = "test_pool";
@@ -174,14 +174,14 @@ TEST_F(ThreadPoolBridgeTest, ShutdownIdempotent) {
 }
 
 TEST_F(ThreadPoolBridgeTest, GetMetricsBeforeInitialization) {
-    auto bridge = std::make_shared<ThreadPoolBridge>(pool_, ThreadPoolBridge::BackendType::Custom);
+    auto bridge = ThreadPoolBridge::create(pool_, ThreadPoolBridge::BackendType::Custom).value();
 
     auto metrics = bridge->get_metrics();
     EXPECT_FALSE(metrics.is_healthy);
 }
 
 TEST_F(ThreadPoolBridgeTest, GetMetricsAfterInitialization) {
-    auto bridge = std::make_shared<ThreadPoolBridge>(pool_, ThreadPoolBridge::BackendType::Custom);
+    auto bridge = ThreadPoolBridge::create(pool_, ThreadPoolBridge::BackendType::Custom).value();
 
     BridgeConfig config;
     config.integration_name = "test_pool";
@@ -195,7 +195,7 @@ TEST_F(ThreadPoolBridgeTest, GetMetricsAfterInitialization) {
 }
 
 TEST_F(ThreadPoolBridgeTest, GetMetricsAfterShutdown) {
-    auto bridge = std::make_shared<ThreadPoolBridge>(pool_, ThreadPoolBridge::BackendType::Custom);
+    auto bridge = ThreadPoolBridge::create(pool_, ThreadPoolBridge::BackendType::Custom).value();
 
     BridgeConfig config;
     config.integration_name = "test_pool";
@@ -207,23 +207,24 @@ TEST_F(ThreadPoolBridgeTest, GetMetricsAfterShutdown) {
 }
 
 TEST_F(ThreadPoolBridgeTest, GetThreadPool) {
-    auto bridge = std::make_shared<ThreadPoolBridge>(pool_, ThreadPoolBridge::BackendType::Custom);
+    auto bridge = ThreadPoolBridge::create(pool_, ThreadPoolBridge::BackendType::Custom).value();
 
     auto retrieved_pool = bridge->get_thread_pool();
     EXPECT_EQ(retrieved_pool, pool_);
 }
 
 TEST_F(ThreadPoolBridgeTest, GetBackendType) {
-    auto bridge = std::make_shared<ThreadPoolBridge>(
-        pool_, ThreadPoolBridge::BackendType::ThreadSystem);
+    auto bridge = ThreadPoolBridge::create(
+        pool_, ThreadPoolBridge::BackendType::ThreadSystem).value();
 
     EXPECT_EQ(bridge->get_backend_type(), ThreadPoolBridge::BackendType::ThreadSystem);
 }
 
 TEST_F(ThreadPoolBridgeTest, FromThreadSystemFactoryMethod) {
-    auto bridge = ThreadPoolBridge::from_thread_system("test_pool");
-    ASSERT_NE(bridge, nullptr);
+    auto bridge_result = ThreadPoolBridge::from_thread_system("test_pool");
+    ASSERT_TRUE(bridge_result.is_ok());
 
+    auto bridge = bridge_result.value();
     EXPECT_EQ(bridge->get_backend_type(), ThreadPoolBridge::BackendType::ThreadSystem);
 
     auto pool = bridge->get_thread_pool();
@@ -231,7 +232,7 @@ TEST_F(ThreadPoolBridgeTest, FromThreadSystemFactoryMethod) {
 }
 
 TEST_F(ThreadPoolBridgeTest, ThreadPoolFunctionality) {
-    auto bridge = std::make_shared<ThreadPoolBridge>(pool_, ThreadPoolBridge::BackendType::Custom);
+    auto bridge = ThreadPoolBridge::create(pool_, ThreadPoolBridge::BackendType::Custom).value();
 
     BridgeConfig config;
     config.integration_name = "test_pool";
@@ -251,10 +252,9 @@ TEST_F(ThreadPoolBridgeTest, ThreadPoolFunctionality) {
 
 #if KCENON_WITH_COMMON_SYSTEM
 
-TEST_F(ThreadPoolBridgeTest, FromCommonSystemFactoryMethodWithNullExecutorThrows) {
-    EXPECT_THROW(
-        ThreadPoolBridge::from_common_system(nullptr),
-        std::invalid_argument);
+TEST_F(ThreadPoolBridgeTest, FromCommonSystemFactoryMethodWithNullExecutorReturnsError) {
+    auto result = ThreadPoolBridge::from_common_system(nullptr);
+    EXPECT_TRUE(result.is_err());
 }
 
 // Note: Full test for from_common_system requires a mock IExecutor
@@ -264,7 +264,7 @@ TEST_F(ThreadPoolBridgeTest, FromCommonSystemFactoryMethodWithNullExecutorThrows
 
 TEST_F(ThreadPoolBridgeTest, DestructorCallsShutdownIfInitialized) {
     {
-        auto bridge = std::make_shared<ThreadPoolBridge>(pool_, ThreadPoolBridge::BackendType::Custom);
+        auto bridge = ThreadPoolBridge::create(pool_, ThreadPoolBridge::BackendType::Custom).value();
 
         BridgeConfig config;
         config.integration_name = "test_pool";

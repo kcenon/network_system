@@ -313,8 +313,10 @@ std::shared_ptr<NetworkSystemBridge> NetworkSystemBridge::create_default() {
 
     // Try to create thread pool from thread_system if available
 #if KCENON_WITH_THREAD_SYSTEM
-    auto thread_pool_bridge = ThreadPoolBridge::from_thread_system("network_pool");
-    bridge->set_thread_pool_bridge(thread_pool_bridge);
+    auto thread_pool_result = ThreadPoolBridge::from_thread_system("network_pool");
+    if (thread_pool_result.is_ok()) {
+        bridge->set_thread_pool_bridge(thread_pool_result.value());
+    }
 #endif
 
     return bridge;
@@ -325,8 +327,10 @@ std::shared_ptr<NetworkSystemBridge> NetworkSystemBridge::with_thread_system(
     auto bridge = std::make_shared<NetworkSystemBridge>();
 
 #if KCENON_WITH_THREAD_SYSTEM
-    auto thread_pool_bridge = ThreadPoolBridge::from_thread_system(pool_name);
-    bridge->set_thread_pool_bridge(thread_pool_bridge);
+    auto thread_pool_result = ThreadPoolBridge::from_thread_system(pool_name);
+    if (thread_pool_result.is_ok()) {
+        bridge->set_thread_pool_bridge(thread_pool_result.value());
+    }
 #endif
 
     return bridge;
@@ -342,8 +346,10 @@ std::shared_ptr<NetworkSystemBridge> NetworkSystemBridge::with_common_system(
 
     // Set up thread pool bridge
     if (executor) {
-        auto thread_pool_bridge = ThreadPoolBridge::from_common_system(executor);
-        bridge->set_thread_pool_bridge(thread_pool_bridge);
+        auto thread_pool_result = ThreadPoolBridge::from_common_system(executor);
+        if (thread_pool_result.is_ok()) {
+            bridge->set_thread_pool_bridge(thread_pool_result.value());
+        }
     }
 
     // Set up logger
@@ -370,9 +376,11 @@ std::shared_ptr<NetworkSystemBridge> NetworkSystemBridge::with_custom(
     auto bridge = std::make_shared<NetworkSystemBridge>();
 
     if (thread_pool) {
-        auto thread_pool_bridge = std::make_shared<ThreadPoolBridge>(
+        auto thread_pool_result = ThreadPoolBridge::create(
             thread_pool, ThreadPoolBridge::BackendType::Custom);
-        bridge->set_thread_pool_bridge(thread_pool_bridge);
+        if (thread_pool_result.is_ok()) {
+            bridge->set_thread_pool_bridge(thread_pool_result.value());
+        }
     }
 
     if (logger) {

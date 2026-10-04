@@ -297,8 +297,13 @@ auto secure_messaging_udp_client::do_start_impl(
 	asio::ip::udp::socket udp_socket(*io_context_, asio::ip::udp::v4());
 
 	// Create DTLS socket
-	socket_ = std::make_shared<internal::dtls_socket>(
+	auto dtls_result = internal::dtls_socket::create(
 		std::move(udp_socket), ssl_ctx_);
+	if (dtls_result.is_err()) {
+		return error<void>(dtls_result.error().code,
+			dtls_result.error().message, "secure_messaging_udp_client::start");
+	}
+	socket_ = dtls_result.value();
 
 	// Set peer endpoint
 	{

@@ -661,8 +661,9 @@ auto http_server::apply_compression(const internal::http_request &request,
   auto compressed_result = pipeline->compress(response.body);
 
   if (compressed_result.is_err()) {
-    // Compression failed - send uncompressed
-    // TODO: Add error logging when needed
+    // Compression failed - fall back to the uncompressed response body.
+    // This is an intentional, benign degradation; optional diagnostic
+    // logging is left to the caller's tracing/logging configuration.
     return;
   }
 

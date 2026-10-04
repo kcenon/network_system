@@ -13,7 +13,7 @@ category: "GUID"
 > **SSOT**: This file is the single source of truth for the documentation index
 > of **network_system**.
 
-Total documents: **78**
+Total documents: **80**
 
 ## Document Index
 
@@ -97,6 +97,8 @@ Total documents: **78**
 | 76 | NET-PROJ-005 | SOUP List &mdash; network_system | [SOUP.md](./SOUP.md) | Released |
 | 77 | NET-PROJ-006 | Contributing to Network System | [CONTRIBUTING.md](./contributing/CONTRIBUTING.md) | Released |
 | 78 | NET-PROJ-007 | Header Audit - Phase 1: Preparation for Internal Migration | [HEADER_AUDIT_PHASE1.md](./refactoring/HEADER_AUDIT_PHASE1.md) | Released |
+| 79 | NET-PROJ-008 | Ecosystem Overview | [ECOSYSTEM.md](./ECOSYSTEM.md) | Released |
+| 80 | NET-PROJ-009 | Getting Started | [GETTING_STARTED.md](./GETTING_STARTED.md) | Released |
 
 ## Documents by Category
 
@@ -221,7 +223,7 @@ Total documents: **78**
 | NET-ADR-002 | ADR-002: Facade API Introduction | [ADR-002-facade-api-introduction.md](./adr/ADR-002-facade-api-introduction.md) | Accepted |
 | NET-ADR-003 | ADR-003: Protocol Modularization Strategy | [ADR-003-protocol-modularization.md](./adr/ADR-003-protocol-modularization.md) | Accepted |
 
-### Project (7)
+### Project (9)
 
 | doc_id | Topic | Document | Status |
 |--------|-------|----------|--------|
@@ -232,6 +234,8 @@ Total documents: **78**
 | NET-PROJ-005 | SOUP List &mdash; network_system | [SOUP.md](./SOUP.md) | Released |
 | NET-PROJ-006 | Contributing to Network System | [CONTRIBUTING.md](./contributing/CONTRIBUTING.md) | Released |
 | NET-PROJ-007 | Header Audit - Phase 1: Preparation for Internal Migration | [HEADER_AUDIT_PHASE1.md](./refactoring/HEADER_AUDIT_PHASE1.md) | Released |
+| NET-PROJ-008 | Ecosystem Overview | [ECOSYSTEM.md](./ECOSYSTEM.md) | Released |
+| NET-PROJ-009 | Getting Started | [GETTING_STARTED.md](./GETTING_STARTED.md) | Released |
 
 ---
 

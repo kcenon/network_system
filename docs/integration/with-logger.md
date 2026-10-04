@@ -330,14 +330,16 @@ auto logger = logger_system::createLogger({
 
 ## Examples
 
-See complete examples in:
-- [examples/tcp_server_with_logging/](../../../examples/tcp_server_with_logging/)
-- [examples/http_client_with_logging/](../../../examples/http_client_with_logging/)
-- [examples/websocket_logging/](../../../examples/websocket_logging/)
+<!-- TODO: Dedicated per-protocol logging example programs not yet published.
+     Base examples are available in examples/ (see tcp_echo_server.cpp,
+     websocket_chat.cpp) and can be combined with logger_system. -->
+See example programs in:
+- [examples/tcp_echo_server.cpp](../../examples/tcp_echo_server.cpp)
+- [examples/tcp_client.cpp](../../examples/tcp_client.cpp)
+- [examples/websocket_chat.cpp](../../examples/websocket_chat.cpp)
 
 ## See Also
 
-- [Logger System Documentation](../../../logger_system/README.md)
-- [Logger System API Reference](../../../logger_system/docs/API_REFERENCE.md)
-- [Network System Logging Guide](../guides/LOGGING.md)
-- [Ecosystem Integration Guide](../../../ECOSYSTEM.md)
+<!-- TODO: Sibling-repo links depend on a workspace layout; confirm and update -->
+- Logger System Documentation: https://github.com/kcenon/logger_system
+- [Ecosystem Integration Guide](../ECOSYSTEM.md)

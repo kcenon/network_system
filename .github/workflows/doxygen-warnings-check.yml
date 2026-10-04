@@ -1,0 +1,66 @@
+name: Doxygen Warnings Check
+
+# Verifies that running Doxygen against the public include/ surface produces
+# zero warnings for files under include/kcenon/network/ (excluding detail/).
+# Internal-only headers (detail/, src/internal/) are reported but do not gate
+# the workflow, in line with the v1.0 API contract scope.
+
+on:
+  push:
+    branches: [ main, develop, phase-* ]
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'include/**'
+      - 'Doxyfile'
+      - '.github/workflows/doxygen-warnings-check.yml'
+
+jobs:
+  doxygen-public-zero-warnings:
+    name: Zero warnings on public headers
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install Doxygen
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y doxygen graphviz
+
+      - name: Show Doxygen version
+        run: doxygen --version
+
+      - name: Run Doxygen
+        run: |
+          doxygen Doxyfile 2>doxygen-warnings.log >doxygen-stdout.log || true
+
+      - name: Filter public-header warnings
+        id: filter
+        run: |
+          set -o pipefail
+          # Public headers live under include/kcenon/network/ excluding the
+          # detail/ subtree. detail/ headers are implementation detail and
+          # outside the v1.0 contract per docs/v1.0-api-surface.md.
+          PUBLIC_WARNINGS=$(grep -E '^.*include/kcenon/network/.*warning:' \
+              doxygen-warnings.log \
+              | grep -v '/detail/' || true)
+          if [ -n "$PUBLIC_WARNINGS" ]; then
+            echo "Public-header Doxygen warnings detected:"
+            echo "$PUBLIC_WARNINGS"
+            echo "count=$(echo "$PUBLIC_WARNINGS" | wc -l)" >> "$GITHUB_OUTPUT"
+            exit 1
+          fi
+          echo "OK -- zero Doxygen warnings on public headers."
+          echo "count=0" >> "$GITHUB_OUTPUT"
+
+      - name: Upload full warning log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: doxygen-warnings-log
+          path: |
+            doxygen-warnings.log
+            doxygen-stdout.log
+          retention-days: 7

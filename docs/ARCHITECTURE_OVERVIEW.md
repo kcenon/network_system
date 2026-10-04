@@ -577,7 +577,7 @@ auto result = client.connect()
 ```cmake
 # Core options
 option(BUILD_TESTS "Build unit tests" ON)
-option(BUILD_SAMPLES "Build sample programs" ON)
+option(BUILD_EXAMPLES "Build usage examples" ON)
 option(BUILD_BENCHMARKS "Build performance benchmarks" ON)
 
 # Integration options
@@ -684,9 +684,10 @@ graph TD
 
 - **ASIO Documentation**: https://think-async.com/Asio/
 - **C++20 Coroutines**: https://en.cppreference.com/w/cpp/language/coroutines
-- **Integration Guide**: [INTEGRATION.md](../INTEGRATION.md)
+- **Integration Guide**: [INTEGRATION.md](./INTEGRATION.md)
 - **Performance Baseline**: [BASELINE.md](performance/BASELINE.md)
 - **API Reference**: [API_REFERENCE.md](API_REFERENCE.md)
+- **Design Decisions**: [DESIGN_DECISIONS.md](DESIGN_DECISIONS.md)
 
 ---
 

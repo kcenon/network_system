@@ -36,62 +36,102 @@ if(NOT GTest_FOUND AND NOT GTEST_FOUND)
 endif()
 
 ##################################################
+# Hermetic Transport Fixture Support Library (Issue #1060)
+##################################################
+
+# Static helper library exposing tests/support/* — provides loopback TCP/UDP
+# pair builders, in-memory TLS cert/key generation, and WebSocket frame
+# builders for branch-coverage tests that need to drive private async/socket
+# methods without a real network listener.
+if(GTest_FOUND OR GTEST_FOUND)
+    add_subdirectory(support)
+endif()
+
+##################################################
 # Unit Tests
 ##################################################
 
 if(GTest_FOUND OR GTEST_FOUND)
-    # Create unit test executable
-    add_executable(network_unit_tests
-        unit_tests.cpp
-    )
-
-    # Link dependencies
-    target_link_libraries(network_unit_tests PRIVATE
-        network_system
-        GTest::gtest
-        GTest::gtest_main
-        Threads::Threads
-    )
-
-    # Setup ASIO integration (required for network_system headers)
-    setup_asio_integration(network_unit_tests)
-
-    # Add system integration paths
-    if(CONTAINER_SYSTEM_INCLUDE_DIR)
-        target_include_directories(network_unit_tests PRIVATE ${CONTAINER_SYSTEM_INCLUDE_DIR})
-        target_compile_definitions(network_unit_tests PRIVATE WITH_CONTAINER_SYSTEM)
-    endif()
-
-    if(THREAD_SYSTEM_INCLUDE_DIR)
-        target_include_directories(network_unit_tests PRIVATE ${THREAD_SYSTEM_INCLUDE_DIR})
-        target_compile_definitions(network_unit_tests PRIVATE WITH_THREAD_SYSTEM)
-    endif()
-
-    if(LOGGER_SYSTEM_INCLUDE_DIR)
-        target_include_directories(network_unit_tests PRIVATE ${LOGGER_SYSTEM_INCLUDE_DIR})
-        target_compile_definitions(network_unit_tests PRIVATE WITH_LOGGER_SYSTEM)
-    endif()
-
-    if(COMMON_SYSTEM_INCLUDE_DIR)
-        target_include_directories(network_unit_tests PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
-        target_compile_definitions(network_unit_tests PRIVATE WITH_COMMON_SYSTEM)
-    endif()
-
-    # Set properties
-    set_target_properties(network_unit_tests PROPERTIES
-        CXX_STANDARD 20
-        CXX_STANDARD_REQUIRED ON
-        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
-    )
-
-    # Don't add suite-level test to prevent port conflicts during parallel execution
-    # add_test(NAME NetworkUnitTests COMMAND network_unit_tests)
-
-    # Enable test discovery
     include(GoogleTest)
-    network_gtest_discover_tests(network_unit_tests
-        DISCOVERY_TIMEOUT 60
-    )
+
+    # ------------------------------------------------------------------
+    # Helper to register a per-concern messaging test executable that
+    # links network::test_support and inherits the optional WITH_* defines
+    # the legacy network_unit_tests target carried (Issue #1088).
+    # ------------------------------------------------------------------
+    function(network_add_messaging_test target source)
+        add_executable(${target} ${source})
+
+        target_link_libraries(${target} PRIVATE
+            network_system
+            network::test_support
+            GTest::gtest
+            GTest::gtest_main
+            Threads::Threads
+        )
+
+        target_include_directories(${target} PRIVATE
+            ${CMAKE_CURRENT_SOURCE_DIR}
+        )
+
+        setup_asio_integration(${target})
+
+        if(CONTAINER_SYSTEM_INCLUDE_DIR)
+            target_include_directories(${target} PRIVATE ${CONTAINER_SYSTEM_INCLUDE_DIR})
+            target_compile_definitions(${target} PRIVATE WITH_CONTAINER_SYSTEM)
+        endif()
+
+        # network_system public headers transitively #include <kcenon/container/...>
+        # which lives under <root>/include. setup_container_system_integration() adds
+        # this PRIVATE on the library target, so it does not propagate to consumers.
+        # See issue #1095.
+        if(CONTAINER_SYSTEM_NEW_INCLUDE_DIR)
+            target_include_directories(${target} PRIVATE ${CONTAINER_SYSTEM_NEW_INCLUDE_DIR})
+        endif()
+
+        if(THREAD_SYSTEM_INCLUDE_DIR)
+            target_include_directories(${target} PRIVATE ${THREAD_SYSTEM_INCLUDE_DIR})
+            target_compile_definitions(${target} PRIVATE WITH_THREAD_SYSTEM)
+        endif()
+
+        if(LOGGER_SYSTEM_INCLUDE_DIR)
+            target_include_directories(${target} PRIVATE ${LOGGER_SYSTEM_INCLUDE_DIR})
+            target_compile_definitions(${target} PRIVATE WITH_LOGGER_SYSTEM)
+        endif()
+
+        if(COMMON_SYSTEM_INCLUDE_DIR)
+            target_include_directories(${target} PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+            target_compile_definitions(${target} PRIVATE WITH_COMMON_SYSTEM)
+        endif()
+
+        set_target_properties(${target} PROPERTIES
+            CXX_STANDARD 20
+            CXX_STANDARD_REQUIRED ON
+            RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+        )
+
+        # Each split file requests an OS-assigned ephemeral port via
+        # messaging_loopback_fixture, so per-suite registration is parallel-safe.
+        network_gtest_discover_tests(${target}
+            DISCOVERY_TIMEOUT 60
+        )
+    endfunction()
+
+    # Per-concern messaging test executables (Issue #1088 split of
+    # tests/unit_tests.cpp). Each one owns a single test class so ctest -j N
+    # never serializes the whole suite on a single binary.
+    network_add_messaging_test(network_messaging_server_lifecycle_test
+        unit/messaging_server_lifecycle_test.cpp)
+    network_add_messaging_test(network_messaging_client_lifecycle_test
+        unit/messaging_client_lifecycle_test.cpp)
+    network_add_messaging_test(network_messaging_transfer_test
+        unit/messaging_transfer_test.cpp)
+    network_add_messaging_test(network_messaging_server_session_test
+        unit/messaging_server_session_test.cpp)
+    network_add_messaging_test(network_messaging_id_test
+        unit/messaging_id_test.cpp)
+    network_add_messaging_test(network_messaging_stress_test
+        stress/messaging_stress_test.cpp)
 
     # Thread safety tests (Phase 1 - Task 1.6)
     add_executable(network_thread_safety_test
@@ -112,6 +152,10 @@ if(GTest_FOUND OR GTEST_FOUND)
     if(CONTAINER_SYSTEM_INCLUDE_DIR)
         target_include_directories(network_thread_safety_test PRIVATE ${CONTAINER_SYSTEM_INCLUDE_DIR})
         target_compile_definitions(network_thread_safety_test PRIVATE WITH_CONTAINER_SYSTEM)
+    endif()
+
+    if(CONTAINER_SYSTEM_NEW_INCLUDE_DIR)
+        target_include_directories(network_thread_safety_test PRIVATE ${CONTAINER_SYSTEM_NEW_INCLUDE_DIR})
     endif()
 
     if(THREAD_SYSTEM_INCLUDE_DIR)
@@ -215,19 +259,10 @@ if(GTest_FOUND OR GTEST_FOUND)
             RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
         )
 
-        # Exclude from sanitizer builds: thread_system has a known heap-buffer-overflow
-        # in thread_worker constructor (writes past allocated object boundary).
-        # The upstream library must be fixed before these can run under sanitizers.
-        # The dedicated sanitizers.yml already excludes thread_system entirely
-        # via BUILD_WITH_THREAD_SYSTEM=OFF.
-        if(ENABLE_ASAN OR ENABLE_TSAN OR ENABLE_UBSAN)
-            message(STATUS "Thread system adapter tests excluded from sanitizer builds (upstream heap-buffer-overflow)")
-        else()
-            network_gtest_discover_tests(network_thread_system_adapter_test
-                DISCOVERY_TIMEOUT 60
-            )
-            message(STATUS "Thread system adapter tests enabled")
-        endif()
+        network_gtest_discover_tests(network_thread_system_adapter_test
+            DISCOVERY_TIMEOUT 60
+        )
+        message(STATUS "Thread system adapter tests enabled")
     endif()
 
     # Thread pool adapters tests (common_system integration)
@@ -427,6 +462,10 @@ if(GTest_FOUND OR GTEST_FOUND)
     if(CONTAINER_SYSTEM_INCLUDE_DIR)
         target_include_directories(network_messaging_bridge_interface_test PRIVATE ${CONTAINER_SYSTEM_INCLUDE_DIR})
         target_compile_definitions(network_messaging_bridge_interface_test PRIVATE WITH_CONTAINER_SYSTEM)
+    endif()
+
+    if(CONTAINER_SYSTEM_NEW_INCLUDE_DIR)
+        target_include_directories(network_messaging_bridge_interface_test PRIVATE ${CONTAINER_SYSTEM_NEW_INCLUDE_DIR})
     endif()
 
     set_target_properties(network_messaging_bridge_interface_test PROPERTIES
@@ -1074,6 +1113,35 @@ if(GTest_FOUND OR GTEST_FOUND)
     )
     message(STATUS "HTTP/2 frame tests enabled")
 
+    # HTTP/2 frame extended coverage tests (Issue #1030)
+    add_executable(network_http2_frame_extended_test
+        test_http2_frame_extended.cpp
+    )
+
+    target_link_libraries(network_http2_frame_extended_test PRIVATE
+        network_system
+        GTest::gtest
+        GTest::gtest_main
+        Threads::Threads
+    )
+
+    setup_asio_integration(network_http2_frame_extended_test)
+
+    if(COMMON_SYSTEM_INCLUDE_DIR)
+        target_include_directories(network_http2_frame_extended_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(network_http2_frame_extended_test PRIVATE WITH_COMMON_SYSTEM)
+    endif()
+
+    set_target_properties(network_http2_frame_extended_test PROPERTIES
+        CXX_STANDARD 20
+        CXX_STANDARD_REQUIRED ON
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+    )
+
+    network_gtest_discover_tests(network_http2_frame_extended_test
+        DISCOVERY_TIMEOUT 60
+    )
+
     # HTTP/2 HPACK tests
     add_executable(network_http2_hpack_test
         test_http2_hpack.cpp
@@ -1106,6 +1174,22 @@ if(GTest_FOUND OR GTEST_FOUND)
     )
     message(STATUS "HTTP/2 HPACK tests enabled")
 
+    # HTTP/2 HPACK RFC 7541 test vectors (Issue #956)
+    add_executable(network_http2_hpack_rfc7541_test
+        test_http2_hpack_rfc7541.cpp
+    )
+    target_link_libraries(network_http2_hpack_rfc7541_test PRIVATE
+        network_system GTest::gtest GTest::gtest_main Threads::Threads)
+    setup_asio_integration(network_http2_hpack_rfc7541_test)
+    if(COMMON_SYSTEM_INCLUDE_DIR)
+        target_include_directories(network_http2_hpack_rfc7541_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(network_http2_hpack_rfc7541_test PRIVATE WITH_COMMON_SYSTEM)
+    endif()
+    set_target_properties(network_http2_hpack_rfc7541_test PROPERTIES
+        CXX_STANDARD 20 CXX_STANDARD_REQUIRED ON RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+    network_gtest_discover_tests(network_http2_hpack_rfc7541_test DISCOVERY_TIMEOUT 60)
+    message(STATUS "HTTP/2 HPACK RFC 7541 tests enabled")
+
     # HTTP/2 client tests (requires TLS support)
     if(BUILD_TLS_SUPPORT)
         add_executable(network_http2_client_test
@@ -1114,6 +1198,7 @@ if(GTest_FOUND OR GTEST_FOUND)
 
         target_link_libraries(network_http2_client_test PRIVATE
             network_system
+            network::test_support
             GTest::gtest
             GTest::gtest_main
             Threads::Threads
@@ -1415,9 +1500,12 @@ if(GTest_FOUND OR GTEST_FOUND)
 
     target_link_libraries(network_grpc_client_server_test PRIVATE
         network_system
+        network::test_support
         GTest::gtest
         GTest::gtest_main
         Threads::Threads
+        OpenSSL::SSL
+        OpenSSL::Crypto
     )
 
     # Setup ASIO integration
@@ -1678,6 +1766,7 @@ if(GTest_FOUND OR GTEST_FOUND)
 
         target_link_libraries(network_quic_socket_test PRIVATE
             network_system
+            network::test_support
             GTest::gtest
             GTest::gtest_main
             Threads::Threads
@@ -1969,9 +2058,12 @@ if(GTest_FOUND OR GTEST_FOUND)
 
     target_link_libraries(network_messaging_quic_server_test PRIVATE
         network_system
+        network::test_support
         GTest::gtest
         GTest::gtest_main
         Threads::Threads
+        OpenSSL::SSL
+        OpenSSL::Crypto
     )
 
     setup_asio_integration(network_messaging_quic_server_test)
@@ -2557,6 +2649,10 @@ if(FALSE AND benchmark_FOUND)
     if(CONTAINER_SYSTEM_INCLUDE_DIR)
         target_include_directories(network_benchmark_tests PRIVATE ${CONTAINER_SYSTEM_INCLUDE_DIR})
         target_compile_definitions(network_benchmark_tests PRIVATE WITH_CONTAINER_SYSTEM)
+    endif()
+
+    if(CONTAINER_SYSTEM_NEW_INCLUDE_DIR)
+        target_include_directories(network_benchmark_tests PRIVATE ${CONTAINER_SYSTEM_NEW_INCLUDE_DIR})
     endif()
 
     if(THREAD_SYSTEM_INCLUDE_DIR)
@@ -3465,6 +3561,740 @@ network_gtest_discover_tests(network_quic_transport_params_test
 )
 message(STATUS "QUIC transport params unit tests enabled")
 
+add_executable(network_quic_transport_params_coverage_test
+    unit/quic_transport_params_coverage_test.cpp
+)
+
+target_link_libraries(network_quic_transport_params_coverage_test PRIVATE
+    network_system
+    GTest::gtest
+    GTest::gtest_main
+    Threads::Threads
+)
+
+setup_asio_integration(network_quic_transport_params_coverage_test)
+
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_quic_transport_params_coverage_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_quic_transport_params_coverage_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+
+set_target_properties(network_quic_transport_params_coverage_test PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+)
+
+network_gtest_discover_tests(network_quic_transport_params_coverage_test
+    DISCOVERY_TIMEOUT 60
+)
+message(STATUS "QUIC transport params coverage unit tests enabled")
+
+##################################################
+# QUIC Transport Params Branch Coverage Tests (Issue #1024)
+##################################################
+
+add_executable(network_quic_transport_params_branch_test
+    unit/quic_transport_params_branch_test.cpp
+)
+
+target_link_libraries(network_quic_transport_params_branch_test PRIVATE
+    network_system
+    GTest::gtest
+    GTest::gtest_main
+    Threads::Threads
+)
+
+setup_asio_integration(network_quic_transport_params_branch_test)
+
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_quic_transport_params_branch_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_quic_transport_params_branch_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+
+set_target_properties(network_quic_transport_params_branch_test PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+)
+
+network_gtest_discover_tests(network_quic_transport_params_branch_test
+    DISCOVERY_TIMEOUT 60
+)
+message(STATUS "QUIC transport params branch coverage unit tests enabled (Issue #1024)")
+
+##################################################
+# QUIC Packet Unit Tests (Issue #954)
+##################################################
+
+add_executable(network_quic_packet_unit_test
+    unit/quic_packet_test.cpp
+)
+
+target_link_libraries(network_quic_packet_unit_test PRIVATE
+    network_system
+    GTest::gtest
+    GTest::gtest_main
+    Threads::Threads
+)
+
+setup_asio_integration(network_quic_packet_unit_test)
+
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_quic_packet_unit_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_quic_packet_unit_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+
+set_target_properties(network_quic_packet_unit_test PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+)
+
+network_gtest_discover_tests(network_quic_packet_unit_test
+    DISCOVERY_TIMEOUT 60
+)
+message(STATUS "QUIC packet unit tests enabled")
+
+##################################################
+# QUIC Packet Coverage Unit Tests (Issue #1028)
+##################################################
+
+add_executable(network_quic_packet_coverage_test
+    unit/quic_packet_coverage_test.cpp
+)
+
+target_link_libraries(network_quic_packet_coverage_test PRIVATE
+    network_system
+    GTest::gtest
+    GTest::gtest_main
+    Threads::Threads
+)
+
+setup_asio_integration(network_quic_packet_coverage_test)
+
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_quic_packet_coverage_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_quic_packet_coverage_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+
+set_target_properties(network_quic_packet_coverage_test PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+)
+
+network_gtest_discover_tests(network_quic_packet_coverage_test
+    DISCOVERY_TIMEOUT 60
+)
+message(STATUS "QUIC packet coverage unit tests enabled (Issue #1028)")
+
+##################################################
+# QUIC RTT Estimator Unit Tests (Issue #954)
+##################################################
+
+add_executable(network_quic_rtt_estimator_test
+    unit/quic_rtt_estimator_test.cpp
+)
+
+target_link_libraries(network_quic_rtt_estimator_test PRIVATE
+    network_system
+    GTest::gtest
+    GTest::gtest_main
+    Threads::Threads
+)
+
+setup_asio_integration(network_quic_rtt_estimator_test)
+
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_quic_rtt_estimator_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_quic_rtt_estimator_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+
+set_target_properties(network_quic_rtt_estimator_test PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+)
+
+network_gtest_discover_tests(network_quic_rtt_estimator_test
+    DISCOVERY_TIMEOUT 60
+)
+message(STATUS "QUIC RTT estimator unit tests enabled")
+
+##################################################
+# QUIC Flow Control Unit Tests (Issue #954)
+##################################################
+
+add_executable(network_quic_flow_control_test
+    unit/quic_flow_control_test.cpp
+)
+
+target_link_libraries(network_quic_flow_control_test PRIVATE
+    network_system
+    GTest::gtest
+    GTest::gtest_main
+    Threads::Threads
+)
+
+setup_asio_integration(network_quic_flow_control_test)
+
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_quic_flow_control_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_quic_flow_control_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+
+set_target_properties(network_quic_flow_control_test PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+)
+
+network_gtest_discover_tests(network_quic_flow_control_test
+    DISCOVERY_TIMEOUT 60
+)
+message(STATUS "QUIC flow control unit tests enabled")
+
+##################################################
+# QUIC Stream Unit Tests (Issue #954)
+##################################################
+
+add_executable(network_quic_stream_unit_test
+    unit/quic_stream_test.cpp
+)
+
+target_link_libraries(network_quic_stream_unit_test PRIVATE
+    network_system
+    GTest::gtest
+    GTest::gtest_main
+    Threads::Threads
+)
+
+setup_asio_integration(network_quic_stream_unit_test)
+
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_quic_stream_unit_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_quic_stream_unit_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+
+set_target_properties(network_quic_stream_unit_test PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+)
+
+network_gtest_discover_tests(network_quic_stream_unit_test
+    DISCOVERY_TIMEOUT 60
+)
+message(STATUS "QUIC stream unit tests enabled")
+
+##################################################
+# QUIC Stream Manager Unit Tests (Issue #954)
+##################################################
+
+add_executable(network_quic_stream_manager_test
+    unit/quic_stream_manager_test.cpp
+)
+
+target_link_libraries(network_quic_stream_manager_test PRIVATE
+    network_system
+    GTest::gtest
+    GTest::gtest_main
+    Threads::Threads
+)
+
+setup_asio_integration(network_quic_stream_manager_test)
+
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_quic_stream_manager_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_quic_stream_manager_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+
+set_target_properties(network_quic_stream_manager_test PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+)
+
+network_gtest_discover_tests(network_quic_stream_manager_test
+    DISCOVERY_TIMEOUT 60
+)
+message(STATUS "QUIC stream manager unit tests enabled")
+
+##################################################
+# QUIC Loss Detector Unit Tests (Issue #954)
+##################################################
+
+add_executable(network_quic_loss_detector_unit_test
+    unit/quic_loss_detector_test.cpp
+)
+
+target_link_libraries(network_quic_loss_detector_unit_test PRIVATE
+    network_system
+    GTest::gtest
+    GTest::gtest_main
+    Threads::Threads
+)
+
+setup_asio_integration(network_quic_loss_detector_unit_test)
+
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_quic_loss_detector_unit_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_quic_loss_detector_unit_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+
+set_target_properties(network_quic_loss_detector_unit_test PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+)
+
+network_gtest_discover_tests(network_quic_loss_detector_unit_test
+    DISCOVERY_TIMEOUT 60
+)
+message(STATUS "QUIC loss detector unit tests enabled")
+
+##################################################
+# QUIC Congestion Controller Unit Tests (Issue #954)
+##################################################
+
+add_executable(network_quic_congestion_controller_test
+    unit/quic_congestion_controller_test.cpp
+)
+
+target_link_libraries(network_quic_congestion_controller_test PRIVATE
+    network_system
+    GTest::gtest
+    GTest::gtest_main
+    Threads::Threads
+)
+
+setup_asio_integration(network_quic_congestion_controller_test)
+
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_quic_congestion_controller_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_quic_congestion_controller_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+
+set_target_properties(network_quic_congestion_controller_test PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+)
+
+network_gtest_discover_tests(network_quic_congestion_controller_test
+    DISCOVERY_TIMEOUT 60
+)
+message(STATUS "QUIC congestion controller unit tests enabled")
+
+##################################################
+# QUIC ECN Tracker Unit Tests (Issue #954)
+##################################################
+
+add_executable(network_quic_ecn_tracker_test
+    unit/quic_ecn_tracker_test.cpp
+)
+
+target_link_libraries(network_quic_ecn_tracker_test PRIVATE
+    network_system
+    GTest::gtest
+    GTest::gtest_main
+    Threads::Threads
+)
+
+setup_asio_integration(network_quic_ecn_tracker_test)
+
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_quic_ecn_tracker_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_quic_ecn_tracker_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+
+set_target_properties(network_quic_ecn_tracker_test PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+)
+
+network_gtest_discover_tests(network_quic_ecn_tracker_test
+    DISCOVERY_TIMEOUT 60
+)
+message(STATUS "QUIC ECN tracker unit tests enabled")
+
+##################################################
+# QUIC Connection ID Manager Unit Tests (Issue #954)
+##################################################
+
+add_executable(network_quic_cid_manager_test
+    unit/quic_connection_id_manager_test.cpp
+)
+
+target_link_libraries(network_quic_cid_manager_test PRIVATE
+    network_system
+    GTest::gtest
+    GTest::gtest_main
+    Threads::Threads
+)
+
+setup_asio_integration(network_quic_cid_manager_test)
+
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_quic_cid_manager_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_quic_cid_manager_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+
+set_target_properties(network_quic_cid_manager_test PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+)
+
+network_gtest_discover_tests(network_quic_cid_manager_test
+    DISCOVERY_TIMEOUT 60
+)
+message(STATUS "QUIC connection ID manager unit tests enabled")
+
+##################################################
+# Session Lifecycle Tests (Issue #956)
+##################################################
+
+add_executable(network_session_lifecycle_test
+    unit/test_session_lifecycle.cpp
+)
+target_link_libraries(network_session_lifecycle_test PRIVATE
+    network_system GTest::gtest GTest::gtest_main Threads::Threads)
+setup_asio_integration(network_session_lifecycle_test)
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_session_lifecycle_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_session_lifecycle_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+set_target_properties(network_session_lifecycle_test PROPERTIES
+    CXX_STANDARD 20 CXX_STANDARD_REQUIRED ON RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+network_gtest_discover_tests(network_session_lifecycle_test DISCOVERY_TIMEOUT 60)
+message(STATUS "Session lifecycle tests enabled")
+
+##################################################
+# TCP Server Adapter Tests (Issue #955)
+##################################################
+
+add_executable(network_tcp_server_adapter_test
+    unit/test_tcp_server_adapter.cpp
+)
+target_link_libraries(network_tcp_server_adapter_test PRIVATE
+    network_system GTest::gtest GTest::gtest_main Threads::Threads)
+setup_asio_integration(network_tcp_server_adapter_test)
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_tcp_server_adapter_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_tcp_server_adapter_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+set_target_properties(network_tcp_server_adapter_test PROPERTIES
+    CXX_STANDARD 20 CXX_STANDARD_REQUIRED ON RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+network_gtest_discover_tests(network_tcp_server_adapter_test DISCOVERY_TIMEOUT 60)
+message(STATUS "TCP server adapter tests enabled")
+
+##################################################
+# UDP Server Adapter Tests (Issue #955)
+##################################################
+
+add_executable(network_udp_server_adapter_test
+    unit/test_udp_server_adapter.cpp
+)
+target_link_libraries(network_udp_server_adapter_test PRIVATE
+    network_system GTest::gtest GTest::gtest_main Threads::Threads)
+setup_asio_integration(network_udp_server_adapter_test)
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_udp_server_adapter_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_udp_server_adapter_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+set_target_properties(network_udp_server_adapter_test PROPERTIES
+    CXX_STANDARD 20 CXX_STANDARD_REQUIRED ON RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+network_gtest_discover_tests(network_udp_server_adapter_test DISCOVERY_TIMEOUT 60)
+message(STATUS "UDP server adapter tests enabled")
+
+##################################################
+# HTTP Server Adapter Tests (Issue #955)
+##################################################
+
+add_executable(network_http_server_adapter_test
+    unit/test_http_server_adapter.cpp
+)
+target_link_libraries(network_http_server_adapter_test PRIVATE
+    network_system GTest::gtest GTest::gtest_main Threads::Threads)
+setup_asio_integration(network_http_server_adapter_test)
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_http_server_adapter_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_http_server_adapter_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+set_target_properties(network_http_server_adapter_test PROPERTIES
+    CXX_STANDARD 20 CXX_STANDARD_REQUIRED ON RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+network_gtest_discover_tests(network_http_server_adapter_test DISCOVERY_TIMEOUT 60)
+message(STATUS "HTTP server adapter tests enabled")
+
+##################################################
+# QUIC Server Adapter Tests (Issue #955)
+##################################################
+
+add_executable(network_quic_server_adapter_test
+    unit/test_quic_server_adapter.cpp
+)
+target_link_libraries(network_quic_server_adapter_test PRIVATE
+    network_system GTest::gtest GTest::gtest_main Threads::Threads)
+setup_asio_integration(network_quic_server_adapter_test)
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_quic_server_adapter_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_quic_server_adapter_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+set_target_properties(network_quic_server_adapter_test PROPERTIES
+    CXX_STANDARD 20 CXX_STANDARD_REQUIRED ON RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+network_gtest_discover_tests(network_quic_server_adapter_test DISCOVERY_TIMEOUT 60)
+message(STATUS "QUIC server adapter tests enabled")
+
+##################################################
+# WebSocket Server Adapter Tests (Issue #955)
+##################################################
+
+add_executable(network_ws_server_adapter_test
+    unit/test_ws_server_adapter.cpp
+)
+target_link_libraries(network_ws_server_adapter_test PRIVATE
+    network_system GTest::gtest GTest::gtest_main Threads::Threads)
+setup_asio_integration(network_ws_server_adapter_test)
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_ws_server_adapter_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_ws_server_adapter_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+set_target_properties(network_ws_server_adapter_test PROPERTIES
+    CXX_STANDARD 20 CXX_STANDARD_REQUIRED ON RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+network_gtest_discover_tests(network_ws_server_adapter_test DISCOVERY_TIMEOUT 60)
+message(STATUS "WebSocket server adapter tests enabled")
+
+##################################################
+# UDP Client Adapter Tests (Issue #955)
+##################################################
+
+add_executable(network_udp_client_adapter_test
+    unit/test_udp_client_adapter.cpp
+)
+target_link_libraries(network_udp_client_adapter_test PRIVATE
+    network_system GTest::gtest GTest::gtest_main Threads::Threads)
+setup_asio_integration(network_udp_client_adapter_test)
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_udp_client_adapter_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_udp_client_adapter_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+set_target_properties(network_udp_client_adapter_test PROPERTIES
+    CXX_STANDARD 20 CXX_STANDARD_REQUIRED ON RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+network_gtest_discover_tests(network_udp_client_adapter_test DISCOVERY_TIMEOUT 60)
+message(STATUS "UDP client adapter tests enabled")
+
+##################################################
+# HTTP Client Adapter Tests (Issue #955)
+##################################################
+
+add_executable(network_http_client_adapter_test
+    unit/test_http_client_adapter.cpp
+)
+target_link_libraries(network_http_client_adapter_test PRIVATE
+    network_system GTest::gtest GTest::gtest_main Threads::Threads)
+setup_asio_integration(network_http_client_adapter_test)
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_http_client_adapter_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_http_client_adapter_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+set_target_properties(network_http_client_adapter_test PROPERTIES
+    CXX_STANDARD 20 CXX_STANDARD_REQUIRED ON RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+network_gtest_discover_tests(network_http_client_adapter_test DISCOVERY_TIMEOUT 60)
+message(STATUS "HTTP client adapter tests enabled")
+
+##################################################
+# QUIC Client Adapter Tests (Issue #955)
+##################################################
+
+add_executable(network_quic_client_adapter_test
+    unit/test_quic_client_adapter.cpp
+)
+target_link_libraries(network_quic_client_adapter_test PRIVATE
+    network_system GTest::gtest GTest::gtest_main Threads::Threads)
+setup_asio_integration(network_quic_client_adapter_test)
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_quic_client_adapter_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_quic_client_adapter_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+set_target_properties(network_quic_client_adapter_test PROPERTIES
+    CXX_STANDARD 20 CXX_STANDARD_REQUIRED ON RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+network_gtest_discover_tests(network_quic_client_adapter_test DISCOVERY_TIMEOUT 60)
+message(STATUS "QUIC client adapter tests enabled")
+
+##################################################
+# WebSocket Client Adapter Tests (Issue #955)
+##################################################
+
+add_executable(network_ws_client_adapter_test
+    unit/test_ws_client_adapter.cpp
+)
+target_link_libraries(network_ws_client_adapter_test PRIVATE
+    network_system GTest::gtest GTest::gtest_main Threads::Threads)
+setup_asio_integration(network_ws_client_adapter_test)
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_ws_client_adapter_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_ws_client_adapter_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+set_target_properties(network_ws_client_adapter_test PROPERTIES
+    CXX_STANDARD 20 CXX_STANDARD_REQUIRED ON RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+network_gtest_discover_tests(network_ws_client_adapter_test DISCOVERY_TIMEOUT 60)
+message(STATUS "WebSocket client adapter tests enabled")
+
+##################################################
+# TCP Connection Adapter Tests (Issue #955)
+##################################################
+
+add_executable(network_tcp_connection_adapter_test
+    unit/test_tcp_connection_adapter.cpp
+)
+target_link_libraries(network_tcp_connection_adapter_test PRIVATE
+    network_system GTest::gtest GTest::gtest_main Threads::Threads)
+setup_asio_integration(network_tcp_connection_adapter_test)
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_tcp_connection_adapter_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_tcp_connection_adapter_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+set_target_properties(network_tcp_connection_adapter_test PROPERTIES
+    CXX_STANDARD 20 CXX_STANDARD_REQUIRED ON RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+network_gtest_discover_tests(network_tcp_connection_adapter_test DISCOVERY_TIMEOUT 60)
+message(STATUS "TCP connection adapter tests enabled")
+
+##################################################
+# TCP Listener Adapter Tests (Issue #955)
+##################################################
+
+add_executable(network_tcp_listener_adapter_test
+    unit/test_tcp_listener_adapter.cpp
+)
+target_link_libraries(network_tcp_listener_adapter_test PRIVATE
+    network_system GTest::gtest GTest::gtest_main Threads::Threads)
+setup_asio_integration(network_tcp_listener_adapter_test)
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_tcp_listener_adapter_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_tcp_listener_adapter_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+set_target_properties(network_tcp_listener_adapter_test PROPERTIES
+    CXX_STANDARD 20 CXX_STANDARD_REQUIRED ON RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+network_gtest_discover_tests(network_tcp_listener_adapter_test DISCOVERY_TIMEOUT 60)
+message(STATUS "TCP listener adapter tests enabled")
+
+##################################################
+# UDP Connection Adapter Tests (Issue #955)
+##################################################
+
+add_executable(network_udp_connection_adapter_test
+    unit/test_udp_connection_adapter.cpp
+)
+target_link_libraries(network_udp_connection_adapter_test PRIVATE
+    network_system GTest::gtest GTest::gtest_main Threads::Threads)
+setup_asio_integration(network_udp_connection_adapter_test)
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_udp_connection_adapter_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_udp_connection_adapter_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+set_target_properties(network_udp_connection_adapter_test PROPERTIES
+    CXX_STANDARD 20 CXX_STANDARD_REQUIRED ON RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+network_gtest_discover_tests(network_udp_connection_adapter_test DISCOVERY_TIMEOUT 60)
+message(STATUS "UDP connection adapter tests enabled")
+
+##################################################
+# UDP Listener Adapter Tests (Issue #955)
+##################################################
+
+add_executable(network_udp_listener_adapter_test
+    unit/test_udp_listener_adapter.cpp
+)
+target_link_libraries(network_udp_listener_adapter_test PRIVATE
+    network_system GTest::gtest GTest::gtest_main Threads::Threads)
+setup_asio_integration(network_udp_listener_adapter_test)
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_udp_listener_adapter_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_udp_listener_adapter_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+set_target_properties(network_udp_listener_adapter_test PROPERTIES
+    CXX_STANDARD 20 CXX_STANDARD_REQUIRED ON RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+network_gtest_discover_tests(network_udp_listener_adapter_test DISCOVERY_TIMEOUT 60)
+message(STATUS "UDP listener adapter tests enabled")
+
+##################################################
+# WebSocket Connection Adapter Tests (Issue #967)
+##################################################
+
+add_executable(network_ws_connection_adapter_test
+    unit/test_ws_connection_adapter.cpp
+)
+target_link_libraries(network_ws_connection_adapter_test PRIVATE
+    network_system GTest::gtest GTest::gtest_main Threads::Threads)
+setup_asio_integration(network_ws_connection_adapter_test)
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_ws_connection_adapter_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_ws_connection_adapter_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+set_target_properties(network_ws_connection_adapter_test PROPERTIES
+    CXX_STANDARD 20 CXX_STANDARD_REQUIRED ON RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+network_gtest_discover_tests(network_ws_connection_adapter_test DISCOVERY_TIMEOUT 60)
+message(STATUS "WebSocket connection adapter tests enabled")
+
+##################################################
+# WebSocket Listener Adapter Tests (Issue #967)
+##################################################
+
+add_executable(network_ws_listener_adapter_test
+    unit/test_ws_listener_adapter.cpp
+)
+target_link_libraries(network_ws_listener_adapter_test PRIVATE
+    network_system GTest::gtest GTest::gtest_main Threads::Threads)
+setup_asio_integration(network_ws_listener_adapter_test)
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_ws_listener_adapter_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_ws_listener_adapter_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+set_target_properties(network_ws_listener_adapter_test PROPERTIES
+    CXX_STANDARD 20 CXX_STANDARD_REQUIRED ON RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+network_gtest_discover_tests(network_ws_listener_adapter_test DISCOVERY_TIMEOUT 60)
+message(STATUS "WebSocket listener adapter tests enabled")
+
+##################################################
+# QUIC Connection Adapter Tests (Issue #967)
+##################################################
+
+add_executable(network_quic_connection_adapter_test
+    unit/test_quic_connection_adapter.cpp
+)
+target_link_libraries(network_quic_connection_adapter_test PRIVATE
+    network_system GTest::gtest GTest::gtest_main Threads::Threads)
+setup_asio_integration(network_quic_connection_adapter_test)
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_quic_connection_adapter_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_quic_connection_adapter_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+set_target_properties(network_quic_connection_adapter_test PROPERTIES
+    CXX_STANDARD 20 CXX_STANDARD_REQUIRED ON RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+network_gtest_discover_tests(network_quic_connection_adapter_test DISCOVERY_TIMEOUT 60)
+message(STATUS "QUIC connection adapter tests enabled")
+
+##################################################
+# QUIC Listener Adapter Tests (Issue #967)
+##################################################
+
+add_executable(network_quic_listener_adapter_test
+    unit/test_quic_listener_adapter.cpp
+)
+target_link_libraries(network_quic_listener_adapter_test PRIVATE
+    network_system GTest::gtest GTest::gtest_main Threads::Threads)
+setup_asio_integration(network_quic_listener_adapter_test)
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_quic_listener_adapter_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_quic_listener_adapter_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+set_target_properties(network_quic_listener_adapter_test PROPERTIES
+    CXX_STANDARD 20 CXX_STANDARD_REQUIRED ON RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+network_gtest_discover_tests(network_quic_listener_adapter_test DISCOVERY_TIMEOUT 60)
+message(STATUS "QUIC listener adapter tests enabled")
+
 ##################################################
 # Sliding Histogram Tests (Issue #873)
 ##################################################
@@ -3533,6 +4363,10 @@ endif()
 if(CONTAINER_SYSTEM_INCLUDE_DIR)
     target_include_directories(network_system_lifecycle_test PRIVATE ${CONTAINER_SYSTEM_INCLUDE_DIR})
     target_compile_definitions(network_system_lifecycle_test PRIVATE WITH_CONTAINER_SYSTEM)
+endif()
+
+if(CONTAINER_SYSTEM_NEW_INCLUDE_DIR)
+    target_include_directories(network_system_lifecycle_test PRIVATE ${CONTAINER_SYSTEM_NEW_INCLUDE_DIR})
 endif()
 
 set_target_properties(network_system_lifecycle_test PROPERTIES
@@ -3638,6 +4472,869 @@ network_gtest_discover_tests(network_facade_extended_test
     DISCOVERY_TIMEOUT 60
 )
 message(STATUS "Facade extended tests enabled")
+
+##################################################
+# Tracing Unit Tests (Issue #965)
+##################################################
+
+add_executable(network_trace_context_test
+    unit/trace_context_test.cpp
+)
+
+target_link_libraries(network_trace_context_test PRIVATE
+    network_system
+    GTest::gtest
+    GTest::gtest_main
+    Threads::Threads
+)
+
+setup_asio_integration(network_trace_context_test)
+
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_trace_context_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_trace_context_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+
+set_target_properties(network_trace_context_test PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+)
+
+network_gtest_discover_tests(network_trace_context_test
+    DISCOVERY_TIMEOUT 60
+)
+
+add_executable(network_span_test
+    unit/span_test.cpp
+)
+
+target_link_libraries(network_span_test PRIVATE
+    network_system
+    GTest::gtest
+    GTest::gtest_main
+    Threads::Threads
+)
+
+setup_asio_integration(network_span_test)
+
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_span_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_span_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+
+set_target_properties(network_span_test PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+)
+
+network_gtest_discover_tests(network_span_test
+    DISCOVERY_TIMEOUT 60
+)
+
+add_executable(network_tracing_exporters_test
+    unit/tracing_exporters_test.cpp
+)
+
+target_link_libraries(network_tracing_exporters_test PRIVATE
+    network_system
+    GTest::gtest
+    GTest::gtest_main
+    Threads::Threads
+)
+
+setup_asio_integration(network_tracing_exporters_test)
+
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_tracing_exporters_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_tracing_exporters_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+
+set_target_properties(network_tracing_exporters_test PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+)
+
+network_gtest_discover_tests(network_tracing_exporters_test
+    DISCOVERY_TIMEOUT 60
+)
+
+add_executable(network_tracing_exporters_branch_test
+    unit/tracing_exporters_branch_test.cpp
+)
+
+target_link_libraries(network_tracing_exporters_branch_test PRIVATE
+    network_system
+    GTest::gtest
+    GTest::gtest_main
+    Threads::Threads
+)
+
+setup_asio_integration(network_tracing_exporters_branch_test)
+
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_tracing_exporters_branch_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_tracing_exporters_branch_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+
+set_target_properties(network_tracing_exporters_branch_test PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+)
+
+network_gtest_discover_tests(network_tracing_exporters_branch_test
+    DISCOVERY_TIMEOUT 60
+)
+
+message(STATUS "Tracing unit tests enabled (trace_context, span, exporters)")
+
+##################################################
+# Session Unit Tests (Issue #965)
+##################################################
+
+add_executable(network_messaging_session_test
+    unit/messaging_session_test.cpp
+)
+
+target_link_libraries(network_messaging_session_test PRIVATE
+    network_system
+    GTest::gtest
+    GTest::gtest_main
+    Threads::Threads
+)
+
+setup_asio_integration(network_messaging_session_test)
+
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_messaging_session_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_messaging_session_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+
+set_target_properties(network_messaging_session_test PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+)
+
+network_gtest_discover_tests(network_messaging_session_test
+    DISCOVERY_TIMEOUT 60
+)
+
+add_executable(network_secure_session_test
+    unit/secure_session_test.cpp
+)
+
+target_link_libraries(network_secure_session_test PRIVATE
+    network_system
+    GTest::gtest
+    GTest::gtest_main
+    Threads::Threads
+    OpenSSL::SSL
+    OpenSSL::Crypto
+)
+
+setup_asio_integration(network_secure_session_test)
+
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_secure_session_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_secure_session_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+
+set_target_properties(network_secure_session_test PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+)
+
+network_gtest_discover_tests(network_secure_session_test
+    DISCOVERY_TIMEOUT 60
+)
+
+add_executable(network_quic_session_test
+    unit/quic_session_test.cpp
+)
+
+target_link_libraries(network_quic_session_test PRIVATE
+    network_system
+    GTest::gtest
+    GTest::gtest_main
+    Threads::Threads
+)
+
+setup_asio_integration(network_quic_session_test)
+
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_quic_session_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_quic_session_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+
+set_target_properties(network_quic_session_test PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+)
+
+network_gtest_discover_tests(network_quic_session_test
+    DISCOVERY_TIMEOUT 60
+)
+
+message(STATUS "Session unit tests enabled (messaging, secure, quic)")
+
+##################################################
+# Experimental Unit Tests (Issue #965)
+##################################################
+
+# reliable_udp_client_test excluded: source moved out of main library (Issue #561)
+
+add_executable(network_experimental_quic_client_test
+    unit/experimental_quic_client_test.cpp
+)
+
+target_link_libraries(network_experimental_quic_client_test PRIVATE
+    network_system
+    GTest::gtest
+    GTest::gtest_main
+    Threads::Threads
+)
+
+target_compile_definitions(network_experimental_quic_client_test PRIVATE NETWORK_USE_EXPERIMENTAL)
+
+setup_asio_integration(network_experimental_quic_client_test)
+
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_experimental_quic_client_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_experimental_quic_client_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+
+if(THREAD_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_experimental_quic_client_test PRIVATE ${THREAD_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_experimental_quic_client_test PRIVATE WITH_THREAD_SYSTEM)
+endif()
+
+set_target_properties(network_experimental_quic_client_test PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+)
+
+network_gtest_discover_tests(network_experimental_quic_client_test
+    DISCOVERY_TIMEOUT 60
+)
+
+add_executable(network_experimental_quic_server_test
+    unit/experimental_quic_server_test.cpp
+)
+
+target_link_libraries(network_experimental_quic_server_test PRIVATE
+    network_system
+    GTest::gtest
+    GTest::gtest_main
+    Threads::Threads
+)
+
+target_compile_definitions(network_experimental_quic_server_test PRIVATE NETWORK_USE_EXPERIMENTAL)
+
+setup_asio_integration(network_experimental_quic_server_test)
+
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_experimental_quic_server_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_experimental_quic_server_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+
+if(THREAD_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_experimental_quic_server_test PRIVATE ${THREAD_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_experimental_quic_server_test PRIVATE WITH_THREAD_SYSTEM)
+endif()
+
+set_target_properties(network_experimental_quic_server_test PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+)
+
+network_gtest_discover_tests(network_experimental_quic_server_test
+    DISCOVERY_TIMEOUT 60
+)
+
+message(STATUS "Experimental unit tests enabled (quic_client, quic_server)")
+
+##################################################
+# Core Messaging Unit Tests (Issue #966)
+##################################################
+
+# Helper macro to create a standard test target
+macro(add_network_test TEST_NAME TEST_SOURCE)
+    add_executable(${TEST_NAME} ${TEST_SOURCE})
+
+    target_link_libraries(${TEST_NAME} PRIVATE
+        network_system
+        GTest::gtest
+        GTest::gtest_main
+        Threads::Threads
+    )
+
+    setup_asio_integration(${TEST_NAME})
+
+    if(COMMON_SYSTEM_INCLUDE_DIR)
+        target_include_directories(${TEST_NAME} PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(${TEST_NAME} PRIVATE WITH_COMMON_SYSTEM)
+    endif()
+
+    if(THREAD_SYSTEM_INCLUDE_DIR)
+        target_include_directories(${TEST_NAME} PRIVATE ${THREAD_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(${TEST_NAME} PRIVATE WITH_THREAD_SYSTEM)
+    endif()
+
+    if(LOGGER_SYSTEM_INCLUDE_DIR)
+        target_include_directories(${TEST_NAME} PRIVATE ${LOGGER_SYSTEM_INCLUDE_DIR})
+        target_compile_definitions(${TEST_NAME} PRIVATE WITH_LOGGER_SYSTEM)
+    endif()
+
+    set_target_properties(${TEST_NAME} PROPERTIES
+        CXX_STANDARD 20
+        CXX_STANDARD_REQUIRED ON
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+    )
+
+    network_gtest_discover_tests(${TEST_NAME}
+        DISCOVERY_TIMEOUT 60
+    )
+endmacro()
+
+add_network_test(network_messaging_client_test unit/messaging_client_test.cpp)
+add_network_test(network_messaging_server_test unit/messaging_server_test.cpp)
+add_network_test(network_messaging_udp_client_test unit/messaging_udp_client_test.cpp)
+add_network_test(network_messaging_udp_server_test unit/messaging_udp_server_test.cpp)
+# secure_messaging_udp tests excluded: dtls_socket symbols in libs/network-udp, not main library
+
+message(STATUS "Core messaging unit tests enabled (tcp, udp)")
+
+# WebSocket tests already exist: test_messaging_ws_client.cpp, test_messaging_ws_server.cpp
+
+##################################################
+# Integration Module Unit Tests (Issue #968)
+##################################################
+
+add_network_test(network_thread_integration_test unit/thread_integration_test.cpp)
+add_network_test(network_logger_integration_test unit/logger_integration_test.cpp)
+add_network_test(network_monitoring_integration_test unit/monitoring_integration_test.cpp)
+add_network_test(network_container_integration_test unit/container_integration_test.cpp)
+add_network_test(network_io_context_thread_manager_test unit/io_context_thread_manager_test.cpp)
+message(STATUS "Integration module unit tests enabled (Issue #968)")
+
+##################################################
+# Protocol Factory Unit Tests (Issue #968)
+##################################################
+
+add_network_test(network_protocol_tcp_factory_test unit/protocol_tcp_factory_test.cpp)
+add_network_test(network_protocol_udp_factory_test unit/protocol_udp_factory_test.cpp)
+add_network_test(network_protocol_websocket_factory_test unit/protocol_websocket_factory_test.cpp)
+add_network_test(network_protocol_quic_factory_test unit/protocol_quic_factory_test.cpp)
+message(STATUS "Protocol factory unit tests enabled (Issue #968)")
+
+##################################################
+# HTTP/2 Server Stream Unit Tests (Issue #968)
+##################################################
+
+add_network_test(network_http2_server_stream_test unit/http2_server_stream_test.cpp)
+message(STATUS "HTTP/2 server stream unit tests enabled (Issue #968)")
+
+##################################################
+# WebSocket Socket Unit Tests (Issue #968)
+##################################################
+
+add_network_test(network_websocket_socket_test unit/websocket_socket_test.cpp)
+message(STATUS "WebSocket socket unit tests enabled (Issue #968)")
+
+##################################################
+# QUIC Protocol Module Unit Tests (Issue #974)
+##################################################
+
+add_network_test(network_session_ticket_store_test unit/session_ticket_store_test.cpp)
+add_network_test(network_quic_pmtud_controller_test unit/quic_pmtud_controller_test.cpp)
+add_network_test(network_quic_crypto_module_test unit/quic_crypto_test.cpp)
+add_network_test(network_quic_crypto_extended_test unit/quic_crypto_extended_test.cpp)
+add_network_test(network_quic_connection_module_test unit/quic_connection_test.cpp)
+add_network_test(network_quic_connection_extended_test unit/quic_connection_extended_test.cpp)
+
+# QUIC connection branch coverage: drives the private dispatch helpers
+# (handle_frame, process_frames, build_packet, generate_ack_frame,
+# handle_loss_detection_result, generate_probe_packets,
+# queue_frames_for_retransmission, update_state) and state guards
+# (close re-entry, enter_closing/draining no-op arms, on_timeout drain
+# vs idle, next_timeout closed/draining) of connection.cpp through the
+# tests::support::quic_connection_test_access friend. Reuses the
+# NETWORK_ENABLE_TEST_INJECTION gate (PUBLIC on network_system when
+# BUILD_TESTS=ON; see cmake/network_system_targets.cmake). Mirrors the
+# strategy of Issue #1115 (http2_client) and #1122 (quic_socket).
+# Targets the 655-branch gap in src/protocols/quic/connection.cpp to
+# reach >=80% line / >=70% branch coverage (Issue #1145).
+add_network_test(network_quic_connection_branch_test
+                 unit/quic_connection_branch_test.cpp)
+target_link_libraries(network_quic_connection_branch_test PRIVATE network::test_support)
+add_network_test(network_quic_socket_construction_test unit/quic_socket_construction_test.cpp)
+
+# QUIC frame extended coverage: parser error paths (truncated inputs at every
+# varint boundary), unknown frame-type dispatch, varint edge values (0, 63, 64,
+# 16383, 2^62-1), stream flag matrix (FIN/LEN/OFF 8 combinations), new_connection_id
+# CID length boundaries, connection_close transport vs application variants,
+# round-trip coverage for frame_builder::build(variant) dispatch (Issue #1011)
+add_network_test(network_quic_frame_coverage_test unit/quic_frame_coverage_test.cpp)
+
+# QUIC frame branch-coverage uplift: targets the unhit conditional branches in
+# src/protocols/quic/frame.cpp identified via gcov HTML inspection -- truncated
+# ACK range_count varint, build_ack empty / multi-range loop body, crypto and
+# new_token length-vs-remaining boundary, connection_close reason boundary,
+# new_connection_id failure points and cid_len boundary, every (FIN/LEN/OFF)
+# stream flag combination crossed with truncation positions (Issue #1146)
+add_network_test(network_quic_frame_branch_test unit/quic_frame_branch_test.cpp)
+
+# QUIC packet branch-coverage uplift: targets the unhit conditional branches in
+# src/protocols/quic/packet.cpp identified via gcov HTML inspection -- long /
+# short header discrimination, every length-check false branch, dcid/scid max
+# boundary, Initial token-length and packet-length varint truncation, the
+# wrap-around arms of packet_number::decode (RFC 9000 Appendix A), every
+# encoded_length threshold crossing, is_version_negotiation outcome matrix,
+# and the parse_header dispatch error propagation (Issue #1147)
+add_network_test(network_quic_packet_branch_test unit/quic_packet_branch_test.cpp)
+
+message(STATUS "QUIC protocol module unit tests enabled (Issue #974)")
+
+##################################################
+# Facade Layer Module Unit Tests (Issue #975)
+##################################################
+
+add_network_test(network_http_facade_module_test unit/http_facade_test.cpp)
+add_network_test(network_tcp_facade_module_test unit/tcp_facade_test.cpp)
+add_network_test(network_udp_facade_module_test unit/udp_facade_test.cpp)
+add_network_test(network_websocket_facade_module_test unit/websocket_facade_test.cpp)
+add_network_test(network_quic_facade_module_test unit/quic_facade_test.cpp)
+message(STATUS "Facade layer module unit tests enabled (Issue #975)")
+
+##################################################
+# HTTP/2, Secure Transport, WebSocket Unit Tests (Issue #976)
+##################################################
+
+# HTTP/2 module tests
+add_network_test(network_hpack_module_test unit/hpack_test.cpp)
+
+# HPACK extended coverage: encoder static-table representation, dynamic-table
+# eviction under tight max_size, decoder error paths (codes 100-107),
+# integer-length boundary round-trips (Issue #1009)
+add_network_test(network_hpack_coverage_test unit/hpack_coverage_test.cpp)
+
+# HPACK branch coverage: literal-without-indexing indexed-name paths,
+# encoder same-call dynamic-table reuse, dynamic_table find/get edge cases
+# (Issue #1031)
+add_network_test(network_hpack_branch_test unit/hpack_branch_test.cpp)
+
+# HPACK additional coverage: static-table boundary entries, decoder happy paths
+# for literal-without-indexing / never-indexed prefixes, multi-byte integer
+# non-overflow path, huffman stub contract, mixed static/dynamic round-trips
+# (Issue #1031)
+add_network_test(network_hpack_extra_coverage_test unit/hpack_extra_coverage_test.cpp)
+
+# tcp_socket extra coverage: try_send rejection, async_send-on-closed, start_read
+# idempotence, reset_metrics, backpressure activation/release, multi-observer
+# delivery, default-state invariants (Issue #1032)
+add_network_test(network_tcp_socket_extra_coverage_test unit/tcp_socket_extra_coverage_test.cpp)
+
+# unified_session_manager extra coverage: default config, backpressure short-circuit,
+# zero max_sessions guard, pre-wrapped session_handle add path, with_id rejection /
+# explicit / collision, set_max_sessions narrowing, generate_id concurrency,
+# cleanup accumulation, const get_session, full stats population (Issue #1034)
+add_network_test(network_unified_session_manager_extra_coverage_test
+                 unit/unified_session_manager_extra_coverage_test.cpp)
+
+# quic frame extra coverage: longer varint type prefixes, heterogeneous parse_all,
+# every concrete STREAM type byte (0x08-0x0f), ACK_ECN dispatch via parse() with
+# truncation matrix, crypto offset+large-data round-trips, new_connection_id
+# minimal/large sequence variants, connection_close transport-with-frame-type and
+# multi-byte error_code, build_padding(0) edge, frame_type_to_string for branches
+# not previously asserted, stream-helper per-bit consistency (Issue #1033)
+add_network_test(network_quic_frame_extra_coverage_test
+                 unit/quic_frame_extra_coverage_test.cpp)
+
+add_network_test(network_http2_client_module_test unit/http2_client_test.cpp)
+add_network_test(network_http2_server_module_test unit/http2_server_test.cpp)
+
+# HTTP/2 server extended coverage: lifecycle, start_tls error paths,
+# connection preface handling via raw TCP clients (Issue #992)
+add_network_test(network_http2_server_coverage_test unit/http2_server_coverage_test.cpp)
+
+# HTTP/2 client extended coverage: connect guard clauses, network error paths,
+# settings/timeout edge cases, disconnected request/stream operations (Issue #991)
+add_network_test(network_http2_client_coverage_test unit/http2_client_coverage_test.cpp)
+
+# HTTP/2 client additional coverage: TLS handshake failure branches, ALPN
+# mismatch, concurrent disconnect, settings round-trip, stream callback move
+# semantics (Issue #991 follow-up)
+add_network_test(network_http2_client_extended_coverage_test
+                 unit/http2_client_extended_coverage_test.cpp)
+
+# HTTP/2 client branch coverage: response header lookup case-insensitivity,
+# settings round-trip boundaries, http2_stream move semantics with populated
+# state, connect() error paths, disconnected helper early-return paths,
+# concurrent state queries (Issue #1048)
+add_network_test(network_http2_client_branch_test
+                 unit/http2_client_branch_test.cpp)
+target_link_libraries(network_http2_client_branch_test PRIVATE network::test_support)
+
+# Issue #1115 (Round 6 of #1106 / #953): the dispatcher TEST_F batch in
+# this target invokes private http2_client::process_frame() through
+# tests::support::http2_client_test_access. The friend gate
+# NETWORK_ENABLE_TEST_INJECTION is defined PUBLIC on the network_system
+# target when BUILD_TESTS=ON (see cmake/network_system_targets.cmake:163-165),
+# so the macro propagates here transitively — no per-target definition
+# is required. The production header
+# src/internal/protocols/http2/http2_client.h befriends
+# tests::support::http2_client_test_access under the same gate.
+
+# Phase 2E.R3 (Issue #1106): Two slow_write/echo_one positive-path TEST_F
+# cases pass under Debug/Release but fail under coverage instrumentation
+# because lcov/gcov slow the SETTINGS handshake past the 2-3 second wait
+# budget. Define NETWORK_COVERAGE_BUILD when ENABLE_COVERAGE is on so
+# those two tests are excluded from coverage runs only — they remain in
+# Debug/Release builds where they exercise the partial-read accumulator
+# and request-error branches as designed.
+if(ENABLE_COVERAGE)
+    target_compile_definitions(network_http2_client_branch_test PRIVATE
+        NETWORK_COVERAGE_BUILD)
+endif()
+
+# HTTP/2 client dispatcher branch coverage (Issue #1119, Round 3 of #953):
+# Direct-dispatch tests for known-stream branches in handle_rst_stream_frame,
+# handle_data_frame, handle_headers_frame, handle_window_update_frame, plus
+# default-arm coverage for additional frame types and private-helper
+# coverage (build_headers, allocate_stream_id). Reuses the
+# http2_client_test_access friend gate established by Issue #1115. Stream-
+# seeding helpers in tests/support/http2_client_test_access.h enable the
+# known-stream success-path branches that Round 6 / Round 2 left untouched.
+add_network_test(network_http2_client_dispatcher_branch_test
+                 unit/http2_client_dispatcher_branch_test.cpp)
+target_link_libraries(network_http2_client_dispatcher_branch_test
+                      PRIVATE network::test_support)
+
+# gRPC client branch coverage: grpc_channel_config full-field round-trip with
+# boundary values, call_options::set_timeout duration variants, metadata
+# growth, varied target construction, wait_for_connected timeout budget,
+# concurrent disconnect / is_connected, move semantics, malformed-target
+# connect coverage, call_raw / streaming guard-clause variants, async
+# callback stress, grpc_metadata copy/move/clear semantics (Issue #1049)
+add_network_test(network_grpc_client_branch_test
+                 unit/grpc_client_branch_test.cpp)
+target_link_libraries(network_grpc_client_branch_test PRIVATE network::test_support)
+
+# gRPC client extended coverage: post-handshake call_raw success paths with
+# metadata + deadline variants, call_raw_async success-result delivery via
+# callback, wait_for_connected polling-loop terminal success branch,
+# server_stream_raw / client_stream_raw / bidi_stream_raw post-connect
+# acquisition with default and full options, multi-handle coexistence on a
+# single client, second-connect short-circuit, disconnect-then-call-raw error
+# guards. Builds on top of the Phase 2A/2B mock_grpc_server_peer and
+# mock_h2_server_peer substrate to drive paths uncovered by hermetic
+# public-API tests (Issue #1120, Round 3 of #953).
+add_network_test(network_grpc_client_extended_coverage_test
+                 unit/grpc_client_extended_coverage_test.cpp)
+target_link_libraries(network_grpc_client_extended_coverage_test
+                      PRIVATE network::test_support)
+
+# HTTP/2 server branch coverage: tls_config field round-trips with boundary
+# values, http2_server construction with empty/long/binary server IDs,
+# http2_settings round-trip with zero/UINT32_MAX boundaries plus repeated
+# header_table_size updates, pre-listen state queries (is_running,
+# active_connections, active_streams, server_id), repeated start/stop
+# cycles, already-running rejection for both clear and TLS starts,
+# additional start_tls rejection paths (empty cert/key, missing files,
+# verify_client without ca_file), handler registration with empty / shared-
+# state-capture / replaced functions, concurrent state polling under
+# shared_ptr lifetime, many concurrent server instances (Issue #1050)
+add_network_test(network_http2_server_branch_test
+                 unit/http2_server_branch_test.cpp)
+target_link_libraries(network_http2_server_branch_test PRIVATE network::test_support)
+
+# HTTP/2 server dispatcher branch coverage (Issue #1121, Round 3 of #953):
+# Direct-dispatch tests for process_frame switch arms and individual handler
+# branches in src/protocols/http2/http2_server.cpp. Mirrors the strategy of
+# Issue #1115 (http2_client) / Issue #1119 (http2_client_dispatcher) by
+# invoking http2_server_connection::process_frame() directly through the
+# tests::support::http2_server_test_access friend class. The friend gate
+# NETWORK_ENABLE_TEST_INJECTION is defined PUBLIC on the network_system
+# target when BUILD_TESTS=ON (see cmake/network_system_targets.cmake), so
+# the macro propagates here transitively — no per-target definition is
+# required. The production header src/internal/protocols/http2/http2_server.h
+# befriends tests::support::http2_server_test_access under the same gate.
+add_network_test(network_http2_server_dispatcher_branch_test
+                 unit/http2_server_dispatcher_branch_test.cpp)
+target_link_libraries(network_http2_server_dispatcher_branch_test
+                      PRIVATE network::test_support)
+
+# QUIC socket branch coverage: many short-lived client / server instances,
+# default invariants for state / role / is_connected / is_handshake_complete /
+# remote_endpoint / remote_connection_id, local_connection_id RFC 9000 length
+# bounds and pairwise uniqueness, callback registration with default-
+# constructed std::function / replaced lambdas / shared_ptr-captured state for
+# all four callback types, mutable + const socket() accessor reachability,
+# role-guard rejection branches in connect()/accept() (server-cannot-connect
+# with and without SNI, client-cannot-accept with empty + missing paths,
+# repeated server-connect rejection idempotency), close() idempotency on
+# idle/draining/closed including triple-close, application error code branch
+# (is_application_error=true), max-uint64 error code, long reason string,
+# empty reason, send_stream_data() not-connected guard for empty / populated
+# / large payloads with and without FIN, create_stream() not-connected guard
+# for client-bidi / client-uni / server-bidi / server-uni, close_stream()
+# not_found early-return for unknown / max-uint64 / nine separate ids,
+# stop_receive() before start, repeated stop_receive() idempotency,
+# start_receive()/stop_receive() flag transition, move construction with
+# populated callbacks preserving role + connection ID + idle state, server-
+# role move construction, move assignment overwriting client target with
+# server source preserving connection ID, three-step move-assignment chain,
+# self-move-assignment via reference (this!=&other guard), concurrent state
+# query polling (state / is_connected / is_handshake_complete / role /
+# local_connection_id / remote_connection_id) under shared_ptr lifetime,
+# concurrent callback replacement with reader thread, multi-instance
+# independent state across 4+4 client/server pairs, destructor cleanup after
+# close / without close / after start_receive (Issue #1051)
+add_network_test(network_quic_socket_branch_test
+                 unit/quic_socket_branch_test.cpp)
+target_link_libraries(network_quic_socket_branch_test PRIVATE network::test_support)
+
+# QUIC socket dispatcher branch coverage (Issue #1122, Round 1 of #953):
+# Direct-dispatch tests for process_frame variant arms (padding, ping, ack,
+# stream, connection_close, handshake_done, plus the implicit fall-through
+# arm covering the 13 unhandled variants), process_stream_frame callback-
+# set + callback-empty branches, process_connection_close_frame callback-
+# set + callback-empty branches and the resulting draining-state
+# transition, process_handshake_done_frame client-when-incomplete +
+# client-when-already-complete short-circuit + server-role ignore branch,
+# process_ack_frame placeholder no-op invocation, queue_crypto_data
+# single-payload + multiple-payload + larger-payload append paths,
+# send_pending_packets early-return on idle / closed states + populated-
+# queue dispatch, determine_encryption_level for every long-header
+# packet_type (initial / zero_rtt / handshake / retry-default-fallthrough)
+# and short-header (application), transition_state walking every reachable
+# state, on_retransmit_timeout drives send_pending_packets, and
+# process_crypto_frame TLS-uninitialized error-path early-return. Mirrors
+# the strategy of Issue #1115 (http2_client) / #1119 (http2_client
+# dispatcher) / #1121 (http2_server dispatcher) by invoking
+# quic_socket::process_frame() and its private peers directly through the
+# tests::support::quic_socket_test_access friend class. The friend gate
+# NETWORK_ENABLE_TEST_INJECTION is defined PUBLIC on the network_system
+# target when BUILD_TESTS=ON (see cmake/network_system_targets.cmake), so
+# the macro propagates here transitively — no per-target definition is
+# required. The production header src/internal/quic_socket.h befriends
+# tests::support::quic_socket_test_access under the same gate.
+add_network_test(network_quic_socket_dispatcher_branch_test
+                 unit/quic_socket_dispatcher_branch_test.cpp)
+target_link_libraries(network_quic_socket_dispatcher_branch_test
+                      PRIVATE network::test_support)
+
+# QUIC server branch coverage: quic_server_config full-field round-trip
+# (cert/key/ca paths, ALPN vector, all numeric settings at zero/max
+# boundaries, retry_key vector, full-config copy round-trip), construction
+# with empty / 512-char / binary-byte server IDs, default-state queries
+# (is_running / session_count / connection_count / sessions / get_session)
+# on never-started server, stop_server() rejection branch when never
+# started, disconnect_session() not_found branch for empty / long /
+# binary-byte ids, disconnect_all() empty-map no-op, broadcast() and
+# multicast() empty-map ok-return for empty / small / 64 KiB payloads
+# and many unknown ids, legacy callback registration with empty
+# std::function / replaced lambdas / shared_ptr-captured state for all
+# five callback types, interface (i_quic_server) callback adapters for
+# connection / disconnection / receive / stream / error, concurrent
+# polling of is_running / session_count / server_id / sessions list and
+# concurrent callback replacement, multi-instance independent state,
+# destructor on never-started / after failed-stop / with callbacks
+# registered (Issue #1052)
+add_network_test(network_quic_server_branch_test
+                 unit/quic_server_branch_test.cpp)
+target_link_libraries(network_quic_server_branch_test PRIVATE network::test_support)
+
+# QUIC server dispatcher branch coverage: invokes the previously private
+# generate_session_id, on_session_close, cleanup_dead_sessions, start_receive,
+# start_cleanup_timer, and invoke_*_callback dispatchers of
+# messaging_quic_server through the tests::support::quic_server_probe friend.
+# Mirrors the strategy of Issue #1122 (quic_socket dispatcher) / #1121
+# (http2_server dispatcher). The friend gate NETWORK_ENABLE_TEST_INJECTION
+# is defined PUBLIC on the network_system target when BUILD_TESTS=ON (see
+# cmake/network_system_targets.cmake), so the macro propagates here
+# transitively. Targets the previously unreachable branches in
+# src/experimental/quic_server.cpp to reach >=70% line / >=50% branch
+# coverage (Issue #1123).
+add_network_test(network_quic_server_dispatcher_branch_test
+                 unit/quic_server_dispatcher_branch_test.cpp)
+target_link_libraries(network_quic_server_dispatcher_branch_test
+                      PRIVATE network::test_support)
+
+# WebSocket server branch coverage: ws_server_config full-field round-trip
+# (port / max_connections / ping_interval / max_message_size at zero / 1 /
+# max boundaries, path with empty / 1024-char / binary-byte values,
+# auto_pong toggle), messaging_ws_server construction with empty / 512-char
+# / binary-byte server IDs, server_id() reference stability, default-state
+# queries (is_running / connection_count / get_connection / get_all_connections)
+# on never-started server, stop_server() / i_websocket_server::stop()
+# returning ok() on prepare_stop() early-return when never started,
+# get_connection() not_found branch for unknown / empty / 2048-char /
+# binary-byte ids, broadcast_text() / broadcast_binary() session_mgr_ ==
+# nullptr early-return for empty / small / 64 KiB payloads, interface
+# (i_websocket_server) callback adapters for connection / disconnection /
+# text / binary / error with null callbacks (empty-function branch),
+# populated lambdas (wrap-and-store branch), triple replacement,
+# null-then-populated-then-null toggle, shared_ptr-captured state,
+# concurrent polling of is_running / connection_count / server_id /
+# get_all_connections under shared_ptr lifetime, concurrent callback
+# replacement under reader thread, multi-instance independent state,
+# type alias coverage (ws_server / secure_ws_server / interop),
+# destructor on never-started / after stop / with callbacks /
+# after broadcast (Issue #1053)
+add_network_test(network_websocket_server_branch_test
+                 unit/websocket_server_branch_test.cpp)
+target_link_libraries(network_websocket_server_branch_test PRIVATE network::test_support)
+
+# WebSocket server in-process loopback coverage: drives messaging_ws_server
+# end-to-end against a real RFC 6455 client (built from internal::websocket_socket)
+# to reach branches that are unreachable without a live handshake — namely
+# do_start_impl / do_stop_impl success paths, do_accept loop, handle_new_connection
+# success / max_connections-zero limit / handshake-failure branches, on_message
+# text+binary dispatch, on_close, broadcast_text / broadcast_binary populated-
+# session paths, get_connection / get_all_connections success, the auto_pong
+# true and false branches, ~messaging_ws_server while running, bind_failed
+# catch arm of do_start_impl, and ws_connection / ws_connection_impl methods
+# reachable only after a real connection (id / is_connected / path /
+# remote_endpoint / send / send_text / send_binary / close / close(code,reason))
+# (Issue #1067)
+add_network_test(network_websocket_server_loopback_test
+                 unit/websocket_server_loopback_test.cpp)
+
+# Friend-test injection demo (Issue #1074 Phase 2D): invokes the previously
+# private messaging_quic_server::handle_packet entry point through the
+# tests/support/quic_server_probe forwarder, gated by NETWORK_ENABLE_TEST_INJECTION.
+add_network_test(network_quic_server_probe_test
+                 unit/quic_server_probe_test.cpp)
+target_link_libraries(network_quic_server_probe_test PRIVATE network::test_support)
+
+# Friend-test injection demo (Issue #1074 Phase 2D): invokes the previously
+# private messaging_ws_server::handle_new_connection entry point through the
+# tests/support/ws_server_probe forwarder, gated by NETWORK_ENABLE_TEST_INJECTION.
+add_network_test(network_ws_server_probe_test
+                 unit/ws_server_probe_test.cpp)
+target_link_libraries(network_ws_server_probe_test PRIVATE network::test_support)
+
+# WebSocket server dispatcher branch coverage: invokes the previously private
+# on_message, on_close, on_error, do_accept, and invoke_*_callback dispatchers
+# of messaging_ws_server through the tests::support::ws_server_probe friend.
+# Mirrors the strategy of Issue #1123 (quic_server dispatcher) / #1121
+# (http2_server dispatcher). The friend gate NETWORK_ENABLE_TEST_INJECTION
+# is defined PUBLIC on the network_system target when BUILD_TESTS=ON, so the
+# macro propagates here transitively. Targets the previously unreachable
+# branches in src/http/websocket_server.cpp to reach >=70% line / >=50%
+# branch coverage (Issue #1124).
+add_network_test(network_websocket_server_dispatcher_branch_test
+                 unit/websocket_server_dispatcher_branch_test.cpp)
+target_link_libraries(network_websocket_server_dispatcher_branch_test
+                      PRIVATE network::test_support)
+
+# Frame-injection demo (Issue #1074 Phase 2E): one TEST_F per protocol
+# family demonstrating that tests/support/frame_injector composes with
+# mock_h2_server_peer / mock_grpc_server_peer / mock_quic_peer_loop and
+# the Phase 2D ws_server_probe to drive previously-unreachable error
+# branches (drop, malform, malform, slow-write).
+add_network_test(network_frame_injector_demo_test
+                 unit/frame_injector_demo_test.cpp)
+target_link_libraries(network_frame_injector_demo_test PRIVATE network::test_support)
+
+# HTTP parser extended coverage: url_encode/decode edge cases (percent
+# truncation, high-bit bytes, hex case), query string delimiter handling
+# (leading/trailing '&', duplicate keys, URL-encoded delimiters), cookie
+# malformed-pair handling, parse_request_line / parse_status_line error
+# branches, multipart form-data edge cases, chunked encoding boundary
+# conditions (Issue #1013)
+add_network_test(network_http_parser_coverage_test unit/http_parser_coverage_test.cpp)
+
+# HTTP parser branch-coverage extension targeting parse_multipart_form_data
+# error paths (missing Content-Type / boundary, headers without CRLF
+# terminator, name/filename without closing quote, Content-Type whitespace
+# trim fall-through), parse_request/parse_response edge branches, and
+# additional serialize_chunked_response / trim cases (Issue #1025)
+add_network_test(network_http_parser_branch_test unit/http_parser_branch_test.cpp)
+
+# HTTP error extended coverage: get_error_status_text default branch,
+# escape_json_string switch branches (all special chars, low control bytes,
+# plain ASCII, high-bit bytes), escape_html_string switch branches, and the
+# detail / request_id / message empty-vs-non-empty branches of
+# http_error_response::build_json_error and build_html_error (Issue #1023)
+add_network_test(network_http_error_coverage_test unit/http_error_coverage_test.cpp)
+
+# Secure transport module tests
+add_network_test(network_secure_tcp_socket_module_test unit/secure_tcp_socket_test.cpp)
+# secure_messaging_udp_client/server excluded: depend on dtls_socket from
+# libs/network-udp, require special link config beyond add_network_test macro
+
+# WebSocket module tests
+add_network_test(network_websocket_client_module_test unit/websocket_client_test.cpp)
+add_network_test(network_websocket_server_module_test unit/websocket_server_test.cpp)
+
+message(STATUS "HTTP/2, secure transport, and WebSocket module unit tests enabled (Issue #976)")
+
+##################################################
+# Infrastructure & Service Module Unit Tests (Issue #977)
+##################################################
+
+# gRPC client config, call_options, construction
+add_network_test(network_grpc_client_unit_test unit/core_client_test.cpp)
+
+# gRPC client extended coverage: lifecycle, guard clauses, async callback
+# delivery, and streaming error paths (Issue #994)
+add_network_test(network_grpc_client_coverage_test unit/grpc_client_test.cpp)
+
+# gRPC server config, status, construction
+add_network_test(network_grpc_server_unit_test unit/core_server_test.cpp)
+
+# health_monitor construction, state, callbacks
+add_network_test(network_health_monitor_unit_test unit/health_monitor_test.cpp)
+
+# service_registry, generic_service, health_service, utility functions
+add_network_test(network_service_registry_unit_test unit/service_registry_test.cpp)
+
+# memory_profiler: NOT in main library, needs explicit source inclusion
+add_executable(network_memory_profiler_unit_test
+    unit/memory_profiler_test.cpp
+    ${CMAKE_SOURCE_DIR}/src/internal/utils/memory_profiler.cpp
+)
+
+target_link_libraries(network_memory_profiler_unit_test PRIVATE
+    network_system
+    GTest::gtest
+    GTest::gtest_main
+    Threads::Threads
+)
+
+setup_asio_integration(network_memory_profiler_unit_test)
+
+if(COMMON_SYSTEM_INCLUDE_DIR)
+    target_include_directories(network_memory_profiler_unit_test PRIVATE ${COMMON_SYSTEM_INCLUDE_DIR})
+    target_compile_definitions(network_memory_profiler_unit_test PRIVATE WITH_COMMON_SYSTEM)
+endif()
+
+set_target_properties(network_memory_profiler_unit_test PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+)
+
+network_gtest_discover_tests(network_memory_profiler_unit_test
+    DISCOVERY_TIMEOUT 60
+)
+
+# reliable_udp_client header-only types (enums, stats structs)
+# Implementation is in libs/network-udp (Issue #561), so only header-only
+# types can be tested via add_network_test without linker errors.
+add_network_test(network_reliable_udp_client_unit_test unit/reliable_udp_client_test.cpp)
+
+message(STATUS "Infrastructure and service module unit tests enabled (Issue #977)")
 
 ##################################################
 # Integration Tests

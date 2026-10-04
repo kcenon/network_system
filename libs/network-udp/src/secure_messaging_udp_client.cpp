@@ -297,8 +297,17 @@ auto secure_messaging_udp_client::do_start_impl(
 	asio::ip::udp::socket udp_socket(*io_context_, asio::ip::udp::v4());
 
 	// Create DTLS socket
-	socket_ = std::make_shared<internal::dtls_socket>(
+	auto socket_result = internal::dtls_socket::create(
 		std::move(udp_socket), ssl_ctx_);
+	if (!socket_result.is_ok())
+	{
+		SSL_CTX_free(ssl_ctx_);
+		ssl_ctx_ = nullptr;
+		return error_void(error_codes::common_errors::internal_error,
+		                  "Failed to create DTLS socket",
+		                  "secure_messaging_udp_client::do_start_impl");
+	}
+	socket_ = socket_result.value();
 
 	// Set peer endpoint
 	{

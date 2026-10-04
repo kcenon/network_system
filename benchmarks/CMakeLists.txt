@@ -49,6 +49,11 @@ if(benchmark_FOUND OR BENCHMARK_FOUND)
         target_compile_definitions(network_benchmarks PRIVATE WITH_CONTAINER_SYSTEM)
     endif()
 
+    # See issue #1095: required for transitive <kcenon/container/...> includes via network_system headers.
+    if(CONTAINER_SYSTEM_NEW_INCLUDE_DIR)
+        target_include_directories(network_benchmarks PRIVATE ${CONTAINER_SYSTEM_NEW_INCLUDE_DIR})
+    endif()
+
     if(THREAD_SYSTEM_INCLUDE_DIR)
         target_include_directories(network_benchmarks PRIVATE ${THREAD_SYSTEM_INCLUDE_DIR})
         target_compile_definitions(network_benchmarks PRIVATE WITH_THREAD_SYSTEM)

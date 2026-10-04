@@ -736,7 +736,7 @@ TEST_F(ConnectionIdManagerTest, RetireCidsPriorTo)
 
     mgr.retire_cids_prior_to(2);
 
-    EXPECT_EQ(mgr.largest_retire_prior_to(), 0);  // Not updated here
+    EXPECT_EQ(mgr.largest_retire_prior_to(), 2);
     auto retire_frames = mgr.get_pending_retire_frames();
     EXPECT_EQ(retire_frames.size(), 2);  // CIDs 0 and 1 should be retired
 }

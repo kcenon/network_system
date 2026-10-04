@@ -29,6 +29,13 @@
 #include <string>
 #include <vector>
 
+#if defined(NETWORK_ENABLE_TEST_INJECTION)
+namespace kcenon::network::tests::support
+{
+    class quic_connection_test_access;
+} // namespace kcenon::network::tests::support
+#endif
+
 namespace kcenon::network::protocols::quic
 {
 
@@ -695,6 +702,17 @@ private:
      * \brief Convert sent_packet_info to sent_packet for loss detector
      */
     [[nodiscard]] auto to_sent_packet(const sent_packet_info& info) const -> sent_packet;
+
+#if defined(NETWORK_ENABLE_TEST_INJECTION)
+    // Test-only: grants tests/support/quic_connection_test_access access to
+    // private dispatch helpers (handle_frame, process_frames, build_packet,
+    // generate_ack_frame, handle_loss_detection_result, generate_probe_packets,
+    // queue_frames_for_retransmission, update_state) and member fields so
+    // tests can drive branches that are otherwise reachable only after a
+    // full TLS handshake. The handshake exceeds the wait_for budget under
+    // -fprofile-arcs -ftest-coverage instrumentation (Issue #1111 / #1145).
+    friend class kcenon::network::tests::support::quic_connection_test_access;
+#endif
 };
 
 } // namespace kcenon::network::protocols::quic

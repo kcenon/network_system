@@ -9,7 +9,7 @@
  * This is the public API header for result types. Use this header instead of
  * including detail/utils/result_types.h directly.
  *
- * @example
+ * Example usage:
  * @code
  * #include <kcenon/network/types/result.h>
  *

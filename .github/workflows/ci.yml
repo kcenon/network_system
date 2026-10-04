@@ -4,7 +4,7 @@ on:
   push:
     branches: [ main, develop, phase-* ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, develop ]
 
 jobs:
   # Quick minimal build for fast feedback (Linux-only, no dependencies)
@@ -37,13 +37,13 @@ jobs:
       run: |
         cmake -B build -G Ninja \
           -DCMAKE_BUILD_TYPE=Release \
-          -DBUILD_WITH_COMMON_SYSTEM=ON \
-          -DBUILD_WITH_LOGGER_SYSTEM=OFF \
-          -DBUILD_WITH_THREAD_SYSTEM=OFF \
-          -DBUILD_WITH_CONTAINER_SYSTEM=OFF \
+          -DKCENON_WITH_COMMON_SYSTEM=ON \
+          -DKCENON_WITH_LOGGER_SYSTEM=OFF \
+          -DKCENON_WITH_THREAD_SYSTEM=OFF \
+          -DKCENON_WITH_CONTAINER_SYSTEM=OFF \
           -DBUILD_TESTS=OFF \
           -DBUILD_EXAMPLES=OFF \
-          -DBUILD_SAMPLES=OFF
+          -DBUILD_EXAMPLES=OFF
 
     - name: Build
       run: cmake --build build --parallel
@@ -128,7 +128,7 @@ jobs:
       id: vcpkg-installed
       with:
         path: ${{ github.workspace }}/vcpkg_installed
-        key: ${{ runner.os }}-${{ matrix.compiler }}-vcpkg-installed-${{ matrix.triplet }}-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json') }}
+        key: ${{ runner.os }}-${{ matrix.compiler }}-vcpkg-installed-${{ matrix.triplet }}-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json', 'vcpkg-ports/**') }}
         restore-keys: |
           ${{ runner.os }}-${{ matrix.compiler }}-vcpkg-installed-${{ matrix.triplet }}-
 
@@ -151,13 +151,13 @@ jobs:
         cmake -B build -G Ninja \
           -DCMAKE_BUILD_TYPE=Debug \
           -DCMAKE_TOOLCHAIN_FILE="${{ env.CMAKE_TOOLCHAIN_FILE }}" \
-          -DBUILD_WITH_COMMON_SYSTEM=ON \
-          -DBUILD_WITH_LOGGER_SYSTEM=ON \
-          -DBUILD_WITH_THREAD_SYSTEM=ON \
-          -DBUILD_WITH_CONTAINER_SYSTEM=ON \
+          -DKCENON_WITH_COMMON_SYSTEM=ON \
+          -DKCENON_WITH_LOGGER_SYSTEM=ON \
+          -DKCENON_WITH_THREAD_SYSTEM=ON \
+          -DKCENON_WITH_CONTAINER_SYSTEM=ON \
           -DBUILD_MESSAGING_BRIDGE=OFF \
           -DBUILD_TESTS=ON \
-          -DBUILD_SAMPLES=OFF
+          -DBUILD_EXAMPLES=OFF
         cmake --build build --config Debug
 
     - name: Configure and build (vcpkg - Windows)
@@ -169,13 +169,13 @@ jobs:
         cmake -B build -G Ninja `
           -DCMAKE_BUILD_TYPE=Debug `
           -DCMAKE_TOOLCHAIN_FILE="${{ env.CMAKE_TOOLCHAIN_FILE }}" `
-          -DBUILD_WITH_COMMON_SYSTEM=ON `
-          -DBUILD_WITH_LOGGER_SYSTEM=ON `
-          -DBUILD_WITH_THREAD_SYSTEM=ON `
-          -DBUILD_WITH_CONTAINER_SYSTEM=ON `
+          -DKCENON_WITH_COMMON_SYSTEM=ON `
+          -DKCENON_WITH_LOGGER_SYSTEM=ON `
+          -DKCENON_WITH_THREAD_SYSTEM=ON `
+          -DKCENON_WITH_CONTAINER_SYSTEM=ON `
           -DBUILD_MESSAGING_BRIDGE=OFF `
           -DBUILD_TESTS=ON `
-          -DBUILD_SAMPLES=OFF
+          -DBUILD_EXAMPLES=OFF
         cmake --build build --config Debug
 
     - name: Configure and build (fallback - Unix)
@@ -187,13 +187,13 @@ jobs:
           brew install googletest asio fmt openssl@3 lz4 zlib 2>/dev/null || true
         cmake -B build -G Ninja \
           -DCMAKE_BUILD_TYPE=Debug \
-          -DBUILD_WITH_COMMON_SYSTEM=ON \
-          -DBUILD_WITH_LOGGER_SYSTEM=ON \
-          -DBUILD_WITH_THREAD_SYSTEM=ON \
-          -DBUILD_WITH_CONTAINER_SYSTEM=ON \
+          -DKCENON_WITH_COMMON_SYSTEM=ON \
+          -DKCENON_WITH_LOGGER_SYSTEM=ON \
+          -DKCENON_WITH_THREAD_SYSTEM=ON \
+          -DKCENON_WITH_CONTAINER_SYSTEM=ON \
           -DBUILD_MESSAGING_BRIDGE=OFF \
           -DBUILD_TESTS=ON \
-          -DBUILD_SAMPLES=OFF
+          -DBUILD_EXAMPLES=OFF
         cmake --build build --config Debug
 
     - name: Configure and build (fallback - Windows)
@@ -206,20 +206,20 @@ jobs:
         cmake -B build -G Ninja `
           -DCMAKE_BUILD_TYPE=Debug `
           -DCMAKE_TOOLCHAIN_FILE="$toolchainFile" `
-          -DBUILD_WITH_COMMON_SYSTEM=ON `
-          -DBUILD_WITH_LOGGER_SYSTEM=ON `
-          -DBUILD_WITH_THREAD_SYSTEM=ON `
-          -DBUILD_WITH_CONTAINER_SYSTEM=ON `
+          -DKCENON_WITH_COMMON_SYSTEM=ON `
+          -DKCENON_WITH_LOGGER_SYSTEM=ON `
+          -DKCENON_WITH_THREAD_SYSTEM=ON `
+          -DKCENON_WITH_CONTAINER_SYSTEM=ON `
           -DBUILD_MESSAGING_BRIDGE=OFF `
           -DBUILD_TESTS=ON `
-          -DBUILD_SAMPLES=OFF
+          -DBUILD_EXAMPLES=OFF
         cmake --build build --config Debug
 
     - name: Test (Unix)
       if: runner.os != 'Windows'
       run: |
         cd build
-        ctest -C Debug --output-on-failure --verbose --no-tests=error
+        ctest -C Debug --output-on-failure --verbose --no-tests=error --timeout 120
 
     - name: Upload build artifacts
       if: failure()
@@ -257,7 +257,7 @@ jobs:
           - name: UndefinedBehaviorSanitizer
             option: ENABLE_UBSAN
             env_var: UBSAN_OPTIONS
-            env_value: "print_stacktrace=1:halt_on_error=0"
+            env_value: "print_stacktrace=1:halt_on_error=1"
             cxx_flags: "-fsanitize=undefined -fno-omit-frame-pointer -g"
 
     steps:
@@ -291,6 +291,7 @@ jobs:
       uses: actions/checkout@v6
       with:
         repository: kcenon/container_system
+        ref: develop  # see #1095: pin until EPIC #531 reaches main
         path: container_system
         token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -334,7 +335,7 @@ jobs:
             -DCMAKE_SHARED_LINKER_FLAGS="$SANITIZER_CXX_FLAGS" \
             -DBUILD_TESTS=OFF \
             -DBUILD_EXAMPLES=OFF \
-            -DBUILD_SAMPLES=OFF
+            -DBUILD_EXAMPLES=OFF
           cmake --build build
           cmake --install build --prefix ${{ github.workspace }}/deps/install
           cd ..
@@ -356,7 +357,7 @@ jobs:
             -DCOMMON_SYSTEM_INCLUDE_DIR=${{ github.workspace }}/deps/install/include \
             -DBUILD_TESTS=OFF \
             -DBUILD_EXAMPLES=OFF \
-            -DBUILD_SAMPLES=OFF \
+            -DBUILD_EXAMPLES=OFF \
             -DBUILD_INTEGRATION_TESTS=OFF
           cmake --build build --target thread_system
           cmake --install build --prefix ${{ github.workspace }}/deps/install
@@ -379,7 +380,7 @@ jobs:
             -DCOMMON_SYSTEM_INCLUDE_DIR=${{ github.workspace }}/deps/install/include \
             -DBUILD_TESTS=OFF \
             -DBUILD_EXAMPLES=OFF \
-            -DBUILD_SAMPLES=OFF \
+            -DBUILD_EXAMPLES=OFF \
             -DLOGGER_BUILD_INTEGRATION_TESTS=OFF
           cmake --build build
           cmake --install build --prefix ${{ github.workspace }}/deps/install
@@ -402,7 +403,7 @@ jobs:
             -DCOMMON_SYSTEM_INCLUDE_DIR=${{ github.workspace }}/deps/install/include \
             -DBUILD_TESTS=OFF \
             -DBUILD_EXAMPLES=OFF \
-            -DBUILD_SAMPLES=OFF
+            -DBUILD_EXAMPLES=OFF
           cmake --build build
           # Install may fail due to missing files in container_system CMake config
           cmake --install build --prefix ${{ github.workspace }}/deps/install || true
@@ -415,13 +416,13 @@ jobs:
           -DCMAKE_BUILD_TYPE=Debug \
           -DCMAKE_PREFIX_PATH=${{ github.workspace }}/deps/install \
           -D${{ matrix.sanitizer.option }}=ON \
-          -DBUILD_WITH_COMMON_SYSTEM=ON \
-          -DBUILD_WITH_LOGGER_SYSTEM=ON \
-          -DBUILD_WITH_THREAD_SYSTEM=ON \
-          -DBUILD_WITH_CONTAINER_SYSTEM=ON \
+          -DKCENON_WITH_COMMON_SYSTEM=ON \
+          -DKCENON_WITH_LOGGER_SYSTEM=ON \
+          -DKCENON_WITH_THREAD_SYSTEM=ON \
+          -DKCENON_WITH_CONTAINER_SYSTEM=ON \
           -DBUILD_MESSAGING_BRIDGE=OFF \
           -DBUILD_TESTS=ON \
-          -DBUILD_SAMPLES=OFF \
+          -DBUILD_EXAMPLES=OFF \
           -DCMAKE_C_COMPILER=clang \
           -DCMAKE_CXX_COMPILER=clang++ \
           -DASIO_INCLUDE_DIR=/usr/local/include \
@@ -496,11 +497,11 @@ jobs:
       run: |
         cmake -B build -G Ninja \
           -DCMAKE_BUILD_TYPE=Release \
-          -DBUILD_WITH_COMMON_SYSTEM=ON \
-          -DBUILD_WITH_LOGGER_SYSTEM=ON \
-          -DBUILD_WITH_THREAD_SYSTEM=ON \
-          -DBUILD_WITH_CONTAINER_SYSTEM=ON \
-          -DBUILD_SAMPLES=OFF
+          -DKCENON_WITH_COMMON_SYSTEM=ON \
+          -DKCENON_WITH_LOGGER_SYSTEM=ON \
+          -DKCENON_WITH_THREAD_SYSTEM=ON \
+          -DKCENON_WITH_CONTAINER_SYSTEM=ON \
+          -DBUILD_EXAMPLES=OFF
         cmake --build build --config Release --parallel
         cmake --install build --prefix ${{ github.workspace }}/install
 

@@ -19,7 +19,7 @@
  * @example
  * @code
  * // Validate incoming message size
- * if (!message_validator::validate_size(data.size())) {
+ * if (message_validator::validate_size(data.size()) != validation_result::ok) {
  *     return error::message_too_large;
  * }
  *
@@ -125,30 +125,17 @@ public:
      *
      * @param size Size to validate
      * @param max_size Maximum allowed size (default: MAX_MESSAGE_SIZE)
-     * @return true if size is within limit, false otherwise
+     * @return validation_result::ok if valid, validation_result::size_exceeded otherwise
      */
-    [[nodiscard]] static bool validate_size(
+    [[nodiscard]] static validation_result validate_size(
             size_t size,
             size_t max_size = message_limits::MAX_MESSAGE_SIZE) noexcept {
-        return size <= max_size;
+        if (size > max_size) {
+            return validation_result::size_exceeded;
+        }
+        return validation_result::ok;
     }
 
-    /**
-     * @brief Validate and throw if size exceeds limit
-     *
-     * @param size Size to validate
-     * @param max_size Maximum allowed size
-     * @throws std::length_error if size exceeds limit
-     */
-    static void validate_size_or_throw(
-            size_t size,
-            size_t max_size = message_limits::MAX_MESSAGE_SIZE) {
-        if (size > max_size) {
-            throw std::length_error(
-                "Message size " + std::to_string(size) +
-                " exceeds limit " + std::to_string(max_size));
-        }
-    }
 
     /**
      * @brief Safe buffer copy with size validation

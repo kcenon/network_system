@@ -8,17 +8,24 @@
 #include "internal/integration/thread_pool_adapters.h"
 #endif
 
-#include <stdexcept>
-
 namespace kcenon::network::integration {
+
+Result<std::shared_ptr<ThreadPoolBridge>> ThreadPoolBridge::create(
+    std::shared_ptr<thread_pool_interface> pool, BackendType backend_type) {
+    if (!pool) {
+        return error<std::shared_ptr<ThreadPoolBridge>>(
+            error_codes::common_errors::invalid_argument,
+            "ThreadPoolBridge requires non-null thread pool",
+            "ThreadPoolBridge::create");
+    }
+    return ok(std::shared_ptr<ThreadPoolBridge>(
+        new ThreadPoolBridge(std::move(pool), backend_type)));
+}
 
 ThreadPoolBridge::ThreadPoolBridge(
     std::shared_ptr<thread_pool_interface> pool,
     BackendType backend_type)
     : pool_(std::move(pool)), backend_type_(backend_type) {
-    if (!pool_) {
-        throw std::invalid_argument("ThreadPoolBridge requires non-null thread pool");
-    }
 }
 
 ThreadPoolBridge::~ThreadPoolBridge() {
@@ -122,29 +129,35 @@ ThreadPoolBridge::BackendType ThreadPoolBridge::get_backend_type() const {
     return backend_type_;
 }
 
-std::shared_ptr<ThreadPoolBridge> ThreadPoolBridge::from_thread_system(
+Result<std::shared_ptr<ThreadPoolBridge>> ThreadPoolBridge::from_thread_system(
     const std::string& pool_name) {
-    (void)pool_name; // Pool name is informational only in current implementation
-
+    (void)pool_name;
     auto pool = thread_integration_manager::instance().get_thread_pool();
     if (!pool) {
-        throw std::runtime_error("Failed to get thread pool from thread_integration_manager");
+        return error<std::shared_ptr<ThreadPoolBridge>>(
+            error_codes::common_errors::not_initialized,
+            "Failed to get thread pool from thread_integration_manager",
+            "ThreadPoolBridge::from_thread_system");
     }
-
-    return std::make_shared<ThreadPoolBridge>(pool, BackendType::ThreadSystem);
+    return create(pool, BackendType::ThreadSystem);
 }
 
 #if KCENON_WITH_COMMON_SYSTEM
-std::shared_ptr<ThreadPoolBridge> ThreadPoolBridge::from_common_system(
+Result<std::shared_ptr<ThreadPoolBridge>> ThreadPoolBridge::from_common_system(
     std::shared_ptr<::kcenon::common::interfaces::IExecutor> executor) {
     if (!executor) {
-        throw std::invalid_argument("ThreadPoolBridge::from_common_system requires non-null executor");
+        return error<std::shared_ptr<ThreadPoolBridge>>(
+            error_codes::common_errors::invalid_argument,
+            "ThreadPoolBridge::from_common_system requires non-null executor",
+            "ThreadPoolBridge::from_common_system");
     }
-
-    // Adapt common_system executor to thread_pool_interface
-    auto adapted_pool = std::make_shared<common_to_network_thread_adapter>(std::move(executor));
-
-    return std::make_shared<ThreadPoolBridge>(adapted_pool, BackendType::CommonSystem);
+    auto adapter_result = common_to_network_thread_adapter::create(std::move(executor));
+    if (adapter_result.is_err()) {
+        return error<std::shared_ptr<ThreadPoolBridge>>(
+            adapter_result.error().code, adapter_result.error().message,
+            "ThreadPoolBridge::from_common_system");
+    }
+    return create(adapter_result.value(), BackendType::CommonSystem);
 }
 #endif
 

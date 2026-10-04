@@ -120,6 +120,13 @@ auto messaging_quic_server::do_start_impl(unsigned short port) -> VoidResult
 {
 	try
 	{
+		// A previous bind failure can leave a work guard tied to the old
+		// context. Destroy every dependent object before replacing it.
+		if (io_context_)
+		{
+			auto cleanup = do_stop_impl();
+			if (cleanup.is_err()) return cleanup;
+		}
 		// Create io_context
 		io_context_ = std::make_unique<asio::io_context>();
 		work_guard_ = std::make_unique<
@@ -208,26 +215,6 @@ auto messaging_quic_server::do_stop_impl() -> VoidResult
 {
 	try
 	{
-		// Cancel cleanup timer
-		if (cleanup_timer_)
-		{
-			cleanup_timer_->cancel();
-		}
-
-		// Close UDP socket
-		if (udp_socket_)
-		{
-			asio::error_code ec;
-			udp_socket_->cancel(ec);
-			if (udp_socket_->is_open())
-			{
-				udp_socket_->close(ec);
-			}
-		}
-
-		// Stop all sessions
-		disconnect_all(0);
-
 		// Release work guard
 		if (work_guard_)
 		{
@@ -245,6 +232,28 @@ auto messaging_quic_server::do_stop_impl() -> VoidResult
 		{
 			io_context_future_.wait();
 		}
+
+		// The worker may rearm receives or the cleanup timer until run() exits.
+		// Cancel and close their ASIO objects only after it has stopped.
+		if (cleanup_timer_)
+		{
+			cleanup_timer_->cancel();
+		}
+
+		// Close UDP socket
+		if (udp_socket_)
+		{
+			asio::error_code ec;
+			udp_socket_->cancel(ec);
+			if (udp_socket_->is_open())
+			{
+				udp_socket_->close(ec);
+			}
+		}
+
+		// No receive handler can add another session after this point.
+		// Close sessions while their socket and timer context still exists.
+		disconnect_all(0);
 
 		// Release resources
 		udp_socket_.reset();

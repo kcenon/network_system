@@ -423,3 +423,334 @@ TEST_F(HttpErrorResponseMakeErrorTest, MakeErrorEmptyDetail)
 	EXPECT_EQ(err.message, "Bad Gateway");
 	EXPECT_TRUE(err.detail.empty());
 }
+
+// ============================================================================
+// HttpErrorResponseBuildJsonTest
+// ============================================================================
+
+class HttpErrorResponseBuildJsonTest : public ::testing::Test
+{
+protected:
+	static auto has_substr(const std::string& haystack, const std::string& needle) -> bool
+	{
+		return haystack.find(needle) != std::string::npos;
+	}
+};
+
+TEST_F(HttpErrorResponseBuildJsonTest, StatusCodeAndMessagePopulated)
+{
+	auto err = http_error_response::make_error(http_error_code::not_found, "missing");
+	auto response = http_error_response::build_json_error(err);
+
+	EXPECT_EQ(response.status_code, 404);
+	EXPECT_EQ(response.status_message, "Not Found");
+}
+
+TEST_F(HttpErrorResponseBuildJsonTest, ContentTypeHeaderIsProblemJson)
+{
+	auto err = http_error_response::make_error(http_error_code::internal_server_error);
+	auto response = http_error_response::build_json_error(err);
+
+	auto content_type = response.get_header("Content-Type");
+	ASSERT_TRUE(content_type.has_value());
+	EXPECT_EQ(*content_type, "application/problem+json; charset=utf-8");
+}
+
+TEST_F(HttpErrorResponseBuildJsonTest, BodyContainsRfc7807RequiredFields)
+{
+	auto err = http_error_response::make_error(http_error_code::bad_request, "invalid syntax");
+	auto body = http_error_response::build_json_error(err).get_body_string();
+
+	EXPECT_TRUE(has_substr(body, "\"type\": \"about:blank\""));
+	EXPECT_TRUE(has_substr(body, "\"title\": \"Bad Request\""));
+	EXPECT_TRUE(has_substr(body, "\"status\": 400"));
+	EXPECT_TRUE(has_substr(body, "\"detail\": \"invalid syntax\""));
+}
+
+TEST_F(HttpErrorResponseBuildJsonTest, DetailFallsBackToMessageWhenEmpty)
+{
+	http_error err;
+	err.code = http_error_code::forbidden;
+	err.message = "access denied";
+	// detail intentionally left empty
+
+	auto body = http_error_response::build_json_error(err).get_body_string();
+	EXPECT_TRUE(has_substr(body, "\"detail\": \"access denied\""));
+}
+
+TEST_F(HttpErrorResponseBuildJsonTest, RequestIdOmittedWhenEmpty)
+{
+	auto err = http_error_response::make_error(http_error_code::not_found, "missing");
+	auto body = http_error_response::build_json_error(err).get_body_string();
+
+	EXPECT_FALSE(has_substr(body, "\"instance\""));
+}
+
+TEST_F(HttpErrorResponseBuildJsonTest, RequestIdIncludedAsInstance)
+{
+	auto err = http_error_response::make_error(http_error_code::not_found, "missing", "req-42");
+	auto body = http_error_response::build_json_error(err).get_body_string();
+
+	EXPECT_TRUE(has_substr(body, "\"instance\": \"req-42\""));
+}
+
+TEST_F(HttpErrorResponseBuildJsonTest, BodyContainsIso8601Timestamp)
+{
+	auto err = http_error_response::make_error(http_error_code::service_unavailable, "retry");
+	auto body = http_error_response::build_json_error(err).get_body_string();
+
+	// ISO 8601 UTC format: YYYY-MM-DDTHH:MM:SSZ
+	EXPECT_TRUE(has_substr(body, "\"timestamp\": \""));
+	EXPECT_TRUE(has_substr(body, "T"));
+	EXPECT_TRUE(has_substr(body, "Z\""));
+}
+
+TEST_F(HttpErrorResponseBuildJsonTest, JsonEscapesDoubleQuote)
+{
+	http_error err;
+	err.code = http_error_code::bad_request;
+	err.message = "m";
+	err.detail = "a \"quoted\" value";
+
+	auto body = http_error_response::build_json_error(err).get_body_string();
+	EXPECT_TRUE(has_substr(body, "a \\\"quoted\\\" value"));
+}
+
+TEST_F(HttpErrorResponseBuildJsonTest, JsonEscapesBackslash)
+{
+	http_error err;
+	err.code = http_error_code::bad_request;
+	err.message = "m";
+	err.detail = "a\\b";
+
+	auto body = http_error_response::build_json_error(err).get_body_string();
+	EXPECT_TRUE(has_substr(body, "a\\\\b"));
+}
+
+TEST_F(HttpErrorResponseBuildJsonTest, JsonEscapesWhitespaceControlChars)
+{
+	http_error err;
+	err.code = http_error_code::bad_request;
+	err.message = "m";
+	err.detail = std::string("nl\nrs\rtb\t");
+
+	auto body = http_error_response::build_json_error(err).get_body_string();
+	EXPECT_TRUE(has_substr(body, "nl\\n"));
+	EXPECT_TRUE(has_substr(body, "rs\\r"));
+	EXPECT_TRUE(has_substr(body, "tb\\t"));
+}
+
+TEST_F(HttpErrorResponseBuildJsonTest, JsonEscapesBackspaceAndFormFeed)
+{
+	http_error err;
+	err.code = http_error_code::bad_request;
+	err.message = "m";
+	err.detail = std::string("b\bf\f");
+
+	auto body = http_error_response::build_json_error(err).get_body_string();
+	EXPECT_TRUE(has_substr(body, "b\\b"));
+	EXPECT_TRUE(has_substr(body, "f\\f"));
+}
+
+TEST_F(HttpErrorResponseBuildJsonTest, JsonEscapesLowControlCharactersAsUnicode)
+{
+	http_error err;
+	err.code = http_error_code::bad_request;
+	err.message = "m";
+	// 0x01 is a low control char without a dedicated escape
+	err.detail = std::string("x\x01y");
+
+	auto body = http_error_response::build_json_error(err).get_body_string();
+	EXPECT_TRUE(has_substr(body, "x\\u0001y"));
+}
+
+TEST_F(HttpErrorResponseBuildJsonTest, JsonLeavesPrintableAsciiUnchanged)
+{
+	http_error err;
+	err.code = http_error_code::bad_request;
+	err.message = "m";
+	err.detail = "hello world 123";
+
+	auto body = http_error_response::build_json_error(err).get_body_string();
+	EXPECT_TRUE(has_substr(body, "\"detail\": \"hello world 123\""));
+}
+
+TEST_F(HttpErrorResponseBuildJsonTest, JsonEscapesAppliedToRequestId)
+{
+	auto err = http_error_response::make_error(http_error_code::not_found, "d", "req\"id");
+	auto body = http_error_response::build_json_error(err).get_body_string();
+	EXPECT_TRUE(has_substr(body, "\"instance\": \"req\\\"id\""));
+}
+
+// ============================================================================
+// HttpErrorResponseBuildHtmlTest
+// ============================================================================
+
+class HttpErrorResponseBuildHtmlTest : public ::testing::Test
+{
+protected:
+	static auto has_substr(const std::string& haystack, const std::string& needle) -> bool
+	{
+		return haystack.find(needle) != std::string::npos;
+	}
+};
+
+TEST_F(HttpErrorResponseBuildHtmlTest, StatusCodeAndMessagePopulated)
+{
+	auto err = http_error_response::make_error(http_error_code::not_found, "missing");
+	auto response = http_error_response::build_html_error(err);
+
+	EXPECT_EQ(response.status_code, 404);
+	EXPECT_EQ(response.status_message, "Not Found");
+}
+
+TEST_F(HttpErrorResponseBuildHtmlTest, ContentTypeHeaderIsTextHtml)
+{
+	auto err = http_error_response::make_error(http_error_code::internal_server_error);
+	auto response = http_error_response::build_html_error(err);
+
+	auto content_type = response.get_header("Content-Type");
+	ASSERT_TRUE(content_type.has_value());
+	EXPECT_EQ(*content_type, "text/html; charset=utf-8");
+}
+
+TEST_F(HttpErrorResponseBuildHtmlTest, TitleAndHeadingContainStatus)
+{
+	auto err = http_error_response::make_error(http_error_code::service_unavailable);
+	auto body = http_error_response::build_html_error(err).get_body_string();
+
+	EXPECT_TRUE(has_substr(body, "<title>503 Service Unavailable</title>"));
+	EXPECT_TRUE(has_substr(body, "<h1>503 Service Unavailable</h1>"));
+}
+
+TEST_F(HttpErrorResponseBuildHtmlTest, MessageParagraphAppearsWhenMessageSet)
+{
+	http_error err;
+	err.code = http_error_code::not_found;
+	err.message = "resource missing";
+
+	auto body = http_error_response::build_html_error(err).get_body_string();
+	EXPECT_TRUE(has_substr(body, "<p>resource missing</p>"));
+}
+
+TEST_F(HttpErrorResponseBuildHtmlTest, MessageParagraphOmittedWhenMessageEmpty)
+{
+	http_error err;
+	err.code = http_error_code::not_found;
+	// message intentionally empty
+
+	auto body = http_error_response::build_html_error(err).get_body_string();
+	// Body contains the detail block's <p> only when detail is set — with both empty,
+	// no message-derived <p> element should precede the meta block
+	EXPECT_FALSE(has_substr(body, "  <p></p>"));
+}
+
+TEST_F(HttpErrorResponseBuildHtmlTest, DetailBlockAppearsWhenDetailSet)
+{
+	http_error err;
+	err.code = http_error_code::bad_request;
+	err.detail = "malformed syntax";
+
+	auto body = http_error_response::build_html_error(err).get_body_string();
+	EXPECT_TRUE(has_substr(body, "class=\"detail\""));
+	EXPECT_TRUE(has_substr(body, "<strong>Details:</strong> malformed syntax"));
+}
+
+TEST_F(HttpErrorResponseBuildHtmlTest, DetailBlockOmittedWhenDetailEmpty)
+{
+	http_error err;
+	err.code = http_error_code::bad_request;
+	err.message = "bad";
+
+	auto body = http_error_response::build_html_error(err).get_body_string();
+	EXPECT_FALSE(has_substr(body, "class=\"detail\""));
+}
+
+TEST_F(HttpErrorResponseBuildHtmlTest, RequestIdAppearsWhenSet)
+{
+	auto err = http_error_response::make_error(http_error_code::gateway_timeout, "slow", "req-7");
+	auto body = http_error_response::build_html_error(err).get_body_string();
+
+	EXPECT_TRUE(has_substr(body, "Request ID: req-7"));
+}
+
+TEST_F(HttpErrorResponseBuildHtmlTest, RequestIdOmittedWhenEmpty)
+{
+	auto err = http_error_response::make_error(http_error_code::gateway_timeout);
+	auto body = http_error_response::build_html_error(err).get_body_string();
+
+	EXPECT_FALSE(has_substr(body, "Request ID:"));
+}
+
+TEST_F(HttpErrorResponseBuildHtmlTest, HtmlEscapesAmpersand)
+{
+	http_error err;
+	err.code = http_error_code::bad_request;
+	err.message = "a & b";
+
+	auto body = http_error_response::build_html_error(err).get_body_string();
+	EXPECT_TRUE(has_substr(body, "a &amp; b"));
+}
+
+TEST_F(HttpErrorResponseBuildHtmlTest, HtmlEscapesLessThanAndGreaterThan)
+{
+	http_error err;
+	err.code = http_error_code::bad_request;
+	err.detail = "<script>alert('x')</script>";
+
+	auto body = http_error_response::build_html_error(err).get_body_string();
+	EXPECT_TRUE(has_substr(body, "&lt;script&gt;"));
+	EXPECT_TRUE(has_substr(body, "&lt;/script&gt;"));
+	// Raw <script> must not appear in the rendered HTML body
+	EXPECT_FALSE(has_substr(body, "<script>alert"));
+}
+
+TEST_F(HttpErrorResponseBuildHtmlTest, HtmlEscapesDoubleQuote)
+{
+	http_error err;
+	err.code = http_error_code::bad_request;
+	err.message = "key=\"value\"";
+
+	auto body = http_error_response::build_html_error(err).get_body_string();
+	EXPECT_TRUE(has_substr(body, "key=&quot;value&quot;"));
+}
+
+TEST_F(HttpErrorResponseBuildHtmlTest, HtmlEscapesSingleQuote)
+{
+	http_error err;
+	err.code = http_error_code::bad_request;
+	err.detail = "it's here";
+
+	auto body = http_error_response::build_html_error(err).get_body_string();
+	EXPECT_TRUE(has_substr(body, "it&#39;s here"));
+}
+
+TEST_F(HttpErrorResponseBuildHtmlTest, HtmlEscapesAppliedToStatusMessage)
+{
+	// status_message comes from get_error_status_text which is a fixed mapping,
+	// but "I'm a teapot" contains an apostrophe and must be HTML-escaped
+	auto err = http_error_response::make_error(http_error_code::im_a_teapot);
+	auto body = http_error_response::build_html_error(err).get_body_string();
+
+	EXPECT_TRUE(has_substr(body, "<title>418 I&#39;m a teapot</title>"));
+	EXPECT_TRUE(has_substr(body, "<h1>418 I&#39;m a teapot</h1>"));
+}
+
+TEST_F(HttpErrorResponseBuildHtmlTest, HtmlEscapesAppliedToRequestId)
+{
+	auto err = http_error_response::make_error(
+		http_error_code::internal_server_error, "boom", "req<tag>");
+	auto body = http_error_response::build_html_error(err).get_body_string();
+
+	EXPECT_TRUE(has_substr(body, "Request ID: req&lt;tag&gt;"));
+}
+
+TEST_F(HttpErrorResponseBuildHtmlTest, LeavesPrintableAsciiUnchanged)
+{
+	http_error err;
+	err.code = http_error_code::bad_request;
+	err.message = "plain text 123";
+
+	auto body = http_error_response::build_html_error(err).get_body_string();
+	EXPECT_TRUE(has_substr(body, "<p>plain text 123</p>"));
+}

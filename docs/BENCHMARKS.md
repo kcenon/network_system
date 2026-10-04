@@ -527,10 +527,10 @@ The following measurements are being collected and will be added after validatio
 ## See Also
 
 - [BASELINE.md](performance/BASELINE.md) - Current performance baseline
-- [LOAD_TEST_GUIDE.md](LOAD_TEST_GUIDE.md) - Detailed load testing guide
+- [LOAD_TEST_GUIDE.md](guides/LOAD_TEST_GUIDE.md) - Detailed load testing guide
 - [FEATURES.md](FEATURES.md) - Feature descriptions
 - [ARCHITECTURE.md](ARCHITECTURE.md) - System architecture
-- [IMPROVEMENTS.md](../IMPROVEMENTS.md) - Planned optimizations
+<!-- TODO: IMPROVEMENTS.md not yet written -->
 
 ---
 

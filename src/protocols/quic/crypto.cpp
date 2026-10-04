@@ -83,6 +83,10 @@ auto hkdf::extract(std::span<const uint8_t> salt,
             -1, "HKDF set md failed", "quic::hkdf", get_openssl_error_string());
     }
 
+    // RFC 5869 permits an absent salt. Normalize it instead of relying on
+    // OpenSSL version-specific handling of a null, zero-length buffer.
+    const std::array<uint8_t, secret_size> zero_salt{};
+    if (salt.empty()) salt = zero_salt;
     ret = EVP_PKEY_CTX_set1_hkdf_salt(pctx, salt.data(),
                                        static_cast<int>(salt.size()));
     if (ret <= 0)
@@ -755,7 +759,7 @@ struct quic_crypto::impl
     bool early_data_accepted{false};
     bool has_zero_rtt_keys{false};
 
-    ~impl()
+    void reset_tls()
     {
         if (ssl)
         {
@@ -766,7 +770,13 @@ struct quic_crypto::impl
             SSL_CTX_free(ssl_ctx);
         }
         // BIOs are freed by SSL_free
+        ssl = nullptr;
+        ssl_ctx = nullptr;
+        rbio = nullptr;
+        wbio = nullptr;
     }
+
+    ~impl() { reset_tls(); }
 };
 
 quic_crypto::quic_crypto()
@@ -781,6 +791,7 @@ quic_crypto& quic_crypto::operator=(quic_crypto&& other) noexcept = default;
 
 auto quic_crypto::init_client(const std::string& server_name) -> VoidResult
 {
+    impl_->reset_tls();
     impl_->is_server = false;
 
     impl_->ssl_ctx = SSL_CTX_new(TLS_client_method());
@@ -812,6 +823,11 @@ auto quic_crypto::init_client(const std::string& server_name) -> VoidResult
     impl_->wbio = BIO_new(BIO_s_mem());
     if (!impl_->rbio || !impl_->wbio)
     {
+        // Ownership has not been transferred to SSL_set_bio yet.
+        BIO_free(impl_->rbio);
+        BIO_free(impl_->wbio);
+        impl_->rbio = nullptr;
+        impl_->wbio = nullptr;
         return error_void(-1, "Failed to create BIO objects", "quic::crypto");
     }
 
@@ -827,6 +843,7 @@ auto quic_crypto::init_client(const std::string& server_name) -> VoidResult
 auto quic_crypto::init_server(const std::string& cert_file,
                               const std::string& key_file) -> VoidResult
 {
+    impl_->reset_tls();
     impl_->is_server = true;
 
     impl_->ssl_ctx = SSL_CTX_new(TLS_server_method());
@@ -868,6 +885,11 @@ auto quic_crypto::init_server(const std::string& cert_file,
     impl_->wbio = BIO_new(BIO_s_mem());
     if (!impl_->rbio || !impl_->wbio)
     {
+        // Ownership has not been transferred to SSL_set_bio yet.
+        BIO_free(impl_->rbio);
+        BIO_free(impl_->wbio);
+        impl_->rbio = nullptr;
+        impl_->wbio = nullptr;
         return error_void(-1, "Failed to create BIO objects", "quic::crypto");
     }
 

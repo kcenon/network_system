@@ -14,7 +14,7 @@ category: "GUID"
 
 > **Part 4 of 4** | [📑 Index](README.md) | [← Previous: Performance](03-performance-and-resources.md)
 
-> **Language:** **English** | [한국어](04-error-handling.kr.md)
+> **Language:** **English** <!-- TODO: 04-error-handling.kr.md not yet written -->
 
 This document covers the migration to `Result<T>` pattern and error handling strategies for the network_system.
 

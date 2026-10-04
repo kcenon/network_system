@@ -78,9 +78,9 @@ class NetworkSystemBridgeTest : public ::testing::Test {
 protected:
     void SetUp() override {
         mock_pool_ = std::make_shared<mock_thread_pool>();
-        thread_pool_bridge_ = std::make_shared<ThreadPoolBridge>(
+        thread_pool_bridge_ = ThreadPoolBridge::create(
             mock_pool_,
-            ThreadPoolBridge::BackendType::Custom);
+            ThreadPoolBridge::BackendType::Custom).value();
     }
 
     void TearDown() override {

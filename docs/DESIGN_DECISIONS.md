@@ -12,7 +12,7 @@ category: "GUID"
 
 > **SSOT**: This document is the single source of truth for **Design Decisions**.
 
-> **Language:** **English** | [한국어](DESIGN_DECISIONS.kr.md)
+> **Language:** **English** <!-- TODO: DESIGN_DECISIONS.kr.md not yet written -->
 
 This document explains key design decisions in network_system, particularly patterns that may seem unusual but are intentional and necessary.
 

@@ -58,7 +58,6 @@ namespace network {
 #include <network/config.hpp>          // Configuration
 ```
 
-```
 ## C++20 Concepts
 
 Network System provides 16 C++20 concepts for compile-time type validation. These concepts improve code quality through better error messages and self-documenting interfaces.
@@ -340,8 +339,6 @@ public:
 } // namespace network
 ```
 
-
-```
 ## Networking Components
 
 ### Connection
@@ -672,8 +669,6 @@ public:
 } // namespace network
 ```
 
-
-```
 ## Error Handling
 
 ### Error Types

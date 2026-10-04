@@ -106,3 +106,12 @@ Design:
   static dispatch. Overhead is ~2-5 ns per call — negligible for I/O operations.
 - **Feature access**: Some protocol-specific features require downcasting from
   the interface to the concrete type, partially defeating the abstraction.
+
+---
+
+## See Also
+
+- [Design Decisions](../DESIGN_DECISIONS.md) — Parent index of design decisions
+- [ADR-001: gRPC Official Library Wrapper](ADR-001-grpc-official-library-wrapper.md)
+- [ADR-003: Protocol Modularization](ADR-003-protocol-modularization.md)
+- [Facade Guide](../FACADE_GUIDE.md)

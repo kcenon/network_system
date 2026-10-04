@@ -102,7 +102,7 @@ public:
      * auto bridge = std::make_shared<ThreadPoolBridge>(pool);
      * @endcode
      */
-    explicit ThreadPoolBridge(
+    [[nodiscard]] static Result<std::shared_ptr<ThreadPoolBridge>> create(
         std::shared_ptr<thread_pool_interface> pool,
         BackendType backend_type = BackendType::Custom);
 
@@ -216,7 +216,7 @@ public:
      * bridge->initialize(config);
      * @endcode
      */
-    static std::shared_ptr<ThreadPoolBridge> from_thread_system(
+    [[nodiscard]] static Result<std::shared_ptr<ThreadPoolBridge>> from_thread_system(
         const std::string& pool_name = "network_pool");
 
 #if KCENON_WITH_COMMON_SYSTEM
@@ -238,11 +238,12 @@ public:
      * bridge->initialize(config);
      * @endcode
      */
-    static std::shared_ptr<ThreadPoolBridge> from_common_system(
+    [[nodiscard]] static Result<std::shared_ptr<ThreadPoolBridge>> from_common_system(
         std::shared_ptr<::kcenon::common::interfaces::IExecutor> executor);
 #endif
 
 private:
+    ThreadPoolBridge(std::shared_ptr<thread_pool_interface> pool, BackendType backend_type);
     std::shared_ptr<thread_pool_interface> pool_;
     BackendType backend_type_;
     std::atomic<bool> initialized_{false};

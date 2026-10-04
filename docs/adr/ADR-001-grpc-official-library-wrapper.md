@@ -272,3 +272,11 @@ auto from_grpc_status(::grpc::Status status, T&& value) -> Result<T> {
 | Date | Change |
 |------|--------|
 | 2024-12-28 | Initial decision documented |
+
+---
+
+## See Also
+
+- [Design Decisions](../DESIGN_DECISIONS.md) — Parent index of design decisions
+- [ADR-002: Facade API Introduction](ADR-002-facade-api-introduction.md)
+- [ADR-003: Protocol Modularization](ADR-003-protocol-modularization.md)

@@ -268,8 +268,6 @@ public:
 
 ---
 
-
-```
 ## Thread Integration API
 
 The thread integration module provides unified thread pool management for network operations.

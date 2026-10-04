@@ -16,6 +16,7 @@ Thank you for your interest in contributing to Network System! This guide will h
 - [Code Style](#code-style)
 - [Testing](#testing)
 - [Documentation](#documentation)
+- [v1.0 API Freeze Policy](#v10-api-freeze-policy)
 - [Submitting Changes](#submitting-changes)
 - [Review Process](#review-process)
 
@@ -39,13 +40,13 @@ This project adheres to a code of conduct. By participating, you are expected to
 Before contributing, ensure you have:
 
 - C++20 compatible compiler
-  - **macOS**: Xcode 12+ or Clang 12+
-  - **Linux**: GCC 10+ or Clang 12+
-  - **Windows**: Visual Studio 2019+ or MinGW-w64
-- CMake 3.16 or higher
+  - **macOS**: Xcode/Apple Clang 14+
+  - **Linux**: GCC 13+ or Clang 17+
+  - **Windows**: Visual Studio 2022+ (MSVC 17.4+)
+- CMake 3.20 or higher
 - Git
 - **Required dependencies**:
-  - ASIO or Boost.ASIO 1.28+
+  - Standalone ASIO 1.30.2+ (Boost.ASIO not supported)
   - OpenSSL 3.0+ (for TLS/SSL and WebSocket)
 - **Optional dependencies**:
   - fmt 10.0+ (formatting)
@@ -61,9 +62,9 @@ New to open source? Start here:
    - [Good First Issues](https://github.com/kcenon/network_system/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)
 
 2. **Read the documentation**:
-   - [Architecture Guide](../ARCHITECTURE.md)
-   - [API Reference](../API_REFERENCE.md)
-   - [Build Guide](../guides/BUILD.md)
+   - [Architecture Guide](docs/ARCHITECTURE.md)
+   - [API Reference](docs/API_REFERENCE.md)
+   - [Build Guide](docs/guides/BUILD.md)
 
 3. **Join discussions**:
    - [GitHub Discussions](https://github.com/kcenon/network_system/discussions)
@@ -200,6 +201,63 @@ cmake --build build
 - Add docstrings for new public functions/classes
 - Include examples for new features
 - Provide both English and Korean versions for major documents
+
+---
+
+## v1.0 API Freeze Policy
+
+After the v1.0 tag is published, the **public API surface is frozen** under
+[Semantic Versioning](https://semver.org/spec/v2.0.0.html). The frozen
+surface is enumerated in [`docs/v1.0-api-surface.md`](docs/v1.0-api-surface.md)
+and consists of every header under `include/kcenon/network/` excluding
+the `detail/` subtree.
+
+### What is frozen
+
+For every public header listed in the audit:
+
+- **No symbol removal** — A type, function, or macro that exists at v1.0
+  may not be removed for the entire v1.x cycle. Use `[[deprecated]]` to
+  signal intent; remove only at v2.0.
+- **No rename** — Renaming a public type, function, or namespace is a
+  breaking change.
+- **No signature change** — Argument types, return types, default
+  arguments, `noexcept` qualifiers, template parameter packs, and
+  concept constraints are part of the contract.
+- **No `throw` introduction** — Enforced by
+  `.github/workflows/public-api-check.yml`. Public functions either
+  return `Result<T>` / `VoidResult` or are `noexcept`.
+
+### What remains free to evolve
+
+- **`include/kcenon/network/detail/`** — Implementation-detail headers
+  (34 files at the time of freeze). These are not part of the v1.0
+  contract and may be reorganized, renamed, or deleted in any v1.x
+  patch.
+- **Adding new public symbols** is non-breaking as long as it does not
+  shadow or conflict with existing usage.
+- **Adding new overloads** is non-breaking as long as it does not change
+  overload resolution for existing call sites.
+- **Source-only changes** behind the public headers (algorithmic
+  improvements, performance optimizations, bug fixes) are non-breaking.
+
+### Submitting changes that touch public headers
+
+Pull requests modifying any file under `include/kcenon/network/`
+(outside `detail/`) must:
+
+1. Cite the `docs/v1.0-api-surface.md` audit row for the affected
+   header in the PR description.
+2. Confirm whether the change is **additive** (new symbol / new overload)
+   or **breaking** (removal / rename / signature change).
+3. If breaking, the PR must target a future major version branch and
+   not be merged into the v1.x line.
+4. Pass the existing `public-api-check.yml` CI job (no `throw` in public
+   headers).
+
+When in doubt, open an issue against
+[#964](https://github.com/kcenon/network_system/issues/964) (or its
+v2.0 successor epic) before opening the PR.
 
 ---
 

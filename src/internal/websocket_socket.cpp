@@ -371,8 +371,15 @@ namespace kcenon::network::internal
 	auto websocket_socket::handle_protocol_close(ws_close_code code,
 												 const std::string& reason) -> void
 	{
-		// Update state to closed
-		state_ = ws_state::closed;
+		// RFC 6455 section 5.5.1 requires a Close response when the peer
+		// initiates the handshake. A locally initiated Close needs no echo.
+		const auto previous = state_.exchange(ws_state::closed);
+		if (previous == ws_state::open)
+		{
+			auto response = protocol_.create_close(code, std::string(reason));
+			tcp_socket_->async_send(std::move(response),
+				[](std::error_code, std::size_t) {});
+		}
 
 		std::lock_guard<std::mutex> lock(callback_mutex_);
 		if (close_callback_)

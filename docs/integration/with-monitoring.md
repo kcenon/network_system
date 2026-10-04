@@ -310,6 +310,11 @@ cmake .. -G Ninja \
 - thread_system
 - No compile-time monitoring_system dependency
 
+## See Also
+
+- [OpenTelemetry Tracing Guide](../guides/tracing.md) — Distributed tracing setup
+- [Performance Tuning](../advanced/PERFORMANCE_TUNING.md) — Optimization guidance
+
 ---
 
-*Last Updated: 2025-01-26*
+*Last Updated: 2026-04-15*

@@ -125,7 +125,7 @@ network_system 문서에 오신 것을 환영합니다! 이것은 분산 시스�
 1. **빌드** - [빌드 가이드](guides/BUILD.kr.md)로 라이브러리 컴파일
 2. **아키텍처** - [아키텍처](ARCHITECTURE.kr.md)로 시스템 개요 파악
 3. **API** - [API 레퍼런스](API_REFERENCE.kr.md)로 기본 사용법 학습
-4. **예제** - `examples/tutorials/` 디렉토리에서 동작하는 예제 확인
+4. **예제** - `examples/` 디렉토리에서 동작하는 예제 확인
 
 **문제 발생 시**:
 - [트러블슈팅](guides/TROUBLESHOOTING.kr.md) 먼저 확인
@@ -205,7 +205,7 @@ network_system 문서에 오신 것을 환영합니다! 이것은 분산 시스�
 ### 현재 상태
 - **버전**: 0.2.0
 - **유형**: 정적 라이브러리
-- **C++ 표준**: C++20 (일부 기능은 C++17 호환)
+- **C++ 표준**: C++20
 - **라이선스**: BSD 3-Clause
 - **테스트 상태**: 개발 중
 
@@ -227,9 +227,9 @@ network_system 문서에 오신 것을 환영합니다! 이것은 분산 시스�
 - 포괄적인 에러 처리 (Result<> 타입)
 
 ### 플랫폼 지원
-- **Linux**: Ubuntu 22.04+, GCC 9+, Clang 10+
+- **Linux**: Ubuntu 22.04+, GCC 13+, Clang 17+
 - **macOS**: 12+, Apple Clang 14+
-- **Windows**: 11, MSVC 2019+
+- **Windows**: 11, MSVC 2022+
 
 ---
 
@@ -268,7 +268,7 @@ network_system 문서에 오신 것을 환영합니다! 이것은 분산 시스�
 - **GitHub 저장소**: [kcenon/network_system](https://github.com/kcenon/network_system)
 - **이슈 트래커**: [GitHub Issues](https://github.com/kcenon/network_system/issues)
 - **메인 README**: [../README.md](../README.md)
-- **에코시스템 개요**: [../../docs/ECOSYSTEM_OVERVIEW.kr.md](../../docs/ECOSYSTEM_OVERVIEW.kr.md)
+- **에코시스템 개요**: [ECOSYSTEM.md](ECOSYSTEM.md)
 
 ---
 

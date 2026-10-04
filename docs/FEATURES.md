@@ -125,7 +125,7 @@ auto client = std::make_shared<secure_messaging_client>(
 client->start_client("localhost", 8443);
 ```
 
-See [TLS_SETUP_GUIDE.md](TLS_SETUP_GUIDE.md) for detailed configuration.
+See [TLS_SETUP_GUIDE.md](guides/TLS_SETUP_GUIDE.md) for detailed configuration.
 
 ### WebSocket (RFC 6455)
 
@@ -262,7 +262,7 @@ auto post_response = client->post(
 - WebSocket upgrade support
 - Advanced middleware support
 
-See `examples/tutorials/simple_http_server.cpp` and `examples/tutorials/simple_http_client.cpp` for complete examples.
+See `examples/simple_http_server.cpp` and `examples/simple_http_client.cpp` for complete examples.
 
 ### QUIC Protocol (RFC 9000)
 
@@ -915,19 +915,19 @@ server->start_server(8080);
 **Platforms**:
 | Platform | Compiler | Architecture | Support Level |
 |----------|----------|--------------|---------------|
-| Ubuntu 22.04+ | GCC 11+ | x86_64 | ✅ Full Support |
-| Ubuntu 22.04+ | Clang 14+ | x86_64 | ✅ Full Support |
+| Ubuntu 22.04+ | GCC 13+ | x86_64 | ✅ Full Support |
+| Ubuntu 22.04+ | Clang 17+ | x86_64 | ✅ Full Support |
 | Windows 2022+ | MSVC 2022+ | x86_64 | ✅ Full Support |
 | Windows 2022+ | MinGW64 | x86_64 | ✅ Full Support |
-| macOS 12+ | Apple Clang 14+ | x86_64/ARM64 | 🚧 Experimental |
+| macOS 12+ | Apple Clang 14+ | x86_64/ARM64 | ✅ Full Support |
 
-**Build System**: CMake 3.16+ with cross-platform configuration
+**Build System**: CMake 3.20+ with cross-platform configuration
 
 ---
 
 ## Planned Features
 
-The following features are tracked in [IMPROVEMENTS.md](../IMPROVEMENTS.md):
+The following features are tracked in the [Changelog](CHANGELOG.md) under the "Unreleased" section: <!-- TODO: standalone IMPROVEMENTS.md not yet written -->
 
 ### Near-term (Next Release)
 
@@ -949,7 +949,7 @@ The following features are tracked in [IMPROVEMENTS.md](../IMPROVEMENTS.md):
   - ✅ Stream multiplexing
   - ✅ Header compression (HPACK - RFC 7541)
   - ✅ Flow control with window updates
-  - See `examples/tutorials/http2_server_example.cpp` for server example
+  - See `examples/http2_server_example.cpp` for server example
 
 - 🔬 **gRPC Integration** (Prototype): High-performance RPC framework
   - Unary, server streaming, client streaming, and bidirectional streaming RPC
@@ -981,8 +981,8 @@ The following features are tracked in [IMPROVEMENTS.md](../IMPROVEMENTS.md):
 - [API Reference](API_REFERENCE.md) - Complete API documentation
 - [BENCHMARKS.md](BENCHMARKS.md) - Performance metrics and testing
 - [ARCHITECTURE.md](ARCHITECTURE.md) - System architecture details
-- [MIGRATION_GUIDE.md](MIGRATION_GUIDE.md) - Migration from messaging_system
-- [TLS_SETUP_GUIDE.md](TLS_SETUP_GUIDE.md) - TLS/SSL configuration guide
+- [MIGRATION.md](MIGRATION.md) - Migration from messaging_system
+- [TLS_SETUP_GUIDE.md](guides/TLS_SETUP_GUIDE.md) - TLS/SSL configuration guide
 
 ---
 

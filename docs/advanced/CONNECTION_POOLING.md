@@ -451,6 +451,6 @@ for (auto& w : workers) {
 
 ## See Also
 
-- [API Reference](API_REFERENCE.md) - Complete API documentation
+- [API Reference](../API_REFERENCE.md) - Complete API documentation
 - [Performance Tuning](PERFORMANCE_TUNING.md) - Optimization guide
-- [Troubleshooting](TROUBLESHOOTING.md) - Common issues and solutions
+- [Troubleshooting](../guides/TROUBLESHOOTING.md) - Common issues and solutions

@@ -554,7 +554,7 @@ if (result.is_ok()) {  // Or: if (result)
 
 ## See Also
 
-- [common_system Documentation](../../../common_system/README.md)
-- [common_system Result Guide](../../../common_system/docs/guides/RESULT.md)
-- [common_system RAII Guide](../../../common_system/docs/guides/RAII.md)
-- [Ecosystem Integration Guide](../../../ECOSYSTEM.md)
+<!-- TODO: Links below depend on sibling common_system repository checkout.
+     Replace with GitHub URLs when published, or confirm workspace layout. -->
+- common_system Documentation: https://github.com/kcenon/common_system
+- [Ecosystem Integration Guide](../ECOSYSTEM.md)

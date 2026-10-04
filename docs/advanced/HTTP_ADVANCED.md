@@ -510,10 +510,11 @@ server->get("/debug", [](const http_request_context& ctx) {
 
 ## Related Documentation
 
-- [API Reference](API_REFERENCE.md) - Complete API documentation
-- [TLS Setup Guide](TLS_SETUP_GUIDE.md) - Secure HTTP configuration
-- [Troubleshooting](TROUBLESHOOTING.md) - Common issues and solutions
+- [API Reference](../API_REFERENCE.md) - Complete API documentation
+- [TLS Setup Guide](../guides/TLS_SETUP_GUIDE.md) - Secure HTTP configuration
+- [Troubleshooting](../guides/TROUBLESHOOTING.md) - Common issues and solutions
 - [Operations Guide](OPERATIONS.md) - Production deployment
+- [HTTP/2 Guide](../HTTP2_GUIDE.md) - HTTP/2 protocol features
 
 ---
 

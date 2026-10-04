@@ -14,7 +14,7 @@ category: "ARCH"
 
 > **Part 1 of 4** | [📑 Index](README.md) | [Next: Dependency & Testing →](02-dependency-and-testing.md)
 
-> **Language:** **English** | [한국어](01-architecture-and-components.kr.md)
+> **Language:** **English** <!-- TODO: 01-architecture-and-components.kr.md not yet written -->
 
 This document covers the architectural design and core component implementation of the network_system separation project.
 
@@ -27,40 +27,16 @@ This document covers the architectural design and core component implementation 
   - [1. messaging_bridge Class](#1-messaging_bridge-class)
   - [2. Core API Design](#2-core-api-design)
   - [3. Session Management](#3-session-management)
-- [🔗 Dependency Management](#-dependency-management)
-  - [1. CMake Module Files](#1-cmake-module-files)
-  - [2. pkg-config File](#2-pkg-config-file)
-- [🧪 Test Framework](#-test-framework)
-  - [1. Unit Test Structure](#1-unit-test-structure)
-  - [2. Integration Tests](#2-integration-tests)
-- [📊 Performance Monitoring](#-performance-monitoring)
-  - [1. Performance Metric Collection](#1-performance-metric-collection)
-  - [2. Benchmark Tools](#2-benchmark-tools)
-- [🛡️ Resource Management Patterns](#-resource-management-patterns)
-  - [Overview](#overview)
-  - [1. Smart Pointer Strategy](#1-smart-pointer-strategy)
-    - [Session Lifetime Management](#session-lifetime-management)
-    - [ASIO Resource Ownership](#asio-resource-ownership)
-  - [2. Async-Safe Pattern: enable_shared_from_this](#2-async-safe-pattern-enable_shared_from_this)
-  - [3. Thread Safety](#3-thread-safety)
-    - [Atomic State Flags](#atomic-state-flags)
-    - [Mutex Protection for Shared Data](#mutex-protection-for-shared-data)
-  - [4. Exception Safety](#4-exception-safety)
-  - [5. Resource Categories](#5-resource-categories)
-  - [6. Best Practices Applied](#6-best-practices-applied)
-- [🚨 Error Handling Strategy](#-error-handling-strategy)
-  - [Current State](#current-state)
-  - [Migration to Result<T> Pattern](#migration-to-resultt-pattern)
-    - [1. Server Lifecycle Operations](#1-server-lifecycle-operations)
-    - [2. Client Connection Operations](#2-client-connection-operations)
-    - [3. Send/Receive Operations](#3-sendreceive-operations)
-  - [Error Code System](#error-code-system)
-    - [Network System Error Codes (-600 to -699)](#network-system-error-codes-600-to-699)
-    - [ASIO Error Code Mapping](#asio-error-code-mapping)
-  - [Async Operations with Result<T>](#async-operations-with-resultt)
-    - [Pattern 1: Callback-based](#pattern-1-callback-based)
-    - [Pattern 2: Future-based](#pattern-2-future-based)
-  - [Migration Benefits](#migration-benefits)
+
+<!-- TODO: The following sections are planned but not yet written. When added,
+     restore their TOC entries from version history. Planned scope:
+       - 🔗 Dependency Management (CMake module files, pkg-config)
+       - 🧪 Test Framework (unit and integration tests)
+       - 📊 Performance Monitoring (metric collection, benchmarks)
+       - 🛡️ Resource Management Patterns (smart pointers, thread safety, exception safety)
+       - 🚨 Error Handling Strategy (Result<T> migration, error codes, async patterns)
+-->
+
 
 **Date**: 2025-09-19
 **Version**: 0.1.0.0
