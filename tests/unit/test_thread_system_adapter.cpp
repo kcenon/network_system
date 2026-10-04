@@ -13,8 +13,12 @@
 
 #include "internal/integration/thread_system_adapter.h"
 
+#include <array>
 #include <atomic>
 #include <chrono>
+#include <future>
+#include <memory>
+#include <mutex>
 #include <thread>
 #include <vector>
 
@@ -122,41 +126,41 @@ TEST_F(ThreadSystemAdapterTest, SubmitDelayedMultiple) {
     EXPECT_GE(elapsed, std::chrono::milliseconds(140)); // ~150ms for longest
 }
 
-TEST_F(ThreadSystemAdapterTest, SubmitDelayedOrdering) {
-    std::vector<int> order;
-    std::mutex order_mutex;
-
-    auto add_to_order = [&order, &order_mutex](int value) {
-        std::lock_guard<std::mutex> lock(order_mutex);
-        order.push_back(value);
+TEST_F(ThreadSystemAdapterTest, SubmitDelayedRespectsEachDeadline) {
+    using clock = std::chrono::steady_clock;
+    const std::array delays{std::chrono::milliseconds(150),
+                            std::chrono::milliseconds(50),
+                            std::chrono::milliseconds(100)};
+    struct completion_state {
+        std::mutex mutex;
+        std::array<clock::time_point, 3> started{};
+        std::array<unsigned, 3> executions{};
     };
+    auto state = std::make_shared<completion_state>();
+    std::array<clock::time_point, 3> earliest;
+    std::vector<std::future<void>> futures;
 
-    // Submit in reverse order of execution
-    auto f1 = adapter_->submit_delayed(
-        [&add_to_order]() { add_to_order(3); },
-        std::chrono::milliseconds(150)
-    );
-    auto f2 = adapter_->submit_delayed(
-        [&add_to_order]() { add_to_order(1); },
-        std::chrono::milliseconds(50)
-    );
-    auto f3 = adapter_->submit_delayed(
-        [&add_to_order]() { add_to_order(2); },
-        std::chrono::milliseconds(100)
-    );
+    // A delay is a lower bound, not a completion-order guarantee across
+    // workers. Observe each callback's own deadline and exact execution count.
+    for (size_t i = 0; i < delays.size(); ++i) {
+        earliest[i] = clock::now() + delays[i];
+        futures.push_back(adapter_->submit_delayed([state, i]() {
+            const auto started = clock::now();
+            std::lock_guard<std::mutex> lock(state->mutex);
+            state->started[i] = started;
+            ++state->executions[i];
+        }, delays[i]));
+    }
 
-    f1.wait();
-    f2.wait();
-    f3.wait();
-
-    // Give a small buffer for any in-flight tasks
-    std::this_thread::yield();
-
-    std::lock_guard<std::mutex> lock(order_mutex);
-    ASSERT_EQ(order.size(), 3u);
-    EXPECT_EQ(order[0], 1);
-    EXPECT_EQ(order[1], 2);
-    EXPECT_EQ(order[2], 3);
+    for (auto& future : futures) {
+        ASSERT_EQ(future.wait_for(std::chrono::seconds(5)), std::future_status::ready);
+        EXPECT_NO_THROW(future.get());
+    }
+    std::lock_guard<std::mutex> lock(state->mutex);
+    for (size_t i = 0; i < delays.size(); ++i) {
+        EXPECT_EQ(state->executions[i], 1u) << "task " << i;
+        EXPECT_GE(state->started[i], earliest[i]) << "task " << i;
+    }
 }
 
 TEST_F(ThreadSystemAdapterTest, SubmitDelayedZeroDelay) {
