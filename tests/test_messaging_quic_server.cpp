@@ -1434,19 +1434,10 @@ TEST_F(MessagingQuicServerHermeticTest,
 TEST_F(MessagingQuicServerHermeticTest,
        ShutdownDuringPacketBurstDoesNotCrash)
 {
-	// Goal: drive do_stop_impl() while start_receive() is actively servicing
-	// completions. We blast a small packet burst to keep the worker thread
-	// busy, then call stop_server() which:
-	//   1. cancels the cleanup_timer_ (line 213)
-	//   2. cancels + closes udp_socket_ (lines 219-225, generating an
-	//      asio::error::operation_aborted on the pending async_receive_from)
-	//   3. calls disconnect_all() (line 229) -> empty session map path
-	//   4. resets work_guard_ and stops io_context_ (lines 232-241)
-	//   5. waits on io_context_future_ (lines 244-247)
-	// The key invariant tested here is that the receive loop quits cleanly
-	// when the socket is cancelled mid-flight (covers the !is_running()
-	// short-circuit at line 416 and the operation_aborted branch at line
-	// 423). No segfault, no hang, no double-close.
+	// Keep receive completions busy while stopping. The I/O worker must
+	// finish before the socket and cleanup timer are cancelled or closed;
+	// otherwise rearming async_receive_from races with socket closure.
+	// TSan checks this ordering as well as the no-hang/no-crash assertions.
 	auto server = std::make_shared<messaging_quic_server>("hermetic-shutdown");
 	const auto port = hermetic_helpers::start_server_on_ephemeral(server);
 	ASSERT_NE(port, 0u);
