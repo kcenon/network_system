@@ -160,6 +160,22 @@ namespace kcenon::network::protocols::http2
 
         is_running_ = false;
 
+        // Prevent another callback from starting, and interrupt any response
+        // writer before waiting for the current callback to finish.
+        if (io_context_) {
+            io_context_->stop();
+        }
+        {
+            std::lock_guard<std::mutex> lock(connections_mutex_);
+            for (auto& [id, conn] : connections_) {
+                conn->shutdown_transport();
+            }
+        }
+
+        // A read or request callback can still be using a connection. Join
+        // the I/O worker before closing its sockets or releasing the map.
+        stop_io();
+
         // Close acceptor
         if (acceptor_ && acceptor_->is_open()) {
             std::error_code ec;
@@ -179,8 +195,6 @@ namespace kcenon::network::protocols::http2
         if (cleanup_timer_) {
             cleanup_timer_->cancel();
         }
-
-        stop_io();
 
         // Signal stop
         try {
@@ -472,6 +486,18 @@ namespace kcenon::network::protocols::http2
         return ok();
     }
 
+    auto http2_server_connection::shutdown_transport() -> void
+    {
+        // Shutdown interrupts synchronous writes without destroying the
+        // descriptor that the I/O worker may still be using.
+        std::error_code ec;
+        if (use_tls_ && tls_socket_) {
+            tls_socket_->lowest_layer().shutdown(asio::ip::tcp::socket::shutdown_both, ec);
+        } else if (plain_socket_) {
+            plain_socket_->shutdown(asio::ip::tcp::socket::shutdown_both, ec);
+        }
+    }
+
     auto http2_server_connection::is_alive() const -> bool
     {
         return is_alive_;
@@ -493,7 +519,7 @@ namespace kcenon::network::protocols::http2
         constexpr size_t PREFACE_SIZE = 24; // "PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n"
         auto buffer = std::make_shared<std::vector<uint8_t>>(PREFACE_SIZE);
 
-        auto read_handler = [this, buffer](std::error_code ec, std::size_t bytes_read) {
+        auto read_handler = [this, self = shared_from_this(), buffer](std::error_code ec, std::size_t bytes_read) {
             if (ec || bytes_read != 24) {
                 if (error_handler_) {
                     error_handler_("Failed to read connection preface");
@@ -605,7 +631,7 @@ namespace kcenon::network::protocols::http2
             return;
         }
 
-        auto read_handler = [this](std::error_code ec, std::size_t bytes_read) {
+        auto read_handler = [this, self = shared_from_this()](std::error_code ec, std::size_t bytes_read) {
             if (ec || bytes_read != 9) {
                 if (ec != asio::error::eof && ec != asio::error::operation_aborted) {
                     if (error_handler_) {
@@ -656,7 +682,7 @@ namespace kcenon::network::protocols::http2
 
         auto payload_buffer = asio::buffer(read_buffer_.data() + 9, length);
 
-        auto read_handler = [this](std::error_code ec, std::size_t /*bytes_read*/) {
+        auto read_handler = [this, self = shared_from_this()](std::error_code ec, std::size_t /*bytes_read*/) {
             if (ec) {
                 if (ec != asio::error::eof && ec != asio::error::operation_aborted) {
                     if (error_handler_) {

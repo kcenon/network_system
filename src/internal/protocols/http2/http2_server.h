@@ -350,6 +350,9 @@ namespace kcenon::network::protocols::http2
         [[nodiscard]] auto stream_count() const -> size_t;
 
     private:
+        friend class http2_server;
+        auto shutdown_transport() -> void;
+
         // Connection setup
         auto read_connection_preface() -> void;
         auto send_settings() -> VoidResult;
