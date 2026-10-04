@@ -713,7 +713,7 @@ TEST_F(Http2ClientHermeticTransportTest,
     // the worker has read the preface, sent server SETTINGS, read client
     // SETTINGS, and sent SETTINGS-ACK without error.
     EXPECT_TRUE(wait_for(
-        [&]() { return peer.settings_exchanged(); },
+        [&]() { return peer.settings_exchanged() && client->is_connected(); },
         std::chrono::seconds(3) * NETWORK_COVERAGE_TIMEOUT_MULTIPLIER));
     EXPECT_FALSE(peer.io_failed());
     EXPECT_TRUE(client->is_connected());
@@ -785,7 +785,7 @@ TEST_F(Http2ClientHermeticTransportTest,
     auto setup = make_connected_client(peer, "second-connect-test");
 
     EXPECT_TRUE(wait_for(
-        [&]() { return peer.settings_exchanged(); },
+        [&]() { return peer.settings_exchanged() && setup.client->is_connected(); },
         std::chrono::seconds(3) * NETWORK_COVERAGE_TIMEOUT_MULTIPLIER));
     EXPECT_TRUE(setup.client->is_connected());
 
@@ -809,7 +809,7 @@ TEST_F(Http2ClientHermeticTransportTest,
         peer, "request-timeout-test", std::chrono::milliseconds(150));
 
     EXPECT_TRUE(wait_for(
-        [&]() { return peer.settings_exchanged(); },
+        [&]() { return peer.settings_exchanged() && setup.client->is_connected(); },
         std::chrono::seconds(3) * NETWORK_COVERAGE_TIMEOUT_MULTIPLIER));
     EXPECT_TRUE(setup.client->is_connected());
 
@@ -834,7 +834,7 @@ TEST_F(Http2ClientHermeticTransportTest,
         peer, "post-timeout-test", std::chrono::milliseconds(150));
 
     EXPECT_TRUE(wait_for(
-        [&]() { return peer.settings_exchanged(); },
+        [&]() { return peer.settings_exchanged() && setup.client->is_connected(); },
         std::chrono::seconds(3) * NETWORK_COVERAGE_TIMEOUT_MULTIPLIER));
     EXPECT_TRUE(setup.client->is_connected());
 
@@ -857,7 +857,7 @@ TEST_F(Http2ClientHermeticTransportTest,
     auto setup = make_connected_client(peer, "start-stream-test");
 
     EXPECT_TRUE(wait_for(
-        [&]() { return peer.settings_exchanged(); },
+        [&]() { return peer.settings_exchanged() && setup.client->is_connected(); },
         std::chrono::seconds(3) * NETWORK_COVERAGE_TIMEOUT_MULTIPLIER));
     EXPECT_TRUE(setup.client->is_connected());
 
@@ -889,7 +889,7 @@ TEST_F(Http2ClientHermeticTransportTest,
     auto setup = make_connected_client(peer, "write-stream-test");
 
     EXPECT_TRUE(wait_for(
-        [&]() { return peer.settings_exchanged(); },
+        [&]() { return peer.settings_exchanged() && setup.client->is_connected(); },
         std::chrono::seconds(3) * NETWORK_COVERAGE_TIMEOUT_MULTIPLIER));
     EXPECT_TRUE(setup.client->is_connected());
 
@@ -924,7 +924,7 @@ TEST_F(Http2ClientHermeticTransportTest,
     auto setup = make_connected_client(peer, "write-not-found-test");
 
     EXPECT_TRUE(wait_for(
-        [&]() { return peer.settings_exchanged(); },
+        [&]() { return peer.settings_exchanged() && setup.client->is_connected(); },
         std::chrono::seconds(3) * NETWORK_COVERAGE_TIMEOUT_MULTIPLIER));
     EXPECT_TRUE(setup.client->is_connected());
 
@@ -948,7 +948,7 @@ TEST_F(Http2ClientHermeticTransportTest,
     auto setup = make_connected_client(peer, "cancel-not-found-test");
 
     EXPECT_TRUE(wait_for(
-        [&]() { return peer.settings_exchanged(); },
+        [&]() { return peer.settings_exchanged() && setup.client->is_connected(); },
         std::chrono::seconds(3) * NETWORK_COVERAGE_TIMEOUT_MULTIPLIER));
     EXPECT_TRUE(setup.client->is_connected());
 
@@ -969,7 +969,7 @@ TEST_F(Http2ClientHermeticTransportTest,
     auto setup = make_connected_client(peer, "close-not-found-test");
 
     EXPECT_TRUE(wait_for(
-        [&]() { return peer.settings_exchanged(); },
+        [&]() { return peer.settings_exchanged() && setup.client->is_connected(); },
         std::chrono::seconds(3) * NETWORK_COVERAGE_TIMEOUT_MULTIPLIER));
     EXPECT_TRUE(setup.client->is_connected());
 
@@ -989,7 +989,7 @@ TEST_F(Http2ClientHermeticTransportTest,
     auto setup = make_connected_client(peer, "cancel-stream-test");
 
     EXPECT_TRUE(wait_for(
-        [&]() { return peer.settings_exchanged(); },
+        [&]() { return peer.settings_exchanged() && setup.client->is_connected(); },
         std::chrono::seconds(3) * NETWORK_COVERAGE_TIMEOUT_MULTIPLIER));
     EXPECT_TRUE(setup.client->is_connected());
 
@@ -1019,7 +1019,7 @@ TEST_F(Http2ClientHermeticTransportTest,
     auto setup = make_connected_client(peer, "close-idempotent-test");
 
     EXPECT_TRUE(wait_for(
-        [&]() { return peer.settings_exchanged(); },
+        [&]() { return peer.settings_exchanged() && setup.client->is_connected(); },
         std::chrono::seconds(3) * NETWORK_COVERAGE_TIMEOUT_MULTIPLIER));
     EXPECT_TRUE(setup.client->is_connected());
 
@@ -1054,7 +1054,7 @@ TEST_F(Http2ClientHermeticTransportTest,
     auto setup = make_connected_client(peer, "set-settings-test");
 
     EXPECT_TRUE(wait_for(
-        [&]() { return peer.settings_exchanged(); },
+        [&]() { return peer.settings_exchanged() && setup.client->is_connected(); },
         std::chrono::seconds(3) * NETWORK_COVERAGE_TIMEOUT_MULTIPLIER));
     EXPECT_TRUE(setup.client->is_connected());
 
@@ -1082,7 +1082,7 @@ TEST_F(Http2ClientHermeticTransportTest,
     auto setup = make_connected_client(peer, "disconnect-idempotent-test");
 
     EXPECT_TRUE(wait_for(
-        [&]() { return peer.settings_exchanged(); },
+        [&]() { return peer.settings_exchanged() && setup.client->is_connected(); },
         std::chrono::seconds(3) * NETWORK_COVERAGE_TIMEOUT_MULTIPLIER));
     EXPECT_TRUE(setup.client->is_connected());
 
@@ -1123,7 +1123,7 @@ TEST_F(Http2ClientHermeticTransportTest,
     auto setup = make_connected_client(peer, "echo-one-get-test");
 
     EXPECT_TRUE(wait_for(
-        [&]() { return peer.settings_exchanged(); },
+        [&]() { return peer.settings_exchanged() && setup.client->is_connected(); },
         std::chrono::seconds(3) * NETWORK_COVERAGE_TIMEOUT_MULTIPLIER));
     EXPECT_TRUE(setup.client->is_connected());
 
@@ -1324,7 +1324,7 @@ TEST_F(Http2ClientHermeticTransportTest,
     // the read callback is invoked multiple times before a complete header
     // is in the buffer. Use a generous wait budget because SETTINGS-ACK
     // is also paced byte-by-byte.
-    EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged(); },
+    EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged() && client->is_connected(); },
                          std::chrono::seconds(3) * NETWORK_COVERAGE_TIMEOUT_MULTIPLIER));
     EXPECT_FALSE(peer.io_failed());
     EXPECT_TRUE(client->is_connected());
@@ -1350,7 +1350,7 @@ TEST_F(Http2ClientHermeticTransportTest,
     // SETTINGS exchange completes because empty SETTINGS frames are exactly
     // 9 bytes total and truncate_at = 9 keeps the entire buffer. The client
     // therefore reaches the connected state.
-    EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged(); },
+    EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged() && setup.client->is_connected(); },
                          std::chrono::seconds(3) * NETWORK_COVERAGE_TIMEOUT_MULTIPLIER));
     EXPECT_TRUE(setup.client->is_connected());
 

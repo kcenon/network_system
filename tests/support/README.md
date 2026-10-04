@@ -98,7 +98,7 @@ TEST_F(MyHttp2ClientTest, ConnectCompletesSettingsExchange)
         (void)client->connect("127.0.0.1", peer.port());
     });
 
-    EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged(); },
+    EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged() && client->is_connected(); },
                          std::chrono::seconds(3)));
     EXPECT_TRUE(client->is_connected());
 
@@ -124,7 +124,7 @@ TEST_F(MyHttp2ClientTest, GetReturnsResponseFromMockPeer)
     std::thread connector([&]() {
         (void)client->connect("127.0.0.1", peer.port());
     });
-    wait_for([&]() { return peer.settings_exchanged(); },
+    wait_for([&]() { return peer.settings_exchanged() && client->is_connected(); },
              std::chrono::seconds(3));
 
     auto response = client->get("/echo", {});
@@ -170,7 +170,7 @@ TEST_F(MyGrpcClientTest, CallRawReturnsResponseFromMockGrpcPeer)
     auto client = std::make_shared<grpc::grpc_client>(target, cfg);
 
     std::thread connector([&]() { (void)client->connect(); });
-    wait_for([&]() { return peer.settings_exchanged(); },
+    wait_for([&]() { return peer.settings_exchanged() && client->is_connected(); },
              std::chrono::seconds(3));
 
     auto response = client->call_raw(

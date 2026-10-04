@@ -126,7 +126,7 @@ TEST_F(GrpcClientExtendedCoverageTest,
     auto client = make_tls_client(peer.port());
 
     std::thread connector([client]() { (void)client->connect(); });
-    EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged(); },
+    EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged() && client->is_connected(); },
                          std::chrono::seconds(3)));
     ASSERT_TRUE(client->is_connected());
 
@@ -158,7 +158,7 @@ TEST_F(GrpcClientExtendedCoverageTest,
     auto client = make_tls_client(peer.port());
 
     std::thread connector([client]() { (void)client->connect(); });
-    EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged(); },
+    EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged() && client->is_connected(); },
                          std::chrono::seconds(3)));
     ASSERT_TRUE(client->is_connected());
 
@@ -190,7 +190,7 @@ TEST_F(GrpcClientExtendedCoverageTest,
     auto client = make_tls_client(peer.port());
 
     std::thread connector([client]() { (void)client->connect(); });
-    EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged(); },
+    EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged() && client->is_connected(); },
                          std::chrono::seconds(3)));
     ASSERT_TRUE(client->is_connected());
 
@@ -218,7 +218,7 @@ TEST_F(GrpcClientExtendedCoverageTest,
     auto client = make_tls_client(peer.port());
 
     std::thread connector([client]() { (void)client->connect(); });
-    EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged(); },
+    EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged() && client->is_connected(); },
                          std::chrono::seconds(3)));
     ASSERT_TRUE(client->is_connected());
 
@@ -252,7 +252,7 @@ TEST_F(GrpcClientExtendedCoverageTest,
     auto client = make_tls_client(peer.port());
 
     std::thread connector([client]() { (void)client->connect(); });
-    EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged(); },
+    EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged() && client->is_connected(); },
                          std::chrono::seconds(3)));
     ASSERT_TRUE(client->is_connected());
 
@@ -317,7 +317,7 @@ TEST_F(GrpcClientExtendedCoverageTest,
     auto client = make_tls_client(peer.port());
 
     std::thread connector([client]() { (void)client->connect(); });
-    EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged(); },
+    EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged() && client->is_connected(); },
                          std::chrono::seconds(3)));
     ASSERT_TRUE(client->is_connected());
 
@@ -350,7 +350,7 @@ TEST_F(GrpcClientExtendedCoverageTest,
     auto client = make_tls_client(peer.port());
 
     std::thread connector([client]() { (void)client->connect(); });
-    EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged(); },
+    EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged() && client->is_connected(); },
                          std::chrono::seconds(3)));
     ASSERT_TRUE(client->is_connected());
 
@@ -378,7 +378,7 @@ TEST_F(GrpcClientExtendedCoverageTest,
     auto client = make_tls_client(peer.port());
 
     std::thread connector([client]() { (void)client->connect(); });
-    EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged(); },
+    EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged() && client->is_connected(); },
                          std::chrono::seconds(3)));
     ASSERT_TRUE(client->is_connected());
 
@@ -402,7 +402,7 @@ TEST_F(GrpcClientExtendedCoverageTest,
     auto client = make_tls_client(peer.port());
 
     std::thread connector([client]() { (void)client->connect(); });
-    EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged(); },
+    EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged() && client->is_connected(); },
                          std::chrono::seconds(3)));
     ASSERT_TRUE(client->is_connected());
 
@@ -432,7 +432,7 @@ TEST_F(GrpcClientExtendedCoverageTest,
     auto client = make_tls_client(peer.port());
 
     std::thread connector([client]() { (void)client->connect(); });
-    EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged(); },
+    EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged() && client->is_connected(); },
                          std::chrono::seconds(3)));
     ASSERT_TRUE(client->is_connected());
 
@@ -454,7 +454,7 @@ TEST_F(GrpcClientExtendedCoverageTest,
     auto client = make_tls_client(peer.port());
 
     std::thread connector([client]() { (void)client->connect(); });
-    EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged(); },
+    EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged() && client->is_connected(); },
                          std::chrono::seconds(3)));
     ASSERT_TRUE(client->is_connected());
 
@@ -487,7 +487,7 @@ TEST_F(GrpcClientExtendedCoverageTest,
     auto client = make_tls_client(peer.port());
 
     std::thread connector([client]() { (void)client->connect(); });
-    EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged(); },
+    EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged() && client->is_connected(); },
                          std::chrono::seconds(3)));
     ASSERT_TRUE(client->is_connected());
 
@@ -508,7 +508,7 @@ TEST_F(GrpcClientExtendedCoverageTest,
     auto client = make_tls_client(peer.port());
 
     std::thread connector([client]() { (void)client->connect(); });
-    EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged(); },
+    EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged() && client->is_connected(); },
                          std::chrono::seconds(3)));
     ASSERT_TRUE(client->is_connected());
 
@@ -539,7 +539,7 @@ TEST_F(GrpcClientExtendedCoverageTest,
     auto client = make_tls_client(peer.port());
 
     std::thread connector([client]() { (void)client->connect(); });
-    EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged(); },
+    EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged() && client->is_connected(); },
                          std::chrono::seconds(3)));
     ASSERT_TRUE(client->is_connected());
 
@@ -568,7 +568,7 @@ TEST_F(GrpcClientExtendedCoverageTest,
     const std::string expected_target = client->target();
 
     std::thread connector([client]() { (void)client->connect(); });
-    EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged(); },
+    EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged() && client->is_connected(); },
                          std::chrono::seconds(3)));
     ASSERT_TRUE(client->is_connected());
 
@@ -602,7 +602,7 @@ TEST_F(GrpcClientExtendedCoverageTest,
         auto client = make_tls_client(peer.port());
 
         std::thread connector([client]() { (void)client->connect(); });
-        EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged(); },
+        EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged() && client->is_connected(); },
                              std::chrono::seconds(3)));
         ASSERT_TRUE(client->is_connected());
 
@@ -619,7 +619,7 @@ TEST_F(GrpcClientExtendedCoverageTest,
         auto client = make_tls_client(peer.port());
 
         std::thread connector([client]() { (void)client->connect(); });
-        EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged(); },
+        EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged() && client->is_connected(); },
                              std::chrono::seconds(3)));
         ASSERT_TRUE(client->is_connected());
 
@@ -649,7 +649,7 @@ TEST_F(GrpcClientExtendedCoverageTest,
     auto client = make_tls_client(peer.port());
 
     std::thread connector([client]() { (void)client->connect(); });
-    EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged(); },
+    EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged() && client->is_connected(); },
                          std::chrono::seconds(3)));
     ASSERT_TRUE(client->is_connected());
 
@@ -693,7 +693,7 @@ TEST_F(GrpcClientExtendedCoverageTest,
     auto client = make_tls_client(peer.port(), std::chrono::milliseconds(150));
 
     std::thread connector([client]() { (void)client->connect(); });
-    EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged(); },
+    EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged() && client->is_connected(); },
                          std::chrono::seconds(3)));
     ASSERT_TRUE(client->is_connected());
 
@@ -741,7 +741,7 @@ TEST_F(GrpcClientExtendedCoverageTest,
     auto client = make_tls_client(peer.port());
 
     std::thread connector([client]() { (void)client->connect(); });
-    EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged(); },
+    EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged() && client->is_connected(); },
                          std::chrono::seconds(3)));
     ASSERT_TRUE(client->is_connected());
 

@@ -1633,7 +1633,7 @@ TEST_F(Http2ClientHermeticTest, RequestTimeoutMarksStreamClosed)
     });
 
     EXPECT_TRUE(support::hermetic_transport_fixture::wait_for(
-        [&]() { return peer.settings_exchanged(); }, 3s));
+        [&]() { return peer.settings_exchanged() && client->is_connected(); }, 3s));
     EXPECT_TRUE(client->is_connected());
 
     // GET times out (peer never sends HEADERS+DATA).

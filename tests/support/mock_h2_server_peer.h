@@ -105,7 +105,7 @@ enum class reply_mode
  *     (void)client->connect("127.0.0.1", peer.port());
  * });
  *
- * EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged(); },
+ * EXPECT_TRUE(wait_for([&]() { return peer.settings_exchanged() && client->is_connected(); },
  *                      std::chrono::seconds(3)));
  * EXPECT_TRUE(client->is_connected());
  *
@@ -122,7 +122,7 @@ enum class reply_mode
  * std::thread connector([&]() {
  *     (void)client->connect("127.0.0.1", peer.port());
  * });
- * wait_for([&]() { return peer.settings_exchanged(); },
+ * wait_for([&]() { return peer.settings_exchanged() && client->is_connected(); },
  *          std::chrono::seconds(3));
  *
  * auto response = client->get("/echo", {});
