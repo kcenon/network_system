@@ -128,7 +128,7 @@ jobs:
       id: vcpkg-installed
       with:
         path: ${{ github.workspace }}/vcpkg_installed
-        key: ${{ runner.os }}-${{ matrix.compiler }}-vcpkg-installed-${{ matrix.triplet }}-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json') }}
+        key: ${{ runner.os }}-${{ matrix.compiler }}-vcpkg-installed-${{ matrix.triplet }}-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json', 'vcpkg-ports/**') }}
         restore-keys: |
           ${{ runner.os }}-${{ matrix.compiler }}-vcpkg-installed-${{ matrix.triplet }}-
 
