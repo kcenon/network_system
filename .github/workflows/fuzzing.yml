@@ -22,7 +22,8 @@ jobs:
   fuzz:
     name: Fuzz Testing
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    # Five scheduled targets take 25 minutes; also allow dependency builds and uploads.
+    timeout-minutes: 45
 
     steps:
       - name: Checkout network_system
