@@ -1,0 +1,65 @@
+name: Scheduled Workflow Health
+
+on:
+  workflow_run:
+    workflows: [CVE Security Scan, OSV Vulnerability Scan, SBOM Generation, Fuzzing Tests]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: 'Existing scheduled run ID to inspect (also supports controlled replay)'
+        required: true
+      dry_run:
+        description: 'Validate and preview without creating or updating an issue'
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: scheduled-workflow-health-${{ github.event.workflow_run.workflow_id || inputs.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  report:
+    name: Report scheduled workflow failures
+    if: >-
+      github.ref == format('refs/heads/{0}', github.event.repository.default_branch) &&
+      (github.event_name == 'workflow_dispatch' ||
+       (github.event.workflow_run.event == 'schedule' &&
+        github.event.workflow_run.conclusion != 'success'))
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      actions: read
+      issues: write
+    steps:
+      # github.sha belongs to this default-branch workflow, never the triggering run.
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.11'
+      - name: Inspect authenticated run metadata and report
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ github.event.workflow_run.id || inputs.run_id }}
+          ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
+          APPLY: ${{ github.event_name == 'workflow_run' || !inputs.dry_run }}
+          REPLAY: ${{ github.event_name == 'workflow_dispatch' }}
+        run: |
+          args=(report --run-id "$RUN_ID" --output scheduled-health.json)
+          if [ -n "$ATTEMPT" ]; then args+=(--attempt "$ATTEMPT"); fi
+          if [ "$APPLY" = true ]; then args+=(--apply); fi
+          if [ "$REPLAY" = true ]; then args+=(--replay); fi
+          python3 scripts/scheduled_workflows.py "${args[@]}"
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: scheduled-health-report
+          path: scheduled-health.json
+          if-no-files-found: error
