@@ -47,11 +47,16 @@ A modern C++20 asynchronous network library providing reusable transport primiti
 > has been audited and *frozen as a v1.0 candidate*
 > (see [docs/v1.0-api-surface.md](docs/v1.0-api-surface.md)), but **v1.0.0 has
 > not been released and the `v1.0.0` tag has not been published.** The tag is
-> gated on the remaining v1.0 readiness work (test-coverage target and the
-> upstream Tier 0-3 v1.0 epics) tracked in
+> tracked by the release-policy work in [#1165](https://github.com/kcenon/network_system/issues/1165)
+> (coverage policy and upstream release prerequisites) and the readiness epic
 > [#964](https://github.com/kcenon/network_system/issues/964). Until v1.0.0 is
 > tagged, treat `network_system` as pre-1.0: the SemVer stability guarantees
 > described below apply only once the tag ships.
+
+> **Published release:** [v0.1.1](https://github.com/kcenon/network_system/releases/tag/v0.1.1).
+> Its tagged CMake version is `0.1.1`, but both tagged vcpkg manifests still say
+> `0.1.0`. See the [release erratum and policy](ci/RELEASE_POLICY.md#published-versions-and-historical-erratum)
+> for the source comparison and next-release requirements.
 
 ---
 

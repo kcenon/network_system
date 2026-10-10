@@ -48,6 +48,14 @@ handling via policy, verify negative fixtures fail, then add the exact emitted
 check names to required-check settings. Preserve existing protections. YAML
 changes alone do not apply repository settings.
 
+## Default-branch protection and release versions
+
+[Release policy](RELEASE_POLICY.md) documents the main-only PR/build ruleset,
+its application and verification, and the existing coherence requirements on
+`main` and `develop`. It also records the published v0.1.1 manifest mismatch and
+the version/provenance contract for the next release. The deployable ruleset is
+tracked in [`.github/rulesets/main.json`](../.github/rulesets/main.json).
+
 ## Dependency option migration
 
 - `BUILD_WITH_COMMON_SYSTEM` → `KCENON_WITH_COMMON_SYSTEM`.
