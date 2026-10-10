@@ -46,12 +46,18 @@
 > (`CMakeLists.txt` 및 `vcpkg.json` 참조). 공개 API 표면은 감사를 거쳐 *v1.0
 > 후보로 동결*되었으나(자세한 내용은
 > [docs/v1.0-api-surface.md](docs/v1.0-api-surface.md) 참조), **v1.0.0은 아직
-> 릴리스되지 않았으며 `v1.0.0` 태그도 발행되지 않았습니다.** 태그 발행은 남은
-> v1.0 준비 작업(테스트 커버리지 목표 및 상위 Tier 0-3 v1.0 epic)에 의해
-> 게이트되며 [#964](https://github.com/kcenon/network_system/issues/964)에서
-> 추적됩니다. v1.0.0이 태깅되기 전까지 `network_system`은 pre-1.0으로
+> 릴리스되지 않았으며 `v1.0.0` 태그도 발행되지 않았습니다.** 태그 발행은
+> [#1165](https://github.com/kcenon/network_system/issues/1165)의 릴리스 정책 작업
+> (커버리지 정책 및 상위 프로젝트 릴리스 선행 조건)과 준비 상태 epic
+> [#964](https://github.com/kcenon/network_system/issues/964)에서 추적됩니다.
+> v1.0.0이 태깅되기 전까지 `network_system`은 pre-1.0으로
 > 취급하십시오. 아래 설명된 SemVer 안정성 보장은 태그가 발행된 이후에만
 > 적용됩니다.
+
+> **발행된 릴리스:** [v0.1.1](https://github.com/kcenon/network_system/releases/tag/v0.1.1).
+> 해당 태그의 CMake 버전은 `0.1.1`이지만 두 vcpkg 매니페스트는 여전히
+> `0.1.0`입니다. 소스 비교와 다음 릴리스 요건은
+> [릴리스 정정 안내 및 정책](ci/RELEASE_POLICY.md#published-versions-and-historical-erratum)을 참조하십시오.
 
 ---
 
