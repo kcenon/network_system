@@ -2,7 +2,7 @@ name: Scheduled Workflow Health
 
 on:
   workflow_run:
-    workflows: [CVE Security Scan, OSV Vulnerability Scan, SBOM Generation, Fuzzing Tests]
+    workflows: [CVE Security Scan, SBOM Generation, Fuzzing Tests]
     types: [completed]
   workflow_dispatch:
     inputs:

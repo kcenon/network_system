@@ -94,25 +94,39 @@ prepublication boundary is the registry sync.
 ## Scheduled workflow operations
 
 [Network #1170](https://github.com/kcenon/network_system/issues/1170) reduces six
-schedules (two daily) to four weekly schedules:
+schedules (two daily) to three weekly schedules:
 
 | Workflow | UTC schedule | Purpose |
 | --- | --- | --- |
 | `sbom.yml` | Sunday 03:00 | Generate the software bill of materials |
-| `osv-scanner.yml` | Sunday 03:17 | Scan dependency manifests with OSV |
 | `fuzzing.yml` | Monday 02:00 | Exercise protocol parsers with libFuzzer |
 | `cve-scan.yml` | Wednesday 04:23 | Trivy filesystem scan and license checks |
 
-All four retain `workflow_dispatch`. Trivy and OSV retain their complementary
-coverage and existing push/PR triggers; SBOM retains its release trigger.
+All three retain `workflow_dispatch`. Trivy retains its existing push/PR
+triggers; SBOM retains its push/PR and release triggers.
 `network-load-tests.yml` is manual-only, including its `update_baseline` input.
 The retired `test-integration.yml` duplicated the integration workflow name and
 invoked obsolete optional binaries. `integration-tests.yml` retains the
 connection lifecycle, protocol integration, performance and error-handling
 matrix, plus performance validation. Its build/test behavior is unchanged.
 
+The retired `osv-scanner.yml` did not provide the intended dependency coverage.
+In [manual validation](https://github.com/kcenon/network_system/actions/runs/38078410304),
+OSV could not find an extractor for `vcpkg.json` (exit 127); its fallback found
+zero packages and produced no SARIF artifact. Tolerated errors made the workflow
+green without a meaningful scan. Retiring this dead workflow preserves the
+working Trivy filesystem/secret and license checks and SBOM/Grype inventory scan.
+Trivy found no language-specific dependency files, while Grype scanned 83 Syft
+packages. These results do not establish complete C++/vcpkg dependency coverage;
+adding a supported, resolved dependency inventory is separate work.
+
+The fuzz job allows 45 minutes: five scheduled targets consume 25 minutes before
+setup, dependency builds and artifact uploads. Its former 30-minute deadline
+cancelled the fifth target in the original August 31 scheduled run. Target
+selection and the scheduled 300-second duration per target are unchanged.
+
 `scheduled-workflow-health.yml` inspects completed default-branch scheduled runs
-of these four workflows. With the automatic `GITHUB_TOKEN`, it creates or
+of these three workflows. With the automatic `GITHUB_TOKEN`, it creates or
 updates one marked issue per workflow for unsuccessful runs, including timeout,
 startup failure and cancellation. It retains each run/attempt identity, reopens
 the issue for a new failure, and does not duplicate an already recorded attempt.
@@ -129,7 +143,7 @@ the same attempt should return `already recorded`. Inspect the
 `scheduled-health-report` artifact; API/reporting failures fail the job.
 
 After delivery to default `main`, enable each retained inactive workflow with
-`gh workflow enable <file> --repo kcenon/network_system`, then dispatch all four
+`gh workflow enable <file> --repo kcenon/network_system`, then dispatch all three
 once and inspect their original logs and artifacts. Historical/dynamic workflow
 API entries can outlive files: reconcile the raw inactive-workflow listing with
 tracked default-branch files instead of re-enabling deleted workflows.

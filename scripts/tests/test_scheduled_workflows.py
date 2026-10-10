@@ -81,7 +81,8 @@ class ReporterTests(unittest.TestCase):
                    {'repository': {'full_name': 'someone/fork'}},
                    {'head_repository': {'full_name': 'someone/fork'}},
                    {'path': '.github/workflows/notify-ecosystem.yml'},
-                   {'path': '.github/workflows/test-integration.yml'}]
+                   {'path': '.github/workflows/test-integration.yml'},
+                   {'path': '.github/workflows/osv-scanner.yml'}]
         for change in changes:
             with self.subTest(change=change):
                 api = FakeGitHub(dict(run_record(), **change))

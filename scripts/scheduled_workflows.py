@@ -15,13 +15,11 @@ import sys
 REPOSITORY = 'kcenon/network_system'
 WORKFLOWS = {
     '.github/workflows/cve-scan.yml': 'CVE Security Scan',
-    '.github/workflows/osv-scanner.yml': 'OSV Vulnerability Scan',
     '.github/workflows/sbom.yml': 'SBOM Generation',
     '.github/workflows/fuzzing.yml': 'Fuzzing Tests',
 }
 ARTIFACTS = {
     'CVE Security Scan': ('security-report-',),
-    'OSV Vulnerability Scan': ('osv-scan-results-',),
     'SBOM Generation': ('sbom-',),
     'Fuzzing Tests': ('fuzz-logs', 'fuzz-corpus'),
 }
