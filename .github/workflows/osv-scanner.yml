@@ -13,7 +13,7 @@ on:
       - 'vcpkg.json'
       - 'vcpkg-configuration.json'
   schedule:
-    # Run every Sunday at 3:17 AM UTC (offset from Trivy daily scan at 2 AM)
+    # Sunday at 03:17 UTC; Trivy runs separately on Wednesday.
     - cron: '17 3 * * 0'
   workflow_dispatch:
 
@@ -22,7 +22,7 @@ permissions:
   security-events: write
 
 # OSV-Scanner complements the existing Trivy scan (cve-scan.yml):
-#   - Trivy:       filesystem scan, runs daily on push/PR
+#   - Trivy:       filesystem and license checks, weekly + on push/PR
 #   - OSV-Scanner: dependency manifest scan, runs weekly + on vcpkg.json changes
 #
 # OSV-Scanner uses the Open Source Vulnerabilities (OSV) database which covers
