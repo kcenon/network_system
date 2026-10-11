@@ -759,6 +759,17 @@ struct quic_crypto::impl
     bool early_data_accepted{false};
     bool has_zero_rtt_keys{false};
 
+    void complete_handshake()
+    {
+        handshake_complete = true;
+        current_level = encryption_level::application;
+        const unsigned char* selected = nullptr;
+        unsigned int length = 0;
+        SSL_get0_alpn_selected(ssl, &selected, &length);
+        alpn = length == 0 ? std::string{}
+                          : std::string(reinterpret_cast<const char*>(selected), length);
+    }
+
     void reset_tls()
     {
         if (ssl)
@@ -774,6 +785,12 @@ struct quic_crypto::impl
         ssl_ctx = nullptr;
         rbio = nullptr;
         wbio = nullptr;
+        handshake_complete = false;
+        current_level = encryption_level::initial;
+        alpn.clear();
+        alpn_data.clear();
+        read_keys.clear();
+        write_keys.clear();
     }
 
     ~impl() { reset_tls(); }
@@ -950,8 +967,7 @@ auto quic_crypto::process_crypto_data(encryption_level level,
     int result = SSL_do_handshake(impl_->ssl);
     if (result == 1)
     {
-        impl_->handshake_complete = true;
-        impl_->current_level = encryption_level::application;
+        impl_->complete_handshake();
     }
     else
     {
@@ -989,7 +1005,7 @@ auto quic_crypto::start_handshake() -> Result<std::vector<uint8_t>>
     int result = SSL_do_handshake(impl_->ssl);
     if (result == 1)
     {
-        impl_->handshake_complete = true;
+        impl_->complete_handshake();
     }
     else
     {
@@ -1124,25 +1140,44 @@ auto quic_crypto::get_alpn() const -> std::string
 auto quic_crypto::set_alpn(const std::vector<std::string>& protocols)
     -> VoidResult
 {
-    if (protocols.empty())
-    {
-        return ok();
-    }
-
     // Build ALPN wire format: length-prefixed strings
-    impl_->alpn_data.clear();
+    std::vector<uint8_t> encoded;
     for (const auto& proto : protocols)
     {
-        if (proto.size() > 255)
+        if (proto.empty() || proto.size() > 255)
         {
-            return error_void(-1, "ALPN protocol too long", "quic::crypto");
+            return error_void(-1, "ALPN protocol length must be 1-255 bytes", "quic::crypto");
         }
-        impl_->alpn_data.push_back(static_cast<uint8_t>(proto.size()));
-        impl_->alpn_data.insert(impl_->alpn_data.end(), proto.begin(), proto.end());
+        encoded.push_back(static_cast<uint8_t>(proto.size()));
+        encoded.insert(encoded.end(), proto.begin(), proto.end());
     }
-
-    if (SSL_CTX_set_alpn_protos(impl_->ssl_ctx, impl_->alpn_data.data(),
-                                static_cast<unsigned int>(impl_->alpn_data.size())) != 0)
+    if (!impl_->ssl)
+    {
+        return error_void(-1, "TLS must be initialized before configuring ALPN", "quic::crypto");
+    }
+    if (impl_->is_server)
+    {
+        impl_->alpn_data = std::move(encoded);
+        SSL_CTX_set_alpn_select_cb(impl_->ssl_ctx,
+            [](SSL*, const unsigned char** out, unsigned char* outlen,
+               const unsigned char* in, unsigned int inlen, void* arg) -> int {
+                auto* state = static_cast<impl*>(arg);
+                if (state->alpn_data.empty()) return SSL_TLSEXT_ERR_NOACK;
+                unsigned char* selected = nullptr;
+                if (SSL_select_next_proto(&selected, outlen,
+                        state->alpn_data.data(), static_cast<unsigned int>(state->alpn_data.size()),
+                        in, inlen) != OPENSSL_NPN_NEGOTIATED)
+                {
+                    return SSL_TLSEXT_ERR_ALERT_FATAL;
+                }
+                *out = selected;
+                return SSL_TLSEXT_ERR_OK;
+            }, impl_.get());
+    }
+    // SSL_new() has already copied the context configuration. Set the offer
+    // on this SSL object, not only on the context used for future objects.
+    else if (SSL_set_alpn_protos(impl_->ssl, encoded.data(),
+                                static_cast<unsigned int>(encoded.size())) != 0)
     {
         return error_void(-1, "Failed to set ALPN protocols", "quic::crypto",
                          get_openssl_error_string());

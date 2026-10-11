@@ -957,9 +957,8 @@ protected:
 	quic::loss_detector detector_{rtt_};
 };
 
-// Exercises the `current_pn >= gap + 2` else-break branch in the multi-range
-// ACK loop: when the encoded gap would underflow current_pn, processing stops.
-TEST_F(LossDetectorAckRangeEdgeTest, ImpossibleGapBreaksRangeLoop)
+// Invalid ranges must not partially acknowledge packets or change RTT/loss.
+TEST_F(LossDetectorAckRangeEdgeTest, ImpossibleGapRejectsEntireAck)
 {
 	auto now = std::chrono::steady_clock::now();
 	for (uint64_t pn = 0; pn <= 3; ++pn)
@@ -968,9 +967,7 @@ TEST_F(LossDetectorAckRangeEdgeTest, ImpossibleGapBreaksRangeLoop)
 			pn, 1000, quic::encryption_level::application, now));
 	}
 
-	// First range: largest=3, length=0 -> covers PN 3 only. After processing:
-	// current_pn = 3 - 0 - 1 = 2. Second range gap=10 means we'd need
-	// current_pn >= 12 to continue, which is false, so we break.
+	// First range covers PN 3; the second range would underflow PN zero.
 	quic::ack_frame ack;
 	ack.largest_acknowledged = 3;
 	ack.ack_delay = 0;
@@ -980,14 +977,13 @@ TEST_F(LossDetectorAckRangeEdgeTest, ImpossibleGapBreaksRangeLoop)
 	auto result = detector_.on_ack_received(
 		ack, quic::encryption_level::application, std::chrono::steady_clock::now());
 
-	// Only PN 3 should be acked; the impossible second range is skipped.
-	ASSERT_EQ(result.acked_packets.size(), 1u);
-	EXPECT_EQ(result.acked_packets[0].packet_number, 3u);
+	EXPECT_TRUE(result.acked_packets.empty());
+	EXPECT_TRUE(result.lost_packets.empty());
+	EXPECT_FALSE(rtt_.has_sample());
+	EXPECT_EQ(detector_.total_bytes_in_flight(), 4000u);
 }
 
-// Exercises the `current_pn >= range_len + 1` else-break branch: after the
-// second range is processed, the next decrement would underflow.
-TEST_F(LossDetectorAckRangeEdgeTest, RangeLenUnderflowBreaksRangeLoop)
+TEST_F(LossDetectorAckRangeEdgeTest, AdditionalRangeAcknowledgesExactPackets)
 {
 	auto now = std::chrono::steady_clock::now();
 	for (uint64_t pn = 1; pn <= 5; ++pn)
@@ -996,10 +992,7 @@ TEST_F(LossDetectorAckRangeEdgeTest, RangeLenUnderflowBreaksRangeLoop)
 			pn, 1000, quic::encryption_level::application, now));
 	}
 
-	// First range: largest=5, length=0 -> covers PN 5; current_pn -> 4.
-	// Second range: gap=0, length=2 -> current_pn becomes 4 - 0 - 2 = 2,
-	// covers PN 2,1,0 (loop iterates while current_pn>0). Then the trailing
-	// `current_pn >= range_len + 1` (2 >= 3) is false -> break.
+	// ACK PN 5, skip PN 4, then ACK PN 3..1.
 	quic::ack_frame ack;
 	ack.largest_acknowledged = 5;
 	ack.ack_delay = 0;
@@ -1009,7 +1002,13 @@ TEST_F(LossDetectorAckRangeEdgeTest, RangeLenUnderflowBreaksRangeLoop)
 	auto result = detector_.on_ack_received(
 		ack, quic::encryption_level::application, std::chrono::steady_clock::now());
 
-	EXPECT_FALSE(result.acked_packets.empty());
+	ASSERT_EQ(result.acked_packets.size(), 4u);
+	for (const auto& packet : result.acked_packets)
+	{
+		EXPECT_NE(packet.packet_number, 4u);
+	}
+	EXPECT_TRUE(result.lost_packets.empty());
+	EXPECT_EQ(detector_.total_bytes_in_flight(), 1000u);
 }
 
 class LossDetectorDetectLossEdgeTest : public ::testing::Test

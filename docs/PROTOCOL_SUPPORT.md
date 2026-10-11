@@ -25,7 +25,7 @@ the cross-system summary in kcenon/common_system#684.
 | HTTP/1.1 | (core `src/http`) | `production` | `http_parser_branch_test`, `http_server_test`, `http_client_test`, `http_error_coverage_test`, `http_types_test` | Routing, cookies, multipart, chunked encoding, gzip/deflate. |
 | HTTP/2 | `network-http2` | `production` | `http2_client_branch_test`, `http2_server_branch_test`, `*_dispatcher_branch_test`, `http2_server_stream_test`, `http2_request_test` | Multiplexed streams, frame layer, server/client dispatch. HPACK Huffman coding is implemented per RFC 7541 Appendix B. |
 | HPACK | `network-http2` | `production` | `hpack_branch_test`, `hpack_coverage_test`, `hpack_extra_coverage_test`, `test_http2_hpack_rfc7541` | RFC 7541 static/dynamic table, integer/string coding, and Appendix B Huffman coding. |
-| QUIC | `network-quic` | `production` | 30+ unit tests: `quic_packet_branch_test`, `quic_connection_branch_test`, `quic_frame_branch_test`, `quic_loss_detector_test`, `quic_congestion_controller_test`, `quic_socket_branch_test`, `test_quic_e2e` | RFC 9000/9001/9002 core: packets, frames, streams, loss detection, congestion control, crypto, varint, transport params. The experimental client's ALPN accessor is wired; connection-stats reports live byte/packet counters, with loss/RTT/congestion-window fields pending recovery-stack integration (see experimental rows). |
+| QUIC | `network-quic` | `production` | 30+ unit tests: `quic_packet_branch_test`, `quic_connection_branch_test`, `quic_frame_branch_test`, `quic_loss_detector_test`, `quic_congestion_controller_test`, `quic_socket_branch_test`, `test_quic_e2e` | RFC 9000/9001/9002 core: packets, frames, streams, loss detection, congestion control, crypto, varint, transport params. The experimental client's ALPN and connection-statistics accessors are wired to live socket/crypto/recovery state (see accessor details below). |
 | gRPC | `network-grpc` | `production` | `grpc_client_branch_test`, `grpc_client_extended_coverage_test`, `test_grpc_*`, `mock_grpc_server_peer` | Custom HTTP/2 transport + optional official `grpc++` wrapper (`NETWORK_ENABLE_GRPC_OFFICIAL`, OFF by default). |
 | DTLS (secure UDP) | `network-udp` | `experimental` | `test_dtls_socket` | DTLS socket and server-side session payload handling are implemented and tested: `secure_messaging_udp_server::process_session_data` feeds inbound datagrams into the per-endpoint `dtls_session` via `dtls_socket::deliver_encrypted()`, advancing the handshake and dispatching decrypted application data to the receive callback (negative paths covered by `test_dtls_socket`). Remains `experimental` pending DTLS cookie exchange (DoS protection) and a consolidated single-socket demux model. |
 
@@ -38,10 +38,10 @@ classified with evidence and disposition.
 | Location | Marker / behavior | Status | Disposition |
 |----------|-------------------|--------|-------------|
 | `src/protocols/http2/hpack.cpp` (huffman::encode/decode/encoded_size) | RFC 7541 Appendix B Huffman coding implemented: bit-packed encode, trie-based decode with EOS/padding validation (RFC 7541 5.2), accurate `encoded_size`; the encoder selects Huffman only when it produces a smaller output | `production` | Resolved in kcenon/network_system#1157. Covered by `test_http2_hpack.cpp` Appendix C.4/C.6 conformance vectors and an all-byte round-trip test. |
-| `src/experimental/quic_client.cpp` `alpn_protocol()` | Returns the ALPN protocol negotiated during the handshake via `quic_socket::negotiated_alpn()` (`std::nullopt` until negotiated) | `production` | Wired in kcenon/network_system#1158. |
-| `src/experimental/quic_client.cpp` `stats()` | Live `bytes_sent`/`bytes_received`/`packets_sent`/`packets_received` sourced from `quic_socket`; `packets_lost`/`smoothed_rtt`/`min_rtt`/`cwnd` remain zero pending QUIC recovery-stack integration | `experimental` | Partially wired in kcenon/network_system#1158; loss/RTT/congestion accounting tracked as follow-up. |
+| `src/experimental/quic_client.cpp` `alpn_protocol()` | Configured offers reach the active TLS object; returns the actual negotiated protocol through a synchronized socket snapshot (`std::nullopt` before negotiation or without ALPN) | `production` | Completed in kcenon/network_system#1158. Client-level local TLS negotiation tests select the second offer and exercise no-ALPN, stop, and reconnect. |
+| `src/experimental/quic_client.cpp` `stats()` | Live transport counters plus `packets_lost`, `smoothed_rtt`, `min_rtt`, and `cwnd` from the socket-owned loss detector, RTT estimator, and congestion controller | `production` | Completed in kcenon/network_system#1158. Client-level tests cover wire traffic, ACKs, packet/time-threshold loss, duplicate ACKs, PTO, failed sends, and concurrent lifecycle reads. |
 | `secure_messaging_udp_server.cpp` `process_session_data` (`libs/network-udp`, mirrored in `src/core`) | Feeds the inbound datagram into the per-endpoint `dtls_session` via `dtls_socket::deliver_encrypted()`; `[[maybe_unused]]`/TODO removed | `experimental` | Resolved in kcenon/network_system#1159. See DTLS row above; remaining experimental gap (cookie exchange) tracked there. |
-| `src/internal/quic_socket.cpp` `process_ack_frame` (~L719) | Tracks largest-acked only; full retransmission-queue pruning deferred (`(void)f; // Placeholder`) | `experimental` | Functional minimal ACK handling; full loss-recovery integration in `src/protocols/quic/loss_detector.cpp`. Tracked by follow-up. |
+| `src/internal/quic_socket.cpp` `process_ack_frame` | ACKs now reach the loss detector in their packet-number space and update RTT, loss, and congestion accounting; recovery timers retransmit lost frames and send PTO probes | `experimental` | Statistics integration completed in #1158. The socket still uses default peer ACK-delay parameters; full transport-parameter negotiation and general QUIC interoperability are outside this accessor completion. |
 | `src/tracing/exporters.cpp` (otlp_grpc/jaeger/zipkin, ~L547/560/573) | These exporters log "not implemented" and fall back to console/OTLP-HTTP | `experimental` | Tracing observability surface, not a network protocol. `otlp_http` exporter is production. README tracing note already says "use otlp_http". |
 | `src/http/http_server.cpp` `// TODO: Add error logging when needed` (~L665) | Compression-failure path returns silently | `production` | Benign: behavior (send uncompressed / abort) is correct; only optional logging is deferred. Marker removed in this audit. |
 | `src/http/http_server.cpp` `// Look for parameter placeholder (:param_name)` (~L541) | Route-param parsing comment; not a stub | `production` | False positive (the word "placeholder" describes `:param` route syntax). No action. |
@@ -68,10 +68,27 @@ adapter types. They are listed above so the markers are fully accounted for.
 Rows classified `experimental` with a genuine implementation gap are tracked by
 dedicated follow-up issues (see kcenon/network_system#1144 PR body for numbers):
 
-- Experimental QUIC client: integrate the QUIC recovery stack (loss detection, RTT estimation, congestion control) into the client socket so `stats()` reports live `packets_lost`, `smoothed_rtt`/`min_rtt`, and `cwnd`. Byte/packet counters and the ALPN accessor are already wired (kcenon/network_system#1158).
+- Experimental QUIC socket: negotiate peer ACK-delay transport parameters instead of relying on defaults. The accessor work in #1158 does not establish general QUIC interoperability or promote the entire experimental client API.
 
 No rows were classified `remove`; the `libs/network-*` wrapper `.cpp` files are
 retained as documented standalone-build scaffolding rather than deleted.
+
+## QUIC accessor semantics (#1158)
+
+- Sent counters count successful UDP send completions, including retransmissions;
+  failed/cancelled sends are excluded. Receive counters count nonempty UDP datagrams
+  and their bytes, including packets subsequently rejected by QUIC validation.
+- Loss counts packets declared lost by recovery, never PTO events alone. Duplicate
+  ACKs and late ACKs of already-lost packets do not count a loss twice.
+- RTT values use microseconds and remain zero until sampled. The congestion window
+  uses bytes and starts at the controller's initial window once a socket exists.
+- Accessors return defaults without a socket, including after stop. Reconnect creates
+  a fresh socket. Recovery fields and negotiated ALPN are protected by a mutex;
+  transport counters are atomic and are not a transactional snapshot with recovery.
+- `tests/unit/experimental_quic_client_test.cpp` verifies the client accessors using
+  real local UDP traffic and the existing TLS memory-BIO crypto path, plus explicit
+  timestamps for ACK/loss tests. It does not substitute final statistics or negotiated
+  ALPN through test hooks, and does not claim interoperability with external QUIC stacks.
 
 ## Verification
 

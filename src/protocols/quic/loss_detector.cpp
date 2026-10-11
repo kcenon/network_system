@@ -68,93 +68,39 @@ auto loss_detector::on_ack_received(const ack_frame& ack,
     auto idx = space_index(level);
     auto& space = spaces_[idx];
 
-    auto largest_newly_acked = ack.largest_acknowledged;
+    // Validate every range before changing recovery state. Walk recorded
+    // packets rather than every integer in a peer-controlled ACK range.
+    std::vector<std::pair<uint64_t, uint64_t>> ranges;
+    uint64_t largest = ack.largest_acknowledged;
+    const auto count = std::max<size_t>(1, ack.ranges.size());
+    for (size_t i = 0; i < count; ++i)
+    {
+        if (i != 0)
+        {
+            const auto smallest = ranges.back().first;
+            const auto gap = ack.ranges[i].gap;
+            if (smallest < 2 || gap > smallest - 2) return result;
+            largest = smallest - gap - 2;
+        }
+        const auto length = ack.ranges.empty() ? 0 : ack.ranges[i].length;
+        if (length > largest) return result;
+        ranges.emplace_back(largest - length, largest);
+    }
 
+    const auto largest_newly_acked = ack.largest_acknowledged;
     if (!space.largest_acked_set || largest_newly_acked > space.largest_acked)
     {
         space.largest_acked = largest_newly_acked;
         space.largest_acked_set = true;
     }
-
-    // Process the ACK ranges to find newly acknowledged packets
-    // First range starts at largest_acknowledged and goes back ack_range_count
-    uint64_t current_pn = ack.largest_acknowledged;
-    size_t first_range_count = ack.ranges.empty() ? 0 : ack.ranges[0].length;
-
-    // Process first ack block (largest_acknowledged down to largest - first_range)
-    for (uint64_t i = 0; i <= first_range_count && current_pn > 0; ++i)
+    for (const auto& [smallest, largest_in_range] : ranges)
     {
-        auto it = space.sent_packets.find(current_pn - i);
-        if (it != space.sent_packets.end())
+        auto it = space.sent_packets.lower_bound(smallest);
+        while (it != space.sent_packets.end() && it->first <= largest_in_range)
         {
-            auto& pkt = it->second;
-            if (pkt.in_flight)
-            {
-                space.bytes_in_flight -= pkt.sent_bytes;
-            }
-            result.acked_packets.push_back(std::move(pkt));
-            space.sent_packets.erase(it);
-        }
-    }
-
-    // Also check largest_acknowledged itself
-    {
-        auto it = space.sent_packets.find(ack.largest_acknowledged);
-        if (it != space.sent_packets.end())
-        {
-            auto& pkt = it->second;
-            if (pkt.in_flight)
-            {
-                space.bytes_in_flight -= pkt.sent_bytes;
-            }
-            result.acked_packets.push_back(std::move(pkt));
-            space.sent_packets.erase(it);
-        }
-    }
-
-    // Process additional ACK ranges
-    current_pn = ack.largest_acknowledged;
-    if (!ack.ranges.empty())
-    {
-        current_pn -= ack.ranges[0].length + 1;  // After first range
-    }
-
-    for (size_t r = 1; r < ack.ranges.size(); ++r)
-    {
-        // Skip the gap
-        auto gap = ack.ranges[r].gap;
-        if (current_pn >= gap + 2)
-        {
-            current_pn -= gap + 2;
-        }
-        else
-        {
-            break;
-        }
-
-        // Process this range
-        auto range_len = ack.ranges[r].length;
-        for (uint64_t i = 0; i <= range_len && current_pn > 0; ++i)
-        {
-            auto it = space.sent_packets.find(current_pn - i);
-            if (it != space.sent_packets.end())
-            {
-                auto& pkt = it->second;
-                if (pkt.in_flight)
-                {
-                    space.bytes_in_flight -= pkt.sent_bytes;
-                }
-                result.acked_packets.push_back(std::move(pkt));
-                space.sent_packets.erase(it);
-            }
-        }
-        if (current_pn >= range_len + 1)
-        {
-            current_pn -= range_len + 1;
-        }
-        else
-        {
-            break;
+            if (it->second.in_flight) space.bytes_in_flight -= it->second.sent_bytes;
+            result.acked_packets.push_back(std::move(it->second));
+            it = space.sent_packets.erase(it);
         }
     }
 
@@ -302,10 +248,9 @@ auto loss_detector::next_timeout() const
     return loss_detection_timer_;
 }
 
-auto loss_detector::on_timeout() -> loss_detection_result
+auto loss_detector::on_timeout(std::chrono::steady_clock::time_point now) -> loss_detection_result
 {
     loss_detection_result result;
-    auto now = std::chrono::steady_clock::now();
 
     auto [loss_time, loss_level] = get_loss_time_and_space();
     if (loss_time != std::chrono::steady_clock::time_point{} && loss_time <= now)

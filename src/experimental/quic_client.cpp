@@ -184,22 +184,8 @@ auto messaging_quic_client::do_stop_impl() -> VoidResult
 {
 	try
 	{
-		std::shared_ptr<internal::quic_socket> local_socket;
-		{
-			std::lock_guard<std::mutex> lock(socket_mutex_);
-			local_socket = std::move(socket_);
-		}
-		if (local_socket)
-		{
-			local_socket->stop_receive();
-			auto close_result = local_socket->close();
-			if (close_result.is_err())
-			{
-				NETWORK_LOG_WARN("[messaging_quic_client] Close error: " +
-				                 close_result.error().message);
-			}
-		}
-
+		// Quiesce I/O before detaching the socket: an in-progress resolver
+		// callback may still publish it until io_context::run() returns.
 		if (work_guard_)
 		{
 			work_guard_.reset();
@@ -212,9 +198,29 @@ auto messaging_quic_client::do_stop_impl() -> VoidResult
 		{
 			io_context_future_.wait();
 		}
+		std::shared_ptr<internal::quic_socket> local_socket;
+		{
+			std::lock_guard<std::mutex> lock(socket_mutex_);
+			local_socket = std::move(socket_);
+		}
+
+		if (local_socket)
+		{
+			local_socket->stop_receive();
+			auto close_result = local_socket->close();
+			if (close_result.is_err())
+			{
+				NETWORK_LOG_WARN("[messaging_quic_client] Close error: " +
+				                 close_result.error().message);
+			}
+		}
+
 		thread_pool_.reset();
+		// Destroy the socket's timers while their execution context is alive.
+		local_socket.reset();
 		io_context_.reset();
 
+		is_connected_.store(false);
 		handshake_complete_.store(false);
 
 		NETWORK_LOG_INFO("[messaging_quic_client] stopped.");
@@ -456,7 +462,10 @@ auto messaging_quic_client::set_alpn_protocols(
 
 auto messaging_quic_client::alpn_protocol() const -> std::optional<std::string>
 {
-	auto local_socket = get_socket();
+	// Keep stop from detaching/destroying the socket and its io_context until
+	// this short read finishes. Do not retain a socket beyond this lock.
+	std::lock_guard<std::mutex> lock(socket_mutex_);
+	const auto& local_socket = socket_;
 	if (!local_socket)
 	{
 		return std::nullopt;
@@ -478,7 +487,8 @@ auto messaging_quic_client::stats() const -> quic_connection_stats
 {
 	quic_connection_stats stats;
 
-	auto local_socket = get_socket();
+	std::lock_guard<std::mutex> lock(socket_mutex_);
+	const auto& local_socket = socket_;
 	if (local_socket)
 	{
 		// Live transport counters from the socket.
@@ -487,10 +497,11 @@ auto messaging_quic_client::stats() const -> quic_connection_stats
 		stats.packets_sent = local_socket->packets_sent();
 		stats.packets_received = local_socket->packets_received();
 
-		// NOTE: packets_lost, smoothed_rtt, min_rtt, and cwnd require the QUIC
-		// loss-detection / RTT-estimation / congestion-control stack, which is
-		// not yet integrated into the experimental client's socket. They remain
-		// zero until that stack is wired in (see kcenon/network_system#1158).
+		const auto recovery = local_socket->recovery_stats();
+		stats.packets_lost = recovery.packets_lost;
+		stats.smoothed_rtt = recovery.smoothed_rtt;
+		stats.min_rtt = recovery.min_rtt;
+		stats.cwnd = recovery.cwnd;
 	}
 
 	return stats;
@@ -569,7 +580,7 @@ auto messaging_quic_client::do_connect(std::string_view host,
 				}
 
 				// Connect to server
-				auto connect_result = quic_sock->connect(endpoint, host_str);
+				auto connect_result = quic_sock->connect(endpoint, host_str, config_.alpn_protocols);
 				if (connect_result.is_err())
 				{
 					NETWORK_LOG_ERROR("[messaging_quic_client] Connect failed: " +
@@ -577,9 +588,6 @@ auto messaging_quic_client::do_connect(std::string_view host,
 					on_error(std::make_error_code(std::errc::connection_refused));
 					return;
 				}
-
-				// Start receive loop
-				quic_sock->start_receive();
 
 				NETWORK_LOG_INFO("[messaging_quic_client] Connection initiated");
 			}

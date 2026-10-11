@@ -7,11 +7,41 @@
 #include <random>
 #include <chrono>
 #include <type_traits>
+#include <algorithm>
+#include <limits>
+#include "internal/protocols/quic/congestion_controller.h"
+#include "internal/protocols/quic/varint.h"
 
 namespace kcenon::network::internal
 {
 
 using namespace protocols::quic;
+
+struct quic_socket::recovery_state
+{
+	rtt_estimator rtt;
+	loss_detector loss{rtt};
+	congestion_controller congestion;
+	uint64_t packets_lost{0};
+	std::array<std::optional<uint64_t>, 3> largest_sent;
+};
+
+namespace
+{
+auto packet_space(encryption_level level) -> size_t
+{
+	if (level == encryption_level::initial) return 0;
+	if (level == encryption_level::handshake) return 1;
+	return 2; // 0-RTT and 1-RTT share a packet number space.
+}
+
+auto ack_eliciting(const frame& f) -> bool
+{
+	return !std::holds_alternative<ack_frame>(f)
+		&& !std::holds_alternative<padding_frame>(f)
+		&& !std::holds_alternative<connection_close_frame>(f);
+}
+} // namespace
 
 // =============================================================================
 // Construction / Destruction
@@ -20,6 +50,7 @@ using namespace protocols::quic;
 quic_socket::quic_socket(asio::ip::udp::socket socket, quic_role role)
 	: udp_socket_(std::move(socket))
 	, role_(role)
+	, recovery_(std::make_unique<recovery_state>())
 	, retransmit_timer_(udp_socket_.get_executor())
 	, idle_timer_(udp_socket_.get_executor())
 {
@@ -47,6 +78,12 @@ quic_socket::quic_socket(quic_socket&& other) noexcept
 	, recv_buffer_(std::move(other.recv_buffer_))
 	, role_(other.role_)
 	, state_(other.state_.load())
+	, packets_sent_(other.packets_sent_.load())
+	, packets_received_(other.packets_received_.load())
+	, bytes_sent_(other.bytes_sent_.load())
+	, bytes_received_(other.bytes_received_.load())
+	, recovery_(std::move(other.recovery_))
+	, negotiated_alpn_(std::move(other.negotiated_alpn_))
 	, crypto_(std::move(other.crypto_))
 	, local_conn_id_(std::move(other.local_conn_id_))
 	, remote_conn_id_(std::move(other.remote_conn_id_))
@@ -77,6 +114,12 @@ quic_socket& quic_socket::operator=(quic_socket&& other) noexcept
 		recv_buffer_ = std::move(other.recv_buffer_);
 		role_ = other.role_;
 		state_.store(other.state_.load());
+		packets_sent_.store(other.packets_sent_.load());
+		packets_received_.store(other.packets_received_.load());
+		bytes_sent_.store(other.bytes_sent_.load());
+		bytes_received_.store(other.bytes_received_.load());
+		recovery_ = std::move(other.recovery_);
+		negotiated_alpn_ = std::move(other.negotiated_alpn_);
 		crypto_ = std::move(other.crypto_);
 		local_conn_id_ = std::move(other.local_conn_id_);
 		remote_conn_id_ = std::move(other.remote_conn_id_);
@@ -133,7 +176,8 @@ auto quic_socket::set_close_callback(close_callback cb) -> void
 // =============================================================================
 
 auto quic_socket::connect(const asio::ip::udp::endpoint& endpoint,
-                          const std::string& server_name) -> VoidResult
+                          const std::string& server_name,
+                          const std::vector<std::string>& alpn_protocols) -> VoidResult
 {
 	if (role_ != quic_role::client)
 	{
@@ -166,6 +210,12 @@ auto quic_socket::connect(const asio::ip::udp::endpoint& endpoint,
 	}
 
 	// Generate initial secrets from destination connection ID
+	auto alpn_result = crypto_.set_alpn(alpn_protocols);
+	if (alpn_result.is_err())
+	{
+		return alpn_result;
+	}
+
 	// For client, we use a random connection ID as the destination
 	remote_conn_id_ = generate_connection_id();
 
@@ -303,13 +353,15 @@ auto quic_socket::close(uint64_t error_code, const std::string& reason) -> VoidR
 
 auto quic_socket::start_receive() -> void
 {
-	is_receiving_.store(true);
+	if (is_receiving_.exchange(true)) return;
 	do_receive();
 }
 
 auto quic_socket::stop_receive() -> void
 {
 	is_receiving_.store(false);
+	std::lock_guard<std::mutex> lock(statistics_mutex_);
+	retransmit_timer_.cancel();
 }
 
 auto quic_socket::send_stream_data(uint64_t stream_id,
@@ -440,7 +492,23 @@ auto quic_socket::remote_connection_id() const -> const connection_id&
 
 auto quic_socket::negotiated_alpn() const -> std::string
 {
-	return crypto_.get_alpn();
+	std::lock_guard<std::mutex> lock(statistics_mutex_);
+	return negotiated_alpn_;
+}
+
+auto quic_socket::recovery_stats() const -> recovery_statistics
+{
+	std::lock_guard<std::mutex> lock(statistics_mutex_);
+	if (!recovery_) return {};
+	recovery_statistics result;
+	result.packets_lost = recovery_->packets_lost;
+	result.cwnd = recovery_->congestion.cwnd();
+	if (recovery_->rtt.has_sample())
+	{
+		result.smoothed_rtt = recovery_->rtt.smoothed_rtt();
+		result.min_rtt = recovery_->rtt.min_rtt();
+	}
+	return result;
 }
 
 auto quic_socket::do_receive() -> void
@@ -494,6 +562,13 @@ auto quic_socket::handle_packet(std::span<const uint8_t> data) -> void
 {
 	// Parse packet header
 	auto header_result = packet_parser::parse_header(data);
+	if (!data.empty() && (data[0] & 0x80) == 0)
+	{
+		auto short_result = packet_parser::parse_short_header(data, local_conn_id_.length());
+		if (short_result.is_err()) return;
+		header_result = ok(std::make_pair(packet_header{short_result.value().first},
+		                                  short_result.value().second));
+	}
 	if (header_result.is_err())
 	{
 		// Invalid packet - silently ignore
@@ -579,15 +654,10 @@ auto quic_socket::handle_packet(std::span<const uint8_t> data) -> void
 	}
 
 	// Decode full packet number
-	auto level_idx = static_cast<size_t>(level);
+	const auto level_idx = static_cast<size_t>(level == encryption_level::zero_rtt
+		? encryption_level::application : level);
 	uint64_t full_pn = packet_number::decode(
 		truncated_pn, pn_length, largest_received_pn_[level_idx]);
-
-	// Update largest received
-	if (full_pn > largest_received_pn_[level_idx])
-	{
-		largest_received_pn_[level_idx] = full_pn;
-	}
 
 	// Decrypt packet payload
 	size_t payload_offset = pn_offset + pn_length;
@@ -601,6 +671,8 @@ auto quic_socket::handle_packet(std::span<const uint8_t> data) -> void
 	{
 		return;
 	}
+	// Unauthenticated packet numbers must not influence future decoding.
+	largest_received_pn_[level_idx] = std::max(largest_received_pn_[level_idx], full_pn);
 
 	auto& [unprotected_header, payload] = unprotect_result.value();
 
@@ -614,16 +686,16 @@ auto quic_socket::handle_packet(std::span<const uint8_t> data) -> void
 	// Process each frame
 	for (const auto& f : frames_result.value())
 	{
-		process_frame(f);
+		process_frame(f, level);
 	}
 
 	// Send any pending responses
 	send_pending_packets();
 }
 
-auto quic_socket::process_frame(const frame& f) -> void
+auto quic_socket::process_frame(const frame& f, encryption_level level) -> void
 {
-	std::visit([this](auto&& arg) {
+	std::visit([this, level](auto&& arg) {
 		using T = std::decay_t<decltype(arg)>;
 
 		if constexpr (std::is_same_v<T, crypto_frame>)
@@ -636,7 +708,7 @@ auto quic_socket::process_frame(const frame& f) -> void
 		}
 		else if constexpr (std::is_same_v<T, ack_frame>)
 		{
-			process_ack_frame(arg);
+			process_ack_frame(arg, level);
 		}
 		else if constexpr (std::is_same_v<T, connection_close_frame>)
 		{
@@ -678,6 +750,12 @@ auto quic_socket::process_crypto_frame(const crypto_frame& f) -> void
 	// Check if handshake is now complete
 	if (crypto_.is_handshake_complete() && !handshake_complete_.load())
 	{
+		{
+			std::lock_guard<std::mutex> lock(statistics_mutex_);
+			negotiated_alpn_ = crypto_.get_alpn();
+			// Servers confirm at TLS completion; clients at HANDSHAKE_DONE.
+			recovery_->loss.set_handshake_confirmed(role_ == quic_role::server);
+		}
 		handshake_complete_.store(true);
 
 		// For client, transition to connected
@@ -720,11 +798,93 @@ auto quic_socket::process_stream_frame(const stream_frame& f) -> void
 	}
 }
 
-auto quic_socket::process_ack_frame(const ack_frame& f) -> void
+auto quic_socket::process_ack_frame(const ack_frame& f, encryption_level level,
+                                   std::chrono::steady_clock::time_point now) -> void
 {
-	// Process ACK - remove acknowledged packets from retransmission queue
-	// For now, just track the largest acknowledged
-	(void)f;  // Placeholder for full implementation
+	// ACKs are prohibited in 0-RTT packets.
+	if (level == encryption_level::zero_rtt) return;
+	loss_detection_result result;
+	{
+		std::lock_guard<std::mutex> lock(statistics_mutex_);
+		const auto& largest = recovery_->largest_sent[packet_space(level)];
+		if (!largest || f.largest_acknowledged > *largest) return;
+		auto decoded = f;
+		// The socket currently uses the default peer transport parameters:
+		// ack_delay_exponent = 3. Initial/Handshake ACK delay is ignored.
+		const auto max_delay = static_cast<uint64_t>(std::numeric_limits<int64_t>::max());
+		decoded.ack_delay = level == encryption_level::application
+			? std::min(f.ack_delay, max_delay >> 3) << 3 : 0;
+		result = recovery_->loss.on_ack_received(decoded, level, now);
+		apply_recovery_result(result, now);
+		arm_recovery_timer();
+	}
+	retransmit_lost(result);
+}
+
+auto quic_socket::record_sent_packet(const sent_packet& packet) -> void
+{
+	std::lock_guard<std::mutex> lock(statistics_mutex_);
+	packets_sent_.fetch_add(1, std::memory_order_relaxed);
+	bytes_sent_.fetch_add(packet.sent_bytes, std::memory_order_relaxed);
+	auto& largest = recovery_->largest_sent[packet_space(packet.level)];
+	largest = std::max(largest.value_or(0), packet.packet_number);
+	// ACK-only packets do not elicit ACKs and must not grow recovery state.
+	if (packet.in_flight)
+	{
+		recovery_->loss.on_packet_sent(packet);
+		recovery_->congestion.on_packet_sent(packet.sent_bytes);
+		arm_recovery_timer();
+	}
+}
+
+auto quic_socket::apply_recovery_result(const loss_detection_result& result,
+                                      std::chrono::steady_clock::time_point now) -> void
+{
+	for (const auto& packet : result.lost_packets)
+	{
+		++recovery_->packets_lost;
+		recovery_->congestion.on_packet_lost(packet);
+	}
+	for (const auto& packet : result.acked_packets)
+	{
+		recovery_->congestion.on_packet_acked(packet, now);
+	}
+	if (result.ecn_signal == ecn_result::congestion_signal)
+	{
+		recovery_->congestion.on_ecn_congestion(result.ecn_congestion_sent_time);
+	}
+}
+
+auto quic_socket::retransmit_lost(const loss_detection_result& result) -> void
+{
+	if (!is_receiving_.load() || state_.load() == quic_connection_state::draining
+		|| state_.load() == quic_connection_state::closed) return;
+	for (const auto& packet : result.lost_packets)
+	{
+		std::vector<frame> frames;
+		for (const auto& f : packet.frames)
+		{
+			if (ack_eliciting(f)) frames.push_back(f);
+		}
+		if (!frames.empty()) (void)send_packet(packet.level, std::move(frames));
+	}
+}
+
+auto quic_socket::arm_recovery_timer() -> void
+{
+	retransmit_timer_.cancel();
+	if (!is_receiving_.load() || state_.load() == quic_connection_state::draining
+		|| state_.load() == quic_connection_state::closed) return;
+	if (auto next = recovery_->loss.next_timeout())
+	{
+		retransmit_timer_.expires_at(*next);
+		retransmit_timer_.async_wait([weak = weak_from_this()](std::error_code ec) {
+			if (!ec)
+			{
+				if (auto self = weak.lock()) self->on_retransmit_timeout();
+			}
+		});
+	}
 }
 
 auto quic_socket::process_connection_close_frame(const connection_close_frame& f) -> void
@@ -752,6 +912,11 @@ auto quic_socket::process_connection_close_frame(const connection_close_frame& f
 
 auto quic_socket::process_handshake_done_frame() -> void
 {
+	if (role_ == quic_role::client)
+	{
+		std::lock_guard<std::mutex> lock(statistics_mutex_);
+		recovery_->loss.set_handshake_confirmed(true);
+	}
 	// Client receives HANDSHAKE_DONE
 	if (role_ == quic_role::client && !handshake_complete_.load())
 	{
@@ -843,8 +1008,13 @@ auto quic_socket::send_packet(encryption_level level,
 	}
 
 	// Get next packet number
-	auto level_idx = static_cast<size_t>(level);
-	uint64_t pn = next_packet_number_[level_idx]++;
+	const auto level_idx = static_cast<size_t>(level == encryption_level::zero_rtt
+		? encryption_level::application : level);
+	uint64_t pn;
+	{
+		std::lock_guard<std::mutex> lock(state_mutex_);
+		pn = next_packet_number_[level_idx]++;
+	}
 
 	// Build header
 	std::vector<uint8_t> header;
@@ -864,6 +1034,22 @@ auto quic_socket::send_packet(encryption_level level,
 			remote_conn_id_, pn, crypto_.key_phase());
 	}
 
+	const size_t pn_length = (header[0] & 0x03) + 1;
+	// packet_builder leaves Length encoding to the caller. Include the PN
+	// and AEAD tag in Length, and enough padding for the HP sample.
+	const size_t minimum_payload = 4 - pn_length;
+	const size_t unpadded_size = payload.size();
+	if (payload.size() < minimum_payload) payload.resize(minimum_payload, 0);
+	if (level == encryption_level::initial && header.size() + payload.size() + aead_tag_size + 2 < 1200)
+	{
+		payload.resize(1200 - header.size() - aead_tag_size - 2, 0);
+	}
+	if (level == encryption_level::initial || level == encryption_level::handshake)
+	{
+		auto length = varint::encode(pn_length + payload.size() + aead_tag_size);
+		header.insert(header.end() - pn_length, length.begin(), length.end());
+	}
+
 	// Protect (encrypt) the packet
 	auto protect_result = packet_protection::protect(
 		keys_result.value(), header, payload, pn);
@@ -879,15 +1065,32 @@ auto quic_socket::send_packet(encryption_level level,
 
 	// Send the packet
 	auto& protected_packet = protect_result.value();
+	const auto pn_offset = header.size() - pn_length;
+	auto hp_result = packet_protection::protect_header(keys_result.value(),
+		std::span(protected_packet.data(), header.size()), pn_offset, pn_length,
+		std::span(protected_packet.data() + pn_offset + 4, hp_sample_size));
+	if (hp_result.is_err()) return hp_result;
 
 	auto self = shared_from_this();
 	auto buffer = std::make_shared<std::vector<uint8_t>>(std::move(protected_packet));
 
-	packets_sent_.fetch_add(1, std::memory_order_relaxed);
-	bytes_sent_.fetch_add(buffer->size(), std::memory_order_relaxed);
+	sent_packet packet;
+	packet.packet_number = pn;
+	packet.sent_time = std::chrono::steady_clock::now();
+	packet.level = level;
+	packet.ack_eliciting = std::any_of(frames.begin(), frames.end(), ack_eliciting);
+	packet.in_flight = packet.ack_eliciting || payload.size() > unpadded_size
+		|| std::any_of(frames.begin(), frames.end(),
+		[](const frame& f) { return std::holds_alternative<padding_frame>(f); });
+	packet.frames = std::move(frames);
 
-	auto on_sent = [self, buffer](std::error_code ec, std::size_t /*bytes_sent*/)
+	auto on_sent = [self, buffer, packet = std::move(packet)](std::error_code ec, std::size_t bytes_sent) mutable
 		{
+			if (!ec)
+			{
+				packet.sent_bytes = bytes_sent;
+				self->record_sent_packet(packet);
+			}
 			if (ec && ec != asio::error::operation_aborted)
 			{
 				std::lock_guard<std::mutex> lock(self->callback_mutex_);
@@ -963,11 +1166,34 @@ auto quic_socket::generate_connection_id() -> connection_id
 	return connection_id(std::span<const uint8_t>(id_bytes));
 }
 
-auto quic_socket::on_retransmit_timeout() -> void
+auto quic_socket::on_retransmit_timeout(std::chrono::steady_clock::time_point now) -> void
 {
-	// Retransmission logic would go here
-	// For now, just resend pending packets
-	send_pending_packets();
+	loss_detection_result result;
+	std::optional<encryption_level> probe_level;
+	{
+		std::lock_guard<std::mutex> lock(statistics_mutex_);
+		if (!is_receiving_.load()) return;
+		auto next = recovery_->loss.next_timeout();
+		if (!next || *next > now) return;
+		result = recovery_->loss.on_timeout(now);
+		apply_recovery_result(result, now);
+		if (result.event == loss_detection_event::pto_expired)
+		{
+			for (auto level : {encryption_level::initial, encryption_level::handshake,
+			                   encryption_level::application})
+			{
+				if (recovery_->loss.has_unacked_packets(level))
+				{
+					probe_level = level;
+					break;
+				}
+			}
+		}
+		arm_recovery_timer();
+	}
+	retransmit_lost(result);
+	// A PTO requests a probe; it is not evidence that a packet was lost.
+	if (probe_level) (void)send_packet(*probe_level, {ping_frame{}});
 }
 
 auto quic_socket::transition_state(quic_connection_state new_state) -> void
