@@ -79,8 +79,8 @@ New to open source? Start here:
    - [API Reference](../API_REFERENCE.md)
    - [Build Guide](../guides/BUILD.md)
 
-3. **Join discussions**:
-   - [GitHub Discussions](https://github.com/kcenon/network_system/discussions)
+3. **Ask questions**:
+   - [GitHub Issues](https://github.com/kcenon/network_system/issues)
 
 ---
 
@@ -247,7 +247,6 @@ git push origin feature/your-feature-name
 ## Questions?
 
 - **Issues**: [GitHub Issues](https://github.com/kcenon/network_system/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/kcenon/network_system/discussions)
 - **Email**: kcenon@naver.com
 
 ---
