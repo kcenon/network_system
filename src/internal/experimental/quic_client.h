@@ -40,6 +40,10 @@ namespace kcenon::network::internal
 	enum class quic_role : uint8_t;
 } // namespace kcenon::network::internal
 
+#if defined(NETWORK_ENABLE_TEST_INJECTION)
+namespace kcenon::network::tests::support { class quic_client_test_access; }
+#endif
+
 namespace kcenon::network::core
 {
 
@@ -250,10 +254,15 @@ namespace kcenon::network::core
 		 * \brief Get connection statistics.
 		 * \return Current connection stats.
 		 *
-		 * \note Experimental: statistics retrieval is not yet wired to the
-		 *       underlying QUIC stack and currently returns a default-constructed
-		 *       quic_connection_stats. Tracked by the protocol support audit
-		 *       (PROTOCOL_SUPPORT.md, QUIC = experimental).
+		 * Counters belong to the current socket and reset on a new connection.
+		 * With no socket (including after stop), all fields are zero. Sent
+		 * counters include successfully submitted UDP datagrams, including
+		 * retransmissions; failed/cancelled sends are excluded. Receive counters
+		 * include all nonempty UDP datagrams, even if QUIC validation fails.
+		 * RTT values are microseconds (zero until sampled), cwnd is bytes, and
+		 * packets_lost counts packets declared lost, not probe timeouts.
+		 * Safe to query concurrently with I/O; transport counters are sampled
+		 * independently of the synchronized recovery snapshot.
 		 */
 		[[nodiscard]] auto stats() const -> quic_connection_stats;
 
@@ -376,10 +385,9 @@ namespace kcenon::network::core
 		 *
 		 * Implements i_quic_client::alpn_protocol().
 		 *
-		 * \note Experimental: ALPN negotiation result retrieval is not yet wired
-		 *       to the handshake layer and currently returns std::nullopt.
-		 *       Tracked by the protocol support audit (PROTOCOL_SUPPORT.md,
-		 *       QUIC = experimental).
+		 * Returns the protocol selected by TLS after a successful handshake,
+		 * or std::nullopt before negotiation, without ALPN, or after stop.
+		 * Safe to query concurrently with handshake and shutdown.
 		 */
 		[[nodiscard]] auto alpn_protocol() const -> std::optional<std::string> override;
 
@@ -596,6 +604,9 @@ namespace kcenon::network::core
 		interfaces::i_quic_client::early_data_callback_t early_data_cb_; //!< Early data production callback
 		interfaces::i_quic_client::early_data_accepted_callback_t early_data_accepted_cb_; //!< Early data acceptance callback
 		std::atomic<bool> early_data_accepted_{false}; //!< Early data acceptance status
+#if defined(NETWORK_ENABLE_TEST_INJECTION)
+		friend class kcenon::network::tests::support::quic_client_test_access;
+#endif
 	};
 
 // =====================================================================

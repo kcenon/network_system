@@ -125,7 +125,8 @@ public:
      * \brief Handle timeout expiry (RFC 9002 Section 6.2)
      * \return Loss detection result
      */
-    [[nodiscard]] auto on_timeout() -> loss_detection_result;
+    [[nodiscard]] auto on_timeout(std::chrono::steady_clock::time_point now =
+                                     std::chrono::steady_clock::now()) -> loss_detection_result;
 
     /*!
      * \brief Get the largest acknowledged packet number for a space

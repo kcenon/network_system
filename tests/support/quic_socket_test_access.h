@@ -146,6 +146,24 @@ public:
         s.process_ack_frame(f);
     }
 
+    static void record_sent_packet(quic_socket& s,
+        const protocols::quic::sent_packet& packet)
+    {
+        s.record_sent_packet(packet);
+    }
+
+    static void process_ack(quic_socket& s, const ack_frame& ack,
+        encryption_level level, std::chrono::steady_clock::time_point now)
+    {
+        s.process_ack_frame(ack, level, now);
+    }
+
+    static auto send_packet(quic_socket& s, encryption_level level,
+        std::vector<frame> frames) -> VoidResult
+    {
+        return s.send_packet(level, std::move(frames));
+    }
+
     /**
      * @brief Direct invocation of
      *        @c quic_socket::process_connection_close_frame.
@@ -212,6 +230,12 @@ public:
     static auto on_retransmit_timeout(quic_socket& s) -> void
     {
         s.on_retransmit_timeout();
+    }
+
+    static void on_retransmit_timeout(quic_socket& s,
+        std::chrono::steady_clock::time_point now)
+    {
+        s.on_retransmit_timeout(now);
     }
 
     // ------------------------------------------------------------------

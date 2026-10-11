@@ -633,14 +633,13 @@ TEST_F(QuicSocketDispatcherBranchTest, OnRetransmitTimeoutOnIdleSocketIsSafe)
 {
     auto q = make_quic(*io_, internal_ns::quic_role::client);
 
-    // on_retransmit_timeout calls send_pending_packets which short-
-    // circuits on idle — exercises the handler entry path.
+    // An idle socket has no recovery timer to service.
     test_access::on_retransmit_timeout(*q);
 
     SUCCEED();
 }
 
-TEST_F(QuicSocketDispatcherBranchTest, OnRetransmitTimeoutOnHandshakeSocketDrivesSendPending)
+TEST_F(QuicSocketDispatcherBranchTest, UnarmedRetransmitTimeoutPreservesPendingData)
 {
     auto q = make_quic(*io_, internal_ns::quic_role::client);
 
@@ -651,10 +650,11 @@ TEST_F(QuicSocketDispatcherBranchTest, OnRetransmitTimeoutOnHandshakeSocketDrive
 
     test_access::on_retransmit_timeout(*q);
 
-    // send_pending_packets ran and (without keys) drained the queue.
+    // A stale/unarmed timeout must not consume unsent data. Recovery is
+    // triggered only for successfully sent packets with an expired timer.
     EXPECT_EQ(test_access::pending_crypto_data_size(
                   *q, quic_proto::encryption_level::initial),
-              0u);
+              1u);
 }
 
 // ============================================================================

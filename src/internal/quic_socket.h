@@ -19,6 +19,7 @@
 #include "internal/protocols/quic/crypto.h"
 #include "internal/protocols/quic/frame.h"
 #include "internal/protocols/quic/packet.h"
+#include "internal/protocols/quic/loss_detector.h"
 #include "kcenon/network/detail/utils/result_types.h"
 
 #if defined(NETWORK_ENABLE_TEST_INJECTION)
@@ -164,10 +165,12 @@ namespace kcenon::network::internal
 		 * \brief Connect to a remote server (client only)
 		 * \param endpoint Remote endpoint to connect to
 		 * \param server_name Server name for SNI (TLS)
+		 * \param alpn_protocols Application protocols to offer during TLS negotiation
 		 * \return Success or error
 		 */
 		[[nodiscard]] auto connect(const asio::ip::udp::endpoint& endpoint,
-		                           const std::string& server_name = "") -> VoidResult;
+		                           const std::string& server_name = "",
+		                           const std::vector<std::string>& alpn_protocols = {}) -> VoidResult;
 
 		/*!
 		 * \brief Accept an incoming connection (server only)
@@ -307,13 +310,24 @@ namespace kcenon::network::internal
 		 */
 		[[nodiscard]] auto negotiated_alpn() const -> std::string;
 
-		/*! \brief Total QUIC packets sent on this socket. */
+		struct recovery_statistics
+		{
+			uint64_t packets_lost{0};
+			std::chrono::microseconds smoothed_rtt{0};
+			std::chrono::microseconds min_rtt{0};
+			size_t cwnd{0};
+		};
+
+		//! A synchronized snapshot; RTTs remain zero until the first ACK sample.
+		[[nodiscard]] auto recovery_stats() const -> recovery_statistics;
+
+		/*! \brief Successfully sent UDP datagrams, including retransmissions. */
 		[[nodiscard]] auto packets_sent() const noexcept -> uint64_t
 		{
 			return packets_sent_.load(std::memory_order_relaxed);
 		}
 
-		/*! \brief Total QUIC packets received on this socket. */
+		/*! \brief Nonempty UDP datagrams received, including invalid QUIC packets. */
 		[[nodiscard]] auto packets_received() const noexcept -> uint64_t
 		{
 			return packets_received_.load(std::memory_order_relaxed);
@@ -351,7 +365,8 @@ namespace kcenon::network::internal
 		 * \brief Process a parsed frame
 		 * \param f Frame to process
 		 */
-		auto process_frame(const protocols::quic::frame& f) -> void;
+		auto process_frame(const protocols::quic::frame& f,
+		                   protocols::quic::encryption_level level = protocols::quic::encryption_level::initial) -> void;
 
 		/*!
 		 * \brief Process CRYPTO frame data
@@ -369,7 +384,16 @@ namespace kcenon::network::internal
 		 * \brief Process ACK frame
 		 * \param f ACK frame
 		 */
-		auto process_ack_frame(const protocols::quic::ack_frame& f) -> void;
+		auto process_ack_frame(const protocols::quic::ack_frame& f,
+		                       protocols::quic::encryption_level level = protocols::quic::encryption_level::initial,
+		                       std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now()) -> void;
+
+		auto record_sent_packet(const protocols::quic::sent_packet& packet) -> void;
+		auto apply_recovery_result(const protocols::quic::loss_detection_result& result,
+		                           std::chrono::steady_clock::time_point now) -> void;
+		auto retransmit_lost(const protocols::quic::loss_detection_result& result) -> void;
+		// Requires statistics_mutex_. Timer callbacks release it before sending.
+		auto arm_recovery_timer() -> void;
 
 		/*!
 		 * \brief Process CONNECTION_CLOSE frame
@@ -423,7 +447,8 @@ namespace kcenon::network::internal
 		/*!
 		 * \brief Retransmission timeout handler
 		 */
-		auto on_retransmit_timeout() -> void;
+		auto on_retransmit_timeout(std::chrono::steady_clock::time_point now =
+		                               std::chrono::steady_clock::now()) -> void;
 
 		/*!
 		 * \brief Transition to a new connection state
@@ -455,6 +480,12 @@ namespace kcenon::network::internal
 		std::atomic<uint64_t> packets_received_{0};
 		std::atomic<uint64_t> bytes_sent_{0};
 		std::atomic<uint64_t> bytes_received_{0};
+
+		// Heap ownership keeps loss_detector's RTT reference valid when moved.
+		struct recovery_state;
+		std::unique_ptr<recovery_state> recovery_;
+		mutable std::mutex statistics_mutex_;
+		std::string negotiated_alpn_;
 
 		//! QUIC crypto handler
 		protocols::quic::quic_crypto crypto_;
