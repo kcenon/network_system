@@ -1,0 +1,9 @@
+<map id="kcenon::network::internal::http_parser::parse_request_line" name="kcenon::network::internal::http_parser::parse_request_line">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,55,240,95"/>
+<area shape="rect" id="Node000002" href="$namespacekcenon_1_1network.html#aa32d0dbfdee046c2c0cde3667c5f05a8" title=" " alt="" coords="305,5,459,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="213,53,310,31,311,36,214,58"/>
+<area shape="rect" id="Node000003" href="$namespacekcenon_1_1network_1_1internal.html#a2499bdd04bfefeae9c39f04d4c3e5081" title="Convert string to HTTP method enum." alt="" coords="288,55,476,95"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="240,73,274,73,274,78,240,78"/>
+<area shape="rect" id="Node000004" href="$namespacekcenon_1_1network_1_1internal.html#abee3e240ea7bc9d3a138f7a0293ee7ea" title="Convert string to HTTP version enum." alt="" coords="288,119,476,159"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="205,93,288,113,287,119,204,98"/>
+</map>

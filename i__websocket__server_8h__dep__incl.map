@@ -1,0 +1,15 @@
+<map id="src/internal/interfaces/i_websocket_server.h" name="src/internal/interfaces/i_websocket_server.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="191,5,357,45"/>
+<area shape="rect" id="Node000002" href="$websocket__server_8h.html" title=" " alt="" coords="175,93,373,133"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="277,59,277,93,271,93,271,59"/>
+<area shape="rect" id="Node000003" href="$ws__server__adapter_8cpp.html" title=" " alt="" coords="5,189,177,229"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="226,142,129,191,127,186,224,137"/>
+<area shape="rect" id="Node000004" href="$websocket__server_8cpp.html" title=" " alt="" coords="202,189,346,229"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="277,147,277,189,271,189,271,147"/>
+<area shape="rect" id="Node000005" href="$ws__listener__adapter_8h.html" title=" " alt="" coords="371,181,532,236"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="323,137,403,179,400,184,321,142"/>
+<area shape="rect" id="Node000006" href="$websocket_8cpp.html" title=" " alt="" coords="244,291,443,317"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="412,247,359,293,355,289,409,243"/>
+<area shape="rect" id="Node000007" href="$ws__listener__adapter_8cpp.html" title=" " alt="" coords="467,284,649,324"/>
+<area shape="poly" id="edge6_Node000005_Node000007" title=" " alt="" coords="494,243,538,282,535,286,490,247"/>
+</map>

@@ -1,0 +1,9 @@
+<map id="kcenon::network::protocol::tcp::listen" name="kcenon::network::protocol::tcp::listen">
+<area shape="rect" id="Node000001" title="Creates and starts a TCP listener in one call." alt="" coords="244,55,435,95"/>
+<area shape="rect" id="Node000002" href="$unified__server__example_8cpp.html#a386e42fafa3ffeb7997533697df1c7e1" title="Example of protocol selection at runtime." alt="" coords="41,5,160,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="242,55,154,33,155,28,243,49"/>
+<area shape="rect" id="Node000003" href="$namespacekcenon_1_1network_1_1protocol_1_1tcp.html#ab4a8c5b962a9e9a92199c4f6c6c95aa5" title="Creates and starts a TCP listener on a specific port." alt="" coords="5,55,196,95"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="230,78,196,78,196,73,230,73"/>
+<area shape="rect" id="Node000004" href="$unified__server__example_8cpp.html#aa7cd8cd9225d933ae15814a57bc90362" title="TCP server example using unified API." alt="" coords="23,120,178,145"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="243,101,155,123,154,117,242,96"/>
+</map>

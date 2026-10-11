@@ -1,0 +1,7 @@
+<map id="kcenon::network::integration::ObservabilityBridge::create" name="kcenon::network::integration::ObservabilityBridge::create">
+<area shape="rect" id="Node000001" title="Construct bridge with logger and monitoring interfaces." alt="" coords="5,45,215,85"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1integration_1_1ObservabilityBridge.html#a67284f59a217ecb665475328915e0501" title=" " alt="" coords="263,5,517,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="215,50,249,46,249,51,215,55"/>
+<area shape="rect" id="Node000003" href="$namespacekcenon_1_1network.html#aa32d0dbfdee046c2c0cde3667c5f05a8" title=" " alt="" coords="313,84,467,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="215,74,299,84,299,89,215,79"/>
+</map>

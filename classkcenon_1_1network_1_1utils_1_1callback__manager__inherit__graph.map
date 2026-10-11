@@ -1,0 +1,19 @@
+<map id="kcenon::network::utils::callback_manager&lt; CallbackTypes &gt;" name="kcenon::network::utils::callback_manager&lt; CallbackTypes &gt;">
+<area shape="rect" id="Node000001" title="Thread&#45;safe callback storage and invocation utility." alt="" coords="915,5,1127,400"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1utils_1_1callback__manager.html" title=" " alt="" coords="5,536,237,960"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="902,224,723,256,519,301,421,329,334,359,263,391,235,408,214,426,193,450,176,477,150,537,145,535,171,474,189,447,210,422,232,404,260,387,332,354,419,324,517,296,722,251,901,219"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1utils_1_1callback__manager.html" title=" " alt="" coords="261,529,493,967"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="902,215,785,234,720,251,655,272,590,300,528,334,472,376,423,426,407,449,395,474,377,529,372,527,390,472,403,446,419,422,468,372,525,329,587,295,653,267,719,245,784,229,901,210"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1utils_1_1callback__manager.html" title=" " alt="" coords="517,529,744,967"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="903,239,832,268,758,308,723,333,691,360,662,391,638,425,617,475,607,529,602,528,612,474,634,423,658,388,687,356,720,328,755,304,829,263,901,234"/>
+<area shape="rect" id="Node000005" href="$classkcenon_1_1network_1_1utils_1_1callback__manager.html" title=" " alt="" coords="769,536,996,960"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="918,414,915,425,902,480,893,536,888,535,897,479,909,423,913,413"/>
+<area shape="rect" id="Node000006" href="$classkcenon_1_1network_1_1utils_1_1callback__manager.html" title=" " alt="" coords="1021,551,1235,945"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="1099,413,1101,424,1121,550,1115,551,1096,424,1094,414"/>
+<area shape="rect" id="Node000007" href="$classkcenon_1_1network_1_1utils_1_1callback__manager.html" title=" " alt="" coords="1260,521,1492,975"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="1140,292,1204,353,1260,422,1287,470,1311,520,1306,522,1283,472,1255,426,1200,356,1137,295"/>
+<area shape="rect" id="Node000008" href="$classkcenon_1_1network_1_1utils_1_1callback__manager.html" title=" " alt="" coords="1516,529,1796,967"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="1142,220,1242,246,1353,286,1409,312,1462,344,1512,380,1557,422,1593,472,1619,528,1614,530,1588,475,1553,426,1509,384,1459,348,1406,317,1351,291,1241,251,1140,226"/>
+<area shape="rect" id="Node000009" href="$classkcenon_1_1network_1_1utils_1_1callback__manager.html" title=" " alt="" coords="1841,536,2065,960"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="1141,217,1330,247,1548,292,1653,319,1746,350,1822,384,1852,403,1875,422,1896,447,1913,475,1938,535,1933,537,1909,477,1892,450,1871,426,1849,407,1820,389,1744,355,1651,324,1547,297,1329,252,1141,222"/>
+</map>

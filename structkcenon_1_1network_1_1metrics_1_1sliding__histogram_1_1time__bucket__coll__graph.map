@@ -1,0 +1,27 @@
+<map id="kcenon::network::metrics::sliding_histogram::time_bucket" name="kcenon::network::metrics::sliding_histogram::time_bucket">
+<area shape="rect" id="Node000001" title=" " alt="" coords="239,1056,465,1136"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1metrics_1_1histogram.html" title="Thread&#45;safe histogram for capturing value distributions." alt="" coords="263,633,441,993"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="355,994,355,1039,349,1039,349,994"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,401,163,467"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="104,466,169,569,254,686,250,689,164,572,100,469"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="79,133,201,199"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="133,213,93,402,88,401,128,211"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="294,5,317,71"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="295,49,224,97,189,125,186,121,221,93,292,44"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="243,133,368,199"/>
+<area shape="poly" id="edge8_Node000008_Node000005" title=" " alt="" coords="308,71,308,117,303,117,303,71"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="440,223,589,288"/>
+<area shape="poly" id="edge10_Node000009_Node000005" title=" " alt="" coords="319,50,474,208,470,212,315,53"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="429,491,600,571"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="494,572,452,645,447,643,490,570"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="273,312,444,377"/>
+<area shape="poly" id="edge11_Node000002_Node000007" title=" " alt="" coords="361,378,357,617,352,617,356,378"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="388,376,473,476,469,480,383,379"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="320,211,343,287,350,311,345,313,337,289,315,213"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="170,401,331,467"/>
+<area shape="poly" id="edge13_Node000010_Node000008" title=" " alt="" coords="250,210,241,224,228,269,227,317,233,363,242,400,237,402,228,364,222,318,223,269,236,222,245,207"/>
+<area shape="poly" id="edge9_Node000006_Node000009" title=" " alt="" coords="517,302,517,490,512,490,512,302"/>
+<area shape="poly" id="edge12_Node000002_Node000010" title=" " alt="" coords="258,466,280,570,292,616,287,618,275,571,253,467"/>
+<area shape="rect" id="Node000011" title=" " alt="" coords="625,498,709,563"/>
+<area shape="poly" id="edge14_Node000002_Node000011" title=" " alt="" coords="638,565,591,611,455,730,452,726,588,607,634,562"/>
+</map>

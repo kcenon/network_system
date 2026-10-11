@@ -1,0 +1,5 @@
+<map id="kcenon::network::integration::basic_container" name="kcenon::network::integration::basic_container">
+<area shape="rect" id="Node000001" title="Basic container implementation for standalone use." alt="" coords="5,213,207,433"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1integration_1_1container__interface.html" title="Abstract interface for container operations." alt="" coords="5,5,207,165"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="109,179,109,213,103,213,103,179"/>
+</map>

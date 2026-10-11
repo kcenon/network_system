@@ -1,0 +1,11 @@
+<map id="kcenon::network::utils::startable_base::do_start" name="kcenon::network::utils::startable_base::do_start">
+<area shape="rect" id="Node000001" title="Unified start operation with lifecycle management." alt="" coords="5,117,192,157"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1utils_1_1startable__base.html#a3ee29a8d61318540e663066997042d20" title="CRTP accessor for derived class." alt="" coords="255,5,438,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="129,115,180,85,239,55,257,48,259,52,241,60,182,89,132,119"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1utils_1_1lifecycle__manager.html#a7b98345257df6bec341e632d5204724b" title="Marks the component as stopped and signals waiters." alt="" coords="251,70,443,125"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="192,120,236,112,237,118,192,125"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1utils_1_1startable__base.html#ae2547bd2ec6c81d2d4faa14b75525e7c" title="Resets connection state flags for a fresh start." alt="" coords="263,149,430,203"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="192,149,250,158,249,164,192,154"/>
+<area shape="rect" id="Node000005" href="$classkcenon_1_1network_1_1utils_1_1lifecycle__manager.html#a24bb6f4b4e373c78c2f9415ba19202f0" title="Attempts to transition from stopped to running state." alt="" coords="240,228,453,268"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="133,155,183,184,241,212,263,221,261,226,239,217,181,188,131,160"/>
+</map>

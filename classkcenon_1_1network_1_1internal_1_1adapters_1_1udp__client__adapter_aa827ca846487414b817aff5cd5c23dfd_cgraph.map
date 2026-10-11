@@ -1,0 +1,5 @@
+<map id="kcenon::network::internal::adapters::udp_client_adapter::udp_client_adapter" name="kcenon::network::internal::adapters::udp_client_adapter::udp_client_adapter">
+<area shape="rect" id="Node000001" title="Constructs an adapter with a unique client ID." alt="" coords="5,13,216,67"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1internal_1_1adapters_1_1udp__client__adapter.html#ac16c7ea35dc7f3145d800d243cd1bd04" title="Sets up internal callbacks to bridge UDP callbacks to i_protocol_client callbacks." alt="" coords="264,5,452,75"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="216,37,250,37,250,43,216,43"/>
+</map>

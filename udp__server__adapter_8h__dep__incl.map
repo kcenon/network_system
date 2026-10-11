@@ -1,0 +1,7 @@
+<map id="src/internal/adapters/udp_server_adapter.h" name="src/internal/adapters/udp_server_adapter.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="117,5,283,45"/>
+<area shape="rect" id="Node000002" href="$udp__server__adapter_8cpp.html" title=" " alt="" coords="5,93,184,133"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="168,56,120,95,116,91,165,52"/>
+<area shape="rect" id="Node000003" href="$udp__facade_8cpp.html" title=" " alt="" coords="208,101,403,126"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="236,52,292,98,289,102,232,56"/>
+</map>

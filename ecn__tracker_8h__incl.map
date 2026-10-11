@@ -1,0 +1,22 @@
+<map id="src/internal/protocols/quic/ecn_tracker.h" name="src/internal/protocols/quic/ecn_tracker.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="179,5,338,45"/>
+<area shape="rect" id="Node000002" href="$frame__types_8h.html" title=" " alt="" coords="201,93,317,119"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="261,46,261,79,256,79,256,46"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="5,167,72,192"/>
+<area shape="poly" id="edge10_Node000001_Node000004" title=" " alt="" coords="233,48,69,161,66,156,230,43"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="341,93,408,119"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="288,43,348,83,345,88,285,48"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="96,167,152,192"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="238,121,159,162,157,158,236,116"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="224,121,86,166,84,161,223,116"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="176,167,251,192"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="253,120,230,157,226,154,249,118"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="275,167,333,192"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="268,118,292,154,287,157,264,120"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="358,167,413,192"/>
+<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="280,116,354,157,351,162,278,121"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="437,167,505,192"/>
+<area shape="poly" id="edge7_Node000002_Node000008" title=" " alt="" coords="294,116,424,160,423,165,292,121"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="529,167,591,192"/>
+<area shape="poly" id="edge8_Node000002_Node000009" title=" " alt="" coords="311,116,516,164,515,169,310,121"/>
+</map>

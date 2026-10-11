@@ -1,0 +1,14 @@
+<map id="kcenon::network::session::quic_session::on_stream_data" name="kcenon::network::session::quic_session::on_stream_data">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,77,232,117"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1metrics_1_1metric__reporter.html#ad151833d5ae29b690b46d5e9dc1bf511" title="Report bytes received." alt="" coords="280,69,467,124"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="232,94,266,94,266,99,232,99"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1integration_1_1monitoring__integration__manager.html#a3a3880025d000147e508a14e7391e77c" title="Get the singleton instance." alt="" coords="515,29,724,84"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="467,79,501,73,501,79,467,84"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1integration_1_1monitoring__integration__manager.html#a6049b4de0cac7878938b8a4445415e7e" title="Report a counter metric." alt="" coords="515,108,724,163"/>
+<area shape="poly" id="edge4_Node000002_Node000004" title=" " alt="" coords="467,109,501,114,501,119,467,114"/>
+<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="572,29,572,19,580,10,596,5,619,3,647,6,663,14,660,18,646,11,619,8,597,10,583,15,577,21,577,29"/>
+<area shape="rect" id="Node000005" href="$classkcenon_1_1network_1_1integration_1_1monitoring__integration__manager.html#a0f8cb1959ed418ef13ec4b94aa0455dc" title="Get the current monitoring implementation." alt="" coords="772,108,981,163"/>
+<area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="724,133,759,133,759,138,724,138"/>
+<area shape="rect" id="Node000006" href="$classkcenon_1_1network_1_1integration_1_1monitoring__integration__manager_1_1impl.html#a73273ad303eb22a30d5d02dff2ae7839" title=" " alt="" coords="1029,108,1260,163"/>
+<area shape="poly" id="edge6_Node000005_Node000006" title=" " alt="" coords="981,133,1016,133,1016,138,981,138"/>
+</map>

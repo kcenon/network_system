@@ -1,0 +1,7 @@
+<map id="kcenon::network::internal::string_to_http_version" name="kcenon::network::internal::string_to_http_version">
+<area shape="rect" id="Node000001" title="Convert string to HTTP version enum." alt="" coords="288,37,476,77"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1internal_1_1http__parser.html#a8fbda77a491bb14c0936be8475deeae4" title=" " alt="" coords="5,5,240,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="274,47,240,42,241,37,274,41"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1internal_1_1http__parser.html#ad6a601eb0114919610a1d8263ed250d4" title=" " alt="" coords="9,69,236,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="275,73,237,78,236,73,274,68"/>
+</map>

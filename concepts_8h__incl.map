@@ -1,0 +1,35 @@
+<map id="include/kcenon/network/concepts/concepts.h" name="include/kcenon/network/concepts/concepts.h">
+<area shape="rect" id="Node000001" title="Unified header for all C++20 concepts in network_system." alt="" coords="373,5,551,45"/>
+<area shape="rect" id="Node000002" href="$config_2feature__flags_8h.html" title="Public header for compile&#45;time feature flags." alt="" coords="111,93,280,133"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="404,48,267,92,266,87,403,43"/>
+<area shape="rect" id="Node000004" href="$network__concepts_8h.html" title="C++20 concepts for network_system types and callbacks." alt="" coords="590,93,809,133"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="515,43,635,86,634,91,513,48"/>
+<area shape="rect" id="Node000013" href="$socket__concepts_8h.html" title="C++20 concepts for unified socket abstraction." alt="" coords="359,93,565,133"/>
+<area shape="poly" id="edge12_Node000001_Node000013" title=" " alt="" coords="465,46,465,79,459,79,459,46"/>
+<area shape="rect" id="Node000003" href="$detail_2config_2feature__flags_8h.html" title="Feature flags for network_system." alt="" coords="5,181,172,221"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="173,136,124,175,121,171,170,132"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="274,189,354,214"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="590,135,482,156,367,184,357,187,355,182,365,179,480,151,589,130"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="378,189,445,214"/>
+<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="624,136,459,184,452,186,450,181,457,179,622,131"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="469,189,556,214"/>
+<area shape="poly" id="edge6_Node000004_Node000007" title=" " alt="" coords="659,136,551,185,549,180,657,131"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="915,189,993,214"/>
+<area shape="poly" id="edge7_Node000004_Node000008" title=" " alt="" coords="759,131,904,179,912,181,910,186,902,184,758,136"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="1017,189,1075,214"/>
+<area shape="poly" id="edge8_Node000004_Node000009" title=" " alt="" coords="809,130,906,151,1005,179,1011,181,1010,186,1004,184,904,156,808,135"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="580,189,688,214"/>
+<area shape="poly" id="edge9_Node000004_Node000010" title=" " alt="" coords="687,135,653,179,649,176,683,132"/>
+<area shape="rect" id="Node000011" title=" " alt="" coords="712,189,804,214"/>
+<area shape="poly" id="edge10_Node000004_Node000011" title=" " alt="" coords="715,132,744,175,740,178,710,135"/>
+<area shape="rect" id="Node000012" title=" " alt="" coords="828,189,891,214"/>
+<area shape="poly" id="edge11_Node000004_Node000012" title=" " alt="" coords="736,131,827,180,825,185,733,136"/>
+<area shape="poly" id="edge13_Node000013_Node000005" title=" " alt="" coords="431,136,347,184,344,180,428,131"/>
+<area shape="poly" id="edge14_Node000013_Node000006" title=" " alt="" coords="453,135,428,178,423,175,448,132"/>
+<area shape="poly" id="edge15_Node000013_Node000007" title=" " alt="" coords="476,132,501,175,496,178,471,135"/>
+<area shape="poly" id="edge17_Node000013_Node000010" title=" " alt="" coords="501,131,600,180,598,185,499,136"/>
+<area shape="poly" id="edge18_Node000013_Node000011" title=" " alt="" coords="533,131,701,179,711,182,710,187,700,184,531,136"/>
+<area shape="poly" id="edge19_Node000013_Node000012" title=" " alt="" coords="566,129,707,154,817,179,824,181,822,186,816,184,706,159,565,134"/>
+<area shape="rect" id="Node000014" title=" " alt="" coords="197,189,250,214"/>
+<area shape="poly" id="edge16_Node000013_Node000014" title=" " alt="" coords="400,136,263,184,259,186,257,181,261,179,398,131"/>
+</map>

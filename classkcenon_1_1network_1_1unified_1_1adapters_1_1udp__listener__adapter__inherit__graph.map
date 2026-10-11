@@ -1,0 +1,5 @@
+<map id="kcenon::network::unified::adapters::udp_listener_adapter" name="kcenon::network::unified::adapters::udp_listener_adapter">
+<area shape="rect" id="Node000001" title="Adapter that wraps messaging_udp_server to implement i_listener." alt="" coords="5,353,205,868"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1unified_1_1i__listener.html" title="Core interface for passive network listeners (server&#45;side)" alt="" coords="18,5,193,305"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="108,319,108,353,103,353,103,319"/>
+</map>

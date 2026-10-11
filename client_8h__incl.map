@@ -1,0 +1,37 @@
+<map id="include/kcenon/network/detail/protocols/grpc/client.h" name="include/kcenon/network/detail/protocols/grpc/client.h">
+<area shape="rect" id="Node000001" title="gRPC client channel configuration and connection." alt="" coords="524,5,701,60"/>
+<area shape="rect" id="Node000002" href="$include_2kcenon_2network_2detail_2protocols_2grpc_2frame_8h.html" title="gRPC message framing and serialization." alt="" coords="226,108,399,148"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="529,63,387,107,385,101,528,58"/>
+<area shape="rect" id="Node000003" href="$result__types_8h.html" title="Network&#45;specific error and result type definitions." alt="" coords="27,196,193,236"/>
+<area shape="poly" id="edge14_Node000001_Node000003" title=" " alt="" coords="524,38,454,44,374,56,293,78,215,110,191,126,168,146,133,187,129,183,165,142,187,122,213,106,291,73,373,51,453,39,523,33"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="458,291,517,317"/>
+<area shape="poly" id="edge19_Node000001_Node000006" title=" " alt="" coords="564,62,538,83,516,109,498,153,489,199,487,242,488,278,482,278,481,242,484,198,493,151,512,107,534,79,561,58"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="296,203,359,229"/>
+<area shape="poly" id="edge20_Node000001_Node000009" title=" " alt="" coords="558,62,470,110,354,197,351,193,467,106,555,58"/>
+<area shape="rect" id="Node000010" href="$status_8h.html" title="gRPC status codes and error representation." alt="" coords="525,108,700,148"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="615,60,615,94,610,94,610,60"/>
+<area shape="rect" id="Node000011" title=" " alt="" coords="699,203,774,229"/>
+<area shape="poly" id="edge18_Node000001_Node000011" title=" " alt="" coords="663,58,691,79,715,107,725,127,732,149,739,189,733,190,727,150,720,129,710,109,687,83,660,62"/>
+<area shape="rect" id="Node000013" title=" " alt="" coords="775,115,842,141"/>
+<area shape="poly" id="edge15_Node000001_Node000013" title=" " alt="" coords="669,58,774,107,771,112,667,62"/>
+<area shape="rect" id="Node000014" title=" " alt="" coords="867,115,953,141"/>
+<area shape="poly" id="edge16_Node000001_Node000014" title=" " alt="" coords="700,57,855,105,864,108,863,114,853,111,699,63"/>
+<area shape="rect" id="Node000015" title=" " alt="" coords="978,115,1055,141"/>
+<area shape="poly" id="edge17_Node000001_Node000015" title=" " alt="" coords="702,46,828,71,967,105,976,108,974,113,965,111,827,76,701,51"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="269,151,168,193,166,188,267,146"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="383,203,450,229"/>
+<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="337,146,393,192,390,196,334,150"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="218,203,271,229"/>
+<area shape="poly" id="edge7_Node000002_Node000008" title=" " alt="" coords="300,150,264,194,260,191,295,147"/>
+<area shape="poly" id="edge8_Node000002_Node000009" title=" " alt="" coords="319,148,326,189,320,190,313,149"/>
+<area shape="rect" id="Node000004" href="$detail_2config_2feature__flags_8h.html" title="Feature flags for network_system." alt="" coords="97,284,264,324"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="128,235,159,272,154,275,124,238"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="5,291,73,317"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="96,238,60,282,56,279,92,235"/>
+<area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="193,233,445,290,444,296,192,239"/>
+<area shape="poly" id="edge12_Node000010_Node000006" title=" " alt="" coords="601,150,506,281,502,278,597,147"/>
+<area shape="poly" id="edge10_Node000010_Node000007" title=" " alt="" coords="571,151,456,200,454,196,569,146"/>
+<area shape="poly" id="edge11_Node000010_Node000011" title=" " alt="" coords="642,146,710,193,707,198,639,150"/>
+<area shape="rect" id="Node000012" title=" " alt="" coords="576,203,673,229"/>
+<area shape="poly" id="edge13_Node000010_Node000012" title=" " alt="" coords="618,148,624,189,618,190,613,149"/>
+</map>

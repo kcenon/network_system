@@ -1,0 +1,21 @@
+<map id="kcenon::network::interfaces::i_session" name="kcenon::network::interfaces::i_session">
+<area shape="rect" id="Node000001" title="Interface for a single client session on the server side." alt="" coords="643,5,837,265"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1interfaces_1_1i__quic__session.html" title="Interface for a QUIC session on the server side." alt="" coords="7,526,201,681"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="630,149,531,166,421,197,365,219,311,245,261,277,215,315,177,363,149,417,130,474,117,526,112,525,124,472,144,415,173,360,211,311,258,273,309,241,363,214,419,192,530,161,629,144"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1interfaces_1_1i__websocket__session.html" title="Interface for a WebSocket session on the server side." alt="" coords="225,533,420,673"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="631,180,581,205,529,236,479,272,435,315,400,367,372,424,352,482,338,533,333,532,347,480,367,422,395,364,431,312,475,268,526,231,578,200,629,175"/>
+<area shape="rect" id="Node000006" href="$classkcenon_1_1network_1_1internal_1_1adapters_1_1http__request__session.html" title="Session wrapper for HTTP request connections implementing i_session." alt="" coords="445,436,625,771"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="658,279,640,314,590,437,585,435,635,312,653,276"/>
+<area shape="rect" id="Node000007" href="$classkcenon_1_1network_1_1internal_1_1adapters_1_1quic__session__wrapper.html" title="Wrapper for QUIC session to implement i_session interface." alt="" coords="649,496,831,711"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="743,279,743,496,737,496,737,279"/>
+<area shape="rect" id="Node000008" href="$classkcenon_1_1network_1_1internal_1_1adapters_1_1udp__endpoint__session.html" title="Session wrapper for UDP endpoint connections." alt="" coords="855,486,1038,721"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="827,276,845,312,882,399,913,485,908,487,877,401,840,314,822,279"/>
+<area shape="rect" id="Node000009" href="$classkcenon_1_1network_1_1internal_1_1adapters_1_1ws__session__wrapper.html" title="Session wrapper for WebSocket connections implementing i_session." alt="" coords="1062,506,1242,701"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="851,174,903,199,957,230,1008,267,1053,312,1084,357,1108,406,1126,457,1139,505,1134,506,1121,459,1103,408,1079,359,1049,315,1005,271,954,234,901,203,849,179"/>
+<area shape="rect" id="Node000010" href="$classkcenon_1_1network_1_1session_1_1messaging__session.html" title="Manages a single connected client session on the server side, providing asynchronous read/write opera..." alt="" coords="1266,313,1483,893"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="851,145,947,164,1055,195,1109,217,1162,243,1211,275,1256,311,1267,322,1264,326,1253,315,1208,279,1159,248,1107,222,1053,200,946,169,850,151"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1session_1_1quic__session.html" title="Represents a single QUIC client session on the server side." alt="" coords="5,941,203,1441"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="107,695,107,941,101,941,101,695"/>
+<area shape="rect" id="Node000005" href="$classkcenon_1_1network_1_1core_1_1ws__connection.html" title="Represents a WebSocket connection to a client." alt="" coords="243,1041,402,1341"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="325,687,325,1041,320,1041,320,687"/>
+</map>

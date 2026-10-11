@@ -1,0 +1,7 @@
+<map id="kcenon::network::core::session_manager_base::add_session_with_id" name="kcenon::network::core::session_manager_base::add_session_with_id">
+<area shape="rect" id="Node000001" title="Add a session and return the assigned ID." alt="" coords="5,45,188,100"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1core_1_1session__manager__base.html#a97b348804b47ee346c4366a0ef76be06" title="Check if new connection can be accepted." alt="" coords="236,5,419,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="188,54,222,48,223,53,189,59"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1core_1_1session__manager__base.html#ae7c18cf762910787435aceea3b954b93" title="Generate a unique session ID." alt="" coords="236,84,419,139"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="189,85,223,91,222,96,188,91"/>
+</map>

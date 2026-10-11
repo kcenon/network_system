@@ -1,0 +1,5 @@
+<map id="kcenon::network::core::http_server" name="kcenon::network::core::http_server">
+<area shape="rect" id="Node000001" title="HTTP/1.1 server built on top of messaging_server." alt="" coords="5,133,207,908"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="13,5,199,85"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="109,99,109,133,103,133,103,99"/>
+</map>

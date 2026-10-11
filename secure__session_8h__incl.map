@@ -1,0 +1,25 @@
+<map id="include/kcenon/network/detail/session/secure_session.h" name="include/kcenon/network/detail/session/secure_session.h">
+<area shape="rect" id="Node000001" title="TLS&#45;secured session wrapper for encrypted communication." alt="" coords="425,5,602,60"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,115,72,141"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="425,46,265,70,174,88,85,111,77,113,76,108,83,105,173,83,264,65,424,41"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="97,115,159,141"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="425,51,304,75,171,111,166,113,164,107,170,105,302,70,424,46"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="183,115,270,141"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="432,63,283,111,275,113,273,108,282,105,430,58"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="295,115,372,141"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="464,62,368,112,366,107,461,58"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="396,115,460,141"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="491,62,450,107,446,103,487,59"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="484,115,543,141"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="516,60,516,101,511,101,511,60"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="567,115,665,141"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="544,58,595,104,591,108,541,62"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="689,115,751,141"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="573,58,683,107,681,112,570,62"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="776,115,853,141"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="603,56,765,105,773,108,771,113,763,111,602,61"/>
+<area shape="rect" id="Node000011" title=" " alt="" coords="877,115,976,141"/>
+<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="603,48,728,73,866,105,879,109,878,114,865,111,727,78,602,53"/>
+<area shape="rect" id="Node000012" title=" " alt="" coords="1000,108,1181,148"/>
+<area shape="poly" id="edge11_Node000001_Node000012" title=" " alt="" coords="603,45,987,105,986,110,602,50"/>
+</map>

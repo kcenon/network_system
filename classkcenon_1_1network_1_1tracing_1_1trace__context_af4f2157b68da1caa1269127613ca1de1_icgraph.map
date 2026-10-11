@@ -1,0 +1,5 @@
+<map id="kcenon::network::tracing::trace_context::to_traceparent" name="kcenon::network::tracing::trace_context::to_traceparent">
+<area shape="rect" id="Node000001" title="Convert context to W3C traceparent header value." alt="" coords="252,5,475,45"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1tracing_1_1trace__context.html#a56bf939763d5b57aa794104406b35ba1" title="Convert context to HTTP headers for propagation." alt="" coords="5,5,204,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="239,28,204,28,204,23,239,23"/>
+</map>

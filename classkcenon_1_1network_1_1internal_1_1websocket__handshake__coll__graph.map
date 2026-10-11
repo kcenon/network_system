@@ -1,0 +1,3 @@
+<map id="kcenon::network::internal::websocket_handshake" name="kcenon::network::internal::websocket_handshake">
+<area shape="rect" id="Node000001" title="Implements WebSocket HTTP/1.1 upgrade handshake (RFC 6455)." alt="" coords="5,5,211,280"/>
+</map>

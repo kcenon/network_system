@@ -1,0 +1,7 @@
+<map id="kcenon::network::utils::lifecycle_manager::mark_stopped" name="kcenon::network::utils::lifecycle_manager::mark_stopped">
+<area shape="rect" id="Node000001" title="Marks the component as stopped and signals waiters." alt="" coords="240,30,432,85"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1utils_1_1startable__base.html#a1fb9401c25a1196298ad186713d8392c" title="Unified start operation with lifecycle management." alt="" coords="5,5,192,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="226,45,192,41,192,35,227,40"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1utils_1_1startable__base.html#a09de80568b447ebd2ab27f9fa9d3c21f" title="Unified stop operation with lifecycle management." alt="" coords="6,69,191,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="227,75,192,79,191,74,226,69"/>
+</map>

@@ -1,0 +1,5 @@
+<map id="kcenon::network::internal::quic_socket::quic_socket" name="kcenon::network::internal::quic_socket::quic_socket">
+<area shape="rect" id="Node000001" title="Constructs a QUIC socket." alt="" coords="5,13,196,53"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1internal_1_1quic__socket.html#abb7368382855592a90be9bc9b22205cf" title="Generate a new connection ID." alt="" coords="244,5,432,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="196,30,230,30,230,35,196,35"/>
+</map>

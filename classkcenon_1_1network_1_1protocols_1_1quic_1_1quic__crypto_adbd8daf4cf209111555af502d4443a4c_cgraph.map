@@ -1,0 +1,19 @@
+<map id="kcenon::network::protocols::quic::quic_crypto::derive_initial_secrets" name="kcenon::network::protocols::quic::quic_crypto::derive_initial_secrets">
+<area shape="rect" id="Node000001" title="Derive initial secrets from destination connection ID." alt="" coords="5,246,204,301"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1initial__keys.html#aba7f6695801373b00ea1eb77831e5064" title="Derive client and server initial keys." alt="" coords="255,127,453,167"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="158,243,300,171,302,176,161,248"/>
+<area shape="rect" id="Node000005" href="$namespacekcenon_1_1network.html#aa32d0dbfdee046c2c0cde3667c5f05a8" title=" " alt="" coords="751,134,905,159"/>
+<area shape="poly" id="edge9_Node000001_Node000005" title=" " alt="" coords="204,268,474,253,607,239,661,230,702,220,755,195,799,166,802,170,758,200,704,225,662,236,608,245,474,258,204,273"/>
+<area shape="rect" id="Node000007" href="$namespacekcenon_1_1network.html#a9d2a06a302dea2b45b323b864eacad4a" title=" " alt="" coords="252,286,456,311"/>
+<area shape="poly" id="edge7_Node000001_Node000007" title=" " alt="" coords="204,281,239,284,238,290,204,286"/>
+<area shape="rect" id="Node000008" href="$namespacekcenon_1_1network.html#a2a241bfe680718c67e366aab3e04036e" title=" " alt="" coords="275,336,433,376"/>
+<area shape="poly" id="edge8_Node000001_Node000008" title=" " alt="" coords="185,298,253,321,276,329,275,334,251,327,183,303"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1hkdf.html#a6752af7dc536064ed90aea8bc34141e0" title="HKDF&#45;Expand&#45;Label function (TLS 1.3 style)" alt="" coords="504,5,703,45"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="383,124,437,90,503,55,520,48,522,53,505,60,440,94,386,129"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1hkdf.html#a9dff234736c813d61125f8e80c0e155c" title="HKDF&#45;Extract function." alt="" coords="504,69,703,109"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="441,124,502,110,503,115,442,129"/>
+<area shape="poly" id="edge5_Node000002_Node000005" title=" " alt="" coords="454,144,737,144,737,149,454,149"/>
+<area shape="rect" id="Node000006" href="$namespacekcenon_1_1network.html#a343917741c1ba5e287360d73f47a2f50" title="Get the network system version string." alt="" coords="510,185,697,210"/>
+<area shape="poly" id="edge6_Node000002_Node000006" title=" " alt="" coords="453,164,527,179,526,185,452,169"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="683,107,765,128,763,133,682,112"/>
+</map>

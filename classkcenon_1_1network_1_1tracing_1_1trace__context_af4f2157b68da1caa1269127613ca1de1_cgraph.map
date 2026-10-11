@@ -1,0 +1,14 @@
+<map id="kcenon::network::tracing::trace_context::to_traceparent" name="kcenon::network::tracing::trace_context::to_traceparent">
+<area shape="rect" id="Node000001" title="Convert context to W3C traceparent header value." alt="" coords="5,101,228,141"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1tracing_1_1trace__context.html#a76028a2679800f7fd0c2ecb2ec233de3" title="Check if this trace is sampled." alt="" coords="281,5,482,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="164,99,275,55,298,47,299,52,277,60,166,104"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1tracing_1_1trace__context.html#aa41495d1265f0e44f95b8340421fff17" title="Check if this context is valid." alt="" coords="290,69,473,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="228,105,276,99,276,105,229,111"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1tracing_1_1trace__context.html#a0b445aa16ba317840c9a7199ee236dca" title="Convert span ID to hex string." alt="" coords="277,133,485,173"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="229,132,264,137,264,142,228,137"/>
+<area shape="rect" id="Node000006" href="$classkcenon_1_1network_1_1tracing_1_1trace__context.html#a4d3c79eae251df8480fbecb6a4fac298" title="Convert trace ID to hex string." alt="" coords="276,197,487,237"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="166,139,277,183,299,190,298,196,275,188,164,144"/>
+<area shape="rect" id="Node000005" href="$namespacekcenon_1_1network_1_1tracing.html#a62aa701deab59b8d974ad176543641dd" title="Convert bytes to lowercase hex string." alt="" coords="535,165,717,205"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="486,164,521,169,520,174,485,170"/>
+<area shape="poly" id="edge6_Node000006_Node000005" title=" " alt="" coords="486,201,521,196,522,202,487,206"/>
+</map>

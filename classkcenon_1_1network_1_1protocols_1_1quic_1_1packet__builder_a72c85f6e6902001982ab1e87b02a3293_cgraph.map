@@ -1,0 +1,7 @@
+<map id="kcenon::network::protocols::quic::packet_builder::build_short" name="kcenon::network::protocols::quic::packet_builder::build_short">
+<area shape="rect" id="Node000001" title="Build a Short Header (1&#45;RTT) packet." alt="" coords="5,30,204,85"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1packet__number.html#ae8b95fe0c15c5789c62a967cacd22316" title="Encode a packet number for transmission." alt="" coords="280,5,500,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="204,44,266,37,266,42,204,49"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1packet__number.html#ab69a8fb162e9f4b52fd9abc0a45a0d4d" title="Get the minimum number of bytes needed to encode a packet number." alt="" coords="252,69,528,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="204,66,239,70,238,75,204,71"/>
+</map>

@@ -1,0 +1,7 @@
+<map id="kcenon::network::protocols::quic::congestion_controller::on_ecn_congestion" name="kcenon::network::protocols::quic::congestion_controller::on_ecn_congestion">
+<area shape="rect" id="Node000001" title="Handle ECN congestion signal (RFC 9002 Section 7.1)" alt="" coords="519,5,724,60"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1connection.html#ab1805696f146ed2b58a2853684c5ee1e" title="Handle loss detection result (RFC 9002)" alt="" coords="272,5,471,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="505,35,471,35,471,30,505,30"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1connection.html#a97c98f61e91c230bae42c37d3e4092a6" title="Handle timeout event." alt="" coords="5,13,224,53"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="258,35,224,35,224,30,258,30"/>
+</map>

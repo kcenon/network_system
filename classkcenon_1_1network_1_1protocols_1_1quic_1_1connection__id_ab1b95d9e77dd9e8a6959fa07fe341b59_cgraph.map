@@ -1,0 +1,5 @@
+<map id="kcenon::network::protocols::quic::connection_id::connection_id" name="kcenon::network::protocols::quic::connection_id::connection_id">
+<area shape="rect" id="Node000001" title="Construct from raw bytes." alt="" coords="5,5,259,45"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1connection__id.html#af196c42ba84c7370677d09d1c5cf6bf8" title="Get the raw bytes of the connection ID." alt="" coords="307,5,505,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="259,23,293,23,293,28,259,28"/>
+</map>

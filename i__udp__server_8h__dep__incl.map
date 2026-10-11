@@ -1,0 +1,17 @@
+<map id="src/internal/interfaces/i_udp_server.h" name="src/internal/interfaces/i_udp_server.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="311,5,475,45"/>
+<area shape="rect" id="Node000002" href="$messaging__udp__server_8h.html" title="UDP server class." alt="" coords="181,93,384,133"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="359,56,309,95,306,91,356,52"/>
+<area shape="rect" id="Node000008" href="$unified__udp__messaging__server_8h.html" title=" " alt="" coords="409,93,599,133"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="430,52,481,91,478,95,427,56"/>
+<area shape="rect" id="Node000003" href="$udp__server__adapter_8cpp.html" title=" " alt="" coords="5,189,184,229"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="234,142,134,191,131,186,231,137"/>
+<area shape="rect" id="Node000004" href="$messaging__udp__server_8cpp.html" title=" " alt="" coords="209,189,357,229"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="285,147,285,189,280,189,280,147"/>
+<area shape="rect" id="Node000005" href="$udp__listener__adapter_8h.html" title=" " alt="" coords="381,181,547,236"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="332,137,414,179,412,184,330,142"/>
+<area shape="rect" id="Node000006" href="$udp_8cpp.html" title=" " alt="" coords="289,291,442,317"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="428,247,380,293,376,289,424,244"/>
+<area shape="rect" id="Node000007" href="$udp__listener__adapter_8cpp.html" title=" " alt="" coords="467,284,656,324"/>
+<area shape="poly" id="edge6_Node000005_Node000007" title=" " alt="" coords="503,244,544,282,540,286,500,247"/>
+</map>

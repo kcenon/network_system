@@ -1,0 +1,19 @@
+<map id="kcenon::network::protocols::quic::long_header" name="kcenon::network::protocols::quic::long_header">
+<area shape="rect" id="Node000001" title="QUIC Long Header format (RFC 9000 Section 17.2)" alt="" coords="152,827,343,987"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1connection__id.html" title="QUIC Connection ID (RFC 9000 Section 5.1)" alt="" coords="5,469,196,749"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="110,749,118,776,130,801,143,822,139,825,125,804,113,778,105,750"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="28,261,168,341"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="101,341,102,453,97,453,96,341"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="233,133,347,199"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="219,171,187,176,155,186,125,202,102,224,94,242,92,261,87,261,89,240,97,221,122,197,153,181,186,171,218,166"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="192,365,332,445"/>
+<area shape="poly" id="edge9_Node000008_Node000004" title=" " alt="" coords="287,213,269,365,264,365,282,212"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="349,5,372,71"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="351,53,319,96,308,119,303,117,314,93,347,50"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="372,133,493,199"/>
+<area shape="poly" id="edge7_Node000007_Node000005" title=" " alt="" coords="375,57,396,93,410,118,405,120,392,96,370,60"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="353,373,512,438"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="440,438,444,498,444,578,433,666,422,709,406,750,384,788,356,821,352,817,379,784,401,748,417,707,428,665,438,578,439,499,434,438"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="435,212,435,372,430,372,430,212"/>
+<area shape="poly" id="edge8_Node000001_Node000008" title=" " alt="" coords="264,445,253,810,247,810,258,445"/>
+</map>

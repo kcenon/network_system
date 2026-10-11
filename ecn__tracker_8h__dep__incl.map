@@ -1,0 +1,40 @@
+<map id="src/internal/protocols/quic/ecn_tracker.h" name="src/internal/protocols/quic/ecn_tracker.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="737,5,896,45"/>
+<area shape="rect" id="Node000002" href="$loss__detector_8h.html" title=" " alt="" coords="652,93,811,133"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="790,57,752,95,748,91,786,53"/>
+<area shape="rect" id="Node000018" href="$ecn__tracker_8cpp.html" title=" " alt="" coords="835,93,971,133"/>
+<area shape="poly" id="edge20_Node000001_Node000018" title=" " alt="" coords="847,53,886,91,882,95,844,57"/>
+<area shape="rect" id="Node000003" href="$congestion__controller_8h.html" title=" " alt="" coords="517,181,725,221"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="697,144,647,183,644,179,694,140"/>
+<area shape="rect" id="Node000004" href="$connection_8h.html" title=" " alt="" coords="341,269,500,309"/>
+<area shape="poly" id="edge13_Node000002_Node000004" title=" " alt="" coords="639,131,571,151,537,165,506,184,483,203,462,227,433,271,428,268,458,223,479,199,503,179,535,161,569,146,638,126"/>
+<area shape="rect" id="Node000013" href="$quic__socket_8h.html" title=" " alt="" coords="851,189,1038,214"/>
+<area shape="poly" id="edge14_Node000002_Node000013" title=" " alt="" coords="792,136,917,186,915,191,790,141"/>
+<area shape="rect" id="Node000017" href="$loss__detector_8cpp.html" title=" " alt="" coords="1062,181,1201,221"/>
+<area shape="poly" id="edge19_Node000002_Node000017" title=" " alt="" coords="825,131,1051,179,1062,181,1061,187,1049,184,824,136"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="565,229,466,272,463,267,563,224"/>
+<area shape="rect" id="Node000011" href="$quic__socket_8cpp.html" title=" " alt="" coords="741,277,943,302"/>
+<area shape="poly" id="edge11_Node000003_Node000011" title=" " alt="" coords="683,224,814,274,812,279,681,229"/>
+<area shape="rect" id="Node000012" href="$congestion__controller_8cpp.html" title=" " alt="" coords="525,269,717,309"/>
+<area shape="poly" id="edge12_Node000003_Node000012" title=" " alt="" coords="623,235,623,269,618,269,618,235"/>
+<area shape="rect" id="Node000005" href="$quic__connection__adapter_8h.html" title=" " alt="" coords="119,357,311,412"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="368,317,274,360,272,355,366,313"/>
+<area shape="rect" id="Node000008" href="$quic__listener__adapter_8h.html" title=" " alt="" coords="335,357,506,412"/>
+<area shape="poly" id="edge7_Node000004_Node000008" title=" " alt="" coords="423,323,423,357,418,357,418,323"/>
+<area shape="rect" id="Node000010" href="$connection_8cpp.html" title=" " alt="" coords="530,365,666,405"/>
+<area shape="poly" id="edge10_Node000004_Node000010" title=" " alt="" coords="470,313,563,362,561,367,467,318"/>
+<area shape="rect" id="Node000006" href="$quic_8cpp.html" title=" " alt="" coords="244,467,400,493"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="258,419,310,465,307,469,254,424"/>
+<area shape="rect" id="Node000007" href="$quic__connection__adapter_8cpp.html" title=" " alt="" coords="5,460,220,500"/>
+<area shape="poly" id="edge6_Node000005_Node000007" title=" " alt="" coords="178,424,135,462,132,458,174,420"/>
+<area shape="poly" id="edge8_Node000008_Node000006" title=" " alt="" coords="385,423,336,469,333,465,381,420"/>
+<area shape="rect" id="Node000009" href="$quic__listener__adapter_8cpp.html" title=" " alt="" coords="425,460,617,500"/>
+<area shape="poly" id="edge9_Node000008_Node000009" title=" " alt="" coords="461,420,502,458,499,462,457,424"/>
+<area shape="poly" id="edge17_Node000013_Node000011" title=" " alt="" coords="922,225,858,278,855,274,918,221"/>
+<area shape="rect" id="Node000014" href="$quic__client_8cpp.html" title=" " alt="" coords="967,269,1130,309"/>
+<area shape="poly" id="edge15_Node000013_Node000014" title=" " alt="" coords="971,221,1027,267,1024,271,967,225"/>
+<area shape="rect" id="Node000015" href="$quic__server_8cpp.html" title=" " alt="" coords="1154,269,1317,309"/>
+<area shape="poly" id="edge16_Node000013_Node000015" title=" " alt="" coords="998,215,1172,267,1170,272,996,221"/>
+<area shape="rect" id="Node000016" href="$quic__session_8cpp.html" title=" " alt="" coords="1341,277,1549,302"/>
+<area shape="poly" id="edge18_Node000013_Node000016" title=" " alt="" coords="1022,214,1050,219,1377,274,1376,279,1050,224,1021,219"/>
+</map>

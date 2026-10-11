@@ -1,0 +1,7 @@
+<map id="kcenon::network::internal::cookie" name="kcenon::network::internal::cookie">
+<area shape="rect" id="Node000001" title="Represents an HTTP cookie." alt="" coords="5,336,185,456"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="56,135,135,200"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="98,200,98,319,93,319,93,200"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="30,5,161,85"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="98,99,98,134,93,134,93,99"/>
+</map>

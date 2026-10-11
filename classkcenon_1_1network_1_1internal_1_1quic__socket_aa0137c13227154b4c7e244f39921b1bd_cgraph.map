@@ -1,0 +1,24 @@
+<map id="kcenon::network::internal::quic_socket::handle_packet" name="kcenon::network::internal::quic_socket::handle_packet">
+<area shape="rect" id="Node000001" title="Handle received packet data." alt="" coords="5,184,213,224"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1packet__number.html#ab7e81d488b68016a2178266e7d4dc160" title="Decode a packet number from received data." alt="" coords="277,5,497,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="125,182,181,123,219,90,260,62,289,48,291,53,263,66,222,94,185,127,129,186"/>
+<area shape="rect" id="Node000003" href="$namespacekcenon_1_1network.html#aa32d0dbfdee046c2c0cde3667c5f05a8" title=" " alt="" coords="563,227,718,253"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="132,182,187,140,223,120,260,105,331,86,389,77,446,82,514,106,551,127,582,156,608,186,627,214,623,217,604,190,579,160,548,132,512,110,445,88,389,82,332,91,262,111,225,125,190,145,135,186"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1frame__parser.html#a7d318b72237030056cc9dcf398f68f6e" title="Parse all frames from buffer." alt="" coords="278,120,497,160"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="196,181,286,160,287,166,198,187"/>
+<area shape="rect" id="Node000005" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1packet__parser.html#a578110bda6c665738a0d39e442fc1f01" title="Parse a packet header (without header protection removal)" alt="" coords="261,184,513,224"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="214,201,247,201,247,207,214,207"/>
+<area shape="rect" id="Node000006" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1packet__parser.html#a9991c8d8f06247c78ad8d9ccf2c4bd31" title="Parse a short header packet." alt="" coords="287,249,487,303"/>
+<area shape="poly" id="edge7_Node000001_Node000006" title=" " alt="" coords="188,221,274,244,273,249,187,227"/>
+<area shape="rect" id="Node000007" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1packet__protection.html#a1f1f5fa96c9cbee66ec54a705399c8ba" title="Unprotect (decrypt) a QUIC packet." alt="" coords="288,327,487,382"/>
+<area shape="poly" id="edge9_Node000001_Node000007" title=" " alt="" coords="135,222,191,267,263,312,278,320,276,324,260,317,188,271,131,226"/>
+<area shape="rect" id="Node000008" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1packet__protection.html#a08a9cdd7592cb5bf263322cb1b5490f1" title="Remove header protection." alt="" coords="288,406,487,461"/>
+<area shape="poly" id="edge11_Node000001_Node000008" title=" " alt="" coords="124,223,145,260,176,305,216,352,263,393,277,401,274,405,260,397,212,356,172,309,141,263,119,226"/>
+<area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="479,157,514,170,565,193,609,218,606,222,562,198,512,174,477,163"/>
+<area shape="poly" id="edge6_Node000005_Node000003" title=" " alt="" coords="514,219,550,224,549,230,513,225"/>
+<area shape="poly" id="edge8_Node000006_Node000003" title=" " alt="" coords="487,259,549,250,550,256,488,264"/>
+<area shape="poly" id="edge10_Node000007_Node000003" title=" " alt="" coords="481,325,512,312,564,285,608,258,611,262,566,290,514,317,483,330"/>
+<area shape="poly" id="edge13_Node000008_Node000003" title=" " alt="" coords="486,407,512,392,548,363,579,328,623,263,628,266,583,331,551,366,515,397,488,411"/>
+<area shape="rect" id="Node000009" href="$namespacekcenon_1_1network.html#a2a241bfe680718c67e366aab3e04036e" title=" " alt="" coords="561,413,720,453"/>
+<area shape="poly" id="edge12_Node000008_Node000009" title=" " alt="" coords="487,431,548,431,548,436,487,436"/>
+</map>

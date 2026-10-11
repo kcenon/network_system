@@ -1,0 +1,5 @@
+<map id="kcenon::network::internal::adapters::ws_server_adapter::ws_server_adapter" name="kcenon::network::internal::adapters::ws_server_adapter::ws_server_adapter">
+<area shape="rect" id="Node000001" title="Constructs an adapter with a unique server ID." alt="" coords="5,5,224,60"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1internal_1_1adapters_1_1ws__server__adapter.html#a6a53ee24618ba02fb8b4836c818b153b" title="Sets up internal callbacks to bridge WebSocket callbacks to i_protocol_server callbacks." alt="" coords="272,5,491,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="224,30,258,30,258,35,224,35"/>
+</map>

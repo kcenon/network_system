@@ -1,0 +1,9 @@
+<map id="kcenon::network::core::unified_udp_messaging_server&lt; TlsPolicy &gt;" name="kcenon::network::core::unified_udp_messaging_server&lt; TlsPolicy &gt;">
+<area shape="rect" id="Node000001" title="Unified UDP server template parameterized by TLS policy." alt="" coords="95,481,292,1109"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,299,176,408"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="109,421,123,481,118,482,104,422"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1interfaces_1_1i__udp__server.html" title="Interface for UDP server components." alt="" coords="200,273,395,433"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="278,447,270,482,265,481,273,446"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1interfaces_1_1i__network__component.html" title="Base interface for all network components." alt="" coords="200,5,395,225"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="300,239,300,273,295,273,295,239"/>
+</map>

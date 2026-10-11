@@ -1,0 +1,5 @@
+<map id="kcenon::network::protocols::grpc::server_stream_reader_impl" name="kcenon::network::protocols::grpc::server_stream_reader_impl">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,208,243,543"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1protocols_1_1grpc_1_1grpc__client_1_1server__stream__reader.html" title="Reader for server streaming RPC." alt="" coords="27,5,221,160"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="127,174,127,208,121,208,121,174"/>
+</map>

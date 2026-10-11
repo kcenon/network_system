@@ -1,0 +1,39 @@
+<map id="src/integration/logger_integration.cpp" name="src/integration/logger_integration.cpp">
+<area shape="rect" id="Node000001" title="Implementation of logger system integration." alt="" coords="771,5,932,45"/>
+<area shape="rect" id="Node000002" href="$detail_2config_2feature__flags_8h.html" title="Feature flags for network_system." alt="" coords="5,181,172,221"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="771,29,669,32,544,42,409,62,341,77,276,96,234,113,194,133,126,176,123,171,191,129,232,108,274,91,340,72,408,57,544,36,669,26,770,23"/>
+<area shape="rect" id="Node000003" href="$logger__integration_8h.html" title="Logger system integration interface for network_system." alt="" coords="341,93,498,133"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="771,45,512,96,511,91,770,40"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="197,189,263,214"/>
+<area shape="poly" id="edge14_Node000001_Node000004" title=" " alt="" coords="771,33,659,40,530,52,412,71,365,82,330,96,304,113,281,135,246,179,242,176,277,131,300,109,327,91,363,77,411,65,530,47,658,35,770,28"/>
+<area shape="rect" id="Node000011" title=" " alt="" coords="811,269,878,295"/>
+<area shape="poly" id="edge15_Node000001_Node000011" title=" " alt="" coords="837,47,822,69,811,94,806,138,811,183,822,223,835,256,830,258,817,225,806,184,800,138,806,93,818,66,833,44"/>
+<area shape="rect" id="Node000013" title=" " alt="" coords="821,101,882,126"/>
+<area shape="poly" id="edge16_Node000001_Node000013" title=" " alt="" coords="854,46,854,87,849,87,849,46"/>
+<area shape="rect" id="Node000014" title=" " alt="" coords="906,101,981,126"/>
+<area shape="poly" id="edge17_Node000001_Node000014" title=" " alt="" coords="874,44,922,89,919,93,870,48"/>
+<area shape="rect" id="Node000015" title=" " alt="" coords="1005,101,1085,126"/>
+<area shape="poly" id="edge18_Node000001_Node000015" title=" " alt="" coords="895,43,1007,93,1005,98,893,48"/>
+<area shape="rect" id="Node000016" title=" " alt="" coords="1109,101,1173,126"/>
+<area shape="poly" id="edge19_Node000001_Node000016" title=" " alt="" coords="932,43,1012,64,1098,91,1103,93,1102,98,1096,96,1011,69,930,48"/>
+<area shape="rect" id="Node000017" title=" " alt="" coords="1197,101,1271,126"/>
+<area shape="poly" id="edge20_Node000001_Node000017" title=" " alt="" coords="933,36,1053,59,1185,91,1194,93,1193,99,1184,96,1051,64,932,42"/>
+<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="347,136,175,181,173,175,346,131"/>
+<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="379,136,269,186,266,181,377,131"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="426,269,503,295"/>
+<area shape="poly" id="edge5_Node000003_Node000005" title=" " alt="" coords="445,132,466,153,482,180,486,200,486,221,477,257,472,256,481,220,481,201,477,182,462,156,441,135"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="287,189,346,214"/>
+<area shape="poly" id="edge6_Node000003_Node000006" title=" " alt="" coords="398,136,343,181,340,177,395,132"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="371,189,468,214"/>
+<area shape="poly" id="edge7_Node000003_Node000007" title=" " alt="" coords="422,134,422,175,417,175,417,134"/>
+<area shape="rect" id="Node000008" href="$thread__integration_8h.html" title="Thread system integration interface for network_system." alt="" coords="544,181,745,221"/>
+<area shape="poly" id="edge8_Node000003_Node000008" title=" " alt="" coords="470,131,583,174,582,179,468,136"/>
+<area shape="poly" id="edge10_Node000008_Node000005" title=" " alt="" coords="603,224,505,266,503,261,600,219"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="700,269,787,295"/>
+<area shape="poly" id="edge9_Node000008_Node000009" title=" " alt="" coords="670,219,719,258,716,263,667,224"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="527,269,589,295"/>
+<area shape="poly" id="edge11_Node000008_Node000010" title=" " alt="" coords="625,224,583,262,579,258,622,220"/>
+<area shape="poly" id="edge12_Node000008_Node000011" title=" " alt="" coords="694,219,804,262,802,267,692,224"/>
+<area shape="rect" id="Node000012" title=" " alt="" coords="613,269,676,295"/>
+<area shape="poly" id="edge13_Node000008_Node000012" title=" " alt="" coords="647,222,647,255,642,255,642,222"/>
+</map>

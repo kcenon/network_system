@@ -1,0 +1,5 @@
+<map id="kcenon::network::protocols::quic::packet_protection::protect_header" name="kcenon::network::protocols::quic::packet_protection::protect_header">
+<area shape="rect" id="Node000001" title="Apply header protection." alt="" coords="248,5,447,60"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1internal_1_1quic__socket.html#a8ec598b433e36446190f83740068b81b" title="Build and send a packet with frames." alt="" coords="5,13,200,53"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="235,35,200,35,200,30,235,30"/>
+</map>

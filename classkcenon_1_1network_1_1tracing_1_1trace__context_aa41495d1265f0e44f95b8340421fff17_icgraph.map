@@ -1,0 +1,16 @@
+<map id="kcenon::network::tracing::trace_context::is_valid" name="kcenon::network::tracing::trace_context::is_valid">
+<area shape="rect" id="Node000001" title="Check if this context is valid." alt="" coords="753,113,936,153"/>
+<area shape="rect" id="Node000002" href="$structkcenon_1_1network_1_1tracing_1_1span_1_1impl.html#aea28950e53e18527546e348bce93f5a9" title=" " alt="" coords="503,56,685,96"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="743,113,681,99,683,93,744,108"/>
+<area shape="rect" id="Node000006" href="$classkcenon_1_1network_1_1tracing_1_1trace__context.html#a56bf939763d5b57aa794104406b35ba1" title="Convert context to HTTP headers for propagation." alt="" coords="236,145,435,185"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="739,143,435,162,435,156,739,137"/>
+<area shape="rect" id="Node000007" href="$classkcenon_1_1network_1_1tracing_1_1trace__context.html#af4f2157b68da1caa1269127613ca1de1" title="Convert context to W3C traceparent header value." alt="" coords="483,171,705,211"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="744,159,683,173,681,168,743,154"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1tracing_1_1span.html#af4b427011f6f01e33d081633e4d1bed7" title="Manually end the span." alt="" coords="244,5,427,45"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="489,58,426,46,427,41,490,53"/>
+<area shape="rect" id="Node000005" href="$classkcenon_1_1network_1_1tracing_1_1span.html#a9d4e8093898a8b14c8497763a16b779b" title="Destructor &#45; automatically ends the span if not ended." alt="" coords="244,69,427,109"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="489,84,427,87,427,82,489,79"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1tracing_1_1span.html#ae54f7a8be3379ac29965fba1b189bb63" title="Get the span duration." alt="" coords="5,5,188,45"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="230,28,188,28,188,23,230,23"/>
+<area shape="poly" id="edge7_Node000007_Node000006" title=" " alt="" coords="469,181,435,178,435,172,469,176"/>
+</map>

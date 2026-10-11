@@ -1,0 +1,7 @@
+<map id="kcenon::network::unified::adapters::udp_connection_adapter" name="kcenon::network::unified::adapters::udp_connection_adapter">
+<area shape="rect" id="Node000001" title="Adapter that wraps messaging_udp_client to implement i_connection." alt="" coords="5,741,215,1216"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1unified_1_1i__connection.html" title="Core interface for active network connections." alt="" coords="23,353,197,693"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="113,707,113,741,107,741,107,707"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1unified_1_1i__transport.html" title="Core interface for data transport abstraction." alt="" coords="23,5,197,305"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="113,319,113,353,107,353,107,319"/>
+</map>

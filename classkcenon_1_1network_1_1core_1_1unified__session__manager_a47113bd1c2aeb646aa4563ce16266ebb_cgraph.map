@@ -1,0 +1,9 @@
+<map id="kcenon::network::core::unified_session_manager::get_stats" name="kcenon::network::core::unified_session_manager::get_stats">
+<area shape="rect" id="Node000001" title="Get comprehensive statistics." alt="" coords="5,45,200,100"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1core_1_1unified__session__manager_1_1impl.html#af102de5e86e0720a0be3509100ad1052" title=" " alt="" coords="248,45,443,100"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="200,70,234,70,234,75,200,75"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1core_1_1unified__session__manager_1_1impl.html#ad2ed02fbd1f0d394254b5c48bb08e70a" title=" " alt="" coords="503,5,697,60"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="443,55,489,47,489,53,443,60"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1core_1_1unified__session__manager_1_1impl.html#a06b367b451f3f2ec194d5263921d633e" title=" " alt="" coords="491,84,709,139"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="443,85,478,90,477,95,443,90"/>
+</map>

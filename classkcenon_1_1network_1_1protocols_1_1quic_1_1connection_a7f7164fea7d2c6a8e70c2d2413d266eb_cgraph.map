@@ -1,0 +1,7 @@
+<map id="kcenon::network::protocols::quic::connection::has_pending_data" name="kcenon::network::protocols::quic::connection::has_pending_data">
+<area shape="rect" id="Node000001" title="Check if there are packets to send." alt="" coords="5,34,204,89"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1connection.html#aca03601aa46f682d8467101f11d885e7" title="Get the stream manager." alt="" coords="255,5,454,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="204,44,241,39,242,44,204,50"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1stream__manager.html#a8d558455c7d5b7f2767643bd15e6d390" title="Get streams with pending data to send." alt="" coords="252,70,457,125"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="204,73,239,78,238,83,204,78"/>
+</map>

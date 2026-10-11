@@ -1,0 +1,12 @@
+<map id="kcenon::network::integration::io_context_thread_manager::instance" name="kcenon::network::integration::io_context_thread_manager::instance">
+<area shape="rect" id="Node000001" title="Get the singleton instance." alt="" coords="227,124,439,179"/>
+<area shape="poly" id="edge5_Node000001_Node000001" title=" " alt="" coords="373,113,358,106,333,103,311,105,297,109,291,116,291,124,286,124,286,114,295,105,310,99,333,97,360,100,375,108"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1core_1_1messaging__client.html#a0fc486e931d25415a76f54ea2a911614" title="TCP&#45;specific implementation of client start." alt="" coords="8,5,176,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="268,120,177,74,154,63,156,58,180,69,270,115"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1core_1_1messaging__server.html#ae0224fa006a57447adaa56dac9132645" title="TCP&#45;specific implementation of server start." alt="" coords="5,84,179,139"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="213,134,178,128,179,123,214,129"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1core_1_1messaging__client.html#aedc22c0423e82bca139a834b4931a14a" title="TCP&#45;specific implementation of client stop." alt="" coords="8,163,176,217"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="214,173,177,179,176,174,213,168"/>
+<area shape="rect" id="Node000005" href="$classkcenon_1_1network_1_1core_1_1messaging__server.html#a797be91fae02fb72d8f92af48c31e65b" title="TCP&#45;specific implementation of server stop." alt="" coords="5,241,179,296"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="267,187,180,231,154,244,152,239,177,226,265,183"/>
+</map>

@@ -1,0 +1,9 @@
+<map id="kcenon::network::core::messaging_quic_client" name="kcenon::network::core::messaging_quic_client">
+<area shape="rect" id="Node000001" title="A QUIC client that provides reliable, multiplexed communication." alt="" coords="84,616,301,1385"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,373,175,468"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="103,481,127,615,122,616,98,482"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1interfaces_1_1i__quic__client.html" title="Interface for QUIC client components." alt="" coords="199,273,394,568"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="271,582,264,616,259,615,265,581"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1interfaces_1_1i__network__component.html" title="Base interface for all network components." alt="" coords="199,5,394,225"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="299,239,299,273,294,273,294,239"/>
+</map>

@@ -1,0 +1,11 @@
+<map id="kcenon::network::protocols::quic::packet_builder::build_initial" name="kcenon::network::protocols::quic::packet_builder::build_initial">
+<area shape="rect" id="Node000001" title="Build an Initial packet header." alt="" coords="5,94,204,149"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1packet__number.html#ae8b95fe0c15c5789c62a967cacd22316" title="Encode a packet number for transmission." alt="" coords="280,5,500,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="161,91,251,55,279,46,281,51,253,60,163,96"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1varint.html#a8d95e6a90e4df550528c222198bf8acb" title="Encode a value to variable&#45;length format." alt="" coords="291,69,489,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="204,108,277,99,277,105,204,113"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1packet__number.html#ab69a8fb162e9f4b52fd9abc0a45a0d4d" title="Get the minimum number of bytes needed to encode a packet number." alt="" coords="252,133,528,173"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="204,130,239,134,238,139,204,135"/>
+<area shape="rect" id="Node000005" href="$namespacekcenon_1_1network.html#a343917741c1ba5e287360d73f47a2f50" title="Get the network system version string." alt="" coords="297,198,483,223"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="161,146,206,166,253,183,291,193,289,198,251,188,204,171,159,151"/>
+</map>

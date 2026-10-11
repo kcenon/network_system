@@ -1,0 +1,17 @@
+<map id="kcenon::network::protocols::quic::connection::connection" name="kcenon::network::protocols::quic::connection::connection">
+<area shape="rect" id="Node000001" title="Construct a connection." alt="" coords="5,197,220,237"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1connection__id.html#a74d1d8ca568ef99144a8737a60c6f0df" title="Generate a random connection ID." alt="" coords="287,5,508,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="125,195,181,126,221,88,267,55,280,48,282,53,269,60,225,92,185,130,130,199"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1connection.html#a41acb673d53f7c9e4f728350641f1a5c" title="Get initial Destination Connection ID (for key derivation)" alt="" coords="290,69,505,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="139,195,196,157,267,119,288,111,290,116,269,124,199,161,142,199"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1connection.html#a61e95f102a320d7725079e232ac16d0f" title="Check if this is a server&#45;side connection." alt="" coords="296,133,499,173"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="202,195,294,174,295,179,203,200"/>
+<area shape="rect" id="Node000005" href="$namespacekcenon_1_1network_1_1protocols_1_1quic.html#a3616fbbcc316bbe87cc1a18afa487682" title="Create default client transport parameters." alt="" coords="271,197,524,237"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="220,215,257,215,257,220,220,220"/>
+<area shape="rect" id="Node000006" href="$namespacekcenon_1_1network_1_1protocols_1_1quic.html#ab94d0a39a35cdd8a31205145e1718160" title="Create default server transport parameters." alt="" coords="268,261,527,301"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="203,235,295,256,294,261,202,240"/>
+<area shape="rect" id="Node000007" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1connection.html#abdeb9f293ebbc70a5ae23803202fd858" title="Reset idle timer." alt="" coords="298,326,497,381"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="143,235,200,273,269,311,287,319,285,323,267,316,197,278,140,240"/>
+<area shape="rect" id="Node000008" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1connection__id__manager.html#a90b7077b94e956b8013f6024f8a8cc0f" title="Set the initial peer connection ID (from Initial packet)" alt="" coords="287,405,507,459"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="129,236,184,311,224,353,270,390,280,396,278,401,266,394,220,357,180,315,124,239"/>
+</map>

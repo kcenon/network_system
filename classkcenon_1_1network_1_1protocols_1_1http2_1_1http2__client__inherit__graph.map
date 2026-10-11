@@ -1,0 +1,5 @@
+<map id="kcenon::network::protocols::http2::http2_client" name="kcenon::network::protocols::http2::http2_client">
+<area shape="rect" id="Node000001" title="HTTP/2 client with TLS support." alt="" coords="5,133,209,893"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="12,5,203,85"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="110,99,110,133,105,133,105,99"/>
+</map>

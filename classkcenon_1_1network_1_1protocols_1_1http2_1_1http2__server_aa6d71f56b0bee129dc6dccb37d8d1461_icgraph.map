@@ -1,0 +1,5 @@
+<map id="kcenon::network::protocols::http2::http2_server::stop" name="kcenon::network::protocols::http2::http2_server::stop">
+<area shape="rect" id="Node000001" title="Stop the server." alt="" coords="252,13,451,53"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1protocols_1_1http2_1_1http2__server.html#aa442523462cca55377954384e657dd5e" title="Destructor &#45; stops server gracefully." alt="" coords="5,5,204,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="238,35,204,35,204,30,238,30"/>
+</map>

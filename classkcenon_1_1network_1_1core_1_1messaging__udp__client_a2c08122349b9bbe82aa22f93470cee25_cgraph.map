@@ -1,0 +1,7 @@
+<map id="kcenon::network::core::messaging_udp_client::set_target" name="kcenon::network::core::messaging_udp_client::set_target">
+<area shape="rect" id="Node000001" title="Changes the target endpoint for future sends." alt="" coords="5,16,180,71"/>
+<area shape="rect" id="Node000002" href="$namespacekcenon_1_1network.html#a9d2a06a302dea2b45b323b864eacad4a" title=" " alt="" coords="228,5,432,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="180,31,214,28,215,33,180,37"/>
+<area shape="rect" id="Node000003" href="$namespacekcenon_1_1network.html#aa32d0dbfdee046c2c0cde3667c5f05a8" title=" " alt="" coords="253,55,407,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="180,49,239,55,238,61,180,55"/>
+</map>

@@ -1,0 +1,14 @@
+<map id="kcenon::network::core::messaging_quic_server::sessions" name="kcenon::network::core::messaging_quic_server::sessions">
+<area shape="rect" id="Node000001" title="Get all active sessions." alt="" coords="773,31,956,86"/>
+<area shape="rect" id="Node000002" href="$classQuicServerDemo.html#aa66882727d6b96af932715d5e1c33fc3" title=" " alt="" coords="541,8,725,48"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="759,47,725,43,726,38,760,42"/>
+<area shape="rect" id="Node000006" href="$classQuicServerDemo.html#a68648b43b2dc9009ededfb4264502be3" title=" " alt="" coords="320,69,491,109"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="760,68,491,86,491,81,759,63"/>
+<area shape="rect" id="Node000003" href="$classQuicServerDemo.html#a487840d30666855938576ca278b02fa9" title=" " alt="" coords="317,5,493,45"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="527,29,494,29,494,24,527,24"/>
+<area shape="rect" id="Node000004" href="$classQuicServerDemo.html#a772d70f6da7837889f500eca3c4cc73a" title=" " alt="" coords="108,45,269,70"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="304,43,270,48,269,43,303,38"/>
+<area shape="rect" id="Node000005" href="$quic__server__example_8cpp.html#a0ddf1224851353fc92bfbff6f499fa97" title=" " alt="" coords="5,45,60,70"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="94,60,60,60,60,55,94,55"/>
+<area shape="poly" id="edge6_Node000006_Node000004" title=" " alt="" coords="306,77,269,72,270,67,307,72"/>
+</map>

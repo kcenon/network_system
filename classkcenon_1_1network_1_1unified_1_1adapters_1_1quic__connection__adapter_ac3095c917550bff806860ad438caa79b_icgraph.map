@@ -1,0 +1,5 @@
+<map id="kcenon::network::unified::adapters::quic_connection_adapter::io_thread_func" name="kcenon::network::unified::adapters::quic_connection_adapter::io_thread_func">
+<area shape="rect" id="Node000001" title="I/O processing thread function." alt="" coords="253,5,453,60"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1unified_1_1adapters_1_1quic__connection__adapter.html#a18c455d9708387937158a5288421b3a3" title="Connects to a remote endpoint using host/port." alt="" coords="5,5,205,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="240,35,206,35,206,30,240,30"/>
+</map>

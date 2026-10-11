@@ -1,0 +1,55 @@
+<map id="include/kcenon/network/detail/protocol/quic.h" name="include/kcenon/network/detail/protocol/quic.h">
+<area shape="rect" id="Node000001" title="QUIC protocol connection factory and configuration." alt="" coords="433,5,610,45"/>
+<area shape="rect" id="Node000002" href="$i__connection_8h.html" title="Core interface for active network connections." alt="" coords="291,181,459,221"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="507,47,401,173,397,169,503,44"/>
+<area shape="rect" id="Node000004" href="$types_8h.html" title="Network endpoint types (host/port, URL) and common type aliases." alt="" coords="342,350,413,375"/>
+<area shape="poly" id="edge28_Node000001_Node000004" title=" " alt="" coords="537,44,558,79,577,124,584,149,586,174,583,199,574,223,558,242,540,252,520,260,497,272,403,343,400,339,495,267,518,255,538,247,555,238,570,220,578,198,581,174,578,150,572,126,553,81,533,47"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="96,438,163,463"/>
+<area shape="poly" id="edge29_Node000001_Node000005" title=" " alt="" coords="433,31,374,37,309,48,244,67,183,96,146,117,117,137,98,163,94,179,92,200,92,283,95,322,103,361,122,424,117,426,97,362,90,323,87,283,87,200,88,178,94,160,113,133,143,112,180,91,242,62,308,43,373,32,432,26"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="5,438,72,463"/>
+<area shape="poly" id="edge30_Node000001_Node000006" title=" " alt="" coords="433,36,346,44,253,57,170,74,137,84,113,96,82,117,59,138,46,164,41,200,41,283,41,424,36,424,36,283,36,200,41,163,55,135,78,113,111,91,135,79,169,69,252,51,346,39,432,30"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="595,438,653,463"/>
+<area shape="poly" id="edge33_Node000001_Node000009" title=" " alt="" coords="550,44,582,70,615,107,641,150,649,175,652,200,652,283,645,361,633,425,628,424,640,360,647,283,647,200,644,176,636,153,611,110,578,74,547,48"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="961,438,1058,463"/>
+<area shape="poly" id="edge34_Node000001_Node000010" title=" " alt="" coords="611,42,715,68,824,103,871,124,910,147,936,172,943,186,945,200,945,283,950,324,963,363,996,425,991,428,958,365,945,325,940,284,940,200,938,188,931,176,906,152,869,129,822,108,714,73,610,47"/>
+<area shape="rect" id="Node000017" href="$i__listener_8h.html" title="Core interface for passive network listeners (server&#45;side)." alt="" coords="194,93,361,133"/>
+<area shape="poly" id="edge22_Node000001_Node000017" title=" " alt="" coords="469,48,344,91,343,86,467,43"/>
+<area shape="rect" id="Node000018" title=" " alt="" coords="483,189,560,214"/>
+<area shape="poly" id="edge31_Node000001_Node000018" title=" " alt="" coords="524,46,524,175,519,175,519,46"/>
+<area shape="rect" id="Node000019" title=" " alt="" coords="980,101,1055,126"/>
+<area shape="poly" id="edge32_Node000001_Node000019" title=" " alt="" coords="611,33,775,55,869,71,962,91,974,94,973,99,961,96,868,76,774,60,610,38"/>
+<area shape="rect" id="Node000003" href="$i__transport_8h.html" title="Core interface for data transport abstraction." alt="" coords="508,269,612,295"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="420,219,521,261,519,266,418,224"/>
+<area shape="poly" id="edge20_Node000002_Node000004" title=" " alt="" coords="378,221,380,336,374,336,372,222"/>
+<area shape="poly" id="edge21_Node000002_Node000005" title=" " alt="" coords="358,223,152,430,148,427,354,220"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="534,297,418,347,416,342,532,292"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="517,438,571,463"/>
+<area shape="poly" id="edge13_Node000003_Node000008" title=" " alt="" coords="554,296,542,318,532,343,529,364,530,386,538,424,533,425,525,386,524,364,527,342,537,315,550,294"/>
+<area shape="poly" id="edge14_Node000003_Node000010" title=" " alt="" coords="612,284,732,300,801,316,868,340,918,375,986,428,983,432,915,380,865,345,799,321,731,305,612,289"/>
+<area shape="rect" id="Node000012" title=" " alt="" coords="430,438,493,463"/>
+<area shape="poly" id="edge15_Node000003_Node000012" title=" " alt="" coords="554,296,522,344,476,427,471,425,518,341,549,293"/>
+<area shape="rect" id="Node000013" title=" " alt="" coords="541,350,611,375"/>
+<area shape="poly" id="edge12_Node000003_Node000013" title=" " alt="" coords="565,294,574,336,568,337,560,295"/>
+<area shape="rect" id="Node000014" href="$result__types_8h.html" title="Network&#45;specific error and result type definitions." alt="" coords="687,343,854,383"/>
+<area shape="poly" id="edge16_Node000003_Node000014" title=" " alt="" coords="592,292,708,335,706,340,590,297"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="343,377,176,433,170,435,168,430,174,428,341,372"/>
+<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="342,373,227,396,85,433,78,435,76,430,83,428,225,391,341,368"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="187,438,274,463"/>
+<area shape="poly" id="edge6_Node000004_Node000007" title=" " alt="" coords="359,378,264,433,261,429,356,373"/>
+<area shape="poly" id="edge7_Node000004_Node000008" title=" " alt="" coords="401,373,510,429,508,434,399,378"/>
+<area shape="poly" id="edge8_Node000004_Node000009" title=" " alt="" coords="414,372,492,396,584,428,588,430,586,435,582,433,491,401,412,377"/>
+<area shape="poly" id="edge9_Node000004_Node000010" title=" " alt="" coords="413,366,530,380,648,391,741,398,833,407,950,428,964,432,963,437,949,433,832,413,740,403,648,397,529,385,413,371"/>
+<area shape="rect" id="Node000011" title=" " alt="" coords="298,438,406,463"/>
+<area shape="poly" id="edge10_Node000004_Node000011" title=" " alt="" coords="376,376,362,425,357,424,371,375"/>
+<area shape="poly" id="edge11_Node000004_Node000012" title=" " alt="" coords="391,374,442,426,438,429,387,377"/>
+<area shape="poly" id="edge19_Node000014_Node000009" title=" " alt="" coords="740,385,657,433,654,429,737,380"/>
+<area shape="rect" id="Node000015" href="$detail_2config_2feature__flags_8h.html" title="Feature flags for network_system." alt="" coords="678,431,845,471"/>
+<area shape="poly" id="edge17_Node000014_Node000015" title=" " alt="" coords="771,383,768,417,762,417,766,383"/>
+<area shape="rect" id="Node000016" title=" " alt="" coords="869,438,937,463"/>
+<area shape="poly" id="edge18_Node000014_Node000016" title=" " alt="" coords="801,381,875,428,872,433,799,385"/>
+<area shape="poly" id="edge23_Node000017_Node000002" title=" " alt="" coords="301,132,344,170,341,174,297,136"/>
+<area shape="poly" id="edge24_Node000017_Node000004" title=" " alt="" coords="277,134,275,175,281,221,296,255,316,288,358,339,354,342,312,291,292,258,276,222,269,175,272,134"/>
+<area shape="poly" id="edge25_Node000017_Node000006" title=" " alt="" coords="266,135,57,428,53,425,262,132"/>
+<area shape="poly" id="edge26_Node000017_Node000007" title=" " alt="" coords="277,134,271,182,237,425,231,424,265,181,272,133"/>
+<area shape="poly" id="edge27_Node000017_Node000018" title=" " alt="" coords="334,131,472,179,479,182,477,187,470,184,332,136"/>
+</map>

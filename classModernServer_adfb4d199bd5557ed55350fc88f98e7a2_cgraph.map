@@ -1,0 +1,13 @@
+<map id="ModernServer::start" name="ModernServer::start">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,77,156,102"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1core_1_1messaging__server.html#a7b7ed68c52e880e82bf21739b7a0a587" title="Starts the server on the specified port." alt="" coords="204,62,391,117"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="156,87,190,87,190,92,156,92"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1tracing_1_1trace__context.html#a0618b3e17f57071584025d5e47aa0541" title="Create a new root span with a new trace context." alt="" coords="439,37,645,77"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="390,75,425,70,426,75,391,80"/>
+<area shape="rect" id="Node000006" href="$namespacekcenon_1_1network_1_1tracing.html#a6ab950c88c5666f30b2db30609a6834a" title="Check if tracing is enabled." alt="" coords="451,101,633,141"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="391,99,437,105,437,110,390,104"/>
+<area shape="rect" id="Node000004" href="$namespacekcenon_1_1network_1_1tracing.html#a933bb00747359508e4c9b490d42c495d" title="Generate a random span ID." alt="" coords="693,5,876,45"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="645,41,679,36,680,42,646,46"/>
+<area shape="rect" id="Node000005" href="$namespacekcenon_1_1network_1_1tracing.html#ab38da93c9d82d6795e6950368611ea35" title="Generate a random trace ID." alt="" coords="693,69,876,109"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="646,68,680,73,679,78,645,74"/>
+</map>

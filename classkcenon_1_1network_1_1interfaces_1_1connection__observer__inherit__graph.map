@@ -1,0 +1,11 @@
+<map id="kcenon::network::interfaces::connection_observer" name="kcenon::network::interfaces::connection_observer">
+<area shape="rect" id="Node000001" title="Observer interface for client connection events." alt="" coords="178,5,373,165"/>
+<area shape="rect" id="Node000002" href="$classchat__observer.html" title="Custom observer that handles all connection events." alt="" coords="5,261,153,446"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="198,177,168,215,136,262,132,259,164,212,193,174"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1interfaces_1_1callback__adapter.html" title="Adapter to use function callbacks with the observer pattern." alt="" coords="178,213,373,493"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="278,179,278,213,273,213,273,179"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1interfaces_1_1null__connection__observer.html" title="No&#45;op implementation of connection_observer." alt="" coords="397,283,591,423"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="355,174,387,212,443,281,439,285,383,215,351,178"/>
+<area shape="rect" id="Node000005" href="$classreceive__only__observer.html" title="Partial observer that only handles receive events." alt="" coords="413,541,575,607"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="497,437,497,541,491,541,491,437"/>
+</map>

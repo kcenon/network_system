@@ -1,0 +1,9 @@
+<map id="setup_server" name="setup_server">
+<area shape="rect" id="Node000001" title="Protocol&#45;agnostic server setup." alt="" coords="256,55,363,80"/>
+<area shape="rect" id="Node000002" href="$unified__server__example_8cpp.html#aa7cd8cd9225d933ae15814a57bc90362" title="TCP server example using unified API." alt="" coords="29,5,184,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="244,54,207,45,161,33,162,28,209,39,246,49"/>
+<area shape="rect" id="Node000003" href="$unified__server__example_8cpp.html#a5d067a355d8fea18bdd1cf0e967b5b94" title="UDP server example using unified API." alt="" coords="27,55,186,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="243,70,186,70,186,65,243,65"/>
+<area shape="rect" id="Node000004" href="$unified__server__example_8cpp.html#ae0cfa9a2ad0652f6a234faac817617b0" title="WebSocket server example using unified API." alt="" coords="5,104,208,129"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="244,86,160,107,159,101,243,81"/>
+</map>

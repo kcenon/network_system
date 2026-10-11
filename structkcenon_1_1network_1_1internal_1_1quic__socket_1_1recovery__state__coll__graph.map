@@ -1,0 +1,41 @@
+<map id="kcenon::network::internal::quic_socket::recovery_state" name="kcenon::network::internal::quic_socket::recovery_state">
+<area shape="rect" id="Node000001" title=" " alt="" coords="386,2381,589,2461"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1rtt__estimator.html" title="RTT estimation for QUIC (RFC 9002 Section 5)" alt="" coords="5,1116,196,1596"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="51,1596,41,1680,34,1770,33,1864,40,1961,55,2056,81,2149,119,2237,143,2278,171,2317,190,2338,212,2356,262,2383,316,2401,370,2412,369,2417,315,2406,260,2388,209,2360,186,2342,167,2320,138,2281,114,2239,76,2151,50,2057,34,1961,28,1865,29,1770,36,1680,46,1596"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1loss__detector.html" title="QUIC loss detection (RFC 9002 Section 6)" alt="" coords="211,1724,419,2319"/>
+<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="181,1595,217,1707,212,1709,175,1597"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="422,2295,452,2356,458,2366,453,2368,448,2359,417,2297"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1ecn__tracker.html" title="ECN (Explicit Congestion Notification) tracker (RFC 9000 Section 13.4, RFC 9002 Section 7...." alt="" coords="220,1199,411,1513"/>
+<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="318,1514,318,1708,313,1708,313,1514"/>
+<area shape="rect" id="Node000005" href="$structkcenon_1_1network_1_1protocols_1_1quic_1_1ecn__tracker_1_1validation__state.html" title="Internal ECN validation state." alt="" coords="114,844,359,1024"/>
+<area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="256,1024,286,1182,280,1183,251,1025"/>
+<area shape="rect" id="Node000006" href="$structkcenon_1_1network_1_1protocols_1_1quic_1_1ecn__counts.html" title="ECN counts for ACK_ECN frames." alt="" coords="141,661,332,781"/>
+<area shape="poly" id="edge6_Node000005_Node000006" title=" " alt="" coords="239,782,239,828,234,828,234,782"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="435,1301,579,1411"/>
+<area shape="poly" id="edge7_Node000003_Node000007" title=" " alt="" coords="496,1412,415,1701,413,1709,408,1707,410,1699,490,1410"/>
+<area shape="rect" id="Node000008" href="$structkcenon_1_1network_1_1protocols_1_1quic_1_1loss__detector_1_1space__state.html" title="Per packet&#45;number&#45;space state (RFC 9002 Appendix A.1)" alt="" coords="384,854,615,1014"/>
+<area shape="poly" id="edge8_Node000007_Node000008" title=" " alt="" coords="462,1015,453,1049,447,1111,452,1174,465,1233,481,1285,476,1286,460,1234,447,1174,442,1111,447,1047,457,1014"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="402,674,597,769"/>
+<area shape="poly" id="edge9_Node000008_Node000009" title=" " alt="" coords="502,769,502,837,497,837,497,769"/>
+<area shape="rect" id="Node000010" href="$structkcenon_1_1network_1_1protocols_1_1quic_1_1sent__packet.html" title="Information about a sent packet for loss detection (RFC 9002 Section A.1.1)" alt="" coords="481,419,672,599"/>
+<area shape="poly" id="edge10_Node000009_Node000010" title=" " alt="" coords="546,600,524,660,519,658,541,598"/>
+<area shape="rect" id="Node000011" title=" " alt="" coords="527,261,679,327"/>
+<area shape="poly" id="edge11_Node000010_Node000011" title=" " alt="" coords="602,327,593,403,587,402,597,327"/>
+<area shape="rect" id="Node000012" title=" " alt="" coords="553,133,675,199"/>
+<area shape="poly" id="edge12_Node000011_Node000012" title=" " alt="" coords="613,213,609,261,603,261,607,212"/>
+<area shape="rect" id="Node000013" title=" " alt="" coords="608,5,631,71"/>
+<area shape="poly" id="edge13_Node000012_Node000013" title=" " alt="" coords="621,71,619,117,613,117,615,71"/>
+<area shape="rect" id="Node000014" title=" " alt="" coords="372,133,499,199"/>
+<area shape="poly" id="edge16_Node000014_Node000013" title=" " alt="" coords="609,49,534,97,493,126,490,122,531,92,607,44"/>
+<area shape="rect" id="Node000016" title=" " alt="" coords="659,901,774,967"/>
+<area shape="poly" id="edge18_Node000016_Node000013" title=" " alt="" coords="632,42,666,61,684,75,700,93,717,127,719,165,719,723,719,885,714,885,714,723,714,165,712,128,696,96,681,79,663,65,630,47"/>
+<area shape="poly" id="edge14_Node000009_Node000014" title=" " alt="" coords="439,213,448,383,458,490,473,598,489,673,484,674,467,599,452,491,442,383,434,213"/>
+<area shape="rect" id="Node000015" title=" " alt="" coords="424,5,447,71"/>
+<area shape="poly" id="edge15_Node000014_Node000015" title=" " alt="" coords="438,71,438,117,433,117,433,71"/>
+<area shape="poly" id="edge17_Node000007_Node000016" title=" " alt="" coords="684,979,658,1004,629,1026,608,1034,591,1036,575,1039,560,1050,540,1078,526,1109,515,1142,508,1176,502,1243,503,1301,498,1301,497,1243,502,1176,510,1141,521,1107,536,1075,556,1046,573,1034,590,1030,607,1029,626,1022,655,1000,680,975"/>
+<area shape="rect" id="Node000018" title=" " alt="" coords="649,1620,821,1700"/>
+<area shape="poly" id="edge21_Node000018_Node000016" title=" " alt="" coords="729,980,739,1048,739,1092,738,1620,733,1620,734,1092,734,1048,724,981"/>
+<area shape="rect" id="Node000017" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1congestion__controller.html" title="QUIC congestion control (RFC 9002 Section 7)" alt="" coords="443,1754,649,2289"/>
+<area shape="poly" id="edge19_Node000001_Node000017" title=" " alt="" coords="509,2289,498,2365,493,2364,504,2288"/>
+<area shape="poly" id="edge20_Node000001_Node000018" title=" " alt="" coords="745,1700,757,1814,761,1890,759,1975,751,2064,733,2153,705,2240,686,2281,663,2320,637,2351,605,2375,601,2371,633,2347,658,2317,681,2279,700,2238,728,2152,746,2063,754,1975,755,1890,752,1814,739,1700"/>
+</map>

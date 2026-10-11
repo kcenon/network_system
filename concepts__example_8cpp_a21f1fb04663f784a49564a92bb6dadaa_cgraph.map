@@ -1,0 +1,5 @@
+<map id="demonstrate_network_client" name="demonstrate_network_client">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,171,45"/>
+<area shape="rect" id="Node000002" href="$concepts__example_8cpp.html#af43d17c989e91a5eb4121f3da9a03740" title="Generic function that works with any NetworkClient." alt="" coords="219,13,307,38"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="171,23,205,23,205,28,171,28"/>
+</map>

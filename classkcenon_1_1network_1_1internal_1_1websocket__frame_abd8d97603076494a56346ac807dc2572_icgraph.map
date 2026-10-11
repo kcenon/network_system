@@ -1,0 +1,5 @@
+<map id="kcenon::network::internal::websocket_frame::decode_header" name="kcenon::network::internal::websocket_frame::decode_header">
+<area shape="rect" id="Node000001" title="Decodes a WebSocket frame header from raw data." alt="" coords="324,5,576,45"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1internal_1_1websocket__protocol.html#a6a57f262fb0afdc06e50e8763aa6191a" title="Processes incoming frames from the buffer." alt="" coords="5,5,276,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="311,28,276,28,276,23,311,23"/>
+</map>

@@ -1,0 +1,5 @@
+<map id="kcenon::network::core::messaging_ws_server::invoke_connection_callback" name="kcenon::network::core::messaging_ws_server::invoke_connection_callback">
+<area shape="rect" id="Node000001" title="Invokes the connection callback." alt="" coords="5,5,217,60"/>
+<area shape="rect" id="Node000002" href="$namespacekcenon_1_1network.html#a15edd0988aec7155616b3ad3478471a5" title="Helper to convert enum to std::size_t for callback_manager access." alt="" coords="265,13,416,53"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="217,30,251,30,251,35,217,35"/>
+</map>

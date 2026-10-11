@@ -1,0 +1,5 @@
+<map id="kcenon::network::metrics::sliding_histogram::sum" name="kcenon::network::metrics::sliding_histogram::sum">
+<area shape="rect" id="Node000001" title="Get sum of all observations in current window." alt="" coords="244,5,431,45"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1metrics_1_1sliding__histogram.html#a4b942731eea612b99da34f901f538769" title="Get mean of all observations in current window." alt="" coords="5,5,196,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="230,28,196,28,196,23,230,23"/>
+</map>

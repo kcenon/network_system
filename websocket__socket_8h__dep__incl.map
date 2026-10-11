@@ -1,0 +1,9 @@
+<map id="src/internal/websocket/websocket_socket.h" name="src/internal/websocket/websocket_socket.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="161,5,329,45"/>
+<area shape="rect" id="Node000002" href="$websocket__client_8cpp.html" title=" " alt="" coords="5,93,149,133"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="198,54,115,96,113,91,195,49"/>
+<area shape="rect" id="Node000003" href="$websocket__server_8cpp.html" title=" " alt="" coords="173,93,317,133"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="248,59,248,93,243,93,243,59"/>
+<area shape="rect" id="Node000004" href="$websocket__socket_8cpp.html" title=" " alt="" coords="341,93,509,133"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="298,49,387,91,385,96,296,54"/>
+</map>

@@ -1,0 +1,9 @@
+<map id="include/kcenon/network/events/network_metric_event.h" name="include/kcenon/network/events/network_metric_event.h">
+<area shape="rect" id="Node000001" title="Network metric events for EventBus&#45;based metric publishing." alt="" coords="33,5,210,60"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,108,72,133"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="98,62,61,100,57,96,94,58"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="96,108,147,133"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="124,60,124,94,119,94,119,60"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="171,108,229,133"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="147,58,182,96,178,99,143,62"/>
+</map>

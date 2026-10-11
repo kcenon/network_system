@@ -1,0 +1,20 @@
+<map id="kcenon::network::integration::logger_integration_manager" name="kcenon::network::integration::logger_integration_manager">
+<area shape="rect" id="Node000001" title="Manager for logger system integration." alt="" coords="192,1103,399,1332"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="192,931,399,1040"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="298,1040,298,1086,293,1086,293,1040"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1integration_1_1logger__integration__manager_1_1impl.html" title=" " alt="" coords="79,708,322,868"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="242,867,264,914,260,917,237,870"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="5,521,89,587"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="71,586,141,692,137,695,66,588"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="114,507,287,601"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="203,602,203,692,198,692,198,602"/>
+<area shape="rect" id="Node000006" href="$classkcenon_1_1network_1_1integration_1_1logger__interface.html" title="Interface for logger integration." alt="" coords="5,133,207,393"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="115,393,125,438,140,482,146,492,141,494,136,484,120,440,110,394"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="231,231,381,296"/>
+<area shape="poly" id="edge6_Node000005_Node000007" title=" " alt="" coords="281,309,220,395,207,406,198,419,192,440,189,462,192,506,187,507,184,462,187,439,193,416,203,403,216,392,277,306"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="351,5,373,71"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="357,71,320,215,315,214,352,70"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="343,417,493,483"/>
+<area shape="poly" id="edge9_Node000009_Node000008" title=" " alt="" coords="376,62,389,94,395,133,410,279,418,401,413,401,405,280,390,134,383,95,371,64"/>
+<area shape="poly" id="edge8_Node000002_Node000009" title=" " alt="" coords="413,497,384,661,337,869,317,931,312,929,331,867,378,660,408,496"/>
+</map>

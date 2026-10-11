@@ -1,0 +1,7 @@
+<map id="kcenon::network::facade::websocket_facade::validate_server_config" name="kcenon::network::facade::websocket_facade::validate_server_config">
+<area shape="rect" id="Node000001" title="Validates server configuration." alt="" coords="5,16,216,71"/>
+<area shape="rect" id="Node000002" href="$namespacekcenon_1_1network.html#a9d2a06a302dea2b45b323b864eacad4a" title=" " alt="" coords="264,5,468,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="216,30,250,27,251,32,216,36"/>
+<area shape="rect" id="Node000003" href="$namespacekcenon_1_1network.html#aa32d0dbfdee046c2c0cde3667c5f05a8" title=" " alt="" coords="289,55,443,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="216,51,275,56,275,61,216,56"/>
+</map>

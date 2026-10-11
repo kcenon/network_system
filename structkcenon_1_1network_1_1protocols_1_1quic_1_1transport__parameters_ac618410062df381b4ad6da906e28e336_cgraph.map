@@ -1,0 +1,8 @@
+<map id="kcenon::network::protocols::quic::transport_parameters::decode" name="kcenon::network::protocols::quic::transport_parameters::decode">
+<area shape="rect" id="Node000001" title="Decode transport parameters from binary format." alt="" coords="5,27,212,82"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1varint.html#a900942fa244ad1d31b4a56c74347d3ca" title="Decode variable&#45;length integer from buffer." alt="" coords="260,5,459,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="212,40,246,36,247,41,213,45"/>
+<area shape="rect" id="Node000003" href="$namespacekcenon_1_1network.html#aa32d0dbfdee046c2c0cde3667c5f05a8" title=" " alt="" coords="507,42,661,67"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="212,54,260,55,459,55,493,54,493,59,459,60,260,60,212,59"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="459,36,493,40,493,45,458,41"/>
+</map>

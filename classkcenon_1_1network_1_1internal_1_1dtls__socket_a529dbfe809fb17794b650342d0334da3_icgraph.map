@@ -1,0 +1,5 @@
+<map id="kcenon::network::internal::dtls_socket::stop_receive" name="kcenon::network::internal::dtls_socket::stop_receive">
+<area shape="rect" id="Node000001" title="Stops the receive loop." alt="" coords="248,5,443,45"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1internal_1_1dtls__socket.html#aeba5460801a57d957eb4f566c05b28f7" title="Destructor. Cleans up OpenSSL resources." alt="" coords="5,5,200,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="234,28,200,28,200,23,234,23"/>
+</map>

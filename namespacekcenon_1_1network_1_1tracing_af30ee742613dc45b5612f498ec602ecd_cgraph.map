@@ -1,0 +1,5 @@
+<map id="kcenon::network::tracing::shutdown_tracing" name="kcenon::network::tracing::shutdown_tracing">
+<area shape="rect" id="Node000001" title="Shutdown the tracing system." alt="" coords="5,5,188,45"/>
+<area shape="rect" id="Node000002" href="$namespacekcenon_1_1network_1_1tracing.html#a2c7e49613d56b962f3a807d936a578a8" title="Force flush all pending spans." alt="" coords="236,5,419,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="188,23,222,23,222,28,188,28"/>
+</map>

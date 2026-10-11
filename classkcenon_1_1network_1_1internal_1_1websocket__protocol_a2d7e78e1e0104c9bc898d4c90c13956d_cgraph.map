@@ -1,0 +1,5 @@
+<map id="kcenon::network::internal::websocket_protocol::create_ping" name="kcenon::network::internal::websocket_protocol::create_ping">
+<area shape="rect" id="Node000001" title="Creates a ping control frame." alt="" coords="5,5,248,45"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1internal_1_1websocket__frame.html#a519a43a9ad353d868f9bef5066ff88b6" title="Encodes data into a WebSocket frame." alt="" coords="296,5,543,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="248,23,282,23,282,28,248,28"/>
+</map>

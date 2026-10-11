@@ -1,0 +1,32 @@
+<map id="kcenon::network::integration::container_manager" name="kcenon::network::integration::container_manager">
+<area shape="rect" id="Node000001" title="Manager for container system integration." alt="" coords="541,1191,742,1451"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="541,1033,741,1128"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="644,1128,644,1174,639,1174,639,1128"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1integration_1_1container__manager_1_1impl.html" title=" " alt="" coords="434,751,635,971"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="591,970,614,1017,609,1019,586,972"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="615,593,699,659"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="643,660,602,737,598,735,638,658"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="154,564,361,688"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="317,686,358,725,423,777,419,781,354,729,313,690"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="55,421,134,487"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="110,486,125,512,143,538,155,551,151,554,139,542,120,515,106,488"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="5,173,136,253"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="79,266,94,421,89,421,73,267"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="395,407,568,501"/>
+<area shape="poly" id="edge14_Node000003_Node000008" title=" " alt="" coords="479,502,475,564,470,626,470,653,475,688,486,734,481,736,469,688,465,654,465,626,469,564,474,502"/>
+<area shape="poly" id="edge7_Node000005_Node000008" title=" " alt="" coords="401,504,366,527,332,555,329,551,362,523,398,499"/>
+<area shape="rect" id="Node000009" href="$classkcenon_1_1network_1_1integration_1_1container__interface.html" title="Abstract interface for container operations." alt="" coords="509,133,710,293"/>
+<area shape="poly" id="edge8_Node000008_Node000009" title=" " alt="" coords="611,294,601,340,582,384,573,396,569,393,578,381,596,339,605,293"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="335,181,484,246"/>
+<area shape="poly" id="edge9_Node000008_Node000010" title=" " alt="" coords="415,260,424,319,441,382,452,405,447,408,436,384,419,320,410,260"/>
+<area shape="rect" id="Node000011" title=" " alt="" coords="401,5,423,71"/>
+<area shape="poly" id="edge10_Node000010_Node000011" title=" " alt="" coords="414,71,413,165,407,164,409,71"/>
+<area shape="rect" id="Node000012" title=" " alt="" coords="160,173,304,253"/>
+<area shape="poly" id="edge13_Node000012_Node000011" title=" " alt="" coords="402,48,369,68,331,97,300,128,272,162,268,158,296,125,328,93,366,64,399,43"/>
+<area shape="rect" id="Node000014" title=" " alt="" coords="673,317,823,383"/>
+<area shape="poly" id="edge16_Node000014_Node000011" title=" " alt="" coords="423,36,478,37,561,47,606,58,650,76,690,100,725,132,748,171,759,216,761,261,759,301,754,301,756,261,753,217,743,173,721,135,687,104,647,80,604,64,560,52,478,42,423,41"/>
+<area shape="poly" id="edge11_Node000005_Node000012" title=" " alt="" coords="226,267,215,375,214,438,220,501,236,563,231,564,215,502,209,439,209,375,220,267"/>
+<area shape="rect" id="Node000013" title=" " alt="" coords="217,5,239,71"/>
+<area shape="poly" id="edge12_Node000012_Node000013" title=" " alt="" coords="231,71,232,109,233,157,228,157,227,109,226,71"/>
+<area shape="poly" id="edge15_Node000002_Node000014" title=" " alt="" coords="751,397,751,531,751,862,744,911,728,957,705,999,681,1035,677,1032,701,997,723,955,739,909,745,862,745,531,745,397"/>
+</map>

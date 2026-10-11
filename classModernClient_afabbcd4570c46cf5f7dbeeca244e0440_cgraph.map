@@ -1,0 +1,18 @@
+<map id="ModernClient::send_async" name="ModernClient::send_async">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,77,153,117"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1integration_1_1thread__integration__manager.html#a90d93374dd61a18d654e2f7cedf38f57" title="Get the singleton instance." alt="" coords="201,29,416,84"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="153,81,187,75,188,80,154,86"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1core_1_1messaging__client.html#a6d7784131401630ba49355981d5ce202" title="Sends data to the connected server." alt="" coords="217,108,400,163"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="154,106,204,115,203,120,153,112"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="264,29,264,19,272,10,287,5,309,3,335,6,349,14,347,18,333,11,309,8,288,10,275,15,269,21,269,29"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1tracing_1_1trace__context.html#a0618b3e17f57071584025d5e47aa0541" title="Create a new root span with a new trace context." alt="" coords="464,58,671,98"/>
+<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="400,113,462,98,464,104,401,118"/>
+<area shape="rect" id="Node000007" href="$namespacekcenon_1_1network.html#a9d2a06a302dea2b45b323b864eacad4a" title=" " alt="" coords="465,123,669,148"/>
+<area shape="poly" id="edge7_Node000003_Node000007" title=" " alt="" coords="400,133,452,133,452,138,400,138"/>
+<area shape="rect" id="Node000008" href="$namespacekcenon_1_1network_1_1tracing.html#a6ab950c88c5666f30b2db30609a6834a" title="Check if tracing is enabled." alt="" coords="476,173,659,213"/>
+<area shape="poly" id="edge8_Node000003_Node000008" title=" " alt="" coords="401,153,464,167,462,172,400,158"/>
+<area shape="rect" id="Node000005" href="$namespacekcenon_1_1network_1_1tracing.html#a933bb00747359508e4c9b490d42c495d" title="Generate a random span ID." alt="" coords="719,26,901,66"/>
+<area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="670,62,705,57,705,62,671,67"/>
+<area shape="rect" id="Node000006" href="$namespacekcenon_1_1network_1_1tracing.html#ab38da93c9d82d6795e6950368611ea35" title="Generate a random trace ID." alt="" coords="719,90,901,130"/>
+<area shape="poly" id="edge6_Node000004_Node000006" title=" " alt="" coords="671,89,705,94,705,99,670,94"/>
+</map>

@@ -1,0 +1,20 @@
+<map id="kcenon::network::core::messaging_quic_server::find_or_create_session" name="kcenon::network::core::messaging_quic_server::find_or_create_session">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,109,188,164"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1metrics_1_1metric__reporter.html#ab0c0481d89ca11f1ed000b0f1af7ea93" title="Report active connections count." alt="" coords="236,69,423,124"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="188,118,222,112,223,118,189,124"/>
+<area shape="rect" id="Node000007" href="$classkcenon_1_1network_1_1metrics_1_1metric__reporter.html#a9a8993fa6f5318ed33b32c30d4602ba4" title="Report a new connection accepted." alt="" coords="236,148,423,203"/>
+<area shape="poly" id="edge7_Node000001_Node000007" title=" " alt="" coords="189,149,223,155,222,160,188,154"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1integration_1_1monitoring__integration__manager.html#a3a3880025d000147e508a14e7391e77c" title="Get the singleton instance." alt="" coords="471,108,680,163"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="423,109,457,114,457,119,423,114"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1integration_1_1monitoring__integration__manager.html#a8c079c0755ccbd9f2b7cb9928a919e3c" title="Report a gauge metric." alt="" coords="471,5,680,60"/>
+<area shape="poly" id="edge4_Node000002_Node000004" title=" " alt="" coords="422,70,457,61,458,66,424,75"/>
+<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="528,108,528,98,536,89,552,83,575,81,603,84,619,92,616,97,602,90,575,87,553,89,539,93,533,100,533,108"/>
+<area shape="rect" id="Node000005" href="$classkcenon_1_1network_1_1integration_1_1monitoring__integration__manager.html#a0f8cb1959ed418ef13ec4b94aa0455dc" title="Get the current monitoring implementation." alt="" coords="728,96,937,151"/>
+<area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="655,58,743,89,741,94,653,63"/>
+<area shape="rect" id="Node000006" href="$classkcenon_1_1network_1_1integration_1_1monitoring__integration__manager_1_1impl.html#a73273ad303eb22a30d5d02dff2ae7839" title=" " alt="" coords="985,96,1216,151"/>
+<area shape="poly" id="edge6_Node000005_Node000006" title=" " alt="" coords="937,121,972,121,972,126,937,126"/>
+<area shape="poly" id="edge8_Node000007_Node000003" title=" " alt="" coords="423,158,457,152,457,157,423,163"/>
+<area shape="rect" id="Node000008" href="$classkcenon_1_1network_1_1integration_1_1monitoring__integration__manager.html#a6049b4de0cac7878938b8a4445415e7e" title="Report a counter metric." alt="" coords="471,187,680,241"/>
+<area shape="poly" id="edge9_Node000007_Node000008" title=" " alt="" coords="423,187,457,193,457,198,423,193"/>
+<area shape="poly" id="edge10_Node000008_Node000005" title=" " alt="" coords="653,184,741,153,743,158,655,189"/>
+</map>

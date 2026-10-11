@@ -1,0 +1,24 @@
+<map id="kcenon::network::per_client_connection_limiter" name="kcenon::network::per_client_connection_limiter">
+<area shape="rect" id="Node000001" title="Per&#45;client connection limiter." alt="" coords="173,756,359,931"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1connection__limiter.html" title="Connection count limiter." alt="" coords="5,433,207,693"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="134,693,152,731,165,750,161,753,148,733,130,695"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="13,298,167,363"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="95,363,99,417,93,417,90,364"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="27,155,153,221"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="93,234,93,298,87,298,87,234"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="111,13,133,78"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="113,66,102,87,94,110,90,139,85,139,89,109,97,84,108,63"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="183,148,327,228"/>
+<area shape="poly" id="edge11_Node000010_Node000005" title=" " alt="" coords="136,65,155,93,179,122,192,135,188,139,175,126,151,96,131,68"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="428,531,512,596"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="461,597,440,645,411,695,371,745,367,742,406,692,435,642,456,595"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="191,291,346,371"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="271,371,269,739,264,739,266,371"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="392,155,471,221"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="428,222,419,246,404,268,384,286,362,300,359,295,381,282,400,265,414,244,423,220"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="366,5,497,85"/>
+<area shape="poly" id="edge8_Node000008_Node000009" title=" " alt="" coords="434,100,434,155,429,155,429,100"/>
+<area shape="poly" id="edge9_Node000007_Node000010" title=" " alt="" coords="258,242,259,266,263,290,257,291,254,267,252,242"/>
+<area shape="rect" id="Node000011" title=" " alt="" coords="251,13,273,78"/>
+<area shape="poly" id="edge10_Node000010_Node000011" title=" " alt="" coords="263,78,261,132,255,132,258,78"/>
+</map>

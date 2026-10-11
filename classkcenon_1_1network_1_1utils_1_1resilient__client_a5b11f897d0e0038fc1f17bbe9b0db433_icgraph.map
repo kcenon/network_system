@@ -1,0 +1,5 @@
+<map id="kcenon::network::utils::resilient_client::disconnect" name="kcenon::network::utils::resilient_client::disconnect">
+<area shape="rect" id="Node000001" title="Disconnects from the server." alt="" coords="252,13,456,53"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1utils_1_1resilient__client.html#a403effb8851feb9c242f22f00ad171ad" title="Destructor &#45; disconnects client if still connected." alt="" coords="5,5,204,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="239,35,204,35,204,30,239,30"/>
+</map>

@@ -1,0 +1,9 @@
+<map id="tcp_example" name="tcp_example">
+<area shape="rect" id="Node000001" title="TCP client example using unified API." alt="" coords="5,42,112,67"/>
+<area shape="rect" id="Node000002" href="$namespacekcenon_1_1network_1_1protocol_1_1tcp.html#a6f2a189b79752abd8896051bbe9620b3" title="Creates and connects a TCP connection in one call." alt="" coords="160,5,351,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="112,44,146,39,147,44,113,49"/>
+<area shape="rect" id="Node000004" href="$unified__client__example_8cpp.html#aebc08fb9515417b9f4cbc95b6e3ac721" title="Protocol&#45;agnostic connection handler." alt="" coords="183,70,327,95"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="113,60,170,68,170,73,112,65"/>
+<area shape="rect" id="Node000003" href="$namespacekcenon_1_1network_1_1protocol_1_1tcp.html#a7b80aa9ba45b81d45e4c27c31015e279" title="Creates a TCP connection (not yet connected)" alt="" coords="399,5,589,45"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="351,23,385,23,385,28,351,28"/>
+</map>

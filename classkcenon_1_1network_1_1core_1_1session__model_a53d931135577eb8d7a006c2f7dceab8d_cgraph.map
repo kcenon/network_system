@@ -1,0 +1,14 @@
+<map id="kcenon::network::core::session_model::send" name="kcenon::network::core::session_model::send">
+<area shape="rect" id="Node000001" title="Sends data through the session." alt="" coords="5,71,172,111"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1Result.html#a7b79908eec88976bed49a6ae14031a50" title=" " alt="" coords="220,53,425,78"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="172,79,206,75,207,81,173,84"/>
+<area shape="rect" id="Node000005" href="$classkcenon_1_1network_1_1Result.html#a2ead1818dc6e48a1e2ebdc18a19f3a27" title=" " alt="" coords="221,102,424,127"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="172,97,208,100,207,106,172,102"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1Result.html#a804e77909e5e6e85b7a36cdf72c9de9e" title=" " alt="" coords="473,5,652,45"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="399,50,459,40,460,45,400,55"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1Result.html#aee9f934d453b9c2f67d003c69cc149f5" title=" " alt="" coords="473,69,652,109"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="426,73,460,76,460,82,425,78"/>
+<area shape="poly" id="edge5_Node000005_Node000004" title=" " alt="" coords="424,101,459,98,460,103,425,107"/>
+<area shape="rect" id="Node000006" href="$classkcenon_1_1network_1_1Result.html#a33707a8b4786fbf68bdebd01a8b17760" title=" " alt="" coords="473,133,652,173"/>
+<area shape="poly" id="edge6_Node000005_Node000006" title=" " alt="" coords="403,125,460,134,460,139,402,130"/>
+</map>

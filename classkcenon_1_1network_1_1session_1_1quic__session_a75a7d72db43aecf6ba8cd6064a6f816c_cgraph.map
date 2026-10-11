@@ -1,0 +1,6 @@
+<map id="kcenon::network::session::quic_session::~quic_session" name="kcenon::network::session::quic_session::~quic_session">
+<area shape="rect" id="Node000001" title="Destructor; closes the session if still active." alt="" coords="5,29,220,69"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1session_1_1quic__session.html#a14964cd8f509c27c705ecb96a783cdda" title="Closes the session (interface version)." alt="" coords="268,29,455,69"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="220,47,254,47,254,52,220,52"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="315,30,312,20,320,10,336,5,361,3,390,6,406,13,404,18,389,11,361,8,337,10,323,15,318,21,320,28"/>
+</map>

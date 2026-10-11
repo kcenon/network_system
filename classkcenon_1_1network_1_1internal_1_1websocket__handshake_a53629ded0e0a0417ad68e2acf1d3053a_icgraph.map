@@ -1,0 +1,5 @@
+<map id="kcenon::network::internal::websocket_handshake::validate_server_response" name="kcenon::network::internal::websocket_handshake::validate_server_response">
+<area shape="rect" id="Node000001" title="Validates a WebSocket handshake response (client&#45;side)." alt="" coords="248,5,437,60"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1internal_1_1websocket__socket.html#a47a418d44a1cad0324df5747e060c7f7" title="Performs WebSocket client handshake (RFC 6455 Section 4.1)." alt="" coords="5,5,200,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="235,35,200,35,200,30,235,30"/>
+</map>

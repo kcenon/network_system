@@ -1,0 +1,36 @@
+<map id="kcenon::network::core::unified_session_manager::impl" name="kcenon::network::core::unified_session_manager::impl">
+<area shape="rect" id="Node000001" title="PIMPL implementation hiding all template&#45;related code." alt="" coords="345,1307,569,1607"/>
+<area shape="rect" id="Node000002" href="$structkcenon_1_1network_1_1core_1_1unified__session__config.html" title="Configuration for unified session management." alt="" coords="5,1040,189,1200"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="169,1198,250,1281,335,1355,331,1359,246,1285,165,1202"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="214,1087,349,1153"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="290,1152,306,1213,333,1282,340,1294,335,1296,328,1284,301,1215,285,1154"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="373,1065,541,1175"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="460,1175,460,1291,455,1291,455,1175"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="418,805,497,870"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="460,870,460,1049,455,1049,455,870"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="387,518,517,598"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="456,612,459,804,454,804,450,612"/>
+<area shape="rect" id="Node000007" href="$classkcenon_1_1network_1_1core_1_1session__handle.html" title="Value&#45;semantic wrapper for type&#45;erased sessions." alt="" coords="537,697,695,977"/>
+<area shape="poly" id="edge6_Node000004_Node000007" title=" " alt="" coords="540,979,498,1052,494,1049,535,976"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="541,511,715,605"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="629,606,625,681,620,681,623,606"/>
+<area shape="rect" id="Node000009" href="$classkcenon_1_1network_1_1core_1_1session__concept.html" title="Type&#45;erased interface for session management." alt="" coords="431,133,590,433"/>
+<area shape="poly" id="edge8_Node000008_Node000009" title=" " alt="" coords="567,433,590,486,595,495,590,498,586,488,562,435"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="615,251,764,316"/>
+<area shape="poly" id="edge9_Node000008_Node000010" title=" " alt="" coords="672,330,650,390,632,458,628,511,623,510,627,457,645,388,667,328"/>
+<area shape="rect" id="Node000011" title=" " alt="" coords="678,5,701,71"/>
+<area shape="poly" id="edge10_Node000010_Node000011" title=" " alt="" coords="692,71,692,234,687,234,687,71"/>
+<area shape="rect" id="Node000012" title=" " alt="" coords="231,243,375,323"/>
+<area shape="poly" id="edge13_Node000012_Node000011" title=" " alt="" coords="678,44,634,52,567,68,492,96,455,114,420,135,395,157,372,181,335,231,330,228,368,177,391,153,417,131,452,109,489,91,566,63,633,46,677,38"/>
+<area shape="rect" id="Node000015" title=" " alt="" coords="755,805,880,870"/>
+<area shape="poly" id="edge16_Node000015_Node000011" title=" " alt="" coords="703,46,742,80,762,104,778,132,809,222,830,315,841,410,846,503,845,590,841,669,828,789,822,788,836,669,840,590,841,503,836,411,824,316,804,223,774,134,758,107,738,83,699,50"/>
+<area shape="poly" id="edge11_Node000004_Node000012" title=" " alt="" coords="304,337,297,629,296,651,297,673,318,761,343,827,373,892,408,976,440,1064,435,1066,403,978,368,894,338,829,313,762,292,674,291,651,292,629,298,337"/>
+<area shape="rect" id="Node000013" title=" " alt="" coords="291,5,314,71"/>
+<area shape="poly" id="edge12_Node000012_Node000013" title=" " alt="" coords="305,71,305,227,300,227,300,71"/>
+<area shape="rect" id="Node000014" title=" " alt="" coords="760,1087,915,1153"/>
+<area shape="poly" id="edge14_Node000001_Node000014" title=" " alt="" coords="819,1154,774,1217,714,1285,651,1337,585,1383,582,1379,648,1333,710,1281,770,1214,815,1151"/>
+<area shape="poly" id="edge15_Node000014_Node000015" title=" " alt="" coords="823,884,838,1087,832,1087,818,884"/>
+<area shape="rect" id="Node000016" title=" " alt="" coords="565,1087,736,1153"/>
+<area shape="poly" id="edge18_Node000016_Node000015" title=" " alt="" coords="794,883,672,1089,667,1086,789,881"/>
+<area shape="poly" id="edge17_Node000001_Node000016" title=" " alt="" coords="635,1154,554,1294,549,1291,630,1151"/>
+</map>

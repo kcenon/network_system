@@ -1,0 +1,8 @@
+<map id="kcenon::network::utils::health_monitor::start_monitoring" name="kcenon::network::utils::health_monitor::start_monitoring">
+<area shape="rect" id="Node000001" title="Starts monitoring the given client." alt="" coords="5,69,172,124"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1integration_1_1thread__integration__manager.html#a90d93374dd61a18d654e2f7cedf38f57" title="Get the singleton instance." alt="" coords="220,29,435,84"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="172,80,206,74,207,80,173,85"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1integration_1_1thread__integration__manager.html#ad6647633afaac5e0770f54123e09ec1a" title="Submit a task to the thread pool." alt="" coords="220,108,435,163"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="173,108,207,113,206,118,172,113"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="281,29,281,19,290,10,305,5,327,3,354,6,369,14,367,18,353,11,327,8,306,10,293,15,286,21,286,29"/>
+</map>

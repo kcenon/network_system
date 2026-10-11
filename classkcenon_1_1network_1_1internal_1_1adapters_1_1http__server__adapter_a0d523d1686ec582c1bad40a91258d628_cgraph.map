@@ -1,0 +1,7 @@
+<map id="kcenon::network::internal::adapters::http_server_adapter::http_server_adapter" name="kcenon::network::internal::adapters::http_server_adapter::http_server_adapter">
+<area shape="rect" id="Node000001" title="Constructs an adapter with a unique server ID." alt="" coords="5,5,224,60"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1internal_1_1adapters_1_1http__server__adapter.html#a2a150628bc89f18b189be199ea1ab8c0" title="Sets up internal HTTP routes to bridge to i_protocol_server callbacks." alt="" coords="272,5,500,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="224,30,259,30,259,35,224,35"/>
+<area shape="rect" id="Node000003" href="$structkcenon_1_1network_1_1internal_1_1http__response.html#a73ca9b2f5b82ae2d33bf4df306eca645" title="Set a header value." alt="" coords="548,13,751,53"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="500,30,534,30,534,35,500,35"/>
+</map>

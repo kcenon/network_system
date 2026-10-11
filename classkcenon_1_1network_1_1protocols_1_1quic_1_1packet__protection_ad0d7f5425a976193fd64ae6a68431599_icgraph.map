@@ -1,0 +1,7 @@
+<map id="kcenon::network::protocols::quic::packet_protection::protect" name="kcenon::network::protocols::quic::packet_protection::protect">
+<area shape="rect" id="Node000001" title="Protect (encrypt) a QUIC packet." alt="" coords="280,30,479,85"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1connection.html#aab062ba7194c739645461e55b8f2740b" title="Build a packet at the given encryption level." alt="" coords="5,5,232,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="266,46,232,42,233,37,266,41"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1internal_1_1quic__socket.html#a8ec598b433e36446190f83740068b81b" title="Build and send a packet with frames." alt="" coords="21,69,216,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="267,74,217,80,216,75,266,69"/>
+</map>

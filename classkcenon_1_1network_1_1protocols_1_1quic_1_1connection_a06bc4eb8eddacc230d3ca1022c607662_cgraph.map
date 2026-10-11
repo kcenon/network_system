@@ -1,0 +1,9 @@
+<map id="kcenon::network::protocols::quic::connection::generate_probe_packets" name="kcenon::network::protocols::quic::connection::generate_probe_packets">
+<area shape="rect" id="Node000001" title="Generate probe packets for PTO (RFC 9002 Section 6.2.4) Sends one or two ack&#45;eliciting packets to pro..." alt="" coords="5,37,208,92"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1quic__crypto.html#a50edbd655637b1d9aadcbe6bf24b359b" title="Get write keys for an encryption level." alt="" coords="256,37,455,92"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="208,62,242,62,242,67,208,67"/>
+<area shape="rect" id="Node000003" href="$namespacekcenon_1_1network_1_1protocols_1_1quic.html#a3366bf6044882f933e0621081d76882a" title="Convert encryption level to string for debugging." alt="" coords="503,5,701,60"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="455,49,489,45,489,50,455,54"/>
+<area shape="rect" id="Node000004" href="$namespacekcenon_1_1network.html#aa32d0dbfdee046c2c0cde3667c5f05a8" title=" " alt="" coords="525,84,679,109"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="455,75,511,82,510,88,455,80"/>
+</map>

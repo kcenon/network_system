@@ -1,0 +1,18 @@
+<map id="kcenon::network::internal::udp_socket" name="kcenon::network::internal::udp_socket">
+<area shape="rect" id="Node000001" title="A lightweight wrapper around asio::ip::udp::socket, enabling asynchronous datagram operations." alt="" coords="279,419,459,759"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,261,192,341"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="147,350,281,491,277,494,143,353"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="217,261,357,341"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="299,341,313,394,316,402,310,403,308,395,294,342"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="240,133,355,199"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="296,212,292,261,287,261,291,212"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="357,5,379,71"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="359,54,329,96,317,119,313,117,324,93,354,51"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="383,133,508,199"/>
+<area shape="poly" id="edge8_Node000008_Node000005" title=" " alt="" coords="382,55,406,93,421,118,416,120,402,96,377,58"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="550,269,634,334"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="573,336,530,396,472,470,468,467,526,393,569,333"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="381,269,526,334"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="447,335,426,404,421,402,441,333"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="451,212,454,268,449,268,445,212"/>
+</map>

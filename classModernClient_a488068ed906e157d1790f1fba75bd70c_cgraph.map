@@ -1,0 +1,5 @@
+<map id="ModernClient::disconnect" name="ModernClient::disconnect">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,20,192,45"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1core_1_1messaging__client.html#a576afebace858acf10fe6db8b7ca6dfe" title="Stops the client and disconnects from the server." alt="" coords="240,5,420,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="192,30,226,30,226,35,192,35"/>
+</map>

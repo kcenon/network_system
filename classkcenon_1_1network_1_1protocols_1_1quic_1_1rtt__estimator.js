@@ -1,0 +1,25 @@
+var classkcenon_1_1network_1_1protocols_1_1quic_1_1rtt__estimator =
+[
+    [ "rtt_estimator", "classkcenon_1_1network_1_1protocols_1_1quic_1_1rtt__estimator.html#aedcbbf6d56dfc82d4316dacc116394ed", null ],
+    [ "rtt_estimator", "classkcenon_1_1network_1_1protocols_1_1quic_1_1rtt__estimator.html#ae697cf04d5e7d5a925c60a68e93ee094", null ],
+    [ "has_sample", "classkcenon_1_1network_1_1protocols_1_1quic_1_1rtt__estimator.html#ac35d0eeaf2b8965f88773a7bdba0ed99", null ],
+    [ "latest_rtt", "classkcenon_1_1network_1_1protocols_1_1quic_1_1rtt__estimator.html#a1c4436ba2016ad0dc28b05b19b255ab5", null ],
+    [ "max_ack_delay", "classkcenon_1_1network_1_1protocols_1_1quic_1_1rtt__estimator.html#ad7fdd033fe85a14542850cb9807befb0", null ],
+    [ "min_rtt", "classkcenon_1_1network_1_1protocols_1_1quic_1_1rtt__estimator.html#a07b96e5eed809dc2e2d65be5715ea8bd", null ],
+    [ "pto", "classkcenon_1_1network_1_1protocols_1_1quic_1_1rtt__estimator.html#a1e37b21780e4d840146b2bea14e0037b", null ],
+    [ "reset", "classkcenon_1_1network_1_1protocols_1_1quic_1_1rtt__estimator.html#ab808587bc99d4e5e380c63896413faeb", null ],
+    [ "rttvar", "classkcenon_1_1network_1_1protocols_1_1quic_1_1rtt__estimator.html#aded9cc465b5ffc3bace394e9ed407394", null ],
+    [ "set_max_ack_delay", "classkcenon_1_1network_1_1protocols_1_1quic_1_1rtt__estimator.html#a7bf88e1a95216a04964bc1102652bcdb", null ],
+    [ "smoothed_rtt", "classkcenon_1_1network_1_1protocols_1_1quic_1_1rtt__estimator.html#abce11b709bdfda09ae0aa270142e278f", null ],
+    [ "update", "classkcenon_1_1network_1_1protocols_1_1quic_1_1rtt__estimator.html#a185dda11b8a5cdf657e6c076880af275", null ],
+    [ "first_sample_", "classkcenon_1_1network_1_1protocols_1_1quic_1_1rtt__estimator.html#ab16424bb0aad033f4a11a5a74189828f", null ],
+    [ "initial_rtt_", "classkcenon_1_1network_1_1protocols_1_1quic_1_1rtt__estimator.html#a70bea4b2176af13768e8ed6c5c67eea7", null ],
+    [ "kDefaultMaxAckDelay", "classkcenon_1_1network_1_1protocols_1_1quic_1_1rtt__estimator.html#ae4fc5e599b184942957ce40a8a6e5139", null ],
+    [ "kGranularity", "classkcenon_1_1network_1_1protocols_1_1quic_1_1rtt__estimator.html#ad2f1137d83324a9e24c6c5f5431d76a0", null ],
+    [ "kInitialRtt", "classkcenon_1_1network_1_1protocols_1_1quic_1_1rtt__estimator.html#a6c272331237f34dcd1214420f8b587e0", null ],
+    [ "latest_rtt_", "classkcenon_1_1network_1_1protocols_1_1quic_1_1rtt__estimator.html#af0cec6c8dc639f360df183fa69e380bc", null ],
+    [ "max_ack_delay_", "classkcenon_1_1network_1_1protocols_1_1quic_1_1rtt__estimator.html#a57c3cd31ae1601d8db1d694c0a46c890", null ],
+    [ "min_rtt_", "classkcenon_1_1network_1_1protocols_1_1quic_1_1rtt__estimator.html#a109552bd5704206623f4bbb39b0d7cf0", null ],
+    [ "rttvar_", "classkcenon_1_1network_1_1protocols_1_1quic_1_1rtt__estimator.html#a13fb87fab8347501f4bc73b28ae610e3", null ],
+    [ "smoothed_rtt_", "classkcenon_1_1network_1_1protocols_1_1quic_1_1rtt__estimator.html#a5582de2353da2931bd267638ead38fda", null ]
+];

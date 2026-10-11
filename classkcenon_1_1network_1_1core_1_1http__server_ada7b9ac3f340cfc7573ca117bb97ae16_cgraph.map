@@ -1,0 +1,20 @@
+<map id="kcenon::network::core::http_server::build_error_response" name="kcenon::network::core::http_server::build_error_response">
+<area shape="rect" id="Node000001" title="Build error response using registered handlers." alt="" coords="5,127,172,182"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1internal_1_1http__error__response.html#a8e87c39930786cbcc495d5f7b880714b" title="Build HTML format error response." alt="" coords="220,87,408,142"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="172,137,206,131,207,136,173,143"/>
+<area shape="rect" id="Node000007" href="$classkcenon_1_1network_1_1internal_1_1http__error__response.html#a3fa582522833af04174cd5bdd47da40f" title="Build JSON format error response (RFC 7807)" alt="" coords="220,166,408,221"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="173,166,207,172,206,178,172,172"/>
+<area shape="rect" id="Node000003" href="$namespacekcenon_1_1network_1_1internal.html#acffcd4582018897a5eb5a29ee35e5d5d" title=" " alt="" coords="479,5,667,45"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="377,85,455,55,480,47,482,52,457,60,379,90"/>
+<area shape="rect" id="Node000004" href="$namespacekcenon_1_1network_1_1internal.html#a0c207cf61ad15c753716bd41d3f989b5" title="Get status text for HTTP error code." alt="" coords="479,69,667,109"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="408,103,465,97,465,103,408,108"/>
+<area shape="rect" id="Node000005" href="$structkcenon_1_1network_1_1internal_1_1http__response.html#a393a6407d4261e3bd704ca6fcaef2baa" title="Set body from string." alt="" coords="456,133,689,173"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="409,126,443,131,442,136,408,131"/>
+<area shape="rect" id="Node000006" href="$structkcenon_1_1network_1_1internal_1_1http__response.html#a73ca9b2f5b82ae2d33bf4df306eca645" title="Set a header value." alt="" coords="471,197,674,237"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="387,140,409,151,433,168,457,183,475,190,473,195,455,188,430,172,407,156,384,145"/>
+<area shape="poly" id="edge8_Node000007_Node000004" title=" " alt="" coords="382,164,407,151,430,135,455,119,473,111,475,116,457,124,433,139,409,156,384,168"/>
+<area shape="poly" id="edge9_Node000007_Node000005" title=" " alt="" coords="408,176,442,171,443,176,409,181"/>
+<area shape="poly" id="edge10_Node000007_Node000006" title=" " alt="" coords="408,199,458,204,457,209,408,205"/>
+<area shape="rect" id="Node000008" href="$namespacekcenon_1_1network_1_1internal.html#ae98d3cb4c3b811402b74b21cae38ec82" title=" " alt="" coords="479,261,667,301"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="381,218,457,247,483,255,481,260,455,252,379,223"/>
+</map>

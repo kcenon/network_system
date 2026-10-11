@@ -1,0 +1,5 @@
+<map id="kcenon::network::protocol::tcp::listen" name="kcenon::network::protocol::tcp::listen">
+<area shape="rect" id="Node000001" title="Creates and starts a TCP listener in one call." alt="" coords="5,5,196,45"/>
+<area shape="rect" id="Node000002" href="$namespacekcenon_1_1network_1_1protocol_1_1tcp.html#a43b79dd465681fc517ae8f28e2d39fdd" title="Creates a TCP listener (not yet listening)" alt="" coords="244,5,435,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="196,23,230,23,230,28,196,28"/>
+</map>

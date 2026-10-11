@@ -1,0 +1,18 @@
+<map id="kcenon::network::protocols::quic::replay_filter" name="kcenon::network::protocols::quic::replay_filter">
+<area shape="rect" id="Node000001" title="Anti&#45;replay protection for 0&#45;RTT data." alt="" coords="167,733,357,913"/>
+<area shape="rect" id="Node000002" href="$structkcenon_1_1network_1_1protocols_1_1quic_1_1replay__filter_1_1config.html" title="Configuration for the replay filter." alt="" coords="5,566,196,666"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="141,665,184,718,180,722,137,668"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="220,583,304,649"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="265,649,265,717,259,717,259,649"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="328,561,473,671"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="366,673,334,721,329,718,362,670"/>
+<area shape="rect" id="Node000005" href="$structkcenon_1_1network_1_1protocols_1_1quic_1_1replay__filter_1_1nonce__entry.html" title=" " alt="" coords="403,419,625,499"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="488,501,452,549,447,546,483,497"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="420,261,579,327"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="505,327,512,402,506,402,500,327"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="313,133,435,199"/>
+<area shape="poly" id="edge8_Node000004_Node000007" title=" " alt="" coords="370,213,355,351,356,407,363,463,386,560,381,562,358,464,351,407,350,351,365,212"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="417,207,470,259,466,263,413,211"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="363,5,385,71"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="377,71,377,117,371,117,371,71"/>
+</map>

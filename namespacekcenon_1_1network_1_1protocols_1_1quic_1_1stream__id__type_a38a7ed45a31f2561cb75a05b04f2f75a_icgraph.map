@@ -1,0 +1,5 @@
+<map id="kcenon::network::protocols::quic::stream_id_type::is_server_initiated" name="kcenon::network::protocols::quic::stream_id_type::is_server_initiated">
+<area shape="rect" id="Node000001" title="Check if stream is server&#45;initiated." alt="" coords="252,5,451,60"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1stream__manager.html#ad6523805cf53ea6b7607456d6bbab6eb" title=" " alt="" coords="5,5,204,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="238,35,204,35,204,30,238,30"/>
+</map>

@@ -1,0 +1,13 @@
+<map id="src/internal/http/http_error.h" name="src/internal/http/http_error.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="306,5,461,45"/>
+<area shape="rect" id="Node000002" href="$http__server_8h.html" title=" " alt="" coords="209,93,363,133"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="353,56,309,95,306,91,350,52"/>
+<area shape="rect" id="Node000006" href="$http__error_8cpp.html" title=" " alt="" coords="387,101,577,126"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="418,53,470,98,467,102,414,57"/>
+<area shape="rect" id="Node000003" href="$simple__http__server_8cpp.html" title=" " alt="" coords="5,181,172,221"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="231,141,133,184,131,179,229,136"/>
+<area shape="rect" id="Node000004" href="$http__server__adapter_8cpp.html" title=" " alt="" coords="196,181,376,221"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="289,147,289,181,283,181,283,147"/>
+<area shape="rect" id="Node000005" href="$http__server_8cpp.html" title=" " alt="" coords="400,189,575,214"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="344,136,462,186,459,191,342,141"/>
+</map>

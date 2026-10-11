@@ -1,0 +1,9 @@
+<map id="kcenon::network::protocol::websocket::listen" name="kcenon::network::protocol::websocket::listen">
+<area shape="rect" id="Node000001" title="Creates and starts a WebSocket listener in one call." alt="" coords="256,55,447,95"/>
+<area shape="rect" id="Node000002" href="$unified__server__example_8cpp.html#a386e42fafa3ffeb7997533697df1c7e1" title="Example of protocol selection at runtime." alt="" coords="47,5,166,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="252,55,161,33,162,28,253,50"/>
+<area shape="rect" id="Node000003" href="$namespacekcenon_1_1network_1_1protocol_1_1websocket.html#a60bf96d66949e8f5f4049c9c0b271f24" title="Creates and starts a WebSocket listener on a specific port." alt="" coords="11,55,202,95"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="242,78,202,78,202,73,242,73"/>
+<area shape="rect" id="Node000004" href="$unified__server__example_8cpp.html#ae0cfa9a2ad0652f6a234faac817617b0" title="WebSocket server example using unified API." alt="" coords="5,120,208,145"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="253,101,162,123,161,117,252,96"/>
+</map>

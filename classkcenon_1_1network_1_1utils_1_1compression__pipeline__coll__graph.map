@@ -1,0 +1,11 @@
+<map id="kcenon::network::utils::compression_pipeline" name="kcenon::network::utils::compression_pipeline">
+<area shape="rect" id="Node000001" title="Message compression and decompression pipeline." alt="" coords="37,583,255,823"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="45,425,247,520"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="149,520,149,566,143,566,143,520"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1utils_1_1compression__pipeline_1_1impl.html" title=" " alt="" coords="5,133,223,333"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="130,333,140,409,135,409,125,334"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="247,201,397,266"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="292,279,183,427,178,424,288,276"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="311,5,333,71"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="325,71,325,184,319,184,319,71"/>
+</map>

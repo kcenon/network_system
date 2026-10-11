@@ -1,0 +1,7 @@
+<map id="include/kcenon/network/facade/http_facade.h" name="include/kcenon/network/facade/http_facade.h">
+<area shape="rect" id="Node000001" title="Simplified facade for creating HTTP clients and servers." alt="" coords="103,5,280,45"/>
+<area shape="rect" id="Node000002" href="$http__facade__example_8cpp.html" title="Demonstrates HTTP facade for simplified server/client creation." alt="" coords="5,93,172,133"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="160,56,113,95,110,91,156,52"/>
+<area shape="rect" id="Node000003" href="$http__facade_8cpp.html" title=" " alt="" coords="197,101,394,126"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="227,52,283,98,279,102,223,56"/>
+</map>

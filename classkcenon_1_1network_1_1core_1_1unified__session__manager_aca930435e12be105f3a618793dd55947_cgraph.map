@@ -1,0 +1,5 @@
+<map id="kcenon::network::core::unified_session_manager::can_accept_connection" name="kcenon::network::core::unified_session_manager::can_accept_connection">
+<area shape="rect" id="Node000001" title="Check if new connection can be accepted." alt="" coords="5,5,200,60"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1core_1_1unified__session__manager_1_1impl.html#ac1c689041f5050db1496f22a5c805fb4" title=" " alt="" coords="248,5,467,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="200,30,235,30,235,35,200,35"/>
+</map>

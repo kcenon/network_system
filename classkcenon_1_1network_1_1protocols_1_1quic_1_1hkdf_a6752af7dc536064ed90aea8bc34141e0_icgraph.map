@@ -1,0 +1,12 @@
+<map id="kcenon::network::protocols::quic::hkdf::expand_label" name="kcenon::network::protocols::quic::hkdf::expand_label">
+<area shape="rect" id="Node000001" title="HKDF&#45;Expand&#45;Label function (TLS 1.3 style)" alt="" coords="557,77,756,117"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1initial__keys.html#aba7f6695801373b00ea1eb77831e5064" title="Derive client and server initial keys." alt="" coords="297,13,496,53"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="561,76,478,55,479,50,562,71"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1initial__keys.html#a0dec59e00aa6d65e8b116c9d47d46725" title="Derive keys from an initial secret." alt="" coords="284,77,509,117"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="544,99,510,99,510,94,544,94"/>
+<area shape="rect" id="Node000005" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1quic__crypto.html#a0874bb3562d790b7e188c0e443cc4fbb" title="Perform a key update (1&#45;RTT only)" alt="" coords="5,109,236,149"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="566,122,510,131,368,139,236,138,236,132,367,134,509,126,565,117"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1quic__crypto.html#adbd8daf4cf209111555af502d4443a4c" title="Derive initial secrets from destination connection ID." alt="" coords="21,5,220,60"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="283,35,220,35,220,30,283,30"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="271,114,237,118,236,113,270,109"/>
+</map>

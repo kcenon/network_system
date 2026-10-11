@@ -1,0 +1,9 @@
+<map id="src/internal/udp/udp_socket.h" name="src/internal/udp/udp_socket.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="176,5,327,45"/>
+<area shape="rect" id="Node000002" href="$messaging__udp__client_8cpp.html" title=" " alt="" coords="5,93,153,133"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="202,54,118,96,116,91,200,49"/>
+<area shape="rect" id="Node000003" href="$messaging__udp__server_8cpp.html" title=" " alt="" coords="177,93,325,133"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="254,59,254,93,249,93,249,59"/>
+<area shape="rect" id="Node000004" href="$udp__socket_8cpp.html" title=" " alt="" coords="349,101,548,126"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="308,48,423,98,421,103,306,53"/>
+</map>

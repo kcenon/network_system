@@ -1,0 +1,18 @@
+<map id="kcenon::network::initialize" name="kcenon::network::initialize">
+<area shape="rect" id="Node000001" title="Initialize the network system with custom settings." alt="" coords="5,159,200,184"/>
+<area shape="rect" id="Node000002" href="$namespacekcenon_1_1network.html#a9d2a06a302dea2b45b323b864eacad4a" title=" " alt="" coords="253,5,457,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="113,157,166,101,204,68,247,41,266,33,268,37,249,46,207,73,169,105,116,160"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1core_1_1network__context.html#ae0e066c4c55aef2c848e60b572a616f7" title="Get the singleton instance." alt="" coords="254,55,457,95"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="129,156,247,105,269,97,271,102,249,110,131,161"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1integration_1_1logger__integration__manager.html#a0d0cab3f837ef12b67603ddc15c32e39" title="Get the singleton instance." alt="" coords="248,144,463,199"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="200,169,234,169,234,174,200,174"/>
+<area shape="rect" id="Node000006" href="$namespacekcenon_1_1network.html#aa32d0dbfdee046c2c0cde3667c5f05a8" title=" " alt="" coords="278,223,433,248"/>
+<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="151,181,249,207,287,217,286,222,247,213,149,187"/>
+<area shape="rect" id="Node000007" href="$classkcenon_1_1network_1_1integration_1_1logger__integration__manager.html#a5c23879341a2ec7db8b428680e040b5f" title="Set the logger implementation." alt="" coords="248,272,463,327"/>
+<area shape="poly" id="edge7_Node000001_Node000007" title=" " alt="" coords="123,182,178,218,249,258,262,264,260,269,247,263,176,223,120,186"/>
+<area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="307,144,307,134,316,125,332,119,355,117,384,120,400,128,397,133,382,126,355,123,333,125,318,129,312,136,312,144"/>
+<area shape="rect" id="Node000005" href="$classkcenon_1_1network_1_1integration_1_1logger__integration__manager.html#a2013b915d54feceb3a45f40a6f5a2408" title=" " alt="" coords="511,144,725,199"/>
+<area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="463,169,497,169,497,174,463,174"/>
+<area shape="rect" id="Node000008" href="$classkcenon_1_1network_1_1integration_1_1logger__integration__manager_1_1impl.html#a740140066b356599ebbd3a241d457288" title=" " alt="" coords="511,272,725,327"/>
+<area shape="poly" id="edge8_Node000007_Node000008" title=" " alt="" coords="463,297,497,297,497,302,463,302"/>
+</map>

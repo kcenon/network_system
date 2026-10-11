@@ -1,0 +1,16 @@
+<map id="kcenon::network::integration::NetworkSystemBridge::with_thread_system" name="kcenon::network::integration::NetworkSystemBridge::with_thread_system">
+<area shape="rect" id="Node000001" title="Create bridge with thread_system integration." alt="" coords="5,91,217,145"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1integration_1_1ThreadPoolBridge.html#a01b90c899058c1fa7b854dfa6ae33df3" title="Create bridge from thread_system." alt="" coords="265,91,475,145"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="218,115,252,115,252,121,218,121"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1integration_1_1ThreadPoolBridge.html#a32ede240b01a88256b01e8ffb7dbbc63" title="Construct bridge with custom thread pool." alt="" coords="525,26,735,66"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="469,88,543,67,545,72,470,93"/>
+<area shape="rect" id="Node000006" href="$classkcenon_1_1network_1_1integration_1_1thread__integration__manager.html#ad6f8a98e075e47accb0a849e11f61fde" title="Get the current thread pool." alt="" coords="523,91,737,145"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="475,115,509,115,509,121,475,121"/>
+<area shape="rect" id="Node000007" href="$classkcenon_1_1network_1_1integration_1_1thread__integration__manager.html#a90d93374dd61a18d654e2f7cedf38f57" title="Get the singleton instance." alt="" coords="523,193,737,248"/>
+<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="441,143,548,186,546,191,439,148"/>
+<area shape="rect" id="Node000004" href="$namespacekcenon_1_1network.html#aa32d0dbfdee046c2c0cde3667c5f05a8" title=" " alt="" coords="842,5,997,31"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="735,33,828,24,829,29,735,39"/>
+<area shape="rect" id="Node000005" href="$classkcenon_1_1network_1_1integration_1_1ThreadPoolBridge.html#a99ba706175423128b31aa6e4b6fd7604" title=" " alt="" coords="785,55,1053,95"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="735,54,772,58,771,63,735,59"/>
+<area shape="poly" id="edge7_Node000007_Node000007" title=" " alt="" coords="580,193,580,183,589,174,606,169,630,167,659,170,676,178,673,182,658,175,630,172,607,174,592,179,585,185,585,193"/>
+</map>

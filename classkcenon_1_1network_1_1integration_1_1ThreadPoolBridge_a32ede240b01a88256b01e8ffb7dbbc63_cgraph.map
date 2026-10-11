@@ -1,0 +1,7 @@
+<map id="kcenon::network::integration::ThreadPoolBridge::create" name="kcenon::network::integration::ThreadPoolBridge::create">
+<area shape="rect" id="Node000001" title="Construct bridge with custom thread pool." alt="" coords="5,27,215,67"/>
+<area shape="rect" id="Node000002" href="$namespacekcenon_1_1network.html#aa32d0dbfdee046c2c0cde3667c5f05a8" title=" " alt="" coords="319,5,474,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="214,34,305,25,306,30,215,39"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1integration_1_1ThreadPoolBridge.html#a99ba706175423128b31aa6e4b6fd7604" title=" " alt="" coords="263,55,531,95"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="215,55,249,58,249,64,214,60"/>
+</map>

@@ -1,0 +1,30 @@
+<map id="kcenon::network::protocols::quic::connection::receive_packet" name="kcenon::network::protocols::quic::connection::receive_packet">
+<area shape="rect" id="Node000001" title="Receive and process a packet." alt="" coords="5,242,248,282"/>
+<area shape="rect" id="Node000002" href="$namespacekcenon_1_1network_1_1protocols_1_1quic.html#ad313fceddb3a82f2aec8e7807c20a1a1" title="Convert connection state to string." alt="" coords="300,5,499,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="139,240,200,159,244,112,294,71,303,65,306,69,298,75,248,116,204,163,143,243"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1tracing_1_1trace__context.html#a0618b3e17f57071584025d5e47aa0541" title="Create a new root span with a new trace context." alt="" coords="296,85,503,125"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="148,240,211,188,252,159,295,134,310,127,312,132,297,139,255,164,214,192,151,244"/>
+<area shape="rect" id="Node000006" href="$namespacekcenon_1_1network.html#a9d2a06a302dea2b45b323b864eacad4a" title=" " alt="" coords="297,149,501,175"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="165,240,226,211,295,183,322,176,323,181,297,189,228,216,168,244"/>
+<area shape="rect" id="Node000007" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1packet__parser.html#a1eedccd1e3de7f1368ca30ffd253c2b8" title="Check if a packet has a long header." alt="" coords="300,199,499,253"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="248,243,286,238,287,244,249,249"/>
+<area shape="rect" id="Node000008" href="$namespacekcenon_1_1network_1_1tracing.html#a6ab950c88c5666f30b2db30609a6834a" title="Check if tracing is enabled." alt="" coords="308,278,491,318"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="249,275,295,282,294,287,248,281"/>
+<area shape="rect" id="Node000009" href="$namespacekcenon_1_1network.html#aa32d0dbfdee046c2c0cde3667c5f05a8" title=" " alt="" coords="799,423,953,448"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="172,280,230,304,297,327,422,359,522,376,623,390,751,410,792,418,791,423,750,415,622,395,521,382,421,364,295,333,228,309,170,285"/>
+<area shape="rect" id="Node000010" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1packet__parser.html#a864235b7100202a8613d5e5dde108528" title="Parse a long header packet." alt="" coords="299,415,499,469"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="160,280,347,405,344,409,157,285"/>
+<area shape="rect" id="Node000013" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1packet__parser.html#a9991c8d8f06247c78ad8d9ccf2c4bd31" title="Parse a short header packet." alt="" coords="551,572,751,627"/>
+<area shape="poly" id="edge14_Node000001_Node000013" title=" " alt="" coords="140,281,164,322,199,375,244,431,298,479,355,513,417,540,479,561,538,577,537,582,478,567,415,545,352,518,294,483,240,434,194,378,159,325,136,283"/>
+<area shape="rect" id="Node000004" href="$namespacekcenon_1_1network_1_1tracing.html#a933bb00747359508e4c9b490d42c495d" title="Generate a random span ID." alt="" coords="559,53,742,93"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="503,89,545,83,546,89,503,94"/>
+<area shape="rect" id="Node000005" href="$namespacekcenon_1_1network_1_1tracing.html#ab38da93c9d82d6795e6950368611ea35" title="Generate a random trace ID." alt="" coords="559,117,742,157"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="503,115,546,121,545,126,503,120"/>
+<area shape="poly" id="edge12_Node000010_Node000009" title=" " alt="" coords="499,431,551,429,651,427,751,429,785,429,785,435,751,434,651,432,551,434,500,437"/>
+<area shape="rect" id="Node000011" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1varint.html#a900942fa244ad1d31b4a56c74347d3ca" title="Decode variable&#45;length integer from buffer." alt="" coords="551,443,750,483"/>
+<area shape="poly" id="edge10_Node000010_Node000011" title=" " alt="" coords="500,448,538,451,537,456,499,453"/>
+<area shape="rect" id="Node000012" href="$structkcenon_1_1network_1_1protocols_1_1quic_1_1long__header.html#a7fef73929d12a9baee6fcb9c334950b0" title="Get the packet type from first byte." alt="" coords="551,507,750,547"/>
+<area shape="poly" id="edge13_Node000010_Node000012" title=" " alt="" coords="477,467,552,493,574,500,573,506,550,498,476,472"/>
+<area shape="poly" id="edge11_Node000011_Node000009" title=" " alt="" coords="750,448,785,444,786,449,751,454"/>
+<area shape="poly" id="edge15_Node000013_Node000009" title=" " alt="" coords="727,570,749,557,780,533,809,507,854,457,858,461,813,511,784,538,752,562,730,574"/>
+</map>
