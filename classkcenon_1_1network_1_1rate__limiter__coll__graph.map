@@ -1,0 +1,21 @@
+<map id="kcenon::network::rate_limiter" name="kcenon::network::rate_limiter">
+<area shape="rect" id="Node000001" title="Token bucket rate limiter." alt="" coords="220,563,376,843"/>
+<area shape="rect" id="Node000002" href="$structkcenon_1_1network_1_1rate__limiter__config.html" title="Configuration for rate limiter." alt="" coords="5,340,207,500"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="162,499,213,572,208,575,158,502"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="231,387,365,453"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="301,453,301,546,295,546,295,453"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="389,365,548,475"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="438,477,387,561,382,558,433,474"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="288,165,367,231"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="350,229,428,350,423,353,345,232"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="262,5,393,85"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="330,100,330,165,325,165,325,100"/>
+<area shape="rect" id="Node000007" href="$structkcenon_1_1network_1_1rate__limiter_1_1bucket.html" title=" " alt="" coords="391,148,547,248"/>
+<area shape="poly" id="edge6_Node000004_Node000007" title=" " alt="" coords="471,248,471,349,466,349,466,248"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="571,158,715,238"/>
+<area shape="poly" id="edge7_Node000004_Node000008" title=" " alt="" coords="607,250,553,318,514,367,510,363,549,314,602,247"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="593,13,616,78"/>
+<area shape="poly" id="edge8_Node000008_Node000009" title=" " alt="" coords="608,78,614,123,620,142,615,144,609,125,602,79"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="669,13,692,78"/>
+<area shape="poly" id="edge9_Node000008_Node000010" title=" " alt="" coords="675,79,660,143,654,141,670,77"/>
+</map>

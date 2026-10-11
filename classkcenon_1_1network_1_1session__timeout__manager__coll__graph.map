@@ -1,0 +1,9 @@
+<map id="kcenon::network::session_timeout_manager" name="kcenon::network::session_timeout_manager">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,419,216,559"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="11,276,211,356"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="113,356,113,402,108,402,108,356"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="48,133,173,199"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="113,212,113,276,108,276,108,212"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="99,5,122,71"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="113,71,113,117,108,117,108,71"/>
+</map>

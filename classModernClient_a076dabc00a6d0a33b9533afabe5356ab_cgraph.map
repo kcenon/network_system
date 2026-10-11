@@ -1,0 +1,15 @@
+<map id="ModernClient::send_batch" name="ModernClient::send_batch">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,95,153,135"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1core_1_1messaging__client.html#a6d7784131401630ba49355981d5ce202" title="Sends data to the connected server." alt="" coords="201,87,384,142"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="154,112,188,112,188,117,154,117"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1tracing_1_1trace__context.html#a0618b3e17f57071584025d5e47aa0541" title="Create a new root span with a new trace context." alt="" coords="432,37,639,77"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="383,91,436,78,438,83,385,96"/>
+<area shape="rect" id="Node000006" href="$namespacekcenon_1_1network.html#a9d2a06a302dea2b45b323b864eacad4a" title=" " alt="" coords="433,102,637,127"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="384,112,420,112,420,117,384,117"/>
+<area shape="rect" id="Node000007" href="$namespacekcenon_1_1network_1_1tracing.html#a6ab950c88c5666f30b2db30609a6834a" title="Check if tracing is enabled." alt="" coords="444,152,627,192"/>
+<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="385,134,438,146,436,151,383,139"/>
+<area shape="rect" id="Node000004" href="$namespacekcenon_1_1network_1_1tracing.html#a933bb00747359508e4c9b490d42c495d" title="Generate a random span ID." alt="" coords="687,5,869,45"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="638,41,673,36,673,42,639,46"/>
+<area shape="rect" id="Node000005" href="$namespacekcenon_1_1network_1_1tracing.html#ab38da93c9d82d6795e6950368611ea35" title="Generate a random trace ID." alt="" coords="687,69,869,109"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="639,68,673,73,673,78,638,74"/>
+</map>

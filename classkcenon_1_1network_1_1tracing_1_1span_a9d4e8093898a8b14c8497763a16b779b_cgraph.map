@@ -1,0 +1,13 @@
+<map id="kcenon::network::tracing::span::~span" name="kcenon::network::tracing::span::~span">
+<area shape="rect" id="Node000001" title="Destructor &#45; automatically ends the span if not ended." alt="" coords="5,117,188,157"/>
+<area shape="rect" id="Node000002" href="$structkcenon_1_1network_1_1tracing_1_1span_1_1impl.html#aea28950e53e18527546e348bce93f5a9" title=" " alt="" coords="236,117,419,157"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="188,134,222,134,222,139,188,139"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1tracing_1_1trace__context.html#a488abd0c09849abe8d471a0596683411" title="Clear the current thread&#45;local trace context." alt="" coords="475,5,658,60"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="370,114,466,70,483,63,485,68,468,75,372,119"/>
+<area shape="rect" id="Node000004" href="$namespacekcenon_1_1network_1_1tracing.html#aaee7fd886495a1ab56c80c4641d6a520" title="Export a completed span." alt="" coords="475,85,658,125"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="418,122,461,116,462,121,419,127"/>
+<area shape="rect" id="Node000005" href="$classkcenon_1_1network_1_1tracing_1_1trace__context.html#aa41495d1265f0e44f95b8340421fff17" title="Check if this context is valid." alt="" coords="475,149,658,189"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="419,146,462,152,461,157,418,151"/>
+<area shape="rect" id="Node000006" href="$classkcenon_1_1network_1_1tracing_1_1trace__context.html#ac0651d1ed2f88f140f9b3747f5534346" title="Set the current thread&#45;local trace context." alt="" coords="467,213,667,253"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="370,154,468,198,488,206,486,211,466,203,367,159"/>
+</map>

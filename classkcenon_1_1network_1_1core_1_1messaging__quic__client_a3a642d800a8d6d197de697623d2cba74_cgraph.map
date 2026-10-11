@@ -1,0 +1,5 @@
+<map id="kcenon::network::core::messaging_quic_client::alpn_protocol" name="kcenon::network::core::messaging_quic_client::alpn_protocol">
+<area shape="rect" id="Node000001" title="Gets the negotiated ALPN protocol (interface version)." alt="" coords="5,5,184,60"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1core_1_1messaging__quic__client.html#ae1b3e9cd744d35dc06eed7986427cd64" title="Get the internal socket with mutex protection." alt="" coords="232,5,411,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="185,30,218,30,218,35,185,35"/>
+</map>

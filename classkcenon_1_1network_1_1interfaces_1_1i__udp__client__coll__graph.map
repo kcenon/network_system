@@ -1,0 +1,5 @@
+<map id="kcenon::network::interfaces::i_udp_client" name="kcenon::network::interfaces::i_udp_client">
+<area shape="rect" id="Node000001" title="Interface for UDP client components." alt="" coords="5,273,200,453"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1interfaces_1_1i__network__component.html" title="Base interface for all network components." alt="" coords="5,5,200,225"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="105,239,105,273,100,273,100,239"/>
+</map>

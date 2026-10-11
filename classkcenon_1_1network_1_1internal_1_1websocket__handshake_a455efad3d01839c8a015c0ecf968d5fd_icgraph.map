@@ -1,0 +1,5 @@
+<map id="kcenon::network::internal::websocket_handshake::create_client_handshake" name="kcenon::network::internal::websocket_handshake::create_client_handshake">
+<area shape="rect" id="Node000001" title="Creates a WebSocket handshake request (client&#45;side)." alt="" coords="248,5,436,60"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1internal_1_1websocket__socket.html#a47a418d44a1cad0324df5747e060c7f7" title="Performs WebSocket client handshake (RFC 6455 Section 4.1)." alt="" coords="5,5,200,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="234,35,200,35,200,30,234,30"/>
+</map>

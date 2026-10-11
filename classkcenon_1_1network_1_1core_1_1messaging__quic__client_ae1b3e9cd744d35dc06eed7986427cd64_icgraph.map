@@ -1,0 +1,14 @@
+<map id="kcenon::network::core::messaging_quic_client::get_socket" name="kcenon::network::core::messaging_quic_client::get_socket">
+<area shape="rect" id="Node000001" title="Get the internal socket with mutex protection." alt="" coords="548,84,727,139"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1core_1_1messaging__quic__client.html#a3a642d800a8d6d197de697623d2cba74" title="Gets the negotiated ALPN protocol (interface version)." alt="" coords="317,5,496,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="543,82,486,63,488,58,544,77"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1core_1_1messaging__quic__client.html#a3a7dea59ac2e7e7e1eec5cef17b265fa" title="Checks if TLS handshake is complete (interface version)." alt="" coords="313,84,500,139"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="534,114,500,114,500,109,534,109"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1core_1_1messaging__quic__client.html#addddeb41a6c308806e388693b694b8f1" title="Get connection statistics." alt="" coords="317,187,496,241"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="564,147,470,189,468,184,562,142"/>
+<area shape="poly" id="edge6_Node000004_Node000004" title=" " alt="" coords="443,176,430,168,407,165,387,167,375,172,369,178,369,187,364,187,364,176,372,168,386,162,407,160,432,163,446,171"/>
+<area shape="rect" id="Node000005" href="$classQuicClientDemo.html#a2950f6d0113f0a3c3117fa505cccb140" title=" " alt="" coords="108,201,265,227"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="303,217,266,217,266,211,303,211"/>
+<area shape="rect" id="Node000006" href="$quic__client__example_8cpp.html#a0ddf1224851353fc92bfbff6f499fa97" title=" " alt="" coords="5,201,60,227"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="94,217,60,217,60,211,94,211"/>
+</map>

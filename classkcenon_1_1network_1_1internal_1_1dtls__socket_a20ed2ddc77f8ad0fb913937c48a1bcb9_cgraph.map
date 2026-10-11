@@ -1,0 +1,9 @@
+<map id="kcenon::network::internal::dtls_socket::create" name="kcenon::network::internal::dtls_socket::create">
+<area shape="rect" id="Node000001" title="Constructs a dtls_socket with an existing UDP socket." alt="" coords="5,63,193,103"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1internal_1_1dtls__socket.html#a223b09ad98316ccde0c9a2a1d56f4da0" title=" " alt="" coords="241,5,429,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="182,60,239,46,240,51,183,65"/>
+<area shape="rect" id="Node000003" href="$namespacekcenon_1_1network.html#aa32d0dbfdee046c2c0cde3667c5f05a8" title=" " alt="" coords="258,70,413,95"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="194,80,244,80,244,85,194,85"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1internal_1_1dtls__socket.html#abd35cc5f7d785c15572017323a08ef04" title="Provides direct access to the underlying UDP socket." alt="" coords="241,120,429,160"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="183,100,240,114,239,119,182,105"/>
+</map>

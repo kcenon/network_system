@@ -1,0 +1,5 @@
+<map id="kcenon::network::internal::websocket_protocol::set_ping_callback" name="kcenon::network::internal::websocket_protocol::set_ping_callback">
+<area shape="rect" id="Node000001" title="Sets the callback for ping frames." alt="" coords="328,5,516,60"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1internal_1_1websocket__socket.html#a7392c82d9efb9c328b9d512e2f399d1d" title="Constructs a websocket_socket wrapping an existing tcp_socket." alt="" coords="5,13,280,53"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="314,35,280,35,280,30,314,30"/>
+</map>

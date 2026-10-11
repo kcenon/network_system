@@ -1,0 +1,15 @@
+<map id="QuicClientDemo::demo_send_default_stream" name="QuicClientDemo::demo_send_default_stream">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,95,179,135"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1core_1_1messaging__quic__client.html#a740d75052db8a3f7b1675301b22025d0" title="Send data on the default stream (stream 0)." alt="" coords="227,87,405,142"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="179,112,213,112,213,117,179,117"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1tracing_1_1trace__context.html#a0618b3e17f57071584025d5e47aa0541" title="Create a new root span with a new trace context." alt="" coords="453,37,660,77"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="405,91,458,78,459,83,406,96"/>
+<area shape="rect" id="Node000006" href="$namespacekcenon_1_1network.html#a9d2a06a302dea2b45b323b864eacad4a" title=" " alt="" coords="455,102,659,127"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="406,112,441,112,441,117,406,117"/>
+<area shape="rect" id="Node000007" href="$namespacekcenon_1_1network_1_1tracing.html#a6ab950c88c5666f30b2db30609a6834a" title="Check if tracing is enabled." alt="" coords="465,152,648,192"/>
+<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="406,133,459,146,458,151,405,139"/>
+<area shape="rect" id="Node000004" href="$namespacekcenon_1_1network_1_1tracing.html#a933bb00747359508e4c9b490d42c495d" title="Generate a random span ID." alt="" coords="708,5,891,45"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="660,41,694,36,695,42,660,46"/>
+<area shape="rect" id="Node000005" href="$namespacekcenon_1_1network_1_1tracing.html#ab38da93c9d82d6795e6950368611ea35" title="Generate a random trace ID." alt="" coords="708,69,891,109"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="660,68,695,73,694,78,660,74"/>
+</map>

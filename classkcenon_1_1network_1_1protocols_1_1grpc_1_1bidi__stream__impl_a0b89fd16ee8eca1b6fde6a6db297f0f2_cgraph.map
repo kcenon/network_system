@@ -1,0 +1,7 @@
+<map id="kcenon::network::protocols::grpc::bidi_stream_impl::write" name="kcenon::network::protocols::grpc::bidi_stream_impl::write">
+<area shape="rect" id="Node000001" title="Write message to stream." alt="" coords="5,27,225,67"/>
+<area shape="rect" id="Node000002" href="$namespacekcenon_1_1network.html#a9d2a06a302dea2b45b323b864eacad4a" title=" " alt="" coords="283,5,487,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="225,33,269,28,269,33,226,38"/>
+<area shape="rect" id="Node000003" href="$structkcenon_1_1network_1_1protocols_1_1grpc_1_1grpc__message.html#a88edb1a928bcf6b946913aabf47de081" title="Serialize message to bytes with length prefix." alt="" coords="273,55,496,95"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="226,56,260,60,259,65,225,61"/>
+</map>

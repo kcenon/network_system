@@ -1,0 +1,11 @@
+<map id="QuicServerDemo::print_status" name="QuicServerDemo::print_status">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,91,176,131"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1core_1_1messaging__quic__server.html#a0aba8fc661ec08bdc5e2ae41c315248e" title="Checks if the server is currently running." alt="" coords="224,5,407,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="148,89,223,62,225,67,149,94"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1core_1_1messaging__quic__server.html#a71d346e96176b4cd2fc014e26183c2e8" title="Get the number of active sessions." alt="" coords="224,84,407,139"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="177,109,210,109,210,114,177,114"/>
+<area shape="rect" id="Node000005" href="$classkcenon_1_1network_1_1core_1_1messaging__quic__server.html#a302a8f0809abaaf5194117cd02e387ca" title="Get all active sessions." alt="" coords="224,163,407,217"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="149,129,225,156,223,161,148,134"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1utils_1_1lifecycle__manager.html#a886ebda2e9af66e367ed4b8a563fcf7c" title="Checks if the component is currently running." alt="" coords="455,5,624,60"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="407,30,441,30,441,35,407,35"/>
+</map>

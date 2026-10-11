@@ -1,0 +1,23 @@
+<map id="ConnectionManager" name="ConnectionManager">
+<area shape="rect" id="Node000001" title="Advanced example: Managing accepted connections." alt="" coords="322,641,517,747"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="458,380,629,460"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="533,461,506,535,470,618,465,628,460,626,465,616,501,533,528,459"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="323,141,473,206"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="487,196,514,213,536,236,552,271,559,309,559,347,555,380,550,379,553,347,554,310,547,273,532,239,511,217,484,200"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="322,276,493,356"/>
+<area shape="poly" id="edge8_Node000008_Node000003" title=" " alt="" coords="370,219,366,235,367,251,378,275,373,277,362,253,361,235,365,218"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="277,5,300,71"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="302,52,364,126,360,130,298,55"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="5,141,132,206"/>
+<area shape="poly" id="edge11_Node000009_Node000004" title=" " alt="" coords="278,49,136,134,133,130,275,44"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="228,484,403,579"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="348,577,379,626,374,628,343,580"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="219,283,297,349"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="267,348,295,459,298,468,293,469,290,461,262,349"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="169,133,299,213"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="246,227,255,282,250,283,240,227"/>
+<area shape="poly" id="edge7_Node000005_Node000008" title=" " alt="" coords="384,357,371,381,338,470,333,468,366,379,379,355"/>
+<area shape="poly" id="edge9_Node000005_Node000009" title=" " alt="" coords="60,220,56,251,55,286,59,322,71,355,102,399,141,436,185,467,229,492,226,496,182,472,138,441,98,402,66,357,54,323,50,286,51,251,55,219"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="57,5,80,71"/>
+<area shape="poly" id="edge10_Node000009_Node000010" title=" " alt="" coords="71,71,71,124,66,124,66,71"/>
+</map>

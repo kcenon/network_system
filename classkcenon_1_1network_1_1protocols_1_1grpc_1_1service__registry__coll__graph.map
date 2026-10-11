@@ -1,0 +1,33 @@
+<map id="kcenon::network::protocols::grpc::service_registry" name="kcenon::network::protocols::grpc::service_registry">
+<area shape="rect" id="Node000001" title="Central registry for managing gRPC services." alt="" coords="87,1097,278,1377"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="96,925,269,1035"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="185,1035,185,1081,180,1081,180,1035"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1protocols_1_1grpc_1_1service__registry_1_1impl.html" title=" " alt="" coords="327,583,526,863"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="329,830,247,915,243,912,325,826"/>
+<area shape="rect" id="Node000004" href="$structkcenon_1_1network_1_1protocols_1_1grpc_1_1registry__config.html" title="Configuration for service registry." alt="" coords="703,386,894,486"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="736,488,541,638,538,633,733,484"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="734,175,813,241"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="780,241,794,369,789,370,774,241"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="518,381,679,491"/>
+<area shape="poly" id="edge8_Node000008_Node000005" title=" " alt="" coords="760,242,725,307,693,359,682,372,678,368,689,356,721,305,755,240"/>
+<area shape="rect" id="Node000013" title=" " alt="" coords="190,396,335,476"/>
+<area shape="poly" id="edge14_Node000013_Node000005" title=" " alt="" coords="755,243,741,258,724,270,700,280,677,284,637,281,598,279,577,283,555,294,540,309,534,326,527,343,511,359,489,371,468,377,431,377,393,375,372,377,349,384,333,391,331,386,347,379,371,372,393,370,431,372,467,371,487,366,508,355,522,340,529,324,536,306,552,290,576,278,597,274,637,276,677,279,698,275,721,266,737,254,751,239"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="708,5,839,85"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="776,99,776,175,771,175,771,99"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="359,403,494,469"/>
+<area shape="poly" id="edge6_Node000003_Node000007" title=" " alt="" coords="429,469,429,566,424,566,424,469"/>
+<area shape="poly" id="edge7_Node000003_Node000008" title=" " alt="" coords="569,492,521,570,517,567,564,489"/>
+<area shape="rect" id="Node000009" href="$classkcenon_1_1network_1_1protocols_1_1grpc_1_1service__base.html" title="Base class for all gRPC service implementations." alt="" coords="519,148,710,268"/>
+<area shape="poly" id="edge9_Node000008_Node000009" title=" " alt="" coords="613,269,606,365,601,365,608,268"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="148,168,292,248"/>
+<area shape="poly" id="edge10_Node000008_Node000010" title=" " alt="" coords="290,255,325,290,335,309,338,326,343,341,355,355,374,367,392,373,426,374,463,371,484,373,507,379,519,383,517,388,506,384,483,378,463,376,426,379,391,378,372,372,352,359,338,344,333,328,330,311,321,294,286,259"/>
+<area shape="poly" id="edge15_Node000013_Node000010" title=" " alt="" coords="196,261,184,309,183,333,189,356,200,376,215,394,211,398,196,379,184,358,178,334,178,308,191,260"/>
+<area shape="rect" id="Node000011" title=" " alt="" coords="241,13,263,78"/>
+<area shape="poly" id="edge11_Node000010_Node000011" title=" " alt="" coords="248,79,234,152,228,151,243,78"/>
+<area shape="rect" id="Node000012" title=" " alt="" coords="101,13,123,78"/>
+<area shape="poly" id="edge12_Node000010_Node000012" title=" " alt="" coords="126,68,157,123,179,153,175,156,152,125,121,71"/>
+<area shape="rect" id="Node000014" title=" " alt="" coords="5,292,155,357"/>
+<area shape="poly" id="edge17_Node000014_Node000012" title=" " alt="" coords="111,79,88,276,83,276,106,78"/>
+<area shape="poly" id="edge13_Node000003_Node000013" title=" " alt="" coords="280,475,318,557,324,567,319,570,314,560,275,478"/>
+<area shape="poly" id="edge16_Node000002_Node000014" title=" " alt="" coords="90,370,177,925,172,925,84,371"/>
+</map>

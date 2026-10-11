@@ -1,0 +1,7 @@
+<map id="kcenon::network::metrics::histogram::mean" name="kcenon::network::metrics::histogram::mean">
+<area shape="rect" id="Node000001" title="Get mean of all observations." alt="" coords="5,37,192,77"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1metrics_1_1histogram.html#ae9049dfac04ca47e13a4adb52e96955f" title="Get total number of observations." alt="" coords="240,5,427,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="192,42,226,37,227,43,192,47"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1metrics_1_1histogram.html#a729f60d2dbf8f892a119570ed7cde2ed" title="Get sum of all observations." alt="" coords="240,69,427,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="192,67,227,72,226,77,192,73"/>
+</map>

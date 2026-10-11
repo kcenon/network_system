@@ -1,0 +1,11 @@
+<map id="kcenon::network::core::session_model&lt; SessionType &gt;" name="kcenon::network::core::session_model&lt; SessionType &gt;">
+<area shape="rect" id="Node000001" title="Template that wraps concrete session types to implement session_concept." alt="" coords="5,624,235,924"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1core_1_1session__concept.html" title="Type&#45;erased interface for session management." alt="" coords="19,261,178,561"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="111,575,114,624,109,624,106,575"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="203,371,379,451"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="275,453,200,610,195,608,270,450"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="216,133,365,199"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="293,213,293,371,288,371,288,213"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="279,5,302,71"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="293,71,293,117,288,117,288,71"/>
+</map>

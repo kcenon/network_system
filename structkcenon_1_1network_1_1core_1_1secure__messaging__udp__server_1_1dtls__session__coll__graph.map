@@ -1,0 +1,25 @@
+<map id="kcenon::network::core::secure_messaging_udp_server::dtls_session" name="kcenon::network::core::secure_messaging_udp_server::dtls_session">
+<area shape="rect" id="Node000001" title="DTLS session for a client." alt="" coords="465,1353,640,1448"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="466,1196,639,1291"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="555,1291,555,1337,550,1337,550,1291"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1internal_1_1dtls__socket.html" title="A wrapper around ASIO UDP socket with OpenSSL DTLS encryption." alt="" coords="339,513,527,1133"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="524,1133,537,1179,532,1181,519,1134"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="339,312,526,392"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="435,406,435,513,430,513,430,406"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="5,312,145,392"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="98,391,158,488,243,601,330,704,326,708,239,604,153,491,94,394"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="34,133,149,199"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="90,212,81,312,76,312,85,212"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="231,5,253,71"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="232,48,199,69,161,97,132,124,128,120,158,93,196,64,229,44"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="179,133,305,199"/>
+<area shape="poly" id="edge10_Node000010_Node000007" title=" " alt="" coords="245,71,245,117,239,117,239,71"/>
+<area shape="rect" id="Node000011" title=" " alt="" coords="454,223,603,288"/>
+<area shape="poly" id="edge12_Node000011_Node000007" title=" " alt="" coords="255,46,475,210,472,215,252,50"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="551,319,635,385"/>
+<area shape="poly" id="edge7_Node000003_Node000008" title=" " alt="" coords="553,386,526,417,505,457,488,499,483,497,500,455,521,415,548,382"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="169,319,315,385"/>
+<area shape="poly" id="edge8_Node000003_Node000009" title=" " alt="" coords="249,384,258,434,273,489,301,562,334,635,329,637,296,564,267,490,253,435,244,385"/>
+<area shape="poly" id="edge9_Node000009_Node000010" title=" " alt="" coords="245,212,245,319,239,319,239,212"/>
+<area shape="poly" id="edge11_Node000002_Node000011" title=" " alt="" coords="617,280,635,294,650,311,658,332,657,350,653,369,650,392,642,613,628,784,605,954,570,1172,566,1196,560,1195,565,1172,599,954,623,783,637,612,645,392,648,368,652,350,653,333,645,313,631,297,614,285"/>
+</map>

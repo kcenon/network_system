@@ -1,0 +1,9 @@
+<map id="kcenon::network::protocols::grpc::grpc_client::impl::client_stream_raw" name="kcenon::network::protocols::grpc::grpc_client::impl::client_stream_raw">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,62,204,117"/>
+<area shape="rect" id="Node000002" href="$namespacekcenon_1_1network_1_1protocols_1_1grpc.html#a95294d297122adbe9fefe05e6b846872" title="Format timeout as gRPC timeout string." alt="" coords="252,5,451,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="204,61,260,46,261,51,205,66"/>
+<area shape="rect" id="Node000003" href="$namespacekcenon_1_1network.html#a359e947821343de5109e4043dbc9190e" title=" " alt="" coords="272,69,431,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="204,87,259,87,259,92,204,92"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1protocols_1_1grpc_1_1grpc__client_1_1impl.html#a0fe02349fd852c99459a0b27f8e504a2" title=" " alt="" coords="252,134,451,189"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="200,114,245,128,243,133,198,119"/>
+</map>

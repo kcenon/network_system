@@ -1,0 +1,19 @@
+<map id="QuicClientDemo::setup_callbacks" name="QuicClientDemo::setup_callbacks">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,170,177,210"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1core_1_1messaging__quic__client.html#acf1506ceb7ab9398912f3a29bc83068d" title="Sets the callback for connection established (interface version)." alt="" coords="242,5,427,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="109,168,158,119,190,93,224,69,234,64,236,68,227,74,193,97,161,123,112,172"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1core_1_1messaging__quic__client.html#a01d90dcbdda779d74d2593d3c86cc21e" title="Sets the callback for disconnection (interface version)." alt="" coords="233,84,437,139"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="153,167,236,141,237,146,155,172"/>
+<area shape="rect" id="Node000005" href="$classkcenon_1_1network_1_1core_1_1messaging__quic__client.html#aebbfb2f961981afbbbcad9da6d7b1301" title="Sets the callback for errors (interface version)." alt="" coords="245,163,424,217"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="178,187,232,187,232,193,178,193"/>
+<area shape="rect" id="Node000006" href="$classkcenon_1_1network_1_1core_1_1messaging__quic__client.html#a6eb85f5d1af46338997000ecc0ffc6ac" title="Sets the callback for received data on default stream (interface version)." alt="" coords="245,241,424,296"/>
+<area shape="poly" id="edge7_Node000001_Node000006" title=" " alt="" coords="155,208,237,234,236,239,153,213"/>
+<area shape="rect" id="Node000007" href="$classkcenon_1_1network_1_1core_1_1messaging__quic__client.html#ad1e7b016f190748ffd3bf40d5f1693a3" title="Sets the callback for stream data reception (all streams, legacy version)." alt="" coords="225,320,444,375"/>
+<area shape="poly" id="edge9_Node000001_Node000007" title=" " alt="" coords="113,208,162,256,193,282,227,305,238,312,236,316,224,310,190,286,158,260,109,212"/>
+<area shape="rect" id="Node000003" href="$namespacekcenon_1_1network.html#a15edd0988aec7155616b3ad3478471a5" title="Helper to convert enum to std::size_t for callback_manager access." alt="" coords="492,170,643,210"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="424,58,445,69,500,112,543,158,539,161,497,116,443,74,422,62"/>
+<area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="417,136,496,163,494,168,416,141"/>
+<area shape="poly" id="edge6_Node000005_Node000003" title=" " alt="" coords="424,187,478,187,478,193,424,193"/>
+<area shape="poly" id="edge8_Node000006_Node000003" title=" " alt="" coords="416,239,494,212,496,217,417,244"/>
+<area shape="poly" id="edge10_Node000007_Node000003" title=" " alt="" coords="419,317,443,305,496,263,539,219,543,222,500,267,445,310,422,322"/>
+</map>

@@ -1,0 +1,38 @@
+<map id="kcenon::network::protocols::quic::connection::build_packet" name="kcenon::network::protocols::quic::connection::build_packet">
+<area shape="rect" id="Node000001" title="Build a packet at the given encryption level." alt="" coords="5,284,232,324"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1frame__builder.html#aac668069df7c7e5ff0e93169e6e293bd" title="Build any frame from variant." alt="" coords="305,5,504,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="125,283,144,236,177,174,221,110,248,81,278,55,292,47,294,52,282,59,252,84,225,113,181,177,149,238,130,285"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1frame__builder.html#a44e0ca84f07bb31dc7fd7fba91f6ab37" title="Build ACK frame." alt="" coords="291,69,518,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="130,282,153,246,187,202,229,157,279,119,290,113,292,118,281,124,233,161,191,206,158,250,134,285"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1frame__builder.html#a96e39ef9f6d2302c0d84cd39d6c94656" title="Build CRYPTO frame." alt="" coords="283,133,527,173"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="140,282,200,232,238,206,279,183,296,176,298,181,281,188,241,210,203,237,143,286"/>
+<area shape="rect" id="Node000005" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1packet__builder.html#a126a5926c947bdef4ce14e6108b54733" title="Build a Handshake packet header." alt="" coords="305,277,504,331"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="232,301,292,301,292,307,232,307"/>
+<area shape="rect" id="Node000009" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1packet__builder.html#aae56df8b95c768ea642f7697a8719ce0" title="Build an Initial packet header." alt="" coords="305,355,504,410"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="193,321,293,349,291,354,192,327"/>
+<area shape="rect" id="Node000011" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1frame__builder.html#a482bc1309f91dd8e6588ede3dc4b8f56" title="Build PADDING frame." alt="" coords="305,434,504,489"/>
+<area shape="poly" id="edge13_Node000001_Node000011" title=" " alt="" coords="144,322,204,370,242,396,281,419,297,426,294,431,279,424,239,401,201,374,141,327"/>
+<area shape="rect" id="Node000012" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1packet__builder.html#a72c85f6e6902001982ab1e87b02a3293" title="Build a Short Header (1&#45;RTT) packet." alt="" coords="305,198,504,253"/>
+<area shape="poly" id="edge14_Node000001_Node000012" title=" " alt="" coords="192,281,291,254,293,259,193,287"/>
+<area shape="rect" id="Node000013" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1frame__builder.html#a2fcaf798eaba5fe00c12b281675bb381" title="Build STREAM frame." alt="" coords="280,513,529,553"/>
+<area shape="poly" id="edge17_Node000001_Node000013" title=" " alt="" coords="133,323,156,360,189,408,231,457,282,498,295,505,292,510,278,502,228,460,185,411,151,363,128,326"/>
+<area shape="rect" id="Node000015" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1packet__protection.html#ad0d7f5425a976193fd64ae6a68431599" title="Protect (encrypt) a QUIC packet." alt="" coords="305,578,504,633"/>
+<area shape="poly" id="edge19_Node000001_Node000015" title=" " alt="" coords="129,323,148,372,180,436,225,505,252,536,282,563,295,572,292,577,278,567,248,540,220,508,176,439,144,374,124,325"/>
+<area shape="rect" id="Node000006" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1packet__number.html#ae8b95fe0c15c5789c62a967cacd22316" title="Encode a packet number for transmission." alt="" coords="605,220,825,260"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="504,281,604,260,605,265,505,286"/>
+<area shape="rect" id="Node000007" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1packet__number.html#ab69a8fb162e9f4b52fd9abc0a45a0d4d" title="Get the minimum number of bytes needed to encode a packet number." alt="" coords="577,284,853,324"/>
+<area shape="poly" id="edge6_Node000005_Node000007" title=" " alt="" coords="504,301,563,301,563,307,504,307"/>
+<area shape="rect" id="Node000008" href="$namespacekcenon_1_1network.html#a343917741c1ba5e287360d73f47a2f50" title="Get the network system version string." alt="" coords="622,349,809,374"/>
+<area shape="poly" id="edge7_Node000005_Node000008" title=" " alt="" coords="505,320,578,333,632,344,631,349,577,339,504,325"/>
+<area shape="poly" id="edge9_Node000009_Node000006" title=" " alt="" coords="503,355,528,341,543,324,551,306,559,287,576,270,592,261,594,265,579,274,563,290,555,308,547,326,531,345,506,360"/>
+<area shape="poly" id="edge11_Node000009_Node000007" title=" " alt="" coords="503,353,577,333,613,325,614,330,578,339,505,358"/>
+<area shape="poly" id="edge12_Node000009_Node000008" title=" " alt="" coords="504,373,608,366,608,371,504,379"/>
+<area shape="rect" id="Node000010" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1varint.html#a8d95e6a90e4df550528c222198bf8acb" title="Encode a value to variable&#45;length format." alt="" coords="616,399,815,439"/>
+<area shape="poly" id="edge10_Node000009_Node000010" title=" " alt="" coords="505,392,602,403,602,408,504,397"/>
+<area shape="poly" id="edge15_Node000012_Node000006" title=" " alt="" coords="504,227,591,231,591,237,504,233"/>
+<area shape="poly" id="edge16_Node000012_Node000007" title=" " alt="" coords="505,250,578,269,614,278,613,283,577,275,503,255"/>
+<area shape="rect" id="Node000014" href="$namespacekcenon_1_1network_1_1protocols_1_1quic.html#a30ab827f0dcf1b3941323237ce4d145c" title="Build STREAM frame type from flags." alt="" coords="616,513,815,553"/>
+<area shape="poly" id="edge18_Node000013_Node000014" title=" " alt="" coords="530,531,602,531,602,536,530,536"/>
+<area shape="rect" id="Node000016" href="$namespacekcenon_1_1network.html#aa32d0dbfdee046c2c0cde3667c5f05a8" title=" " alt="" coords="638,593,793,618"/>
+<area shape="poly" id="edge20_Node000015_Node000016" title=" " alt="" coords="504,603,624,603,624,608,504,608"/>
+</map>

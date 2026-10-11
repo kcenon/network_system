@@ -1,0 +1,38 @@
+<map id="kcenon::network::protocols::http2::http2_server_stream" name="kcenon::network::protocols::http2::http2_server_stream">
+<area shape="rect" id="Node000001" title="Server&#45;side HTTP/2 stream for sending responses." alt="" coords="499,1589,698,1989"/>
+<area shape="rect" id="Node000002" href="$structkcenon_1_1network_1_1protocols_1_1http2_1_1http2__request.html" title="HTTP/2 request data structure." alt="" coords="206,738,397,918"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="327,917,401,1190,450,1358,503,1526,519,1573,514,1575,497,1527,445,1360,396,1192,322,919"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="31,135,110,200"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="59,201,36,259,16,337,10,379,9,422,13,465,24,506,56,572,99,634,147,690,196,738,192,742,143,694,95,638,52,575,19,508,8,466,3,422,5,378,11,335,31,258,54,199"/>
+<area shape="rect" id="Node000006" href="$structkcenon_1_1network_1_1protocols_1_1http2_1_1http__header.html" title="HTTP header name&#45;value pair." alt="" coords="42,277,233,417"/>
+<area shape="poly" id="edge6_Node000006_Node000003" title=" " alt="" coords="85,199,108,261,103,263,80,201"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="5,5,136,85"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="73,99,73,134,68,134,68,99"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="139,531,296,625"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="236,625,268,722,263,723,231,627"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="110,418,103,463,105,485,113,505,128,526,124,529,108,508,100,486,98,463,104,417"/>
+<area shape="rect" id="Node000013" title=" " alt="" coords="520,531,677,625"/>
+<area shape="poly" id="edge15_Node000013_Node000006" title=" " alt="" coords="234,368,299,396,330,416,358,440,368,457,370,474,373,490,383,505,411,520,438,523,467,522,502,528,505,529,503,534,501,533,466,527,437,528,410,525,380,509,368,492,365,475,363,459,354,443,327,420,297,401,232,373"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="415,315,537,380"/>
+<area shape="poly" id="edge7_Node000005_Node000007" title=" " alt="" coords="403,368,294,401,248,421,221,443,211,463,206,485,208,531,203,531,201,485,206,461,217,440,246,417,292,396,401,363"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="331,545,490,611"/>
+<area shape="poly" id="edge10_Node000009_Node000007" title=" " alt="" coords="482,394,480,449,475,479,466,508,443,547,438,544,462,506,470,478,474,448,477,394"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="610,135,633,200"/>
+<area shape="poly" id="edge8_Node000007_Node000008" title=" " alt="" coords="611,176,577,196,541,226,515,262,496,300,491,298,510,259,537,222,574,191,609,172"/>
+<area shape="rect" id="Node000014" title=" " alt="" coords="561,315,681,380"/>
+<area shape="poly" id="edge17_Node000014_Node000008" title=" " alt="" coords="624,200,624,298,619,298,619,200"/>
+<area shape="rect" id="Node000015" title=" " alt="" coords="748,441,897,507"/>
+<area shape="poly" id="edge19_Node000015_Node000008" title=" " alt="" coords="634,172,669,191,706,222,742,272,772,326,795,379,811,425,806,426,790,381,767,329,738,275,702,226,666,195,632,176"/>
+<area shape="poly" id="edge9_Node000002_Node000009" title=" " alt="" coords="399,612,350,724,345,722,394,610"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="512,1432,685,1527"/>
+<area shape="poly" id="edge11_Node000001_Node000010" title=" " alt="" coords="601,1527,601,1573,596,1573,596,1527"/>
+<area shape="rect" id="Node000011" href="$classkcenon_1_1network_1_1protocols_1_1http2_1_1hpack__encoder.html" title="HPACK header encoder (RFC 7541)" alt="" coords="503,1031,694,1369"/>
+<area shape="poly" id="edge12_Node000010_Node000011" title=" " alt="" coords="601,1369,601,1416,596,1416,596,1369"/>
+<area shape="rect" id="Node000012" href="$classkcenon_1_1network_1_1protocols_1_1http2_1_1dynamic__table.html" title="HPACK dynamic table for header compression." alt="" coords="503,688,694,968"/>
+<area shape="poly" id="edge13_Node000011_Node000012" title=" " alt="" coords="601,968,601,1014,596,1014,596,968"/>
+<area shape="poly" id="edge14_Node000012_Node000013" title=" " alt="" coords="601,626,601,672,596,672,596,626"/>
+<area shape="poly" id="edge16_Node000013_Node000014" title=" " alt="" coords="611,394,601,442,599,530,593,530,596,441,606,393"/>
+<area shape="poly" id="edge18_Node000010_Node000015" title=" " alt="" coords="810,520,793,584,785,655,785,1201,782,1237,773,1271,759,1303,741,1334,699,1389,656,1434,652,1430,695,1386,737,1331,754,1301,768,1269,777,1236,780,1201,780,655,788,583,805,519"/>
+<area shape="rect" id="Node000016" title=" " alt="" coords="710,1447,794,1512"/>
+<area shape="poly" id="edge20_Node000001_Node000016" title=" " alt="" coords="739,1514,707,1576,703,1574,734,1511"/>
+</map>

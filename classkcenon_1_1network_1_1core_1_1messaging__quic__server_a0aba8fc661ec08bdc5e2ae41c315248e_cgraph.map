@@ -1,0 +1,5 @@
+<map id="kcenon::network::core::messaging_quic_server::is_running" name="kcenon::network::core::messaging_quic_server::is_running">
+<area shape="rect" id="Node000001" title="Checks if the server is currently running." alt="" coords="5,5,188,60"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1utils_1_1lifecycle__manager.html#a886ebda2e9af66e367ed4b8a563fcf7c" title="Checks if the component is currently running." alt="" coords="236,5,405,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="188,30,222,30,222,35,188,35"/>
+</map>

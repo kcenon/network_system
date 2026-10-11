@@ -1,0 +1,33 @@
+<map id="kcenon::network::protocols::quic::loss_detector" name="kcenon::network::protocols::quic::loss_detector">
+<area shape="rect" id="Node000001" title="QUIC loss detection (RFC 9002 Section 6)" alt="" coords="211,1709,419,2304"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1rtt__estimator.html" title="RTT estimation for QUIC (RFC 9002 Section 5)" alt="" coords="5,1167,196,1647"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="189,1646,208,1700,203,1701,184,1648"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1ecn__tracker.html" title="ECN (Explicit Congestion Notification) tracker (RFC 9000 Section 13.4, RFC 9002 Section 7...." alt="" coords="220,1249,411,1564"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="318,1564,318,1693,313,1693,313,1564"/>
+<area shape="rect" id="Node000004" href="$structkcenon_1_1network_1_1protocols_1_1quic_1_1ecn__tracker_1_1validation__state.html" title="Internal ECN validation state." alt="" coords="141,924,386,1104"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="278,1104,295,1232,290,1233,273,1105"/>
+<area shape="rect" id="Node000005" href="$structkcenon_1_1network_1_1protocols_1_1quic_1_1ecn__counts.html" title="ECN counts for ACK_ECN frames." alt="" coords="168,741,359,861"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="266,862,266,908,261,908,261,862"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="454,1352,598,1461"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="510,1462,427,1695,422,1694,505,1461"/>
+<area shape="rect" id="Node000007" href="$structkcenon_1_1network_1_1protocols_1_1quic_1_1loss__detector_1_1space__state.html" title="Per packet&#45;number&#45;space state (RFC 9002 Appendix A.1)" alt="" coords="411,934,641,1094"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="529,1094,529,1336,523,1336,523,1094"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="429,754,623,849"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="529,849,529,917,523,917,523,849"/>
+<area shape="rect" id="Node000009" href="$structkcenon_1_1network_1_1protocols_1_1quic_1_1sent__packet.html" title="Information about a sent packet for loss detection (RFC 9002 Section A.1.1)" alt="" coords="439,469,629,649"/>
+<area shape="poly" id="edge8_Node000008_Node000009" title=" " alt="" coords="534,650,531,738,525,738,528,649"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="466,312,618,377"/>
+<area shape="poly" id="edge9_Node000009_Node000010" title=" " alt="" coords="543,378,541,453,535,453,538,378"/>
+<area shape="rect" id="Node000011" title=" " alt="" coords="489,133,611,199"/>
+<area shape="poly" id="edge10_Node000010_Node000011" title=" " alt="" coords="541,212,539,223,538,269,540,312,535,312,532,270,534,222,536,211"/>
+<area shape="rect" id="Node000012" title=" " alt="" coords="543,5,565,71"/>
+<area shape="poly" id="edge11_Node000011_Node000012" title=" " alt="" coords="556,71,554,117,549,117,550,71"/>
+<area shape="rect" id="Node000013" title=" " alt="" coords="311,133,437,199"/>
+<area shape="poly" id="edge14_Node000013_Node000012" title=" " alt="" coords="544,49,470,97,430,126,427,121,467,92,541,44"/>
+<area shape="rect" id="Node000015" title=" " alt="" coords="622,223,737,288"/>
+<area shape="poly" id="edge16_Node000015_Node000012" title=" " alt="" coords="567,42,601,61,620,75,636,93,652,120,664,149,677,206,672,207,658,151,647,122,632,96,616,79,598,65,564,47"/>
+<area shape="poly" id="edge12_Node000008_Node000013" title=" " alt="" coords="374,213,373,296,378,407,395,529,409,590,428,648,456,704,490,752,485,755,452,706,424,650,404,591,390,530,373,407,367,297,369,213"/>
+<area shape="rect" id="Node000014" title=" " alt="" coords="359,5,381,71"/>
+<area shape="poly" id="edge13_Node000013_Node000014" title=" " alt="" coords="373,71,374,109,374,117,369,117,369,109,368,71"/>
+<area shape="poly" id="edge15_Node000006_Node000015" title=" " alt="" coords="682,302,682,422,682,1015,679,1064,670,1112,640,1205,602,1288,564,1353,560,1350,597,1285,635,1203,665,1111,674,1063,677,1015,677,422,677,302"/>
+</map>

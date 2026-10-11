@@ -1,0 +1,9 @@
+<map id="kcenon::network::core::messaging_quic_client::set_error_callback" name="kcenon::network::core::messaging_quic_client::set_error_callback">
+<area shape="rect" id="Node000001" title="Sets the callback for errors (interface version)." alt="" coords="533,5,712,60"/>
+<area shape="rect" id="Node000002" href="$classQuicClientDemo.html#ace772af91e52d8e855d97cbb81676fa0" title=" " alt="" coords="313,13,485,53"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="519,35,486,35,486,30,519,30"/>
+<area shape="rect" id="Node000003" href="$classQuicClientDemo.html#a2950f6d0113f0a3c3117fa505cccb140" title=" " alt="" coords="108,20,265,45"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="300,35,266,35,266,30,300,30"/>
+<area shape="rect" id="Node000004" href="$quic__client__example_8cpp.html#a0ddf1224851353fc92bfbff6f499fa97" title=" " alt="" coords="5,20,60,45"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="94,35,60,35,60,30,94,30"/>
+</map>

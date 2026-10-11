@@ -1,0 +1,3 @@
+<map id="kcenon::network::policy::no_tls" name="kcenon::network::policy::no_tls">
+<area shape="rect" id="Node000001" title="Policy type indicating no TLS/SSL encryption." alt="" coords="5,5,175,85"/>
+</map>

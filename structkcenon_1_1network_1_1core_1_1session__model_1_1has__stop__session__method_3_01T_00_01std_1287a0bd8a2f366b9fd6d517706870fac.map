@@ -1,0 +1,5 @@
+<map id="kcenon::network::core::session_model&lt; SessionType &gt;::has_stop_session_method&lt; T, std::void_t&lt; decltype(std::declval&lt; T &amp; &gt;().stop_session())&gt; &gt;" name="kcenon::network::core::session_model&lt; SessionType &gt;::has_stop_session_method&lt; T, std::void_t&lt; decltype(std::declval&lt; T &amp; &gt;().stop_session())&gt; &gt;">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,119,265,243"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="83,5,187,71"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="138,84,138,118,133,118,133,84"/>
+</map>

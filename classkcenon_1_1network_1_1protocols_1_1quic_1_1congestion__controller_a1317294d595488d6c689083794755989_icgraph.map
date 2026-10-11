@@ -1,0 +1,7 @@
+<map id="kcenon::network::protocols::quic::congestion_controller::set_max_datagram_size" name="kcenon::network::protocols::quic::congestion_controller::set_max_datagram_size">
+<area shape="rect" id="Node000001" title="Set max datagram size." alt="" coords="293,30,499,85"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1connection.html#a0a03afb57e2cf894a20d9adf889363f5" title="Disable Path MTU Discovery." alt="" coords="5,5,245,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="279,46,245,42,246,37,280,41"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1connection.html#a08cfa78b7be7750927e05f2f54601113" title="Enable Path MTU Discovery." alt="" coords="7,69,244,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="280,74,244,78,244,73,279,68"/>
+</map>

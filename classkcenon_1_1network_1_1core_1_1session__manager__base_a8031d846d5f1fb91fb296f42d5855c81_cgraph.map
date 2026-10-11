@@ -1,0 +1,5 @@
+<map id="kcenon::network::core::session_manager_base::stop_all_sessions" name="kcenon::network::core::session_manager_base::stop_all_sessions">
+<area shape="rect" id="Node000001" title="Stop all sessions gracefully." alt="" coords="5,5,188,60"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1core_1_1session__manager__base.html#af46fd65751420d9af30fed5032fd9483" title="Clear all sessions." alt="" coords="236,5,419,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="188,30,222,30,222,35,188,35"/>
+</map>

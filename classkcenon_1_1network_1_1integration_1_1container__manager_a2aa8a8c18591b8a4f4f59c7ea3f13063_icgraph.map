@@ -1,0 +1,7 @@
+<map id="kcenon::network::integration::container_manager::register_container" name="kcenon::network::integration::container_manager::register_container">
+<area shape="rect" id="Node000001" title="Register a container implementation." alt="" coords="331,5,545,60"/>
+<area shape="rect" id="Node000002" href="$modern__usage_8cpp.html#aa43974691b0bd99553858370a4b5a46b" title="Demonstrate advanced features." alt="" coords="108,13,283,53"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="317,35,283,35,283,30,317,30"/>
+<area shape="rect" id="Node000003" href="$modern__usage_8cpp.html#a0ddf1224851353fc92bfbff6f499fa97" title="Main function demonstrating modern usage." alt="" coords="5,20,60,45"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="95,35,60,35,60,30,95,30"/>
+</map>

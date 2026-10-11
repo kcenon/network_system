@@ -1,0 +1,5 @@
+<map id="kcenon::network::core::messaging_session" name="kcenon::network::core::messaging_session">
+<area shape="rect" id="Node000001" title="Represents a client session on the server." alt="" coords="5,148,183,368"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="9,5,179,100"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="97,114,97,148,91,148,91,114"/>
+</map>

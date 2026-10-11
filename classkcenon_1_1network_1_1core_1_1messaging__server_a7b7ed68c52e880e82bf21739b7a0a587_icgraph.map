@@ -1,0 +1,5 @@
+<map id="kcenon::network::core::messaging_server::start_server" name="kcenon::network::core::messaging_server::start_server">
+<area shape="rect" id="Node000001" title="Starts the server on the specified port." alt="" coords="204,5,391,60"/>
+<area shape="rect" id="Node000002" href="$classModernServer.html#adfb4d199bd5557ed55350fc88f98e7a2" title=" " alt="" coords="5,20,156,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="190,35,156,35,156,30,190,30"/>
+</map>

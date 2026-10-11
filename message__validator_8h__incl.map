@@ -1,0 +1,17 @@
+<map id="src/internal/utils/message_validator.h" name="src/internal/utils/message_validator.h">
+<area shape="rect" id="Node000001" title="Network message validation for buffer overflow prevention." alt="" coords="231,5,393,45"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,93,72,119"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="247,48,86,94,84,89,246,43"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="97,93,167,119"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="270,48,172,90,170,85,268,43"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="192,93,259,119"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="293,48,250,86,247,82,289,44"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="283,93,341,119"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="315,46,315,79,309,79,309,46"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="366,93,463,119"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="338,43,390,83,387,87,335,48"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="487,93,574,119"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="365,43,486,86,485,91,363,48"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="599,93,684,119"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="391,43,586,89,584,94,390,48"/>
+</map>

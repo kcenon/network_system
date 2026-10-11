@@ -1,0 +1,5 @@
+<map id="kcenon::network::unified::adapters::ws_listener_adapter::~ws_listener_adapter" name="kcenon::network::unified::adapters::ws_listener_adapter::~ws_listener_adapter">
+<area shape="rect" id="Node000001" title="Destructor ensures proper cleanup." alt="" coords="5,5,235,60"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1unified_1_1adapters_1_1ws__listener__adapter.html#a2f0a134db23d7e26b153017756ef144a" title="Stops listening and closes all connections." alt="" coords="283,5,465,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="235,30,269,30,269,35,235,35"/>
+</map>

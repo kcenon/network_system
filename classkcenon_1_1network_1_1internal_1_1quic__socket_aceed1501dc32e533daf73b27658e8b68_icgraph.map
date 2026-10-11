@@ -1,0 +1,5 @@
+<map id="kcenon::network::internal::quic_socket::stop_receive" name="kcenon::network::internal::quic_socket::stop_receive">
+<area shape="rect" id="Node000001" title="Stop the receive loop." alt="" coords="255,5,452,45"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1internal_1_1quic__socket.html#abf6e8d3fd848bb6c444e852b76241209" title="Destructor." alt="" coords="5,5,207,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="241,28,207,28,207,23,241,23"/>
+</map>

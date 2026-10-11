@@ -1,0 +1,31 @@
+<map id="kcenon::network::metrics::histogram_snapshot" name="kcenon::network::metrics::histogram_snapshot">
+<area shape="rect" id="Node000001" title="Immutable snapshot of histogram state for export." alt="" coords="233,601,412,761"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="224,453,421,539"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="325,539,325,585,320,585,320,539"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="249,293,375,359"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="318,372,323,453,317,453,312,373"/>
+<area shape="rect" id="Node000012" title=" " alt="" coords="45,456,200,536"/>
+<area shape="poly" id="edge15_Node000012_Node000003" title=" " alt="" coords="245,368,200,402,174,429,151,457,147,454,170,426,197,398,242,364"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="295,141,318,206"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="310,206,311,252,312,277,306,277,305,252,304,206"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="425,141,447,206"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="426,189,381,239,347,282,343,279,377,236,422,185"/>
+<area shape="rect" id="Node000011" title=" " alt="" coords="430,293,551,359"/>
+<area shape="poly" id="edge11_Node000011_Node000005" title=" " alt="" coords="450,201,464,236,478,277,473,279,459,238,445,203"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="446,456,610,536"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="486,538,426,592,422,588,483,534"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="592,276,723,376"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="653,377,644,405,630,431,616,447,612,443,626,428,640,403,648,375"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="589,141,726,206"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="660,220,660,276,655,276,655,220"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="589,5,619,71"/>
+<area shape="poly" id="edge8_Node000008_Node000009" title=" " alt="" coords="603,71,604,90,608,108,617,126,612,128,603,110,598,91,598,71"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="697,5,727,71"/>
+<area shape="poly" id="edge9_Node000008_Node000010" title=" " alt="" coords="702,72,679,126,674,124,697,70"/>
+<area shape="poly" id="edge10_Node000006_Node000011" title=" " alt="" coords="489,373,490,401,495,429,505,455,500,457,489,430,485,401,484,373"/>
+<area shape="poly" id="edge12_Node000001_Node000012" title=" " alt="" coords="167,534,226,588,222,592,163,538"/>
+<area shape="rect" id="Node000013" title=" " alt="" coords="31,293,110,359"/>
+<area shape="poly" id="edge13_Node000012_Node000013" title=" " alt="" coords="69,359,68,393,75,429,80,441,75,443,69,430,63,394,63,359"/>
+<area shape="rect" id="Node000014" title=" " alt="" coords="5,133,136,213"/>
+<area shape="poly" id="edge14_Node000013_Node000014" title=" " alt="" coords="73,228,73,293,68,293,68,228"/>
+</map>

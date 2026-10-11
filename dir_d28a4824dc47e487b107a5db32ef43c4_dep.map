@@ -1,0 +1,15 @@
+<map id="examples" name="examples">
+<area shape="rect" id="node4" href="dir_68267d1309a1af8e8297ef4c3efbcdba.html" title="src" alt="" coords="50,100,91,125"/>
+<area shape="poly" id="edge1" href="dir_000015_000058.html" alt="" coords="73,52,73,86,68,86,68,52"/>
+<area shape="rect" id="edge1-headlabel" href="dir_000015_000058.html" title="6" alt="" coords="74,74,84,89"/>
+<area shape="rect" id="node5" href="dir_d44c64559bbebec7f509842c48db8b23.html" title="include" alt="" coords="217,100,287,125"/>
+<area shape="poly" id="edge2" href="dir_000015_000029.html" alt="" coords="101,50,128,60,211,93,209,98,126,65,99,55"/>
+<area shape="rect" id="edge2-headlabel" href="dir_000015_000029.html" title="30" alt="" coords="200,78,217,93"/>
+<area shape="rect" id="node2" href="dir_c4047ae4de52038b0f33f9886525073b.html" title="messaging_system_integration" alt="" coords="139,27,365,52"/>
+<area shape="poly" id="edge3" href="dir_000037_000029.html" alt="" coords="255,52,255,86,249,86,249,52"/>
+<area shape="rect" id="edge3-headlabel" href="dir_000037_000029.html" title="1" alt="" coords="256,74,265,89"/>
+<area shape="rect" id="node3" href="dir_a6dcaf0d6f467140341fbe2a55dfb492.html" title="migration" alt="" coords="389,27,475,52"/>
+<area shape="poly" id="edge4" href="dir_000041_000029.html" alt="" coords="405,55,378,65,296,97,294,92,376,60,403,50"/>
+<area shape="rect" id="edge4-headlabel" href="dir_000041_000029.html" title="4" alt="" coords="297,94,307,109"/>
+<area shape="rect" id="clust1" href="dir_d28a4824dc47e487b107a5db32ef43c4.html" alt="" coords="16,16,485,63"/>
+</map>

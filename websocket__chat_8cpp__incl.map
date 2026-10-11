@@ -1,0 +1,43 @@
+<map id="examples/websocket_chat.cpp" name="examples/websocket_chat.cpp">
+<area shape="rect" id="Node000001" title="WebSocket chat server and client in a single program." alt="" coords="524,5,682,45"/>
+<area shape="rect" id="Node000002" href="$websocket__facade_8h.html" title="Simplified facade for creating WebSocket clients and servers." alt="" coords="124,93,298,133"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="524,47,311,93,310,88,523,41"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="24,189,91,214"/>
+<area shape="poly" id="edge17_Node000001_Node000003" title=" " alt="" coords="523,31,417,37,297,48,187,67,144,80,114,96,96,113,82,134,66,176,61,174,78,131,92,109,111,91,143,75,186,62,296,43,417,32,523,26"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="99,365,158,390"/>
+<area shape="poly" id="edge21_Node000001_Node000006" title=" " alt="" coords="523,32,410,38,279,49,159,68,111,81,76,96,41,121,18,148,12,164,9,181,15,221,33,260,57,297,107,353,103,357,53,300,28,263,10,222,3,181,6,162,13,146,38,117,74,91,109,76,158,63,278,44,409,32,523,26"/>
+<area shape="rect" id="Node000011" href="$i__session_8h.html" title="Session interface representing an active client&#45;server connection." alt="" coords="336,93,531,133"/>
+<area shape="poly" id="edge11_Node000001_Node000011" title=" " alt="" coords="567,48,484,90,482,85,565,43"/>
+<area shape="rect" id="Node000013" title=" " alt="" coords="670,189,733,214"/>
+<area shape="poly" id="edge23_Node000001_Node000013" title=" " alt="" coords="598,46,588,88,589,111,596,132,606,143,623,156,666,180,664,185,620,160,602,147,591,135,584,112,583,87,593,45"/>
+<area shape="rect" id="Node000014" title=" " alt="" coords="606,101,672,126"/>
+<area shape="poly" id="edge16_Node000001_Node000014" title=" " alt="" coords="613,45,631,87,626,89,609,47"/>
+<area shape="rect" id="Node000015" title=" " alt="" coords="696,101,776,126"/>
+<area shape="poly" id="edge18_Node000001_Node000015" title=" " alt="" coords="634,43,708,91,706,95,631,48"/>
+<area shape="rect" id="Node000016" title=" " alt="" coords="800,101,851,126"/>
+<area shape="poly" id="edge19_Node000001_Node000016" title=" " alt="" coords="661,43,789,91,793,92,791,97,787,96,660,48"/>
+<area shape="rect" id="Node000017" title=" " alt="" coords="875,101,939,126"/>
+<area shape="poly" id="edge20_Node000001_Node000017" title=" " alt="" coords="683,41,771,63,864,91,870,93,868,98,862,96,769,68,682,46"/>
+<area shape="rect" id="Node000018" title=" " alt="" coords="963,101,1027,126"/>
+<area shape="poly" id="edge22_Node000001_Node000018" title=" " alt="" coords="683,34,810,56,952,91,959,93,957,98,950,96,809,61,682,40"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="179,136,91,184,88,180,176,131"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="267,189,334,214"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="233,132,280,177,276,181,229,136"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="166,189,243,214"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="212,134,209,175,204,175,207,133"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="191,135,172,157,156,182,141,227,133,273,130,351,124,351,128,273,136,226,151,180,168,154,187,132"/>
+<area shape="rect" id="Node000007" href="$result_8h.html" title="Public header for Result&lt;T&gt; error handling types." alt="" coords="358,181,525,221"/>
+<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="263,131,379,174,378,179,261,136"/>
+<area shape="rect" id="Node000008" href="$result__types_8h.html" title="Network&#45;specific error and result type definitions." alt="" coords="220,269,386,309"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="413,224,346,265,343,260,410,219"/>
+<area shape="poly" id="edge10_Node000008_Node000006" title=" " alt="" coords="266,312,165,361,163,356,263,307"/>
+<area shape="rect" id="Node000009" href="$detail_2config_2feature__flags_8h.html" title="Feature flags for network_system." alt="" coords="317,357,484,397"/>
+<area shape="poly" id="edge8_Node000008_Node000009" title=" " alt="" coords="326,308,370,346,367,350,323,312"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="225,365,293,390"/>
+<area shape="poly" id="edge9_Node000008_Node000010" title=" " alt="" coords="296,311,274,353,269,351,291,308"/>
+<area shape="poly" id="edge12_Node000011_Node000004" title=" " alt="" coords="406,136,331,183,328,179,403,131"/>
+<area shape="poly" id="edge15_Node000011_Node000007" title=" " alt="" coords="438,133,441,168,436,168,433,134"/>
+<area shape="rect" id="Node000012" title=" " alt="" coords="549,189,646,214"/>
+<area shape="poly" id="edge13_Node000011_Node000012" title=" " alt="" coords="471,131,565,180,562,185,468,136"/>
+<area shape="poly" id="edge14_Node000011_Node000013" title=" " alt="" coords="506,131,660,179,666,181,664,186,658,184,505,136"/>
+</map>

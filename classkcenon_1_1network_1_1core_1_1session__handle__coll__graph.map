@@ -1,0 +1,11 @@
+<map id="kcenon::network::core::session_handle" name="kcenon::network::core::session_handle">
+<area shape="rect" id="Node000001" title="Value&#45;semantic wrapper for type&#45;erased sessions." alt="" coords="37,668,196,948"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="30,511,203,605"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="119,606,119,652,114,652,114,606"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1core_1_1session__concept.html" title="Type&#45;erased interface for session management." alt="" coords="5,133,164,433"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="105,433,112,494,107,495,100,434"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="189,251,338,316"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="242,330,144,512,139,509,237,327"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="252,5,275,71"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="266,71,266,234,261,234,261,71"/>
+</map>

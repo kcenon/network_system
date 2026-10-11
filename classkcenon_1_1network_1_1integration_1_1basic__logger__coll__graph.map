@@ -1,0 +1,20 @@
+<map id="kcenon::network::integration::basic_logger" name="kcenon::network::integration::basic_logger">
+<area shape="rect" id="Node000001" title="Basic console logger implementation for standalone use." alt="" coords="27,1055,228,1275"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1integration_1_1logger__interface.html" title="Interface for logger integration." alt="" coords="5,732,207,992"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="119,1006,122,1054,117,1054,113,1006"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="231,815,405,909"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="291,911,208,1042,203,1039,286,908"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1integration_1_1basic__logger_1_1impl.html" title=" " alt="" coords="127,469,328,669"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="261,669,301,798,296,800,256,670"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="57,312,141,377"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="120,376,164,454,160,456,115,379"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="165,312,300,377"/>
+<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="235,377,233,453,227,453,229,377"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="186,133,311,199"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="233,212,230,223,227,269,230,312,225,312,221,269,225,222,227,211"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="292,5,315,71"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="294,67,271,119,266,117,289,65"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="291,223,441,288"/>
+<area shape="poly" id="edge9_Node000009_Node000008" title=" " alt="" coords="315,70,355,206,350,208,310,72"/>
+<area shape="poly" id="edge8_Node000003_Node000009" title=" " alt="" coords="367,302,358,464,343,670,327,815,322,814,338,669,353,464,361,302"/>
+</map>

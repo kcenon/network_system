@@ -1,0 +1,7 @@
+<map id="kcenon::network::protocol::websocket::connect" name="kcenon::network::protocol::websocket::connect">
+<area shape="rect" id="Node000001" title="Creates and starts a WebSocket connection in one call." alt="" coords="208,23,399,63"/>
+<area shape="rect" id="Node000002" href="$unified__client__example_8cpp.html#a50f290667096f329c38c40f7cf5f4661" title="Example of protocol selection at runtime." alt="" coords="12,5,153,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="194,33,153,29,154,23,195,28"/>
+<area shape="rect" id="Node000003" href="$unified__client__example_8cpp.html#ae5bd0f7610bd9eba9eed4b8134220859" title="WebSocket client example using unified API." alt="" coords="5,55,160,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="194,58,160,62,160,56,194,53"/>
+</map>

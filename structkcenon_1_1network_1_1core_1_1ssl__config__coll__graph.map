@@ -1,0 +1,7 @@
+<map id="kcenon::network::core::ssl_config" name="kcenon::network::core::ssl_config">
+<area shape="rect" id="Node000001" title="SSL/TLS configuration structure." alt="" coords="5,292,215,492"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="71,135,149,200"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="113,200,113,275,107,275,107,200"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="45,5,175,85"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="113,99,113,134,107,134,107,99"/>
+</map>

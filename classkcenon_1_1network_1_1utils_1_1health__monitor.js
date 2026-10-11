@@ -1,0 +1,26 @@
+var classkcenon_1_1network_1_1utils_1_1health__monitor =
+[
+    [ "health_monitor", "classkcenon_1_1network_1_1utils_1_1health__monitor.html#afe7067f8b4c40404e3ba7997f2716769", null ],
+    [ "~health_monitor", "classkcenon_1_1network_1_1utils_1_1health__monitor.html#a6dda75765b2ec0a9cbaee80de90bfb0d", null ],
+    [ "do_heartbeat", "classkcenon_1_1network_1_1utils_1_1health__monitor.html#a2eecce5a5aa224ce970ca6301fcdbc76", null ],
+    [ "get_health", "classkcenon_1_1network_1_1utils_1_1health__monitor.html#a8c374f69ee3db6c3fbb95069a0d3131e", null ],
+    [ "is_monitoring", "classkcenon_1_1network_1_1utils_1_1health__monitor.html#acba220eb6b5c4665b93365a6aaca6dd5", null ],
+    [ "schedule_next_heartbeat", "classkcenon_1_1network_1_1utils_1_1health__monitor.html#a1624e6ac8b8927fefa101e6e72c46976", null ],
+    [ "set_health_callback", "classkcenon_1_1network_1_1utils_1_1health__monitor.html#a02629d3d572c6c0b4313259ee575a198", null ],
+    [ "start_monitoring", "classkcenon_1_1network_1_1utils_1_1health__monitor.html#a5fde66f996230e3fefcbfb62798c9941", null ],
+    [ "stop_monitoring", "classkcenon_1_1network_1_1utils_1_1health__monitor.html#ac23375b0b52522953fdb7f3b5c6d7f4c", null ],
+    [ "update_health", "classkcenon_1_1network_1_1utils_1_1health__monitor.html#a6bf3c00aef7a556bdd6c3addf3e9c8ba", null ],
+    [ "client_", "classkcenon_1_1network_1_1utils_1_1health__monitor.html#a4cbcf172c86e264c49bf7283a4c2b5c7", null ],
+    [ "failed_heartbeats_", "classkcenon_1_1network_1_1utils_1_1health__monitor.html#a7cd6973b506a27551e493361774b7d72", null ],
+    [ "health_", "classkcenon_1_1network_1_1utils_1_1health__monitor.html#a72ec3ba33c584c4bad0539668db351de", null ],
+    [ "health_callback_", "classkcenon_1_1network_1_1utils_1_1health__monitor.html#a6c891248b97498c0483e8596d33ca25f", null ],
+    [ "health_mutex_", "classkcenon_1_1network_1_1utils_1_1health__monitor.html#ac4ea201d86724fe6e2eb97a310297a61", null ],
+    [ "heartbeat_interval_", "classkcenon_1_1network_1_1utils_1_1health__monitor.html#aef59c81ba1aacd336029f285836ec6a2", null ],
+    [ "heartbeat_timer_", "classkcenon_1_1network_1_1utils_1_1health__monitor.html#a0797a9cfd7cde5a66f8de2825406470f", null ],
+    [ "io_context_", "classkcenon_1_1network_1_1utils_1_1health__monitor.html#af236f643274a9a82bc61f09543a11827", null ],
+    [ "io_future_", "classkcenon_1_1network_1_1utils_1_1health__monitor.html#a8aae562768e6fe43cf9ae7271255415a", null ],
+    [ "is_monitoring_", "classkcenon_1_1network_1_1utils_1_1health__monitor.html#a0a9d1f2add6d7a2cd220f97275bc3603", null ],
+    [ "max_missed_heartbeats_", "classkcenon_1_1network_1_1utils_1_1health__monitor.html#ac9479c82b093b88535b29c436cf06131", null ],
+    [ "total_heartbeats_", "classkcenon_1_1network_1_1utils_1_1health__monitor.html#a78c04238ab9fd693642f626d6db71a14", null ],
+    [ "work_guard_", "classkcenon_1_1network_1_1utils_1_1health__monitor.html#ace2fcba6de79deed303173fd9f542b0f", null ]
+];

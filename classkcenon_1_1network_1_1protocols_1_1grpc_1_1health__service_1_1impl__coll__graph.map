@@ -1,0 +1,28 @@
+<map id="kcenon::network::protocols::grpc::health_service::impl" name="kcenon::network::protocols::grpc::health_service::impl">
+<area shape="rect" id="Node000001" title=" " alt="" coords="387,819,578,979"/>
+<area shape="rect" id="Node000002" href="$structkcenon_1_1network_1_1protocols_1_1grpc_1_1service__descriptor.html" title="Describes a gRPC service and its methods." alt="" coords="549,656,739,756"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="604,758,562,808,558,804,600,755"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="542,135,621,200"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="622,180,652,197,678,222,689,244,692,263,692,307,703,398,713,471,714,543,707,585,695,633,691,642,686,640,689,631,702,584,708,543,708,472,698,399,687,307,687,263,684,245,674,226,649,201,619,185"/>
+<area shape="rect" id="Node000006" href="$structkcenon_1_1network_1_1protocols_1_1grpc_1_1method__descriptor.html" title="Describes a single RPC method within a service." alt="" coords="486,307,677,407"/>
+<area shape="poly" id="edge6_Node000006_Node000003" title=" " alt="" coords="584,200,584,290,579,290,579,200"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="251,499,395,593"/>
+<area shape="poly" id="edge11_Node000010_Node000003" title=" " alt="" coords="544,195,484,243,455,274,432,308,421,331,416,352,416,391,415,430,410,452,400,476,393,487,388,484,395,473,405,450,410,429,410,391,411,351,416,329,427,305,451,270,481,239,540,191"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="516,5,647,85"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="584,99,584,134,579,134,579,99"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="483,499,677,593"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="601,593,621,640,616,642,596,595"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="584,407,583,482,578,482,578,407"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="181,324,302,389"/>
+<area shape="poly" id="edge7_Node000005_Node000007" title=" " alt="" coords="298,395,356,434,421,472,483,503,481,507,419,477,354,438,295,399"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="175,135,198,200"/>
+<area shape="poly" id="edge8_Node000007_Node000008" title=" " alt="" coords="201,190,215,223,236,307,231,308,209,225,196,192"/>
+<area shape="rect" id="Node000011" title=" " alt="" coords="5,317,149,397"/>
+<area shape="poly" id="edge14_Node000011_Node000008" title=" " alt="" coords="177,179,154,199,132,225,100,302,95,300,127,223,150,195,173,175"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="441,673,525,739"/>
+<area shape="poly" id="edge9_Node000001_Node000009" title=" " alt="" coords="485,739,485,802,480,802,480,739"/>
+<area shape="poly" id="edge10_Node000001_Node000010" title=" " alt="" coords="319,594,316,630,317,672,324,714,337,755,355,785,378,813,373,816,350,788,332,757,318,716,312,672,311,630,313,593"/>
+<area shape="poly" id="edge12_Node000010_Node000011" title=" " alt="" coords="68,410,69,444,73,459,81,473,107,491,149,508,251,531,250,536,147,513,104,496,77,476,68,461,63,444,62,410"/>
+<area shape="rect" id="Node000012" title=" " alt="" coords="46,135,69,200"/>
+<area shape="poly" id="edge13_Node000011_Node000012" title=" " alt="" coords="58,200,61,282,64,300,59,301,56,283,53,200"/>
+</map>

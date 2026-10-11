@@ -1,0 +1,11 @@
+<map id="kcenon::network::core::secure_messaging_udp_server::create_session" name="kcenon::network::core::secure_messaging_udp_server::create_session">
+<area shape="rect" id="Node000001" title="Creates a new DTLS session for a client." alt="" coords="5,55,188,110"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1internal_1_1dtls__socket.html#a20ed2ddc77f8ad0fb913937c48a1bcb9" title="Constructs a dtls_socket with an existing UDP socket." alt="" coords="236,63,424,103"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="189,80,222,80,222,85,189,85"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1internal_1_1dtls__socket.html#a223b09ad98316ccde0c9a2a1d56f4da0" title=" " alt="" coords="472,5,660,45"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="412,60,469,46,471,51,414,65"/>
+<area shape="rect" id="Node000004" href="$namespacekcenon_1_1network.html#aa32d0dbfdee046c2c0cde3667c5f05a8" title=" " alt="" coords="489,70,643,95"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="424,80,475,80,475,85,424,85"/>
+<area shape="rect" id="Node000005" href="$classkcenon_1_1network_1_1internal_1_1dtls__socket.html#abd35cc5f7d785c15572017323a08ef04" title="Provides direct access to the underlying UDP socket." alt="" coords="472,120,660,160"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="414,100,471,114,469,119,412,105"/>
+</map>

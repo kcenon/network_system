@@ -1,0 +1,13 @@
+<map id="kcenon::network::integration::io_context_thread_manager::impl::context_entry" name="kcenon::network::integration::io_context_thread_manager::impl::context_entry">
+<area shape="rect" id="Node000001" title=" " alt="" coords="53,419,257,513"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="15,276,159,356"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="106,355,123,394,127,403,123,405,118,396,101,357"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,141,145,206"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="82,220,87,276,81,276,77,220"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="64,5,87,71"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="78,71,78,124,73,124,73,71"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="189,283,268,349"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="215,350,188,405,183,403,211,348"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="170,133,301,213"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="235,228,233,283,228,283,230,227"/>
+</map>

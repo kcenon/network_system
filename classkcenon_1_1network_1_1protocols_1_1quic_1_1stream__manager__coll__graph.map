@@ -1,0 +1,33 @@
+<map id="kcenon::network::protocols::quic::stream_manager" name="kcenon::network::protocols::quic::stream_manager">
+<area shape="rect" id="Node000001" title="Manages QUIC streams within a connection." alt="" coords="209,1585,410,2209"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="167,1435,302,1501"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="243,1500,255,1569,249,1569,238,1501"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="327,1413,505,1523"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="405,1524,394,1570,388,1569,400,1522"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="260,1256,433,1351"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="363,1350,377,1388,381,1398,376,1400,372,1390,358,1352"/>
+<area shape="rect" id="Node000005" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1stream.html" title="QUIC stream implementation (RFC 9000 Sections 2&#45;4)" alt="" coords="192,633,397,1193"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="335,1193,341,1239,336,1240,329,1194"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="5,401,163,467"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="88,466,94,516,107,570,142,657,186,741,181,743,138,659,101,571,88,517,83,467"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="24,133,144,199"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="87,212,87,401,81,401,81,212"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="330,5,353,71"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="331,46,274,66,201,97,147,127,145,122,199,92,272,61,329,41"/>
+<area shape="rect" id="Node000011" title=" " alt="" coords="169,133,290,199"/>
+<area shape="poly" id="edge11_Node000011_Node000008" title=" " alt="" coords="332,54,271,123,267,119,328,50"/>
+<area shape="rect" id="Node000012" title=" " alt="" coords="317,312,443,377"/>
+<area shape="poly" id="edge14_Node000012_Node000008" title=" " alt="" coords="355,54,366,73,375,94,385,147,390,201,388,296,382,296,384,202,380,148,369,95,361,75,351,57"/>
+<area shape="rect" id="Node000014" title=" " alt="" coords="527,223,676,288"/>
+<area shape="poly" id="edge16_Node000014_Node000008" title=" " alt="" coords="355,45,408,81,475,131,560,209,557,213,472,135,405,85,352,49"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="206,491,383,571"/>
+<area shape="poly" id="edge8_Node000005_Node000009" title=" " alt="" coords="297,571,297,617,292,617,292,571"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="127,312,286,377"/>
+<area shape="poly" id="edge9_Node000009_Node000010" title=" " alt="" coords="201,378,197,421,200,444,208,465,215,477,211,480,203,468,195,445,192,421,196,377"/>
+<area shape="poly" id="edge10_Node000010_Node000011" title=" " alt="" coords="221,212,219,223,210,312,205,312,213,222,215,211"/>
+<area shape="poly" id="edge17_Node000003_Node000012" title=" " alt="" coords="443,385,454,400,470,433,475,462,473,529,473,1305,471,1333,465,1362,446,1414,441,1412,460,1361,466,1333,468,1305,468,529,470,463,465,435,450,403,439,388"/>
+<area shape="poly" id="edge12_Node000009_Node000012" title=" " alt="" coords="316,388,305,403,296,424,292,446,291,491,286,490,287,446,291,422,300,400,311,385"/>
+<area shape="rect" id="Node000013" title=" " alt="" coords="314,133,337,199"/>
+<area shape="poly" id="edge13_Node000012_Node000013" title=" " alt="" coords="322,199,320,242,323,265,329,287,335,298,330,300,324,289,318,266,315,242,317,199"/>
+<area shape="poly" id="edge15_Node000004_Node000014" title=" " alt="" coords="642,298,662,326,680,359,693,395,699,432,699,915,705,997,712,1064,711,1096,705,1127,690,1160,666,1195,643,1219,616,1240,556,1270,493,1289,434,1300,433,1294,492,1284,554,1265,613,1235,639,1215,662,1192,685,1157,699,1126,706,1095,707,1064,699,997,693,915,693,433,688,396,675,361,657,329,637,301"/>
+</map>

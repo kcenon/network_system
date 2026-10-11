@@ -1,0 +1,7 @@
+<map id="kcenon::network::protocols::quic::stream_manager::set_peer_max_streams_bidi" name="kcenon::network::protocols::quic::stream_manager::set_peer_max_streams_bidi">
+<area shape="rect" id="Node000001" title="Set maximum bidirectional streams peer can initiate." alt="" coords="499,5,704,60"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1connection.html#a4235d8eeb48201aae20bd394816fd5fa" title="Apply remote transport parameters." alt="" coords="252,5,451,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="485,35,451,35,451,30,485,30"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1connection.html#ae460929fad27e1225ca01b7b01233926" title="Set remote transport parameters." alt="" coords="5,5,204,60"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="238,35,204,35,204,30,238,30"/>
+</map>

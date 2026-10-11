@@ -1,0 +1,13 @@
+<map id="kcenon::network::core::messaging_client::start_client" name="kcenon::network::core::messaging_client::start_client">
+<area shape="rect" id="Node000001" title="Starts the client and connects to the specified host and port." alt="" coords="5,87,188,142"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1tracing_1_1trace__context.html#a0618b3e17f57071584025d5e47aa0541" title="Create a new root span with a new trace context." alt="" coords="236,37,443,77"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="187,91,240,78,242,83,189,96"/>
+<area shape="rect" id="Node000005" href="$namespacekcenon_1_1network.html#a9d2a06a302dea2b45b323b864eacad4a" title=" " alt="" coords="237,102,441,127"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="188,112,224,112,224,117,188,117"/>
+<area shape="rect" id="Node000006" href="$namespacekcenon_1_1network_1_1tracing.html#a6ab950c88c5666f30b2db30609a6834a" title="Check if tracing is enabled." alt="" coords="248,152,431,192"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="189,134,242,146,240,151,187,139"/>
+<area shape="rect" id="Node000003" href="$namespacekcenon_1_1network_1_1tracing.html#a933bb00747359508e4c9b490d42c495d" title="Generate a random span ID." alt="" coords="491,5,673,45"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="442,41,477,36,477,42,443,46"/>
+<area shape="rect" id="Node000004" href="$namespacekcenon_1_1network_1_1tracing.html#ab38da93c9d82d6795e6950368611ea35" title="Generate a random trace ID." alt="" coords="491,69,673,109"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="443,68,477,73,477,78,442,74"/>
+</map>

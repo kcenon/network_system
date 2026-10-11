@@ -1,0 +1,18 @@
+<map id="kcenon::network::protocols::http2::ping_frame" name="kcenon::network::protocols::http2::ping_frame">
+<area shape="rect" id="Node000001" title="PING frame (RFC 7540 Section 6.7)" alt="" coords="259,784,449,924"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1protocols_1_1http2_1_1frame.html" title="Base class for HTTP/2 frames." alt="" coords="181,535,372,735"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="319,747,332,783,327,785,314,749"/>
+<area shape="rect" id="Node000003" href="$structkcenon_1_1network_1_1protocols_1_1http2_1_1frame__header.html" title="HTTP/2 frame header (9 bytes)" alt="" coords="5,261,196,421"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="147,420,199,509,205,519,201,522,194,512,142,423"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="220,309,379,374"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="292,375,275,446,271,519,266,518,270,445,286,374"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="239,133,360,199"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="302,213,302,309,297,309,297,213"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="359,5,381,71"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="360,53,328,96,317,119,312,117,324,93,356,50"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="385,133,499,199"/>
+<area shape="poly" id="edge8_Node000008_Node000006" title=" " alt="" coords="384,57,406,93,419,118,415,120,401,96,379,60"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="359,445,525,511"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="438,511,386,735,378,768,373,767,381,734,432,510"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="445,212,445,445,439,445,439,212"/>
+</map>

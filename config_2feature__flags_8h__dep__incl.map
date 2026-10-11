@@ -1,0 +1,22 @@
+<map id="include/kcenon/network/config/feature_flags.h" name="include/kcenon/network/config/feature_flags.h">
+<area shape="rect" id="Node000001" title="Public header for compile&#45;time feature flags." alt="" coords="369,5,547,45"/>
+<area shape="rect" id="Node000002" href="$concepts_8h.html" title="Unified header for all C++20 concepts in network_system." alt="" coords="67,101,244,141"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="384,52,217,103,216,98,383,47"/>
+<area shape="rect" id="Node000007" href="$config_8h.html" title="Unified configuration header for network_system." alt="" coords="268,101,445,141"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="429,57,379,103,375,99,426,53"/>
+<area shape="rect" id="Node000008" href="$service__registration_8h.html" title="Service container registration for network_system services." alt="" coords="469,101,652,141"/>
+<area shape="poly" id="edge8_Node000001_Node000008" title=" " alt="" coords="491,53,542,99,538,103,487,57"/>
+<area shape="rect" id="Node000009" href="$network__system__bridge_8h.html" title="Unified facade for all network_system integration bridges." alt="" coords="676,93,885,148"/>
+<area shape="poly" id="edge9_Node000001_Node000009" title=" " alt="" coords="537,47,691,91,689,96,536,52"/>
+<area shape="rect" id="Node000003" href="$concepts__example_8cpp.html" title="Demonstrates usage of C++20 concepts in network_system." alt="" coords="5,203,244,229"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="147,154,131,204,126,202,142,153"/>
+<area shape="rect" id="Node000004" href="$network__system_8h.html" title="Main header for the Network System." alt="" coords="268,196,445,236"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="210,144,317,194,315,198,207,149"/>
+<area shape="rect" id="Node000005" href="$modern__usage_8cpp.html" title="Example of using network_system with modern API and Result&lt;T&gt; pattern." alt="" coords="179,284,340,339"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="329,247,289,286,285,282,325,243"/>
+<area shape="rect" id="Node000006" href="$network__system_8cpp.html" title=" " alt="" coords="364,299,544,324"/>
+<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="388,243,444,296,440,300,384,247"/>
+<area shape="poly" id="edge7_Node000007_Node000004" title=" " alt="" coords="359,154,359,196,354,196,354,154"/>
+<area shape="rect" id="Node000010" href="$network__system__bridge_8cpp.html" title=" " alt="" coords="694,196,867,236"/>
+<area shape="poly" id="edge10_Node000009_Node000010" title=" " alt="" coords="783,162,783,196,778,196,778,162"/>
+</map>

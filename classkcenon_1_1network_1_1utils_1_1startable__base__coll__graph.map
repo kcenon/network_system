@@ -1,0 +1,12 @@
+<map id="kcenon::network::utils::startable_base&lt; Derived &gt;" name="kcenon::network::utils::startable_base&lt; Derived &gt;">
+<area shape="rect" id="Node000001" title="CRTP base class providing unified start/stop lifecycle management." alt="" coords="5,807,204,1187"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1utils_1_1lifecycle__manager.html" title="Thread&#45;safe lifecycle state management for network components." alt="" coords="213,404,383,744"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="223,745,201,793,196,791,218,743"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="32,261,177,327"/>
+<area shape="poly" id="edge5_Node000001_Node000003" title=" " alt="" coords="104,327,99,404,96,602,99,790,94,790,91,602,94,404,99,327"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="135,325,196,402,206,417,202,420,192,406,130,328"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="42,133,167,199"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="107,213,107,261,102,261,102,213"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="93,5,116,71"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="107,71,107,117,102,117,102,71"/>
+</map>

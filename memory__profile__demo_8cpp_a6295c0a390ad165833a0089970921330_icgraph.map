@@ -1,0 +1,19 @@
+<map id="get_current_rss" name="get_current_rss">
+<area shape="rect" id="Node000001" title="Get current RSS (Resident Set Size) in bytes." alt="" coords="564,81,687,107"/>
+<area shape="rect" id="Node000002" href="$memory__profile__demo_8cpp.html#a7791d3883beb680ea62515b4a8148ff8" title="Print memory statistics with label." alt="" coords="363,56,516,81"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="550,86,516,82,517,76,551,81"/>
+<area shape="rect" id="Node000004" href="$memory__profile__demo_8cpp.html#a538252cab7d74432eeae6020b2a3381a" title="Profile connection memory overhead." alt="" coords="137,5,285,31"/>
+<area shape="poly" id="edge9_Node000001_Node000004" title=" " alt="" coords="589,77,554,60,515,46,456,33,395,25,285,20,286,14,396,20,457,28,517,41,556,55,592,72"/>
+<area shape="rect" id="Node000005" href="$memory__profile__demo_8cpp.html#abee2441ba87fd75b143cf6e095d28a97" title="Profile long&#45;running stability." alt="" coords="134,107,289,132"/>
+<area shape="poly" id="edge10_Node000001_Node000005" title=" " alt="" coords="550,101,289,117,289,112,550,96"/>
+<area shape="rect" id="Node000006" href="$memory__profile__demo_8cpp.html#a92941e343c292683bc556aa4b568e930" title="Profile message throughput memory." alt="" coords="108,156,315,181"/>
+<area shape="poly" id="edge11_Node000001_Node000006" title=" " alt="" coords="551,111,516,118,288,159,287,153,516,113,550,106"/>
+<area shape="rect" id="Node000003" href="$memory__profile__demo_8cpp.html#a0ddf1224851353fc92bfbff6f499fa97" title=" " alt="" coords="5,81,60,107"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="349,77,60,95,60,90,348,72"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="367,56,269,33,270,28,368,50"/>
+<area shape="poly" id="edge5_Node000002_Node000005" title=" " alt="" coords="368,87,270,109,269,104,367,82"/>
+<area shape="poly" id="edge7_Node000002_Node000006" title=" " alt="" coords="411,92,368,120,316,147,281,158,280,153,314,142,365,116,408,87"/>
+<area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="150,37,109,52,54,83,52,79,107,48,148,32"/>
+<area shape="poly" id="edge6_Node000005_Node000003" title=" " alt="" coords="120,109,60,100,60,95,121,104"/>
+<area shape="poly" id="edge8_Node000006_Node000003" title=" " alt="" coords="126,155,107,147,74,129,48,109,51,105,77,124,109,142,128,150"/>
+</map>

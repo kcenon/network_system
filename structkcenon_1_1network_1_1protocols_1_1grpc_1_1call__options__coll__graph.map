@@ -1,0 +1,22 @@
+<map id="kcenon::network::protocols::grpc::call_options" name="kcenon::network::protocols::grpc::call_options">
+<area shape="rect" id="Node000001" title="Options for individual RPC calls." alt="" coords="5,591,196,691"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="181,448,378,528"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="235,530,173,582,170,578,231,526"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="164,291,315,371"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="252,370,268,431,263,433,247,372"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="59,148,137,213"/>
+<area shape="poly" id="edge10_Node000001_Node000004" title=" " alt="" coords="98,214,85,395,86,489,94,575,89,575,81,489,79,395,92,213"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="113,212,128,239,147,265,161,278,157,282,143,268,123,242,109,215"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="33,5,163,85"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="101,99,101,148,95,148,95,99"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="179,148,316,213"/>
+<area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="248,227,244,291,239,290,242,227"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="201,13,232,78"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="217,78,221,123,223,132,218,133,215,125,211,79"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="309,13,340,78"/>
+<area shape="poly" id="edge7_Node000006_Node000008" title=" " alt="" coords="318,79,298,125,291,136,286,133,293,123,313,77"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="339,298,460,363"/>
+<area shape="poly" id="edge8_Node000002_Node000009" title=" " alt="" coords="380,377,348,426,326,450,322,446,344,422,375,374"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="388,148,411,213"/>
+<area shape="poly" id="edge9_Node000009_Node000010" title=" " alt="" coords="402,214,402,282,397,282,397,214"/>
+</map>

@@ -1,0 +1,19 @@
+<map id="kcenon::network::get_error_details" name="kcenon::network::get_error_details">
+<area shape="rect" id="Node000001" title=" " alt="" coords="293,289,452,329"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1protocols_1_1grpc_1_1grpc__client_1_1impl.html#a64e6d2a5f62adf618381c42e2661a561" title=" " alt="" coords="26,5,225,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="360,276,344,231,320,176,287,121,267,96,244,73,224,60,227,56,247,69,270,92,291,118,325,174,349,229,365,275"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1protocols_1_1grpc_1_1grpc__client_1_1impl.html#a19da0c3df010229bc59dd7941c9f88ed" title=" " alt="" coords="26,84,225,139"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="352,278,308,214,278,181,244,152,223,140,226,136,247,148,282,177,312,211,356,275"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1protocols_1_1grpc_1_1grpc__client_1_1impl.html#a9923faf7cc40c83d28cc136ecefbfaef" title=" " alt="" coords="26,163,225,217"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="331,283,290,256,244,231,218,220,220,215,246,226,293,252,334,278"/>
+<area shape="rect" id="Node000005" href="$classkcenon_1_1network_1_1protocols_1_1grpc_1_1grpc__client_1_1impl.html#a256243e61591588ffd3f790623430e6b" title=" " alt="" coords="26,241,225,296"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="279,296,225,287,226,282,280,291"/>
+<area shape="rect" id="Node000006" href="$classkcenon_1_1network_1_1protocols_1_1http2_1_1http2__client.html#a486838e866f4a35e5c632d5e4a73aab3" title=" " alt="" coords="25,320,226,375"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="280,326,227,334,226,329,280,320"/>
+<area shape="rect" id="Node000007" href="$classkcenon_1_1network_1_1protocols_1_1http2_1_1http2__client.html#a3487051c89d933e25833a0619b1d712a" title=" " alt="" coords="26,399,225,453"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="333,338,292,364,246,388,217,401,215,396,244,384,289,360,330,334"/>
+<area shape="rect" id="Node000008" href="$classkcenon_1_1network_1_1protocols_1_1grpc_1_1grpc__client_1_1impl.html#ada211ff7dd4a1a8bd25846f61db2fc11" title=" " alt="" coords="26,477,225,532"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="355,342,311,405,281,438,247,467,225,480,222,475,244,462,277,434,307,402,351,339"/>
+<area shape="rect" id="Node000009" href="$classkcenon_1_1network_1_1protocols_1_1http2_1_1http2__client.html#ae8563778fea5b3a9ae03a249e1371f56" title="Start a streaming POST request." alt="" coords="5,557,245,597"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="365,343,350,388,325,443,292,498,271,523,247,545,226,559,223,554,244,541,267,520,287,495,321,441,345,386,360,341"/>
+</map>

@@ -1,0 +1,5 @@
+<map id="kcenon::network::protocols::http2::rst_stream_frame" name="kcenon::network::protocols::http2::rst_stream_frame">
+<area shape="rect" id="Node000001" title="RST_STREAM frame (RFC 7540 Section 6.4)" alt="" coords="5,273,196,393"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1protocols_1_1http2_1_1frame.html" title="Base class for HTTP/2 frames." alt="" coords="5,5,196,225"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="103,239,103,273,98,273,98,239"/>
+</map>

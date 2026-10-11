@@ -1,0 +1,14 @@
+<map id="kcenon::network::protocols::quic::connection_id_entry" name="kcenon::network::protocols::quic::connection_id_entry">
+<area shape="rect" id="Node000001" title="Entry for storing a peer&#39;s connection ID with metadata." alt="" coords="97,812,288,912"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1connection__id.html" title="QUIC Connection ID (RFC 9000 Section 5.1)" alt="" coords="19,469,209,749"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="160,749,175,795,170,797,155,750"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,261,145,341"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="83,341,97,453,92,454,78,342"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="113,133,227,199"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="102,197,88,209,76,224,70,242,70,261,64,261,65,241,72,221,84,206,99,193"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="196,365,336,445"/>
+<area shape="poly" id="edge6_Node000006_Node000004" title=" " alt="" coords="231,207,242,221,257,257,266,296,271,365,266,365,261,296,252,259,237,224,227,210"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="159,5,181,71"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="173,71,173,117,167,117,167,71"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="265,446,250,581,223,750,213,796,208,795,218,749,244,580,260,445"/>
+</map>

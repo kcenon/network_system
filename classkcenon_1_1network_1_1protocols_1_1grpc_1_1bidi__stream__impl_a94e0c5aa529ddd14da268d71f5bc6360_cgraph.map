@@ -1,0 +1,5 @@
+<map id="kcenon::network::protocols::grpc::bidi_stream_impl::finish" name="kcenon::network::protocols::grpc::bidi_stream_impl::finish">
+<area shape="rect" id="Node000001" title="Finish the call and get final status." alt="" coords="5,5,204,60"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1protocols_1_1grpc_1_1bidi__stream__impl.html#aca5af0ce71343914b5e232b6d4803d4b" title="Signal that writing is done." alt="" coords="252,5,451,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="204,30,238,30,238,35,204,35"/>
+</map>

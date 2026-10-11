@@ -1,0 +1,19 @@
+<map id="include/kcenon/network/detail/metrics/histogram.h" name="include/kcenon/network/detail/metrics/histogram.h">
+<area shape="rect" id="Node000001" title="Histogram metric implementation for latency distribution tracking." alt="" coords="239,5,438,45"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,93,72,119"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="267,48,86,95,85,90,266,43"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="96,93,163,119"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="289,48,174,91,172,86,288,43"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="187,93,245,119"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="310,48,247,88,244,84,308,43"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="269,93,320,119"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="330,47,310,83,306,80,326,44"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="344,93,421,119"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="352,44,372,80,367,83,347,47"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="445,93,509,119"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="373,43,446,84,444,89,371,48"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="533,93,592,119"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="393,43,521,87,519,92,391,48"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="617,93,679,119"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="414,43,604,91,603,96,413,48"/>
+</map>

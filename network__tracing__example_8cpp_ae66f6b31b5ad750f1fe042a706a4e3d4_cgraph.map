@@ -1,0 +1,16 @@
+<map id="main" name="main">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,70,60,95"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1tracing_1_1trace__context.html#a51856a5f8afe4520deaa28ef21573d85" title="Parse trace context from HTTP headers." alt="" coords="108,5,325,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="59,71,107,55,132,47,134,52,109,60,61,76"/>
+<area shape="rect" id="Node000003" href="$network__tracing__example_8cpp.html#a38f5c31b50ac553a1840f5d1595db530" title=" " alt="" coords="129,70,304,95"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="60,80,116,80,116,85,60,85"/>
+<area shape="rect" id="Node000007" href="$network__tracing__example_8cpp.html#a070935250a3c2e9d8e25dbfa95ebb5ce" title=" " alt="" coords="121,119,312,145"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="61,89,109,104,145,114,144,119,107,109,59,94"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1tracing_1_1trace__context.html#a0618b3e17f57071584025d5e47aa0541" title="Create a new root span with a new trace context." alt="" coords="373,88,580,128"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="304,88,360,94,359,99,304,94"/>
+<area shape="rect" id="Node000005" href="$namespacekcenon_1_1network_1_1tracing.html#a933bb00747359508e4c9b490d42c495d" title="Generate a random span ID." alt="" coords="628,56,811,96"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="580,92,614,87,615,92,580,97"/>
+<area shape="rect" id="Node000006" href="$namespacekcenon_1_1network_1_1tracing.html#ab38da93c9d82d6795e6950368611ea35" title="Generate a random trace ID." alt="" coords="628,120,811,160"/>
+<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="580,119,615,124,614,129,580,124"/>
+<area shape="poly" id="edge7_Node000007_Node000004" title=" " alt="" coords="312,121,359,116,360,121,313,126"/>
+</map>

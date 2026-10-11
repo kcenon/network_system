@@ -1,0 +1,18 @@
+<map id="kcenon::network::protocols::quic::packet_number_space" name="kcenon::network::protocols::quic::packet_number_space">
+<area shape="rect" id="Node000001" title="State for each packet number space (Initial, Handshake, Application)" alt="" coords="66,819,269,999"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="70,661,265,756"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="170,756,170,802,165,802,165,756"/>
+<area shape="rect" id="Node000003" href="$structkcenon_1_1network_1_1protocols_1_1quic_1_1sent__packet__info.html" title="Information about a sent packet for loss detection." alt="" coords="5,419,196,599"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="128,598,141,636,144,645,139,647,135,638,123,600"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="14,261,166,327"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="94,327,98,402,93,403,89,327"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="27,133,148,199"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="91,212,92,261,87,261,86,213"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="131,5,153,71"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="132,49,110,68,91,96,86,117,81,116,86,94,106,65,129,45"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="172,133,299,199"/>
+<area shape="poly" id="edge8_Node000007_Node000006" title=" " alt="" coords="156,55,193,108,202,119,198,122,189,111,151,58"/>
+<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="244,212,251,294,253,401,244,520,234,580,218,638,207,662,202,660,213,636,229,579,239,520,248,401,246,294,239,213"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="292,5,315,71"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="294,72,276,111,270,121,266,118,272,108,289,70"/>
+</map>

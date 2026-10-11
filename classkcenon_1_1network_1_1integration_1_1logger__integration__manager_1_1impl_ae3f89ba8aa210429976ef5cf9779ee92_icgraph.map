@@ -1,0 +1,7 @@
+<map id="kcenon::network::integration::logger_integration_manager::impl::log" name="kcenon::network::integration::logger_integration_manager::impl::log">
+<area shape="rect" id="Node000001" title=" " alt="" coords="296,30,511,85"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1integration_1_1logger__integration__manager.html#a347a45f67395b5e830fa05c6e6e1b7b9" title="Log a message." alt="" coords="5,5,248,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="282,46,248,42,249,37,282,41"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1integration_1_1logger__integration__manager.html#ab0cc78fa58d21772a74650e9e0c3d062" title="Log a message with location." alt="" coords="5,69,248,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="282,74,249,78,248,73,282,69"/>
+</map>

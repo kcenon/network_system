@@ -1,0 +1,18 @@
+<map id="kcenon::network::integration::thread_integration_manager" name="kcenon::network::integration::thread_integration_manager">
+<area shape="rect" id="Node000001" title="Manager for thread system integration." alt="" coords="177,1101,384,1351"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="177,929,384,1039"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="283,1039,283,1085,278,1085,278,1039"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1integration_1_1thread__integration__manager_1_1impl.html" title=" " alt="" coords="79,687,323,867"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="238,866,256,913,251,915,233,868"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="5,500,89,565"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="70,564,138,672,133,674,65,567"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="114,485,293,580"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="205,581,204,670,199,670,200,581"/>
+<area shape="rect" id="Node000006" href="$classkcenon_1_1network_1_1integration_1_1thread__pool__interface.html" title="Interface for thread pool integration." alt="" coords="40,133,241,393"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="131,393,135,428,145,460,149,470,144,472,139,462,130,429,126,394"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="275,231,425,296"/>
+<area shape="poly" id="edge8_Node000002_Node000007" title=" " alt="" coords="358,310,366,411,370,550,363,708,353,789,338,867,328,900,314,930,309,928,323,898,333,866,348,788,357,708,364,550,360,411,353,310"/>
+<area shape="poly" id="edge6_Node000005_Node000007" title=" " alt="" coords="327,309,296,353,256,395,242,403,229,406,218,410,208,419,197,451,197,485,191,485,192,450,204,416,215,405,227,401,240,398,252,391,292,350,323,306"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="339,5,361,71"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="353,71,353,214,347,214,347,71"/>
+</map>

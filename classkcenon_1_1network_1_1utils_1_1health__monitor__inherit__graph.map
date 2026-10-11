@@ -1,0 +1,5 @@
+<map id="kcenon::network::utils::health_monitor" name="kcenon::network::utils::health_monitor">
+<area shape="rect" id="Node000001" title="Monitors connection health with heartbeat mechanism." alt="" coords="10,133,213,633"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,5,217,85"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="114,99,114,133,109,133,109,99"/>
+</map>

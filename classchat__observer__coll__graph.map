@@ -1,0 +1,9 @@
+<map id="chat_observer" name="chat_observer">
+<area shape="rect" id="Node000001" title="Custom observer that handles all connection events." alt="" coords="50,357,198,523"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1interfaces_1_1connection__observer.html" title="Observer interface for client connection events." alt="" coords="5,135,200,295"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="114,308,119,357,114,357,109,309"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="225,182,303,247"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="246,249,186,345,182,342,242,246"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="199,5,329,85"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="267,99,267,182,261,182,261,99"/>
+</map>

@@ -1,0 +1,62 @@
+<map id="QuicClientDemo::run" name="QuicClientDemo::run">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,643,163,668"/>
+<area shape="rect" id="Node000002" href="$classQuicClientDemo.html#a4cce78a029dd046510320ba11ba6a532" title=" " alt="" coords="213,170,387,210"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="89,641,281,222,286,224,94,644"/>
+<area shape="rect" id="Node000012" href="$classQuicClientDemo.html#a1970389e6a77403c0ed697caa07cc56a" title=" " alt="" coords="213,413,387,453"/>
+<area shape="poly" id="edge12_Node000001_Node000012" title=" " alt="" coords="96,640,268,461,272,465,100,644"/>
+<area shape="rect" id="Node000014" href="$classQuicClientDemo.html#ace772af91e52d8e855d97cbb81676fa0" title=" " alt="" coords="214,563,386,603"/>
+<area shape="poly" id="edge17_Node000001_Node000014" title=" " alt="" coords="122,640,225,605,227,610,124,645"/>
+<area shape="rect" id="Node000021" href="$classkcenon_1_1network_1_1core_1_1messaging__quic__client.html#a44debe477f2020ce1f844f3271f139fb" title="Starts the client with default configuration." alt="" coords="211,628,389,683"/>
+<area shape="poly" id="edge28_Node000001_Node000021" title=" " alt="" coords="163,653,197,653,197,658,163,658"/>
+<area shape="rect" id="Node000022" href="$classkcenon_1_1network_1_1core_1_1messaging__quic__client.html#addddeb41a6c308806e388693b694b8f1" title="Get connection statistics." alt="" coords="211,731,389,785"/>
+<area shape="poly" id="edge29_Node000001_Node000022" title=" " alt="" coords="113,666,231,722,228,727,111,671"/>
+<area shape="rect" id="Node000024" href="$classkcenon_1_1network_1_1core_1_1messaging__quic__client.html#a8b0effd05041ea8b9f4b818a2586e62e" title="Stops the client and releases all resources." alt="" coords="211,809,389,864"/>
+<area shape="poly" id="edge32_Node000001_Node000024" title=" " alt="" coords="96,667,142,726,175,762,212,795,220,800,217,804,209,799,171,766,138,730,92,670"/>
+<area shape="rect" id="Node000026" href="$classkcenon_1_1network_1_1core_1_1messaging__quic__client.html#a0c58e61dc1cd2f101d6b34895af93f72" title="Blocks until stop() is called." alt="" coords="211,888,389,943"/>
+<area shape="poly" id="edge34_Node000001_Node000026" title=" " alt="" coords="92,667,106,707,131,762,167,822,188,850,212,875,216,878,213,882,209,879,184,853,162,825,126,764,101,709,87,669"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1core_1_1messaging__quic__client.html#a53b51970802f4b9c82a8da8a232aa51b" title="Closes a stream (interface version)." alt="" coords="458,5,637,60"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="318,168,368,119,401,93,436,69,446,64,448,68,439,74,404,97,372,123,322,172"/>
+<area shape="rect" id="Node000005" href="$classkcenon_1_1network_1_1core_1_1messaging__quic__client.html#aa0ad9c63a53513b924e8baa28b925d30" title="Creates a new bidirectional stream (interface version)." alt="" coords="458,163,637,217"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="387,187,444,187,444,193,387,193"/>
+<area shape="rect" id="Node000006" href="$classkcenon_1_1network_1_1core_1_1messaging__quic__client.html#a30b9d87b9d9e1116c241393f41d2651d" title="Creates a new unidirectional stream (interface version)." alt="" coords="437,241,657,296"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="365,208,449,235,447,240,363,213"/>
+<area shape="rect" id="Node000007" href="$classkcenon_1_1network_1_1core_1_1messaging__quic__client.html#a629cae5f70ba19728569aadc8533eb96" title="Sends data on a specific stream (interface version)." alt="" coords="458,84,637,139"/>
+<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="363,167,447,140,449,145,365,172"/>
+<area shape="rect" id="Node000004" href="$namespacekcenon_1_1network.html#a9d2a06a302dea2b45b323b864eacad4a" title=" " alt="" coords="707,99,911,124"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="638,57,753,92,752,97,636,62"/>
+<area shape="poly" id="edge10_Node000007_Node000004" title=" " alt="" coords="637,109,693,109,693,114,637,114"/>
+<area shape="rect" id="Node000008" href="$classkcenon_1_1network_1_1tracing_1_1trace__context.html#a0618b3e17f57071584025d5e47aa0541" title="Create a new root span with a new trace context." alt="" coords="705,206,912,246"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="630,136,658,148,760,197,758,202,656,152,628,141"/>
+<area shape="rect" id="Node000011" href="$namespacekcenon_1_1network_1_1tracing.html#a6ab950c88c5666f30b2db30609a6834a" title="Check if tracing is enabled." alt="" coords="717,299,900,339"/>
+<area shape="poly" id="edge11_Node000007_Node000011" title=" " alt="" coords="639,133,659,148,679,175,685,202,691,229,707,256,727,275,750,290,748,295,724,279,703,260,686,231,680,203,674,178,655,152,636,138"/>
+<area shape="rect" id="Node000009" href="$namespacekcenon_1_1network_1_1tracing.html#a933bb00747359508e4c9b490d42c495d" title="Generate a random span ID." alt="" coords="960,174,1143,214"/>
+<area shape="poly" id="edge8_Node000008_Node000009" title=" " alt="" coords="912,210,946,205,947,210,912,215"/>
+<area shape="rect" id="Node000010" href="$namespacekcenon_1_1network_1_1tracing.html#ab38da93c9d82d6795e6950368611ea35" title="Generate a random trace ID." alt="" coords="960,238,1143,278"/>
+<area shape="poly" id="edge9_Node000008_Node000010" title=" " alt="" coords="912,237,947,242,946,247,912,242"/>
+<area shape="rect" id="Node000013" href="$classkcenon_1_1network_1_1core_1_1messaging__quic__client.html#a740d75052db8a3f7b1675301b22025d0" title="Send data on the default stream (stream 0)." alt="" coords="458,320,637,375"/>
+<area shape="poly" id="edge13_Node000012_Node000013" title=" " alt="" coords="358,410,454,377,455,382,360,415"/>
+<area shape="poly" id="edge15_Node000013_Node000004" title=" " alt="" coords="635,320,655,305,674,279,681,252,687,224,703,192,737,157,773,130,776,134,741,161,708,196,692,226,686,254,679,281,659,309,638,325"/>
+<area shape="poly" id="edge14_Node000013_Node000008" title=" " alt="" coords="627,317,656,305,760,251,763,255,658,310,629,322"/>
+<area shape="poly" id="edge16_Node000013_Node000011" title=" " alt="" coords="637,335,703,328,704,333,637,340"/>
+<area shape="rect" id="Node000015" href="$classkcenon_1_1network_1_1core_1_1messaging__quic__client.html#acf1506ceb7ab9398912f3a29bc83068d" title="Sets the callback for connection established (interface version)." alt="" coords="455,556,640,611"/>
+<area shape="poly" id="edge18_Node000014_Node000015" title=" " alt="" coords="386,581,441,581,441,586,386,586"/>
+<area shape="rect" id="Node000017" href="$classkcenon_1_1network_1_1core_1_1messaging__quic__client.html#a01d90dcbdda779d74d2593d3c86cc21e" title="Sets the callback for disconnection (interface version)." alt="" coords="445,635,649,689"/>
+<area shape="poly" id="edge20_Node000014_Node000017" title=" " alt="" coords="365,601,449,628,447,633,363,606"/>
+<area shape="rect" id="Node000018" href="$classkcenon_1_1network_1_1core_1_1messaging__quic__client.html#aebbfb2f961981afbbbcad9da6d7b1301" title="Sets the callback for errors (interface version)." alt="" coords="458,713,637,768"/>
+<area shape="poly" id="edge22_Node000014_Node000018" title=" " alt="" coords="373,601,391,613,409,635,416,657,423,678,439,699,447,705,444,709,435,703,418,681,411,659,404,638,388,617,370,606"/>
+<area shape="rect" id="Node000019" href="$classkcenon_1_1network_1_1core_1_1messaging__quic__client.html#a6eb85f5d1af46338997000ecc0ffc6ac" title="Sets the callback for received data on default stream (interface version)." alt="" coords="458,399,637,453"/>
+<area shape="poly" id="edge24_Node000014_Node000019" title=" " alt="" coords="318,561,368,512,401,486,436,462,446,457,448,462,439,467,404,490,372,516,322,565"/>
+<area shape="rect" id="Node000020" href="$classkcenon_1_1network_1_1core_1_1messaging__quic__client.html#ad1e7b016f190748ffd3bf40d5f1693a3" title="Sets the callback for stream data reception (all streams, legacy version)." alt="" coords="438,477,657,532"/>
+<area shape="poly" id="edge26_Node000014_Node000020" title=" " alt="" coords="363,561,447,534,449,539,365,566"/>
+<area shape="rect" id="Node000016" href="$namespacekcenon_1_1network.html#a15edd0988aec7155616b3ad3478471a5" title="Helper to convert enum to std::size_t for callback_manager access." alt="" coords="733,563,884,603"/>
+<area shape="poly" id="edge19_Node000015_Node000016" title=" " alt="" coords="640,581,719,581,719,586,640,586"/>
+<area shape="poly" id="edge21_Node000017_Node000016" title=" " alt="" coords="638,632,727,605,729,610,640,637"/>
+<area shape="poly" id="edge23_Node000018_Node000016" title=" " alt="" coords="631,711,656,698,721,655,774,610,778,615,724,659,659,703,633,716"/>
+<area shape="poly" id="edge25_Node000019_Node000016" title=" " alt="" coords="635,451,659,462,725,507,778,552,775,556,721,511,656,467,633,456"/>
+<area shape="poly" id="edge27_Node000020_Node000016" title=" " alt="" coords="640,530,729,557,727,562,638,535"/>
+<area shape="poly" id="edge31_Node000022_Node000022" title=" " alt="" coords="258,731,258,720,265,712,280,706,300,704,325,707,338,715,336,720,323,712,300,709,281,711,269,716,263,722,263,731"/>
+<area shape="rect" id="Node000023" href="$classkcenon_1_1network_1_1core_1_1messaging__quic__client.html#ae1b3e9cd744d35dc06eed7986427cd64" title="Get the internal socket with mutex protection." alt="" coords="458,792,637,847"/>
+<area shape="poly" id="edge30_Node000022_Node000023" title=" " alt="" coords="390,778,445,791,444,797,389,783"/>
+<area shape="rect" id="Node000025" href="$namespacekcenon_1_1network.html#aa32d0dbfdee046c2c0cde3667c5f05a8" title=" " alt="" coords="470,871,625,896"/>
+<area shape="poly" id="edge33_Node000024_Node000025" title=" " alt="" coords="390,851,467,865,466,871,389,856"/>
+</map>

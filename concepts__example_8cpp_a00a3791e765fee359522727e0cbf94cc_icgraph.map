@@ -1,0 +1,7 @@
+<map id="send_buffer" name="send_buffer">
+<area shape="rect" id="Node000001" title="Send data from any buffer type satisfying ByteBuffer concept." alt="" coords="343,5,441,31"/>
+<area shape="rect" id="Node000002" href="$concepts__example_8cpp.html#a77c3c23f60c767a4f4500bb2d612b6b8" title=" " alt="" coords="108,5,295,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="329,21,295,21,295,15,329,15"/>
+<area shape="rect" id="Node000003" href="$concepts__example_8cpp.html#ae66f6b31b5ad750f1fe042a706a4e3d4" title=" " alt="" coords="5,5,60,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="94,21,60,21,60,15,94,15"/>
+</map>

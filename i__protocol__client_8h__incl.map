@@ -1,0 +1,38 @@
+<map id="include/kcenon/network/interfaces/i_protocol_client.h" name="include/kcenon/network/interfaces/i_protocol_client.h">
+<area shape="rect" id="Node000001" title="Protocol&#45;specific client interface extending i_client." alt="" coords="355,5,533,60"/>
+<area shape="rect" id="Node000002" href="$i__network__component_8h.html" title="Base interface for all network components." alt="" coords="5,115,184,141"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="356,60,151,114,150,109,354,55"/>
+<area shape="rect" id="Node000003" href="$connection__observer_8h.html" title="Observer interface for connection state change notifications." alt="" coords="360,115,528,141"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="447,60,447,101,441,101,441,60"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="81,203,148,229"/>
+<area shape="poly" id="edge10_Node000001_Node000004" title=" " alt="" coords="380,62,279,110,204,156,143,198,140,193,201,151,276,106,378,58"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="173,203,259,229"/>
+<area shape="poly" id="edge11_Node000001_Node000005" title=" " alt="" coords="399,62,328,110,278,154,237,195,234,192,274,150,325,106,396,58"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="284,203,361,229"/>
+<area shape="poly" id="edge12_Node000001_Node000006" title=" " alt="" coords="399,62,373,83,350,109,333,150,327,190,321,189,328,149,346,107,369,80,396,58"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="562,203,659,229"/>
+<area shape="poly" id="edge13_Node000001_Node000009" title=" " alt="" coords="485,58,514,80,542,106,576,149,601,190,596,193,571,152,538,110,511,84,482,62"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="683,203,791,229"/>
+<area shape="poly" id="edge14_Node000001_Node000010" title=" " alt="" coords="494,58,576,106,711,193,708,198,573,110,491,63"/>
+<area shape="rect" id="Node000011" title=" " alt="" coords="654,115,717,141"/>
+<area shape="poly" id="edge15_Node000001_Node000011" title=" " alt="" coords="513,58,644,108,642,113,511,63"/>
+<area shape="rect" id="Node000012" href="$result_8h.html" title="Public header for Result&lt;T&gt; error handling types." alt="" coords="778,108,945,148"/>
+<area shape="poly" id="edge16_Node000001_Node000012" title=" " alt="" coords="534,51,765,103,764,108,532,56"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="383,143,279,166,161,199,154,201,152,196,159,193,277,161,382,138"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="414,143,260,201,258,196,412,138"/>
+<area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="429,143,352,197,349,193,426,139"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="385,203,460,229"/>
+<area shape="poly" id="edge6_Node000003_Node000007" title=" " alt="" coords="444,141,432,190,426,189,439,140"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="484,203,537,229"/>
+<area shape="poly" id="edge7_Node000003_Node000008" title=" " alt="" coords="455,139,495,190,491,194,451,142"/>
+<area shape="poly" id="edge8_Node000003_Node000009" title=" " alt="" coords="468,138,577,194,575,199,465,143"/>
+<area shape="poly" id="edge9_Node000003_Node000010" title=" " alt="" coords="484,138,686,197,684,202,483,143"/>
+<area shape="rect" id="Node000013" href="$result__types_8h.html" title="Network&#45;specific error and result type definitions." alt="" coords="815,196,982,236"/>
+<area shape="poly" id="edge17_Node000012_Node000013" title=" " alt="" coords="872,147,887,182,882,184,867,149"/>
+<area shape="rect" id="Node000014" href="$detail_2config_2feature__flags_8h.html" title="Feature flags for network_system." alt="" coords="674,284,841,324"/>
+<area shape="poly" id="edge18_Node000013_Node000014" title=" " alt="" coords="869,238,801,279,799,275,866,234"/>
+<area shape="rect" id="Node000015" title=" " alt="" coords="865,291,933,317"/>
+<area shape="poly" id="edge19_Node000013_Node000015" title=" " alt="" coords="901,236,901,277,896,277,896,236"/>
+<area shape="rect" id="Node000016" title=" " alt="" coords="957,291,1016,317"/>
+<area shape="poly" id="edge20_Node000013_Node000016" title=" " alt="" coords="920,234,966,279,963,283,916,238"/>
+</map>

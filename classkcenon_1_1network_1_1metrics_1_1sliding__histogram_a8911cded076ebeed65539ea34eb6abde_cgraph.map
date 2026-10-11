@@ -1,0 +1,5 @@
+<map id="kcenon::network::metrics::sliding_histogram::p50" name="kcenon::network::metrics::sliding_histogram::p50">
+<area shape="rect" id="Node000001" title="Get 50th percentile (median) for current window." alt="" coords="5,5,192,45"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1metrics_1_1sliding__histogram.html#a158b2b9e93084a113c5e4062b168efe4" title="Calculate percentile value for current window." alt="" coords="240,5,459,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="192,23,226,23,226,28,192,28"/>
+</map>

@@ -1,0 +1,5 @@
+<map id="kcenon::network::internal::adapters::http_request_session" name="kcenon::network::internal::adapters::http_request_session">
+<area shape="rect" id="Node000001" title="Session wrapper for HTTP request connections implementing i_session." alt="" coords="13,313,193,648"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1interfaces_1_1i__session.html" title="Interface for a single client session on the server side." alt="" coords="5,5,200,265"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="105,279,105,313,100,313,100,279"/>
+</map>

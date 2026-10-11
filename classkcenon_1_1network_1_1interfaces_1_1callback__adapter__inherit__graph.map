@@ -1,0 +1,5 @@
+<map id="kcenon::network::interfaces::callback_adapter" name="kcenon::network::interfaces::callback_adapter">
+<area shape="rect" id="Node000001" title="Adapter to use function callbacks with the observer pattern." alt="" coords="5,213,200,493"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1interfaces_1_1connection__observer.html" title="Observer interface for client connection events." alt="" coords="5,5,200,165"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="105,179,105,213,100,213,100,179"/>
+</map>

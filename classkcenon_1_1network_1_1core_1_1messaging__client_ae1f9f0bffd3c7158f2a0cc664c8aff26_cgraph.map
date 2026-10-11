@@ -1,0 +1,5 @@
+<map id="kcenon::network::core::messaging_client::on_stopped" name="kcenon::network::core::messaging_client::on_stopped">
+<area shape="rect" id="Node000001" title="Called after stop operation completes. Invokes the disconnected callback." alt="" coords="5,5,173,60"/>
+<area shape="rect" id="Node000002" href="$namespacekcenon_1_1network.html#a15edd0988aec7155616b3ad3478471a5" title="Helper to convert enum to std::size_t for callback_manager access." alt="" coords="221,13,372,53"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="174,30,207,30,207,35,174,35"/>
+</map>

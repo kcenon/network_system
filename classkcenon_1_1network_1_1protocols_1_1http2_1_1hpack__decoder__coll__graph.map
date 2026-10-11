@@ -1,0 +1,17 @@
+<map id="kcenon::network::protocols::http2::hpack_decoder" name="kcenon::network::protocols::http2::hpack_decoder">
+<area shape="rect" id="Node000001" title="HPACK header decoder (RFC 7541)" alt="" coords="95,1009,285,1209"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1protocols_1_1http2_1_1dynamic__table.html" title="HPACK dynamic table for header compression." alt="" coords="95,667,285,947"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="193,947,193,993,187,993,187,947"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="111,509,269,604"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="193,605,193,651,187,651,187,605"/>
+<area shape="rect" id="Node000004" href="$structkcenon_1_1network_1_1protocols_1_1http2_1_1http__header.html" title="HTTP header name&#45;value pair." alt="" coords="5,277,196,417"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="129,417,158,484,162,494,157,496,153,486,125,419"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="61,135,140,200"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="103,200,103,261,98,261,98,200"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="35,5,166,85"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="103,99,103,134,98,134,98,99"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="221,315,341,380"/>
+<area shape="poly" id="edge6_Node000003_Node000007" title=" " alt="" coords="270,394,235,486,222,510,218,508,230,484,265,392"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="269,135,292,200"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="283,200,283,298,278,298,278,200"/>
+</map>

@@ -1,0 +1,5 @@
+<map id="kcenon::network::core::secure_messaging_client::invoke_disconnected_callback" name="kcenon::network::core::secure_messaging_client::invoke_disconnected_callback">
+<area shape="rect" id="Node000001" title="Invokes the disconnected callback." alt="" coords="5,5,232,60"/>
+<area shape="rect" id="Node000002" href="$namespacekcenon_1_1network.html#a15edd0988aec7155616b3ad3478471a5" title="Helper to convert enum to std::size_t for callback_manager access." alt="" coords="280,13,431,53"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="232,30,266,30,266,35,232,35"/>
+</map>

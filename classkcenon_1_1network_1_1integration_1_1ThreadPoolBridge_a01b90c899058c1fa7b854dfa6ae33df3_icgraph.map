@@ -1,0 +1,7 @@
+<map id="kcenon::network::integration::ThreadPoolBridge::from_thread_system" name="kcenon::network::integration::ThreadPoolBridge::from_thread_system">
+<area shape="rect" id="Node000001" title="Create bridge from thread_system." alt="" coords="279,45,488,100"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1integration_1_1NetworkSystemBridge.html#a112b437369b534b3e02132746d406c8c" title="Create bridge with default configuration." alt="" coords="5,5,231,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="265,58,231,52,231,47,266,52"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1integration_1_1NetworkSystemBridge.html#a716ed464845cd062da4f077f51732f96" title="Create bridge with thread_system integration." alt="" coords="12,84,224,139"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="265,93,225,99,224,93,265,87"/>
+</map>

@@ -1,0 +1,5 @@
+<map id="kcenon::network::interfaces::i_server" name="kcenon::network::interfaces::i_server">
+<area shape="rect" id="Node000001" title="Base interface for server&#45;side network components." alt="" coords="5,273,223,473"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1interfaces_1_1i__network__component.html" title="Base interface for all network components." alt="" coords="17,5,211,225"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="117,239,117,273,111,273,111,239"/>
+</map>

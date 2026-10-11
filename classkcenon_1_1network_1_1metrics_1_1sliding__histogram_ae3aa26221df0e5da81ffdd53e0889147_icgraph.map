@@ -1,0 +1,5 @@
+<map id="kcenon::network::metrics::sliding_histogram::get_current_bucket" name="kcenon::network::metrics::sliding_histogram::get_current_bucket">
+<area shape="rect" id="Node000001" title="Get or create current time bucket." alt="" coords="248,5,435,60"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1metrics_1_1sliding__histogram.html#ad398a3a2d2aa7299b391436dfb71a26d" title="Record a value observation." alt="" coords="5,13,200,53"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="234,35,200,35,200,30,234,30"/>
+</map>

@@ -1,0 +1,19 @@
+<map id="kcenon::network::protocols::http2::http2_request" name="kcenon::network::protocols::http2::http2_request">
+<area shape="rect" id="Node000001" title="HTTP/2 request data structure." alt="" coords="216,681,407,861"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="372,135,451,200"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="427,200,433,224,433,253,433,438,426,519,405,619,385,668,380,666,399,618,421,518,428,438,427,253,427,224,421,201"/>
+<area shape="rect" id="Node000005" href="$structkcenon_1_1network_1_1protocols_1_1http2_1_1http__header.html" title="HTTP header name&#45;value pair." alt="" coords="220,277,411,417"/>
+<area shape="poly" id="edge5_Node000005_Node000002" title=" " alt="" coords="393,202,379,225,358,264,354,261,374,223,388,199"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="346,5,477,85"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="414,99,414,134,409,134,409,99"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="233,524,390,619"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="314,619,314,665,309,665,309,619"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="317,418,315,508,310,508,311,417"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="32,315,153,380"/>
+<area shape="poly" id="edge6_Node000004_Node000006" title=" " alt="" coords="114,391,143,453,172,498,201,521,234,540,231,544,198,526,168,502,139,456,109,394"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="5,539,164,604"/>
+<area shape="poly" id="edge9_Node000008_Node000006" title=" " alt="" coords="71,393,54,442,50,471,54,499,68,537,63,539,49,501,44,471,49,441,66,391"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="81,135,104,200"/>
+<area shape="poly" id="edge7_Node000006_Node000007" title=" " alt="" coords="95,200,95,298,90,298,90,200"/>
+<area shape="poly" id="edge8_Node000001_Node000008" title=" " alt="" coords="123,602,205,674,202,678,119,606"/>
+</map>

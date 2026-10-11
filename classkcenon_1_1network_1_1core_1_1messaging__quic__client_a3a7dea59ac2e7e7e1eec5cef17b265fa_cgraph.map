@@ -1,0 +1,5 @@
+<map id="kcenon::network::core::messaging_quic_client::is_handshake_complete" name="kcenon::network::core::messaging_quic_client::is_handshake_complete">
+<area shape="rect" id="Node000001" title="Checks if TLS handshake is complete (interface version)." alt="" coords="5,5,192,60"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1core_1_1messaging__quic__client.html#ae1b3e9cd744d35dc06eed7986427cd64" title="Get the internal socket with mutex protection." alt="" coords="240,5,419,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="192,30,226,30,226,35,192,35"/>
+</map>

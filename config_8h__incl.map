@@ -1,0 +1,22 @@
+<map id="include/kcenon/network/config/config.h" name="include/kcenon/network/config/config.h">
+<area shape="rect" id="Node000001" title="Unified configuration header for network_system." alt="" coords="179,5,356,45"/>
+<area shape="rect" id="Node000002" href="$config_2feature__flags_8h.html" title="Public header for compile&#45;time feature flags." alt="" coords="41,101,211,141"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="240,48,168,95,165,91,237,43"/>
+<area shape="rect" id="Node000004" href="$network__config_8h.html" title="Configuration structures for standalone network_system initialization." alt="" coords="196,196,376,236"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="272,45,285,182,280,182,267,46"/>
+<area shape="rect" id="Node000009" href="$network__system__config_8h.html" title="Configuration for network_system with external dependencies." alt="" coords="305,93,483,148"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="295,43,349,83,346,87,291,48"/>
+<area shape="rect" id="Node000003" href="$detail_2config_2feature__flags_8h.html" title="Feature flags for network_system." alt="" coords="5,196,172,236"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="121,142,104,184,99,182,116,140"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="122,291,189,317"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="258,239,186,286,183,281,256,234"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="213,291,271,317"/>
+<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="279,237,257,280,252,278,274,235"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="296,291,367,317"/>
+<area shape="poly" id="edge6_Node000004_Node000007" title=" " alt="" coords="298,235,321,277,316,280,294,238"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="391,284,623,324"/>
+<area shape="poly" id="edge7_Node000004_Node000008" title=" " alt="" coords="336,234,447,277,445,282,334,239"/>
+<area shape="poly" id="edge10_Node000009_Node000004" title=" " alt="" coords="365,150,320,189,316,185,362,146"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="401,203,478,229"/>
+<area shape="poly" id="edge9_Node000009_Node000010" title=" " alt="" coords="409,147,430,190,425,192,404,149"/>
+</map>

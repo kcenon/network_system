@@ -1,0 +1,7 @@
+<map id="kcenon::network::protocols::quic::connection::process_long_header_packet" name="kcenon::network::protocols::quic::connection::process_long_header_packet">
+<area shape="rect" id="Node000001" title="Process a long header packet." alt="" coords="5,16,204,71"/>
+<area shape="rect" id="Node000002" href="$namespacekcenon_1_1network.html#a9d2a06a302dea2b45b323b864eacad4a" title=" " alt="" coords="252,5,456,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="204,31,238,27,239,32,204,36"/>
+<area shape="rect" id="Node000003" href="$namespacekcenon_1_1network.html#aa32d0dbfdee046c2c0cde3667c5f05a8" title=" " alt="" coords="277,55,431,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="204,50,263,56,263,61,204,56"/>
+</map>

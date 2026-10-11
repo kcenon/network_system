@@ -1,0 +1,68 @@
+<map id="kcenon::network::protocols::http2::http2_server_connection" name="kcenon::network::protocols::http2::http2_server_connection">
+<area shape="rect" id="Node000001" title="Represents a single HTTP/2 connection on the server side." alt="" coords="657,1541,881,2161"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,1233,185,1327"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="114,1340,150,1428,175,1474,207,1516,257,1566,313,1613,372,1655,433,1694,553,1758,658,1805,656,1810,550,1763,430,1698,369,1659,310,1617,254,1570,203,1519,171,1477,145,1430,109,1342"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="947,1240,1100,1320"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="1008,1322,890,1586,885,1583,1003,1319"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="985,825,1134,890"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="1058,904,1029,1240,1024,1239,1053,903"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="1341,1233,1495,1327"/>
+<area shape="poly" id="edge6_Node000006_Node000004" title=" " alt="" coords="1114,897,1220,988,1279,1046,1332,1109,1372,1171,1401,1231,1396,1234,1367,1174,1328,1112,1275,1050,1217,992,1110,901"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="827,135,849,200"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="850,168,904,185,936,200,965,222,983,247,991,277,1010,350,1025,426,1046,576,1057,709,1061,808,1056,808,1052,710,1041,577,1020,427,1005,351,986,278,978,249,961,226,933,205,902,190,849,173"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="415,315,541,380"/>
+<area shape="poly" id="edge10_Node000009_Node000005" title=" " alt="" coords="828,177,556,310,554,306,825,172"/>
+<area shape="rect" id="Node000017" title=" " alt="" coords="708,315,829,380"/>
+<area shape="poly" id="edge20_Node000017_Node000005" title=" " alt="" coords="828,181,810,200,794,225,781,262,774,299,769,298,776,261,789,223,806,197,825,177"/>
+<area shape="rect" id="Node000019" title=" " alt="" coords="264,315,391,380"/>
+<area shape="poly" id="edge25_Node000019_Node000005" title=" " alt="" coords="827,172,760,178,653,195,591,209,527,228,464,251,405,280,369,305,366,301,402,275,462,246,525,223,590,204,652,190,759,173,826,167"/>
+<area shape="rect" id="Node000025" title=" " alt="" coords="1127,315,1247,380"/>
+<area shape="poly" id="edge32_Node000025_Node000005" title=" " alt="" coords="850,166,890,169,948,177,1015,193,1048,206,1079,222,1103,238,1125,258,1160,300,1156,303,1121,262,1100,243,1077,226,1046,211,1013,199,947,182,889,174,849,172"/>
+<area shape="rect" id="Node000028" title=" " alt="" coords="862,315,977,380"/>
+<area shape="poly" id="edge38_Node000028_Node000005" title=" " alt="" coords="852,187,871,223,904,298,899,301,866,225,847,190"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="1403,1329,1374,1390,1354,1422,1332,1451,1282,1504,1228,1554,1113,1646,998,1724,896,1786,893,1781,996,1720,1110,1642,1225,1550,1278,1500,1328,1448,1350,1419,1369,1387,1398,1327"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="417,1247,501,1313"/>
+<area shape="poly" id="edge7_Node000001_Node000007" title=" " alt="" coords="468,1312,492,1406,511,1462,534,1516,588,1611,649,1699,644,1702,583,1614,529,1519,506,1464,487,1407,463,1313"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="151,628,296,693"/>
+<area shape="poly" id="edge8_Node000001_Node000008" title=" " alt="" coords="222,694,213,834,212,935,219,1048,234,1168,261,1290,280,1349,303,1407,331,1463,363,1516,425,1593,497,1663,572,1723,644,1773,641,1778,569,1727,493,1667,421,1597,358,1519,326,1466,299,1410,275,1351,256,1291,229,1169,213,1048,207,935,207,834,217,693"/>
+<area shape="poly" id="edge9_Node000008_Node000009" title=" " alt="" coords="437,391,388,443,308,544,247,630,242,626,304,541,384,440,433,388"/>
+<area shape="rect" id="Node000012" title=" " alt="" coords="365,517,513,597"/>
+<area shape="poly" id="edge14_Node000012_Node000009" title=" " alt="" coords="472,394,449,517,444,516,467,393"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="526,1233,721,1327"/>
+<area shape="poly" id="edge11_Node000001_Node000010" title=" " alt="" coords="637,1327,683,1517,685,1525,680,1526,678,1518,632,1328"/>
+<area shape="rect" id="Node000011" href="$structkcenon_1_1network_1_1protocols_1_1http2_1_1http2__stream.html" title="HTTP/2 stream state and data." alt="" coords="528,717,719,997"/>
+<area shape="poly" id="edge12_Node000010_Node000011" title=" " alt="" coords="626,997,626,1216,621,1216,621,997"/>
+<area shape="poly" id="edge13_Node000011_Node000012" title=" " alt="" coords="468,595,488,627,535,702,530,705,484,629,463,598"/>
+<area shape="rect" id="Node000013" title=" " alt="" coords="721,509,878,604"/>
+<area shape="poly" id="edge15_Node000011_Node000013" title=" " alt="" coords="782,605,738,695,730,708,725,706,733,692,777,603"/>
+<area shape="rect" id="Node000014" href="$structkcenon_1_1network_1_1protocols_1_1http2_1_1http__header.html" title="HTTP header name&#45;value pair." alt="" coords="1288,277,1479,417"/>
+<area shape="poly" id="edge16_Node000013_Node000014" title=" " alt="" coords="1289,408,1260,420,1225,428,1195,429,1168,431,1135,444,1123,454,1116,465,1109,477,1095,488,1067,500,1042,505,998,506,952,504,927,506,897,512,895,513,893,508,896,507,926,500,952,498,998,501,1042,500,1066,494,1093,483,1105,473,1112,462,1119,450,1133,439,1166,426,1195,424,1224,423,1259,415,1287,403"/>
+<area shape="rect" id="Node000024" title=" " alt="" coords="1321,509,1478,604"/>
+<area shape="poly" id="edge30_Node000024_Node000014" title=" " alt="" coords="1391,417,1397,493,1392,493,1386,418"/>
+<area shape="rect" id="Node000015" title=" " alt="" coords="1344,135,1423,200"/>
+<area shape="poly" id="edge17_Node000014_Node000015" title=" " alt="" coords="1386,200,1386,261,1381,261,1381,200"/>
+<area shape="rect" id="Node000016" title=" " alt="" coords="1318,5,1449,85"/>
+<area shape="poly" id="edge18_Node000015_Node000016" title=" " alt="" coords="1386,99,1386,134,1381,134,1381,99"/>
+<area shape="poly" id="edge19_Node000013_Node000017" title=" " alt="" coords="767,394,767,438,773,485,780,508,774,510,767,486,762,439,762,394"/>
+<area shape="rect" id="Node000018" title=" " alt="" coords="537,524,696,589"/>
+<area shape="poly" id="edge22_Node000018_Node000017" title=" " alt="" coords="726,392,681,443,655,485,634,525,629,522,650,482,677,440,722,388"/>
+<area shape="poly" id="edge35_Node000001_Node000018" title=" " alt="" coords="560,592,539,609,522,629,485,701,451,798,423,910,401,1032,387,1154,383,1270,389,1371,396,1413,407,1448,428,1494,453,1538,512,1620,579,1693,646,1754,642,1758,576,1696,508,1623,448,1541,423,1496,402,1450,391,1414,384,1371,377,1270,382,1154,396,1031,418,909,446,796,480,699,517,627,535,605,557,588"/>
+<area shape="poly" id="edge21_Node000011_Node000018" title=" " alt="" coords="620,590,623,701,617,701,615,590"/>
+<area shape="poly" id="edge23_Node000010_Node000019" title=" " alt="" coords="323,394,317,454,314,529,317,611,330,693,346,743,374,808,449,960,532,1114,599,1231,594,1234,527,1116,444,963,369,810,341,745,325,694,312,612,309,529,312,454,318,393"/>
+<area shape="rect" id="Node000020" title=" " alt="" coords="316,135,339,200"/>
+<area shape="poly" id="edge24_Node000019_Node000020" title=" " alt="" coords="330,200,330,298,325,298,325,200"/>
+<area shape="rect" id="Node000021" href="$structkcenon_1_1network_1_1protocols_1_1http2_1_1http2__settings.html" title="HTTP/2 connection settings." alt="" coords="1124,1190,1317,1370"/>
+<area shape="poly" id="edge26_Node000001_Node000021" title=" " alt="" coords="1169,1372,1115,1451,1004,1591,894,1718,890,1714,1000,1587,1111,1448,1165,1369"/>
+<area shape="rect" id="Node000022" href="$classkcenon_1_1network_1_1protocols_1_1http2_1_1hpack__encoder.html" title="HPACK header encoder (RFC 7541)" alt="" coords="1733,1111,1924,1449"/>
+<area shape="poly" id="edge27_Node000001_Node000022" title=" " alt="" coords="1735,1441,1724,1451,1624,1526,1516,1592,1404,1650,1290,1700,1179,1742,1074,1776,898,1825,896,1820,1073,1771,1177,1737,1288,1695,1402,1645,1514,1588,1621,1522,1720,1447,1731,1437"/>
+<area shape="rect" id="Node000023" href="$classkcenon_1_1network_1_1protocols_1_1http2_1_1dynamic__table.html" title="HPACK dynamic table for header compression." alt="" coords="1519,717,1709,997"/>
+<area shape="poly" id="edge28_Node000022_Node000023" title=" " alt="" coords="1687,996,1738,1095,1733,1097,1683,999"/>
+<area shape="rect" id="Node000026" href="$classkcenon_1_1network_1_1protocols_1_1http2_1_1hpack__decoder.html" title="HPACK header decoder (RFC 7541)" alt="" coords="1519,1180,1709,1380"/>
+<area shape="poly" id="edge34_Node000026_Node000023" title=" " alt="" coords="1617,997,1617,1164,1611,1164,1611,997"/>
+<area shape="poly" id="edge29_Node000023_Node000024" title=" " alt="" coords="1435,603,1511,709,1507,712,1431,606"/>
+<area shape="poly" id="edge31_Node000024_Node000025" title=" " alt="" coords="1200,392,1219,439,1232,463,1249,483,1283,510,1322,529,1319,534,1280,514,1245,487,1228,466,1214,442,1195,394"/>
+<area shape="poly" id="edge33_Node000001_Node000026" title=" " alt="" coords="1564,1382,1539,1418,1509,1451,1437,1514,1359,1572,1278,1625,1195,1672,1034,1751,897,1808,895,1803,1032,1746,1192,1668,1275,1620,1356,1568,1434,1510,1505,1447,1535,1415,1560,1379"/>
+<area shape="rect" id="Node000027" title=" " alt="" coords="776,1021,943,1087"/>
+<area shape="poly" id="edge36_Node000001_Node000027" title=" " alt="" coords="804,1089,784,1112,778,1132,773,1166,766,1264,764,1525,758,1525,761,1264,768,1165,773,1131,780,1109,800,1085"/>
+<area shape="poly" id="edge37_Node000027_Node000028" title=" " alt="" coords="920,394,914,528,903,694,884,880,866,1021,861,1021,879,879,898,693,909,528,915,393"/>
+</map>

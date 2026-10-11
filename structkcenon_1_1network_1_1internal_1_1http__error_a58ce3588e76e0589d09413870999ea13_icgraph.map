@@ -1,0 +1,7 @@
+<map id="kcenon::network::internal::http_error::status_code" name="kcenon::network::internal::http_error::status_code">
+<area shape="rect" id="Node000001" title="Get status code as integer." alt="" coords="252,37,440,77"/>
+<area shape="rect" id="Node000002" href="$structkcenon_1_1network_1_1internal_1_1http__error.html#a9e5209ed21bdcc5201211996616b8656" title="Check if this is a client error (4xx)" alt="" coords="7,5,202,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="238,46,202,41,203,36,239,40"/>
+<area shape="rect" id="Node000003" href="$structkcenon_1_1network_1_1internal_1_1http__error.html#afe14b0bbdaca75ea1d2cb70b0e3c2b68" title="Check if this is a server error (5xx)" alt="" coords="5,69,204,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="239,74,205,79,204,74,238,69"/>
+</map>

@@ -1,0 +1,6 @@
+<map id="ModernServer::ModernServer" name="ModernServer::ModernServer">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,44,217,69"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1integration_1_1thread__integration__manager.html#a90d93374dd61a18d654e2f7cedf38f57" title="Get the singleton instance." alt="" coords="265,29,480,84"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="218,54,252,54,252,59,218,59"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="322,29,322,19,331,10,348,5,373,3,402,6,419,14,416,18,401,11,373,8,349,10,334,15,327,21,327,29"/>
+</map>

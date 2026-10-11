@@ -1,0 +1,13 @@
+<map id="include/kcenon/network/protocol/protocol.h" name="include/kcenon/network/protocol/protocol.h">
+<area shape="rect" id="Node000001" title="Convenience header for all protocol factory functions." alt="" coords="249,5,427,45"/>
+<area shape="rect" id="Node000002" href="$unified__client__example_8cpp.html" title="Example showing the new unified client interface usage." alt="" coords="5,93,209,133"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="276,53,159,96,157,91,274,48"/>
+<area shape="rect" id="Node000003" href="$unified__server__example_8cpp.html" title="Example showing the new unified server (listener) interface usage." alt="" coords="233,93,443,133"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="341,59,341,93,335,93,335,59"/>
+<area shape="rect" id="Node000004" href="$network__system_8h.html" title="Main header for the Network System." alt="" coords="467,93,644,133"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="399,48,509,91,507,96,398,53"/>
+<area shape="rect" id="Node000005" href="$modern__usage_8cpp.html" title="Example of using network_system with modern API and Result&lt;T&gt; pattern." alt="" coords="377,181,539,236"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="528,145,487,183,484,179,524,141"/>
+<area shape="rect" id="Node000006" href="$network__system_8cpp.html" title=" " alt="" coords="563,196,743,221"/>
+<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="587,141,642,194,639,198,583,145"/>
+</map>

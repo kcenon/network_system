@@ -1,0 +1,7 @@
+<map id="kcenon::network::integration::thread_integration_manager::submit_task" name="kcenon::network::integration::thread_integration_manager::submit_task">
+<area shape="rect" id="Node000001" title="Submit a task to the thread pool." alt="" coords="252,45,467,100"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1protocols_1_1grpc_1_1grpc__client_1_1impl.html#af482c55fd98e4fc15fa798c01ecfb2d9" title=" " alt="" coords="5,5,204,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="238,56,204,51,205,46,239,51"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1utils_1_1health__monitor.html#a5fde66f996230e3fefcbfb62798c9941" title="Starts monitoring the given client." alt="" coords="21,84,188,139"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="239,94,189,101,188,96,238,88"/>
+</map>

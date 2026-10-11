@@ -1,0 +1,5 @@
+<map id="kcenon::network::core::messaging_udp_server::set_receive_callback" name="kcenon::network::core::messaging_udp_server::set_receive_callback">
+<area shape="rect" id="Node000001" title="Sets the callback for received datagrams (legacy version)." alt="" coords="5,5,185,60"/>
+<area shape="rect" id="Node000002" href="$namespacekcenon_1_1network.html#a15edd0988aec7155616b3ad3478471a5" title="Helper to convert enum to std::size_t for callback_manager access." alt="" coords="233,13,384,53"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="185,30,219,30,219,35,185,35"/>
+</map>

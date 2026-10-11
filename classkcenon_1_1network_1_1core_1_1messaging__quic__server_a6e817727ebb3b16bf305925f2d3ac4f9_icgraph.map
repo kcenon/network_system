@@ -1,0 +1,9 @@
+<map id="kcenon::network::core::messaging_quic_server::set_connection_callback" name="kcenon::network::core::messaging_quic_server::set_connection_callback">
+<area shape="rect" id="Node000001" title="Sets the callback for new connections (interface version)." alt="" coords="541,5,731,60"/>
+<area shape="rect" id="Node000002" href="$classQuicServerDemo.html#a487840d30666855938576ca278b02fa9" title=" " alt="" coords="317,13,493,53"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="528,35,494,35,494,30,528,30"/>
+<area shape="rect" id="Node000003" href="$classQuicServerDemo.html#a772d70f6da7837889f500eca3c4cc73a" title=" " alt="" coords="108,20,269,45"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="304,35,269,35,269,30,304,30"/>
+<area shape="rect" id="Node000004" href="$quic__server__example_8cpp.html#a0ddf1224851353fc92bfbff6f499fa97" title=" " alt="" coords="5,20,60,45"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="94,35,60,35,60,30,94,30"/>
+</map>

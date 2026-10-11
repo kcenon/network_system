@@ -1,0 +1,5 @@
+<map id="kcenon::network::metrics::histogram::histogram" name="kcenon::network::metrics::histogram::histogram">
+<area shape="rect" id="Node000001" title="Construct histogram with configuration." alt="" coords="5,13,192,53"/>
+<area shape="rect" id="Node000002" href="$structkcenon_1_1network_1_1metrics_1_1histogram__config.html#ac7ec4b99fad0c1a93d835d5593a71c41" title="Create default configuration for network latencies." alt="" coords="240,5,436,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="192,30,226,30,226,35,192,35"/>
+</map>

@@ -1,0 +1,10 @@
+<map id="profile_connections" name="profile_connections">
+<area shape="rect" id="Node000001" title="Profile connection memory overhead." alt="" coords="5,29,153,55"/>
+<area shape="rect" id="Node000002" href="$memory__profile__demo_8cpp.html#a6295c0a390ad165833a0089970921330" title="Get current RSS (Resident Set Size) in bytes." alt="" coords="419,5,541,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="154,35,405,20,405,25,154,40"/>
+<area shape="rect" id="Node000003" href="$memory__profile__demo_8cpp.html#a7791d3883beb680ea62515b4a8148ff8" title="Print memory statistics with label." alt="" coords="201,55,355,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="154,49,188,53,187,58,153,54"/>
+<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="330,52,413,31,415,37,331,57"/>
+<area shape="rect" id="Node000004" href="$memory__profile__demo_8cpp.html#a03a3bc83ede2b2959b4aece83006046e" title="Get current virtual memory size in bytes." alt="" coords="403,55,557,80"/>
+<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="355,65,389,65,389,70,355,70"/>
+</map>

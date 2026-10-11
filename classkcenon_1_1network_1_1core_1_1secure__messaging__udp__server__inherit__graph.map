@@ -1,0 +1,5 @@
+<map id="kcenon::network::core::secure_messaging_udp_server" name="kcenon::network::core::secure_messaging_udp_server">
+<area shape="rect" id="Node000001" title="A secure UDP server using DTLS (Datagram TLS) for encrypted communication." alt="" coords="19,148,211,781"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,5,224,100"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="117,114,117,148,112,148,112,114"/>
+</map>

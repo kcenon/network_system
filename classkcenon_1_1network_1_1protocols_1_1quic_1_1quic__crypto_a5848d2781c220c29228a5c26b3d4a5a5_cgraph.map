@@ -1,0 +1,5 @@
+<map id="kcenon::network::protocols::quic::quic_crypto::process_crypto_data" name="kcenon::network::protocols::quic::quic_crypto::process_crypto_data">
+<area shape="rect" id="Node000001" title="Process incoming CRYPTO frame data." alt="" coords="5,5,204,60"/>
+<area shape="rect" id="Node000002" href="$namespacekcenon_1_1network.html#aa32d0dbfdee046c2c0cde3667c5f05a8" title=" " alt="" coords="252,20,407,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="204,30,238,30,238,35,204,35"/>
+</map>

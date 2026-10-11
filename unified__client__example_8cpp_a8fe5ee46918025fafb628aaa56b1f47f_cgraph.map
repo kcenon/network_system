@@ -1,0 +1,9 @@
+<map id="udp_example" name="udp_example">
+<area shape="rect" id="Node000001" title="UDP client example using unified API." alt="" coords="5,42,116,67"/>
+<area shape="rect" id="Node000002" href="$namespacekcenon_1_1network_1_1protocol_1_1udp.html#a774eed059b0fd4d96b817f0fede34eda" title="Creates and starts a UDP connection in one call." alt="" coords="164,5,355,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="116,44,150,39,151,44,116,49"/>
+<area shape="rect" id="Node000004" href="$unified__client__example_8cpp.html#aebc08fb9515417b9f4cbc95b6e3ac721" title="Protocol&#45;agnostic connection handler." alt="" coords="187,70,331,95"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="116,60,174,68,173,73,116,65"/>
+<area shape="rect" id="Node000003" href="$namespacekcenon_1_1network_1_1protocol_1_1udp.html#abd24ad447043d4a463084a4176155e2d" title="Creates a UDP connection (not yet started)" alt="" coords="403,5,593,45"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="355,23,389,23,389,28,355,28"/>
+</map>

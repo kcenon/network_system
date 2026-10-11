@@ -1,0 +1,9 @@
+<map id="kcenon::network::interfaces::i_udp_server" name="kcenon::network::interfaces::i_udp_server">
+<area shape="rect" id="Node000001" title="Interface for UDP server components." alt="" coords="119,273,313,433"/>
+<area shape="rect" id="Node000003" href="$classkcenon_1_1network_1_1core_1_1messaging__udp__server.html" title="A UDP server that receives datagrams and routes them based on sender endpoint." alt="" coords="5,525,205,1065"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="195,448,176,526,171,524,190,447"/>
+<area shape="rect" id="Node000004" href="$classkcenon_1_1network_1_1core_1_1unified__udp__messaging__server.html" title="Unified UDP server template parameterized by TLS policy." alt="" coords="229,481,427,1109"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="242,446,251,481,246,482,237,447"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1interfaces_1_1i__network__component.html" title="Base interface for all network components." alt="" coords="119,5,313,225"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="219,239,219,273,213,273,213,239"/>
+</map>

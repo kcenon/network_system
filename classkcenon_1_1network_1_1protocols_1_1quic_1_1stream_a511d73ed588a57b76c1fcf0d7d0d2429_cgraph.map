@@ -1,0 +1,5 @@
+<map id="kcenon::network::protocols::quic::stream::is_unidirectional" name="kcenon::network::protocols::quic::stream::is_unidirectional">
+<area shape="rect" id="Node000001" title="Check if stream is unidirectional." alt="" coords="5,13,232,53"/>
+<area shape="rect" id="Node000002" href="$namespacekcenon_1_1network_1_1protocols_1_1quic_1_1stream__id__type.html#a17c3f7ab3e04e97dfa1c277c672b4261" title="Check if stream is unidirectional." alt="" coords="280,5,479,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="232,30,266,30,266,35,232,35"/>
+</map>

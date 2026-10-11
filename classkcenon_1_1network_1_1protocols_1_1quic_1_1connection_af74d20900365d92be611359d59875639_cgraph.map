@@ -1,0 +1,5 @@
+<map id="kcenon::network::protocols::quic::connection::pmtud_enabled" name="kcenon::network::protocols::quic::connection::pmtud_enabled">
+<area shape="rect" id="Node000001" title="Check if PMTUD is enabled." alt="" coords="5,5,204,60"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1pmtud__controller.html#a26db3d91e1bcdc241fea9a3cfe390baf" title="Check if PMTUD is enabled." alt="" coords="252,5,451,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="204,30,238,30,238,35,204,35"/>
+</map>

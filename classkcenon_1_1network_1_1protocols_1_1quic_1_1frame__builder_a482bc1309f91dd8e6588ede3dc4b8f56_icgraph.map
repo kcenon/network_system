@@ -1,0 +1,5 @@
+<map id="kcenon::network::protocols::quic::frame_builder::build_padding" name="kcenon::network::protocols::quic::frame_builder::build_padding">
+<area shape="rect" id="Node000001" title="Build PADDING frame." alt="" coords="280,5,479,60"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1protocols_1_1quic_1_1connection.html#aab062ba7194c739645461e55b8f2740b" title="Build a packet at the given encryption level." alt="" coords="5,13,232,53"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="266,35,232,35,232,30,266,30"/>
+</map>

@@ -1,0 +1,6 @@
+<map id="kcenon::network::core::messaging_quic_client::stats" name="kcenon::network::core::messaging_quic_client::stats">
+<area shape="rect" id="Node000001" title="Get connection statistics." alt="" coords="5,29,184,84"/>
+<area shape="poly" id="edge2_Node000001_Node000001" title=" " alt="" coords="50,29,51,19,59,10,73,5,95,3,120,6,135,14,132,18,119,11,95,8,74,10,62,15,56,21,56,29"/>
+<area shape="rect" id="Node000002" href="$classkcenon_1_1network_1_1core_1_1messaging__quic__client.html#ae1b3e9cd744d35dc06eed7986427cd64" title="Get the internal socket with mutex protection." alt="" coords="232,29,411,84"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="185,54,218,54,218,59,185,59"/>
+</map>
