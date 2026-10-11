@@ -365,9 +365,15 @@ tls_loopback_listener::tls_loopback_listener(asio::io_context& io, bool trusted)
 
 tls_loopback_listener::~tls_loopback_listener()
 {
+    stop();
+}
+
+void tls_loopback_listener::stop()
+{
     auto shared = state_;
     asio::post(shared->strand, [shared] {
         std::lock_guard<std::mutex> lock(shared->mutex);
+        if (shared->stopped) return;
         shared->stopped = true;
         std::error_code ec;
         shared->acceptor.close(ec);
@@ -389,15 +395,15 @@ std::unique_ptr<asio::ssl::stream<asio::ip::tcp::socket>>
 tls_loopback_listener::accepted_socket(std::chrono::milliseconds timeout)
 {
     const auto deadline = std::chrono::steady_clock::now() + timeout;
-    while (std::chrono::steady_clock::now() < deadline)
+    for (;;)
     {
         {
             std::lock_guard<std::mutex> lock(state_->mutex);
             if (state_->handshake_done.load()) return std::move(state_->stream);
         }
+        if (std::chrono::steady_clock::now() >= deadline) return nullptr;
         std::this_thread::sleep_for(std::chrono::milliseconds(5));
     }
-    return nullptr;
 }
 
 } // namespace kcenon::network::tests::support

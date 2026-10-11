@@ -4801,6 +4801,7 @@ macro(add_network_test TEST_NAME TEST_SOURCE)
 
     network_gtest_discover_tests(${TEST_NAME}
         DISCOVERY_TIMEOUT 60
+        ${ARGN}
     )
 endmacro()
 
@@ -4974,6 +4975,12 @@ add_network_test(network_http2_client_coverage_test unit/http2_client_coverage_t
 # semantics (Issue #991 follow-up)
 add_network_test(network_http2_client_extended_coverage_test
                  unit/http2_client_extended_coverage_test.cpp)
+
+# Bounded peer teardown and I/O deadlines (Issue #1180).
+add_network_test(network_hermetic_peer_shutdown_test
+    unit/hermetic_peer_shutdown_test.cpp
+    PROPERTIES TIMEOUT 90)
+target_link_libraries(network_hermetic_peer_shutdown_test PRIVATE network::test_support)
 
 # HTTP/2 client branch coverage: response header lookup case-insensitivity,
 # settings round-trip boundaries, http2_stream move semantics with populated

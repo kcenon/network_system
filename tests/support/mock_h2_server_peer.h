@@ -49,8 +49,12 @@
  *     negotiated settings.
  *  5. Send a SETTINGS-ACK frame (length=0, type=0x4, flags=0x1,
  *     stream_id=0).
+ *  6. Read and validate the client's SETTINGS-ACK.
  *
- * After step 5, behavior diverges per @ref reply_mode (see above).
+ * After step 6, behavior diverges per @ref reply_mode (see above).
+ * All transport operations have deadlines and run on the peer's own worker.
+ * Destruction cancels I/O even if the client remains connected or the calling
+ * fixture has stopped its executor.
  *
  * Hermetic: bound to @c 127.0.0.1:0 via the underlying listener; cert is
  * regenerated per construction; no DNS, no external network, no on-disk
@@ -136,11 +140,21 @@ enum class reply_mode
 class mock_h2_server_peer
 {
 public:
+    /// Observable protocol stages for synchronizing teardown regressions.
+    enum class stage
+    {
+        accepting, handshaking, preface, settings_header, settings_payload, settings_ack,
+        post_handshake_write, request_header, request_payload, response_write,
+        drain_header, drain_payload, stopped
+    };
+
+    [[nodiscard]] auto current_stage() const -> stage { return stage_.load(); }
+
     /**
      * @brief Construct the peer, opening the TLS listener and spawning the
      *        worker thread.
-     * @param io io_context used by the underlying listener for accept
-     *        and TLS handshake.
+     * @param io Retained for fixture source compatibility. The peer uses a
+     *        private io_context so teardown also works when this context stops.
      * @param mode Post-handshake behavior. Defaults to
      *        @ref reply_mode::drain_only for backward compatibility with
      *        Phase 2A timeout-path tests.
@@ -168,8 +182,9 @@ public:
         std::vector<std::vector<std::uint8_t>> post_handshake_frames = {});
 
     /**
-     * @brief Destructor. Signals the worker to stop, closes the listener,
-     *        and joins the worker thread.
+     * @brief Requests stop and joins the worker. The worker cancels its own
+     *        I/O and drains completions before releasing stream/buffer state;
+     *        the client need not disconnect first.
      */
     ~mock_h2_server_peer();
 
@@ -262,7 +277,11 @@ private:
      *        then dispatches to the per-mode tail (drain or echo).
      */
     void run();
+    void run_protocol();
 
+    // Only worker_ drives this executor, including TLS I/O and cancellation.
+    // Declared before listener_ so it outlives all listener state/handlers.
+    asio::io_context worker_io_;
     tls_loopback_listener listener_;
     reply_mode mode_;
     frame_injector injector_;
@@ -270,6 +289,7 @@ private:
     std::atomic<bool> settings_exchanged_{false};
     std::atomic<bool> io_failed_{false};
     std::atomic<bool> stop_{false};
+    std::atomic<stage> stage_{stage::accepting};
     std::atomic<bool> request_received_{false};
     std::atomic<bool> response_sent_{false};
     std::atomic<std::uint32_t> last_request_stream_id_{0};
