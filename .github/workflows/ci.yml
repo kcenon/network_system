@@ -451,7 +451,7 @@ jobs:
             export TSAN_OPTIONS="${{ matrix.sanitizer.env_value }}:suppressions=$SUPP_FILE"
           fi
         fi
-        ctest -C Debug --output-on-failure --verbose -LE no_sanitizer
+        ctest -C Debug --output-on-failure --verbose --no-tests=error --timeout 120 -LE no_sanitizer
       env:
         ${{ matrix.sanitizer.env_var }}: ${{ matrix.sanitizer.env_value }}
 

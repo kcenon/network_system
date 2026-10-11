@@ -110,6 +110,10 @@ public:
     explicit tls_loopback_listener(asio::io_context& io, bool trusted = false);
     ~tls_loopback_listener();
 
+    /// Schedule cancellation of accept/handshake on the listener's strand.
+    /// The owning io_context must run to complete cancellation. Idempotent.
+    void stop();
+
     tls_loopback_listener(const tls_loopback_listener&) = delete;
     tls_loopback_listener& operator=(const tls_loopback_listener&) = delete;
 
@@ -126,6 +130,7 @@ public:
     /**
      * @brief Block up to @p timeout waiting for a peer to connect AND the TLS
      *        handshake to complete; return the accepted SSL stream on success.
+     *        A zero timeout performs one nonblocking check.
      * @return @c std::unique_ptr to the accepted stream, or @c nullptr on
      *         timeout / handshake error.
      */
