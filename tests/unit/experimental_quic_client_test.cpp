@@ -31,6 +31,7 @@ All rights reserved.
 
 #include <gtest/gtest.h>
 
+#include <atomic>
 #include <chrono>
 #include <memory>
 #include <string>
@@ -419,9 +420,34 @@ protected:
     asio::ip::udp::endpoint remote;
     std::shared_ptr<messaging_quic_client> client =
         std::make_shared<messaging_quic_client>("live-accessors");
+    std::atomic<bool> reader_stopped{false};
+    std::thread reader;
 
     void SetUp() override { peer.non_blocking(true); }
-    void TearDown() override { (void)client->stop_client(); }
+    void TearDown() override
+    {
+        stop_reader();
+        (void)client->stop_client();
+    }
+
+    // Some supported Apple libc++ versions lack jthread/stop_token. Keep
+    // ownership in the fixture so fatal assertions still stop and join it.
+    void start_reader()
+    {
+        reader_stopped.store(false);
+        reader = std::thread([this] {
+            while (!reader_stopped.load()) {
+                (void)client->stats();
+                (void)client->alpn_protocol();
+            }
+        });
+    }
+
+    void stop_reader()
+    {
+        reader_stopped.store(true);
+        if (reader.joinable()) reader.join();
+    }
 
     template<class Predicate> bool wait(Predicate ready)
     {
@@ -535,15 +561,9 @@ TEST_F(QuicClientLiveAccessorsTest, ConcurrentReadsDuringStopAndRestart)
 {
     negotiate(true);
     ASSERT_FALSE(HasFatalFailure());
-    std::jthread reader([&](std::stop_token stop) {
-        while (!stop.stop_requested()) {
-            (void)client->stats();
-            (void)client->alpn_protocol();
-        }
-    });
+    start_reader();
     ASSERT_TRUE(client->stop_client().is_ok());
-    reader.request_stop();
-    reader.join();
+    stop_reader();
     EXPECT_FALSE(client->alpn_protocol());
     EXPECT_EQ(client->stats().packets_sent, 0u);
     EXPECT_EQ(client->stats().cwnd, 0u);
@@ -611,12 +631,7 @@ TEST_F(QuicClientRecoveryTest, FailedUdpSendDoesNotIncreaseSuccessfulCounters)
 
 TEST_F(QuicClientLiveAccessorsTest, StopDuringConnectCannotPublishStaleSocket)
 {
-    std::jthread reader([&](std::stop_token stop) {
-        while (!stop.stop_requested()) {
-            (void)client->stats();
-            (void)client->alpn_protocol();
-        }
-    });
+    start_reader();
     for (int attempt = 0; attempt < 10; ++attempt) {
         ASSERT_TRUE(client->start_client("127.0.0.1", peer.local_endpoint().port()).is_ok());
         ASSERT_TRUE(client->stop_client().is_ok());
