@@ -1,301 +1,133 @@
 ---
-doc_id: "NET-GUID-017"
-doc_title: "빠른 시작 가이드"
-doc_version: "1.0.0"
-doc_date: "2026-04-04"
+doc_id: "NET-GUID-033"
+doc_title: "빠른 시작"
+doc_version: "1.1.0"
+doc_date: "2026-10-11"
 doc_status: "Released"
 project: "network_system"
 category: "GUID"
 ---
 
-# 빠른 시작 가이드
+# 빠른 시작
 
-> **SSOT**: This document is the single source of truth for **빠른 시작 가이드**.
+[English / 한국어](QUICK_START.md)
 
-> **Language:** [English](QUICK_START.md) | **한국어**
+현재 main을 소스에서 설치한 패키지용 예제입니다. [빌드 가이드](BUILD.kr.md)를 먼저 따르세요.
+[README](../../README.kr.md)의 CMakeLists.txt를 사용하고 각 프로그램을 별도 소비자 디렉터리의 main.cpp로 저장합니다.
+공개 v0.1.1에 모든 현재 API가 포함되어 있지는 않습니다.
 
-Network System을 5분 만에 시작하세요.
+## 코어 서버
 
----
-
-## 사전 요구사항
-
-- CMake 3.20 이상
-- C++20 지원 컴파일러 (GCC 13+, Clang 17+, MSVC 2022+, Apple Clang 14+)
-- Git
-- OpenSSL (TLS 지원용)
-- ASIO (standalone, non-Boost)
-
-### 에코시스템 의존성
-
-| 의존성 | 필수 | 설명 |
-|--------|------|------|
-| [common_system](https://github.com/kcenon/common_system) | 예 | 공통 인터페이스 및 Result<T> |
-| [thread_system](https://github.com/kcenon/thread_system) | 예 | 스레드 풀 및 비동기 작업 |
-| [logger_system](https://github.com/kcenon/logger_system) | 예 | 로깅 인프라 |
-| [container_system](https://github.com/kcenon/container_system) | 예 | 데이터 컨테이너 작업 |
-
-## 설치
-
-### 1. 저장소 클론
-
-```bash
-# 모든 에코시스템 의존성을 먼저 클론
-git clone https://github.com/kcenon/common_system.git
-git clone https://github.com/kcenon/thread_system.git
-git clone https://github.com/kcenon/logger_system.git
-git clone https://github.com/kcenon/container_system.git
-
-# 의존성과 같은 위치에 network_system 클론
-git clone https://github.com/kcenon/network_system.git
-cd network_system
-```
-
-> **참고:** 빌드가 올바르게 작동하려면 모든 저장소가 같은 상위 디렉토리에 있어야 합니다.
-
-### 2. 시스템 의존성 설치
-
-**Ubuntu/Debian:**
-```bash
-sudo apt update
-sudo apt install -y cmake ninja-build libasio-dev libssl-dev
-```
-
-**macOS:**
-```bash
-brew install cmake ninja asio openssl
-```
-
-**Windows (vcpkg):**
-```bash
-vcpkg install asio openssl
-```
-
-### 3. 빌드
-
-```bash
-# 빌드 스크립트 사용
-./scripts/build.sh
-
-# 또는 CMake 직접 사용
-cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
-cmake --build build -j
-```
-
-### 4. 설치 확인
-
-```bash
-# 테스트 실행
-./build/bin/network_system_tests
-
-# 샘플 서버 실행
-./build/bin/echo_server_sample
-```
-
----
-
-## 첫 번째 서버 만들기
-
-간단한 TCP 에코 서버를 만들어 봅시다:
+포트 8080에서 서버를 시작합니다. Enter를 누르면 종료됩니다.
 
 ```cpp
-#include <network_system/core/messaging_server.h>
+#include <kcenon/network/network_system.h>
 #include <iostream>
+#include <memory>
 
 int main() {
-    // 1. 서버 인스턴스 생성
-    auto server = std::make_shared<network_system::core::messaging_server>("EchoServer");
+    auto server = std::make_shared<kcenon::network::core::messaging_server>("MyServer");
 
-    // 2. 메시지 핸들러 설정
-    server->set_message_handler([](auto session, auto data) {
-        // 메시지를 다시 에코
-        session->send(data);
-    });
-
-    // 3. 서버 시작
     auto result = server->start_server(8080);
     if (result.is_err()) {
-        std::cerr << "시작 실패: " << result.error().message << "\n";
-        return 1;
+        const auto& err = result.error();
+        std::cerr << "Failed to start: " << err.message
+                  << " (code: " << err.code << ")" << std::endl;
+        return -1;
     }
 
-    std::cout << "서버가 포트 8080에서 실행 중...\n";
-    server->wait_for_stop();
-    return 0;
+    std::cout << "Server running on port 8080; press Enter to stop." << std::endl;
+    std::cin.get();
+    auto stopped = server->stop_server();
+    return stopped.is_err() ? 1 : 0;
 }
 ```
 
----
+## 클라이언트
 
-## 첫 번째 클라이언트 만들기
-
-서버에 연결하는 클라이언트를 만들어 봅시다:
+먼저 아래 수신 서버를 실행하세요. 연결은 비동기이므로 이 클라이언트는 준비 상태를 최대 5초 동안 확인한 후 전송하며, Enter를 누르면 종료합니다.
 
 ```cpp
-#include <network_system/core/messaging_client.h>
+#include <kcenon/network/network_system.h>
+#include <chrono>
+#include <cstdint>
+#include <iostream>
+#include <memory>
+#include <string>
+#include <thread>
+#include <utility>
+#include <vector>
+
+int main() {
+    auto client = std::make_shared<kcenon::network::core::messaging_client>("MyClient");
+
+    auto result = client->start_client("127.0.0.1", 8080);
+    if (result.is_err()) {
+        const auto& err = result.error();
+        std::cerr << "Failed to connect: " << err.message
+                  << " (code: " << err.code << ")" << std::endl;
+        return -1;
+    }
+
+    // start_client initiates an asynchronous connection. Wait before sending.
+    const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(5);
+    while (!client->is_connected() && std::chrono::steady_clock::now() < deadline) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+    if (!client->is_connected()) {
+        std::cerr << "Connection timed out\n";
+        (void)client->stop_client();
+        return 1;
+    }
+
+    // Send message (std::move avoids extra copies)
+    std::string message = "Hello, Network System!";
+    std::vector<uint8_t> data(message.begin(), message.end());
+
+    auto send_result = client->send_packet(std::move(data));
+    if (send_result.is_err()) {
+        const auto& err = send_result.error();
+        std::cerr << "Failed to send: " << err.message
+                  << " (code: " << err.code << ")" << std::endl;
+    }
+
+    std::cout << "Press Enter to stop the client." << std::endl;
+    std::cin.get();
+    auto stopped = client->stop_client();
+    return send_result.is_err() || stopped.is_err() ? 1 : 0;
+}
+```
+
+## 데이터를 수신하는 파사드 서버
+
+수신한 바이트 수를 출력하려면 코어 서버 대신 이 서버를 실행하세요. 두 서버 모두 포트 8080을 사용하므로 동시에 실행하지 마세요.
+
+```cpp
+#include <kcenon/network/facade/tcp_facade.h>
 #include <iostream>
 
 int main() {
-    // 1. 클라이언트 인스턴스 생성
-    auto client = std::make_shared<network_system::core::messaging_client>("EchoClient");
-
-    // 2. 응답 핸들러 설정
-    client->set_message_handler([](auto data) {
-        std::string response(data.begin(), data.end());
-        std::cout << "수신: " << response << "\n";
-    });
-
-    // 3. 서버에 연결
-    auto result = client->start_client("localhost", 8080);
-    if (result.is_err()) {
-        std::cerr << "연결 실패: " << result.error().message << "\n";
+    kcenon::network::facade::tcp_facade tcp;
+    auto created = tcp.create_server({.port = 8080});
+    if (created.is_err()) {
+        std::cerr << created.error().message << '\n';
         return 1;
     }
-
-    // 4. 메시지 전송
-    std::string message = "Hello, Network System!";
-    std::vector<uint8_t> data(message.begin(), message.end());
-    client->send_packet(std::move(data));
-
-    // 5. 응답 대기
-    std::this_thread::sleep_for(std::chrono::seconds(1));
-    client->stop();
-    return 0;
-}
-```
-
----
-
-## 애플리케이션 빌드
-
-`CMakeLists.txt`에 추가:
-
-```cmake
-cmake_minimum_required(VERSION 3.20)
-project(my_network_app)
-
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
-# network_system 찾기
-find_package(network_system REQUIRED)
-
-add_executable(my_app main.cpp)
-target_link_libraries(my_app PRIVATE network_system::network)
-```
-
----
-
-## 핵심 개념
-
-### Messaging Server
-들어오는 연결과 메시지 처리를 담당합니다.
-
-```cpp
-auto server = std::make_shared<messaging_server>("ServerName");
-server->start_server(port);
-server->wait_for_stop();
-```
-
-### Messaging Client
-서버에 연결하고 메시지를 송수신합니다.
-
-```cpp
-auto client = std::make_shared<messaging_client>("ClientName");
-client->start_client("host", port);
-client->send_packet(data);
-```
-
-### TLS 지원
-TLS로 보안 연결을 활성화합니다.
-
-```cpp
-auto server = std::make_shared<messaging_server>("SecureServer");
-server->set_tls_config(cert_file, key_file);
-server->start_server(443, true);  // TLS 활성화
-```
-
----
-
-## 일반적인 패턴
-
-### 오류 처리
-
-```cpp
-auto result = server->start_server(8080);
-if (result.is_err()) {
-    const auto& err = result.error();
-    std::cerr << "오류: " << err.message
-              << " (코드: " << err.code << ")\n";
-    return 1;
-}
-```
-
-### 정상 종료
-
-```cpp
-// 시그널 핸들러 등록
-signal(SIGINT, [](int) {
-    server->stop();
-});
-
-// 종료 대기
-server->wait_for_stop();
-```
-
-### 연결 이벤트
-
-```cpp
-server->set_connection_handler([](auto session, bool connected) {
-    if (connected) {
-        std::cout << "클라이언트 연결됨\n";
-    } else {
-        std::cout << "클라이언트 연결 해제됨\n";
+    auto server = created.value();
+    server->set_receive_callback([](auto session_id, const auto& data) {
+        std::cout << "Received " << data.size() << " bytes from "
+                  << session_id << std::endl;
+    });
+    auto started = server->start(8080);
+    if (started.is_err()) {
+        std::cerr << started.error().message << '\n';
+        return 1;
     }
-});
+    std::cout << "Listening on port 8080; press Enter to stop." << std::endl;
+    std::cin.get();
+    auto stopped = server->stop();
+    return stopped.is_err() ? 1 : 0;
+}
 ```
 
----
-
-## 다음 단계
-
-- **[빌드 가이드](BUILD.kr.md)** - 상세한 빌드 지침
-- **[TLS 설정 가이드](TLS_SETUP_GUIDE.kr.md)** - 보안 연결 구성
-- **[문제 해결](TROUBLESHOOTING.kr.md)** - 일반적인 문제와 해결책
-- **[부하 테스트 가이드](LOAD_TEST_GUIDE.md)** - 성능 테스트
-- **[예제](../../examples/)** - 더 많은 샘플 애플리케이션
-
----
-
-## 문제 해결
-
-### 일반적인 문제
-
-**ASIO 누락으로 빌드 실패:**
-```bash
-# Ubuntu/Debian
-sudo apt install libasio-dev
-
-# macOS
-brew install asio
-```
-
-**OpenSSL 누락으로 빌드 실패:**
-```bash
-# Ubuntu/Debian
-sudo apt install libssl-dev
-
-# macOS
-brew install openssl
-```
-
-**연결 거부:**
-- 서버가 지정된 포트에서 실행 중인지 확인
-- 방화벽 설정 확인
-- 클라이언트의 호스트/포트가 올바른지 확인
-
-더 많은 문제 해결 도움말은 [TROUBLESHOOTING.kr.md](TROUBLESHOOTING.kr.md)를 참조하세요.
-
----
-
-*최종 업데이트: 2025-12-14*
+[프로토콜, 추적, 스레드 풀 예제](USAGE_EXAMPLES.kr.md) | [문제 해결](TROUBLESHOOTING.md)

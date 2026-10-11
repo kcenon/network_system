@@ -1,472 +1,166 @@
 ---
-doc_id: "NET-GUID-014"
-doc_title: "빌드 지침"
-doc_version: "1.0.0"
-doc_date: "2026-04-04"
+doc_id: "NET-GUID-032"
+doc_title: "빌드 안내"
+doc_version: "1.1.0"
+doc_date: "2026-10-11"
 doc_status: "Released"
 project: "network_system"
 category: "GUID"
 ---
 
-# 빌드 지침
+# 빌드 안내
 
-> **SSOT**: This document is the single source of truth for **빌드 지침**.
+[English](BUILD.md)
 
-> **Language:** [English](BUILD.md) | **한국어**
+현재 main을 대상으로 하는 안내입니다. 공개 릴리스의 동작 및 과거 매니페스트 불일치는
+[릴리스 정책](../../ci/RELEASE_POLICY.md#published-versions-and-historical-erratum)을 참고하세요.
 
-## 목차
-- [사전 요구 사항](#사전-요구-사항)
-- [빠른 빌드](#빠른-빌드)
-- [플랫폼별 지침](#플랫폼별-지침)
-- [빌드 옵션](#빌드-옵션)
-- [문제 해결](#문제-해결)
+## 요구사항
 
-## 사전 요구 사항
+| 의존성 | 버전 및 역할 |
+|--------|--------------|
+| C++20 컴파일러 | GCC 13+, Clang 17+, MSVC 2022+, Apple Clang 14+ |
+| CMake | 3.20+; 프리셋 사용 시 3.25+ |
+| 독립형 ASIO | 1.30.2+; Boost.ASIO를 지원하지 않음 |
+| OpenSSL / zlib | OpenSSL 3.0+ 및 zlib |
+| common_system | 필수; 공통 인터페이스와 Result<T> |
+| thread_system | 필수; 스레드 풀 및 비동기 작업 |
+| logger_system | 선택 사항, 기본 OFF; common_system ILogger로 런타임 바인딩 |
+| container_system | 선택 사항, 탐색 기본 ON; 패키지가 없으면 통합 비활성화 |
 
-### 최소 요구 사항
-- C++20 호환 컴파일러
-  - GCC 13 이상
-  - Clang 17 이상
-  - MSVC 2022 이상
-  - Apple Clang 14 이상
-- CMake 3.20 이상
-- Standalone ASIO 1.30.2+ (Boost.ASIO 미지원)
+## 시스템 패키지
 
-### 선택적 의존성
-- fmt 라이브러리 10.0+ (사용 불가능한 경우 std::format으로 폴백)
-- Google Test (단위 테스트용)
-- Google Benchmark (성능 테스트용)
-- Ninja 빌드 시스템 (권장)
+아래 명령은 시스템 라이브러리를 설치합니다. 배포판의 패키지 버전이 요구사항을 충족하는지 확인하세요.
+컴파일러와 common_system, thread_system, ASIO의 CMake 패키지를 별도로 준비해야 합니다.
+LZ4는 선택 사항입니다.
 
-## 빠른 빌드
+Ubuntu/Debian (Ubuntu 22.04 이상은 기본적으로 OpenSSL 3.x를 제공합니다):
 
 ```bash
-# 저장소 클론
-git clone https://github.com/kcenon/network_system.git
-cd network_system
-
-# 빌드 디렉터리 생성
-mkdir build && cd build
-
-# 구성
-cmake .. -DCMAKE_BUILD_TYPE=Release
-
-# 빌드
-cmake --build . --parallel
-
-# 설치 검증
-./verify_build
-```
-
-## 플랫폼별 지침
-
-### Ubuntu/Debian
-
-#### 의존성 설치
-```bash
-# 패키지 목록 업데이트
 sudo apt update
-
-# 빌드 필수 요소 설치
-sudo apt install -y build-essential cmake ninja-build
-
-# 필수 라이브러리 설치
-sudo apt install -y libasio-dev libfmt-dev
-
-# (Boost는 필요하지 않습니다; network_system은 standalone ASIO만 사용합니다.)
-
-# 선택 사항: 테스트 프레임워크 설치
-sudo apt install -y libgtest-dev libbenchmark-dev
+sudo apt install -y cmake ninja-build libasio-dev libssl-dev liblz4-dev zlib1g-dev
 ```
 
-#### 빌드
+macOS:
+
 ```bash
-mkdir build && cd build
-cmake .. -G Ninja \
-  -DCMAKE_BUILD_TYPE=Release \
-  -DBUILD_TESTS=ON \
-  -DBUILD_EXAMPLES=ON
-ninja
+brew install cmake ninja asio openssl@3 lz4 zlib
 ```
 
-### macOS
+Windows (vcpkg):
 
-#### 의존성 설치
-```bash
-# 아직 설치되지 않은 경우 Homebrew 설치
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-
-# 의존성 설치
-brew install cmake ninja asio fmt boost
-
-# 선택 사항: 테스트 프레임워크 설치
-brew install googletest google-benchmark
-```
-
-#### 빌드
-```bash
-mkdir build && cd build
-cmake .. -G Ninja \
-  -DCMAKE_BUILD_TYPE=Release \
-  -DBUILD_TESTS=ON \
-  -DBUILD_EXAMPLES=ON
-ninja
-```
-
-### Windows (Visual Studio)
-
-#### 의존성 설치
-
-##### 옵션 1: vcpkg (권장)
 ```powershell
-# vcpkg 클론
-git clone https://github.com/Microsoft/vcpkg.git
-cd vcpkg
-.\bootstrap-vcpkg.bat
-
-# 의존성 설치
-.\vcpkg install asio fmt --triplet x64-windows
+# vcpkg provides OpenSSL 3.x
+vcpkg install openssl asio lz4 zlib --triplet x64-windows
 ```
 
-##### 옵션 2: 수동 설치
-- Boost를 https://www.boost.org/ 에서 다운로드
-- 압축 해제 후 시스템 PATH에 추가
+Windows (MSYS2):
 
-#### 빌드
-```powershell
-# 빌드 디렉터리 생성
-mkdir build
-cd build
-
-# vcpkg로 구성
-cmake .. -G "Visual Studio 17 2022" -A x64 `
-  -DCMAKE_TOOLCHAIN_FILE="path\to\vcpkg\scripts\buildsystems\vcpkg.cmake" `
-  -DCMAKE_BUILD_TYPE=Release
-
-# 빌드
-cmake --build . --config Release
-```
-
-### Windows (MSYS2/MinGW)
-
-#### 의존성 설치
 ```bash
-# MSYS2 업데이트
-pacman -Syu
-
-# 빌드 도구 설치
-pacman -S mingw-w64-x86_64-toolchain
-pacman -S mingw-w64-x86_64-cmake
-pacman -S mingw-w64-x86_64-ninja
-
-# 라이브러리 설치
-pacman -S mingw-w64-x86_64-asio
-pacman -S mingw-w64-x86_64-fmt
-pacman -S mingw-w64-x86_64-boost
+pacman -S mingw-w64-x86_64-cmake mingw-w64-x86_64-ninja \
+          mingw-w64-x86_64-asio mingw-w64-x86_64-openssl
 ```
 
-#### 빌드
+## 소스 설치
+
+common_system, thread_system, ASIO의 CMake 패키지와 OpenSSL/zlib를 먼저 설치하세요.
+CMAKE_PREFIX_PATH를 실제 설치 경로로 바꾸세요. 의존성을 복제하는 것만으로 정적 라이브러리가 빌드되지 않습니다.
+아래 구성은 선택적 logger/container 통합을 비활성화합니다.
+
 ```bash
-mkdir build && cd build
-cmake .. -G Ninja \
-  -DCMAKE_BUILD_TYPE=Release \
-  -DBUILD_TESTS=ON \
-  -DBUILD_EXAMPLES=ON
-ninja
+git clone --branch main https://github.com/kcenon/network_system.git
+cd network_system
+cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release \
+  -DCMAKE_PREFIX_PATH="/path/to/dependency/prefix" \
+  -DBUILD_TESTS=OFF -DBUILD_EXAMPLES=OFF \
+  -DKCENON_WITH_LOGGER_SYSTEM=OFF -DKCENON_WITH_CONTAINER_SYSTEM=OFF
+cmake --build build --parallel
+cmake --install build --prefix "$HOME/.local"
 ```
 
-## 빌드 옵션
+cmake --install의 prefix는 network_system 설치 경로입니다. 소비자를 구성할 때 이 경로를 의존성 경로와 함께 추가하세요.
+공개 타깃은 `network_system::network_system`입니다. 비공개 include 디렉터리를 추가하는 대신 이 타깃을 사용합니다.
+[README 소비자 예제](../../README.kr.md#시작하기)와 [연결 예제](QUICK_START.kr.md)를 참고하세요.
 
-### CMake 옵션
+## 프리셋 및 테스트
+
+프리셋 스키마 6은 CMake 3.25 이상이 필요합니다. asan, tsan, ubsan에는 대응하는 테스트 프리셋이 있습니다.
+release와 coverage에는 테스트 프리셋이 없으므로 해당 빌드 디렉터리에서 CTest를 실행하세요.
+구성과 빌드에는 동일한 프리셋 이름을 사용합니다.
+
+```bash
+cmake --list-presets
+# Choose one configure/build preset: debug, release, asan, tsan, ubsan, coverage.
+# Substitute the same name in both commands.
+cmake --preset debug -DBUILD_EXAMPLES=OFF \
+  -DCMAKE_PREFIX_PATH="/path/to/dependency/prefix" \
+  -DKCENON_WITH_LOGGER_SYSTEM=OFF -DKCENON_WITH_CONTAINER_SYSTEM=OFF
+cmake --build --preset debug
+ctest --preset debug
+```
+
+컴파일러와 새니타이저 프로필마다 별도 디렉터리를 사용하세요. 수동 구성 예시:
+
+```bash
+# Configure a separate directory for each sanitizer/profile.
+cmake -S . -B build/debug -DCMAKE_BUILD_TYPE=Debug \
+  -DCMAKE_PREFIX_PATH="/path/to/dependency/prefix" \
+  -DBUILD_TESTS=ON -DBUILD_EXAMPLES=OFF \
+  -DKCENON_WITH_LOGGER_SYSTEM=OFF -DKCENON_WITH_CONTAINER_SYSTEM=OFF
+cmake --build build/debug --parallel
+ctest --test-dir build/debug --output-on-failure --timeout 120
+```
+
+## 옵션
 
 | 옵션 | 기본값 | 설명 |
-|--------|---------|-------------|
-| `BUILD_SHARED_LIBS` | OFF | 공유 라이브러리로 빌드 |
+|------|--------|------|
 | `BUILD_TESTS` | ON | 단위 테스트 빌드 |
 | `BUILD_EXAMPLES` | ON | 사용 예제 빌드 |
-| `BUILD_WITH_CONTAINER_SYSTEM` | ON | container_system 통합 활성화 |
-| `BUILD_WITH_THREAD_SYSTEM` | ON | thread_system 통합 활성화 |
-| `BUILD_MESSAGING_BRIDGE` | ON | messaging_system 호환성 브리지 빌드 |
-| `CMAKE_BUILD_TYPE` | Debug | 빌드 구성 (Debug/Release/RelWithDebInfo/MinSizeRel) |
+| `BUILD_TLS_SUPPORT` | ON | TLS/SSL 지원 |
+| `BUILD_WEBSOCKET_SUPPORT` | ON | WebSocket 지원 |
+| `NETWORK_BUILD_BENCHMARKS` | OFF | 성능 벤치마크 빌드 |
+| `ENABLE_ASAN` | OFF | AddressSanitizer |
+| `ENABLE_TSAN` | OFF | ThreadSanitizer |
+| `ENABLE_UBSAN` | OFF | UndefinedBehaviorSanitizer |
+| `ENABLE_COVERAGE` | OFF | 코드 커버리지 |
+| `NETWORK_ENABLE_GRPC_OFFICIAL` | OFF | 공식 gRPC 라이브러리 사용 |
 
-### 예제 구성
+## 선택한 예제
 
-#### 최소 빌드
+현재 소스에서 개별 빌드할 수 있는 타깃입니다.
+
+| 소스 | CMake 타깃 |
+|------|------------|
+| [concepts_example.cpp](../../examples/concepts_example.cpp) | `example_concepts_example` |
+| [thread_integration_example.cpp](../../examples/thread_integration_example.cpp) | `example_thread_integration_example` |
+| [tls_policy_example.cpp](../../examples/tls_policy_example.cpp) | `example_tls_policy_example` |
+| [http2_server_example.cpp](../../examples/http2_server_example.cpp) | `example_http2_server_example` |
+
+다른 일부 예제는 이전 API를 사용하므로 모든 예제를 빌드하지 말고 필요한 타깃을 지정하세요.
+아래 명령은 위에서 의존성을 구성한 소스 빌드 디렉터리를 재사용합니다.
+
 ```bash
-cmake .. -DBUILD_TESTS=OFF -DBUILD_EXAMPLES=OFF
+cmake -S . -B build -DBUILD_EXAMPLES=ON
+cmake --build build --target example_thread_integration_example
+./build/bin/examples/example_thread_integration_example
 ```
 
-#### 전체 기능 빌드
-```bash
-cmake .. -G Ninja \
-  -DCMAKE_BUILD_TYPE=Release \
-  -DBUILD_TESTS=ON \
-  -DBUILD_EXAMPLES=ON \
-  -DBUILD_WITH_CONTAINER_SYSTEM=ON \
-  -DBUILD_WITH_THREAD_SYSTEM=ON \
-  -DBUILD_MESSAGING_BRIDGE=ON
-```
+## 실험적 모듈
 
-#### 디버그 빌드
-```bash
-cmake .. -DCMAKE_BUILD_TYPE=Debug \
-  -DCMAKE_CXX_FLAGS="-g -O0 -fsanitize=address"
-```
+NETWORK_BUILD_MODULES는 별도의 실험적 모듈 타깃을 활성화합니다. CMake 3.28 이상과
+모듈을 지원하는 툴체인이 필요합니다. 헤더 API와 서로 바꿔 사용할 수 있는 인터페이스가 아닙니다.
+[현재 모듈 인터페이스](../../src/modules/)를 참고하세요. 빠른 시작 예제는 헤더 API를 사용합니다.
 
-## 빌드 구성 표준
+## 생성된 API 참조
 
-### C++ 표준
-
-network_system은 특정 기능을 갖춘 **C++20이 필요**합니다:
-- Concepts 및 constraints
-- Coroutines (비동기 작업용)
-- 표준 라이브러리 기능 (`std::span`, `std::format`)
-- 3방향 비교 연산자 (`<=>`)
-
-**CMake 구성**:
-```cmake
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
-```
-
-### 컴파일 명령 내보내기
-
-IDE 통합 및 정적 분석 도구용:
-```bash
-cmake .. -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
-```
-
-다음을 위해 `compile_commands.json`을 생성합니다:
-- CLion, VS Code 및 기타 IDE
-- Clang-Tidy 및 기타 정적 분석기
-- 코드 완성 및 탐색 도구
-
-### 커버리지 지원
-
-코드 커버리지 계측으로 빌드하려면:
-```bash
-cmake .. -DENABLE_COVERAGE=ON -DCMAKE_BUILD_TYPE=Debug
-cmake --build .
-ctest
-# build/coverage/에 커버리지 보고서 생성
-```
-
-## 정적 분석
-
-### Clang-Tidy
-
-network_system에는 다음에 대한 검사가 포함된 `.clang-tidy` 구성이 있습니다:
-- **modernize**: 현대적인 C++ 관용구 강제
-- **concurrency**: 스레드 안전성 및 데이터 경합 감지
-- **performance**: 성능 안티 패턴
-- **bugprone**: 일반적인 프로그래밍 오류
-- **cert**: CERT C++ 코딩 표준
-- **cppcoreguidelines**: C++ Core Guidelines 준수
-
-**Clang-Tidy 실행**:
-```bash
-# 특정 파일 분석
-clang-tidy -p build $(find src include -name "*.cpp" -o -name "*.h")
-
-# 자동 수정으로 분석
-clang-tidy -p build --fix-errors src/network_system/core/*.cpp
-
-# CMake 통합 (활성화된 경우)
-cmake .. -DCMAKE_CXX_CLANG_TIDY="clang-tidy;-checks=*"
-```
-
-**경고 억제**:
-구성된 억제 및 검사 사용자 정의는 `.clang-tidy` 파일을 참조하세요.
-
-### Cppcheck
-
-network_system에는 다음을 포함하는 `.cppcheck` 구성이 있습니다:
-- 프로젝트 기반 파일 선택
-- Thread safety 애드온
-- CERT 보안 애드온
-- 성능 분석
-
-**Cppcheck 실행**:
-```bash
-# 전체 분석
-cppcheck --project=.cppcheck --enable=all
-
-# 특정 디렉토리
-cppcheck --enable=all src/network_system/core/
-
-# 특정 애드온 사용
-cppcheck --addon=threadsafety --addon=cert src/
-```
-
-**구성 파일** (`.cppcheck`):
-```xml
-<?xml version="1.0"?>
-<project>
-    <paths>
-        <dir name="src"/>
-        <dir name="include"/>
-    </paths>
-    <exclude>
-        <path name="build/"/>
-        <path name="tests/"/>
-    </exclude>
-</project>
-```
-
-### CI/CD와의 통합
-
-정적 분석은 다음에서 자동으로 실행됩니다:
-- 모든 커밋 (GitHub Actions)
-- 풀 리퀘스트 (중요한 문제가 발견되면 차단)
-- Pre-commit 훅 (선택사항)
-
-**Pre-commit 훅 설정**:
-```bash
-# Pre-commit 훅 설치
-cp scripts/pre-commit .git/hooks/
-chmod +x .git/hooks/pre-commit
-```
-
-## 통합
-
-### 프로젝트에서 network_system 사용
-
-#### CMake 통합
-```cmake
-# 패키지 찾기
-find_package(network_system REQUIRED)
-
-# 타겟에 링크
-target_link_libraries(your_target
-  PRIVATE
-    network_system::network_system
-)
-```
-
-#### 수동 통합
-```cmake
-# include 디렉터리 추가
-target_include_directories(your_target
-  PRIVATE
-    /path/to/network_system/include
-)
-
-# 라이브러리 링크
-target_link_libraries(your_target
-  PRIVATE
-    /path/to/network_system/build/libnetwork_system.a
-)
-```
+저장소 루트에서 `doxygen Doxyfile`을 실행하면 `documents/html/index.html`이 생성됩니다.
+[문서 워크플로](../../.github/workflows/build-Doxygen.yaml)가 [API 문서](https://kcenon.github.io/network_system/)를 게시합니다.
+[경고 검사 워크플로](../../.github/workflows/doxygen-warnings-check.yml)는 관련 헤더/Doxyfile/워크플로를 수정하는 PR과
+main, develop, phase-* 브랜치의 푸시에서 실행됩니다.
 
 ## 문제 해결
 
-### 일반적인 문제
-
-#### ASIO를 찾을 수 없음
-```
-CMake Error: ASIO not found in standard locations
-```
-
-**해결책**: ASIO 또는 Boost 설치:
-```bash
-# Ubuntu/Debian
-sudo apt install libasio-dev libboost-all-dev
-
-# macOS
-brew install asio boost
-
-# Windows (vcpkg)
-vcpkg install asio boost
-```
-
-#### Windows에서 pthread를 찾을 수 없음
-```
-LINK : fatal error LNK1104: cannot open file 'pthread.lib'
-```
-
-**해결책**: CMakeLists.txt에서 이미 수정되었습니다. pthread는 Unix 시스템에서만 링크됩니다.
-
-#### vcpkg 빌드 실패
-```
-Error: run-vcpkg action execution failed
-```
-
-**해결책**: 빌드 시스템이 자동으로 시스템 라이브러리로 폴백합니다. 시스템 패키지 관리자를 통해 ASIO가 설치되었는지 확인하세요.
-
-#### C++20 기능을 사용할 수 없음
-```
-error: 'jthread' is not a member of 'std'
-```
-
-**해결책**: 컴파일러 업데이트:
-```bash
-# Ubuntu/Debian
-sudo apt install g++-11
-
-# 기본값으로 설정
-sudo update-alternatives --config g++
-```
-
-### 디버그 빌드 문제
-
-빌드 문제 진단을 위해 자세한 출력 활성화:
-```bash
-cmake .. -DCMAKE_VERBOSE_MAKEFILE=ON
-cmake --build . --verbose
-```
-
-### 클린 빌드
-
-지속적인 문제가 발생하면 클린 빌드 시도:
-```bash
-rm -rf build
-mkdir build && cd build
-cmake .. -G Ninja
-ninja
-```
-
-## 성능 튜닝
-
-### 컴파일러 최적화
-
-최대 성능을 위해:
-```bash
-cmake .. -DCMAKE_BUILD_TYPE=Release \
-  -DCMAKE_CXX_FLAGS="-O3 -march=native -mtune=native"
-```
-
-### 링크 타임 최적화 (LTO)
-```bash
-cmake .. -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=ON
-```
-
-## 테스트
-
-### 테스트 실행
-```bash
-# 모든 테스트 실행
-ctest --output-on-failure
-
-# 특정 테스트 실행
-./tests/unit_tests
-
-# 자세한 출력으로 실행
-ctest -V
-```
-
-### 벤치마크 실행
-```bash
-./tests/benchmark_tests
-```
-
-## 지원
-
-빌드 문제가 있는 경우 다음을 확인하세요:
-1. [GitHub Issues](https://github.com/kcenon/network_system/issues)
-2. 알려진 문제에 대한 [CHANGELOG.md](../CHANGELOG.md)
-3. 연락처: kcenon@naver.com
-
----
-
-*Last Updated: 2025-10-20*
+CMake가 common_system, thread_system, ASIO를 찾지 못하면 해당 CMake 패키지를 설치하고
+CMAKE_PREFIX_PATH를 수정하세요. 인접한 디렉터리에 저장소가 있는 것만으로는 충분하지 않습니다.
+[문제 해결](TROUBLESHOOTING.md)과 [GitHub Issues](https://github.com/kcenon/network_system/issues)를 참고하세요.

@@ -1,8 +1,8 @@
 ---
 doc_id: "NET-GUID-015"
 doc_title: "Build Instructions"
-doc_version: "1.0.0"
-doc_date: "2026-04-04"
+doc_version: "1.1.0"
+doc_date: "2026-10-11"
 doc_status: "Released"
 project: "network_system"
 category: "GUID"
@@ -10,497 +10,151 @@ category: "GUID"
 
 # Build Instructions
 
-> **SSOT**: This document is the single source of truth for **Build Instructions**.
+[한국어](BUILD.kr.md)
 
-> **Language:** **English** | [한국어](BUILD.kr.md)
+These instructions target current main. Published release behavior and the historical
+manifest mismatch are described in the [release policy](../../ci/RELEASE_POLICY.md#published-versions-and-historical-erratum).
 
-## Table of Contents
-- [Prerequisites](#prerequisites)
-- [Quick Build](#quick-build)
-- [Platform-Specific Instructions](#platform-specific-instructions)
-- [Build Options](#build-options)
-- [Troubleshooting](#troubleshooting)
+## Requirements
 
-## Prerequisites
+| Dependency | Version | Required | Description |
+|------------|---------|----------|-------------|
+| C++20 Compiler | GCC 13+ / Clang 17+ / MSVC 2022+ / Apple Clang 14+ | Yes | Higher requirements due to thread_system dependency |
+| CMake | 3.20+ | Yes | Build system |
+| ASIO | 1.30.2+ | Yes | Asynchronous I/O (standalone) |
+| OpenSSL | 3.0+ | Yes | TLS/SSL support |
+| [common_system](https://github.com/kcenon/common_system) | latest | Yes | Common interfaces and Result<T> |
+| [thread_system](https://github.com/kcenon/thread_system) | latest | Yes | Thread pool and async operations |
+| [logger_system](https://github.com/kcenon/logger_system) | latest | Optional | Default OFF; runtime binding through common_system ILogger |
+| [container_system](https://github.com/kcenon/container_system) | latest | Optional | CMake default ON; disabled if the package is unavailable |
 
-### Minimum Requirements
-- C++20 compatible compiler
-  - GCC 13 or later
-  - Clang 17 or later
-  - MSVC 2022 or later
-  - Apple Clang 14 or later
-- CMake 3.20 or later
-- Standalone ASIO 1.30.2+ (Boost.ASIO is NOT supported)
+> **OpenSSL note**: The default TLS build requires OpenSSL 3.0 or later.
 
-### Optional Dependencies
-- fmt library 10.0+ (falls back to std::format if not available)
-- Google Test (for unit tests)
-- Google Benchmark (for performance tests)
-- Ninja build system (recommended)
+## System packages
 
-## Quick Build
+These commands install system libraries. Check that distribution package versions meet the requirements; provide the C++ compiler and common_system/thread_system/ASIO CMake packages separately. LZ4 is optional.
 
+**Ubuntu/Debian** (Ubuntu 22.04+ provides OpenSSL 3.x by default):
 ```bash
-# Clone the repository
-git clone https://github.com/kcenon/network_system.git
-cd network_system
-
-# Create build directory
-mkdir build && cd build
-
-# Configure
-cmake .. -DCMAKE_BUILD_TYPE=Release
-
-# Build
-cmake --build . --parallel
-
-# Verify installation
-./verify_build
-```
-
-## Platform-Specific Instructions
-
-### Ubuntu/Debian
-
-#### Install Dependencies
-```bash
-# Update package list
 sudo apt update
-
-# Install build essentials
-sudo apt install -y build-essential cmake ninja-build
-
-# Install required libraries
-sudo apt install -y libasio-dev libfmt-dev
-
-# (Boost is NOT required; network_system uses standalone ASIO only.)
-
-# Optional: Install test frameworks
-sudo apt install -y libgtest-dev libbenchmark-dev
+sudo apt install -y cmake ninja-build libasio-dev libssl-dev liblz4-dev zlib1g-dev
 ```
 
-#### Build
+**macOS** (OpenSSL 3.x via Homebrew):
 ```bash
-mkdir build && cd build
-cmake .. -G Ninja \
-  -DCMAKE_BUILD_TYPE=Release \
-  -DBUILD_TESTS=ON \
-  -DBUILD_EXAMPLES=ON
-ninja
+brew install cmake ninja asio openssl@3 lz4 zlib
 ```
 
-### macOS
-
-#### Install Dependencies
-```bash
-# Install Homebrew if not already installed
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-
-# Install dependencies
-brew install cmake ninja asio fmt boost
-
-# Optional: Install test frameworks
-brew install googletest google-benchmark
-```
-
-#### Build
-```bash
-mkdir build && cd build
-cmake .. -G Ninja \
-  -DCMAKE_BUILD_TYPE=Release \
-  -DBUILD_TESTS=ON \
-  -DBUILD_EXAMPLES=ON
-ninja
-```
-
-### Windows (Visual Studio)
-
-#### Install Dependencies
-
-##### Option 1: vcpkg (Recommended)
+**Windows (vcpkg)**:
 ```powershell
-# Clone vcpkg
-git clone https://github.com/Microsoft/vcpkg.git
-cd vcpkg
-.\bootstrap-vcpkg.bat
-
-# Install dependencies
-.\vcpkg install asio fmt --triplet x64-windows
+# vcpkg provides OpenSSL 3.x
+vcpkg install openssl asio lz4 zlib --triplet x64-windows
 ```
 
-##### Option 2: Manual Installation
-- Download Boost from https://www.boost.org/
-- Extract and add to system PATH
-
-#### Build
-```powershell
-# Create build directory
-mkdir build
-cd build
-
-# Configure with vcpkg
-cmake .. -G "Visual Studio 17 2022" -A x64 `
-  -DCMAKE_TOOLCHAIN_FILE="path\to\vcpkg\scripts\buildsystems\vcpkg.cmake" `
-  -DCMAKE_BUILD_TYPE=Release
-
-# Build
-cmake --build . --config Release
-```
-
-### Windows (MSYS2/MinGW)
-
-#### Install Dependencies
+**Windows (MSYS2)**:
 ```bash
-# Update MSYS2
-pacman -Syu
-
-# Install build tools
-pacman -S mingw-w64-x86_64-toolchain
-pacman -S mingw-w64-x86_64-cmake
-pacman -S mingw-w64-x86_64-ninja
-
-# Install libraries
-pacman -S mingw-w64-x86_64-asio
-pacman -S mingw-w64-x86_64-fmt
-pacman -S mingw-w64-x86_64-boost
+pacman -S mingw-w64-x86_64-cmake mingw-w64-x86_64-ninja \
+          mingw-w64-x86_64-asio mingw-w64-x86_64-openssl
 ```
 
-#### Build
+## Source installation
+
+Before building, install the CMake packages for `common_system`, `thread_system`, and ASIO, plus OpenSSL/zlib. Replace `CMAKE_PREFIX_PATH` with their actual installation prefixes. Cloning dependency repositories alone does not build their static libraries. This recipe disables optional logger/container integration.
+
 ```bash
-mkdir build && cd build
-cmake .. -G Ninja \
-  -DCMAKE_BUILD_TYPE=Release \
-  -DBUILD_TESTS=ON \
-  -DBUILD_EXAMPLES=ON
-ninja
+git clone --branch main https://github.com/kcenon/network_system.git
+cd network_system
+cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release \
+  -DCMAKE_PREFIX_PATH="/path/to/dependency/prefix" \
+  -DBUILD_TESTS=OFF -DBUILD_EXAMPLES=OFF \
+  -DKCENON_WITH_LOGGER_SYSTEM=OFF -DKCENON_WITH_CONTAINER_SYSTEM=OFF
+cmake --build build --parallel
+cmake --install build --prefix "$HOME/.local"
 ```
 
-## Build Options
+The prefix supplied to `cmake --install` is the network_system installation prefix.
+Add it alongside dependency prefixes when configuring a consumer. The exported
+target is `network_system::network_system`; use it instead of adding private include directories.
+See the [README consumer](../../README.md#getting-started) and [paired examples](QUICK_START.md).
 
-### CMake Options
+## Presets and tests
+
+CMake presets provide standardized build configurations:
+
+Reading preset schema 6 requires CMake 3.25 or later. `asan`, `tsan`, and `ubsan` have matching test presets. `release` and `coverage` do not; run CTest from their build directory.
+
+```bash
+cmake --list-presets
+# Choose one configure/build preset: debug, release, asan, tsan, ubsan, coverage.
+# Substitute the same name in both commands.
+cmake --preset debug -DBUILD_EXAMPLES=OFF \
+  -DCMAKE_PREFIX_PATH="/path/to/dependency/prefix" \
+  -DKCENON_WITH_LOGGER_SYSTEM=OFF -DKCENON_WITH_CONTAINER_SYSTEM=OFF
+cmake --build --preset debug
+ctest --preset debug
+```
+
+### Manual CMake Configuration
+
+```bash
+# Configure a separate directory for each sanitizer/profile.
+cmake -S . -B build/debug -DCMAKE_BUILD_TYPE=Debug \
+  -DCMAKE_PREFIX_PATH="/path/to/dependency/prefix" \
+  -DBUILD_TESTS=ON -DBUILD_EXAMPLES=OFF \
+  -DKCENON_WITH_LOGGER_SYSTEM=OFF -DKCENON_WITH_CONTAINER_SYSTEM=OFF
+cmake --build build/debug --parallel
+ctest --test-dir build/debug --output-on-failure --timeout 120
+```
+
+## Options
 
 | Option | Default | Description |
 |--------|---------|-------------|
-| `BUILD_SHARED_LIBS` | OFF | Build as shared library |
 | `BUILD_TESTS` | ON | Build unit tests |
 | `BUILD_EXAMPLES` | ON | Build usage examples |
-| `BUILD_WITH_CONTAINER_SYSTEM` | ON | Enable container_system integration |
-| `BUILD_WITH_THREAD_SYSTEM` | ON | Enable thread_system integration |
-| `BUILD_MESSAGING_BRIDGE` | ON | Build messaging_system compatibility bridge |
 | `BUILD_TLS_SUPPORT` | ON | Enable TLS/SSL support |
-| `BUILD_WEBSOCKET_SUPPORT` | ON | Enable WebSocket protocol support |
-| `NETWORK_ENABLE_GRPC_OFFICIAL` | OFF | Use official gRPC library (grpc++) |
-| `CMAKE_BUILD_TYPE` | Debug | Build configuration (Debug/Release/RelWithDebInfo/MinSizeRel) |
+| `BUILD_WEBSOCKET_SUPPORT` | ON | Enable WebSocket protocol |
+| `NETWORK_BUILD_BENCHMARKS` | OFF | Build performance benchmarks |
+| `ENABLE_ASAN` | OFF | Enable AddressSanitizer |
+| `ENABLE_TSAN` | OFF | Enable ThreadSanitizer |
+| `ENABLE_UBSAN` | OFF | Enable UndefinedBehaviorSanitizer |
+| `ENABLE_COVERAGE` | OFF | Enable code coverage |
+| `NETWORK_ENABLE_GRPC_OFFICIAL` | OFF | Use official gRPC library |
 
-### gRPC Official Library Integration
+## Selected examples
 
-The `NETWORK_ENABLE_GRPC_OFFICIAL` option enables integration with the official gRPC library (grpc++) for production-ready gRPC support. When disabled, a prototype implementation is used.
+These targets can be built individually from the current source:
 
-**Required Versions:**
-- grpc++ >= 1.50.0
-- protobuf >= 3.21.0
-- abseil (bundled with gRPC)
+| Source | CMake target |
+|--------|--------------|
+| [concepts_example.cpp](../../examples/concepts_example.cpp) | `example_concepts_example` |
+| [thread_integration_example.cpp](../../examples/thread_integration_example.cpp) | `example_thread_integration_example` |
+| [tls_policy_example.cpp](../../examples/tls_policy_example.cpp) | `example_tls_policy_example` |
+| [http2_server_example.cpp](../../examples/http2_server_example.cpp) | `example_http2_server_example` |
 
-**Installation:**
+Some other programs under `examples/` still use earlier APIs; select the target you need instead of building every example. The commands below reuse the source build directory with dependencies configured above.
 
 ```bash
-# Ubuntu/Debian
-sudo apt install libgrpc++-dev protobuf-compiler-grpc
-
-# macOS
-brew install grpc
-
-# Windows (vcpkg)
-vcpkg install grpc:x64-windows
-
-# vcpkg (cross-platform)
-vcpkg install grpc
+cmake -S . -B build -DBUILD_EXAMPLES=ON
+cmake --build build --target example_thread_integration_example
+./build/bin/examples/example_thread_integration_example
 ```
 
-**Build with gRPC:**
-```bash
-cmake .. -DNETWORK_ENABLE_GRPC_OFFICIAL=ON
-```
+## Experimental modules
 
-If gRPC is not found, the build will automatically fall back to the prototype implementation with a warning message. See [ADR-001](../adr/ADR-001-grpc-official-library-wrapper.md) for the architectural decision details.
+`NETWORK_BUILD_MODULES` enables a separate experimental module target. It requires CMake 3.28 or later and a module-capable toolchain; its interface is not interchangeable with the header API. See [src/modules](../../src/modules/) for the current interfaces. The quick-start examples use the header API.
 
-### Example Configurations
+## Generated API reference
 
-#### Minimal Build
-```bash
-cmake .. -DBUILD_TESTS=OFF -DBUILD_EXAMPLES=OFF
-```
-
-#### Full Feature Build
-```bash
-cmake .. -G Ninja \
-  -DCMAKE_BUILD_TYPE=Release \
-  -DBUILD_TESTS=ON \
-  -DBUILD_EXAMPLES=ON \
-  -DBUILD_WITH_CONTAINER_SYSTEM=ON \
-  -DBUILD_WITH_THREAD_SYSTEM=ON \
-  -DBUILD_MESSAGING_BRIDGE=ON
-```
-
-#### Debug Build
-```bash
-cmake .. -DCMAKE_BUILD_TYPE=Debug \
-  -DCMAKE_CXX_FLAGS="-g -O0 -fsanitize=address"
-```
-
-## Build Configuration Standards
-
-### C++ Standard
-
-The network_system **requires C++20** with specific features:
-- Concepts and constraints
-- Coroutines (for async operations)
-- Standard library features (`std::span`, `std::format`)
-- Three-way comparison operator (`<=>`)
-
-**CMake Configuration**:
-```cmake
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
-```
-
-### Compile Commands Export
-
-For IDE integration and static analysis tools:
-```bash
-cmake .. -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
-```
-
-This generates `compile_commands.json` for:
-- CLion, VS Code, and other IDEs
-- Clang-Tidy and other static analyzers
-- Code completion and navigation tools
-
-### Coverage Support
-
-To build with code coverage instrumentation:
-```bash
-cmake .. -DENABLE_COVERAGE=ON -DCMAKE_BUILD_TYPE=Debug
-cmake --build .
-ctest
-# Coverage report generated in build/coverage/
-```
-
-## Static Analysis
-
-### Clang-Tidy
-
-network_system includes `.clang-tidy` configuration with checks for:
-- **modernize**: Enforce modern C++ idioms
-- **concurrency**: Thread safety and data race detection
-- **performance**: Performance anti-patterns
-- **bugprone**: Common programming errors
-- **cert**: CERT C++ coding standards
-- **cppcoreguidelines**: C++ Core Guidelines compliance
-
-**Run Clang-Tidy**:
-```bash
-# Analyze specific files
-clang-tidy -p build $(find src include -name "*.cpp" -o -name "*.h")
-
-# Analyze with automatic fixes
-clang-tidy -p build --fix-errors src/network_system/core/*.cpp
-
-# CMake integration (if enabled)
-cmake .. -DCMAKE_CXX_CLANG_TIDY="clang-tidy;-checks=*"
-```
-
-**Suppressing Warnings**:
-See `.clang-tidy` file for configured suppressions and check customizations.
-
-### Cppcheck
-
-network_system includes `.cppcheck` configuration with:
-- Project-based file selection
-- Thread safety addon
-- CERT security addon
-- Performance analysis
-
-**Run Cppcheck**:
-```bash
-# Full analysis
-cppcheck --project=.cppcheck --enable=all
-
-# Specific directory
-cppcheck --enable=all src/network_system/core/
-
-# With specific addons
-cppcheck --addon=threadsafety --addon=cert src/
-```
-
-**Configuration File** (`.cppcheck`):
-```xml
-<?xml version="1.0"?>
-<project>
-    <paths>
-        <dir name="src"/>
-        <dir name="include"/>
-    </paths>
-    <exclude>
-        <path name="build/"/>
-        <path name="tests/"/>
-    </exclude>
-</project>
-```
-
-### Integration with CI/CD
-
-Static analysis runs automatically on:
-- Every commit (GitHub Actions)
-- Pull requests (blocking if critical issues found)
-- Pre-commit hooks (optional)
-
-**Pre-commit Hook Setup**:
-```bash
-# Install pre-commit hook
-cp scripts/pre-commit .git/hooks/
-chmod +x .git/hooks/pre-commit
-```
-
-## Integration
-
-### Using network_system in Your Project
-
-#### CMake Integration
-```cmake
-# Find the package
-find_package(network_system REQUIRED)
-
-# Link to your target
-target_link_libraries(your_target
-  PRIVATE
-    network_system::network_system
-)
-```
-
-#### Manual Integration
-```cmake
-# Add include directory
-target_include_directories(your_target
-  PRIVATE
-    /path/to/network_system/include
-)
-
-# Link library
-target_link_libraries(your_target
-  PRIVATE
-    /path/to/network_system/build/libnetwork_system.a
-)
-```
+Run `doxygen Doxyfile` from the repository root; output is `documents/html/index.html`.
+The [documentation workflow](../../.github/workflows/build-Doxygen.yaml) publishes
+[API documentation](https://kcenon.github.io/network_system/).
+The [warnings workflow](../../.github/workflows/doxygen-warnings-check.yml) checks relevant
+header/Doxyfile/workflow PR changes and pushes to main, develop, and phase-* branches.
 
 ## Troubleshooting
 
-### Common Issues
-
-#### ASIO Not Found
-```
-CMake Error: ASIO not found in standard locations
-```
-
-**Solution**: Install ASIO or Boost:
-```bash
-# Ubuntu/Debian
-sudo apt install libasio-dev libboost-all-dev
-
-# macOS
-brew install asio boost
-
-# Windows (vcpkg)
-vcpkg install asio boost
-```
-
-#### pthread Not Found on Windows
-```
-LINK : fatal error LNK1104: cannot open file 'pthread.lib'
-```
-
-**Solution**: This is already fixed in the CMakeLists.txt. pthread is only linked on Unix systems.
-
-#### vcpkg Build Failure
-```
-Error: run-vcpkg action execution failed
-```
-
-**Solution**: The build system automatically falls back to system libraries. Ensure ASIO is installed via your system package manager.
-
-#### C++20 Features Not Available
-```
-error: 'jthread' is not a member of 'std'
-```
-
-**Solution**: Update your compiler:
-```bash
-# Ubuntu/Debian
-sudo apt install g++-11
-
-# Set as default
-sudo update-alternatives --config g++
-```
-
-### Debug Build Issues
-
-Enable verbose output to diagnose build issues:
-```bash
-cmake .. -DCMAKE_VERBOSE_MAKEFILE=ON
-cmake --build . --verbose
-```
-
-### Clean Build
-
-If you encounter persistent issues, try a clean build:
-```bash
-rm -rf build
-mkdir build && cd build
-cmake .. -G Ninja
-ninja
-```
-
-## Performance Tuning
-
-### Compiler Optimizations
-
-For maximum performance:
-```bash
-cmake .. -DCMAKE_BUILD_TYPE=Release \
-  -DCMAKE_CXX_FLAGS="-O3 -march=native -mtune=native"
-```
-
-### Link-Time Optimization (LTO)
-```bash
-cmake .. -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=ON
-```
-
-## Testing
-
-### Run Tests
-```bash
-# Run all tests
-ctest --output-on-failure
-
-# Run specific test
-./tests/unit_tests
-
-# Run with detailed output
-ctest -V
-```
-
-### Run Benchmarks
-```bash
-./tests/benchmark_tests
-```
-
-## Support
-
-For build issues, please check:
-1. [GitHub Issues](https://github.com/kcenon/network_system/issues)
-2. [CHANGELOG.md](../CHANGELOG.md) for known issues
-3. Contact: kcenon@naver.com
----
-
-*Last Updated: 2025-10-20*
+If CMake cannot locate common_system, thread_system, or ASIO, install their CMake packages
+and correct `CMAKE_PREFIX_PATH`. An adjacent clone alone is insufficient.
+Use separate build directories for different compilers and sanitizer profiles.
+Consult [troubleshooting](TROUBLESHOOTING.md) or [GitHub Issues](https://github.com/kcenon/network_system/issues).
