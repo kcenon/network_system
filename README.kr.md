@@ -14,7 +14,7 @@
 - [개요](#개요)
 - [vcpkg를 통한 설치](#vcpkg를-통한-설치)
 - [요구사항](#요구사항)
-- [빠른 시작](#빠른-시작)
+- [빠른 시작](#빠른-시작-1)
 - [모듈식 아키텍처](#모듈식-아키텍처-신규)
 - [핵심 기능](#핵심-기능)
 - [성능 하이라이트](#성능-하이라이트)
@@ -37,7 +37,7 @@
 
 **주요 특징**:
 - 🏗️ **모듈식 아키텍처**: 플러그인 가능한 프로토콜 스택을 갖춘 코루틴 친화적 비동기 I/O
-- ⚡ **고성능**: ASIO 기반 논블로킹 연산, 소형 페이로드에 대해 합성 벤치마크 기준 ~769K msg/s
+- ⚡ **고성능**: ASIO 기반 논블로킹 연산; [과거 CPU 전용 allocation/copy 벤치마크](docs/BENCHMARKS.md#synthetic-benchmarks)에서 64바이트 페이로드 기준 ~769K msg/s
 - 🛡️ **프로덕션 등급**: 포괄적인 새니타이저 커버리지(TSAN/ASAN/UBSAN 클린), RAII Grade A, 다중 플랫폼 CI/CD
 - 🔒 **보안**: TLS 1.2/1.3 지원, 인증서 검증, 최신 암호화 스위트
 - 🌐 **크로스 플랫폼**: GCC, Clang, MSVC 지원과 함께 Ubuntu, Windows, macOS
@@ -70,8 +70,8 @@
 vcpkg install kcenon-network-system \
   --overlay-ports=path/to/kcenon/vcpkg-registry/ports
 
-# With SSL and ecosystem features enabled
-vcpkg install kcenon-network-system[ssl,ecosystem] \
+# Optional logger integration (TLS is a core dependency)
+vcpkg install "kcenon-network-system[logging]" \
   --overlay-ports=path/to/kcenon/vcpkg-registry/ports
 ```
 
@@ -79,23 +79,34 @@ vcpkg install kcenon-network-system[ssl,ecosystem] \
 
 ### 기능 매트릭스
 
-| 기능 | 기본값 | 설명 | 전이 의존성 |
-|---------|---------|-------------|------------------------|
-| (core) | always | 비동기 TCP/UDP, WebSocket, HTTP/1.1, TLS | common_system, thread_system, asio, openssl, zlib |
-| `ssl` | off | 명시적 SSL/TLS 지원 플래그 | openssl >= 3.0.0 |
-| `ecosystem` | off | Logger 및 container 통합 | logger_system, container_system |
-| `testing` | off | 단위 테스트 및 벤치마크 | gtest, benchmark |
-| `examples` | off | 사용 예제 | — |
-| `docs` | off | Doxygen 문서 | — |
+아래 표는 [레지스트리 포트](https://github.com/kcenon/vcpkg-registry/blob/main/ports/kcenon-network-system/vcpkg.json)의 기능입니다. 레지스트리는 게시된 `v0.1.1` 소스를 사용합니다. 이 저장소의 루트 개발 매니페스트에 있는 `ssl`, `ecosystem`, `testing`, `samples`, `docs`는 소비자 포트의 기능이 아닙니다.
+
+| 기능 | 기본값 | 설명 |
+|------|--------|------|
+| core | 항상 | common_system, thread_system, ASIO, OpenSSL, zlib |
+| `logging` | 끔 | 선택적 logger_system 통합 |
+
+이하 CMake 및 C++ 예제는 **현재 `main`을 소스에서 빌드하고 설치한 패키지**를 대상으로 합니다. 게시된 태그에 현재 API가 모두 포함되어 있다고 가정하지 마세요. 의존성 패키지를 먼저 설치한 뒤 아래 소스 빌드 절차를 따르세요.
 
 ### CMake 통합
 
 ```cmake
+cmake_minimum_required(VERSION 3.20)
+project(readme_example LANGUAGES CXX)
 find_package(network_system CONFIG REQUIRED)
-target_link_libraries(your_target PRIVATE network_system::network_system)
+add_executable(readme_example main.cpp)
+target_compile_features(readme_example PRIVATE cxx_std_20)
+target_link_libraries(readme_example PRIVATE network_system::network_system)
 ```
 
 표준 내보내기 타깃은 `network_system::network_system`입니다. 이 이름은 다운스트림 소비자를 위한 v1.0 안정 계약 타깃으로 의도되었으며(v1.0 보장은 v1.0.0 태그가 발행된 이후에 효력이 발생합니다 — 위의 버전 상태 노트 참조), 빌드 트리(FetchContent / add_subdirectory)와 설치 트리(`find_package`) 소비 양쪽에서 이미 일관되게 제공됩니다. 더 이상 사용되지 않는 타깃 표기는 내보내지지 않습니다.
+
+`main.cpp`에 아래 C++ 예제 중 하나를 저장하고 위 내용을 `CMakeLists.txt`로 저장하세요. `CMAKE_PREFIX_PATH`에 network_system과 의존성 설치 경로를 지정하세요.
+
+```bash
+cmake -S . -B build -DCMAKE_PREFIX_PATH="/path/to/network/install;/path/to/dependency/prefix"
+cmake --build build --parallel
+```
 
 ### 최소 예제
 
@@ -104,14 +115,22 @@ target_link_libraries(your_target PRIVATE network_system::network_system)
 #include <iostream>
 
 int main() {
-    auto server = kcenon::network::tcp_facade::create_server({
-        .port = 9090,
-        .on_message = [](auto session, auto data) {
-            std::cout << "Received: " << data << std::endl;
-        }
-    });
-    server->start();
-    return 0;
+    kcenon::network::facade::tcp_facade tcp;
+    auto created = tcp.create_server({.port = 9090});
+    if (created.is_err()) {
+        std::cerr << created.error().message << '\n';
+        return 1;
+    }
+    auto server = created.value();
+    auto started = server->start(9090);
+    if (started.is_err()) {
+        std::cerr << started.error().message << '\n';
+        return 1;
+    }
+    std::cout << "Listening on port 9090; press Enter to stop." << std::endl;
+    std::cin.get();
+    auto stopped = server->stop();
+    return stopped.is_err() ? 1 : 0;
 }
 ```
 
@@ -123,16 +142,14 @@ int main() {
 |------------|---------|----------|-------------|
 | C++20 컴파일러 | GCC 13+ / Clang 17+ / MSVC 2022+ / Apple Clang 14+ | 예 | thread_system 의존성으로 인한 상향 요구사항 |
 | CMake | 3.20+ | 예 | 빌드 시스템 |
-| ASIO | latest | 예 | 비동기 I/O (standalone) |
-| OpenSSL | 3.x (권장) / 1.1.1 (최소) | 예 | TLS/SSL 지원 |
+| ASIO | 1.30.2+ | 예 | 비동기 I/O (standalone) |
+| OpenSSL | 3.0+ | 예 | TLS/SSL 지원 |
 | [common_system](https://github.com/kcenon/common_system) | latest | 예 | 공통 인터페이스 및 Result<T> |
 | [thread_system](https://github.com/kcenon/thread_system) | latest | 예 | 스레드 풀 및 비동기 연산 |
-| [logger_system](https://github.com/kcenon/logger_system) | latest | 예 | 로깅 인프라 |
-| [container_system](https://github.com/kcenon/container_system) | latest | 예 | 데이터 컨테이너 연산 |
+| [logger_system](https://github.com/kcenon/logger_system) | latest | 선택 | 기본 OFF; common_system ILogger로 런타임 바인딩 |
+| [container_system](https://github.com/kcenon/container_system) | latest | 선택 | CMake 기본 ON; 패키지가 없으면 비활성화 |
 
-> **OpenSSL 버전 참고**: OpenSSL 1.1.1은 2023년 9월 11일 지원 종료(End-of-Life)되었습니다.
-> 지속적인 보안 지원을 위해 OpenSSL 3.x로의 업그레이드를 강력히 권장합니다.
-> OpenSSL 1.1.1이 감지되면 빌드 시스템이 경고를 표시합니다.
+> **OpenSSL 참고**: 기본 TLS 빌드는 OpenSSL 3.0 이상을 요구합니다.
 
 ### 의존성 흐름
 
@@ -141,9 +158,9 @@ network_system
 ├── common_system (required)
 ├── thread_system (required)
 │   └── common_system
-├── logger_system (required)
+├── logger_system (optional, default OFF)
 │   └── common_system
-└── container_system (required)
+└── container_system (optional, default ON)
     └── common_system
 ```
 
@@ -151,18 +168,17 @@ network_system
 
 ### 의존성과 함께 빌드
 
-```bash
-# Clone all dependencies
-git clone https://github.com/kcenon/common_system.git
-git clone https://github.com/kcenon/thread_system.git
-git clone https://github.com/kcenon/logger_system.git
-git clone https://github.com/kcenon/container_system.git
-git clone https://github.com/kcenon/network_system.git
+소스 빌드 전에 `common_system`, `thread_system`, ASIO의 CMake 패키지와 OpenSSL/zlib를 설치하세요. `CMAKE_PREFIX_PATH`는 실제 설치 경로로 바꾸세요. 소스 저장소를 복제하는 것만으로 정적 라이브러리가 빌드되지는 않습니다. 선택적 logger/container 통합은 이 절차에서 끕니다.
 
-# Build network_system
+```bash
+git clone --branch main https://github.com/kcenon/network_system.git
 cd network_system
-cmake -B build -DCMAKE_BUILD_TYPE=Release
-cmake --build build
+cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release \
+  -DCMAKE_PREFIX_PATH="/path/to/dependency/prefix" \
+  -DBUILD_TESTS=OFF -DBUILD_EXAMPLES=OFF \
+  -DKCENON_WITH_LOGGER_SYSTEM=OFF -DKCENON_WITH_CONTAINER_SYSTEM=OFF
+cmake --build build --parallel
+cmake --install build --prefix "$HOME/.local"
 ```
 
 📖 **[빠른 시작 가이드 →](docs/guides/QUICK_START.md)**
@@ -172,6 +188,8 @@ cmake --build build
 ## 빠른 시작
 
 ### 사전 준비
+
+아래 명령은 시스템 라이브러리를 설치합니다. 배포판 패키지 버전이 요구사항을 충족하는지 확인하고, C++ 컴파일러와 common_system/thread_system/ASIO CMake 패키지는 별도로 준비하세요.
 
 **Ubuntu/Debian** (Ubuntu 22.04+는 기본적으로 OpenSSL 3.x 제공):
 ```bash
@@ -198,39 +216,18 @@ pacman -S mingw-w64-x86_64-cmake mingw-w64-x86_64-ninja \
 
 ### 빌드
 
-```bash
-git clone https://github.com/kcenon/network_system.git
-cd network_system
-cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
-cmake --build build -j
-```
+위의 의존성 설치 및 소스 빌드 절차를 사용하세요. C++ 예제는 설치된 패키지를 사용하는 별도 소비자 프로젝트에서 빌드합니다.
 
 ### C++20 모듈 빌드 (실험적)
 
-C++20 모듈 지원을 위해 (CMake 3.28+ 및 호환 컴파일러 필요):
-
-```bash
-cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DNETWORK_BUILD_MODULES=ON
-cmake --build build -j
-```
-
-모듈 사용:
-
-```cpp
-import kcenon.network;
-
-int main() {
-    auto server = std::make_unique<kcenon::network::core::messaging_server>("MyServer");
-    server->start_server(8080);
-    server->wait_for_stop();
-}
-```
+`NETWORK_BUILD_MODULES`는 별도의 실험적 모듈 타깃을 활성화합니다. CMake 3.28 이상과 모듈 지원 도구 체인이 필요하며, 헤더 API와 같은 사용법을 보장하지 않습니다. 현재 모듈 인터페이스는 [src/modules](src/modules/)를 참조하세요. 아래 빠른 시작 예제는 헤더 API를 사용합니다.
 
 ### 첫 서버 (60초)
 
 ```cpp
-#include <kcenon/network/core/messaging_server.h>
+#include <kcenon/network/network_system.h>
 #include <iostream>
+#include <memory>
 
 int main() {
     auto server = std::make_shared<kcenon::network::core::messaging_server>("MyServer");
@@ -243,27 +240,46 @@ int main() {
         return -1;
     }
 
-    std::cout << "Server running on port 8080..." << std::endl;
-    server->wait_for_stop();
-    return 0;
+    std::cout << "Server running on port 8080; press Enter to stop." << std::endl;
+    std::cin.get();
+    auto stopped = server->stop_server();
+    return stopped.is_err() ? 1 : 0;
 }
 ```
 
 ### 첫 클라이언트
 
 ```cpp
-#include <kcenon/network/core/messaging_client.h>
+#include <kcenon/network/network_system.h>
+#include <chrono>
+#include <cstdint>
 #include <iostream>
+#include <memory>
+#include <string>
+#include <thread>
+#include <utility>
+#include <vector>
 
 int main() {
     auto client = std::make_shared<kcenon::network::core::messaging_client>("MyClient");
 
-    auto result = client->start_client("localhost", 8080);
+    auto result = client->start_client("127.0.0.1", 8080);
     if (result.is_err()) {
         const auto& err = result.error();
         std::cerr << "Failed to connect: " << err.message
                   << " (code: " << err.code << ")" << std::endl;
         return -1;
+    }
+
+    // start_client initiates an asynchronous connection. Wait before sending.
+    const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(5);
+    while (!client->is_connected() && std::chrono::steady_clock::now() < deadline) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+    if (!client->is_connected()) {
+        std::cerr << "Connection timed out\n";
+        (void)client->stop_client();
+        return 1;
     }
 
     // Send message (std::move avoids extra copies)
@@ -277,12 +293,14 @@ int main() {
                   << " (code: " << err.code << ")" << std::endl;
     }
 
-    client->wait_for_stop();
-    return 0;
+    std::cout << "Press Enter to stop the client." << std::endl;
+    std::cin.get();
+    auto stopped = client->stop_client();
+    return send_result.is_err() || stopped.is_err() ? 1 : 0;
 }
 ```
 
-### 간소화된 Facade API (v2.0 신규)
+### 간소화된 Facade API
 
 더욱 간단한 사용을 위해 템플릿 복잡도를 숨기는 Facade API를 사용하세요:
 
@@ -291,32 +309,26 @@ int main() {
 #include <iostream>
 
 int main() {
-    using namespace kcenon::network;
-
-    // Create server with declarative configuration
-    facade::tcp_facade facade;
-    auto server = facade.create_server({
-        .port = 8080,
-        .server_id = "MyServer"
-    });
-
-    // Set callbacks
-    server->set_receive_callback([&](auto session_id, const auto& data) {
-        std::cout << "Received " << data.size() << " bytes\n";
-        // Echo back
-        server->send(session_id, data);
-    });
-
-    // Start server
-    auto result = server->start(8080);
-    if (result.is_err()) {
-        std::cerr << "Failed: " << result.error().message << "\n";
-        return -1;
+    kcenon::network::facade::tcp_facade tcp;
+    auto created = tcp.create_server({.port = 8080});
+    if (created.is_err()) {
+        std::cerr << created.error().message << '\n';
+        return 1;
     }
-
-    std::cout << "Server running on port 8080...\n";
-    server->wait_for_stop();
-    return 0;
+    auto server = created.value();
+    server->set_receive_callback([](auto session_id, const auto& data) {
+        std::cout << "Received " << data.size() << " bytes from "
+                  << session_id << std::endl;
+    });
+    auto started = server->start(8080);
+    if (started.is_err()) {
+        std::cerr << started.error().message << '\n';
+        return 1;
+    }
+    std::cout << "Listening on port 8080; press Enter to stop." << std::endl;
+    std::cin.get();
+    auto stopped = server->stop();
+    return stopped.is_err() ? 1 : 0;
 }
 ```
 
@@ -332,7 +344,7 @@ int main() {
 
 ## 모듈식 아키텍처 (신규)
 
-v2.0부터 network_system은 유지보수성과 선택적 링크 향상을 위해 프로토콜별 라이브러리로 구성됩니다.
+현재 소스 트리에서 network_system은 유지보수성과 선택적 링크 향상을 위해 프로토콜별 라이브러리로 구성됩니다.
 
 ### 라이브러리 개요
 
@@ -359,7 +371,7 @@ v2.0부터 network_system은 유지보수성과 선택적 링크 향상을 위�
 | TLS/SSL | `production` | TLS 1.2/1.3, 인증서 검증 |
 | WebSocket | `production` | RFC 6455 프레이밍, 분할, ping/pong |
 | HTTP/1.1 | `production` | 라우팅, 쿠키, multipart, gzip/deflate |
-| HTTP/2 | `production` | 멀티플렉스 스트림; HPACK Huffman은 실험적 pass-through |
+| HTTP/2 | `production` | 멀티플렉스 스트림; HPACK Huffman 코딩 (프로토콜 지원 표 참조) |
 | QUIC | `production` | RFC 9000/9001/9002 코어; 실험적 클라이언트 stats/ALPN 접근자 |
 | gRPC | `production` | 커스텀 HTTP/2 전송 + 선택적 `grpc++` 래퍼 |
 | DTLS | `experimental` | 소켓 존재 및 테스트됨; 서버 페이로드 처리 미연결 |
@@ -386,31 +398,46 @@ v2.0부터 network_system은 유지보수성과 선택적 링크 향상을 위�
 
 애플리케이션에 필요한 프로토콜만 링크하세요:
 
-```cmake
-# Option 1: All protocols (simple, larger binary)
-find_package(network-all REQUIRED)
-target_link_libraries(my_app PRIVATE kcenon::network-all)
+이 예제는 위와 같은 `main.cpp`/`CMakeLists.txt` 소비자 구조를 사용합니다. 최상위 설치는 `network_system` 패키지에 프로토콜 타깃을 함께 내보냅니다. 다음 블록은 TCP/UDP 헤더만 사용하는 프로그램용이며, 아래 umbrella 예제에는 `network_system::network_system` 타깃을 사용하세요.
 
-# Option 2: Specific protocols (smaller binary)
-find_package(network-tcp REQUIRED)
-find_package(network-udp REQUIRED)
-target_link_libraries(my_app PRIVATE
-    kcenon::network-tcp
-    kcenon::network-udp
+```cmake
+cmake_minimum_required(VERSION 3.20)
+project(protocol_example LANGUAGES CXX)
+find_package(network_system CONFIG REQUIRED)
+add_executable(protocol_example main.cpp)
+target_compile_features(protocol_example PRIVATE cxx_std_20)
+target_link_libraries(protocol_example PRIVATE
+    network_system::network-tcp
+    network_system::network-udp
 )
+```
+
+위 프로토콜 타깃으로 빌드할 `main.cpp`:
+
+```cpp
+#include <network_tcp/protocol/tcp.h>
+#include <network_udp/protocol/udp.h>
+
+int main() {
+    auto tcp = kcenon::network::protocol::tcp::create_connection("readme-tcp");
+    auto udp = kcenon::network::protocol::udp::create_connection("readme-udp");
+    return tcp && udp ? 0 : 1;
+}
 ```
 
 ### 엄브렐러 헤더
 
-단일 헤더로 모든 프로토콜을 포함:
+공개 통합 헤더로 코어 네트워킹을 포함하고 TCP 생성에는 facade 헤더를 사용하세요:
 
 ```cpp
-#include <network_all/network.h>
+#include <kcenon/network/network_system.h>
+#include <kcenon/network/facade/tcp_facade.h>
 
-// Check protocol availability at compile time
-#if NETWORK_ALL_HAS_QUIC
-    auto quic_conn = protocol::quic::connect({...});
-#endif
+int main() {
+    kcenon::network::facade::tcp_facade tcp;
+    auto server = tcp.create_server({.port = 8080});
+    return server.is_err() ? 1 : 0;
+}
 ```
 
 📖 **[마이그레이션 가이드 →](docs/MIGRATION.md)** | **[라이브러리 README](libs/)**
@@ -462,34 +489,33 @@ target_link_libraries(my_app PRIVATE
 
 - **W3C Trace Context**: 서비스 경계를 넘는 표준 컨텍스트 전파
 - **RAII Span**: `NETWORK_TRACE_SPAN` 매크로를 통한 자동 span 생명주기 관리
-- **다중 익스포터**: Console, OTLP HTTP/gRPC, Jaeger, Zipkin 지원
+- **익스포터**: Console 및 OTLP HTTP; 다른 백엔드의 제한은 [프로토콜 지원 표](docs/PROTOCOL_SUPPORT.md) 참조
 - **샘플링**: always-on, always-off, trace-id 기반, parent 기반 샘플러
 - **풍부한 속성**: 문자열, 정수, 실수, 불리언 속성 및 이벤트
 
 ```cpp
-#include <kcenon/network/tracing/tracing_config.h>
-#include <kcenon/network/tracing/trace_context.h>
+#include <kcenon/network/tracing/tracing.h>
 
-// Configure tracing (once at startup)
-auto config = tracing_config::otlp_http("http://localhost:4318/v1/traces");
-config.service_name = "my-service";
-configure_tracing(config);
+using namespace kcenon::network::tracing;
 
-// Create spans using RAII
 void process_request() {
     NETWORK_TRACE_SPAN("http.request.process");
     _span.set_attribute("http.method", "POST");
     _span.set_attribute("http.url", "/api/orders");
-
-    // Child spans inherit trace context
     {
         auto db_span = trace_context::current().create_child_span("database.query");
         db_span.set_attribute("db.system", "postgresql");
-        // ... perform database operation
         db_span.set_status(span_status::ok);
     }
-
     _span.set_status(span_status::ok);
+}
+
+int main() {
+    auto config = tracing_config::console();
+    config.service_name = "my-service";
+    configure_tracing(config);
+    process_request();
+    shutdown_tracing();
 }
 ```
 
@@ -505,12 +531,14 @@ void process_request() {
 
 ### 실패 처리
 - 모든 서버/클라이언트 시작 헬퍼는 `Result<void>`를 반환합니다. 계속 진행하기 전에 `result.is_err()`를 확인하고 `result.error().message`를 로깅하세요.
-- 과거 수정 사항(세션 정리, 백프레셔, TLS 롤아웃)에 대해서는 `IMPROVEMENTS.md`를 검토하여 이미 마련된 안전장치와 회귀 증상 재발 시 대응 방법을 이해하세요.
+- 과거 수정 사항(세션 정리, 백프레셔, TLS 롤아웃)에 대해서는 [설계 결정](docs/DESIGN_DECISIONS.md)과 [이슈 트래커](https://github.com/kcenon/network_system/issues)를 참조하세요.
 - 상위 수준 서비스를 구축할 때는 `common::error_info`를 스택 위로 전파하여 모니터링 및 알림 파이프라인이 계층 간 실패를 상관시킬 수 있도록 하세요.
 
 ### 오류 처리
 
 **Result<T> 패턴** (75-80% 마이그레이션됨):
+다음 코드는 위 서버 예제의 `main()` 안에서 `server` 생성 직후에 들어가는 오류 처리 부분입니다.
+
 ```cpp
 auto result = server->start_server(8080);
 if (result.is_err()) {
@@ -533,6 +561,8 @@ if (result.is_err()) {
 
 ### 합성 벤치마크 (Intel i7-12700K, Ubuntu 22.04, GCC 11, `-O3`)
 
+이는 [벤치마크 기록](docs/BENCHMARKS.md#synthetic-benchmarks)의 과거 GCC 11.3 측정값이며 현재 소스의 GCC 13 이상 요구사항과 별개입니다. 네트워크 I/O 처리량이 아닌 CPU 전용 allocation/memcpy 결과입니다.
+
 | 페이로드 | 처리량 | 지연 시간 (ns/op) | 범위 |
 |---------|-----------|-----------------|-------|
 | 64 bytes | ~769K msg/s | 1,300 | CPU 전용 (할당 + memcpy) |
@@ -552,20 +582,7 @@ if (result.is_err()) {
 
 ### 벤치마크 재현
 
-```bash
-# Build with benchmarks
-cmake -B build -DCMAKE_BUILD_TYPE=Release -DNETWORK_BUILD_BENCHMARKS=ON
-cmake --build build -j
-
-# Run all benchmarks
-./build/benchmarks/network_benchmarks
-
-# Run synthetic benchmarks only
-./build/benchmarks/network_benchmarks --benchmark_filter=MessageThroughput
-
-# Run real I/O benchmarks only
-./build/benchmarks/network_benchmarks --benchmark_filter=TCP
-```
+벤치마크 타깃은 Google Benchmark 패키지를 찾을 때만 생성됩니다. `NETWORK_BUILD_BENCHMARKS=ON`만 지정해도 의존성이 설치되는 것은 아닙니다. [벤치마크 소스와 CMake 설정](benchmarks/) 및 [측정 방법](docs/BENCHMARKS.md)을 참조하세요.
 
 ⚡ **[전체 벤치마크 및 부하 테스트 →](docs/BENCHMARKS.md)**
 
@@ -638,15 +655,12 @@ cmake --build build -j
 ```mermaid
 graph TD
     A[common_system] --> B[thread_system]
-    A --> C[container_system]
-    B --> D[logger_system]
-    B --> E[monitoring_system]
-    D --> F[database_system]
-    E --> F
-    F --> G[network_system]
+    A --> G[network_system]
+    B --> G
+    C[logger_system] -. optional .-> G
+    D[container_system] -. optional .-> G
+    G --> F[database_system]
     G --> H[pacs_system]
-
-    style G fill:#f9f,stroke:#333,stroke-width:3px
 ```
 
 > **생태계 참조**:
@@ -670,55 +684,24 @@ graph TD
 ### 통합 예제
 
 ```cpp
-#include <kcenon/network/core/messaging_server.h>
-#include <kcenon/network/integration/thread_system_adapter.h>
-
-using namespace kcenon::network;
+#include <kcenon/network/integration/thread_integration.h>
+#include <iostream>
+#include <memory>
 
 int main() {
-    // Bind thread_system for unified thread management
-#if KCENON_WITH_THREAD_SYSTEM
-    integration::bind_thread_system_pool_into_manager("network_pool");
-#endif
-
-    // Create and start server
-    auto server = std::make_shared<core::messaging_server>("IntegratedServer");
-    auto result = server->start_server(8080);
-
-    if (result.is_err()) {
-        std::cerr << "Failed: " << result.error().message << std::endl;
-        return -1;
-    }
-
-    // Get thread pool metrics
-    auto& manager = integration::thread_integration_manager::instance();
-    auto metrics = manager.get_metrics();
-    std::cout << "Workers: " << metrics.worker_threads << std::endl;
-
-    server->wait_for_stop();
-    return 0;
+    using namespace kcenon::network::integration;
+    auto pool = std::make_shared<basic_thread_pool>(2);
+    auto& manager = thread_integration_manager::instance();
+    manager.set_thread_pool(pool);
+    manager.submit_task([] { std::cout << "Task completed\n"; }).get();
+    std::cout << "Workers: " << manager.get_metrics().worker_threads << '\n';
+    pool->stop();
 }
 ```
 
-### 스레드 풀 어댑터
+### 사용자 정의 스레드 풀
 
-양방향 어댑터는 network_system의 스레드 풀과 common_system의 executor 간 상호 운용성을 가능하게 합니다:
-
-```cpp
-#include <kcenon/network/integration/thread_pool_adapters.h>
-
-using namespace kcenon::network::integration;
-
-// Use network_system pool where IExecutor is expected
-auto network_pool = thread_integration_manager::instance().get_thread_pool();
-auto executor = std::make_shared<network_to_common_thread_adapter>(network_pool);
-// Pass executor to messaging_system, database_system, etc.
-
-// Use external IExecutor in network_system
-auto external_executor = container.resolve<common::interfaces::IExecutor>();
-auto adapted = std::make_shared<common_to_network_thread_adapter>(external_executor);
-thread_integration_manager::instance().set_thread_pool(adapted);
-```
+외부 실행기를 연결하려면 공개 `integration::thread_pool_interface`를 구현하고 `thread_integration_manager::set_thread_pool()`로 등록하세요. 위 예제는 제공되는 `basic_thread_pool`을 사용합니다. `src/internal/integration`의 어댑터는 공개 API가 아니므로 애플리케이션에서 직접 포함하지 마세요.
 
 🌐 **[전체 통합 가이드 →](docs/INTEGRATION.md)**
 
@@ -746,7 +729,7 @@ doxygen Doxyfile
 # Output: documents/html/index.html
 ```
 
-[Doxygen Warnings Check 워크플로](.github/workflows/doxygen-warnings-check.yml)는 모든 PR에서 실행되며 `include/kcenon/network/`(단, `detail/` 제외) 아래 헤더가 Doxygen 경고를 방출하면 빌드를 실패시킵니다. 이는 [docs/v1.0-api-surface.md](docs/v1.0-api-surface.md)에 정의된 v1.0 공개 API 표면을 문서 회귀로부터 보호합니다.
+[Doxygen Warnings Check 워크플로](.github/workflows/doxygen-warnings-check.yml)는 `include/**`, `Doxyfile` 또는 해당 워크플로를 변경하는 PR과 `main`, `develop`, `phase-*` 푸시에서 실행되며 `include/kcenon/network/`(단, `detail/` 제외) 아래 헤더가 Doxygen 경고를 방출하면 빌드를 실패시킵니다. 이는 [docs/v1.0-api-surface.md](docs/v1.0-api-surface.md)에 정의된 v1.0 공개 API 표면을 문서 회귀로부터 보호합니다.
 
 ### 고급 주제
 - ⚡ [성능 및 벤치마크](docs/BENCHMARKS.md) - 성능 메트릭 및 테스트
@@ -821,19 +804,9 @@ doxygen Doxyfile
 
 ## 의존성
 
-### 필수
-- **C++20** 호환 컴파일러 (GCC 13+, Clang 17+, MSVC 2022+, Apple Clang 14+)
+위 요구사항 표가 의존성 기준입니다. 기본 소스 빌드는 C++20, CMake 3.20 이상, standalone ASIO 1.30.2 이상, OpenSSL 3.0 이상, zlib 및 설치된 common_system/thread_system 패키지를 사용합니다. Boost.ASIO는 standalone ASIO를 대체하지 않습니다.
 
-> **참고**: 상향된 GCC/Clang 요구사항은 [thread_system](https://github.com/kcenon/thread_system) 의존성에서 비롯되며, 이는 완전한 C++20 기능 지원을 위해 GCC 13+ 및 Clang 17+를 요구합니다.
-- **CMake** 3.20+
-- **ASIO** 또는 **Boost.ASIO** 1.28+
-- **OpenSSL** 3.x 권장 / 1.1.1+ 최소 (TLS/SSL 및 WebSocket용)
-- **[common_system](https://github.com/kcenon/common_system)** (Result<T> 패턴, 공통 인터페이스)
-- **[thread_system](https://github.com/kcenon/thread_system)** (스레드 풀 통합)
-- **[logger_system](https://github.com/kcenon/logger_system)** (구조화된 로깅)
-- **[container_system](https://github.com/kcenon/container_system)** (데이터 컨테이너 연산)
-- **fmt** 10.0.0+ (포맷팅 라이브러리)
-- **zlib** (압축 지원)
+logger_system은 기본 OFF인 선택적 런타임 통합입니다. container_system 탐색은 기본 ON이지만 패키지가 없으면 통합이 꺼집니다. LZ4는 설치된 경우 사용하는 선택적 압축 의존성입니다. fmt는 최상위 빌드에서 직접 요구하지 않습니다.
 
 ---
 
@@ -843,55 +816,29 @@ doxygen Doxyfile
 
 CMake 프리셋은 표준화된 빌드 구성을 제공합니다:
 
+프리셋 스키마 6을 읽으려면 CMake 3.25 이상이 필요합니다. `asan`, `tsan`, `ubsan`은 같은 이름의 테스트 프리셋이 있습니다. `release`와 `coverage`에는 테스트 프리셋이 없으므로 해당 빌드 디렉터리에서 CTest를 실행하세요.
+
 ```bash
-# List available presets
 cmake --list-presets
-
-# Configure with a preset
-cmake --preset debug          # Debug build
-cmake --preset release        # Release build
-cmake --preset asan           # AddressSanitizer
-cmake --preset tsan           # ThreadSanitizer
-cmake --preset ubsan          # UndefinedBehaviorSanitizer
-cmake --preset coverage       # Code coverage
-
-# Build
+# Choose one configure/build preset: debug, release, asan, tsan, ubsan, coverage.
+# Substitute the same name in both commands.
+cmake --preset debug -DBUILD_EXAMPLES=OFF \
+  -DCMAKE_PREFIX_PATH="/path/to/dependency/prefix" \
+  -DKCENON_WITH_LOGGER_SYSTEM=OFF -DKCENON_WITH_CONTAINER_SYSTEM=OFF
 cmake --build --preset debug
-
-# Test with sanitizer-specific environment
-ctest --preset asan           # Runs with ASAN_OPTIONS configured
-ctest --preset tsan           # Runs with TSAN_OPTIONS configured
+ctest --preset debug
 ```
 
 ### 수동 CMake 구성
 
 ```bash
-# Basic build
-cmake -B build -DCMAKE_BUILD_TYPE=Release
-cmake --build build -j
-
-# With sanitizers (mutually exclusive)
-cmake -B build -DCMAKE_BUILD_TYPE=Debug -DENABLE_ASAN=ON   # AddressSanitizer
-cmake -B build -DCMAKE_BUILD_TYPE=Debug -DENABLE_TSAN=ON   # ThreadSanitizer
-cmake -B build -DCMAKE_BUILD_TYPE=Debug -DENABLE_UBSAN=ON  # UndefinedBehaviorSanitizer
-
-# With benchmarks
-cmake -B build -DCMAKE_BUILD_TYPE=Release \
-    -DNETWORK_BUILD_BENCHMARKS=ON
-
-# With tests
-cmake -B build -DCMAKE_BUILD_TYPE=Release \
-    -DBUILD_TESTS=ON
-
-# With optional integrations
-cmake -B build -DCMAKE_BUILD_TYPE=Release \
-    -DBUILD_WITH_THREAD_SYSTEM=ON \
-    -DBUILD_WITH_LOGGER_SYSTEM=ON \
-    -DBUILD_WITH_CONTAINER_SYSTEM=ON
-
-# Build and run tests
-cmake --build build -j
-cd build && ctest --output-on-failure
+# Configure a separate directory for each sanitizer/profile.
+cmake -S . -B build/debug -DCMAKE_BUILD_TYPE=Debug \
+  -DCMAKE_PREFIX_PATH="/path/to/dependency/prefix" \
+  -DBUILD_TESTS=ON -DBUILD_EXAMPLES=OFF \
+  -DKCENON_WITH_LOGGER_SYSTEM=OFF -DKCENON_WITH_CONTAINER_SYSTEM=OFF
+cmake --build build/debug --parallel
+ctest --test-dir build/debug --output-on-failure --timeout 120
 ```
 
 ### 빌드 디렉터리 정리
@@ -924,24 +871,21 @@ cd build && ctest --output-on-failure
 
 ## 예제
 
-완전한 예제는 `examples/` 디렉터리에서 확인할 수 있습니다:
+현재 소스에서 다음 타깃을 개별적으로 빌드할 수 있습니다:
 
-- **basic_usage.cpp** - 기본 TCP 클라이언트/서버
-- **tcp_echo_server.cpp** - 세션 관리를 갖춘 TCP 서버
-- **tcp_client.cpp** - facade API를 사용하는 TCP 클라이언트
-- **simple_http_server.cpp** - 라우팅을 갖춘 HTTP 서버
-- **simple_http_client.cpp** - 다양한 요청 타입을 갖춘 HTTP 클라이언트
-- **websocket_chat.cpp** - WebSocket 채팅 서버 및 클라이언트
-- **quic_server_example.cpp** - 멀티 스트림 지원을 갖춘 QUIC 서버
-- **quic_client_example.cpp** - 스트림 멀티플렉싱을 갖춘 QUIC 클라이언트
-- **grpc_service_example.cpp** - gRPC 서비스 등록 및 관리
+| 소스 | CMake 타깃 |
+|------|------------|
+| [concepts_example.cpp](examples/concepts_example.cpp) | `example_concepts_example` |
+| [thread_integration_example.cpp](examples/thread_integration_example.cpp) | `example_thread_integration_example` |
+| [tls_policy_example.cpp](examples/tls_policy_example.cpp) | `example_tls_policy_example` |
+| [http2_server_example.cpp](examples/http2_server_example.cpp) | `example_http2_server_example` |
 
-예제 빌드 및 실행:
+일부 다른 `examples/` 프로그램은 이전 API를 사용하므로 전체 예제 빌드 대신 사용할 타깃을 지정하세요. 아래 명령은 위에서 의존성을 구성한 소스 빌드 디렉터리를 사용합니다.
+
 ```bash
-cmake -B build -DBUILD_EXAMPLES=ON
-cmake --build build
-./build/bin/examples/example_tcp_echo_server
-./build/bin/examples/example_tcp_client
+cmake -S . -B build -DBUILD_EXAMPLES=ON
+cmake --build build --target example_thread_integration_example
+./build/bin/examples/example_thread_integration_example
 ```
 
 ---
@@ -949,6 +893,7 @@ cmake --build build
 ## 로드맵
 
 ### 최근 완료
+- ✅ **HTTP/2 클라이언트**: 현재 구현 및 테스트가 있습니다. 범위와 제한은 [프로토콜 지원 표](docs/PROTOCOL_SUPPORT.md)를 참조하세요.
 - ✅ **QUIC 프로토콜 지원**: RFC 9000/9001/9002 준수 구현
 - ✅ **gRPC 통합**: 완전한 스트리밍 지원을 갖춘 공식 gRPC 라이브러리 래퍼
 
@@ -960,7 +905,6 @@ cmake --build build
 ### 계획된 기능
 - 🚧 **연결 풀링**: 엔터프라이즈급 연결 관리
 - 🚧 **Zero-Copy 파이프라인**: 불필요한 버퍼 복사 제거
-- 🚧 **HTTP/2 클라이언트**: 최신 HTTP/2 프로토콜 지원
 
 완료된 작업 및 진행 중인 항목은 [변경 이력](docs/CHANGELOG.md)을 참고하세요.
 
@@ -972,7 +916,7 @@ cmake --build build
 
 1. 리포지토리 포크
 2. 기능 브랜치 생성 (`git checkout -b feature/amazing-feature`)
-3. [기여 가이드](docs/contributing/CONTRIBUTING.md)의 코딩 표준 준수
+3. [기여 가이드](docs/contributing/CONTRIBUTING.md)와 [.clang-format](.clang-format)을 따르고 커밋 전에 clang-format 실행
 4. conventional commit으로 변경 사항 커밋
 5. 브랜치에 푸시 (`git push origin feature/amazing-feature`)
 6. Pull Request 열기
@@ -998,7 +942,7 @@ cmake --build build
 | **프로젝트 소유자** | kcenon (kcenon@naver.com) |
 | **리포지토리** | https://github.com/kcenon/network_system |
 | **이슈 및 버그 리포트** | https://github.com/kcenon/network_system/issues |
-| **토론 및 질문** | https://github.com/kcenon/network_system/discussions |
+| **질문** | https://github.com/kcenon/network_system/issues |
 
 ---
 

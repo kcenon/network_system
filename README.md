@@ -12,7 +12,7 @@
 ## Table of Contents
 
 - [Overview](#overview)
-- [Quick Start](#quick-start)
+- [Quick Start](#quick-start-1)
 - [Requirements](#requirements)
 - [Installation via vcpkg](#installation-via-vcpkg)
 - [Modular Architecture](#modular-architecture-new)
@@ -37,7 +37,7 @@ A modern C++20 asynchronous network library providing reusable transport primiti
 
 **Key Characteristics**:
 - 🏗️ **Modular Architecture**: Coroutine-friendly async I/O with pluggable protocol stack
-- ⚡ **High Performance**: ASIO-based non-blocking operations with synthetic benchmarks showing ~769K msg/s for small payloads
+- ⚡ **High Performance**: ASIO-based non-blocking operations; [historical CPU-only allocation/copy benchmarks](docs/BENCHMARKS.md#synthetic-benchmarks) report ~769K msg/s for 64-byte payloads
 - 🛡️ **Production Grade**: Comprehensive sanitizer coverage (TSAN/ASAN/UBSAN clean), RAII Grade A, multi-platform CI/CD
 - 🔒 **Secure**: TLS 1.2/1.3 support, certificate validation, modern cipher suites
 - 🌐 **Cross-Platform**: Ubuntu, Windows, macOS with GCC, Clang, MSVC support
@@ -69,8 +69,8 @@ A modern C++20 asynchronous network library providing reusable transport primiti
 vcpkg install kcenon-network-system \
   --overlay-ports=path/to/kcenon/vcpkg-registry/ports
 
-# With SSL and ecosystem features enabled
-vcpkg install kcenon-network-system[ssl,ecosystem] \
+# Optional logger integration (TLS is a core dependency)
+vcpkg install "kcenon-network-system[logging]" \
   --overlay-ports=path/to/kcenon/vcpkg-registry/ports
 ```
 
@@ -78,20 +78,24 @@ vcpkg install kcenon-network-system[ssl,ecosystem] \
 
 ### Feature Matrix
 
-| Feature | Default | Description | Transitive Dependencies |
-|---------|---------|-------------|------------------------|
-| (core) | always | Async TCP/UDP, WebSocket, HTTP/1.1, TLS | common_system, thread_system, asio, openssl, zlib |
-| `ssl` | off | Explicit SSL/TLS support flag | openssl >= 3.0.0 |
-| `ecosystem` | off | Logger and container integration | logger_system, container_system |
-| `testing` | off | Unit tests and benchmarks | gtest, benchmark |
-| `examples` | off | Usage examples | — |
-| `docs` | off | Doxygen documentation | — |
+These are features of the [registry port](https://github.com/kcenon/vcpkg-registry/blob/main/ports/kcenon-network-system/vcpkg.json), which downloads the published `v0.1.1` source. The root development manifest's `ssl`, `ecosystem`, `testing`, `samples`, and `docs` features are not consumer port features.
+
+| Feature | Default | Description |
+|---------|---------|-------------|
+| core | always | common_system, thread_system, ASIO, OpenSSL, zlib |
+| `logging` | off | Optional logger_system integration |
+
+The CMake and C++ examples below target **current `main`, built and installed from source**. Do not assume that the published tag contains every current API. Install the dependency packages first, then follow the source build instructions below.
 
 ### CMake Integration
 
 ```cmake
+cmake_minimum_required(VERSION 3.20)
+project(readme_example LANGUAGES CXX)
 find_package(network_system CONFIG REQUIRED)
-target_link_libraries(your_target PRIVATE network_system::network_system)
+add_executable(readme_example main.cpp)
+target_compile_features(readme_example PRIVATE cxx_std_20)
+target_link_libraries(readme_example PRIVATE network_system::network_system)
 ```
 
 The canonical export target is `network_system::network_system`. This name is
@@ -101,6 +105,13 @@ above) and is already provided consistently across both build-tree (FetchContent
 / add_subdirectory) and install-tree (`find_package`) consumption. No deprecated
 target spellings are exported.
 
+Save one of the C++ examples below as `main.cpp` and the block above as `CMakeLists.txt`. Set `CMAKE_PREFIX_PATH` to the installation prefixes of network_system and its dependencies.
+
+```bash
+cmake -S . -B build -DCMAKE_PREFIX_PATH="/path/to/network/install;/path/to/dependency/prefix"
+cmake --build build --parallel
+```
+
 ### Minimal Example
 
 ```cpp
@@ -108,14 +119,22 @@ target spellings are exported.
 #include <iostream>
 
 int main() {
-    auto server = kcenon::network::tcp_facade::create_server({
-        .port = 9090,
-        .on_message = [](auto session, auto data) {
-            std::cout << "Received: " << data << std::endl;
-        }
-    });
-    server->start();
-    return 0;
+    kcenon::network::facade::tcp_facade tcp;
+    auto created = tcp.create_server({.port = 9090});
+    if (created.is_err()) {
+        std::cerr << created.error().message << '\n';
+        return 1;
+    }
+    auto server = created.value();
+    auto started = server->start(9090);
+    if (started.is_err()) {
+        std::cerr << started.error().message << '\n';
+        return 1;
+    }
+    std::cout << "Listening on port 9090; press Enter to stop." << std::endl;
+    std::cin.get();
+    auto stopped = server->stop();
+    return stopped.is_err() ? 1 : 0;
 }
 ```
 
@@ -127,16 +146,14 @@ int main() {
 |------------|---------|----------|-------------|
 | C++20 Compiler | GCC 13+ / Clang 17+ / MSVC 2022+ / Apple Clang 14+ | Yes | Higher requirements due to thread_system dependency |
 | CMake | 3.20+ | Yes | Build system |
-| ASIO | latest | Yes | Asynchronous I/O (standalone) |
-| OpenSSL | 3.x (recommended) / 1.1.1 (minimum) | Yes | TLS/SSL support |
+| ASIO | 1.30.2+ | Yes | Asynchronous I/O (standalone) |
+| OpenSSL | 3.0+ | Yes | TLS/SSL support |
 | [common_system](https://github.com/kcenon/common_system) | latest | Yes | Common interfaces and Result<T> |
 | [thread_system](https://github.com/kcenon/thread_system) | latest | Yes | Thread pool and async operations |
-| [logger_system](https://github.com/kcenon/logger_system) | latest | Yes | Logging infrastructure |
-| [container_system](https://github.com/kcenon/container_system) | latest | Yes | Data container operations |
+| [logger_system](https://github.com/kcenon/logger_system) | latest | Optional | Default OFF; runtime binding through common_system ILogger |
+| [container_system](https://github.com/kcenon/container_system) | latest | Optional | CMake default ON; disabled if the package is unavailable |
 
-> **OpenSSL Version Note**: OpenSSL 1.1.1 reached End-of-Life on September 11, 2023.
-> We strongly recommend upgrading to OpenSSL 3.x for continued security support.
-> The build system will display a warning if OpenSSL 1.1.1 is detected.
+> **OpenSSL note**: The default TLS build requires OpenSSL 3.0 or later.
 
 ### Dependency Flow
 
@@ -145,9 +162,9 @@ network_system
 ├── common_system (required)
 ├── thread_system (required)
 │   └── common_system
-├── logger_system (required)
+├── logger_system (optional, default OFF)
 │   └── common_system
-└── container_system (required)
+└── container_system (optional, default ON)
     └── common_system
 ```
 
@@ -155,18 +172,17 @@ network_system
 
 ### Building with Dependencies
 
-```bash
-# Clone all dependencies
-git clone https://github.com/kcenon/common_system.git
-git clone https://github.com/kcenon/thread_system.git
-git clone https://github.com/kcenon/logger_system.git
-git clone https://github.com/kcenon/container_system.git
-git clone https://github.com/kcenon/network_system.git
+Before building, install the CMake packages for `common_system`, `thread_system`, and ASIO, plus OpenSSL/zlib. Replace `CMAKE_PREFIX_PATH` with their actual installation prefixes. Cloning dependency repositories alone does not build their static libraries. This recipe disables optional logger/container integration.
 
-# Build network_system
+```bash
+git clone --branch main https://github.com/kcenon/network_system.git
 cd network_system
-cmake -B build -DCMAKE_BUILD_TYPE=Release
-cmake --build build
+cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release \
+  -DCMAKE_PREFIX_PATH="/path/to/dependency/prefix" \
+  -DBUILD_TESTS=OFF -DBUILD_EXAMPLES=OFF \
+  -DKCENON_WITH_LOGGER_SYSTEM=OFF -DKCENON_WITH_CONTAINER_SYSTEM=OFF
+cmake --build build --parallel
+cmake --install build --prefix "$HOME/.local"
 ```
 
 📖 **[Quick Start Guide →](docs/guides/QUICK_START.md)**
@@ -176,6 +192,8 @@ cmake --build build
 ## Quick Start
 
 ### Prerequisites
+
+These commands install system libraries. Check that distribution package versions meet the requirements; provide the C++ compiler and common_system/thread_system/ASIO CMake packages separately.
 
 **Ubuntu/Debian** (Ubuntu 22.04+ provides OpenSSL 3.x by default):
 ```bash
@@ -202,39 +220,18 @@ pacman -S mingw-w64-x86_64-cmake mingw-w64-x86_64-ninja \
 
 ### Build
 
-```bash
-git clone https://github.com/kcenon/network_system.git
-cd network_system
-cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
-cmake --build build -j
-```
+Use the dependency installation and source build recipe above. Build the C++ examples in a separate consumer project against the installed package.
 
 ### C++20 Module Build (Experimental)
 
-For C++20 module support (requires CMake 3.28+ and compatible compiler):
-
-```bash
-cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DNETWORK_BUILD_MODULES=ON
-cmake --build build -j
-```
-
-Usage with modules:
-
-```cpp
-import kcenon.network;
-
-int main() {
-    auto server = std::make_unique<kcenon::network::core::messaging_server>("MyServer");
-    server->start_server(8080);
-    server->wait_for_stop();
-}
-```
+`NETWORK_BUILD_MODULES` enables a separate experimental module target. It requires CMake 3.28 or later and a module-capable toolchain; its interface is not interchangeable with the header API. See [src/modules](src/modules/) for the current interfaces. The quick-start examples below use the header API.
 
 ### Your First Server (60 seconds)
 
 ```cpp
-#include <kcenon/network/core/messaging_server.h>
+#include <kcenon/network/network_system.h>
 #include <iostream>
+#include <memory>
 
 int main() {
     auto server = std::make_shared<kcenon::network::core::messaging_server>("MyServer");
@@ -247,27 +244,46 @@ int main() {
         return -1;
     }
 
-    std::cout << "Server running on port 8080..." << std::endl;
-    server->wait_for_stop();
-    return 0;
+    std::cout << "Server running on port 8080; press Enter to stop." << std::endl;
+    std::cin.get();
+    auto stopped = server->stop_server();
+    return stopped.is_err() ? 1 : 0;
 }
 ```
 
 ### Your First Client
 
 ```cpp
-#include <kcenon/network/core/messaging_client.h>
+#include <kcenon/network/network_system.h>
+#include <chrono>
+#include <cstdint>
 #include <iostream>
+#include <memory>
+#include <string>
+#include <thread>
+#include <utility>
+#include <vector>
 
 int main() {
     auto client = std::make_shared<kcenon::network::core::messaging_client>("MyClient");
 
-    auto result = client->start_client("localhost", 8080);
+    auto result = client->start_client("127.0.0.1", 8080);
     if (result.is_err()) {
         const auto& err = result.error();
         std::cerr << "Failed to connect: " << err.message
                   << " (code: " << err.code << ")" << std::endl;
         return -1;
+    }
+
+    // start_client initiates an asynchronous connection. Wait before sending.
+    const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(5);
+    while (!client->is_connected() && std::chrono::steady_clock::now() < deadline) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+    if (!client->is_connected()) {
+        std::cerr << "Connection timed out\n";
+        (void)client->stop_client();
+        return 1;
     }
 
     // Send message (std::move avoids extra copies)
@@ -281,12 +297,14 @@ int main() {
                   << " (code: " << err.code << ")" << std::endl;
     }
 
-    client->wait_for_stop();
-    return 0;
+    std::cout << "Press Enter to stop the client." << std::endl;
+    std::cin.get();
+    auto stopped = client->stop_client();
+    return send_result.is_err() || stopped.is_err() ? 1 : 0;
 }
 ```
 
-### Simplified Facade API (NEW in v2.0)
+### Simplified Facade API
 
 For even simpler usage, use the Facade API that hides template complexity:
 
@@ -295,32 +313,26 @@ For even simpler usage, use the Facade API that hides template complexity:
 #include <iostream>
 
 int main() {
-    using namespace kcenon::network;
-
-    // Create server with declarative configuration
-    facade::tcp_facade facade;
-    auto server = facade.create_server({
-        .port = 8080,
-        .server_id = "MyServer"
-    });
-
-    // Set callbacks
-    server->set_receive_callback([&](auto session_id, const auto& data) {
-        std::cout << "Received " << data.size() << " bytes\n";
-        // Echo back
-        server->send(session_id, data);
-    });
-
-    // Start server
-    auto result = server->start(8080);
-    if (result.is_err()) {
-        std::cerr << "Failed: " << result.error().message << "\n";
-        return -1;
+    kcenon::network::facade::tcp_facade tcp;
+    auto created = tcp.create_server({.port = 8080});
+    if (created.is_err()) {
+        std::cerr << created.error().message << '\n';
+        return 1;
     }
-
-    std::cout << "Server running on port 8080...\n";
-    server->wait_for_stop();
-    return 0;
+    auto server = created.value();
+    server->set_receive_callback([](auto session_id, const auto& data) {
+        std::cout << "Received " << data.size() << " bytes from "
+                  << session_id << std::endl;
+    });
+    auto started = server->start(8080);
+    if (started.is_err()) {
+        std::cerr << started.error().message << '\n';
+        return 1;
+    }
+    std::cout << "Listening on port 8080; press Enter to stop." << std::endl;
+    std::cin.get();
+    auto stopped = server->stop();
+    return stopped.is_err() ? 1 : 0;
 }
 ```
 
@@ -336,7 +348,7 @@ int main() {
 
 ## Modular Architecture (NEW)
 
-Starting with v2.0, network_system is organized into protocol-specific libraries for improved maintainability and selective linking.
+The current source tree is organized into protocol-specific libraries for improved maintainability and selective linking.
 
 ### Library Overview
 
@@ -364,7 +376,7 @@ evidence, and code-level findings):
 | TLS/SSL | `production` | TLS 1.2/1.3, certificate validation |
 | WebSocket | `production` | RFC 6455 framing, fragmentation, ping/pong |
 | HTTP/1.1 | `production` | Routing, cookies, multipart, gzip/deflate |
-| HTTP/2 | `production` | Multiplexed streams; HPACK Huffman is an experimental pass-through |
+| HTTP/2 | `production` | Multiplexed streams; HPACK Huffman coding (see the protocol support matrix) |
 | QUIC | `production` | RFC 9000/9001/9002 core; experimental client stats/ALPN accessors |
 | gRPC | `production` | Custom HTTP/2 transport + optional `grpc++` wrapper |
 | DTLS | `experimental` | Socket present and tested; server payload handling not yet wired |
@@ -391,31 +403,46 @@ tag ships (see the version-status note in [Overview](#overview)).
 
 Link only the protocols your application needs:
 
-```cmake
-# Option 1: All protocols (simple, larger binary)
-find_package(network-all REQUIRED)
-target_link_libraries(my_app PRIVATE kcenon::network-all)
+Use the same `main.cpp`/`CMakeLists.txt` consumer layout above. The top-level installation exports protocol targets through the `network_system` package. This block is for programs using TCP/UDP headers; use `network_system::network_system` for the umbrella example below.
 
-# Option 2: Specific protocols (smaller binary)
-find_package(network-tcp REQUIRED)
-find_package(network-udp REQUIRED)
-target_link_libraries(my_app PRIVATE
-    kcenon::network-tcp
-    kcenon::network-udp
+```cmake
+cmake_minimum_required(VERSION 3.20)
+project(protocol_example LANGUAGES CXX)
+find_package(network_system CONFIG REQUIRED)
+add_executable(protocol_example main.cpp)
+target_compile_features(protocol_example PRIVATE cxx_std_20)
+target_link_libraries(protocol_example PRIVATE
+    network_system::network-tcp
+    network_system::network-udp
 )
+```
+
+`main.cpp` for the protocol targets above:
+
+```cpp
+#include <network_tcp/protocol/tcp.h>
+#include <network_udp/protocol/udp.h>
+
+int main() {
+    auto tcp = kcenon::network::protocol::tcp::create_connection("readme-tcp");
+    auto udp = kcenon::network::protocol::udp::create_connection("readme-udp");
+    return tcp && udp ? 0 : 1;
+}
 ```
 
 ### Umbrella Header
 
-Include all protocols with a single header:
+Use the public aggregate header for core networking and the facade header for TCP construction:
 
 ```cpp
-#include <network_all/network.h>
+#include <kcenon/network/network_system.h>
+#include <kcenon/network/facade/tcp_facade.h>
 
-// Check protocol availability at compile time
-#if NETWORK_ALL_HAS_QUIC
-    auto quic_conn = protocol::quic::connect({...});
-#endif
+int main() {
+    kcenon::network::facade::tcp_facade tcp;
+    auto server = tcp.create_server({.port = 8080});
+    return server.is_err() ? 1 : 0;
+}
 ```
 
 📖 **[Migration Guide →](docs/MIGRATION.md)** | **[Library READMEs](libs/)**
@@ -467,34 +494,33 @@ OpenTelemetry-compatible distributed tracing for observability:
 
 - **W3C Trace Context**: Standard context propagation across service boundaries
 - **RAII Spans**: Automatic span lifecycle management with `NETWORK_TRACE_SPAN` macro
-- **Multiple Exporters**: Console, OTLP HTTP/gRPC, Jaeger, Zipkin support
+- **Exporters**: Console and OTLP HTTP; other exporter backends have limitations documented in the [protocol support matrix](docs/PROTOCOL_SUPPORT.md)
 - **Sampling**: Always-on, always-off, trace-id-based, parent-based samplers
 - **Rich Attributes**: String, integer, double, boolean attributes and events
 
 ```cpp
-#include <kcenon/network/tracing/tracing_config.h>
-#include <kcenon/network/tracing/trace_context.h>
+#include <kcenon/network/tracing/tracing.h>
 
-// Configure tracing (once at startup)
-auto config = tracing_config::otlp_http("http://localhost:4318/v1/traces");
-config.service_name = "my-service";
-configure_tracing(config);
+using namespace kcenon::network::tracing;
 
-// Create spans using RAII
 void process_request() {
     NETWORK_TRACE_SPAN("http.request.process");
     _span.set_attribute("http.method", "POST");
     _span.set_attribute("http.url", "/api/orders");
-
-    // Child spans inherit trace context
     {
         auto db_span = trace_context::current().create_child_span("database.query");
         db_span.set_attribute("db.system", "postgresql");
-        // ... perform database operation
         db_span.set_status(span_status::ok);
     }
-
     _span.set_status(span_status::ok);
+}
+
+int main() {
+    auto config = tracing_config::console();
+    config.service_name = "my-service";
+    configure_tracing(config);
+    process_request();
+    shutdown_tracing();
 }
 ```
 
@@ -510,12 +536,14 @@ void process_request() {
 
 ### Failure Handling
 - All server/client start helpers return `Result<void>`; check `result.is_err()` before continuing and log `result.error().message`.
-- For historical fixes (session cleanup, backpressure, TLS rollout), review `IMPROVEMENTS.md` to understand the safeguards already in place and how to react if regression symptoms reappear.
+- For historical fixes (session cleanup, backpressure, TLS rollout), consult the [design decisions](docs/DESIGN_DECISIONS.md) and [issue tracker](https://github.com/kcenon/network_system/issues).
 - When building higher-level services, propagate `common::error_info` up the stack so monitoring and alerting pipelines can correlate failures across tiers.
 
 ### Error Handling
 
 **Result<T> Pattern** (75-80% migrated):
+This fragment belongs inside `main()` of the server example above, immediately after creating `server`.
+
 ```cpp
 auto result = server->start_server(8080);
 if (result.is_err()) {
@@ -538,6 +566,8 @@ if (result.is_err()) {
 
 ### Synthetic Benchmarks (Intel i7-12700K, Ubuntu 22.04, GCC 11, `-O3`)
 
+These historical GCC 11.3 measurements come from the [benchmark record](docs/BENCHMARKS.md#synthetic-benchmarks); they do not establish support for GCC 11 in the current source, which requires GCC 13 or later. They measure CPU-only allocation/memcpy, not network throughput.
+
 | Payload | Throughput | Latency (ns/op) | Scope |
 |---------|-----------|-----------------|-------|
 | 64 bytes | ~769K msg/s | 1,300 | CPU-only (allocation + memcpy) |
@@ -557,20 +587,7 @@ if (result.is_err()) {
 
 ### Reproducing Benchmarks
 
-```bash
-# Build with benchmarks
-cmake -B build -DCMAKE_BUILD_TYPE=Release -DNETWORK_BUILD_BENCHMARKS=ON
-cmake --build build -j
-
-# Run all benchmarks
-./build/benchmarks/network_benchmarks
-
-# Run synthetic benchmarks only
-./build/benchmarks/network_benchmarks --benchmark_filter=MessageThroughput
-
-# Run real I/O benchmarks only
-./build/benchmarks/network_benchmarks --benchmark_filter=TCP
-```
+Benchmark targets are created only when the Google Benchmark package is found; `NETWORK_BUILD_BENCHMARKS=ON` does not install that dependency. See the [benchmark sources and CMake configuration](benchmarks/) and [measurement methodology](docs/BENCHMARKS.md).
 
 ⚡ **[Full Benchmarks & Load Testing →](docs/BENCHMARKS.md)**
 
@@ -643,15 +660,12 @@ cmake --build build -j
 ```mermaid
 graph TD
     A[common_system] --> B[thread_system]
-    A --> C[container_system]
-    B --> D[logger_system]
-    B --> E[monitoring_system]
-    D --> F[database_system]
-    E --> F
-    F --> G[network_system]
+    A --> G[network_system]
+    B --> G
+    C[logger_system] -. optional .-> G
+    D[container_system] -. optional .-> G
+    G --> F[database_system]
     G --> H[pacs_system]
-
-    style G fill:#f9f,stroke:#333,stroke-width:3px
 ```
 
 > **Ecosystem reference**:
@@ -675,55 +689,24 @@ This system integrates seamlessly with:
 ### Integration Example
 
 ```cpp
-#include <kcenon/network/core/messaging_server.h>
-#include <kcenon/network/integration/thread_system_adapter.h>
-
-using namespace kcenon::network;
+#include <kcenon/network/integration/thread_integration.h>
+#include <iostream>
+#include <memory>
 
 int main() {
-    // Bind thread_system for unified thread management
-#if KCENON_WITH_THREAD_SYSTEM
-    integration::bind_thread_system_pool_into_manager("network_pool");
-#endif
-
-    // Create and start server
-    auto server = std::make_shared<core::messaging_server>("IntegratedServer");
-    auto result = server->start_server(8080);
-
-    if (result.is_err()) {
-        std::cerr << "Failed: " << result.error().message << std::endl;
-        return -1;
-    }
-
-    // Get thread pool metrics
-    auto& manager = integration::thread_integration_manager::instance();
-    auto metrics = manager.get_metrics();
-    std::cout << "Workers: " << metrics.worker_threads << std::endl;
-
-    server->wait_for_stop();
-    return 0;
+    using namespace kcenon::network::integration;
+    auto pool = std::make_shared<basic_thread_pool>(2);
+    auto& manager = thread_integration_manager::instance();
+    manager.set_thread_pool(pool);
+    manager.submit_task([] { std::cout << "Task completed\n"; }).get();
+    std::cout << "Workers: " << manager.get_metrics().worker_threads << '\n';
+    pool->stop();
 }
 ```
 
-### Thread Pool Adapters
+### Custom Thread Pools
 
-Bidirectional adapters enable interoperability between network_system's thread pool and common_system's executor:
-
-```cpp
-#include <kcenon/network/integration/thread_pool_adapters.h>
-
-using namespace kcenon::network::integration;
-
-// Use network_system pool where IExecutor is expected
-auto network_pool = thread_integration_manager::instance().get_thread_pool();
-auto executor = std::make_shared<network_to_common_thread_adapter>(network_pool);
-// Pass executor to messaging_system, database_system, etc.
-
-// Use external IExecutor in network_system
-auto external_executor = container.resolve<common::interfaces::IExecutor>();
-auto adapted = std::make_shared<common_to_network_thread_adapter>(external_executor);
-thread_integration_manager::instance().set_thread_pool(adapted);
-```
+To connect an external executor, implement the public `integration::thread_pool_interface` and register it with `thread_integration_manager::set_thread_pool()`. The example above uses the supplied `basic_thread_pool`. Adapters under `src/internal/integration` are implementation details, not public application headers.
 
 🌐 **[Full Integration Guide →](docs/INTEGRATION.md)**
 
@@ -756,7 +739,8 @@ doxygen Doxyfile
 
 The
 [Doxygen Warnings Check workflow](.github/workflows/doxygen-warnings-check.yml)
-runs on every PR and fails the build if any header under
+runs on PRs changing `include/**`, `Doxyfile`, or the workflow itself,
+and on pushes to `main`, `develop`, or `phase-*`. It fails if a header under
 `include/kcenon/network/` (excluding `detail/`) emits a Doxygen warning.
 This guards the v1.0 public API surface defined in
 [docs/v1.0-api-surface.md](docs/v1.0-api-surface.md) against documentation
@@ -835,19 +819,9 @@ regressions.
 
 ## Dependencies
 
-### Required
-- **C++20** compatible compiler (GCC 13+, Clang 17+, MSVC 2022+, Apple Clang 14+)
+The Requirements table above is the dependency reference. The default source build uses C++20, CMake 3.20+, standalone ASIO 1.30.2+, OpenSSL 3.0+, zlib, and installed common_system/thread_system packages. Boost.ASIO is not a substitute for standalone ASIO.
 
-> **Note**: The higher GCC/Clang requirements come from the [thread_system](https://github.com/kcenon/thread_system) dependency, which requires GCC 13+ and Clang 17+ for full C++20 feature support.
-- **CMake** 3.20+
-- **ASIO** or **Boost.ASIO** 1.28+
-- **OpenSSL** 3.x recommended / 1.1.1+ minimum (for TLS/SSL and WebSocket)
-- **[common_system](https://github.com/kcenon/common_system)** (Result<T> pattern, common interfaces)
-- **[thread_system](https://github.com/kcenon/thread_system)** (thread pool integration)
-- **[logger_system](https://github.com/kcenon/logger_system)** (structured logging)
-- **[container_system](https://github.com/kcenon/container_system)** (data container operations)
-- **fmt** 10.0.0+ (formatting library)
-- **zlib** (compression support)
+logger_system is an optional runtime integration, disabled by default. container_system discovery defaults to ON, but integration is disabled when the package is absent. LZ4 is optional compression support when installed. The top-level build does not directly require fmt.
 
 ---
 
@@ -857,55 +831,29 @@ regressions.
 
 CMake presets provide standardized build configurations:
 
+Reading preset schema 6 requires CMake 3.25 or later. `asan`, `tsan`, and `ubsan` have matching test presets. `release` and `coverage` do not; run CTest from their build directory.
+
 ```bash
-# List available presets
 cmake --list-presets
-
-# Configure with a preset
-cmake --preset debug          # Debug build
-cmake --preset release        # Release build
-cmake --preset asan           # AddressSanitizer
-cmake --preset tsan           # ThreadSanitizer
-cmake --preset ubsan          # UndefinedBehaviorSanitizer
-cmake --preset coverage       # Code coverage
-
-# Build
+# Choose one configure/build preset: debug, release, asan, tsan, ubsan, coverage.
+# Substitute the same name in both commands.
+cmake --preset debug -DBUILD_EXAMPLES=OFF \
+  -DCMAKE_PREFIX_PATH="/path/to/dependency/prefix" \
+  -DKCENON_WITH_LOGGER_SYSTEM=OFF -DKCENON_WITH_CONTAINER_SYSTEM=OFF
 cmake --build --preset debug
-
-# Test with sanitizer-specific environment
-ctest --preset asan           # Runs with ASAN_OPTIONS configured
-ctest --preset tsan           # Runs with TSAN_OPTIONS configured
+ctest --preset debug
 ```
 
 ### Manual CMake Configuration
 
 ```bash
-# Basic build
-cmake -B build -DCMAKE_BUILD_TYPE=Release
-cmake --build build -j
-
-# With sanitizers (mutually exclusive)
-cmake -B build -DCMAKE_BUILD_TYPE=Debug -DENABLE_ASAN=ON   # AddressSanitizer
-cmake -B build -DCMAKE_BUILD_TYPE=Debug -DENABLE_TSAN=ON   # ThreadSanitizer
-cmake -B build -DCMAKE_BUILD_TYPE=Debug -DENABLE_UBSAN=ON  # UndefinedBehaviorSanitizer
-
-# With benchmarks
-cmake -B build -DCMAKE_BUILD_TYPE=Release \
-    -DNETWORK_BUILD_BENCHMARKS=ON
-
-# With tests
-cmake -B build -DCMAKE_BUILD_TYPE=Release \
-    -DBUILD_TESTS=ON
-
-# With optional integrations
-cmake -B build -DCMAKE_BUILD_TYPE=Release \
-    -DBUILD_WITH_THREAD_SYSTEM=ON \
-    -DBUILD_WITH_LOGGER_SYSTEM=ON \
-    -DBUILD_WITH_CONTAINER_SYSTEM=ON
-
-# Build and run tests
-cmake --build build -j
-cd build && ctest --output-on-failure
+# Configure a separate directory for each sanitizer/profile.
+cmake -S . -B build/debug -DCMAKE_BUILD_TYPE=Debug \
+  -DCMAKE_PREFIX_PATH="/path/to/dependency/prefix" \
+  -DBUILD_TESTS=ON -DBUILD_EXAMPLES=OFF \
+  -DKCENON_WITH_LOGGER_SYSTEM=OFF -DKCENON_WITH_CONTAINER_SYSTEM=OFF
+cmake --build build/debug --parallel
+ctest --test-dir build/debug --output-on-failure --timeout 120
 ```
 
 ### Cleaning Build Directories
@@ -938,24 +886,21 @@ To remove all build directories at once:
 
 ## Examples
 
-Complete examples are available in the `examples/` directory:
+These targets can be built individually from the current source:
 
-- **basic_usage.cpp** - Basic TCP client/server
-- **tcp_echo_server.cpp** - TCP server with session management
-- **tcp_client.cpp** - TCP client using the facade API
-- **simple_http_server.cpp** - HTTP server with routing
-- **simple_http_client.cpp** - HTTP client with various request types
-- **websocket_chat.cpp** - WebSocket chat server and client
-- **quic_server_example.cpp** - QUIC server with multi-stream support
-- **quic_client_example.cpp** - QUIC client with stream multiplexing
-- **grpc_service_example.cpp** - gRPC service registration and management
+| Source | CMake target |
+|--------|--------------|
+| [concepts_example.cpp](examples/concepts_example.cpp) | `example_concepts_example` |
+| [thread_integration_example.cpp](examples/thread_integration_example.cpp) | `example_thread_integration_example` |
+| [tls_policy_example.cpp](examples/tls_policy_example.cpp) | `example_tls_policy_example` |
+| [http2_server_example.cpp](examples/http2_server_example.cpp) | `example_http2_server_example` |
 
-Build and run examples:
+Some other programs under `examples/` still use earlier APIs; select the target you need instead of building every example. The commands below reuse the source build directory with dependencies configured above.
+
 ```bash
-cmake -B build -DBUILD_EXAMPLES=ON
-cmake --build build
-./build/bin/examples/example_tcp_echo_server
-./build/bin/examples/example_tcp_client
+cmake -S . -B build -DBUILD_EXAMPLES=ON
+cmake --build build --target example_thread_integration_example
+./build/bin/examples/example_thread_integration_example
 ```
 
 ---
@@ -963,6 +908,7 @@ cmake --build build
 ## Roadmap
 
 ### Recently Completed
+- ✅ **HTTP/2 client**: Implemented with tests; see the [protocol support matrix](docs/PROTOCOL_SUPPORT.md) for scope and limitations.
 - ✅ **QUIC Protocol Support**: RFC 9000/9001/9002 compliant implementation
 - ✅ **gRPC Integration**: Official gRPC library wrapper with full streaming support
 
@@ -974,9 +920,7 @@ cmake --build build
 ### Planned Features
 - 🚧 **Connection Pooling**: Enterprise-grade connection management
 - 🚧 **Zero-Copy Pipelines**: Eliminate unnecessary buffer copies
-- 🚧 **HTTP/2 Client**: Modern HTTP/2 protocol support
 
-<!-- TODO: IMPROVEMENTS.md not yet written; link to roadmap pending -->
 See the [Changelog](docs/CHANGELOG.md) for completed work and in-progress items.
 
 ---
@@ -987,8 +931,7 @@ Contributions are welcome! Please see our [Contributing Guide](docs/contributing
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Follow the [Contributing Guide](docs/contributing/CONTRIBUTING.md) coding standards <!-- TODO: dedicated CODING_STYLE_RULES.md not yet written -->
-
+3. Follow the [Contributing Guide](docs/contributing/CONTRIBUTING.md) and formatting in [.clang-format](.clang-format); run clang-format before committing.
 4. Commit changes with conventional commits
 5. Push to the branch (`git push origin feature/amazing-feature`)
 6. Open a Pull Request
@@ -1014,7 +957,7 @@ This project is licensed under the BSD 3-Clause License - see the [LICENSE](LICE
 | **Project Owner** | kcenon (kcenon@naver.com) |
 | **Repository** | https://github.com/kcenon/network_system |
 | **Issues & Bug Reports** | https://github.com/kcenon/network_system/issues |
-| **Discussions & Questions** | https://github.com/kcenon/network_system/discussions |
+| **Questions** | https://github.com/kcenon/network_system/issues |
 
 ---
 
