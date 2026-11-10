@@ -185,6 +185,16 @@ public:
         return fut.wait_for(2s) == std::future_status::ready && fut.get();
     }
 
+    bool send_raw(std::vector<uint8_t> data)
+    {
+        if (!tcp_) return false;
+        auto done = std::make_shared<std::promise<bool>>();
+        auto future = done->get_future();
+        tcp_->async_send(std::move(data),
+            [done](std::error_code error, std::size_t) { done->set_value(!error); });
+        return future.wait_for(2s) == std::future_status::ready && future.get();
+    }
+
     bool send_ping(std::vector<uint8_t> payload = {})
     {
         if (!ws_ || !ws_->is_open()) return false;
@@ -245,6 +255,42 @@ private:
 };
 
 } // namespace
+
+TEST(WsServerLoopbackSecurity, OversizedHeaderClosesPeerAndKeepsOtherConnectionWorking)
+{
+    auto server = std::make_shared<core::messaging_ws_server>("size-limit");
+    core::ws_server_config config;
+    config.port = probe_free_port();
+    config.max_message_size = 4;
+    auto messages = std::make_shared<std::atomic<int>>(0);
+    server->set_text_callback([messages](std::string_view, const std::string& text) {
+        if (text == "OK") ++*messages;
+    });
+    ASSERT_TRUE(server->start_server(config).is_ok());
+
+    WsLoopbackClient healthy;
+    WsLoopbackClient oversized;
+    ASSERT_TRUE(healthy.connect(config.port));
+    ASSERT_TRUE(oversized.connect(config.port));
+    auto close_code = std::make_shared<std::atomic<uint16_t>>(0);
+    oversized.socket()->set_close_callback(
+        [close_code](internal::ws_close_code code, const std::string&) {
+            *close_code = static_cast<uint16_t>(code);
+        });
+
+    ASSERT_TRUE(healthy.send_text("OK"));
+    ASSERT_TRUE(wait_until([&] { return messages->load() == 1; }));
+    // The masked header alone must trigger the configured limit, before any body.
+    ASSERT_TRUE(oversized.send_raw({0x82, 0x85, 1, 2, 3, 4}));
+    EXPECT_TRUE(wait_until([&] { return close_code->load() != 0; }));
+    EXPECT_EQ(close_code->load(), 1009);
+    ASSERT_TRUE(healthy.send_text("OK"));
+    EXPECT_TRUE(wait_until([&] { return messages->load() == 2; }));
+    EXPECT_TRUE(server->is_running());
+    oversized.disconnect();
+    healthy.disconnect();
+    ASSERT_TRUE(server->stop_server().is_ok());
+}
 
 // ============================================================================
 // Lifecycle: start_server success / stop_server success / restart

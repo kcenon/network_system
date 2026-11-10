@@ -6,6 +6,8 @@
 
 #include <algorithm>
 #include <span>
+#include <new>
+#include <stdexcept>
 
 namespace kcenon::network::internal
 {
@@ -28,38 +30,95 @@ namespace kcenon::network::internal
 	// ========================================================================
 
 	websocket_protocol::websocket_protocol(bool is_client)
+		: websocket_protocol(is_client, default_max_message_size)
+	{
+	}
+
+	websocket_protocol::websocket_protocol(bool is_client, size_t max_message_size)
 		: is_client_(is_client)
+		, max_message_size_(max_message_size)
 		, fragmented_type_(ws_opcode::continuation)
 	{
 	}
 
 	auto websocket_protocol::process_data(std::span<const uint8_t> data) -> void
 	{
-		// Append incoming data to buffer (single copy from span view)
-		buffer_.insert(buffer_.end(), data.begin(), data.end());
+		if (closed_) return;
+		try
+		{
+			buffer_.insert(buffer_.end(), data.begin(), data.end());
+			process_frames();
+		}
+		catch (const std::bad_alloc&)
+		{
+			fail(ws_close_code::message_too_big, "message too big");
+		}
+		catch (const std::length_error&)
+		{
+			fail(ws_close_code::message_too_big, "message too big");
+		}
+		catch (...)
+		{
+			// Application callbacks must not unwind through the transport's event loop.
+			fail(ws_close_code::internal_error, "internal error");
+		}
+	}
 
-		// Process frames from buffer
-		process_frames();
+	auto websocket_protocol::fail(ws_close_code code, const char* reason) noexcept -> void
+	{
+		if (closed_) return;
+		closed_ = true;
+		buffer_.clear();
+		fragmented_message_.clear();
+		fragmented_type_ = ws_opcode::continuation;
+		try
+		{
+			if (close_callback_) close_callback_(code, reason);
+		}
+		catch (...)
+		{
+			// The connection remains terminal even if its close callback fails.
+		}
 	}
 
 	auto websocket_protocol::process_frames() -> void
 	{
-		while (true)
+		while (!closed_)
 		{
 			// Try to decode frame header
-			auto header_opt = websocket_frame::decode_header(buffer_);
+			ws_header_error error;
+			auto header_opt = websocket_frame::decode_header_checked(
+				buffer_, error, std::max(max_message_size_, size_t{125}));
 			if (!header_opt.has_value())
 			{
-				// Not enough data for header, wait for more
+				if (error != ws_header_error::incomplete)
+				{
+					fail(error == ws_header_error::payload_too_large
+						 ? ws_close_code::message_too_big : ws_close_code::protocol_error,
+						 "invalid length");
+				}
 				return;
 			}
 
 			const auto& header = header_opt.value();
+			const bool data_frame = header.opcode == ws_opcode::text ||
+				header.opcode == ws_opcode::binary || header.opcode == ws_opcode::continuation;
+			if (data_frame)
+			{
+				if (header.payload_len > max_message_size_ ||
+					(header.opcode == ws_opcode::continuation &&
+					 (fragmented_message_.size() > max_message_size_ ||
+					  header.payload_len > max_message_size_ - fragmented_message_.size())))
+				{
+					fail(ws_close_code::message_too_big, "message too big");
+					return;
+				}
+			}
 
 			// Calculate total frame size
 			const size_t header_size =
 				websocket_frame::calculate_header_size(header.payload_len, header.mask);
-			const size_t frame_size = header_size + header.payload_len;
+			const size_t frame_size = header_size + static_cast<size_t>(header.payload_len);
 
 			// Check if we have the complete frame
 			if (buffer_.size() < frame_size)
@@ -95,9 +154,10 @@ namespace kcenon::network::internal
 		if (header.opcode == ws_opcode::continuation)
 		{
 			// Continuation frame
-			if (fragmented_message_.empty())
+			if (fragmented_type_ == ws_opcode::continuation)
 			{
 				// Protocol error: continuation without initial frame
+				fail(ws_close_code::protocol_error, "continuation");
 				return;
 			}
 
@@ -135,6 +195,11 @@ namespace kcenon::network::internal
 		else
 		{
 			// Initial frame (text or binary)
+			if (fragmented_type_ != ws_opcode::continuation)
+			{
+				fail(ws_close_code::protocol_error, "fragment state");
+				return;
+			}
 			if (!header.fin)
 			{
 				// Start of fragmented message
@@ -242,6 +307,10 @@ namespace kcenon::network::internal
 			}
 		}
 
+		closed_ = true;
+		buffer_.clear();
+		fragmented_message_.clear();
+		fragmented_type_ = ws_opcode::continuation;
 		if (close_callback_)
 		{
 			close_callback_(code, reason);

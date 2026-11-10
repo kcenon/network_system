@@ -957,6 +957,7 @@ if(GTest_FOUND OR GTEST_FOUND)
 
         network_gtest_discover_tests(network_websocket_frame_test
             DISCOVERY_TIMEOUT 60
+            PROPERTIES LABELS security
         )
         message(STATUS "WebSocket frame tests enabled")
 
@@ -1009,6 +1010,7 @@ if(GTest_FOUND OR GTEST_FOUND)
 
         network_gtest_discover_tests(network_websocket_protocol_test
             DISCOVERY_TIMEOUT 60
+            PROPERTIES LABELS security
         )
         message(STATUS "WebSocket protocol tests enabled")
 
@@ -2615,6 +2617,7 @@ if(GTest_FOUND OR GTEST_FOUND)
 
     network_gtest_discover_tests(network_http_parser_test
         DISCOVERY_TIMEOUT 60
+        PROPERTIES LABELS security
     )
     message(STATUS "HTTP parser tests enabled")
 
@@ -5215,7 +5218,8 @@ target_link_libraries(network_websocket_server_branch_test PRIVATE network::test
 # remote_endpoint / send / send_text / send_binary / close / close(code,reason))
 # (Issue #1067)
 add_network_test(network_websocket_server_loopback_test
-                 unit/websocket_server_loopback_test.cpp)
+                 unit/websocket_server_loopback_test.cpp
+                 PROPERTIES LABELS security)
 
 # Friend-test injection demo (Issue #1074 Phase 2D): invokes the previously
 # private messaging_quic_server::handle_packet entry point through the

@@ -358,6 +358,43 @@ def generate_hpack_corpus(output_dir: Path):
     print(f"Generated {len(list(output_dir.iterdir()))} HPACK decode seeds in {output_dir}")
 
 
+def generate_websocket_corpus(base_dir: Path):
+    frames = {
+        "text": b"\x81\x02OK",
+        "masked": b"\x81\x82\0\0\0\0OK",
+        "fragmented": b"\x01\x01A\x80\x01B",
+        "empty_fragment": b"\x01\0\x80\x01A",
+        "high_length_bit": b"\x82\x7f" + struct.pack(">Q", 1 << 63),
+        "overflow_length": b"\x82\x7f" + struct.pack(">Q", (1 << 64) - 1),
+        "oversized": b"\x82\x7f" + struct.pack(">Q", 1 << 32),
+        "nonminimal": b"\x82\x7e\0\x01A",
+        "close": b"\x88\x02\x03\xe8",
+    }
+    handshakes = {
+        "request": (b"GET / HTTP/1.1\r\nHost: localhost\r\nUpgrade: websocket\r\n"
+                    b"Connection: Upgrade\r\nSec-WebSocket-Version: 13\r\n"
+                    b"Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n\r\n"),
+        "response": (b"HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\n"
+                     b"Connection: Upgrade\r\nSec-WebSocket-Accept: s3pPLMBiTxaQ9kYGzzhZRbK+xOo=\r\n\r\n"),
+        "invalid_status": b"HTTP/1.1 999999999999999999999999999 bad\r\n\r\n",
+    }
+    http = {
+        "get": b"GET /?name=test HTTP/1.1\r\nHost: localhost\r\n\r\n",
+        "post": b"POST / HTTP/1.1\r\nContent-Length: 4\r\n\r\ntest",
+        "response": b"HTTP/1.1 200 OK\r\nContent-Length: 4\r\n\r\ntest",
+        "huge_length": b"POST / HTTP/1.1\r\nContent-Length: 18446744073709551615\r\n\r\n",
+        "url": b"a=%00&b=%ff&c=%GG&d=%",
+        "multipart": (b"POST / HTTP/1.1\r\nContent-Type: multipart/form-data; boundary=fuzz\r\n\r\n"
+                      b"--fuzz\r\nContent-Disposition: form-data; name=\"field\"\r\n\r\nvalue\r\n--fuzz--\r\n"),
+        "multipart_body": b"--fuzz\r\nContent-Disposition: form-data; name=\"field\"\r\n\r\nvalue\r\n--fuzz--\r\n",
+    }
+    for parser, seeds in [("websocket_frame", frames), ("websocket_handshake", handshakes), ("http_parser", http)]:
+        output_dir = base_dir / parser
+        output_dir.mkdir(parents=True, exist_ok=True)
+        for name, data in seeds.items():
+            (output_dir / name).write_bytes(data)
+
+
 def main():
     base_dir = Path("corpus")
 
@@ -366,6 +403,7 @@ def main():
     generate_quic_frame_corpus(base_dir / "quic_frame")
     generate_grpc_frame_corpus(base_dir / "grpc_frame")
     generate_hpack_corpus(base_dir / "hpack_decode")
+    generate_websocket_corpus(base_dir)
 
     print(f"\nCorpus generation complete!")
     print(f"Total files: {sum(1 for _ in base_dir.rglob('*') if _.is_file())}")

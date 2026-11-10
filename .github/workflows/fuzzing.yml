@@ -7,6 +7,12 @@ on:
     branches: [main]
     paths:
       - 'src/protocols/**'
+      - 'src/internal/http/**'
+      - 'src/internal/websocket/**'
+      - 'src/internal/websocket_protocol.cpp'
+      - 'src/internal/websocket_socket.cpp'
+      - 'src/http/websocket_*.cpp'
+      - '.github/workflows/fuzzing.yml'
       - 'src/internal/http_parser*'
       - 'src/internal/websocket_frame*'
       - 'include/kcenon/network/detail/protocols/**'
@@ -18,12 +24,21 @@ on:
         required: false
         default: '300'
 
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
 jobs:
   fuzz:
     name: Fuzz Testing
     runs-on: ubuntu-24.04
-    # Five scheduled targets take 25 minutes; also allow dependency builds and uploads.
-    timeout-minutes: 45
+    # Eight scheduled five-minute campaigns plus dependency builds and uploads.
+    timeout-minutes: 60
+    env:
+      FUZZ_DURATION: ${{ github.event.inputs.fuzz_duration || (github.event_name == 'schedule' && '300') || '60' }}
 
     steps:
       - name: Checkout network_system
@@ -49,7 +64,7 @@ jobs:
         run: |
           # Ubuntu 24.04's libasio-dev (1.28.1) has a recycling allocator bug.
           # Install ASIO 1.32.0 from source for compatibility with sanitizers.
-          curl -L https://github.com/chriskohlhoff/asio/archive/asio-1-32-0.tar.gz -o asio.tar.gz
+          curl --fail --location https://github.com/chriskohlhoff/asio/archive/asio-1-32-0.tar.gz -o asio.tar.gz
           tar xzf asio.tar.gz
           sudo mkdir -p /usr/local/include
           sudo cp -r asio-asio-1-32-0/asio/include/asio /usr/local/include/
@@ -65,7 +80,6 @@ jobs:
             -DCMAKE_EXE_LINKER_FLAGS="-fsanitize=address,undefined" \
             -DCMAKE_SHARED_LINKER_FLAGS="-fsanitize=address,undefined" \
             -DBUILD_TESTS=OFF \
-            -DBUILD_EXAMPLES=OFF \
             -DBUILD_EXAMPLES=OFF
           cmake --build build
           cmake --install build --prefix ${{ github.workspace }}/deps/install
@@ -88,13 +102,13 @@ jobs:
             -DKCENON_WITH_THREAD_SYSTEM=OFF \
             -DKCENON_WITH_CONTAINER_SYSTEM=OFF \
             -DBUILD_MESSAGING_BRIDGE=OFF \
-            -DBUILD_TESTS=OFF \
-            -DBUILD_EXAMPLES=OFF \
+            -DBUILD_TESTS=ON \
             -DBUILD_EXAMPLES=OFF \
             -DASIO_INCLUDE_DIR=/usr/local/include \
             -DSKIP_ASIO_RECYCLING_WORKAROUND=ON
 
       - name: Build fuzz targets
+        id: build_fuzz
         run: |
           cd network_system
           cmake --build build --target \
@@ -102,154 +116,127 @@ jobs:
             fuzz_quic_varint \
             fuzz_quic_frame \
             fuzz_grpc_frame \
-            fuzz_hpack_decode
+            fuzz_hpack_decode \
+            fuzz_websocket_frame \
+            fuzz_websocket_handshake \
+            fuzz_http_parser \
+            network_websocket_frame_test \
+            network_websocket_protocol_test \
+            network_http_parser_test \
+            network_websocket_server_loopback_test
 
-      - name: Run HTTP/2 frame fuzzing
-        id: fuzz_http2
-        continue-on-error: true
+      - name: Run parser security regressions
+        working-directory: network_system
+        run: ctest --test-dir build -L security --no-tests=error --output-on-failure
+
+      - name: Validate fuzz duration
+        id: duration
         run: |
-          cd network_system
-          DURATION=${{ github.event.inputs.fuzz_duration || '300' }}
-          echo "Running fuzz_http2_frame for ${DURATION} seconds..."
-          timeout ${DURATION} ./build/fuzz/fuzz_http2_frame corpus/http2_frame \
-            -max_len=4096 \
-            -print_final_stats=1 \
-            2>&1 | tee fuzz_http2_frame.log || true
-
-          if ls crash-* 1> /dev/null 2>&1; then
-            echo "crash_found=true" >> $GITHUB_OUTPUT
-            echo "::error::Crash found in fuzz_http2_frame"
-          else
-            echo "crash_found=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Run QUIC varint fuzzing
-        id: fuzz_quic_varint
-        continue-on-error: true
-        run: |
-          cd network_system
-          DURATION=${{ github.event.inputs.fuzz_duration || '300' }}
-          echo "Running fuzz_quic_varint for ${DURATION} seconds..."
-          timeout ${DURATION} ./build/fuzz/fuzz_quic_varint corpus/quic_varint \
-            -max_len=1024 \
-            -print_final_stats=1 \
-            2>&1 | tee fuzz_quic_varint.log || true
-
-          if ls crash-* 1> /dev/null 2>&1; then
-            echo "crash_found=true" >> $GITHUB_OUTPUT
-            echo "::error::Crash found in fuzz_quic_varint"
-          else
-            echo "crash_found=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Run QUIC frame fuzzing
-        id: fuzz_quic_frame
-        continue-on-error: true
-        run: |
-          cd network_system
-          DURATION=${{ github.event.inputs.fuzz_duration || '300' }}
-          echo "Running fuzz_quic_frame for ${DURATION} seconds..."
-          timeout ${DURATION} ./build/fuzz/fuzz_quic_frame corpus/quic_frame \
-            -max_len=4096 \
-            -print_final_stats=1 \
-            2>&1 | tee fuzz_quic_frame.log || true
-
-          if ls crash-* 1> /dev/null 2>&1; then
-            echo "crash_found=true" >> $GITHUB_OUTPUT
-            echo "::error::Crash found in fuzz_quic_frame"
-          else
-            echo "crash_found=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Run gRPC frame fuzzing
-        id: fuzz_grpc
-        continue-on-error: true
-        run: |
-          cd network_system
-          DURATION=${{ github.event.inputs.fuzz_duration || '300' }}
-          echo "Running fuzz_grpc_frame for ${DURATION} seconds..."
-          timeout ${DURATION} ./build/fuzz/fuzz_grpc_frame corpus/grpc_frame \
-            -max_len=8192 \
-            -print_final_stats=1 \
-            2>&1 | tee fuzz_grpc_frame.log || true
-
-          if ls crash-* 1> /dev/null 2>&1; then
-            echo "crash_found=true" >> $GITHUB_OUTPUT
-            echo "::error::Crash found in fuzz_grpc_frame"
-          else
-            echo "crash_found=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Run HPACK decode fuzzing
-        id: fuzz_hpack
-        continue-on-error: true
-        run: |
-          cd network_system
-          DURATION=${{ github.event.inputs.fuzz_duration || '300' }}
-          echo "Running fuzz_hpack_decode for ${DURATION} seconds..."
-          timeout ${DURATION} ./build/fuzz/fuzz_hpack_decode corpus/hpack_decode \
-            -max_len=4096 \
-            -print_final_stats=1 \
-            2>&1 | tee fuzz_hpack_decode.log || true
-
-          if ls crash-* 1> /dev/null 2>&1; then
-            echo "crash_found=true" >> $GITHUB_OUTPUT
-            echo "::error::Crash found in fuzz_hpack_decode"
-          else
-            echo "crash_found=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Check for crashes
-        run: |
-          cd network_system
-          if ls crash-* 1> /dev/null 2>&1; then
-            echo "Crashes found!"
-            ls -la crash-*
-            for crash in crash-*; do
-              echo "=== $crash ==="
-              xxd "$crash" | head -20
-            done
+          if [[ ! "$FUZZ_DURATION" =~ ^[0-9]{1,3}$ ]] || (( 10#$FUZZ_DURATION < 1 || 10#$FUZZ_DURATION > 300 )); then
+            echo "::error::fuzz_duration must be an integer from 1 to 300"
             exit 1
           fi
-          echo "No crashes found - fuzzing completed successfully"
+
+      - name: Run http2_frame fuzzing
+        if: ${{ !cancelled() && steps.build_fuzz.outcome == 'success' && steps.duration.outcome == 'success' }}
+        id: fuzz_http2_frame
+        working-directory: network_system
+        run: |
+          set -euo pipefail
+          ./build/bin/fuzz_http2_frame corpus/http2_frame \
+            -max_total_time="$FUZZ_DURATION" -timeout=10 -max_len=65536 \
+            -rss_limit_mb=2048 -print_final_stats=1 2>&1 | tee fuzz_http2_frame.log
+
+      - name: Run quic_varint fuzzing
+        if: ${{ !cancelled() && steps.build_fuzz.outcome == 'success' && steps.duration.outcome == 'success' }}
+        id: fuzz_quic_varint
+        working-directory: network_system
+        run: |
+          set -euo pipefail
+          ./build/bin/fuzz_quic_varint corpus/quic_varint \
+            -max_total_time="$FUZZ_DURATION" -timeout=10 -max_len=65536 \
+            -rss_limit_mb=2048 -print_final_stats=1 2>&1 | tee fuzz_quic_varint.log
+
+      - name: Run quic_frame fuzzing
+        if: ${{ !cancelled() && steps.build_fuzz.outcome == 'success' && steps.duration.outcome == 'success' }}
+        id: fuzz_quic_frame
+        working-directory: network_system
+        run: |
+          set -euo pipefail
+          ./build/bin/fuzz_quic_frame corpus/quic_frame \
+            -max_total_time="$FUZZ_DURATION" -timeout=10 -max_len=65536 \
+            -rss_limit_mb=2048 -print_final_stats=1 2>&1 | tee fuzz_quic_frame.log
+
+      - name: Run grpc_frame fuzzing
+        if: ${{ !cancelled() && steps.build_fuzz.outcome == 'success' && steps.duration.outcome == 'success' }}
+        id: fuzz_grpc_frame
+        working-directory: network_system
+        run: |
+          set -euo pipefail
+          ./build/bin/fuzz_grpc_frame corpus/grpc_frame \
+            -max_total_time="$FUZZ_DURATION" -timeout=10 -max_len=65536 \
+            -rss_limit_mb=2048 -print_final_stats=1 2>&1 | tee fuzz_grpc_frame.log
+
+      - name: Run hpack_decode fuzzing
+        if: ${{ !cancelled() && steps.build_fuzz.outcome == 'success' && steps.duration.outcome == 'success' }}
+        id: fuzz_hpack_decode
+        working-directory: network_system
+        run: |
+          set -euo pipefail
+          ./build/bin/fuzz_hpack_decode corpus/hpack_decode \
+            -max_total_time="$FUZZ_DURATION" -timeout=10 -max_len=65536 \
+            -rss_limit_mb=2048 -print_final_stats=1 2>&1 | tee fuzz_hpack_decode.log
+
+      - name: Run websocket_frame fuzzing
+        if: ${{ !cancelled() && steps.build_fuzz.outcome == 'success' && steps.duration.outcome == 'success' }}
+        id: fuzz_websocket_frame
+        working-directory: network_system
+        run: |
+          set -euo pipefail
+          ./build/bin/fuzz_websocket_frame corpus/websocket_frame \
+            -max_total_time="$FUZZ_DURATION" -timeout=10 -max_len=65536 \
+            -rss_limit_mb=2048 -print_final_stats=1 2>&1 | tee fuzz_websocket_frame.log
+
+      - name: Run websocket_handshake fuzzing
+        if: ${{ !cancelled() && steps.build_fuzz.outcome == 'success' && steps.duration.outcome == 'success' }}
+        id: fuzz_websocket_handshake
+        working-directory: network_system
+        run: |
+          set -euo pipefail
+          ./build/bin/fuzz_websocket_handshake corpus/websocket_handshake \
+            -max_total_time="$FUZZ_DURATION" -timeout=10 -max_len=65536 \
+            -rss_limit_mb=2048 -print_final_stats=1 2>&1 | tee fuzz_websocket_handshake.log
+
+      - name: Run http_parser fuzzing
+        if: ${{ !cancelled() && steps.build_fuzz.outcome == 'success' && steps.duration.outcome == 'success' }}
+        id: fuzz_http_parser
+        working-directory: network_system
+        run: |
+          set -euo pipefail
+          ./build/bin/fuzz_http_parser corpus/http_parser \
+            -max_total_time="$FUZZ_DURATION" -timeout=10 -max_len=65536 \
+            -rss_limit_mb=2048 -print_final_stats=1 2>&1 | tee fuzz_http_parser.log
 
       - name: Generate summary
         if: always()
+        env:
+          FUZZ_JOB_STATUS: ${{ job.status }}
         run: |
-          cd network_system
-          echo "## Fuzzing Results" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-
-          if ls crash-* 1> /dev/null 2>&1; then
-            echo ":x: **Crashes detected**" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "| File | Size |" >> $GITHUB_STEP_SUMMARY
-            echo "|------|------|" >> $GITHUB_STEP_SUMMARY
-            for crash in crash-*; do
-              size=$(stat -c%s "$crash" 2>/dev/null || stat -f%z "$crash")
-              echo "| $crash | $size bytes |" >> $GITHUB_STEP_SUMMARY
-            done
-          else
-            echo ":white_check_mark: **No crashes found**" >> $GITHUB_STEP_SUMMARY
-          fi
-
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Fuzz Targets" >> $GITHUB_STEP_SUMMARY
-          echo "| Target | Status |" >> $GITHUB_STEP_SUMMARY
-          echo "|--------|--------|" >> $GITHUB_STEP_SUMMARY
-          echo "| HTTP/2 Frame | ${{ steps.fuzz_http2.outcome }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| QUIC Varint | ${{ steps.fuzz_quic_varint.outcome }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| QUIC Frame | ${{ steps.fuzz_quic_frame.outcome }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| gRPC Frame | ${{ steps.fuzz_grpc.outcome }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| HPACK Decode | ${{ steps.fuzz_hpack.outcome }} |" >> $GITHUB_STEP_SUMMARY
-
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Corpus Statistics" >> $GITHUB_STEP_SUMMARY
-          echo "- HTTP/2 frame: $(ls corpus/http2_frame 2>/dev/null | wc -l) files" >> $GITHUB_STEP_SUMMARY
-          echo "- QUIC varint: $(ls corpus/quic_varint 2>/dev/null | wc -l) files" >> $GITHUB_STEP_SUMMARY
-          echo "- QUIC frame: $(ls corpus/quic_frame 2>/dev/null | wc -l) files" >> $GITHUB_STEP_SUMMARY
-          echo "- gRPC frame: $(ls corpus/grpc_frame 2>/dev/null | wc -l) files" >> $GITHUB_STEP_SUMMARY
-          echo "- HPACK decode: $(ls corpus/hpack_decode 2>/dev/null | wc -l) files" >> $GITHUB_STEP_SUMMARY
+          {
+            echo "## Fuzzing results"
+            echo "Job status: $FUZZ_JOB_STATUS"
+            echo ""
+            echo "| Target | Execution outcome |"
+            echo "|--------|-------------------|"
+            echo "| http2_frame | ${{ steps.fuzz_http2_frame.outcome }} |"
+            echo "| quic_varint | ${{ steps.fuzz_quic_varint.outcome }} |"
+            echo "| quic_frame | ${{ steps.fuzz_quic_frame.outcome }} |"
+            echo "| grpc_frame | ${{ steps.fuzz_grpc_frame.outcome }} |"
+            echo "| hpack_decode | ${{ steps.fuzz_hpack_decode.outcome }} |"
+            echo "| websocket_frame | ${{ steps.fuzz_websocket_frame.outcome }} |"
+            echo "| websocket_handshake | ${{ steps.fuzz_websocket_handshake.outcome }} |"
+            echo "| http_parser | ${{ steps.fuzz_http_parser.outcome }} |"
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload corpus
         if: always()

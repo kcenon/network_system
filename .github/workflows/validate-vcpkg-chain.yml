@@ -33,7 +33,7 @@ jobs:
         include:
           - os: ubuntu-24.04
             triplet: x64-linux
-          - os: macos-14
+          - os: macos-15
             triplet: arm64-osx
           - os: windows-2022
             triplet: x64-windows

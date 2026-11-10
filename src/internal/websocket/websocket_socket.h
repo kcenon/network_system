@@ -66,6 +66,7 @@ namespace kcenon::network::internal
 		 * \param is_client True if this is a client endpoint (applies masking)
 		 */
 		websocket_socket(std::shared_ptr<tcp_socket> socket, bool is_client);
+		websocket_socket(std::shared_ptr<tcp_socket> socket, bool is_client, size_t max_message_size);
 
 		/*!
 		 * \brief Destructor.

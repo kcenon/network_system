@@ -15,8 +15,14 @@ namespace kcenon::network::internal
 
 	websocket_socket::websocket_socket(std::shared_ptr<tcp_socket> socket,
 									   bool is_client)
+		: websocket_socket(std::move(socket), is_client, websocket_protocol::default_max_message_size)
+	{
+	}
+
+	websocket_socket::websocket_socket(std::shared_ptr<tcp_socket> socket,
+									   bool is_client, size_t max_message_size)
 		: tcp_socket_(std::move(socket))
-		, protocol_(is_client)
+		, protocol_(is_client, max_message_size)
 	{
 		// Set up WebSocket protocol callbacks
 		protocol_.set_message_callback(
@@ -322,6 +328,8 @@ namespace kcenon::network::internal
 
 	auto websocket_socket::on_tcp_receive(std::span<const uint8_t> data) -> void
 	{
+		// A close callback may remove this socket from its owner's session map.
+		const auto lifetime = weak_from_this().lock();
 		// Feed raw TCP data into WebSocket protocol decoder (zero-copy view)
 		protocol_.process_data(data);
 	}
@@ -374,11 +382,18 @@ namespace kcenon::network::internal
 		// RFC 6455 section 5.5.1 requires a Close response when the peer
 		// initiates the handshake. A locally initiated Close needs no echo.
 		const auto previous = state_.exchange(ws_state::closed);
+		tcp_socket_->stop_read();
+		tcp_socket_->set_receive_callback_view({});
+		tcp_socket_->set_error_callback({});
 		if (previous == ws_state::open)
 		{
 			auto response = protocol_.create_close(code, std::string(reason));
 			tcp_socket_->async_send(std::move(response),
-				[](std::error_code, std::size_t) {});
+				[socket = tcp_socket_](std::error_code, std::size_t) { socket->close(); });
+		}
+		else
+		{
+			tcp_socket_->close();
 		}
 
 		std::lock_guard<std::mutex> lock(callback_mutex_);

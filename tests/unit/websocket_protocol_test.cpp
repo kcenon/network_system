@@ -7,6 +7,7 @@ All rights reserved.
 
 #include "internal/websocket/websocket_protocol.h"
 #include <gtest/gtest.h>
+#include <stdexcept>
 
 using namespace kcenon::network::internal;
 
@@ -910,4 +911,170 @@ TEST(WebSocketProtocolTest, MultipleFramesInSingleBuffer) {
   EXPECT_EQ(callback_count, 2);
   EXPECT_EQ(received_texts[0], "X");
   EXPECT_EQ(received_texts[1], "Y");
+}
+
+TEST(WebSocketProtocolSecurityTest, OversizedHeaderClosesWithoutWaitingForBody) {
+  websocket_protocol protocol(true, 4);
+  int closes = 0;
+  int messages = 0;
+  protocol.set_close_callback([&](ws_close_code code, std::string_view) {
+    ++closes;
+    EXPECT_EQ(code, ws_close_code::message_too_big);
+  });
+  protocol.set_message_callback([&](const ws_message&) { ++messages; });
+  EXPECT_NO_THROW(protocol.process_data(std::vector<uint8_t>{0x82, 5}));
+  protocol.process_data(websocket_frame::encode_frame(ws_opcode::text, {'A'}, true, false));
+  EXPECT_EQ(closes, 1);
+  EXPECT_EQ(messages, 0);
+}
+
+TEST(WebSocketProtocolSecurityTest, HugeCanonicalLengthClosesWithoutAllocation) {
+  websocket_protocol protocol(true);
+  int closes = 0;
+  protocol.set_close_callback([&](ws_close_code code, std::string_view) {
+    ++closes;
+    EXPECT_EQ(code, ws_close_code::message_too_big);
+  });
+  EXPECT_NO_THROW(protocol.process_data(std::vector<uint8_t>{
+      0x82, 127, 0x7f, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff}));
+  EXPECT_EQ(closes, 1);
+}
+
+TEST(WebSocketProtocolSecurityTest, MalformedLengthIsProtocolError) {
+  websocket_protocol protocol(true);
+  int closes = 0;
+  protocol.set_close_callback([&](ws_close_code code, std::string_view) {
+    ++closes;
+    EXPECT_EQ(code, ws_close_code::protocol_error);
+  });
+  protocol.process_data(std::vector<uint8_t>{0x82, 127, 0x80, 0, 0, 0, 0, 0, 0, 0});
+  EXPECT_EQ(closes, 1);
+}
+
+TEST(WebSocketProtocolSecurityTest, ExactLimitAppliesToEachCoalescedMessage) {
+  websocket_protocol protocol(true, 4);
+  std::vector<std::string> messages;
+  protocol.set_message_callback([&](const ws_message& message) {
+    messages.push_back(message.as_text());
+  });
+  auto data = websocket_frame::encode_frame(ws_opcode::text, {'A', 'B', 'C', 'D'}, true, false);
+  const auto second = websocket_frame::encode_frame(ws_opcode::text, {'E', 'F', 'G', 'H'}, true, false);
+  data.insert(data.end(), second.begin(), second.end());
+  protocol.process_data(data);
+  EXPECT_EQ(messages, (std::vector<std::string>{"ABCD", "EFGH"}));
+}
+
+TEST(WebSocketProtocolSecurityTest, FragmentLimitCheckedFromContinuationHeader) {
+  websocket_protocol protocol(true, 4);
+  int closes = 0;
+  int messages = 0;
+  protocol.set_close_callback([&](ws_close_code code, std::string_view) {
+    ++closes;
+    EXPECT_EQ(code, ws_close_code::message_too_big);
+  });
+  protocol.set_message_callback([&](const ws_message&) { ++messages; });
+  protocol.process_data(websocket_frame::encode_frame(ws_opcode::text, {'A', 'B', 'C'}, false, false));
+  protocol.process_data(std::vector<uint8_t>{0x80, 2});
+  EXPECT_EQ(closes, 1);
+  EXPECT_EQ(messages, 0);
+}
+
+TEST(WebSocketProtocolSecurityTest, EmptyInitialFragmentStillStartsMessage) {
+  websocket_protocol protocol(true, 1);
+  std::vector<std::string> messages;
+  protocol.set_message_callback([&](const ws_message& message) { messages.push_back(message.as_text()); });
+  protocol.process_data(websocket_frame::encode_frame(ws_opcode::text, {}, false, false));
+  protocol.process_data(websocket_frame::encode_frame(ws_opcode::continuation, {'A'}, true, false));
+  EXPECT_EQ(messages, (std::vector<std::string>{"A"}));
+}
+
+TEST(WebSocketProtocolSecurityTest, ControlFrameDoesNotConsumeMessageBudget) {
+  websocket_protocol protocol(true, 2);
+  int pings = 0;
+  std::vector<std::string> messages;
+  protocol.set_ping_callback([&](const std::vector<uint8_t>& data) {
+    ++pings;
+    EXPECT_EQ(data.size(), 125u);
+  });
+  protocol.set_message_callback([&](const ws_message& message) { messages.push_back(message.as_text()); });
+  protocol.process_data(websocket_frame::encode_frame(ws_opcode::text, {'A'}, false, false));
+  protocol.process_data(websocket_frame::encode_frame(ws_opcode::ping, std::vector<uint8_t>(125), true, false));
+  protocol.process_data(websocket_frame::encode_frame(ws_opcode::continuation, {'B'}, true, false));
+  EXPECT_EQ(pings, 1);
+  EXPECT_EQ(messages, (std::vector<std::string>{"AB"}));
+}
+
+TEST(WebSocketProtocolSecurityTest, ValidIncompleteFrameWaitsForRest) {
+  websocket_protocol protocol(true, 4);
+  std::vector<std::string> messages;
+  protocol.set_message_callback([&](const ws_message& message) { messages.push_back(message.as_text()); });
+  protocol.process_data(std::vector<uint8_t>{0x81, 4, 'A'});
+  EXPECT_TRUE(messages.empty());
+  protocol.process_data(std::vector<uint8_t>{'B', 'C', 'D'});
+  EXPECT_EQ(messages, (std::vector<std::string>{"ABCD"}));
+}
+
+TEST(WebSocketProtocolSecurityTest, ThrowingMessageCallbackIsConnectionLocal) {
+  websocket_protocol failing(true, 4);
+  int closes = 0;
+  failing.set_message_callback([](const ws_message&) { throw std::runtime_error("application callback"); });
+  failing.set_close_callback([&](ws_close_code code, std::string_view) {
+    ++closes;
+    EXPECT_EQ(code, ws_close_code::internal_error);
+  });
+  const auto frame = websocket_frame::encode_frame(ws_opcode::text, {'A'}, true, false);
+  EXPECT_NO_THROW(failing.process_data(frame));
+  EXPECT_NO_THROW(failing.process_data(frame));
+  EXPECT_EQ(closes, 1);
+
+  websocket_protocol healthy(true, 4);
+  int messages = 0;
+  healthy.set_message_callback([&](const ws_message&) { ++messages; });
+  healthy.process_data(frame);
+  EXPECT_EQ(messages, 1);
+}
+
+TEST(WebSocketProtocolSecurityTest, ThrowingCloseCallbackStillLeavesConnectionTerminal) {
+  websocket_protocol protocol(true, 1);
+  int closes = 0;
+  int messages = 0;
+  protocol.set_close_callback([&](ws_close_code, std::string_view) {
+    ++closes;
+    throw std::runtime_error("close callback");
+  });
+  protocol.set_message_callback([&](const ws_message&) { ++messages; });
+  EXPECT_NO_THROW(protocol.process_data(std::vector<uint8_t>{0x82, 2}));
+  protocol.process_data(websocket_frame::encode_frame(ws_opcode::text, {'A'}, true, false));
+  EXPECT_EQ(closes, 1);
+  EXPECT_EQ(messages, 0);
+}
+
+TEST(WebSocketProtocolSecurityTest, ZeroBudgetAllowsOnlyEmptyMessage) {
+  websocket_protocol protocol(true, 0);
+  int messages = 0;
+  int closes = 0;
+  protocol.set_message_callback([&](const ws_message& message) {
+    ++messages;
+    EXPECT_TRUE(message.data.empty());
+  });
+  protocol.set_close_callback([&](ws_close_code code, std::string_view) {
+    ++closes;
+    EXPECT_EQ(code, ws_close_code::message_too_big);
+  });
+  protocol.process_data(websocket_frame::encode_frame(ws_opcode::text, {}, true, false));
+  protocol.process_data(websocket_frame::encode_frame(ws_opcode::text, {'A'}, true, false));
+  EXPECT_EQ(messages, 1);
+  EXPECT_EQ(closes, 1);
+}
+
+TEST(WebSocketProtocolSecurityTest, PeerCloseStopsSubsequentMessages) {
+  websocket_protocol protocol(true, 4);
+  int messages = 0;
+  int closes = 0;
+  protocol.set_message_callback([&](const ws_message&) { ++messages; });
+  protocol.set_close_callback([&](ws_close_code, std::string_view) { ++closes; });
+  protocol.process_data(websocket_frame::encode_frame(ws_opcode::close, {0x03, 0xe8}, true, false));
+  protocol.process_data(websocket_frame::encode_frame(ws_opcode::text, {'A'}, true, false));
+  EXPECT_EQ(messages, 0);
+  EXPECT_EQ(closes, 1);
 }

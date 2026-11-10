@@ -565,7 +565,7 @@ namespace kcenon::network::core
 
 		// Wrap in websocket_socket
 		auto ws_socket =
-			std::make_shared<internal::websocket_socket>(tcp_sock, false);
+			std::make_shared<internal::websocket_socket>(tcp_sock, false, config_.max_message_size);
 
 		// Create connection wrapper
 		auto conn_impl = std::make_shared<ws_connection_impl>(conn_id, ws_socket, remote_addr, config_.path);

@@ -352,7 +352,8 @@ namespace kcenon::network::core
 				// Wrap in websocket_socket
 				{
 					std::lock_guard<std::mutex> lock(ws_socket_mutex_);
-					ws_socket_ = std::make_shared<internal::websocket_socket>(tcp_sock, true);
+					ws_socket_ = std::make_shared<internal::websocket_socket>(
+						tcp_sock, true, config_.max_message_size);
 
 					// Set WebSocket callbacks
 					ws_socket_->set_message_callback(
