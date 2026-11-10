@@ -43,7 +43,8 @@ namespace kcenon::network::internal
 	auto tcp_socket::set_receive_callback_view(
 		std::function<void(std::span<const uint8_t>)> callback) -> void
 	{
-		auto new_cb = std::make_shared<receive_callback_view_t>(std::move(callback));
+		std::shared_ptr<receive_callback_view_t> new_cb;
+		if (callback) new_cb = std::make_shared<receive_callback_view_t>(std::move(callback));
 		std::lock_guard<std::mutex> lock(callback_mutex_);
 		std::atomic_store(&receive_callback_view_, new_cb);
 	}
@@ -51,7 +52,8 @@ namespace kcenon::network::internal
 	auto tcp_socket::set_error_callback(
 		std::function<void(std::error_code)> callback) -> void
 	{
-		auto new_cb = std::make_shared<error_callback_t>(std::move(callback));
+		std::shared_ptr<error_callback_t> new_cb;
+		if (callback) new_cb = std::make_shared<error_callback_t>(std::move(callback));
 		std::lock_guard<std::mutex> lock(callback_mutex_);
 		std::atomic_store(&error_callback_, new_cb);
 	}

@@ -66,6 +66,7 @@ namespace kcenon::network::internal
 		 * \param is_client True if this is a client endpoint (applies masking)
 		 */
 		websocket_socket(std::shared_ptr<tcp_socket> socket, bool is_client);
+		websocket_socket(std::shared_ptr<tcp_socket> socket, bool is_client, size_t max_message_size);
 
 		/*!
 		 * \brief Destructor.
@@ -233,6 +234,7 @@ namespace kcenon::network::internal
 		// WebSocket protocol state machine
 		websocket_protocol protocol_;
 		std::atomic<ws_state> state_{ws_state::connecting};
+		std::atomic<bool> close_response_pending_{false};
 
 		// Callbacks
 		std::mutex callback_mutex_;
@@ -260,6 +262,8 @@ namespace kcenon::network::internal
 		 * \param ec The error code
 		 */
 		auto on_tcp_error(std::error_code ec) -> void;
+		auto fail_handshake(std::error_code ec,
+			const std::function<void(std::error_code)>& handler) -> void;
 
 		/*!
 		 * \brief Handles a decoded message from the protocol layer.

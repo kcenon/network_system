@@ -565,7 +565,7 @@ namespace kcenon::network::core
 
 		// Wrap in websocket_socket
 		auto ws_socket =
-			std::make_shared<internal::websocket_socket>(tcp_sock, false);
+			std::make_shared<internal::websocket_socket>(tcp_sock, false, config_.max_message_size);
 
 		// Create connection wrapper
 		auto conn_impl = std::make_shared<ws_connection_impl>(conn_id, ws_socket, remote_addr, config_.path);
@@ -573,16 +573,18 @@ namespace kcenon::network::core
 
 		// Set WebSocket callbacks
 		ws_socket->set_message_callback(
-			[this, conn](const internal::ws_message& msg)
-			{ on_message(conn, msg); });
+			[this, weak_conn = std::weak_ptr<ws_connection>(conn)](const internal::ws_message& msg)
+			{
+				if (auto connection = weak_conn.lock()) on_message(connection, msg);
+			});
 
 		ws_socket->set_ping_callback(
-			[this, ws_socket](const std::vector<uint8_t>& payload)
+			[this, weak_socket = std::weak_ptr<internal::websocket_socket>(ws_socket)](const std::vector<uint8_t>& payload)
 			{
 				if (config_.auto_pong)
 				{
-					ws_socket->async_send_ping(std::vector<uint8_t>(payload),
-											   [](std::error_code) {});
+					if (auto socket = weak_socket.lock())
+						socket->async_send_ping(std::vector<uint8_t>(payload), [](std::error_code) {});
 				}
 			});
 

@@ -126,6 +126,7 @@ namespace kcenon::network::internal
          *
          * Decodes %XX sequences back to original characters
          * Handles both %20 and + as spaces
+         * Retains a literal percent sign for malformed or truncated escapes
          */
         static auto url_decode(const std::string& value) -> std::string;
 

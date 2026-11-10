@@ -6,6 +6,7 @@ All rights reserved.
 *****************************************************************************/
 
 #include <gtest/gtest.h>
+#include <limits>
 #include "internal/websocket/websocket_frame.h"
 
 using namespace kcenon::network::internal;
@@ -567,4 +568,48 @@ TEST(WebSocketFrameTest, DecodeHeaderTruncatedMaskKey)
 	auto header = websocket_frame::decode_header(frame);
 
 	EXPECT_FALSE(header.has_value());
+}
+
+TEST(WebSocketFrameSecurityTest, RejectsReservedHighLengthBit)
+{
+	const std::vector<uint8_t> frame = {0x82, 127, 0x80, 0, 0, 0, 0, 0, 0, 0};
+	ws_header_error error;
+	EXPECT_FALSE(websocket_frame::decode_header_checked(frame, error, 1024));
+	EXPECT_EQ(error, ws_header_error::invalid_length);
+	EXPECT_FALSE(websocket_frame::decode_header(frame));
+}
+
+TEST(WebSocketFrameSecurityTest, RejectsNonminimalExtendedLengths)
+{
+	for (const auto& frame : std::vector<std::vector<uint8_t>>{
+		{0x82, 126, 0, 125}, {0x82, 127, 0, 0, 0, 0, 0, 0, 0xff, 0xff}})
+	{
+		ws_header_error error;
+		EXPECT_FALSE(websocket_frame::decode_header_checked(frame, error, 100000));
+		EXPECT_EQ(error, ws_header_error::invalid_length);
+	}
+}
+
+TEST(WebSocketFrameSecurityTest, RejectsOversizedHeaderBeforePayloadArrives)
+{
+	const std::vector<uint8_t> frame = {0x82, 127, 0, 0, 0, 0, 0, 1, 0, 0};
+	ws_header_error error;
+	EXPECT_FALSE(websocket_frame::decode_header_checked(frame, error, 1024));
+	EXPECT_EQ(error, ws_header_error::payload_too_large);
+}
+
+TEST(WebSocketFrameSecurityTest, IncompleteHeaderIsDistinctFromInvalidLength)
+{
+	ws_header_error error = ws_header_error::none;
+	EXPECT_FALSE(websocket_frame::decode_header_checked({0x82, 127, 0}, error, 1024));
+	EXPECT_EQ(error, ws_header_error::incomplete);
+}
+
+TEST(WebSocketFrameSecurityTest, ForgedHeaderCannotOverflowPayloadBounds)
+{
+	ws_frame_header header{};
+	header.payload_len = std::numeric_limits<uint64_t>::max();
+	EXPECT_NO_THROW(EXPECT_TRUE(websocket_frame::decode_payload(header, std::vector<uint8_t>(20)).empty()));
+	header.mask = true;
+	EXPECT_NO_THROW(EXPECT_TRUE(websocket_frame::decode_payload(header, std::vector<uint8_t>(20)).empty()));
 }

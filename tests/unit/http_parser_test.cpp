@@ -112,6 +112,26 @@ TEST_F(HttpParserUrlDecodeTest, NoEncodingPassThrough)
 	EXPECT_EQ(result, "plaintext");
 }
 
+TEST(HttpParserSecurityTest, MalformedPercentEscapeDoesNotThrow)
+{
+	for (const auto* input : {"%", "%A", "%GG", "%2G", "%0x", "a=%00&b=%ff&c=%GG&d=%"})
+	{
+		EXPECT_NO_THROW((void)http_parser::url_decode(input));
+		EXPECT_NO_THROW((void)http_parser::parse_query_string(input));
+	}
+	EXPECT_EQ(http_parser::url_decode("%GG%2G%"), "%GG%2G%");
+	EXPECT_EQ(http_parser::url_decode("%ff%00"), std::string("\xff\0", 2));
+}
+
+TEST(HttpParserSecurityTest, MalformedQueryEscapeDoesNotUnwindRequestParser)
+{
+	EXPECT_NO_THROW({
+		const auto result = http_parser::parse_request(std::string_view(
+			"GET /?value=%GG HTTP/1.1\r\nHost: localhost\r\n\r\n"));
+		EXPECT_TRUE(result.is_ok());
+	});
+}
+
 TEST_F(HttpParserUrlDecodeTest, UrlEncodeDecodeRoundTrip)
 {
 	std::string original = "hello world & foo=bar/baz?q=1";

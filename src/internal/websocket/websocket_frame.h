@@ -47,6 +47,14 @@ namespace kcenon::network::internal
 		std::array<uint8_t, 4> masking_key; ///< Masking key (if mask == true)
 	};
 
+	enum class ws_header_error
+	{
+		none,
+		incomplete,
+		invalid_length,
+		payload_too_large
+	};
+
 	/*!
 	 * \class websocket_frame
 	 * \brief Provides WebSocket frame encoding and decoding functionality.
@@ -83,6 +91,11 @@ namespace kcenon::network::internal
 		 * \return Decoded header if valid, std::nullopt if invalid or incomplete
 		 */
 		static auto decode_header(const std::vector<uint8_t>& data)
+			-> std::optional<ws_frame_header>;
+
+		// Distinguish partial input from a rejected length before allocating payloads.
+		static auto decode_header_checked(const std::vector<uint8_t>& data,
+										  ws_header_error& error, size_t max_payload_length)
 			-> std::optional<ws_frame_header>;
 
 		/*!

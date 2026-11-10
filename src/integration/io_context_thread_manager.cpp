@@ -15,6 +15,7 @@
 #include "internal/core/network_context.h"
 
 #include <atomic>
+#include <thread>
 #include <unordered_map>
 #include <vector>
 

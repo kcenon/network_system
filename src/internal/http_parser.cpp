@@ -463,19 +463,30 @@ namespace kcenon::network::internal
     auto http_parser::url_decode(const std::string& value) -> std::string
     {
         std::ostringstream decoded;
+        const auto hex_digit = [](unsigned char ch) -> int {
+            if (ch >= '0' && ch <= '9') return ch - '0';
+            if (ch >= 'a' && ch <= 'f') return ch - 'a' + 10;
+            if (ch >= 'A' && ch <= 'F') return ch - 'A' + 10;
+            return -1;
+        };
 
         for (std::size_t i = 0; i < value.length(); ++i)
         {
             if (value[i] == '%')
             {
-                if (i + 2 < value.length())
+                if (value.length() - i > 2)
                 {
-                    // Decode %XX
-                    std::string hex = value.substr(i + 1, 2);
-                    int decoded_char = std::stoi(hex, nullptr, 16);
-                    decoded << static_cast<char>(decoded_char);
-                    i += 2;
+                    const int high = hex_digit(static_cast<unsigned char>(value[i + 1]));
+                    const int low = hex_digit(static_cast<unsigned char>(value[i + 2]));
+                    if (high >= 0 && low >= 0)
+                    {
+                        decoded << static_cast<char>((high << 4) | low);
+                        i += 2;
+                        continue;
+                    }
                 }
+                // Keep a malformed or truncated escape literal; never throw on input.
+                decoded << '%';
             }
             else if (value[i] == '+')
             {

@@ -115,8 +115,15 @@ using bio_ptr = std::unique_ptr<BIO, bio_deleter>;
         throw std::runtime_error("X509_set_pubkey failed: " + openssl_error_string());
     }
 
-    X509_NAME* name = X509_get_subject_name(cert.get());
-    const auto add_entry = [name](const char* field, const char* value) {
+    // OpenSSL 4 exposes the certificate's existing subject as const. Build an
+    // owned name and copy it into the certificate instead of mutating that view.
+    std::unique_ptr<X509_NAME, decltype(&X509_NAME_free)> subject(
+        X509_NAME_new(), X509_NAME_free);
+    if (!subject)
+    {
+        throw std::runtime_error("X509_NAME_new failed: " + openssl_error_string());
+    }
+    const auto add_entry = [name = subject.get()](const char* field, const char* value) {
         if (X509_NAME_add_entry_by_txt(
                 name, field, MBSTRING_ASC,
                 reinterpret_cast<const unsigned char*>(value),
@@ -129,7 +136,11 @@ using bio_ptr = std::unique_ptr<BIO, bio_deleter>;
     add_entry("CN", "localhost");
     add_entry("O", "kcenon-network-tests");
 
-    if (X509_set_issuer_name(cert.get(), name) != 1)
+    if (X509_set_subject_name(cert.get(), subject.get()) != 1)
+    {
+        throw std::runtime_error("X509_set_subject_name failed: " + openssl_error_string());
+    }
+    if (X509_set_issuer_name(cert.get(), subject.get()) != 1)
     {
         throw std::runtime_error("X509_set_issuer_name failed: " + openssl_error_string());
     }

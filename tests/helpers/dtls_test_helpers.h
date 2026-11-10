@@ -146,17 +146,23 @@ public:
 		// Set public key
 		X509_set_pubkey(x509, pkey);
 
-		// Set subject name
-		X509_NAME* name = X509_get_subject_name(x509);
-		X509_NAME_add_entry_by_txt(name, "C", MBSTRING_ASC,
-		                           reinterpret_cast<const unsigned char*>("US"), -1, -1, 0);
-		X509_NAME_add_entry_by_txt(name, "O", MBSTRING_ASC,
-		                           reinterpret_cast<const unsigned char*>("Test Organization"), -1, -1, 0);
-		X509_NAME_add_entry_by_txt(name, "CN", MBSTRING_ASC,
-		                           reinterpret_cast<const unsigned char*>(common_name.c_str()), -1, -1, 0);
-
-		// Self-signed: issuer = subject
-		X509_set_issuer_name(x509, name);
+		// Build an owned name: OpenSSL 4 returns a const subject-name view.
+		std::unique_ptr<X509_NAME, decltype(&X509_NAME_free)> name(
+			X509_NAME_new(), X509_NAME_free);
+		if (!name ||
+		    X509_NAME_add_entry_by_txt(name.get(), "C", MBSTRING_ASC,
+		        reinterpret_cast<const unsigned char*>("US"), -1, -1, 0) != 1 ||
+		    X509_NAME_add_entry_by_txt(name.get(), "O", MBSTRING_ASC,
+		        reinterpret_cast<const unsigned char*>("Test Organization"), -1, -1, 0) != 1 ||
+		    X509_NAME_add_entry_by_txt(name.get(), "CN", MBSTRING_ASC,
+		        reinterpret_cast<const unsigned char*>(common_name.c_str()), -1, -1, 0) != 1 ||
+		    X509_set_subject_name(x509, name.get()) != 1 ||
+		    X509_set_issuer_name(x509, name.get()) != 1)
+		{
+			X509_free(x509);
+			EVP_PKEY_free(pkey);
+			throw std::runtime_error("Failed to set certificate name");
+		}
 
 		// Sign the certificate
 		if (!X509_sign(x509, pkey, EVP_sha256()))

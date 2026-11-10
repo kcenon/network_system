@@ -89,6 +89,9 @@ namespace kcenon::network::internal
 		 */
 		explicit websocket_protocol(bool is_client);
 
+		static constexpr size_t default_max_message_size = 10 * 1024 * 1024;
+		websocket_protocol(bool is_client, size_t max_message_size);
+
 		/*!
 		 * \brief Processes incoming WebSocket data.
 		 *
@@ -211,6 +214,8 @@ namespace kcenon::network::internal
 
 	private:
 		bool is_client_;                            ///< True if client (applies masking)
+		size_t max_message_size_;                   ///< Maximum incoming assembled message size
+		bool closed_ = false;
 		std::vector<uint8_t> buffer_;               ///< Incoming data buffer
 		std::vector<uint8_t> fragmented_message_;   ///< Reassembly buffer for fragmented messages
 		ws_opcode fragmented_type_;                 ///< Type of fragmented message in progress
@@ -228,6 +233,7 @@ namespace kcenon::network::internal
 		 * May invoke callbacks for complete messages.
 		 */
 		auto process_frames() -> void;
+		auto fail(ws_close_code code, const char* reason) noexcept -> void;
 
 		/*!
 		 * \brief Handles a data frame (text or binary).

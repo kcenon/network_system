@@ -4,6 +4,8 @@
 
 #include "internal/websocket/websocket_frame.h"
 
+#include <limits>
+
 #include <algorithm>
 #include <random>
 
@@ -164,6 +166,15 @@ namespace kcenon::network::internal
 	auto websocket_frame::decode_header(const std::vector<uint8_t>& data)
 		-> std::optional<ws_frame_header>
 	{
+		ws_header_error error;
+		return decode_header_checked(data, error, std::numeric_limits<size_t>::max());
+	}
+
+	auto websocket_frame::decode_header_checked(const std::vector<uint8_t>& data,
+												 ws_header_error& error, size_t max_payload_length)
+		-> std::optional<ws_frame_header>
+	{
+		error = ws_header_error::incomplete;
 		if (data.size() < MIN_HEADER_SIZE)
 		{
 			return std::nullopt;
@@ -195,6 +206,11 @@ namespace kcenon::network::internal
 			}
 			header.payload_len = from_network_u16(&data[offset]);
 			offset += 2;
+			if (header.payload_len < 126)
+			{
+				error = ws_header_error::invalid_length;
+				return std::nullopt;
+			}
 		}
 		else if (payload_len == PAYLOAD_LEN_64BIT)
 		{
@@ -204,10 +220,23 @@ namespace kcenon::network::internal
 			}
 			header.payload_len = from_network_u64(&data[offset]);
 			offset += 8;
+			if ((header.payload_len & (uint64_t{1} << 63)) != 0 || header.payload_len < 65536)
+			{
+				error = ws_header_error::invalid_length;
+				return std::nullopt;
+			}
 		}
 		else
 		{
 			header.payload_len = payload_len;
+		}
+
+		const size_t header_size = calculate_header_size(header.payload_len, header.mask);
+		if (header.payload_len > max_payload_length ||
+			header.payload_len > std::numeric_limits<size_t>::max() - header_size)
+		{
+			error = ws_header_error::payload_too_large;
+			return std::nullopt;
 		}
 
 		// Masking key
@@ -220,6 +249,7 @@ namespace kcenon::network::internal
 			std::copy_n(data.begin() + offset, MASKING_KEY_SIZE, header.masking_key.begin());
 		}
 
+		error = ws_header_error::none;
 		return header;
 	}
 
@@ -229,7 +259,7 @@ namespace kcenon::network::internal
 	{
 		const size_t header_size = calculate_header_size(header.payload_len, header.mask);
 
-		if (data.size() < header_size + header.payload_len)
+		if (header_size > data.size() || header.payload_len > data.size() - header_size)
 		{
 			return {};
 		}
