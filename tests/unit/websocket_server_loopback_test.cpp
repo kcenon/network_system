@@ -292,6 +292,27 @@ TEST(WsServerLoopbackSecurity, OversizedHeaderClosesPeerAndKeepsOtherConnectionW
     ASSERT_TRUE(server->stop_server().is_ok());
 }
 
+TEST(WsServerLoopbackSecurity, ClosedSessionReleasesCallbackOwnership)
+{
+    auto server = std::make_shared<core::messaging_ws_server>("session-lifetime");
+    auto accepted = std::make_shared<std::promise<std::weak_ptr<wsiface::i_websocket_session>>>();
+    auto ready = accepted->get_future();
+    server->set_connection_callback([accepted](std::shared_ptr<wsiface::i_websocket_session> session) {
+        accepted->set_value(session);
+    });
+    const auto port = probe_free_port();
+    ASSERT_TRUE(server->start_server(port).is_ok());
+    WsLoopbackClient client;
+    ASSERT_TRUE(client.connect(port));
+    ASSERT_EQ(ready.wait_for(2s), std::future_status::ready);
+    const auto session = ready.get();
+    ASSERT_FALSE(session.expired());
+    ASSERT_TRUE(client.close());
+    EXPECT_TRUE(wait_until([&] { return session.expired(); }));
+    client.disconnect();
+    ASSERT_TRUE(server->stop_server().is_ok());
+}
+
 // ============================================================================
 // Lifecycle: start_server success / stop_server success / restart
 // ============================================================================

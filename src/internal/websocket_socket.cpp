@@ -57,7 +57,18 @@ namespace kcenon::network::internal
 
 	websocket_socket::~websocket_socket()
 	{
-		// Cleanup resources if needed
+		tcp_socket_->stop_read();
+		tcp_socket_->set_receive_callback_view({});
+		tcp_socket_->set_error_callback({});
+		try
+		{
+			// A protocol Close response owns the transport until its write completes.
+			if (!close_response_pending_.load()) tcp_socket_->close();
+		}
+		catch (...)
+		{
+			// Destruction cannot throw if posting transport cleanup fails.
+		}
 	}
 
 	auto websocket_socket::async_handshake(const std::string& host,
@@ -89,7 +100,7 @@ namespace kcenon::network::internal
 			{
 				if (ec)
 				{
-					handler(ec);
+					fail_handshake(ec, handler);
 					return;
 				}
 
@@ -107,7 +118,7 @@ namespace kcenon::network::internal
 
 						if (!result.success)
 						{
-							handler(std::make_error_code(std::errc::protocol_error));
+							fail_handshake(std::make_error_code(std::errc::protocol_error), handler);
 							return;
 						}
 
@@ -143,7 +154,7 @@ namespace kcenon::network::internal
 
 				if (!result.success)
 				{
-					handler(std::make_error_code(std::errc::protocol_error));
+					fail_handshake(std::make_error_code(std::errc::protocol_error), handler);
 					return;
 				}
 
@@ -151,7 +162,7 @@ namespace kcenon::network::internal
 				auto it = result.headers.find("sec-websocket-key");
 				if (it == result.headers.end())
 				{
-					handler(std::make_error_code(std::errc::protocol_error));
+					fail_handshake(std::make_error_code(std::errc::protocol_error), handler);
 					return;
 				}
 
@@ -168,7 +179,7 @@ namespace kcenon::network::internal
 					{
 						if (ec)
 						{
-							handler(ec);
+							fail_handshake(ec, handler);
 							return;
 						}
 
@@ -264,11 +275,11 @@ namespace kcenon::network::internal
 
 		// Send via underlying tcp_socket
 		tcp_socket_->async_send(std::move(frame_data),
-								[this, handler](std::error_code ec, std::size_t)
+								[weak = weak_from_this(), handler](std::error_code ec, std::size_t)
 								{
 									if (ec)
 									{
-										state_ = ws_state::closed;
+										if (auto self = weak.lock()) self->state_ = ws_state::closed;
 										if (handler)
 										{
 											handler(ec);
@@ -336,6 +347,7 @@ namespace kcenon::network::internal
 
 	auto websocket_socket::on_tcp_error(std::error_code ec) -> void
 	{
+		const auto lifetime = weak_from_this().lock();
 		// Update state to closed
 		state_ = ws_state::closed;
 
@@ -345,6 +357,17 @@ namespace kcenon::network::internal
 		{
 			error_callback_(ec);
 		}
+	}
+
+	auto websocket_socket::fail_handshake(std::error_code ec,
+		const std::function<void(std::error_code)>& handler) -> void
+	{
+		state_ = ws_state::closed;
+		tcp_socket_->stop_read();
+		tcp_socket_->set_receive_callback_view({});
+		tcp_socket_->set_error_callback({});
+		tcp_socket_->close();
+		if (handler) handler(ec);
 	}
 
 	auto websocket_socket::handle_protocol_message(const ws_message& msg) -> void
@@ -387,9 +410,18 @@ namespace kcenon::network::internal
 		tcp_socket_->set_error_callback({});
 		if (previous == ws_state::open)
 		{
-			auto response = protocol_.create_close(code, std::string(reason));
-			tcp_socket_->async_send(std::move(response),
-				[socket = tcp_socket_](std::error_code, std::size_t) { socket->close(); });
+			close_response_pending_.store(true);
+			try
+			{
+				auto response = protocol_.create_close(code, std::string(reason));
+				tcp_socket_->async_send(std::move(response),
+					[socket = tcp_socket_](std::error_code, std::size_t) { socket->close(); });
+			}
+			catch (...)
+			{
+				close_response_pending_.store(false);
+				tcp_socket_->close();
+			}
 		}
 		else
 		{
